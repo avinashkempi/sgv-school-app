@@ -8,12 +8,10 @@
     "scheme": "sgvschool",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.sgvschool.app"
     },
-
     "android": {
       "package": "com.sgvschool.app",
       "adaptiveIcon": {
@@ -21,13 +19,11 @@
         "backgroundColor": "#ffffff"
       }
     },
-
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
-
     "plugins": [
       "expo-router",
       [
@@ -39,15 +35,22 @@
         }
       ]
     ],
-
     "experiments": {
       "typedRoutes": true
     },
-
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-
-    "assetBundlePatterns": ["**/*"]
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "4d8aa0f7-ce1f-46c3-83ae-fa188aad9ebe"
+      }
+    }
   }
 }
