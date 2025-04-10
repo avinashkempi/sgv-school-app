@@ -1,15 +1,16 @@
 // app/_layout.tsx
-import { Stack } from 'expo-router';
-import { useFonts } from 'expo-font';
-import { Text, View } from 'react-native';
-import { useEffect } from 'react';
+import { Stack } from "expo-router";
+import { useFonts } from "expo-font";
+import { Text, View } from "react-native";
+import { useEffect } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
-    Poppins: require('../assets/fonts/Poppins-Regular.ttf'),
-    'Poppins-Medium': require('../assets/fonts/Poppins-Medium.ttf'),
-    'Poppins-SemiBold': require('../assets/fonts/Poppins-SemiBold.ttf'),
-    'Poppins-Bold': require('../assets/fonts/Poppins-Bold.ttf'),
+    Poppins: require("../assets/fonts/Poppins-Regular.ttf"),
+    "Poppins-Medium": require("../assets/fonts/Poppins-Medium.ttf"),
+    "Poppins-SemiBold": require("../assets/fonts/Poppins-SemiBold.ttf"),
+    "Poppins-Bold": require("../assets/fonts/Poppins-Bold.ttf"),
   });
 
   useEffect(() => {
@@ -19,7 +20,7 @@ export default function RootLayout() {
         ...(Text as any).defaultProps,
         style: {
           ...(Text as any).defaultProps?.style,
-          fontFamily: 'Poppins',
+          fontFamily: "Poppins",
         },
       };
 
@@ -28,7 +29,7 @@ export default function RootLayout() {
         ...(View as any).defaultProps,
         style: {
           ...(View as any).defaultProps?.style,
-          fontFamily: 'Poppins',
+          fontFamily: "Poppins",
         },
       };
     }
@@ -36,5 +37,9 @@ export default function RootLayout() {
 
   if (!fontsLoaded) return null;
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#f5f5f5" }}>
+      <Stack screenOptions={{ headerShown: false }} />
+    </SafeAreaView>
+  );
 }

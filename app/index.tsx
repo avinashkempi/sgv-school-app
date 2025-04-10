@@ -1,4 +1,3 @@
-// app/index.tsx
 import {
   View,
   Text,
@@ -26,71 +25,71 @@ export default function HomeScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" />
+      <ScrollView style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" />
 
-      <Text style={styles.heading}>🎓 Welcome</Text>
-      <Text style={styles.subheading}>{SCHOOL.name}</Text>
+        <Text style={styles.heading}>🎓 Welcome</Text>
+        <Text style={styles.subheading}>{SCHOOL.name}</Text>
 
-      <View style={styles.cardGroup}>
-        <Link href={ROUTES.ABOUT} asChild>
-          <Pressable style={styles.card}>
-            <MaterialIcons name="info" size={24} color="#2F6CD4" />
-            <Text style={styles.cardText}>About</Text>
+        <View style={styles.cardGroup}>
+          <Link href={ROUTES.ABOUT} asChild>
+            <Pressable style={styles.card}>
+              <MaterialIcons name="info" size={24} color="#2F6CD4" />
+              <Text style={styles.cardText}>About</Text>
+            </Pressable>
+          </Link>
+
+          <Link href={ROUTES.MAP} asChild>
+            <Pressable style={styles.card}>
+              <MaterialIcons name="map" size={24} color="#2F6CD4" />
+              <Text style={styles.cardText}>Map</Text>
+            </Pressable>
+          </Link>
+
+          <Link href={ROUTES.EVENTS} asChild>
+            <Pressable style={styles.card}>
+              <MaterialIcons name="event" size={24} color="#2F6CD4" />
+              <Text style={styles.cardText}>Events</Text>
+            </Pressable>
+          </Link>
+
+          <Link href={ROUTES.NEWS} asChild>
+            <Pressable style={styles.card}>
+              <MaterialCommunityIcons
+                name="newspaper"
+                size={24}
+                color="#2F6CD4"
+              />
+              <Text style={styles.cardText}>News</Text>
+            </Pressable>
+          </Link>
+
+          <Link href={ROUTES.CONTACT} asChild>
+            <Pressable style={styles.card}>
+              <MaterialIcons name="contact-page" size={24} color="#2F6CD4" />
+              <Text style={styles.cardText}>Contact Us</Text>
+            </Pressable>
+          </Link>
+        </View>
+
+        <View style={styles.socialContainer}>
+          <Pressable
+            onPress={() => handlePress(SCHOOL.socials.youtube)}
+            style={styles.iconBox}
+          >
+            <FontAwesome name="youtube-play" size={28} color="#FF0000" />
+            <Text style={styles.iconLabel}>YouTube</Text>
           </Pressable>
-        </Link>
 
-        <Link href={ROUTES.MAP} asChild>
-          <Pressable style={styles.card}>
-            <MaterialIcons name="map" size={24} color="#2F6CD4" />
-            <Text style={styles.cardText}>Map</Text>
+          <Pressable
+            onPress={() => handlePress(SCHOOL.socials.instagram)}
+            style={styles.iconBox}
+          >
+            <FontAwesome name="instagram" size={28} color="#C13584" />
+            <Text style={styles.iconLabel}>Instagram</Text>
           </Pressable>
-        </Link>
-
-        <Link href={ROUTES.EVENTS} asChild>
-          <Pressable style={styles.card}>
-            <MaterialIcons name="event" size={24} color="#2F6CD4" />
-            <Text style={styles.cardText}>Events</Text>
-          </Pressable>
-        </Link>
-
-        <Link href={ROUTES.NEWS} asChild>
-          <Pressable style={styles.card}>
-            <MaterialCommunityIcons
-              name="newspaper"
-              size={24}
-              color="#2F6CD4"
-            />
-            <Text style={styles.cardText}>News</Text>
-          </Pressable>
-        </Link>
-
-        <Link href={ROUTES.CONTACT} asChild>
-          <Pressable style={styles.card}>
-            <MaterialIcons name="contact-page" size={24} color="#2F6CD4" />
-            <Text style={styles.cardText}>Contact Us</Text>
-          </Pressable>
-        </Link>
-      </View>
-
-      <View style={styles.socialContainer}>
-        <Pressable
-          onPress={() => handlePress(SCHOOL.socials.youtube)}
-          style={styles.iconBox}
-        >
-          <FontAwesome name="youtube-play" size={28} color="#FF0000" />
-          <Text style={styles.iconLabel}>YouTube</Text>
-        </Pressable>
-
-        <Pressable
-          onPress={() => handlePress(SCHOOL.socials.instagram)}
-          style={styles.iconBox}
-        >
-          <FontAwesome name="instagram" size={28} color="#C13584" />
-          <Text style={styles.iconLabel}>Instagram</Text>
-        </Pressable>
-      </View>
-    </ScrollView>
+        </View>
+      </ScrollView>
   );
 }
 
