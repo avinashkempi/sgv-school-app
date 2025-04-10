@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,6 +7,7 @@ import {
   Linking,
   StyleSheet,
   ScrollView,
+  Animated,
 } from "react-native";
 import { Link } from "expo-router";
 import {
@@ -16,80 +18,108 @@ import {
 import { SCHOOL } from "../constants/basic-info";
 import { ROUTES } from "../constants/routes";
 
-export default function HomeScreen() {
-  const handlePress = async (url: string) => {
-    const supported = await Linking.canOpenURL(url);
+const handlePress = async (appUrl: string, fallbackUrl: string) => {
+  try {
+    const supported = await Linking.canOpenURL(appUrl);
     if (supported) {
-      await Linking.openURL(url);
+      await Linking.openURL(appUrl);
+    } else {
+      await Linking.openURL(fallbackUrl);
     }
+  } catch (err) {
+    console.error("Failed to open link:", err);
+  }
+};
+
+export default function HomeScreen() {
+  const [iconScale, setIconScale] = useState(new Animated.Value(1));
+
+  const handleIconPressIn = () => {
+    Animated.spring(iconScale, {
+      toValue: 1.1,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handleIconPressOut = () => {
+    Animated.spring(iconScale, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
   };
 
   return (
-      <ScrollView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" />
+    <ScrollView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" />
 
-        <Text style={styles.heading}>🎓 Welcome</Text>
-        <Text style={styles.subheading}>{SCHOOL.name}</Text>
+      {/* Welcome Header */}
+      <Text style={styles.heading}>🎓 Welcome</Text>
+      <Text style={styles.subheading}>{SCHOOL.name}</Text>
 
-        <View style={styles.cardGroup}>
-          <Link href={ROUTES.ABOUT} asChild>
-            <Pressable style={styles.card}>
-              <MaterialIcons name="info" size={24} color="#2F6CD4" />
-              <Text style={styles.cardText}>About</Text>
-            </Pressable>
-          </Link>
+      {/* Main Card Group */}
+      <View style={styles.cardGroup}>
+        <Link href={ROUTES.ABOUT} asChild>
+          <Pressable style={styles.card}>
+            <MaterialIcons name="info" size={24} color="#2F6CD4" />
+            <Text style={styles.cardText}>About</Text>
+          </Pressable>
+        </Link>
 
-          <Link href={ROUTES.MAP} asChild>
-            <Pressable style={styles.card}>
-              <MaterialIcons name="map" size={24} color="#2F6CD4" />
-              <Text style={styles.cardText}>Map</Text>
-            </Pressable>
-          </Link>
+        <Link href={ROUTES.EVENTS} asChild>
+          <Pressable style={styles.card}>
+            <MaterialIcons name="event" size={24} color="#2F6CD4" />
+            <Text style={styles.cardText}>Events</Text>
+          </Pressable>
+        </Link>
 
-          <Link href={ROUTES.EVENTS} asChild>
-            <Pressable style={styles.card}>
-              <MaterialIcons name="event" size={24} color="#2F6CD4" />
-              <Text style={styles.cardText}>Events</Text>
-            </Pressable>
-          </Link>
+        <Link href={ROUTES.NEWS} asChild>
+          <Pressable style={styles.card}>
+            <MaterialCommunityIcons name="newspaper" size={24} color="#2F6CD4" />
+            <Text style={styles.cardText}>News</Text>
+          </Pressable>
+        </Link>
 
-          <Link href={ROUTES.NEWS} asChild>
-            <Pressable style={styles.card}>
-              <MaterialCommunityIcons
-                name="newspaper"
-                size={24}
-                color="#2F6CD4"
-              />
-              <Text style={styles.cardText}>News</Text>
-            </Pressable>
-          </Link>
+        <Link href={ROUTES.CONTACT} asChild>
+          <Pressable style={styles.card}>
+            <MaterialIcons name="contact-page" size={24} color="#2F6CD4" />
+            <Text style={styles.cardText}>Contact Us</Text>
+          </Pressable>
+        </Link>
+      </View>
 
-          <Link href={ROUTES.CONTACT} asChild>
-            <Pressable style={styles.card}>
-              <MaterialIcons name="contact-page" size={24} color="#2F6CD4" />
-              <Text style={styles.cardText}>Contact Us</Text>
-            </Pressable>
-          </Link>
-        </View>
-
-        <View style={styles.socialContainer}>
+      {/* Social Media Icons */}
+      <View style={styles.socialContainer}>
+        <Animated.View
+          style={[styles.iconBox, { transform: [{ scale: iconScale }] }]}
+        >
           <Pressable
-            onPress={() => handlePress(SCHOOL.socials.youtube)}
-            style={styles.iconBox}
+            onPressIn={handleIconPressIn}
+            onPressOut={handleIconPressOut}
+            onPress={() =>
+              handlePress(SCHOOL.socials.youtubeAppUrl, SCHOOL.socials.youtube)
+            }
           >
-            <FontAwesome name="youtube-play" size={28} color="#FF0000" />
+            <FontAwesome name="youtube-play" size={30} color="#FF0000" />
             <Text style={styles.iconLabel}>YouTube</Text>
           </Pressable>
+        </Animated.View>
 
+        <Animated.View
+          style={[styles.iconBox, { transform: [{ scale: iconScale }] }]}
+        >
           <Pressable
-            onPress={() => handlePress(SCHOOL.socials.instagram)}
-            style={styles.iconBox}
+            onPressIn={handleIconPressIn}
+            onPressOut={handleIconPressOut}
+            onPress={() =>
+              handlePress(SCHOOL.socials.instagramAppUrl, SCHOOL.socials.instagram)
+            }
           >
-            <FontAwesome name="instagram" size={28} color="#C13584" />
+            <FontAwesome name="instagram" size={30} color="#C13584" />
             <Text style={styles.iconLabel}>Instagram</Text>
           </Pressable>
-        </View>
-      </ScrollView>
+        </Animated.View>
+      </View>
+    </ScrollView>
   );
 }
 
@@ -101,39 +131,42 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   heading: {
-    fontSize: 32,
-    fontFamily: "Poppins-Bold",
+    fontSize: 36,
+    fontFamily: "Quicksand-Bold",
     color: "#2F6CD4",
     textAlign: "center",
-    marginBottom: 4,
+    marginBottom: 6,
+    letterSpacing: 1,
   },
   subheading: {
-    fontSize: 16,
-    fontFamily: "Poppins",
+    fontSize: 18,
+    fontFamily: "Quicksand",
     color: "#666",
     textAlign: "center",
-    marginBottom: 36,
+    marginBottom: 40,
   },
   cardGroup: {
     marginBottom: 40,
   },
   card: {
-    backgroundColor: "#fff",
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 18,
-    borderRadius: 16,
-    elevation: 3,
-    marginBottom: 16,
+    backgroundColor: "#fff",
+    borderRadius: 18,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    marginBottom: 24,
+    elevation: 5,
     shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 3 },
     shadowRadius: 4,
+    borderLeftWidth: 4,
+    borderLeftColor: "#2F6CD4",
   },
   cardText: {
-    fontSize: 17,
-    fontFamily: "Poppins",
+    fontSize: 18,
+    fontFamily: "Quicksand-SemiBold",
     color: "#333",
     marginLeft: 12,
   },
@@ -143,14 +176,26 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     flexDirection: "row",
     justifyContent: "space-around",
+    paddingBottom: 20,
   },
   iconBox: {
     alignItems: "center",
+    justifyContent: "center",
+    textAlign: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+    backgroundColor: "#fff",
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
   },
   iconLabel: {
-    marginTop: 4,
-    fontSize: 13,
-    fontFamily: "Poppins",
+    marginTop: 8,
+    fontSize: 14,
+    fontFamily: "Quicksand",
     color: "#666",
   },
 });

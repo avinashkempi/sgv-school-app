@@ -1,3 +1,4 @@
+import React, { useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -15,8 +16,20 @@ import {
   Entypo,
   FontAwesome,
 } from "@expo/vector-icons";
-import { useRef, useEffect } from "react";
 import { SCHOOL } from "../constants/basic-info";
+
+const openAppLink = async (appUrl: string, fallbackUrl: string) => {
+  try {
+    const supported = await Linking.canOpenURL(appUrl);
+    if (supported) {
+      await Linking.openURL(appUrl);
+    } else {
+      await Linking.openURL(fallbackUrl);
+    }
+  } catch (err) {
+    console.error("Failed to open link:", err);
+  }
+};
 
 export default function Contact() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -24,9 +37,9 @@ export default function Contact() {
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
-      duration: 700,
+      duration: 1000,
       useNativeDriver: true,
-      easing: Easing.out(Easing.ease),
+      easing: Easing.out(Easing.quad),
     }).start();
   }, []);
 
@@ -36,20 +49,22 @@ export default function Contact() {
         Contact Us
       </Animated.Text>
 
+      {/* Address Section */}
       <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
         <View style={styles.iconRow}>
-          <MaterialIcons name="location-on" size={20} color="#FF5E1C" />
+          <MaterialIcons name="location-on" size={22} color="#2F6CD4" />
           <Text style={styles.label}>Address</Text>
         </View>
         <Text style={styles.text}>{SCHOOL.address}</Text>
-        <Pressable onPress={() => Linking.openURL(SCHOOL.mapUrl)}>
+        <Pressable onPress={() => openAppLink(SCHOOL.mapAppUrl, SCHOOL.mapUrl)}>
           <Text style={styles.link}>📌 View on Google Maps</Text>
         </Pressable>
       </Animated.View>
 
+      {/* Phone Section */}
       <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
         <View style={styles.iconRow}>
-          <Feather name="phone-call" size={18} color="#FF5E1C" />
+          <Feather name="phone-call" size={20} color="#2F6CD4" />
           <Text style={styles.label}>Phone</Text>
         </View>
         <Pressable onPress={() => Linking.openURL(`tel:${SCHOOL.phone}`)}>
@@ -57,9 +72,10 @@ export default function Contact() {
         </Pressable>
       </Animated.View>
 
+      {/* Email Section */}
       <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
         <View style={styles.iconRow}>
-          <MaterialIcons name="email" size={20} color="#FF5E1C" />
+          <MaterialIcons name="email" size={22} color="#2F6CD4" />
           <Text style={styles.label}>Email</Text>
         </View>
         <Pressable onPress={() => Linking.openURL(`mailto:${SCHOOL.email}`)}>
@@ -67,24 +83,33 @@ export default function Contact() {
         </Pressable>
       </Animated.View>
 
+      {/* Social Media Section */}
       <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
         <View style={styles.iconRow}>
-          <Entypo name="share" size={18} color="#FF5E1C" />
+          <Entypo name="share" size={20} color="#2F6CD4" />
           <Text style={styles.label}>Follow Us</Text>
         </View>
+
         <Pressable
           style={styles.socialRow}
-          onPress={() => Linking.openURL(SCHOOL.socials.instagram)}
+          onPress={() =>
+            openAppLink(
+              SCHOOL.socials.instagramAppUrl,
+              SCHOOL.socials.instagram
+            )
+          }
         >
-          <FontAwesome5 name="instagram" size={18} color="#C13584" />
+          <FontAwesome5 name="instagram" size={22} color="#C13584" />
           <Text style={styles.link}>Instagram</Text>
         </Pressable>
 
         <Pressable
           style={styles.socialRow}
-          onPress={() => Linking.openURL(SCHOOL.socials.youtube)}
+          onPress={() =>
+            openAppLink(SCHOOL.socials.youtubeAppUrl, SCHOOL.socials.youtube)
+          }
         >
-          <FontAwesome name="youtube-play" size={20} color="#FF0000" />
+          <FontAwesome name="youtube-play" size={24} color="#FF0000" />
           <Text style={styles.link}>YouTube</Text>
         </Pressable>
       </Animated.View>
@@ -95,55 +120,63 @@ export default function Contact() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
-    paddingHorizontal: 20,
-    paddingTop: 40,
+    backgroundColor: "#f7f8fc",
+    paddingHorizontal: 24,
+    paddingTop: 50,
+    paddingBottom: 40,
   },
   title: {
-    fontSize: 28,
-    fontFamily: "Poppins-Bold",
+    fontSize: 32,
+    fontFamily: "Quicksand-Bold",
     color: "#2F6CD4",
-    marginBottom: 30,
+    marginBottom: 40,
     textAlign: "center",
+    letterSpacing: 0.5,
   },
   section: {
     backgroundColor: "#fff",
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 20,
-    elevation: 2,
+    borderRadius: 18,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    marginBottom: 24,
+    elevation: 5,
     shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 3,
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 4,
+    borderLeftWidth: 4,
+    borderLeftColor: "#2F6CD4",
   },
   iconRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    marginBottom: 8,
+    marginBottom: 12,
+    gap: 12,
   },
   label: {
-    fontSize: 17,
-    fontFamily: "Poppins-SemiBold",
+    fontSize: 18,
+    fontFamily: "Quicksand-SemiBold",
     color: "#333",
+    textTransform: "uppercase",
   },
   text: {
-    fontSize: 15,
-    fontFamily: "Poppins",
-    color: "#555",
-    lineHeight: 22,
+    fontSize: 16,
+    fontFamily: "Quicksand",
+    color: "#666",
+    lineHeight: 24,
+    marginBottom: 6,
   },
   link: {
-    fontSize: 15,
-    fontFamily: "Poppins",
+    fontSize: 16,
+    fontFamily: "Quicksand",
     color: "#2F6CD4",
     marginTop: 6,
+    textDecorationLine: "underline",
   },
   socialRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 12,
     marginTop: 10,
   },
 });

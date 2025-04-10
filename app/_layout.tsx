@@ -7,10 +7,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
-    Poppins: require("../assets/fonts/Poppins-Regular.ttf"),
-    "Poppins-Medium": require("../assets/fonts/Poppins-Medium.ttf"),
-    "Poppins-SemiBold": require("../assets/fonts/Poppins-SemiBold.ttf"),
-    "Poppins-Bold": require("../assets/fonts/Poppins-Bold.ttf"),
+    Quicksand: require("../assets/fonts/Quicksand-Regular.ttf"),
+    "Quicksand-Medium": require("../assets/fonts/Quicksand-Medium.ttf"),
+    "Quicksand-SemiBold": require("../assets/fonts/Quicksand-SemiBold.ttf"),
+    "Quicksand-Bold": require("../assets/fonts/Quicksand-Bold.ttf"),
   });
 
   useEffect(() => {
@@ -20,7 +20,7 @@ export default function RootLayout() {
         ...(Text as any).defaultProps,
         style: {
           ...(Text as any).defaultProps?.style,
-          fontFamily: "Poppins",
+          fontFamily: "Quicksand",
         },
       };
 
@@ -29,7 +29,7 @@ export default function RootLayout() {
         ...(View as any).defaultProps,
         style: {
           ...(View as any).defaultProps?.style,
-          fontFamily: "Poppins",
+          fontFamily: "Quicksand",
         },
       };
     }
