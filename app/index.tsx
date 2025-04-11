@@ -56,21 +56,21 @@ export default function HomeScreen() {
       {/* Main Card Group */}
       <View style={styles.cardGroup}>
         <Link href={ROUTES.ABOUT} asChild>
-          <Pressable style={styles.card}>
+          <Pressable style={styles.navCard}>
             <MaterialIcons name="info" size={24} color={COLORS.primary} />
             <Text style={styles.cardText}>About</Text>
           </Pressable>
         </Link>
 
         <Link href={ROUTES.EVENTS} asChild>
-          <Pressable style={styles.card}>
+          <Pressable style={styles.navCard}>
             <MaterialIcons name="event" size={24} color={COLORS.primary} />
             <Text style={styles.cardText}>Events</Text>
           </Pressable>
         </Link>
 
         <Link href={ROUTES.NEWS} asChild>
-          <Pressable style={styles.card}>
+          <Pressable style={styles.navCard}>
             <MaterialCommunityIcons
               name="newspaper"
               size={24}
@@ -81,8 +81,12 @@ export default function HomeScreen() {
         </Link>
 
         <Link href={ROUTES.CONTACT} asChild>
-          <Pressable style={styles.card}>
-            <MaterialIcons name="contact-page" size={24} color={COLORS.primary} />
+          <Pressable style={styles.navCard}>
+            <MaterialIcons
+              name="contact-page"
+              size={24}
+              color={COLORS.primary}
+            />
             <Text style={styles.cardText}>Contact Us</Text>
           </Pressable>
         </Link>
@@ -100,7 +104,7 @@ export default function HomeScreen() {
             style={styles.socialIconWrapper}
           >
             <FontAwesome name="youtube-play" size={30} color="#FF0000" />
-            <Text style={styles.iconLabel}>YouTube</Text>
+            <Text style={globalStyles.iconLabel}>YouTube</Text>
           </Pressable>
         </Animated.View>
 
@@ -117,7 +121,7 @@ export default function HomeScreen() {
             style={styles.socialIconWrapper}
           >
             <FontAwesome name="instagram" size={30} color="#C13584" />
-            <Text style={styles.iconLabel}>Instagram</Text>
+            <Text style={globalStyles.iconLabel}>Instagram</Text>
           </Pressable>
         </Animated.View>
 
@@ -129,7 +133,7 @@ export default function HomeScreen() {
             style={styles.socialIconWrapper}
           >
             <FontAwesome name="map-marker" size={30} color={COLORS.primary} />
-            <Text style={styles.iconLabel}>Map</Text>
+            <Text style={globalStyles.iconLabel}>Map</Text>
           </Pressable>
         </Animated.View>
       </View>
@@ -149,21 +153,10 @@ const styles = StyleSheet.create({
   cardGroup: {
     marginBottom: 40,
   },
-  card: {
+  navCard: {
+    ...globalStyles.card,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
-    borderRadius: 18,
-    paddingVertical: 18,
-    paddingHorizontal: 20,
-    marginBottom: 24,
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 3 },
-    shadowRadius: 4,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.primary,
   },
   cardText: {
     fontSize: 18,
@@ -193,7 +186,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     paddingBottom: 20,
   },
-
   socialIconWrapper: {
     alignItems: "center",
     justifyContent: "center",
@@ -203,13 +195,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderWidth: 1,
     borderColor: "#e0e0e0",
-  },
-
-  iconLabel: {
-    marginTop: 6,
-    fontSize: 14,
-    fontFamily: "Quicksand",
-    color: "#444",
   },
   highlight: {
     fontFamily: "Quicksand-Bold", // or another variant

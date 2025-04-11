@@ -53,56 +53,55 @@ export default function Contact() {
         style={globalStyles.backButton}
       >
         <MaterialIcons name="arrow-back" size={24} color={COLORS.primary} />
-        <Text style={globalStyles.backText}>Back</Text>
       </Pressable>
 
-      <Animated.Text style={[styles.title, { opacity: fadeAnim }]}>
+      <Animated.Text style={[globalStyles.title, { opacity: fadeAnim }]}>
         Contact Us
       </Animated.Text>
 
       {/* Address Section */}
-      <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
-        <View style={styles.iconRow}>
+      <Animated.View style={[globalStyles.card, { opacity: fadeAnim }]}>
+        <View style={globalStyles.iconRow}>
           <MaterialIcons name="location-on" size={22} color={COLORS.primary} />
-          <Text style={styles.label}>Address</Text>
+          <Text style={globalStyles.label}>Address</Text>
         </View>
-        <Text style={styles.text}>{SCHOOL.address}</Text>
+        <Text style={globalStyles.text}>{SCHOOL.address}</Text>
         <Pressable onPress={() => openAppLink(SCHOOL.mapAppUrl, SCHOOL.mapUrl)}>
-          <Text style={styles.link}>📌 View on Google Maps</Text>
+          <Text style={globalStyles.link}>📌 View on Google Maps</Text>
         </Pressable>
       </Animated.View>
 
       {/* Phone Section */}
-      <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
-        <View style={styles.iconRow}>
+      <Animated.View style={[globalStyles.card, { opacity: fadeAnim }]}>
+        <View style={globalStyles.iconRow}>
           <Feather name="phone-call" size={20} color={COLORS.primary} />
-          <Text style={styles.label}>Phone</Text>
+          <Text style={globalStyles.label}>Phone</Text>
         </View>
         <Pressable onPress={() => Linking.openURL(`tel:${SCHOOL.phone}`)}>
-          <Text style={styles.text}>{SCHOOL.phone}</Text>
+          <Text style={globalStyles.text}>{SCHOOL.phone}</Text>
         </Pressable>
       </Animated.View>
 
       {/* Email Section */}
-      <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
-        <View style={styles.iconRow}>
+      <Animated.View style={[globalStyles.card, { opacity: fadeAnim }]}>
+        <View style={globalStyles.iconRow}>
           <MaterialIcons name="email" size={22} color={COLORS.primary} />
-          <Text style={styles.label}>Email</Text>
+          <Text style={globalStyles.label}>Email</Text>
         </View>
         <Pressable onPress={() => Linking.openURL(`mailto:${SCHOOL.email}`)}>
-          <Text style={styles.text}>{SCHOOL.email}</Text>
+          <Text style={globalStyles.text}>{SCHOOL.email}</Text>
         </Pressable>
       </Animated.View>
 
       {/* Social Media Section */}
-      <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
-        <View style={styles.iconRow}>
+      <Animated.View style={[globalStyles.card, { opacity: fadeAnim }]}>
+        <View style={globalStyles.iconRow}>
           <Entypo name="share" size={20} color={COLORS.primary} />
-          <Text style={styles.label}>Follow Us</Text>
+          <Text style={globalStyles.label}>Follow Us</Text>
         </View>
 
         <Pressable
-          style={styles.socialRow}
+          style={globalStyles.iconRow}
           onPress={() =>
             openAppLink(
               SCHOOL.socials.instagramAppUrl,
@@ -111,76 +110,19 @@ export default function Contact() {
           }
         >
           <FontAwesome5 name="instagram" size={22} color="#C13584" />
-          <Text style={styles.link}>Instagram</Text>
+          <Text style={globalStyles.link}>Instagram</Text>
         </Pressable>
 
         <Pressable
-          style={styles.socialRow}
+          style={globalStyles.iconRow}
           onPress={() =>
             openAppLink(SCHOOL.socials.youtubeAppUrl, SCHOOL.socials.youtube)
           }
         >
           <FontAwesome name="youtube-play" size={24} color="#FF0000" />
-          <Text style={styles.link}>YouTube</Text>
+          <Text style={globalStyles.link}>YouTube</Text>
         </Pressable>
       </Animated.View>
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  title: {
-    fontSize: 32,
-    fontFamily: "Quicksand-Bold",
-    color: COLORS.primary,
-    marginBottom: 40,
-    textAlign: "center",
-    letterSpacing: 0.5,
-  },
-  section: {
-    backgroundColor: "#fff",
-    borderRadius: 18,
-    paddingVertical: 18,
-    paddingHorizontal: 20,
-    marginBottom: 24,
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 3 },
-    shadowRadius: 4,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.primary,
-  },
-  iconRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-    gap: 12,
-  },
-  label: {
-    fontSize: 18,
-    fontFamily: "Quicksand-SemiBold",
-    color: "#333",
-    textTransform: "uppercase",
-  },
-  text: {
-    fontSize: 16,
-    fontFamily: "Quicksand",
-    color: "#666",
-    lineHeight: 24,
-    marginBottom: 6,
-  },
-  link: {
-    fontSize: 16,
-    fontFamily: "Quicksand",
-    color: COLORS.primary,
-    marginTop: 6,
-    textDecorationLine: "underline",
-  },
-  socialRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginTop: 10,
-  },
-});

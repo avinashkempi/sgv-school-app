@@ -11,12 +11,22 @@ export const COLORS = {
   shadow: "#000",
   instagram: "#C13584",
   youtube: "#FF0000",
+  error: "#FF4C4C",
+  white: "#ffffff",
 };
 
 export const FONTS = {
   bold: "Quicksand-Bold",
   semiBold: "Quicksand-SemiBold",
   regular: "Quicksand",
+};
+
+const shadowBase = {
+  elevation: 4,
+  shadowColor: COLORS.shadow,
+  shadowOpacity: 0.1,
+  shadowOffset: { width: 0, height: 2 },
+  shadowRadius: 5,
 };
 
 export const globalStyles = StyleSheet.create({
@@ -26,22 +36,9 @@ export const globalStyles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 10,
     paddingBottom: 20,
-    fontFamily: FONTS.regular,
   },
-  cardContainer: {
-    backgroundColor: COLORS.cardBackground,
-    borderRadius: 18,
-    paddingVertical: 18,
-    paddingHorizontal: 20,
-    marginBottom: 24,
-    elevation: 5,
-    shadowColor: COLORS.shadow,
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 3 },
-    shadowRadius: 4,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.primary,
-  },
+
+  // Typography
   title: {
     fontSize: 32,
     fontFamily: FONTS.bold,
@@ -50,18 +47,11 @@ export const globalStyles = StyleSheet.create({
     textAlign: "center",
     letterSpacing: 0.5,
   },
-  subheading: {
-    fontSize: 18,
-    fontFamily: FONTS.regular,
-    color: COLORS.textSecondary,
-    textAlign: "center",
-    marginBottom: 40,
-  },
   label: {
     fontSize: 18,
     fontFamily: FONTS.semiBold,
     color: COLORS.textPrimary,
-    textTransform: "uppercase" as const,
+    textTransform: "uppercase",
   },
   text: {
     fontSize: 16,
@@ -74,27 +64,7 @@ export const globalStyles = StyleSheet.create({
     fontSize: 16,
     fontFamily: FONTS.regular,
     color: COLORS.primary,
-    marginTop: 6,
-    textDecorationLine: "underline" as const,
-  },
-  iconRow: {
-    flexDirection: "row" as const,
-    alignItems: "center" as const,
-    marginBottom: 12,
-    gap: 12,
-  },
-  socialIconBox: {
-    alignItems: "center" as const,
-    justifyContent: "center" as const,
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    borderRadius: 12,
-    backgroundColor: COLORS.cardBackground,
-    elevation: 3,
-    shadowColor: COLORS.shadow,
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
+    textDecorationLine: "underline",
   },
   iconLabel: {
     marginTop: 8,
@@ -102,50 +72,73 @@ export const globalStyles = StyleSheet.create({
     fontFamily: FONTS.regular,
     color: COLORS.textSecondary,
   },
+  buttonText: {
+    fontSize: 16,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.white,
+    textAlign: "center",
+  },
+  errorText: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    color: COLORS.error,
+    marginTop: 4,
+  },
+
+  // Layout
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
-
   column: {
-    flexDirection: 'column',
+    flexDirection: "column",
   },
-
   center: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
-
   fullWidth: {
-    width: '100%',
+    width: "100%",
   },
-
   fullHeight: {
-    height: '100%',
+    height: "100%",
   },
-
   divider: {
     height: 1,
     backgroundColor: COLORS.border,
     marginVertical: 16,
   },
 
-  button: {
-    backgroundColor: COLORS.primary,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
+  // Cards / Box / Shadow
+  card: {
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: 18,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    marginBottom: 24,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.primary,
+    ...shadowBase,
+    elevation: 5,
+  },
+  shadowBox: {
+    backgroundColor: COLORS.cardBackground,
     borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: 16,
+    ...shadowBase,
+  },
+  socialIconBox: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+    backgroundColor: COLORS.cardBackground,
+    ...shadowBase,
+    shadowRadius: 6,
   },
 
-  buttonText: {
-    fontSize: 16,
-    fontFamily: FONTS.semiBold,
-    color: '#fff',
-    textAlign: 'center',
-  },
-
+  // Forms
   input: {
     borderWidth: 1,
     borderColor: COLORS.border,
@@ -158,32 +151,26 @@ export const globalStyles = StyleSheet.create({
     backgroundColor: COLORS.cardBackground,
   },
 
-  errorText: {
-    color: '#FF4C4C',
-    fontSize: 14,
-    fontFamily: FONTS.regular,
-    marginTop: 4,
+  // Buttons
+  button: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
-  shadowBox: {
-    backgroundColor: COLORS.cardBackground,
-    borderRadius: 12,
-    padding: 16,
-    elevation: 4,
-    shadowColor: COLORS.shadow,
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 5,
-  },
+  // Navigation
   backButton: {
     flexDirection: "row",
+  },
+
+  // Icons
+  iconRow: {
+    flexDirection: "row",
     alignItems: "center",
+    marginBottom: 12,
+    gap: 12,
   },
-  backText: {
-    fontSize: 16,
-    color: COLORS.primary,
-    fontFamily: "Quicksand-SemiBold",
-    marginLeft: 8,
-  },
-  
 });

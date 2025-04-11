@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   Animated,
   Easing,
@@ -33,86 +32,41 @@ export default function About() {
         style={globalStyles.backButton}
       >
         <MaterialIcons name="arrow-back" size={24} color={COLORS.primary} />
-        <Text style={globalStyles.backText}>Back</Text>
       </Pressable>
-      <Animated.Text style={[styles.title, { opacity: fadeAnim }]}>
+      <Animated.Text style={[globalStyles.title, { opacity: fadeAnim }]}>
         {SCHOOL.name}
       </Animated.Text>
 
       {/* About Us Section */}
-      <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
-        <View style={styles.iconRow}>
+      <Animated.View style={[globalStyles.card, { opacity: fadeAnim }]}>
+        <View style={globalStyles.iconRow}>
           <MaterialIcons name="info" size={22} color={COLORS.primary} />
-          <Text style={styles.label}>About Us</Text>
+          <Text style={globalStyles.label}>About Us</Text>
         </View>
-        <Text style={styles.text}>{SCHOOL.about}</Text>
+        <Text style={globalStyles.text}>{SCHOOL.about}</Text>
       </Animated.View>
 
       {/* Branches Section */}
-      <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
-        <View style={styles.iconRow}>
+      <Animated.View style={[globalStyles.card, { opacity: fadeAnim }]}>
+        <View style={globalStyles.iconRow}>
           <FontAwesome5 name="school" size={20} color={COLORS.primary} />
-          <Text style={styles.label}>Branches</Text>
+          <Text style={globalStyles.label}>Branches</Text>
         </View>
-        <Text style={styles.text}>
+        <Text style={globalStyles.text}>
           1. Renuka Nagar, Mangasuli – Kindergarten to 8th Standard (9th and
           10th opening soon).
         </Text>
-        <Text style={styles.text}>2. Ugar Khurd – Only Kindergarten.</Text>
+        <Text style={globalStyles.text}>2. Ugar Khurd – Only Kindergarten.</Text>
       </Animated.View>
 
       {/* Mission Section */}
-      <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
-        <View style={styles.iconRow}>
+      <Animated.View style={[globalStyles.card, { opacity: fadeAnim }]}>
+        <View style={globalStyles.iconRow}>
           <MaterialIcons name="flag" size={22} color={COLORS.primary} />
-          <Text style={styles.label}>Our Mission</Text>
+          <Text style={globalStyles.label}>Our Mission</Text>
         </View>
-        <Text style={styles.text}>{SCHOOL.mission}</Text>
+        <Text style={globalStyles.text}>{SCHOOL.mission}</Text>
       </Animated.View>
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  title: {
-    fontSize: 32,
-    fontFamily: "Quicksand-Bold",
-    color: COLORS.primary,
-    marginBottom: 40,
-    textAlign: "center",
-    letterSpacing: 0.5,
-  },
-  section: {
-    backgroundColor: "#fff",
-    borderRadius: 18,
-    paddingVertical: 18,
-    paddingHorizontal: 20,
-    marginBottom: 24,
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 3 },
-    shadowRadius: 4,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.primary,
-  },
-  iconRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-    gap: 12,
-  },
-  label: {
-    fontSize: 18,
-    fontFamily: "Quicksand-SemiBold",
-    color: "#333",
-    textTransform: "uppercase",
-  },
-  text: {
-    fontSize: 16,
-    fontFamily: "Quicksand",
-    color: "#666",
-    lineHeight: 24,
-    marginBottom: 8,
-  },
-});

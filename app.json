@@ -2,7 +2,7 @@
   "expo": {
     "name": "SGV School",
     "slug": "sgv-school",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "sgvschool",
@@ -18,7 +18,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "versionCode": 2
+      "versionCode": 3
     },
     "web": {
       "bundler": "metro",
