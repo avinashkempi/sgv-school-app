@@ -6,12 +6,16 @@ import {
   ScrollView,
   Animated,
   Easing,
+  Pressable,
 } from "react-native";
 import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 import { SCHOOL } from "../constants/basic-info";
+import { globalStyles, COLORS } from "../globalStyles";
+import { useNavigation, NavigationProp } from "@react-navigation/native";
 
 export default function About() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const navigation = useNavigation<NavigationProp<any>>();
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -23,20 +27,36 @@ export default function About() {
   }, []);
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={globalStyles.container}>
+      <Pressable
+        onPress={() => navigation.goBack()}
+        style={globalStyles.backButton}
+      >
+        <MaterialIcons name="arrow-back" size={24} color={COLORS.primary} />
+        <Text style={globalStyles.backText}>Back</Text>
+      </Pressable>
       <Animated.Text style={[styles.title, { opacity: fadeAnim }]}>
         {SCHOOL.name}
       </Animated.Text>
 
+      {/* About Us Section */}
+      <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
+        <View style={styles.iconRow}>
+          <MaterialIcons name="info" size={22} color={COLORS.primary} />
+          <Text style={styles.label}>About Us</Text>
+        </View>
+        <Text style={styles.text}>{SCHOOL.about}</Text>
+      </Animated.View>
+
       {/* Branches Section */}
       <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
         <View style={styles.iconRow}>
-          <FontAwesome5 name="school" size={20} color="#2F6CD4" />
+          <FontAwesome5 name="school" size={20} color={COLORS.primary} />
           <Text style={styles.label}>Branches</Text>
         </View>
         <Text style={styles.text}>
-          1. Renuka Nagar, Mangasuli – Kindergarten to 8th Standard (9th and 10th
-          opening soon).
+          1. Renuka Nagar, Mangasuli – Kindergarten to 8th Standard (9th and
+          10th opening soon).
         </Text>
         <Text style={styles.text}>2. Ugar Khurd – Only Kindergarten.</Text>
       </Animated.View>
@@ -44,36 +64,20 @@ export default function About() {
       {/* Mission Section */}
       <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
         <View style={styles.iconRow}>
-          <MaterialIcons name="flag" size={22} color="#2F6CD4" />
+          <MaterialIcons name="flag" size={22} color={COLORS.primary} />
           <Text style={styles.label}>Our Mission</Text>
         </View>
         <Text style={styles.text}>{SCHOOL.mission}</Text>
-      </Animated.View>
-
-      {/* About Us Section */}
-      <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
-        <View style={styles.iconRow}>
-          <MaterialIcons name="info" size={22} color="#2F6CD4" />
-          <Text style={styles.label}>About Us</Text>
-        </View>
-        <Text style={styles.text}>{SCHOOL.about}</Text>
       </Animated.View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f7f8fc",
-    paddingHorizontal: 24,
-    paddingTop: 50,
-    paddingBottom: 40,
-  },
   title: {
     fontSize: 32,
     fontFamily: "Quicksand-Bold",
-    color: "#2F6CD4",
+    color: COLORS.primary,
     marginBottom: 40,
     textAlign: "center",
     letterSpacing: 0.5,
@@ -90,7 +94,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     shadowRadius: 4,
     borderLeftWidth: 4,
-    borderLeftColor: "#2F6CD4",
+    borderLeftColor: COLORS.primary,
   },
   iconRow: {
     flexDirection: "row",

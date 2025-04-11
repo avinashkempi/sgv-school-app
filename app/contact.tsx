@@ -17,6 +17,8 @@ import {
   FontAwesome,
 } from "@expo/vector-icons";
 import { SCHOOL } from "../constants/basic-info";
+import { globalStyles, COLORS } from "../globalStyles";
+import { useNavigation, NavigationProp } from "@react-navigation/native";
 
 const openAppLink = async (appUrl: string, fallbackUrl: string) => {
   try {
@@ -33,6 +35,7 @@ const openAppLink = async (appUrl: string, fallbackUrl: string) => {
 
 export default function Contact() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const navigation = useNavigation<NavigationProp<any>>();
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -44,7 +47,15 @@ export default function Contact() {
   }, []);
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={globalStyles.container}>
+      <Pressable
+        onPress={() => navigation.goBack()}
+        style={globalStyles.backButton}
+      >
+        <MaterialIcons name="arrow-back" size={24} color={COLORS.primary} />
+        <Text style={globalStyles.backText}>Back</Text>
+      </Pressable>
+
       <Animated.Text style={[styles.title, { opacity: fadeAnim }]}>
         Contact Us
       </Animated.Text>
@@ -52,7 +63,7 @@ export default function Contact() {
       {/* Address Section */}
       <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
         <View style={styles.iconRow}>
-          <MaterialIcons name="location-on" size={22} color="#2F6CD4" />
+          <MaterialIcons name="location-on" size={22} color={COLORS.primary} />
           <Text style={styles.label}>Address</Text>
         </View>
         <Text style={styles.text}>{SCHOOL.address}</Text>
@@ -64,7 +75,7 @@ export default function Contact() {
       {/* Phone Section */}
       <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
         <View style={styles.iconRow}>
-          <Feather name="phone-call" size={20} color="#2F6CD4" />
+          <Feather name="phone-call" size={20} color={COLORS.primary} />
           <Text style={styles.label}>Phone</Text>
         </View>
         <Pressable onPress={() => Linking.openURL(`tel:${SCHOOL.phone}`)}>
@@ -75,7 +86,7 @@ export default function Contact() {
       {/* Email Section */}
       <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
         <View style={styles.iconRow}>
-          <MaterialIcons name="email" size={22} color="#2F6CD4" />
+          <MaterialIcons name="email" size={22} color={COLORS.primary} />
           <Text style={styles.label}>Email</Text>
         </View>
         <Pressable onPress={() => Linking.openURL(`mailto:${SCHOOL.email}`)}>
@@ -86,7 +97,7 @@ export default function Contact() {
       {/* Social Media Section */}
       <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
         <View style={styles.iconRow}>
-          <Entypo name="share" size={20} color="#2F6CD4" />
+          <Entypo name="share" size={20} color={COLORS.primary} />
           <Text style={styles.label}>Follow Us</Text>
         </View>
 
@@ -118,17 +129,10 @@ export default function Contact() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f7f8fc",
-    paddingHorizontal: 24,
-    paddingTop: 50,
-    paddingBottom: 40,
-  },
   title: {
     fontSize: 32,
     fontFamily: "Quicksand-Bold",
-    color: "#2F6CD4",
+    color: COLORS.primary,
     marginBottom: 40,
     textAlign: "center",
     letterSpacing: 0.5,
@@ -145,7 +149,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     shadowRadius: 4,
     borderLeftWidth: 4,
-    borderLeftColor: "#2F6CD4",
+    borderLeftColor: COLORS.primary,
   },
   iconRow: {
     flexDirection: "row",
@@ -169,7 +173,7 @@ const styles = StyleSheet.create({
   link: {
     fontSize: 16,
     fontFamily: "Quicksand",
-    color: "#2F6CD4",
+    color: COLORS.primary,
     marginTop: 6,
     textDecorationLine: "underline",
   },

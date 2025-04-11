@@ -17,6 +17,7 @@ import {
 } from "@expo/vector-icons";
 import { SCHOOL } from "../constants/basic-info";
 import { ROUTES } from "../constants/routes";
+import { globalStyles, COLORS } from "../globalStyles";
 
 const handlePress = async (appUrl: string, fallbackUrl: string) => {
   try {
@@ -32,56 +33,56 @@ const handlePress = async (appUrl: string, fallbackUrl: string) => {
 };
 
 export default function HomeScreen() {
-  const [iconScale, setIconScale] = useState(new Animated.Value(1));
+  const [youtubeScale] = useState(new Animated.Value(1));
+  const [instagramScale] = useState(new Animated.Value(1));
+  const [mapScale] = useState(new Animated.Value(1));
 
-  const handleIconPressIn = () => {
-    Animated.spring(iconScale, {
-      toValue: 1.1,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const handleIconPressOut = () => {
-    Animated.spring(iconScale, {
-      toValue: 1,
+  const animateScale = (scaleRef: Animated.Value, toValue: number) => {
+    Animated.spring(scaleRef, {
+      toValue,
       useNativeDriver: true,
     }).start();
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[globalStyles.container, { paddingTop: 60 }]}>
       <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" />
 
       {/* Welcome Header */}
-      <Text style={styles.heading}>🎓 Welcome</Text>
-      <Text style={styles.subheading}>{SCHOOL.name}</Text>
+      <Text style={styles.heading}>
+        Explore <Text style={styles.highlight}>SGV School</Text>
+      </Text>
 
       {/* Main Card Group */}
       <View style={styles.cardGroup}>
         <Link href={ROUTES.ABOUT} asChild>
           <Pressable style={styles.card}>
-            <MaterialIcons name="info" size={24} color="#2F6CD4" />
+            <MaterialIcons name="info" size={24} color={COLORS.primary} />
             <Text style={styles.cardText}>About</Text>
           </Pressable>
         </Link>
 
         <Link href={ROUTES.EVENTS} asChild>
           <Pressable style={styles.card}>
-            <MaterialIcons name="event" size={24} color="#2F6CD4" />
+            <MaterialIcons name="event" size={24} color={COLORS.primary} />
             <Text style={styles.cardText}>Events</Text>
           </Pressable>
         </Link>
 
         <Link href={ROUTES.NEWS} asChild>
           <Pressable style={styles.card}>
-            <MaterialCommunityIcons name="newspaper" size={24} color="#2F6CD4" />
+            <MaterialCommunityIcons
+              name="newspaper"
+              size={24}
+              color={COLORS.primary}
+            />
             <Text style={styles.cardText}>News</Text>
           </Pressable>
         </Link>
 
         <Link href={ROUTES.CONTACT} asChild>
           <Pressable style={styles.card}>
-            <MaterialIcons name="contact-page" size={24} color="#2F6CD4" />
+            <MaterialIcons name="contact-page" size={24} color={COLORS.primary} />
             <Text style={styles.cardText}>Contact Us</Text>
           </Pressable>
         </Link>
@@ -89,33 +90,46 @@ export default function HomeScreen() {
 
       {/* Social Media Icons */}
       <View style={styles.socialContainer}>
-        <Animated.View
-          style={[styles.iconBox, { transform: [{ scale: iconScale }] }]}
-        >
+        <Animated.View style={{ transform: [{ scale: youtubeScale }] }}>
           <Pressable
-            onPressIn={handleIconPressIn}
-            onPressOut={handleIconPressOut}
+            onPressIn={() => animateScale(youtubeScale, 1.1)}
+            onPressOut={() => animateScale(youtubeScale, 1)}
             onPress={() =>
               handlePress(SCHOOL.socials.youtubeAppUrl, SCHOOL.socials.youtube)
             }
+            style={styles.socialIconWrapper}
           >
             <FontAwesome name="youtube-play" size={30} color="#FF0000" />
             <Text style={styles.iconLabel}>YouTube</Text>
           </Pressable>
         </Animated.View>
 
-        <Animated.View
-          style={[styles.iconBox, { transform: [{ scale: iconScale }] }]}
-        >
+        <Animated.View style={{ transform: [{ scale: instagramScale }] }}>
           <Pressable
-            onPressIn={handleIconPressIn}
-            onPressOut={handleIconPressOut}
+            onPressIn={() => animateScale(instagramScale, 1.1)}
+            onPressOut={() => animateScale(instagramScale, 1)}
             onPress={() =>
-              handlePress(SCHOOL.socials.instagramAppUrl, SCHOOL.socials.instagram)
+              handlePress(
+                SCHOOL.socials.instagramAppUrl,
+                SCHOOL.socials.instagram
+              )
             }
+            style={styles.socialIconWrapper}
           >
             <FontAwesome name="instagram" size={30} color="#C13584" />
             <Text style={styles.iconLabel}>Instagram</Text>
+          </Pressable>
+        </Animated.View>
+
+        <Animated.View style={{ transform: [{ scale: mapScale }] }}>
+          <Pressable
+            onPressIn={() => animateScale(mapScale, 1.1)}
+            onPressOut={() => animateScale(mapScale, 1)}
+            onPress={() => handlePress(SCHOOL.mapAppUrl, SCHOOL.mapUrl)}
+            style={styles.socialIconWrapper}
+          >
+            <FontAwesome name="map-marker" size={30} color={COLORS.primary} />
+            <Text style={styles.iconLabel}>Map</Text>
           </Pressable>
         </Animated.View>
       </View>
@@ -124,26 +138,13 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-    paddingTop: 60,
-    paddingHorizontal: 20,
-  },
   heading: {
     fontSize: 36,
-    fontFamily: "Quicksand-Bold",
-    color: "#2F6CD4",
-    textAlign: "center",
-    marginBottom: 6,
-    letterSpacing: 1,
-  },
-  subheading: {
-    fontSize: 18,
     fontFamily: "Quicksand",
-    color: "#666",
+    color: COLORS.primary,
     textAlign: "center",
-    marginBottom: 40,
+    marginBottom: 20,
+    letterSpacing: 1,
   },
   cardGroup: {
     marginBottom: 40,
@@ -162,7 +163,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     shadowRadius: 4,
     borderLeftWidth: 4,
-    borderLeftColor: "#2F6CD4",
+    borderLeftColor: COLORS.primary,
   },
   cardText: {
     fontSize: 18,
@@ -170,18 +171,10 @@ const styles = StyleSheet.create({
     color: "#333",
     marginLeft: 12,
   },
-  socialContainer: {
-    borderTopWidth: 1,
-    borderTopColor: "#e0e0e0",
-    paddingTop: 24,
-    flexDirection: "row",
-    justifyContent: "space-around",
-    paddingBottom: 20,
-  },
   iconBox: {
     alignItems: "center",
     justifyContent: "center",
-    textAlign: 'center',
+    textAlign: "center",
     paddingVertical: 14,
     paddingHorizontal: 18,
     borderRadius: 12,
@@ -192,10 +185,33 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
   },
+  socialContainer: {
+    borderTopWidth: 1,
+    borderTopColor: "#e0e0e0",
+    paddingTop: 24,
+    flexDirection: "row",
+    justifyContent: "space-around",
+    paddingBottom: 20,
+  },
+
+  socialIconWrapper: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+  },
+
   iconLabel: {
-    marginTop: 8,
+    marginTop: 6,
     fontSize: 14,
     fontFamily: "Quicksand",
-    color: "#666",
+    color: "#444",
+  },
+  highlight: {
+    fontFamily: "Quicksand-Bold", // or another variant
   },
 });

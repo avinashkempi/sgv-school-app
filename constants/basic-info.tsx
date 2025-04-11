@@ -1,6 +1,6 @@
 export const SCHOOL = {
   name: "Shri Guru Vidya English Medium School",
-  address: "Renuka nagar, Mangasuli, Belagavi District, Karnataka 591316",
+  address: "Renuka nagar, Mangasuli, Belagavi District, Karnataka, 591316",
   phone: "+91 77603 25292",
   email: "sgvrss@gmail.com",
 
