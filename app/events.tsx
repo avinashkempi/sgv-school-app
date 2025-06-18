@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -13,35 +13,67 @@ import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Calendar, DateData } from "react-native-calendars";
 import { SCHOOL } from "../constants/basic-info";
 
+type Event = {
+  id: string;
+  date: string;
+  title: string;
+};
+
+const EventCard = ({ event }: { event: Event }) => (
+  <View style={[globalStyles.card, styles.card]}>
+    <View style={styles.headerRow}>
+      <View style={styles.badge}>
+        <Text style={styles.badgeText}>{event.date}</Text>
+      </View>
+      <MaterialCommunityIcons
+        name="calendar-star"
+        size={20}
+        color={COLORS.primary}
+        style={{ marginLeft: 8 }}
+      />
+    </View>
+    <Text style={styles.title}>{event.title}</Text>
+  </View>
+);
+
 export default function EventsScreen() {
   const navigation = useNavigation<NavigationProp<any>>();
   const [selectedDate, setSelectedDate] = useState<string>("");
 
-  const events = selectedDate
-    ? SCHOOL.events.filter((event) => event.date === selectedDate)
-    : [];
+  const events = useMemo(
+    () =>
+      selectedDate
+        ? SCHOOL.events.filter((event) => event.date === selectedDate)
+        : [],
+    [selectedDate]
+  );
 
-  const markedDates = SCHOOL.events.reduce((acc, curr) => {
-    acc[curr.date] = {
-      marked: true,
-      dotColor: COLORS.primary,
-    };
-    return acc;
-  }, {} as Record<string, any>);
+  const markedDates = useMemo(() => {
+    const dates = SCHOOL.events.reduce((acc, curr) => {
+      acc[curr.date] = {
+        marked: true,
+        dotColor: COLORS.primary,
+      };
+      return acc;
+    }, {} as Record<string, any>);
 
-  if (selectedDate) {
-    markedDates[selectedDate] = {
-      ...markedDates[selectedDate],
-      selected: true,
-      selectedColor: COLORS.primary,
-    };
-  }
+    if (selectedDate) {
+      dates[selectedDate] = {
+        ...dates[selectedDate],
+        selected: true,
+        selectedColor: COLORS.primary,
+      };
+    }
+
+    return dates;
+  }, [selectedDate]);
 
   return (
     <View style={globalStyles.container}>
       <Pressable
         onPress={() => navigation.goBack()}
         style={globalStyles.backButton}
+        accessibilityLabel="Go back"
       >
         <MaterialIcons name="arrow-back" size={24} color={COLORS.primary} />
       </Pressable>
@@ -68,22 +100,7 @@ export default function EventsScreen() {
         ListEmptyComponent={
           <Text style={styles.empty}>No events on this day</Text>
         }
-        renderItem={({ item }) => (
-          <View style={[globalStyles.card, styles.card]}>
-            <View style={styles.headerRow}>
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{item.date}</Text>
-              </View>
-              <MaterialCommunityIcons
-                name="calendar-star"
-                size={20}
-                color={COLORS.primary}
-                style={{ marginLeft: 8 }}
-              />
-            </View>
-            <Text style={styles.title}>{item.title}</Text>
-          </View>
-        )}
+        renderItem={({ item }) => <EventCard event={item} />}
         contentContainerStyle={{ paddingBottom: 40 }}
       />
     </View>
@@ -116,12 +133,12 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 12,
     color: "#fff",
-    fontFamily: "Quicksand-SemiBold",
+    fontFamily: "Quicksand-SemiBold, sans-serif",
   },
   title: {
     fontSize: 16,
     color: COLORS.textPrimary,
-    fontFamily: "Quicksand-SemiBold",
+    fontFamily: "Quicksand-SemiBold, sans-serif",
     lineHeight: 24,
   },
 });

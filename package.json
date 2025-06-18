@@ -1,7 +1,10 @@
 {
   "name": "sgv-mobile-app",
   "main": "expo-router/entry",
-  "version": "1.0.0",
+  "version": "1.0.1",
+  "android": {
+    "versionCode": 2
+  },
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
