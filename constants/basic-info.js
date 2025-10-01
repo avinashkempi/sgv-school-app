@@ -19,7 +19,7 @@ export const SCHOOL = {
     instagramAppUrl: "instagram://user?username=sgv.school",
 
     youtube: "https://www.youtube.com/@shreeguruvidyaenglishmediu4829",
-    youtubeAppUrl: "vnd.youtube://channel/UC7KTnWFyoN9_3j-KR9ckKxQ", // Replace with actual channel ID
+    youtubeAppUrl: "vnd.youtube://channel/UC7KTnWFyoN9_3j-KR9ckKxQ",
   },
 
   news: [

@@ -4,21 +4,14 @@ import {
   FlatList,
   StyleSheet,
   Pressable,
-  ViewStyle,
 } from "react-native";
 import { globalStyles, COLORS } from "../globalStyles";
-import { useNavigation, NavigationProp } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { SCHOOL } from "../constants/basic-info";
 
-type NewsItem = {
-  id: string;
-  date: string;
-  title: string;
-};
-
 export default function NewsScreen() {
-  const navigation = useNavigation<NavigationProp<any>>();
+  const navigation = useNavigation();
 
   return (
     <View style={globalStyles.container}>
@@ -34,9 +27,7 @@ export default function NewsScreen() {
       <FlatList
         data={SCHOOL.news}
         keyExtractor={(item) => item.id}
-        ListEmptyComponent={
-          <Text style={styles.empty}>No news available right now</Text>
-        }
+        ListEmptyComponent={<Text style={styles.empty}>No news available right now</Text>}
         renderItem={({ item }) => (
           <View style={[globalStyles.card, styles.card]}>
             <View style={styles.headerRow}>
@@ -75,7 +66,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     paddingVertical: 4,
     paddingHorizontal: 10,
-  } as ViewStyle,
+  },
   badgeText: {
     fontSize: 12,
     color: "#fff",

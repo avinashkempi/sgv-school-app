@@ -19,7 +19,7 @@ import { SCHOOL } from "../constants/basic-info";
 import { ROUTES } from "../constants/routes";
 import { globalStyles, COLORS } from "../globalStyles";
 
-const handlePress = async (appUrl: string, fallbackUrl: string) => {
+const handlePress = async (appUrl, fallbackUrl) => {
   try {
     const supported = await Linking.canOpenURL(appUrl);
     if (supported) {
@@ -37,7 +37,7 @@ export default function HomeScreen() {
   const [instagramScale] = useState(new Animated.Value(1));
   const [mapScale] = useState(new Animated.Value(1));
 
-  const animateScale = (scaleRef: Animated.Value, toValue: number) => {
+  const animateScale = (scaleRef, toValue) => {
     Animated.spring(scaleRef, {
       toValue,
       useNativeDriver: true,

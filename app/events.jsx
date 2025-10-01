@@ -5,21 +5,14 @@ import {
   FlatList,
   StyleSheet,
   Pressable,
-  ViewStyle,
 } from "react-native";
 import { globalStyles, COLORS } from "../globalStyles";
-import { useNavigation, NavigationProp } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { Calendar, DateData } from "react-native-calendars";
+import { Calendar } from "react-native-calendars";
 import { SCHOOL } from "../constants/basic-info";
 
-type Event = {
-  id: string;
-  date: string;
-  title: string;
-};
-
-const EventCard = ({ event }: { event: Event }) => (
+const EventCard = ({ event }) => (
   <View style={[globalStyles.card, styles.card]}>
     <View style={styles.headerRow}>
       <View style={styles.badge}>
@@ -37,14 +30,11 @@ const EventCard = ({ event }: { event: Event }) => (
 );
 
 export default function EventsScreen() {
-  const navigation = useNavigation<NavigationProp<any>>();
-  const [selectedDate, setSelectedDate] = useState<string>("");
+  const navigation = useNavigation();
+  const [selectedDate, setSelectedDate] = useState("");
 
   const events = useMemo(
-    () =>
-      selectedDate
-        ? SCHOOL.events.filter((event) => event.date === selectedDate)
-        : [],
+    () => (selectedDate ? SCHOOL.events.filter((event) => event.date === selectedDate) : []),
     [selectedDate]
   );
 
@@ -55,7 +45,7 @@ export default function EventsScreen() {
         dotColor: COLORS.primary,
       };
       return acc;
-    }, {} as Record<string, any>);
+    }, {});
 
     if (selectedDate) {
       dates[selectedDate] = {
@@ -81,7 +71,7 @@ export default function EventsScreen() {
       <Text style={globalStyles.title}>Events</Text>
 
       <Calendar
-        onDayPress={(day: DateData) => setSelectedDate(day.dateString)}
+        onDayPress={(day) => setSelectedDate(day.dateString)}
         markedDates={markedDates}
         theme={{
           selectedDayBackgroundColor: COLORS.primary,
@@ -90,16 +80,14 @@ export default function EventsScreen() {
         }}
       />
 
-      <Text style={[globalStyles.title, { marginTop: 18, fontSize: 18 }]}>
+      <Text style={[globalStyles.title, { marginTop: 18, fontSize: 18 }]}> 
         {selectedDate ? `Events on ${selectedDate}` : "Tap a date to view events"}
       </Text>
 
       <FlatList
         data={events}
         keyExtractor={(item) => item.id}
-        ListEmptyComponent={
-          <Text style={styles.empty}>No events on this day</Text>
-        }
+        ListEmptyComponent={<Text style={styles.empty}>No events on this day</Text>}
         renderItem={({ item }) => <EventCard event={item} />}
         contentContainerStyle={{ paddingBottom: 40 }}
       />
@@ -129,7 +117,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     paddingVertical: 4,
     paddingHorizontal: 10,
-  } as ViewStyle,
+  },
   badgeText: {
     fontSize: 12,
     color: "#fff",

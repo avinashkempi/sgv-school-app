@@ -18,9 +18,9 @@ import {
 } from "@expo/vector-icons";
 import { SCHOOL } from "../constants/basic-info";
 import { globalStyles, COLORS } from "../globalStyles";
-import { useNavigation, NavigationProp } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 
-const openAppLink = async (appUrl: string, fallbackUrl: string) => {
+const openAppLink = async (appUrl, fallbackUrl) => {
   try {
     const supported = await Linking.canOpenURL(appUrl);
     if (supported) {
@@ -35,7 +35,7 @@ const openAppLink = async (appUrl: string, fallbackUrl: string) => {
 
 export default function Contact() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const navigation = useNavigation<NavigationProp<any>>();
+  const navigation = useNavigation();
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -55,7 +55,7 @@ export default function Contact() {
         <MaterialIcons name="arrow-back" size={24} color={COLORS.primary} />
       </Pressable>
 
-      <Animated.Text style={[globalStyles.title, { opacity: fadeAnim }]}>
+      <Animated.Text style={[globalStyles.title, { opacity: fadeAnim }]}> 
         Contact Us
       </Animated.Text>
 

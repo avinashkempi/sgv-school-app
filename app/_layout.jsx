@@ -1,4 +1,3 @@
-// app/_layout.tsx
 import { Stack } from "expo-router";
 import { useFonts } from "expo-font";
 import { Text, View } from "react-native";
@@ -15,20 +14,18 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (fontsLoaded) {
-      // Set default font for all Text components
-      (Text as any).defaultProps = {
-        ...(Text as any).defaultProps,
+      Text.defaultProps = {
+        ...(Text.defaultProps || {}),
         style: {
-          ...(Text as any).defaultProps?.style,
+          ...(Text.defaultProps?.style || {}),
           fontFamily: "Quicksand",
         },
       };
 
-      // Optional: For View, although font doesn't apply unless it's nested with text
-      (View as any).defaultProps = {
-        ...(View as any).defaultProps,
+      View.defaultProps = {
+        ...(View.defaultProps || {}),
         style: {
-          ...(View as any).defaultProps?.style,
+          ...(View.defaultProps?.style || {}),
           fontFamily: "Quicksand",
         },
       };
