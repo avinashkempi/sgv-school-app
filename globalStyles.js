@@ -173,4 +173,99 @@ export const globalStyles = StyleSheet.create({
     marginBottom: 12,
     gap: 12,
   },
+
+  // Component helpers
+  heading: {
+    fontSize: 36,
+    fontFamily: FONTS.regular,
+    color: COLORS.primary,
+    textAlign: "center",
+    marginBottom: 20,
+    letterSpacing: 1,
+  },
+  cardGroup: {
+    marginBottom: 40,
+  },
+  navCard: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  cardText: {
+    fontSize: 18,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.textPrimary,
+    marginLeft: 12,
+  },
+  iconBox: {
+    alignItems: "center",
+    justifyContent: "center",
+    textAlign: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+    backgroundColor: COLORS.cardBackground,
+    elevation: 3,
+    shadowColor: COLORS.shadow,
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+  },
+  socialContainer: {
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    paddingTop: 24,
+    flexDirection: "row",
+    justifyContent: "space-around",
+    paddingBottom: 20,
+  },
+  socialIconWrapper: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  highlight: {
+    fontFamily: FONTS.bold,
+  },
+
+  // Badge / list helpers
+  badge: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+  },
+  badgeText: {
+    fontSize: 12,
+    color: "#fff",
+    fontFamily: FONTS.semiBold,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  newsText: {
+    fontSize: 16,
+    color: COLORS.textPrimary,
+    fontFamily: FONTS.semiBold,
+    lineHeight: 24,
+  },
+  empty: {
+    fontSize: 16,
+    color: COLORS.textSecondary,
+    marginTop: 16,
+    textAlign: "center",
+  },
+
+  // Small card variant
+  cardCompact: {
+    paddingVertical: 20,
+    paddingHorizontal: 18,
+    marginTop: 12,
+  },
 });

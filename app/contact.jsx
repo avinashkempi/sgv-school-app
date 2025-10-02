@@ -2,12 +2,9 @@ import React from "react";
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   Pressable,
-  Linking,
   Animated,
-  Easing,
 } from "react-native";
 import {
   MaterialIcons,

@@ -5,7 +5,6 @@ import {
   Pressable,
   StatusBar,
   Linking,
-  StyleSheet,
   ScrollView,
   Animated,
 } from "react-native";
@@ -48,51 +47,51 @@ export default function HomeScreen() {
       <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" />
 
       {/* Welcome Header */}
-      <Text style={styles.heading}>
-        Explore <Text style={styles.highlight}>SGV School</Text>
+      <Text style={globalStyles.heading}>
+        Explore <Text style={globalStyles.highlight}>SGV School</Text>
       </Text>
 
       {/* Main Card Group */}
-      <View style={styles.cardGroup}>
+      <View style={globalStyles.cardGroup}>
         <Link href={ROUTES.ABOUT} asChild>
-          <Pressable style={styles.navCard}>
+          <Pressable style={globalStyles.navCard}>
             <MaterialIcons name="info" size={24} color={COLORS.primary} />
-            <Text style={styles.cardText}>About</Text>
+            <Text style={globalStyles.cardText}>About</Text>
           </Pressable>
         </Link>
 
         <Link href={ROUTES.EVENTS} asChild>
-          <Pressable style={styles.navCard}>
+          <Pressable style={globalStyles.navCard}>
             <MaterialIcons name="event" size={24} color={COLORS.primary} />
-            <Text style={styles.cardText}>Events</Text>
+            <Text style={globalStyles.cardText}>Events</Text>
           </Pressable>
         </Link>
 
         <Link href={ROUTES.NEWS} asChild>
-          <Pressable style={styles.navCard}>
+          <Pressable style={globalStyles.navCard}>
             <MaterialCommunityIcons
               name="newspaper"
               size={24}
               color={COLORS.primary}
             />
-            <Text style={styles.cardText}>News</Text>
+            <Text style={globalStyles.cardText}>News</Text>
           </Pressable>
         </Link>
 
         <Link href={ROUTES.CONTACT} asChild>
-          <Pressable style={styles.navCard}>
+          <Pressable style={globalStyles.navCard}>
             <MaterialIcons
               name="contact-page"
               size={24}
               color={COLORS.primary}
             />
-            <Text style={styles.cardText}>Contact Us</Text>
+            <Text style={globalStyles.cardText}>Contact Us</Text>
           </Pressable>
         </Link>
       </View>
 
       {/* Social Media Icons */}
-      <View style={styles.socialContainer}>
+      <View style={globalStyles.socialContainer}>
         <Animated.View style={{ transform: [{ scale: youtubeScale }] }}>
           <Pressable
             onPressIn={() => animateScale(youtubeScale, 1.1)}
@@ -100,7 +99,7 @@ export default function HomeScreen() {
             onPress={() =>
               handlePress(SCHOOL.socials.youtubeAppUrl, SCHOOL.socials.youtube)
             }
-            style={styles.socialIconWrapper}
+            style={globalStyles.socialIconWrapper}
           >
             <FontAwesome name="youtube-play" size={30} color="#FF0000" />
             <Text style={globalStyles.iconLabel}>YouTube</Text>
@@ -117,7 +116,7 @@ export default function HomeScreen() {
                 SCHOOL.socials.instagram
               )
             }
-            style={styles.socialIconWrapper}
+            style={globalStyles.socialIconWrapper}
           >
             <FontAwesome name="instagram" size={30} color="#C13584" />
             <Text style={globalStyles.iconLabel}>Instagram</Text>
@@ -129,7 +128,7 @@ export default function HomeScreen() {
             onPressIn={() => animateScale(mapScale, 1.1)}
             onPressOut={() => animateScale(mapScale, 1)}
             onPress={() => handlePress(SCHOOL.mapAppUrl, SCHOOL.mapUrl)}
-            style={styles.socialIconWrapper}
+            style={globalStyles.socialIconWrapper}
           >
             <FontAwesome name="map-marker" size={30} color={COLORS.primary} />
             <Text style={globalStyles.iconLabel}>Map</Text>
@@ -139,63 +138,3 @@ export default function HomeScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  heading: {
-    fontSize: 36,
-    fontFamily: "Quicksand",
-    color: COLORS.primary,
-    textAlign: "center",
-    marginBottom: 20,
-    letterSpacing: 1,
-  },
-  cardGroup: {
-    marginBottom: 40,
-  },
-  navCard: {
-    ...globalStyles.card,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  cardText: {
-    fontSize: 18,
-    fontFamily: "Quicksand-SemiBold",
-    color: "#333",
-    marginLeft: 12,
-  },
-  iconBox: {
-    alignItems: "center",
-    justifyContent: "center",
-    textAlign: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    borderRadius: 12,
-    backgroundColor: "#fff",
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
-  },
-  socialContainer: {
-    borderTopWidth: 1,
-    borderTopColor: "#e0e0e0",
-    paddingTop: 24,
-    flexDirection: "row",
-    justifyContent: "space-around",
-    paddingBottom: 20,
-  },
-  socialIconWrapper: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-  },
-  highlight: {
-    fontFamily: "Quicksand-Bold", // or another variant
-  },
-});
