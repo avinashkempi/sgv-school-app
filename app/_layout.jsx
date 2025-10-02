@@ -21,14 +21,6 @@ export default function RootLayout() {
           fontFamily: "Quicksand",
         },
       };
-
-      View.defaultProps = {
-        ...(View.defaultProps || {}),
-        style: {
-          ...(View.defaultProps?.style || {}),
-          fontFamily: "Quicksand",
-        },
-      };
     }
   }, [fontsLoaded]);
 

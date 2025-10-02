@@ -1,29 +1,20 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import {
   View,
   Text,
   ScrollView,
   Animated,
-  Easing,
   Pressable,
 } from "react-native";
 import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 import { SCHOOL } from "../constants/basic-info";
 import { globalStyles, COLORS } from "../globalStyles";
+import useFade from "./hooks/useFade";
 import { useNavigation } from "@react-navigation/native";
 
 export default function About() {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useFade();
   const navigation = useNavigation();
-
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 1000,
-      useNativeDriver: true,
-      easing: Easing.out(Easing.quad),
-    }).start();
-  }, []);
 
   return (
     <ScrollView style={globalStyles.container}>
@@ -33,7 +24,7 @@ export default function About() {
       >
         <MaterialIcons name="arrow-back" size={24} color={COLORS.primary} />
       </Pressable>
-      <Animated.Text style={[globalStyles.title, { opacity: fadeAnim }]}> 
+      <Animated.Text style={[globalStyles.title, { opacity: fadeAnim }]}>
         {SCHOOL.name}
       </Animated.Text>
 

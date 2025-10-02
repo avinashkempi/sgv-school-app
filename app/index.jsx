@@ -18,6 +18,7 @@ import {
 import { SCHOOL } from "../constants/basic-info";
 import { ROUTES } from "../constants/routes";
 import { globalStyles, COLORS } from "../globalStyles";
+import useFade from "./hooks/useFade";
 
 const handlePress = async (appUrl, fallbackUrl) => {
   try {
@@ -33,15 +34,13 @@ const handlePress = async (appUrl, fallbackUrl) => {
 };
 
 export default function HomeScreen() {
+  const fadeAnim = useFade(0); // no fade, just align API for future
   const [youtubeScale] = useState(new Animated.Value(1));
   const [instagramScale] = useState(new Animated.Value(1));
   const [mapScale] = useState(new Animated.Value(1));
 
   const animateScale = (scaleRef, toValue) => {
-    Animated.spring(scaleRef, {
-      toValue,
-      useNativeDriver: true,
-    }).start();
+    Animated.spring(scaleRef, { toValue, useNativeDriver: true }).start();
   };
 
   return (

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -18,33 +18,13 @@ import {
 } from "@expo/vector-icons";
 import { SCHOOL } from "../constants/basic-info";
 import { globalStyles, COLORS } from "../globalStyles";
+import useFade from "./hooks/useFade";
+import { openAppLink, dial, email } from "./_utils/link";
 import { useNavigation } from "@react-navigation/native";
 
-const openAppLink = async (appUrl, fallbackUrl) => {
-  try {
-    const supported = await Linking.canOpenURL(appUrl);
-    if (supported) {
-      await Linking.openURL(appUrl);
-    } else {
-      await Linking.openURL(fallbackUrl);
-    }
-  } catch (err) {
-    console.error("Failed to open link:", err);
-  }
-};
-
 export default function Contact() {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useFade();
   const navigation = useNavigation();
-
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 1000,
-      useNativeDriver: true,
-      easing: Easing.out(Easing.quad),
-    }).start();
-  }, []);
 
   return (
     <ScrollView style={globalStyles.container}>
@@ -55,7 +35,7 @@ export default function Contact() {
         <MaterialIcons name="arrow-back" size={24} color={COLORS.primary} />
       </Pressable>
 
-      <Animated.Text style={[globalStyles.title, { opacity: fadeAnim }]}> 
+      <Animated.Text style={[globalStyles.title, { opacity: fadeAnim }]}>
         Contact Us
       </Animated.Text>
 
@@ -77,7 +57,7 @@ export default function Contact() {
           <Feather name="phone-call" size={20} color={COLORS.primary} />
           <Text style={globalStyles.label}>Phone</Text>
         </View>
-        <Pressable onPress={() => Linking.openURL(`tel:${SCHOOL.phone}`)}>
+        <Pressable onPress={() => dial(SCHOOL.phone)}>
           <Text style={globalStyles.text}>{SCHOOL.phone}</Text>
         </Pressable>
       </Animated.View>
@@ -88,7 +68,7 @@ export default function Contact() {
           <MaterialIcons name="email" size={22} color={COLORS.primary} />
           <Text style={globalStyles.label}>Email</Text>
         </View>
-        <Pressable onPress={() => Linking.openURL(`mailto:${SCHOOL.email}`)}>
+        <Pressable onPress={() => email(SCHOOL.email)}>
           <Text style={globalStyles.text}>{SCHOOL.email}</Text>
         </Pressable>
       </Animated.View>
