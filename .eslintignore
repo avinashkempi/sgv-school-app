@@ -1,0 +1,10 @@
+node_modules/
+build/
+dist/
+.expo/
+.web/
+.vscode/
+package-lock.json
+.pnpm-debug.log
+yarn.lock
+coverage/

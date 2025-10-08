@@ -1,16 +1,9 @@
-import React from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  Animated,
-  Pressable,
-} from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
+import { View, Text, ScrollView, Animated, Pressable } from "react-native";
 import { SCHOOL } from "../constants/basic-info";
 import { globalStyles, COLORS } from "../globalStyles";
 import useFade from "./hooks/useFade";
-import { useNavigation } from "@react-navigation/native";
 
 export default function About() {
   const fadeAnim = useFade();

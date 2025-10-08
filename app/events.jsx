@@ -1,9 +1,11 @@
+// Events screen
 import { useState, useMemo } from "react";
 import { View, Text, FlatList, Pressable } from "react-native";
-import { globalStyles, COLORS } from "../globalStyles";
 import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Calendar } from "react-native-calendars";
+
+import { globalStyles, COLORS } from "../globalStyles";
 import { SCHOOL } from "../constants/basic-info";
 
 const EventCard = ({ event }) => (
@@ -60,19 +62,21 @@ export default function EventsScreen() {
 
       <Text style={globalStyles.title}>Events</Text>
 
-      <Calendar
-        onDayPress={(day) => setSelectedDate(day.dateString)}
-        markedDates={markedDates}
-        theme={{
-          selectedDayBackgroundColor: COLORS.primary,
-          todayTextColor: COLORS.primary,
-          arrowColor: COLORS.primary,
-        }}
-      />
+      <View style={globalStyles.card}>
+        <Calendar
+          onDayPress={(day) => setSelectedDate(day.dateString)}
+          markedDates={markedDates}
+          theme={{
+            selectedDayBackgroundColor: COLORS.primary,
+            todayTextColor: COLORS.primary,
+            arrowColor: COLORS.primary,
+          }}
+        />
 
-      <Text style={[globalStyles.title, { marginTop: 18, fontSize: 18 }]}> 
-        {selectedDate ? `Events on ${selectedDate}` : "Tap a date to view events"}
-      </Text>
+        <Text style={[globalStyles.title, { marginTop: 18, fontSize: 18 }]}> 
+          {selectedDate ? `Events on ${selectedDate}` : "Tap a date to view events"}
+        </Text>
+      </View>
 
       <FlatList
         data={events}

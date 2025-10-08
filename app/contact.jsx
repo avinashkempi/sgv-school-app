@@ -1,34 +1,19 @@
-import React from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  Pressable,
-  Animated,
-} from "react-native";
-import {
-  MaterialIcons,
-  FontAwesome5,
-  Feather,
-  Entypo,
-  FontAwesome,
-} from "@expo/vector-icons";
-import { SCHOOL } from "../constants/basic-info";
+import { useNavigation } from "@react-navigation/native";
+import { MaterialIcons, FontAwesome5, Feather, Entypo, FontAwesome } from "@expo/vector-icons";
+import { View, Text, ScrollView, Pressable, Animated } from "react-native";
 import { globalStyles, COLORS } from "../globalStyles";
 import useFade from "./hooks/useFade";
 import { openAppLink, dial, email } from "./_utils/link";
-import { useNavigation } from "@react-navigation/native";
+import { SCHOOL } from "../constants/basic-info";
 
+/** Contact screen */
 export default function Contact() {
   const fadeAnim = useFade();
   const navigation = useNavigation();
 
   return (
     <ScrollView style={globalStyles.container}>
-      <Pressable
-        onPress={() => navigation.goBack()}
-        style={globalStyles.backButton}
-      >
+      <Pressable onPress={() => navigation.goBack()} style={globalStyles.backButton}>
         <MaterialIcons name="arrow-back" size={24} color={COLORS.primary} />
       </Pressable>
 
@@ -79,12 +64,7 @@ export default function Contact() {
 
         <Pressable
           style={globalStyles.iconRow}
-          onPress={() =>
-            openAppLink(
-              SCHOOL.socials.instagramAppUrl,
-              SCHOOL.socials.instagram
-            )
-          }
+          onPress={() => openAppLink(SCHOOL.socials.instagramAppUrl, SCHOOL.socials.instagram)}
         >
           <FontAwesome5 name="instagram" size={22} color="#C13584" />
           <Text style={globalStyles.link}>Instagram</Text>
@@ -92,9 +72,7 @@ export default function Contact() {
 
         <Pressable
           style={globalStyles.iconRow}
-          onPress={() =>
-            openAppLink(SCHOOL.socials.youtubeAppUrl, SCHOOL.socials.youtube)
-          }
+          onPress={() => openAppLink(SCHOOL.socials.youtubeAppUrl, SCHOOL.socials.youtube)}
         >
           <FontAwesome name="youtube-play" size={24} color="#FF0000" />
           <Text style={globalStyles.link}>YouTube</Text>

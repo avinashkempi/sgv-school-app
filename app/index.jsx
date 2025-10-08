@@ -1,19 +1,8 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  StatusBar,
-  Linking,
-  ScrollView,
-  Animated,
-} from "react-native";
+// Home screen
 import { Link } from "expo-router";
-import {
-  FontAwesome,
-  MaterialIcons,
-  MaterialCommunityIcons,
-} from "@expo/vector-icons";
+import { FontAwesome, MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { View, Text, Pressable, StatusBar, Linking, ScrollView, Animated } from "react-native";
+import { useState } from "react";
 import { SCHOOL } from "../constants/basic-info";
 import { ROUTES } from "../constants/routes";
 import { globalStyles, COLORS } from "../globalStyles";
@@ -33,7 +22,7 @@ const handlePress = async (appUrl, fallbackUrl) => {
 };
 
 export default function HomeScreen() {
-  const fadeAnim = useFade(0); // no fade, just align API for future
+  const _fadeAnim = useFade(0); // no fade, just align API for future
   const [youtubeScale] = useState(new Animated.Value(1));
   const [instagramScale] = useState(new Animated.Value(1));
   const [mapScale] = useState(new Animated.Value(1));
