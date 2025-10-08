@@ -81,7 +81,7 @@ export default function HomeScreen() {
 
       {/* Social Media Icons */}
       <View style={globalStyles.socialContainer}>
-        <Animated.View style={{ transform: [{ scale: youtubeScale }] }}>
+  <Animated.View style={[globalStyles.socialTransformWrapper, { transform: [{ scale: youtubeScale }] }]}>
           <Pressable
             onPressIn={() => animateScale(youtubeScale, 1.1)}
             onPressOut={() => animateScale(youtubeScale, 1)}
@@ -95,7 +95,7 @@ export default function HomeScreen() {
           </Pressable>
         </Animated.View>
 
-        <Animated.View style={{ transform: [{ scale: instagramScale }] }}>
+  <Animated.View style={[globalStyles.socialTransformWrapper, { transform: [{ scale: instagramScale }] }]}>
           <Pressable
             onPressIn={() => animateScale(instagramScale, 1.1)}
             onPressOut={() => animateScale(instagramScale, 1)}
@@ -112,7 +112,7 @@ export default function HomeScreen() {
           </Pressable>
         </Animated.View>
 
-        <Animated.View style={{ transform: [{ scale: mapScale }] }}>
+  <Animated.View style={[globalStyles.socialTransformWrapper, { transform: [{ scale: mapScale }] }]}>
           <Pressable
             onPressIn={() => animateScale(mapScale, 1.1)}
             onPressOut={() => animateScale(mapScale, 1)}

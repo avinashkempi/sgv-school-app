@@ -18,7 +18,7 @@ const EventCard = ({ event }) => (
         name="calendar-star"
         size={20}
         color={COLORS.primary}
-        style={{ marginLeft: 8 }}
+        style={globalStyles.smallLeftMargin}
       />
     </View>
     <Text style={globalStyles.newsText}>{event.title}</Text>
@@ -83,7 +83,7 @@ export default function EventsScreen() {
         keyExtractor={(item) => item.id}
         ListEmptyComponent={<Text style={globalStyles.empty}>No events on this day</Text>}
         renderItem={({ item }) => <EventCard event={item} />}
-        contentContainerStyle={{ paddingBottom: 40 }}
+  contentContainerStyle={globalStyles.contentPaddingBottom}
       />
     </View>
   );

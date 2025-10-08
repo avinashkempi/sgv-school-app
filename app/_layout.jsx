@@ -3,6 +3,7 @@ import { useFonts } from "expo-font";
 import { Text } from "react-native";
 import { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { globalStyles } from "../globalStyles";
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -27,7 +28,7 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#f5f5f5" }}>
+    <SafeAreaView style={globalStyles.safeArea}>
       <Stack screenOptions={{ headerShown: false }} />
     </SafeAreaView>
   );

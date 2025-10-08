@@ -228,6 +228,20 @@ export const globalStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
   },
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  smallLeftMargin: {
+    marginLeft: 8,
+  },
+  contentPaddingBottom: {
+    paddingBottom: 40,
+  },
+  socialTransformWrapper: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
   highlight: {
     fontFamily: FONTS.bold,
   },

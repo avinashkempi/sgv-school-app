@@ -29,13 +29,13 @@ export default function NewsScreen() {
                 name="calendar-text"
                 size={20}
                 color={COLORS.primary}
-                style={{ marginLeft: 8 }}
+                style={globalStyles.smallLeftMargin}
               />
             </View>
             <Text style={globalStyles.newsText}>{item.title}</Text>
           </View>
         )}
-        contentContainerStyle={{ paddingBottom: 40 }}
+  contentContainerStyle={globalStyles.contentPaddingBottom}
       />
     </View>
   );
