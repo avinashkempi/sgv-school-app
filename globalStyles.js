@@ -187,8 +187,17 @@ export const globalStyles = StyleSheet.create({
     marginBottom: 40,
   },
   navCard: {
+    // Make nav cards visually match the other .card components
     flexDirection: "row",
     alignItems: "center",
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.primary,
+    ...shadowBase,
   },
   cardText: {
     fontSize: 18,
