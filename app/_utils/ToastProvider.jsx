@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
-import { Animated, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { useTheme } from "../../theme";
 
-const ToastContext = createContext({ showToast: (msg) => {} });
+const ToastContext = createContext({ showToast: (_msg) => {} });
 
 export function useToast() {
   return useContext(ToastContext);
@@ -24,7 +24,12 @@ export function ToastProvider({ children }) {
       {children}
       {visible && (
         <View pointerEvents="none" style={styles.wrapper}>
-          <View style={[styles.toast, { backgroundColor: colors.cardBackground || colors.background }]}> 
+          <View
+            style={[
+              styles.toast,
+              { backgroundColor: colors.cardBackground || colors.background },
+            ]}
+          >
             <Text style={{ color: colors.textSecondary }}>{message}</Text>
           </View>
         </View>

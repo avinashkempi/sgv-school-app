@@ -1,9 +1,15 @@
-import React, { createContext, useContext, useMemo, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useMemo,
+  useState,
+  useEffect,
+} from "react";
 import { StyleSheet, Appearance } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Fonts reference from existing globalStyles
-export const FONTS = {
+const FONTS = {
   bold: "Quicksand-Bold",
   semiBold: "Quicksand-SemiBold",
   regular: "Quicksand",
@@ -18,10 +24,6 @@ const lightColors = {
   textSecondary: "#666",
   border: "#e0e0e0",
   shadow: "#000",
-  instagram: "#C13584",
-  youtube: "#FF0000",
-  orange: "#FF6B2D",
-  yellow: "#FFD54A",
   error: "#FF4C4C",
   white: "#ffffff",
 };
@@ -35,12 +37,9 @@ const darkColors = {
   textSecondary: "#b7c6db",
   border: "#16202b",
   shadow: "#000",
-  instagram: "#C13584",
-  youtube: "#FF0000",
   error: "#FF6B6B",
   white: "#ffffff",
-  orange: "#FF9A3F", // Added orange color
-  yellow: "#FFCF66", // Added yellow color
+  // orange/yellow accents removed; use COLORS.primary or explicit hex in components
 };
 
 function createGlobalStyles(COLORS) {
@@ -341,11 +340,18 @@ export function ThemeProvider({ children }) {
       mounted = false;
       try {
         sub && sub.remove && sub.remove();
-      } catch (e) {}
+      } catch (e) {
+        // ignore remove errors during unmount, but log in dev
+        if (typeof console !== "undefined")
+          console.warn("Appearance listener remove failed", e);
+      }
     };
   }, []);
 
-  const colors = useMemo(() => (mode === "dark" ? darkColors : lightColors), [mode]);
+  const colors = useMemo(
+    () => (mode === "dark" ? darkColors : lightColors),
+    [mode]
+  );
   const styles = useMemo(() => createGlobalStyles(colors), [colors]);
 
   const setAndPersist = async (newMode) => {
@@ -362,7 +368,9 @@ export function ThemeProvider({ children }) {
   // While hydrating, render nothing to avoid flicker. Child components may expect useTheme to exist, so
   // keep provider but return null for children until hydrated.
   return (
-    <ThemeContext.Provider value={{ mode: mode || "light", toggle, colors, styles }}>
+    <ThemeContext.Provider
+      value={{ mode: mode || "light", toggle, colors, styles }}
+    >
       {isHydrated ? children : null}
     </ThemeContext.Provider>
   );

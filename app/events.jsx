@@ -32,7 +32,10 @@ export default function EventsScreen() {
   const { styles, colors } = useTheme();
 
   const events = useMemo(
-    () => (selectedDate ? SCHOOL.events.filter((event) => event.date === selectedDate) : []),
+    () =>
+      selectedDate
+        ? SCHOOL.events.filter((event) => event.date === selectedDate)
+        : [],
     [selectedDate]
   );
 
@@ -58,7 +61,18 @@ export default function EventsScreen() {
 
   return (
     <View style={styles.container}>
-      <Header title="Events" left={<Pressable onPress={() => navigation.goBack()} style={styles.backButton} accessibilityLabel="Go back"><MaterialIcons name="arrow-back" size={24} color={colors.primary} /></Pressable>} />
+      <Header
+        title="Events"
+        left={
+          <Pressable
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+            accessibilityLabel="Go back"
+          >
+            <MaterialIcons name="arrow-back" size={24} color={colors.primary} />
+          </Pressable>
+        }
+      />
 
       <View style={styles.card}>
         <Calendar
@@ -81,17 +95,23 @@ export default function EventsScreen() {
           }}
         />
 
-        <Text style={[styles.title, { marginTop: 18, fontSize: 18 }]}> 
-          {selectedDate ? `Events on ${selectedDate}` : "Tap a date to view events"}
+        <Text style={[styles.title, { marginTop: 18, fontSize: 18 }]}>
+          {selectedDate
+            ? `Events on ${selectedDate}`
+            : "Tap a date to view events"}
         </Text>
       </View>
 
       <FlatList
         data={events}
         keyExtractor={(item) => item.id}
-        ListEmptyComponent={<Text style={styles.empty}>No events on this day</Text>}
-  renderItem={({ item }) => <EventCard event={item} styles={styles} colors={colors} />}
-  contentContainerStyle={styles.contentPaddingBottom}
+        ListEmptyComponent={
+          <Text style={styles.empty}>No events on this day</Text>
+        }
+        renderItem={({ item }) => (
+          <EventCard event={item} styles={styles} colors={colors} />
+        )}
+        contentContainerStyle={styles.contentPaddingBottom}
       />
     </View>
   );

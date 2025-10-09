@@ -1,8 +1,19 @@
 // Home screen
 import { Link } from "expo-router";
-import { FontAwesome, MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { View, Text, Pressable, StatusBar, Linking, ScrollView, Animated, Platform } from "react-native";
-import ThemeToggle from "./_utils/ThemeToggle";
+import {
+  FontAwesome,
+  MaterialIcons,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
+import {
+  View,
+  Text,
+  Pressable,
+  StatusBar,
+  Linking,
+  ScrollView,
+  Animated,
+} from "react-native";
 import Header from "./_utils/Header";
 import { useState } from "react";
 import { SCHOOL } from "../constants/basic-info";
@@ -33,10 +44,15 @@ export default function HomeScreen() {
     Animated.spring(scaleRef, { toValue, useNativeDriver: true }).start();
   };
 
-  const { mode, toggle, colors, styles } = useTheme();
+  const { mode, colors, styles } = useTheme();
   return (
-    <ScrollView style={[styles.container, { paddingTop: 10, paddingBottom: 96 }]}> 
-      <StatusBar barStyle={mode === "dark" ? "light-content" : "dark-content"} backgroundColor={colors.background} />
+    <ScrollView
+      style={[styles.container, { paddingTop: 10, paddingBottom: 96 }]}
+    >
+      <StatusBar
+        barStyle={mode === "dark" ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
+      />
 
       <Header title="Explore SGV School" left={null} />
 
@@ -81,7 +97,12 @@ export default function HomeScreen() {
 
       {/* Social Media Icons */}
       <View style={styles.socialContainer}>
-  <Animated.View style={[styles.socialTransformWrapper, { transform: [{ scale: youtubeScale }] }]}>
+        <Animated.View
+          style={[
+            styles.socialTransformWrapper,
+            { transform: [{ scale: youtubeScale }] },
+          ]}
+        >
           <Pressable
             onPressIn={() => animateScale(youtubeScale, 1.1)}
             onPressOut={() => animateScale(youtubeScale, 1)}
@@ -95,7 +116,12 @@ export default function HomeScreen() {
           </Pressable>
         </Animated.View>
 
-  <Animated.View style={[styles.socialTransformWrapper, { transform: [{ scale: instagramScale }] }]}>
+        <Animated.View
+          style={[
+            styles.socialTransformWrapper,
+            { transform: [{ scale: instagramScale }] },
+          ]}
+        >
           <Pressable
             onPressIn={() => animateScale(instagramScale, 1.1)}
             onPressOut={() => animateScale(instagramScale, 1)}
@@ -112,7 +138,12 @@ export default function HomeScreen() {
           </Pressable>
         </Animated.View>
 
-  <Animated.View style={[styles.socialTransformWrapper, { transform: [{ scale: mapScale }] }]}>
+        <Animated.View
+          style={[
+            styles.socialTransformWrapper,
+            { transform: [{ scale: mapScale }] },
+          ]}
+        >
           <Pressable
             onPressIn={() => animateScale(mapScale, 1.1)}
             onPressOut={() => animateScale(mapScale, 1)}

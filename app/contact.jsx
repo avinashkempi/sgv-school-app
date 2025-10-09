@@ -1,5 +1,11 @@
 import { useNavigation } from "@react-navigation/native";
-import { MaterialIcons, FontAwesome5, Feather, Entypo, FontAwesome } from "@expo/vector-icons";
+import {
+  MaterialIcons,
+  FontAwesome5,
+  Feather,
+  Entypo,
+  FontAwesome,
+} from "@expo/vector-icons";
 import { View, Text, ScrollView, Pressable, Animated } from "react-native";
 import useFade from "./hooks/useFade";
 import { openAppLink, dial, email } from "./_utils/link";
@@ -15,7 +21,17 @@ export default function Contact() {
 
   return (
     <ScrollView style={styles.container}>
-      <Header title="Contact Us" left={<Pressable onPress={() => navigation.goBack()} style={styles.backButton}><MaterialIcons name="arrow-back" size={24} color={colors.primary} /></Pressable>} />
+      <Header
+        title="Contact Us"
+        left={
+          <Pressable
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <MaterialIcons name="arrow-back" size={24} color={colors.primary} />
+          </Pressable>
+        }
+      />
 
       {/* Address Section */}
       <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
@@ -60,7 +76,12 @@ export default function Contact() {
 
         <Pressable
           style={styles.iconRow}
-          onPress={() => openAppLink(SCHOOL.socials.instagramAppUrl, SCHOOL.socials.instagram)}
+          onPress={() =>
+            openAppLink(
+              SCHOOL.socials.instagramAppUrl,
+              SCHOOL.socials.instagram
+            )
+          }
         >
           <FontAwesome5 name="instagram" size={22} color="#C13584" />
           <Text style={styles.link}>Instagram</Text>
@@ -68,7 +89,9 @@ export default function Contact() {
 
         <Pressable
           style={styles.iconRow}
-          onPress={() => openAppLink(SCHOOL.socials.youtubeAppUrl, SCHOOL.socials.youtube)}
+          onPress={() =>
+            openAppLink(SCHOOL.socials.youtubeAppUrl, SCHOOL.socials.youtube)
+          }
         >
           <FontAwesome name="youtube-play" size={24} color="#FF0000" />
           <Text style={styles.link}>YouTube</Text>

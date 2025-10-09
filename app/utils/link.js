@@ -1,4 +1,4 @@
-import { Linking } from 'react-native';
+import { Linking } from "react-native";
 
 export const openAppLink = async (appUrl, fallbackUrl) => {
   try {
@@ -6,7 +6,7 @@ export const openAppLink = async (appUrl, fallbackUrl) => {
     if (supported) return Linking.openURL(appUrl);
     return Linking.openURL(fallbackUrl);
   } catch (err) {
-    console.error('Failed to open link:', err);
+    console.error("Failed to open link:", err);
   }
 };
 

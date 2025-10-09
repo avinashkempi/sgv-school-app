@@ -11,12 +11,24 @@ export default function NewsScreen() {
 
   return (
     <View style={styles.container}>
-      <Header title="Latest News" left={<Pressable onPress={() => navigation.goBack()} style={styles.backButton}><MaterialIcons name="arrow-back" size={24} color={colors.primary} /></Pressable>} />
+      <Header
+        title="Latest News"
+        left={
+          <Pressable
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <MaterialIcons name="arrow-back" size={24} color={colors.primary} />
+          </Pressable>
+        }
+      />
 
       <FlatList
         data={SCHOOL.news}
         keyExtractor={(item) => item.id}
-  ListEmptyComponent={<Text style={styles.empty}>No news available right now</Text>}
+        ListEmptyComponent={
+          <Text style={styles.empty}>No news available right now</Text>
+        }
         renderItem={({ item }) => (
           <View style={[styles.card, styles.cardCompact]}>
             <View style={styles.headerRow}>
@@ -33,7 +45,7 @@ export default function NewsScreen() {
             <Text style={styles.newsText}>{item.title}</Text>
           </View>
         )}
-  contentContainerStyle={styles.contentPaddingBottom}
+        contentContainerStyle={styles.contentPaddingBottom}
       />
     </View>
   );

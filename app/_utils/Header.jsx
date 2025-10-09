@@ -9,7 +9,14 @@ export default function Header({ title, left }) {
   return (
     <View style={{ marginBottom: 8, paddingHorizontal: 8 }}>
       {/* top row: back button (left) and theme toggle (right) */}
-      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 6,
+        }}
+      >
         <View style={{ width: 48 }}>{left}</View>
         <View style={{ width: 48, alignItems: "flex-end" }}>
           <ThemeToggle />
@@ -18,7 +25,9 @@ export default function Header({ title, left }) {
 
       {/* second row: centered title */}
       <View style={{ alignItems: "center" }}>
-        <Text style={styles.title} ellipsizeMode="tail">{title}</Text>
+        <Text style={styles.title} ellipsizeMode="tail">
+          {title}
+        </Text>
       </View>
     </View>
   );

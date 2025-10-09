@@ -12,12 +12,28 @@ export default function ThemeToggle({ size = 20 }) {
     // animate rotate & fade when mode changes
     Animated.sequence([
       Animated.parallel([
-        Animated.timing(rotate, { toValue: 1, duration: 280, useNativeDriver: true }),
-        Animated.timing(fade, { toValue: 0.6, duration: 200, useNativeDriver: true }),
+        Animated.timing(rotate, {
+          toValue: 1,
+          duration: 280,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fade, {
+          toValue: 0.6,
+          duration: 200,
+          useNativeDriver: true,
+        }),
       ]),
       Animated.parallel([
-        Animated.timing(rotate, { toValue: 0, duration: 280, useNativeDriver: true }),
-        Animated.timing(fade, { toValue: 1, duration: 240, useNativeDriver: true }),
+        Animated.timing(rotate, {
+          toValue: 0,
+          duration: 280,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fade, {
+          toValue: 1,
+          duration: 240,
+          useNativeDriver: true,
+        }),
       ]),
     ]).start();
   }, [mode]);
@@ -35,14 +51,25 @@ export default function ThemeToggle({ size = 20 }) {
         hitSlop={8}
         style={({ pressed }) => [
           styles.button,
-          { backgroundColor: colors.cardBackground || colors.background, transform: [{ scale: pressed ? 0.96 : 1 }] },
+          {
+            backgroundColor: colors.cardBackground || colors.background,
+            transform: [{ scale: pressed ? 0.96 : 1 }],
+          },
         ]}
       >
         <Animated.View style={{ opacity: fade, transform: [{ rotate: spin }] }}>
           {mode === "dark" ? (
-            <MaterialCommunityIcons name="weather-night" size={size} color={colors.primary} />
+            <MaterialCommunityIcons
+              name="weather-night"
+              size={size}
+              color={colors.primary}
+            />
           ) : (
-            <MaterialCommunityIcons name="weather-sunny" size={size} color={colors.primary} />
+            <MaterialCommunityIcons
+              name="weather-sunny"
+              size={size}
+              color={colors.primary}
+            />
           )}
         </Animated.View>
       </Pressable>

@@ -13,7 +13,17 @@ export default function About() {
 
   return (
     <ScrollView style={styles.container}>
-      <Header title={SCHOOL.name} left={<Pressable onPress={() => navigation.goBack()} style={styles.backButton}><MaterialIcons name="arrow-back" size={24} color={colors.primary} /></Pressable>} />
+      <Header
+        title={SCHOOL.name}
+        left={
+          <Pressable
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <MaterialIcons name="arrow-back" size={24} color={colors.primary} />
+          </Pressable>
+        }
+      />
 
       {/* About Us Section */}
       <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
@@ -31,8 +41,8 @@ export default function About() {
           <Text style={styles.label}>Branches</Text>
         </View>
         <Text style={styles.text}>
-          1. Renuka Nagar, Mangasuli  Kindergarten to 8th Standard (9th and
-          10th opening soon).
+          1. Renuka Nagar, Mangasuli  Kindergarten to 8th Standard (9th and 10th
+          opening soon).
         </Text>
         <Text style={styles.text}>2. Ugar Khurd  Only Kindergarten.</Text>
       </Animated.View>
