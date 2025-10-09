@@ -13,7 +13,6 @@ import { SCHOOL } from "../constants/basic-info";
 import { useTheme } from "../theme";
 import Header from "./_utils/Header";
 
-/** Contact screen */
 export default function Contact() {
   const fadeAnim = useFade();
   const navigation = useNavigation();
@@ -33,7 +32,6 @@ export default function Contact() {
         }
       />
 
-      {/* Address Section */}
       <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
         <View style={styles.iconRow}>
           <MaterialIcons name="location-on" size={22} color={colors.primary} />
