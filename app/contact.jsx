@@ -13,7 +13,6 @@ import { SCHOOL } from "../constants/basic-info";
 import { useTheme } from "../theme";
 import Header from "./_utils/Header";
 
-/** Contact screen */
 export default function Contact() {
   const fadeAnim = useFade();
   const navigation = useNavigation();
