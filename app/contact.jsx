@@ -32,7 +32,6 @@ export default function Contact() {
         }
       />
 
-      {/* Address Section */}
       <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
         <View style={styles.iconRow}>
           <MaterialIcons name="location-on" size={22} color={colors.primary} />
