@@ -5,29 +5,30 @@ import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Calendar } from "react-native-calendars";
 
-import { globalStyles, COLORS } from "../globalStyles";
 import { SCHOOL } from "../constants/basic-info";
+import { useTheme } from "../theme";
 
-const EventCard = ({ event }) => (
-  <View style={[globalStyles.card, globalStyles.cardCompact]}>
-    <View style={globalStyles.headerRow}>
-      <View style={globalStyles.badge}>
-        <Text style={globalStyles.badgeText}>{event.date}</Text>
+const EventCard = ({ event, styles, colors }) => (
+  <View style={[styles.card, styles.cardCompact]}>
+    <View style={styles.headerRow}>
+      <View style={styles.badge}>
+        <Text style={styles.badgeText}>{event.date}</Text>
       </View>
       <MaterialCommunityIcons
         name="calendar-star"
         size={20}
-        color={COLORS.primary}
-        style={globalStyles.smallLeftMargin}
+        color={colors.primary}
+        style={styles.smallLeftMargin}
       />
     </View>
-    <Text style={globalStyles.newsText}>{event.title}</Text>
+    <Text style={styles.newsText}>{event.title}</Text>
   </View>
 );
 
 export default function EventsScreen() {
   const navigation = useNavigation();
   const [selectedDate, setSelectedDate] = useState("");
+  const { styles, colors } = useTheme();
 
   const events = useMemo(
     () => (selectedDate ? SCHOOL.events.filter((event) => event.date === selectedDate) : []),
@@ -38,7 +39,7 @@ export default function EventsScreen() {
     const dates = SCHOOL.events.reduce((acc, curr) => {
       acc[curr.date] = {
         marked: true,
-        dotColor: COLORS.primary,
+        dotColor: colors.primary,
       };
       return acc;
     }, {});
@@ -47,7 +48,7 @@ export default function EventsScreen() {
       dates[selectedDate] = {
         ...dates[selectedDate],
         selected: true,
-        selectedColor: COLORS.primary,
+        selectedColor: colors.primary,
       };
     }
 
@@ -55,25 +56,35 @@ export default function EventsScreen() {
   }, [selectedDate]);
 
   return (
-    <View style={globalStyles.container}>
-      <Pressable onPress={() => navigation.goBack()} style={globalStyles.backButton} accessibilityLabel="Go back">
-        <MaterialIcons name="arrow-back" size={24} color={COLORS.primary} />
+    <View style={styles.container}>
+      <Pressable onPress={() => navigation.goBack()} style={styles.backButton} accessibilityLabel="Go back">
+        <MaterialIcons name="arrow-back" size={24} color={colors.primary} />
       </Pressable>
 
-      <Text style={globalStyles.title}>Events</Text>
+      <Text style={styles.title}>Events</Text>
 
-      <View style={globalStyles.card}>
+      <View style={styles.card}>
         <Calendar
           onDayPress={(day) => setSelectedDate(day.dateString)}
           markedDates={markedDates}
           theme={{
-            selectedDayBackgroundColor: COLORS.primary,
-            todayTextColor: COLORS.primary,
-            arrowColor: COLORS.primary,
+            // Calendar colors adapted to theme
+            backgroundColor: colors.background,
+            calendarBackground: colors.cardBackground,
+            textSectionTitleColor: colors.textSecondary,
+            selectedDayBackgroundColor: colors.primary,
+            selectedDayTextColor: colors.white,
+            todayTextColor: colors.primary,
+            dayTextColor: colors.textPrimary,
+            textDisabledColor: colors.textSecondary,
+            dotColor: colors.primary,
+            selectedDotColor: colors.white,
+            arrowColor: colors.primary,
+            monthTextColor: colors.textPrimary,
           }}
         />
 
-        <Text style={[globalStyles.title, { marginTop: 18, fontSize: 18 }]}> 
+        <Text style={[styles.title, { marginTop: 18, fontSize: 18 }]}> 
           {selectedDate ? `Events on ${selectedDate}` : "Tap a date to view events"}
         </Text>
       </View>
@@ -81,9 +92,9 @@ export default function EventsScreen() {
       <FlatList
         data={events}
         keyExtractor={(item) => item.id}
-        ListEmptyComponent={<Text style={globalStyles.empty}>No events on this day</Text>}
-        renderItem={({ item }) => <EventCard event={item} />}
-  contentContainerStyle={globalStyles.contentPaddingBottom}
+        ListEmptyComponent={<Text style={styles.empty}>No events on this day</Text>}
+  renderItem={({ item }) => <EventCard event={item} styles={styles} colors={colors} />}
+  contentContainerStyle={styles.contentPaddingBottom}
       />
     </View>
   );

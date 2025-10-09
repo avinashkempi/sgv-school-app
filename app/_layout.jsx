@@ -3,7 +3,7 @@ import { useFonts } from "expo-font";
 import { Text } from "react-native";
 import { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { globalStyles } from "../globalStyles";
+import { ThemeProvider, useTheme } from "../theme";
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -27,9 +27,19 @@ export default function RootLayout() {
 
   if (!fontsLoaded) return null;
 
+  // separate component so we can use useTheme inside ThemeProvider
+  function Inner() {
+    const { styles } = useTheme();
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <Stack screenOptions={{ headerShown: false }} />
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView style={globalStyles.safeArea}>
-      <Stack screenOptions={{ headerShown: false }} />
-    </SafeAreaView>
+    <ThemeProvider>
+      <Inner />
+    </ThemeProvider>
   );
 }

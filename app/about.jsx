@@ -2,54 +2,55 @@ import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 import { View, Text, ScrollView, Animated, Pressable } from "react-native";
 import { SCHOOL } from "../constants/basic-info";
-import { globalStyles, COLORS } from "../globalStyles";
 import useFade from "./hooks/useFade";
+import { useTheme } from "../theme";
 
 export default function About() {
   const fadeAnim = useFade();
   const navigation = useNavigation();
+  const { styles, colors } = useTheme();
 
   return (
-    <ScrollView style={globalStyles.container}>
+    <ScrollView style={styles.container}>
       <Pressable
         onPress={() => navigation.goBack()}
-        style={globalStyles.backButton}
+        style={styles.backButton}
       >
-        <MaterialIcons name="arrow-back" size={24} color={COLORS.primary} />
+        <MaterialIcons name="arrow-back" size={24} color={colors.primary} />
       </Pressable>
-      <Animated.Text style={[globalStyles.title, { opacity: fadeAnim }]}>
+      <Animated.Text style={[styles.title, { opacity: fadeAnim }]}>
         {SCHOOL.name}
       </Animated.Text>
 
       {/* About Us Section */}
-      <Animated.View style={[globalStyles.card, { opacity: fadeAnim }]}>
-        <View style={globalStyles.iconRow}>
-          <MaterialIcons name="info" size={22} color={COLORS.primary} />
-          <Text style={globalStyles.label}>About Us</Text>
+      <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
+        <View style={styles.iconRow}>
+          <MaterialIcons name="info" size={22} color={colors.primary} />
+          <Text style={styles.label}>About Us</Text>
         </View>
-        <Text style={globalStyles.text}>{SCHOOL.about}</Text>
+        <Text style={styles.text}>{SCHOOL.about}</Text>
       </Animated.View>
 
       {/* Branches Section */}
-      <Animated.View style={[globalStyles.card, { opacity: fadeAnim }]}>
-        <View style={globalStyles.iconRow}>
-          <FontAwesome5 name="school" size={20} color={COLORS.primary} />
-          <Text style={globalStyles.label}>Branches</Text>
+      <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
+        <View style={styles.iconRow}>
+          <FontAwesome5 name="school" size={20} color={colors.primary} />
+          <Text style={styles.label}>Branches</Text>
         </View>
-        <Text style={globalStyles.text}>
-          1. Renuka Nagar, Mangasuli – Kindergarten to 8th Standard (9th and
+        <Text style={styles.text}>
+          1. Renuka Nagar, Mangasuli  Kindergarten to 8th Standard (9th and
           10th opening soon).
         </Text>
-        <Text style={globalStyles.text}>2. Ugar Khurd – Only Kindergarten.</Text>
+        <Text style={styles.text}>2. Ugar Khurd  Only Kindergarten.</Text>
       </Animated.View>
 
       {/* Mission Section */}
-      <Animated.View style={[globalStyles.card, { opacity: fadeAnim }]}>
-        <View style={globalStyles.iconRow}>
-          <MaterialIcons name="flag" size={22} color={COLORS.primary} />
-          <Text style={globalStyles.label}>Our Mission</Text>
+      <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
+        <View style={styles.iconRow}>
+          <MaterialIcons name="flag" size={22} color={colors.primary} />
+          <Text style={styles.label}>Our Mission</Text>
         </View>
-        <Text style={globalStyles.text}>{SCHOOL.mission}</Text>
+        <Text style={styles.text}>{SCHOOL.mission}</Text>
       </Animated.View>
     </ScrollView>
   );

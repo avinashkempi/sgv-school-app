@@ -1,41 +1,42 @@
 import { View, Text, FlatList, Pressable } from "react-native";
-import { globalStyles, COLORS } from "../globalStyles";
 import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { SCHOOL } from "../constants/basic-info";
+import { useTheme } from "../theme";
 
 export default function NewsScreen() {
   const navigation = useNavigation();
+  const { styles, colors } = useTheme();
 
   return (
-    <View style={globalStyles.container}>
-      <Pressable onPress={() => navigation.goBack()} style={globalStyles.backButton}>
-        <MaterialIcons name="arrow-back" size={24} color={COLORS.primary} />
+    <View style={styles.container}>
+      <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+        <MaterialIcons name="arrow-back" size={24} color={colors.primary} />
       </Pressable>
 
-      <Text style={globalStyles.title}>Latest News</Text>
+      <Text style={styles.title}>Latest News</Text>
 
       <FlatList
         data={SCHOOL.news}
         keyExtractor={(item) => item.id}
-        ListEmptyComponent={<Text style={globalStyles.empty}>No news available right now</Text>}
+  ListEmptyComponent={<Text style={styles.empty}>No news available right now</Text>}
         renderItem={({ item }) => (
-          <View style={[globalStyles.card, globalStyles.cardCompact]}>
-            <View style={globalStyles.headerRow}>
-              <View style={globalStyles.badge}>
-                <Text style={globalStyles.badgeText}>{item.date}</Text>
+          <View style={[styles.card, styles.cardCompact]}>
+            <View style={styles.headerRow}>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{item.date}</Text>
               </View>
               <MaterialCommunityIcons
                 name="calendar-text"
                 size={20}
-                color={COLORS.primary}
-                style={globalStyles.smallLeftMargin}
+                color={colors.primary}
+                style={styles.smallLeftMargin}
               />
             </View>
-            <Text style={globalStyles.newsText}>{item.title}</Text>
+            <Text style={styles.newsText}>{item.title}</Text>
           </View>
         )}
-  contentContainerStyle={globalStyles.contentPaddingBottom}
+  contentContainerStyle={styles.contentPaddingBottom}
       />
     </View>
   );
