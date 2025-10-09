@@ -43,7 +43,6 @@ export default function Contact() {
         </Pressable>
       </Animated.View>
 
-      {/* Phone Section */}
       <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
         <View style={styles.iconRow}>
           <Feather name="phone-call" size={20} color={colors.primary} />
