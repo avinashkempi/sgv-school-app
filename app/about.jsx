@@ -4,6 +4,7 @@ import { View, Text, ScrollView, Animated, Pressable } from "react-native";
 import { SCHOOL } from "../constants/basic-info";
 import useFade from "./hooks/useFade";
 import { useTheme } from "../theme";
+import Header from "./_utils/Header";
 
 export default function About() {
   const fadeAnim = useFade();
@@ -12,15 +13,7 @@ export default function About() {
 
   return (
     <ScrollView style={styles.container}>
-      <Pressable
-        onPress={() => navigation.goBack()}
-        style={styles.backButton}
-      >
-        <MaterialIcons name="arrow-back" size={24} color={colors.primary} />
-      </Pressable>
-      <Animated.Text style={[styles.title, { opacity: fadeAnim }]}>
-        {SCHOOL.name}
-      </Animated.Text>
+      <Header title={SCHOOL.name} left={<Pressable onPress={() => navigation.goBack()} style={styles.backButton}><MaterialIcons name="arrow-back" size={24} color={colors.primary} /></Pressable>} />
 
       {/* About Us Section */}
       <Animated.View style={[styles.card, { opacity: fadeAnim }]}>

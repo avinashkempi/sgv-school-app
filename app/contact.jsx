@@ -5,6 +5,7 @@ import useFade from "./hooks/useFade";
 import { openAppLink, dial, email } from "./_utils/link";
 import { SCHOOL } from "../constants/basic-info";
 import { useTheme } from "../theme";
+import Header from "./_utils/Header";
 
 /** Contact screen */
 export default function Contact() {
@@ -14,13 +15,7 @@ export default function Contact() {
 
   return (
     <ScrollView style={styles.container}>
-      <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-        <MaterialIcons name="arrow-back" size={24} color={colors.primary} />
-      </Pressable>
-
-      <Animated.Text style={[styles.title, { opacity: fadeAnim }]}>
-        Contact Us
-      </Animated.Text>
+      <Header title="Contact Us" left={<Pressable onPress={() => navigation.goBack()} style={styles.backButton}><MaterialIcons name="arrow-back" size={24} color={colors.primary} /></Pressable>} />
 
       {/* Address Section */}
       <Animated.View style={[styles.card, { opacity: fadeAnim }]}>

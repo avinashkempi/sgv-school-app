@@ -1,7 +1,9 @@
 // Home screen
 import { Link } from "expo-router";
 import { FontAwesome, MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { View, Text, Pressable, StatusBar, Linking, ScrollView, Animated, Switch, Platform } from "react-native";
+import { View, Text, Pressable, StatusBar, Linking, ScrollView, Animated, Platform } from "react-native";
+import ThemeToggle from "./_utils/ThemeToggle";
+import Header from "./_utils/Header";
 import { useState } from "react";
 import { SCHOOL } from "../constants/basic-info";
 import { ROUTES } from "../constants/routes";
@@ -36,19 +38,7 @@ export default function HomeScreen() {
     <ScrollView style={[styles.container, { paddingTop: 10, paddingBottom: 96 }]}> 
       <StatusBar barStyle={mode === "dark" ? "light-content" : "dark-content"} backgroundColor={colors.background} />
 
-      {/* Header with inline theme toggle (relative positioning) */}
-      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "flex-end", marginBottom: 12, paddingRight: 12 }}>
-
-        <View style={{ marginLeft: 12, zIndex: 999, elevation: 12 }}>
-          <View style={{ backgroundColor: colors.cardBackground || colors.background, borderRadius: 20, paddingHorizontal: 8, paddingVertical: 4, flexDirection: "row", alignItems: "center" }}>
-            <Text style={{ color: colors.textSecondary, fontFamily: "Quicksand", marginRight: 6, fontSize: 12 }}>{mode === "dark" ? "Dark" : "Light"}</Text>
-            <Switch value={mode === "dark"} onValueChange={toggle} trackColor={{ false: "#ccc", true: colors.primary }} thumbColor={mode === "dark" ? "#fff" : "#fff"} />
-          </View>
-        </View>
-      </View>
-        <Text style={[styles.heading, { flex: 1 }]}>
-          Explore <Text style={styles.highlight}>SGV School</Text>
-        </Text>
+      <Header title="Explore SGV School" left={null} />
 
       {/* Main Card Group */}
       <View style={styles.cardGroup}>

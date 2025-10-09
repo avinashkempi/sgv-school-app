@@ -3,6 +3,7 @@ import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { SCHOOL } from "../constants/basic-info";
 import { useTheme } from "../theme";
+import Header from "./_utils/Header";
 
 export default function NewsScreen() {
   const navigation = useNavigation();
@@ -10,11 +11,7 @@ export default function NewsScreen() {
 
   return (
     <View style={styles.container}>
-      <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-        <MaterialIcons name="arrow-back" size={24} color={colors.primary} />
-      </Pressable>
-
-      <Text style={styles.title}>Latest News</Text>
+      <Header title="Latest News" left={<Pressable onPress={() => navigation.goBack()} style={styles.backButton}><MaterialIcons name="arrow-back" size={24} color={colors.primary} /></Pressable>} />
 
       <FlatList
         data={SCHOOL.news}

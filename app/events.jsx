@@ -7,6 +7,7 @@ import { Calendar } from "react-native-calendars";
 
 import { SCHOOL } from "../constants/basic-info";
 import { useTheme } from "../theme";
+import Header from "./_utils/Header";
 
 const EventCard = ({ event, styles, colors }) => (
   <View style={[styles.card, styles.cardCompact]}>
@@ -57,11 +58,7 @@ export default function EventsScreen() {
 
   return (
     <View style={styles.container}>
-      <Pressable onPress={() => navigation.goBack()} style={styles.backButton} accessibilityLabel="Go back">
-        <MaterialIcons name="arrow-back" size={24} color={colors.primary} />
-      </Pressable>
-
-      <Text style={styles.title}>Events</Text>
+      <Header title="Events" left={<Pressable onPress={() => navigation.goBack()} style={styles.backButton} accessibilityLabel="Go back"><MaterialIcons name="arrow-back" size={24} color={colors.primary} /></Pressable>} />
 
       <View style={styles.card}>
         <Calendar

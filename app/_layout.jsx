@@ -4,6 +4,7 @@ import { Text } from "react-native";
 import { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemeProvider, useTheme } from "../theme";
+import { ToastProvider } from "./_utils/ToastProvider";
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -32,7 +33,9 @@ export default function RootLayout() {
     const { styles } = useTheme();
     return (
       <SafeAreaView style={styles.safeArea}>
-        <Stack screenOptions={{ headerShown: false }} />
+        <ToastProvider>
+          <Stack screenOptions={{ headerShown: false }} />
+        </ToastProvider>
       </SafeAreaView>
     );
   }
