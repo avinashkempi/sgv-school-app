@@ -15,11 +15,13 @@ import {
   Animated,
 } from "react-native";
 import Header from "./_utils/Header";
-import { useState } from "react";
+import LoginModal from './_utils/LoginModal';
+import { useState, useEffect } from "react";
 import { SCHOOL } from "../constants/basic-info";
 import { ROUTES } from "../constants/routes";
 import useFade from "./hooks/useFade";
 import { useTheme } from "../theme";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const handlePress = async (appUrl, fallbackUrl) => {
   try {
@@ -45,6 +47,34 @@ export default function HomeScreen() {
   };
 
   const { mode, colors, styles } = useTheme();
+  const [authModalVisible, setAuthModalVisible] = useState(false);
+  const [user, setUser] = useState(null);
+
+  // Load stored user session on app start
+  useEffect(() => {
+    const loadStoredUser = async () => {
+      try {
+          const [token, storedUser] = await Promise.all([
+            AsyncStorage.getItem('@auth_token'),
+            AsyncStorage.getItem('@auth_user')
+          ]);
+        
+          if (token && storedUser) {
+            const userData = JSON.parse(storedUser);
+            console.log('Found stored user:', userData.username);
+            setUser(userData);
+          } 
+      } catch (e) {
+        console.warn('Failed to load stored user session', e);
+        setUser(null);
+      }
+    };
+    loadStoredUser();
+  }, []); // Run once on mount
+
+  const handleLoginSuccess = (userObj) => {
+    setUser(userObj);
+  };
   return (
     <ScrollView
       style={[styles.container, { paddingTop: 10, paddingBottom: 96 }]}
@@ -157,6 +187,41 @@ export default function HomeScreen() {
       </View>
 
       {/* end header */}
+
+      {/* Auth area */}
+      <View style={{ padding: 12, alignItems: 'center' }}>
+        {user ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={[styles.cardText, { marginRight: 12 }]}>Hi, {user.username}</Text>
+            <Pressable
+              onPress={async () => {
+                try {
+                  await AsyncStorage.multiRemove(['@auth_token', '@auth_user']);
+                  console.log('Logged out, cleared auth data');
+                } catch (e) {}
+                setUser(null);
+              }}
+              style={[styles.navCard, { paddingHorizontal: 14 }]}
+            >
+              <Text style={styles.cardText}>Logout</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <Pressable
+            onPress={() => setAuthModalVisible(true)}
+            style={[styles.navCard, { paddingHorizontal: 20 }]}
+          >
+            <MaterialIcons name="login" size={20} color={colors.primary} />
+            <Text style={[styles.cardText, { marginLeft: 8 }]}>Login / Signup</Text>
+          </Pressable>
+        )}
+      </View>
+
+      <LoginModal
+        isVisible={authModalVisible}
+        onClose={() => setAuthModalVisible(false)}
+        onSuccess={handleLoginSuccess}
+      />
     </ScrollView>
   );
 }
