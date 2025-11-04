@@ -3,7 +3,7 @@ import { View, Text } from "react-native";
 import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "../../theme";
 
-export default function Header({ title, left }) {
+const Header = ({ title, left }) => {
   const { styles } = useTheme();
 
   return (
@@ -31,4 +31,6 @@ export default function Header({ title, left }) {
       </View>
     </View>
   );
-}
+};
+
+export default React.memo(Header);

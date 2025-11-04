@@ -16,7 +16,7 @@ import {
 } from "react-native";
 import Header from "./_utils/Header";
 import LoginModal from './_utils/LoginModal';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, memo } from "react";
 import { SCHOOL } from "../constants/basic-info";
 import { ROUTES } from "../constants/routes";
 import useFade from "./hooks/useFade";
@@ -38,12 +38,15 @@ const handlePress = async (appUrl, fallbackUrl) => {
 
 export default function HomeScreen() {
   const _fadeAnim = useFade(0); // no fade, just align API for future
-  const [youtubeScale] = useState(new Animated.Value(1));
-  const [instagramScale] = useState(new Animated.Value(1));
-  const [mapScale] = useState(new Animated.Value(1));
+  // Use refs for Animated.Value so they are not recreated on every render
+  const youtubeScale = useRef(new Animated.Value(1));
+  const instagramScale = useRef(new Animated.Value(1));
+  const mapScale = useRef(new Animated.Value(1));
 
+  // Accept a ref to keep identity stable and avoid recreating animations
   const animateScale = (scaleRef, toValue) => {
-    Animated.spring(scaleRef, { toValue, useNativeDriver: true }).start();
+    if (!scaleRef || !scaleRef.current) return;
+    Animated.spring(scaleRef.current, { toValue, useNativeDriver: true }).start();
   };
 
   const { mode, colors, styles } = useTheme();
@@ -72,12 +75,19 @@ export default function HomeScreen() {
     loadStoredUser();
   }, []); // Run once on mount
 
-  const handleLoginSuccess = (userObj) => {
+  // stable handler to avoid re-renders
+  const handleLoginSuccess = useCallback((userObj) => {
     setUser(userObj);
-  };
+  }, []);
+
+  const openAuthModal = useCallback(() => setAuthModalVisible(true), []);
+  const closeAuthModal = useCallback(() => setAuthModalVisible(false), []);
   return (
     <ScrollView
-      style={[styles.container, { paddingTop: 10, paddingBottom: 96 }]}
+      style={styles.container}
+      contentContainerStyle={useMemo(() => ({ paddingTop: 10, paddingBottom: 96 }), [])}
+      removeClippedSubviews
+      showsVerticalScrollIndicator={false}
     >
       <StatusBar
         barStyle={mode === "dark" ? "light-content" : "dark-content"}
@@ -127,63 +137,56 @@ export default function HomeScreen() {
 
       {/* Social Media Icons */}
       <View style={styles.socialContainer}>
-        <Animated.View
-          style={[
-            styles.socialTransformWrapper,
-            { transform: [{ scale: youtubeScale }] },
-          ]}
-        >
-          <Pressable
-            onPressIn={() => animateScale(youtubeScale, 1.1)}
-            onPressOut={() => animateScale(youtubeScale, 1)}
-            onPress={() =>
-              handlePress(SCHOOL.socials.youtubeAppUrl, SCHOOL.socials.youtube)
-            }
-            style={styles.socialIconWrapper}
-          >
-            <FontAwesome name="youtube-play" size={30} color="#FF0000" />
-            <Text style={styles.iconLabel}>YouTube</Text>
-          </Pressable>
-        </Animated.View>
+        {/* Social icons memoized to avoid re-renders during transitions */}
+        {
+          (() => {
+            // stable icon elements so props to memoized component don't change
+            const youtubeIcon = useMemo(() => (
+              <FontAwesome name="youtube-play" size={30} color="#FF0000" />
+            ), []);
 
-        <Animated.View
-          style={[
-            styles.socialTransformWrapper,
-            { transform: [{ scale: instagramScale }] },
-          ]}
-        >
-          <Pressable
-            onPressIn={() => animateScale(instagramScale, 1.1)}
-            onPressOut={() => animateScale(instagramScale, 1)}
-            onPress={() =>
-              handlePress(
-                SCHOOL.socials.instagramAppUrl,
-                SCHOOL.socials.instagram
-              )
-            }
-            style={styles.socialIconWrapper}
-          >
-            <FontAwesome name="instagram" size={30} color="#C13584" />
-            <Text style={styles.iconLabel}>Instagram</Text>
-          </Pressable>
-        </Animated.View>
+            const instagramIcon = useMemo(() => (
+              <FontAwesome name="instagram" size={30} color="#C13584" />
+            ), []);
 
-        <Animated.View
-          style={[
-            styles.socialTransformWrapper,
-            { transform: [{ scale: mapScale }] },
-          ]}
-        >
-          <Pressable
-            onPressIn={() => animateScale(mapScale, 1.1)}
-            onPressOut={() => animateScale(mapScale, 1)}
-            onPress={() => handlePress(SCHOOL.mapAppUrl, SCHOOL.mapUrl)}
-            style={styles.socialIconWrapper}
-          >
-            <FontAwesome name="map-marker" size={30} color={colors.primary} />
-            <Text style={styles.iconLabel}>Map</Text>
-          </Pressable>
-        </Animated.View>
+            const mapIcon = useMemo(() => (
+              <FontAwesome name="map-marker" size={30} color={colors.primary} />
+            ), [colors.primary]);
+
+            const handleYoutubePress = useCallback(() => handlePress(SCHOOL.socials.youtubeAppUrl, SCHOOL.socials.youtube), []);
+            const handleInstagramPress = useCallback(() => handlePress(SCHOOL.socials.instagramAppUrl, SCHOOL.socials.instagram), []);
+            const handleMapPress = useCallback(() => handlePress(SCHOOL.mapAppUrl, SCHOOL.mapUrl), []);
+
+            const SocialIcon = memo(({ scaleRef, onPress, iconElement, label }) => {
+              return (
+                <Animated.View
+                  style={[
+                    styles.socialTransformWrapper,
+                    { transform: [{ scale: scaleRef.current }] },
+                  ]}
+                >
+                  <Pressable
+                    onPressIn={() => animateScale(scaleRef, 1.1)}
+                    onPressOut={() => animateScale(scaleRef, 1)}
+                    onPress={onPress}
+                    style={styles.socialIconWrapper}
+                  >
+                    {iconElement}
+                    <Text style={styles.iconLabel}>{label}</Text>
+                  </Pressable>
+                </Animated.View>
+              );
+            });
+
+            return (
+              <>
+                <SocialIcon scaleRef={youtubeScale} onPress={handleYoutubePress} iconElement={youtubeIcon} label="YouTube" />
+                <SocialIcon scaleRef={instagramScale} onPress={handleInstagramPress} iconElement={instagramIcon} label="Instagram" />
+                <SocialIcon scaleRef={mapScale} onPress={handleMapPress} iconElement={mapIcon} label="Map" />
+              </>
+            );
+          })()
+        }
       </View>
 
       {/* end header */}

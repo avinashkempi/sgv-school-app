@@ -12,7 +12,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import apiConfig from '../config/apiConfig';
 
-export default function LoginModal({ isVisible, onClose, onSuccess }) {
+const LoginModal = ({ isVisible, onClose, onSuccess }) => {
   const [tab, setTab] = useState('login'); // 'login' or 'signup'
 
   // Common
@@ -298,3 +298,5 @@ const styles = StyleSheet.create({
   fieldError: { color: '#c00', marginTop: 4 },
   serverError: { color: '#c00', marginBottom: 8, textAlign: 'center' },
 });
+
+export default React.memo(LoginModal);
