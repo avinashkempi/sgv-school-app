@@ -5,6 +5,7 @@ import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useTheme } from "../../theme";
 import { ROUTES } from "../../constants/routes";
 import { BlurView } from "expo-blur";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get("window");
 
@@ -13,6 +14,7 @@ export default function BottomNavigation() {
   const pathname = usePathname();
   const { colors, styles } = useTheme();
   const [activeTab, setActiveTab] = useState(ROUTES.HOME);
+  const [user, setUser] = useState(null);
 
   // Animation refs
   const rippleAnim = useRef(new Animated.Value(0)).current;
@@ -21,6 +23,24 @@ export default function BottomNavigation() {
 
   useEffect(() => {
     setActiveTab(pathname);
+  }, [pathname]);
+
+  // Load user on mount and when pathname changes
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const storedUser = await AsyncStorage.getItem('@auth_user');
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        } else {
+          setUser(null);
+        }
+      } catch (e) {
+        console.warn('Failed to load user', e);
+        setUser(null);
+      }
+    };
+    loadUser();
   }, [pathname]);
 
   const navigationItems = [
@@ -48,6 +68,13 @@ export default function BottomNavigation() {
       icon: "menu",
       activeIcon: "menu-open",
     },
+    // Show Admin menu if user role includes 'admin'
+    ...(user && user.role && user.role.toLowerCase().includes('admin') ? [{
+      route: ROUTES.ADMIN,
+      label: "Admin",
+      icon: "admin-panel-settings",
+      activeIcon: "admin-panel-settings",
+    }] : []),
   ];
 
   const handleTabPress = (route, index) => {

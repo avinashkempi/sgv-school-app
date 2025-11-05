@@ -28,26 +28,16 @@ export default function ProfileScreen() {
   }, []);
 
   const handleLogout = async () => {
-    Alert.alert(
-      "Logout",
-      "Are you sure you want to log out?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Logout",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await AsyncStorage.multiRemove(['@auth_token', '@auth_user']);
-              setUser(null);
-              navigation.navigate('index');
-            } catch (e) {
-              console.warn('Failed to logout', e);
-            }
-          },
-        },
-      ]
-    );
+    try {
+      await AsyncStorage.removeItem('@auth_token');
+      await AsyncStorage.removeItem('@auth_user');
+      setUser(null);
+      const { router } = require('expo-router');
+      router.replace('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      Alert.alert('Error', 'Failed to logout. Please try again.');
+    }
   };
 
   const handlePress = async (appUrl, fallbackUrl) => {

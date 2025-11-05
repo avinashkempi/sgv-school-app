@@ -5,19 +5,22 @@ import { useTheme } from '../theme';
 import Header from './_utils/Header';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
+import apiConfig from './config/apiConfig';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isSignup, setIsSignup] = useState(false);
   const { styles, colors, mode } = useTheme();
   const router = useRouter();
 
-  const handleAuth = async () => {
-    if (!email || !password) return;
+  const handleLogin = async () => {
+    if (!email || !password) {
+      alert('Please enter both email and password.');
+      return;
+    }
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch(apiConfig.url(apiConfig.endpoints.auth.login), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -27,15 +30,15 @@ export default function Login() {
 
       const data = await response.json();
 
-      if (response.ok) {
+      if (response.ok && data.token) {
         await AsyncStorage.setItem('@auth_token', data.token);
         await AsyncStorage.setItem('@auth_user', JSON.stringify(data.user));
         router.replace('/');
       } else {
-        alert(data.message || 'Authentication failed');
+        alert(data.message || 'Login failed');
       }
     } catch (error) {
-      console.error('Auth error:', error);
+      console.error('Login error:', error);
       alert('Network error. Please try again.');
     }
   };
@@ -47,7 +50,7 @@ export default function Login() {
         backgroundColor={colors.background}
       />
 
-      <Header title={isSignup ? "Sign Up" : "Login"} />
+      <Header title="Login" />
 
       <View style={{ marginTop: 20 }}>
         <Text style={[styles.label, { marginBottom: 10 }]}>Email</Text>
@@ -57,6 +60,8 @@ export default function Login() {
           onChangeText={setEmail}
           placeholder="Enter email"
           placeholderTextColor={colors.textSecondary}
+          keyboardType="email-address"
+          autoCapitalize="none"
         />
 
         <Text style={[styles.label, { marginBottom: 10 }]}>Password</Text>
@@ -71,18 +76,9 @@ export default function Login() {
 
         <Pressable
           style={[styles.navCard, { paddingVertical: 15, alignItems: 'center' }]}
-          onPress={handleAuth}
+          onPress={handleLogin}
         >
-          <Text style={styles.cardText}>{isSignup ? "Sign Up" : "Login"}</Text>
-        </Pressable>
-
-        <Pressable
-          style={{ marginTop: 20, alignItems: 'center' }}
-          onPress={() => setIsSignup(!isSignup)}
-        >
-          <Text style={[styles.text, { color: colors.primary }]}>
-            {isSignup ? "Already have an account? Login" : "Don't have an account? Sign Up"}
-          </Text>
+          <Text style={styles.cardText}>Login</Text>
         </Pressable>
       </View>
     </ScrollView>

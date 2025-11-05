@@ -9,7 +9,6 @@ const BASE_URL = 'https://svg-school-backend.onrender.com/api';
 
 const endpoints = {
   auth: {
-    signup: '/auth/signup',
     login: '/auth/login',
   },
   events: {
@@ -21,6 +20,13 @@ const endpoints = {
   },
   schoolInfo: {
     get: '/school-info',
+  },
+  users: {
+    list: '/users',
+    create: '/users',
+    getById: (id) => `/users/${id}`,
+    update: (id) => `/users/${id}`,
+    delete: (id) => `/users/${id}`,
   }
 };
 

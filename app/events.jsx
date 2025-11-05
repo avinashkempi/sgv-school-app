@@ -77,7 +77,7 @@ export default function EventsScreen() {
         if (token && user) {
           try {
             const parsed = JSON.parse(user);
-            const isAdmin = !!(parsed && (parsed.admin === true || parsed.superAdmin === true));
+            const isAdmin = !!(parsed && (parsed.role === 'admin' || parsed.role === 'super admin'));
             setIsAuthenticated(isAdmin);
             if (parsed && parsed.username) console.log('User loaded:', parsed.username, 'isAdmin:', isAdmin);
           } catch (e) {
