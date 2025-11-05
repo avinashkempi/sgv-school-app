@@ -7,14 +7,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 
 export default function Login() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignup, setIsSignup] = useState(false);
   const { styles, colors, mode } = useTheme();
   const router = useRouter();
 
   const handleAuth = async () => {
-    if (!username || !password) return;
+    if (!email || !password) return;
 
     try {
       const response = await fetch('http://localhost:5000/api/auth/login', {
@@ -22,7 +22,7 @@ export default function Login() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
@@ -50,12 +50,12 @@ export default function Login() {
       <Header title={isSignup ? "Sign Up" : "Login"} />
 
       <View style={{ marginTop: 20 }}>
-        <Text style={[styles.label, { marginBottom: 10 }]}>Username</Text>
+        <Text style={[styles.label, { marginBottom: 10 }]}>Email</Text>
         <TextInput
           style={[styles.input, { marginBottom: 20 }]}
-          value={username}
-          onChangeText={setUsername}
-          placeholder="Enter username"
+          value={email}
+          onChangeText={setEmail}
+          placeholder="Enter email"
           placeholderTextColor={colors.textSecondary}
         />
 

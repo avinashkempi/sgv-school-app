@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemeProvider, useTheme } from "../theme";
 import { ToastProvider } from "./_utils/ToastProvider";
-import HamburgerMenu from "./_utils/HamburgerMenu";
+import BottomNavigation from "./_utils/BottomNavigation";
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -34,10 +34,10 @@ export default function RootLayout() {
     const { styles } = useTheme();
     return (
       <SafeAreaView style={styles.safeArea}>
-        <HamburgerMenu />
         <ToastProvider>
           <Stack screenOptions={{ headerShown: false }} />
         </ToastProvider>
+        <BottomNavigation />
       </SafeAreaView>
     );
   }

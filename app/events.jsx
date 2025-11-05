@@ -6,11 +6,11 @@ import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Calendar } from "react-native-calendars";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import apiConfig from "./config/apiConfig";
 import { useTheme } from "../theme";
 import { useToast } from "./_utils/ToastProvider";
 import Header from "./_utils/Header";
 import EventFormModal from "./_utils/EventFormModal";
+import useEvents from "./hooks/useEvents";
 
 // Helper to format dates for display in Indian format (DD-MM-YYYY)
 const formatIndianDate = (dateInput) => {
@@ -38,13 +38,19 @@ const EventCard = ({ event, styles, colors }) => (
         <Text style={styles.badgeText}>{event.date}</Text>
       </View>
       <MaterialCommunityIcons
-        name="calendar-star"
+        name={event.isSchoolEvent ? "school" : "calendar-star"}
         size={20}
-        color={colors.primary}
+        color={event.isSchoolEvent ? '#FFD700' : colors.primary}
         style={styles.smallLeftMargin}
       />
     </View>
     <Text style={styles.newsText}>{event.title}</Text>
+    {event.isSchoolEvent && (
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+        <MaterialCommunityIcons name="school" size={14} color="#FFD700" />
+        <Text style={{ color: '#FFD700', fontSize: 12, marginLeft: 4 }}>School Event</Text>
+      </View>
+    )}
   </View>
 );
 
@@ -52,19 +58,15 @@ export default function EventsScreen() {
   const navigation = useNavigation();
   const today = new Date().toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = useState(today);
-  const [allEvents, setAllEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [isEventFormVisible, setIsEventFormVisible] = useState(false);
   // This flag now represents whether the user has admin privileges
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { styles, colors } = useTheme();
   const { showToast } = useToast();
+  const { events: allEvents, loading, addEvent } = useEvents();
 
   useEffect(() => {
-    // Fetch events immediately on mount regardless of auth state
-    fetchEvents();
-
-    // Check authentication and admin role in background (do not block fetch)
+    // Check authentication and admin role
     (async () => {
       try {
         const [token, user] = await Promise.all([
@@ -92,49 +94,29 @@ export default function EventsScreen() {
     })();
   }, []);
 
-  const fetchEvents = async () => {
-    try {
-      setLoading(true);
-      const token = await AsyncStorage.getItem('@auth_token');
-      
-      const fetchOptions = {};
-      if (token) {
-        fetchOptions.headers = { Authorization: `Bearer ${token}` };
-      }
 
-      const response = await fetch(apiConfig.url(apiConfig.endpoints.events.list), fetchOptions);
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch events');
-      }
-
-      setAllEvents(data.event);
-    } catch (error) {
-      showToast(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleDateSelect = (day) => {
     setSelectedDate(day.dateString);
   };
 
   const handleEventCreated = (newEvent) => {
-    // Normalize server response: some endpoints return `id` while DB documents use `_id`.
-    const normalized = { ...newEvent };
-    if (!normalized._id && normalized.id) normalized._id = normalized.id;
-    setAllEvents(prev => [...prev, normalized]);
+    addEvent(newEvent);
   };
 
   const filteredEvents = useMemo(
     () =>
       selectedDate
-        ? allEvents.filter(
-            (event) => new Date(event.date).toISOString().split('T')[0] === selectedDate
-          )
+        ? allEvents
+            .filter(
+              (event) => new Date(event.date).toISOString().split('T')[0] === selectedDate
+            )
+            .sort((a, b) => {
+              // School events first (true comes before false in descending order)
+              if (a.isSchoolEvent && !b.isSchoolEvent) return -1;
+              if (!a.isSchoolEvent && b.isSchoolEvent) return 1;
+              return 0;
+            })
         : [],
     [selectedDate, allEvents]
   );
@@ -142,10 +124,18 @@ export default function EventsScreen() {
   const markedDates = useMemo(() => {
     const dates = allEvents.reduce((acc, curr) => {
       const date = new Date(curr.date).toISOString().split('T')[0];
-      acc[date] = {
-        marked: true,
-        dotColor: colors.primary,
-      };
+      if (!acc[date]) {
+        acc[date] = {
+          marked: true,
+          dotColor: colors.primary,
+          selectedDotColor: colors.primary,
+        };
+      }
+      // If any event on this date is a school event, show gold dot
+      if (curr.isSchoolEvent) {
+        acc[date].dotColor = '#FFD700';
+        acc[date].selectedDotColor = '#FFD700';
+      }
       return acc;
     }, {});
 

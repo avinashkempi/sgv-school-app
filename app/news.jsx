@@ -1,13 +1,14 @@
 import { View, Text, FlatList, Pressable } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { SCHOOL } from "../constants/basic-info";
 import { useTheme } from "../theme";
 import Header from "./_utils/Header";
+import useSchoolInfo from "./hooks/useSchoolInfo";
 
 export default function NewsScreen() {
   const navigation = useNavigation();
   const { styles, colors } = useTheme();
+  const { schoolInfo: SCHOOL } = useSchoolInfo();
 
   return (
     <View style={styles.container}>

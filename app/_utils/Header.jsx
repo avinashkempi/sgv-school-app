@@ -6,7 +6,7 @@ const Header = ({ title }) => {
   const { styles } = useTheme();
 
   return (
-    <View style={{ marginBottom: 8, paddingHorizontal: 8 }}>
+    <View style={{ marginBottom: 8, paddingHorizontal: 8, paddingBottom: 10 }}>
       {/* centered title */}
       <View style={{ alignItems: "center" }}>
         <Text style={styles.title} ellipsizeMode="tail">

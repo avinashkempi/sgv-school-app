@@ -18,6 +18,9 @@ const endpoints = {
     getById: (id) => `/events/${id}`,
     update: (id) => `/events/${id}`,
     delete: (id) => `/events/${id}`,
+  },
+  schoolInfo: {
+    get: '/school-info',
   }
 };
 

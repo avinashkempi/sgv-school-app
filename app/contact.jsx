@@ -9,14 +9,15 @@ import {
 import { View, Text, ScrollView, Pressable, Animated } from "react-native";
 import useFade from "./hooks/useFade";
 import { openAppLink, dial, email } from "./_utils/link";
-import { SCHOOL } from "../constants/basic-info";
 import { useTheme } from "../theme";
 import Header from "./_utils/Header";
+import useSchoolInfo from "./hooks/useSchoolInfo";
 
 export default function Contact() {
   const fadeAnim = useFade();
   const navigation = useNavigation();
   const { styles, colors } = useTheme();
+  const { schoolInfo: SCHOOL } = useSchoolInfo();
 
   return (
     <ScrollView style={styles.container}>

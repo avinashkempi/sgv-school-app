@@ -1,13 +1,14 @@
 import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 import { View, Text, ScrollView, Animated, StatusBar } from "react-native";
-import { SCHOOL } from "../constants/basic-info";
 import useFade from "./hooks/useFade";
 import { useTheme } from "../theme";
 import Header from "./_utils/Header";
+import useSchoolInfo from "./hooks/useSchoolInfo";
 
 export default function AboutScreen() {
   const fadeAnim = useFade();
   const { styles, colors, mode } = useTheme();
+  const { schoolInfo: SCHOOL } = useSchoolInfo();
 
   return (
     <ScrollView style={styles.container}>

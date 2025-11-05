@@ -5,10 +5,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from '../../theme';
 import { useToast } from './ToastProvider';
 import apiConfig from '../config/apiConfig';
+import { Checkbox } from 'react-native-paper';
 
 export default function EventFormModal({ isVisible, onClose, selectedDate, onSuccess }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [isSchoolEvent, setIsSchoolEvent] = useState(false);
   const [loading, setLoading] = useState(false);
   const { colors, styles: globalStyles } = useTheme();
   const { showToast } = useToast();
@@ -37,7 +39,8 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
         body: JSON.stringify({
           title: title.trim(),
           date: selectedDate,
-          description: description.trim()
+          description: description.trim(),
+          isSchoolEvent: isSchoolEvent
         })
       });
 
@@ -67,21 +70,22 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
       animationType="fade"
       onRequestClose={onClose}
     >
-      <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
-        <View style={[styles.modalContent, { backgroundColor: colors.cardBackground }]}>
+      <View style={styles.overlay}>
+        <View style={[styles.container, { backgroundColor: colors.cardBackground }]}>
           <View style={styles.header}>
-            <Text style={[globalStyles.title, { fontSize: 18 }]}>New Event</Text>
+            <Text style={[globalStyles.title, { fontSize: 16, color: colors.textPrimary }]}>New Event</Text>
             <Pressable onPress={onClose} hitSlop={8}>
-              <MaterialIcons name="close" size={24} color={colors.primary} />
+              <MaterialIcons name="close" size={20} color={colors.textSecondary} />
             </Pressable>
           </View>
 
-          <Text style={[globalStyles.text, styles.label]}>Date</Text>
-          <Text style={[globalStyles.text, styles.date]}>{selectedDate}</Text>
+          <View style={styles.dateRow}>
+            <Text style={[styles.dateLabel, { color: colors.textSecondary }]}>Date:</Text>
+            <Text style={[styles.dateValue, { color: colors.textPrimary }]}>{selectedDate}</Text>
+          </View>
 
-          <Text style={[globalStyles.text, styles.label]}>Title</Text>
           <TextInput
-            style={[styles.input, { 
+            style={[styles.input, {
               backgroundColor: colors.background,
               color: colors.textPrimary,
               borderColor: colors.border
@@ -93,16 +97,15 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
             maxLength={100}
           />
 
-          <Text style={[globalStyles.text, styles.label]}>Description (Optional)</Text>
           <TextInput
-            style={[styles.input, { 
+            style={[styles.input, {
               backgroundColor: colors.background,
               color: colors.textPrimary,
               borderColor: colors.border,
-              height: 100,
+              height: 80,
               textAlignVertical: 'top'
             }]}
-            placeholder="Event description"
+            placeholder="Description (optional)"
             placeholderTextColor={colors.textSecondary}
             value={description}
             onChangeText={setDescription}
@@ -110,13 +113,22 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
             maxLength={500}
           />
 
+          <View style={styles.checkboxRow}>
+            <Checkbox
+              status={isSchoolEvent ? 'checked' : 'unchecked'}
+              onPress={() => setIsSchoolEvent(!isSchoolEvent)}
+              color={colors.primary}
+            />
+            <Text style={[styles.checkboxLabel, { color: colors.textPrimary }]}>School Event</Text>
+          </View>
+
           <Pressable
-            style={[globalStyles.button, loading && styles.buttonDisabled]}
+            style={[styles.button, { backgroundColor: colors.primary }, loading && styles.buttonDisabled]}
             onPress={handleSubmit}
             disabled={loading}
           >
-            <Text style={[globalStyles.buttonText, loading && styles.buttonTextDisabled]}>
-              {loading ? 'Creating...' : 'Create Event'}
+            <Text style={[styles.buttonText, { color: colors.white }, loading && styles.buttonTextDisabled]}>
+              {loading ? 'Creating...' : 'Create'}
             </Text>
           </Pressable>
         </View>
@@ -126,15 +138,16 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
 }
 
 const styles = StyleSheet.create({
-  modalOverlay: {
+  overlay: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
-  modalContent: {
-    width: '90%',
-    padding: 20,
-    borderRadius: 12,
+  container: {
+    width: '85%',
+    padding: 16,
+    borderRadius: 8,
     elevation: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -145,26 +158,52 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 12,
   },
-  label: {
-    marginBottom: 8,
-    opacity: 0.8,
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
   },
-  date: {
-    marginBottom: 16,
+  dateLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginRight: 8,
+  },
+  dateValue: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   input: {
     borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
+    borderRadius: 6,
+    padding: 10,
+    marginBottom: 12,
     fontSize: 16,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  checkboxLabel: {
+    marginLeft: 8,
+    fontSize: 14,
+  },
+  button: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 6,
+    alignItems: 'center',
   },
   buttonDisabled: {
     opacity: 0.6,
   },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
   buttonTextDisabled: {
     opacity: 0.8,
-  }
+  },
 });

@@ -308,8 +308,12 @@ export function ThemeProvider({ children }) {
         if (mounted) {
           if (stored === "light" || stored === "dark") {
             setMode(stored);
+          } else if (stored === "system") {
+            // Use system preference
+            const sys = Appearance.getColorScheme();
+            setMode(sys === "dark" ? "dark" : "light");
           } else {
-            // fallback to system preference
+            // No stored preference, use system and set to "system" mode
             const sys = Appearance.getColorScheme();
             setMode(sys === "dark" ? "dark" : "light");
           }
@@ -325,12 +329,9 @@ export function ThemeProvider({ children }) {
     load();
 
     const sub = Appearance.addChangeListener(({ colorScheme }) => {
-      // If user hasn't chosen yet (no stored pref), update with system changes
-      // We consider mode === null as uninitialized; after load we set mode.
-      // If the user explicitly toggled, we persist that and won't auto-change on system changes.
-      // For simplicity, only react to system changes if no stored preference exists.
+      // If user hasn't chosen yet (no stored pref) or has chosen "system", update with system changes
       AsyncStorage.getItem("@theme_mode").then((stored) => {
-        if (!stored) {
+        if (!stored || stored === "system") {
           setMode(colorScheme === "dark" ? "dark" : "light");
         }
       });
@@ -356,7 +357,11 @@ export function ThemeProvider({ children }) {
 
   const setAndPersist = async (newMode) => {
     try {
-      await AsyncStorage.setItem("@theme_mode", newMode);
+      if (newMode === "system") {
+        await AsyncStorage.removeItem("@theme_mode");
+      } else {
+        await AsyncStorage.setItem("@theme_mode", newMode);
+      }
     } catch (e) {
       // ignore persistence error
     }

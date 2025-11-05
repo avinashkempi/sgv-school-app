@@ -1,15 +1,16 @@
 import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 import { View, Text, ScrollView, Animated, Pressable } from "react-native";
-import { SCHOOL } from "../constants/basic-info";
 import useFade from "./hooks/useFade";
 import { useTheme } from "../theme";
 import Header from "./_utils/Header";
+import useSchoolInfo from "./hooks/useSchoolInfo";
 
 export default function About() {
   const fadeAnim = useFade();
   const navigation = useNavigation();
   const { styles, colors } = useTheme();
+  const { schoolInfo: SCHOOL } = useSchoolInfo();
 
   return (
     <ScrollView style={styles.container}>

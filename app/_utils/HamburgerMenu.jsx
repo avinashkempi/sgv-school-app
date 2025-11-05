@@ -7,7 +7,7 @@ import { ROUTES } from "../../constants/routes";
 import { SCHOOL } from "../../constants/basic-info";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Linking } from "react-native";
-import ThemeToggle from "./ThemeToggle";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const HamburgerMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,6 +15,7 @@ const HamburgerMenu = () => {
   const [user, setUser] = useState(null);
   const { colors, styles, mode, toggle: toggleTheme } = useTheme();
   const radioScale = useRef(new Animated.Value(1)).current;
+  const insets = useSafeAreaInsets();
 
   // Load user on mount
   React.useEffect(() => {
@@ -76,24 +77,7 @@ const HamburgerMenu = () => {
     { label: "Map", icon: "map-marker", color: colors.primary, onPress: () => handlePress(SCHOOL.mapAppUrl, SCHOOL.mapUrl) },
   ];
 
-  const socialAnimations = socialItems.map(() => useRef(new Animated.Value(0)).current);
 
-  // Animate social icons on menu open
-  useEffect(() => {
-    if (isOpen) {
-      const animations = socialAnimations.map((anim, index) =>
-        Animated.timing(anim, {
-          toValue: 1,
-          duration: 100,
-          delay: index * 100,
-          useNativeDriver: true,
-        })
-      );
-      Animated.stagger(100, animations).start();
-    } else {
-      socialAnimations.forEach(anim => anim.setValue(0));
-    }
-  }, [isOpen]);
 
   // Animate radio button on theme change
   useEffect(() => {
@@ -111,9 +95,9 @@ const HamburgerMenu = () => {
     ]).start();
   }, [mode]);
 
-  const menuTranslateY = animation.interpolate({
+  const menuTranslateX = animation.interpolate({
     inputRange: [0, 1],
-    outputRange: [-300, 0],
+    outputRange: [-200, 0],
   });
 
   const menuOpacity = animation.interpolate({
@@ -122,7 +106,7 @@ const HamburgerMenu = () => {
   });
 
   return (
-    <View style={{ position: "absolute", top: 10, left: 10, zIndex: 1000 }}>
+    <View style={{ position: "absolute", top: insets.top + 10, left: 10, zIndex: 1000 }}>
       <Pressable onPress={toggleMenu} style={{ padding: 10 }}>
         <View style={{ width: 24, height: 18, justifyContent: "space-between" }}>
           <View style={{ height: 3, backgroundColor: colors.primary, borderRadius: 1.5 }} />
@@ -148,8 +132,8 @@ const HamburgerMenu = () => {
           <Animated.View
             style={{
               position: "absolute",
-              top: 50,
-              left: 0,
+              top: insets.top + 50,
+              left: 10,
               width: 200,
               backgroundColor: colors.background,
               borderRadius: 8,
@@ -159,7 +143,7 @@ const HamburgerMenu = () => {
               shadowOpacity: 0.25,
               shadowRadius: 3.84,
               elevation: 5,
-              transform: [{ translateY: menuTranslateY }],
+              transform: [{ translateX: menuTranslateX }],
               opacity: menuOpacity,
             }}
           >
@@ -253,19 +237,17 @@ const HamburgerMenu = () => {
           <View style={{ borderTopWidth: 1, borderTopColor: colors.border, marginTop: 8, paddingTop: 8 }}>
             <View style={{ flexDirection: "row", justifyContent: "space-around", paddingVertical: 8, paddingHorizontal: 12 }}>
               {socialItems.map((item, index) => (
-                <Animated.View
+                <View
                   key={index}
                   style={{
                     alignItems: "center",
                     padding: 8,
-                    opacity: socialAnimations[index],
-                    transform: [{ scale: socialAnimations[index].interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }) }],
                   }}
                 >
                   <Pressable onPress={() => { item.onPress(); setIsOpen(false); }}>
                     <FontAwesome name={item.icon} size={20} color={item.color} />
                   </Pressable>
-                </Animated.View>
+                </View>
               ))}
             </View>
           </View>
