@@ -11,6 +11,7 @@ import {
   Modal,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../theme";
@@ -37,6 +38,8 @@ export default function AdminScreen() {
     password: "",
     role: "student"
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Available roles for dropdown
   const availableRoles = ["student", "class teacher", "staff", "admin", "super admin"];
@@ -44,6 +47,10 @@ export default function AdminScreen() {
   useEffect(() => {
     checkAuthAndLoadUsers();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, pageSize]);
 
   const checkAuthAndLoadUsers = async () => {
     try {
@@ -124,6 +131,7 @@ export default function AdminScreen() {
         setUsers(prevUsers =>
           prevUsers.map(u => u._id === userId ? { ...u, role: newRole } : u)
         );
+        setShowUserModal(false);
         showToast("Role updated successfully", "success");
       } else {
         throw new Error("Failed to update role");
@@ -161,14 +169,20 @@ export default function AdminScreen() {
     return filtered;
   };
 
-  const toggleSort = (field) => {
-    if (sortBy === field) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-    } else {
-      setSortBy(field);
-      setSortOrder("asc");
-    }
+  const paginatedUsers = () => {
+    const filtered = filteredAndSortedUsers();
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return filtered.slice(startIndex, endIndex);
   };
+
+  const totalPages = Math.ceil(filteredAndSortedUsers().length / pageSize);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+
 
   const getRoleColor = (role) => {
     switch (role) {
@@ -264,7 +278,7 @@ export default function AdminScreen() {
             >
               <MaterialIcons name="add" size={20} color={colors.white} />
               <Text style={{ color: colors.white, fontWeight: "600", marginLeft: 6 }}>
-                Add User
+                Add
               </Text>
             </Pressable>
           </View>
@@ -278,12 +292,13 @@ export default function AdminScreen() {
           <TextInput
             style={{
               backgroundColor: colors.surface,
-              borderRadius: 8,
-              padding: 12,
+              borderRadius: 6,
+              padding: 10,
               fontSize: 16,
               color: colors.text,
               borderWidth: 1,
               borderColor: colors.border,
+              fontFamily: "Quicksand",
             }}
             placeholder="Search by username, email, or role..."
             placeholderTextColor={colors.textSecondary}
@@ -291,45 +306,92 @@ export default function AdminScreen() {
             onChangeText={setSearchQuery}
           />
 
-          <View style={{ flexDirection: "row", marginTop: 12, justifyContent: "space-between" }}>
-            {["username", "email", "role"].map((field) => (
-              <Pressable
-                key={field}
-                onPress={() => toggleSort(field)}
-                style={{
-                  flex: 1,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  paddingVertical: 8,
-                  paddingHorizontal: 12,
-                  marginHorizontal: 4,
-                  backgroundColor: sortBy === field ? colors.primary + "20" : colors.surface,
-                  borderRadius: 6,
+          <View style={{ marginTop: 10 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+              <View style={{ flex: 1, marginRight: 8 }}>
+                <Text style={[{ marginBottom: 4, fontFamily: "Quicksand-SemiBold", fontSize: 14 }]}>Sort by</Text>
+                <View style={{
+                  backgroundColor: colors.surface,
+                  borderRadius: 8,
                   borderWidth: 1,
-                  borderColor: sortBy === field ? colors.primary : colors.border,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 14,
-                    fontWeight: sortBy === field ? "600" : "400",
-                    color: sortBy === field ? colors.primary : colors.text,
-                    textTransform: "capitalize",
-                  }}
-                >
-                  {field.replace("_", " ")}
-                </Text>
-                {sortBy === field && (
-                  <MaterialIcons
-                    name={sortOrder === "asc" ? "arrow-upward" : "arrow-downward"}
-                    size={16}
-                    color={colors.primary}
-                    style={{ marginLeft: 4 }}
-                  />
-                )}
-              </Pressable>
-            ))}
+                  borderColor: colors.border,
+                  elevation: 2,
+                  shadowColor: colors.shadow,
+                  shadowOpacity: 0.06,
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowRadius: 3,
+                }}>
+                  <Picker
+                    selectedValue={sortBy}
+                    onValueChange={(itemValue) => setSortBy(itemValue)}
+                    style={{
+                      color: colors.text,
+                      height: 30,
+                      fontFamily: "Quicksand",
+                    }}
+                  >
+                    <Picker.Item label="Username" value="username" />
+                    <Picker.Item label="Email" value="email" />
+                    <Picker.Item label="Role" value="role" />
+                  </Picker>
+                </View>
+              </View>
+              <View style={{ flex: 1, marginHorizontal: 8 }}>
+                <Text style={[{ marginBottom: 4, fontFamily: "Quicksand-SemiBold", fontSize: 14 }]}>Order</Text>
+                <View style={{
+                  backgroundColor: colors.surface,
+                  borderRadius: 8,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  elevation: 2,
+                  shadowColor: colors.shadow,
+                  shadowOpacity: 0.06,
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowRadius: 3,
+                }}>
+                  <Picker
+                    selectedValue={sortOrder}
+                    onValueChange={(itemValue) => setSortOrder(itemValue)}
+                    style={{
+                      color: colors.text,
+                      height: 30,
+                      fontFamily: "Quicksand",
+                    }}
+                  >
+                    <Picker.Item label="Ascending" value="asc" />
+                    <Picker.Item label="Descending" value="desc" />
+                  </Picker>
+                </View>
+              </View>
+              <View style={{ flex: 1, marginLeft: 8 }}>
+                <Text style={[{ marginBottom: 4, fontFamily: "Quicksand-SemiBold", fontSize: 14 }]}>Per page</Text>
+                <View style={{
+                  backgroundColor: colors.surface,
+                  borderRadius: 8,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  elevation: 2,
+                  shadowColor: colors.shadow,
+                  shadowOpacity: 0.06,
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowRadius: 3,
+                }}>
+                  <Picker
+                    selectedValue={pageSize}
+                    onValueChange={(itemValue) => setPageSize(itemValue)}
+                    style={{
+                      color: colors.text,
+                      height: 30,
+                      fontFamily: "Quicksand",
+                    }}
+                  >
+                    <Picker.Item label="20" value={20} />
+                    <Picker.Item label="50" value={50} />
+                    <Picker.Item label="50" value={100} />
+                  </Picker>
+                </View>
+              </View>
+            </View>
           </View>
         </View>
 
@@ -339,7 +401,7 @@ export default function AdminScreen() {
             Users ({filteredAndSortedUsers().length})
           </Text>
 
-          {filteredAndSortedUsers().map((userItem) => (
+          {paginatedUsers().map((userItem) => (
             <View
               key={userItem._id}
               style={{
@@ -414,6 +476,51 @@ export default function AdminScreen() {
               <Text style={[styles.text, { color: colors.textSecondary, marginTop: 16 }]}>
                 No users found matching your search.
               </Text>
+            </View>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: 16 }}>
+              <Pressable
+                onPress={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                style={{
+                  paddingHorizontal: 12,
+                  paddingVertical: 8,
+                  borderRadius: 6,
+                  backgroundColor: currentPage === 1 ? colors.surface : colors.primary,
+                  marginRight: 8,
+                }}
+              >
+                <MaterialIcons
+                  name="chevron-left"
+                  size={20}
+                  color={currentPage === 1 ? colors.textSecondary : colors.white}
+                />
+              </Pressable>
+
+              <Text style={[styles.text, { marginHorizontal: 16 }]}>
+                Page {currentPage} of {totalPages}
+              </Text>
+
+              <Pressable
+                onPress={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                style={{
+                  paddingHorizontal: 12,
+                  paddingVertical: 8,
+                  borderRadius: 6,
+                  backgroundColor: currentPage === totalPages ? colors.surface : colors.primary,
+                  marginLeft: 8,
+                }}
+              >
+                <MaterialIcons
+                  name="chevron-right"
+                  size={20}
+                  color={currentPage === totalPages ? colors.textSecondary : colors.white}
+                />
+              </Pressable>
             </View>
           )}
         </View>

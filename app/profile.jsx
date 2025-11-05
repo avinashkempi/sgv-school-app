@@ -80,19 +80,14 @@ export default function ProfileScreen() {
 
   const menuItems = [
     {
-      label: "Privacy Policy",
-      icon: "privacy-tip",
-      onPress: () => Alert.alert("Privacy Policy", "Privacy Policy page coming soon!"),
-    },
-    {
       label: "Help & Support",
       icon: "help",
-      onPress: () => Alert.alert("Help & Support", "Contact us at support@school.com"),
+      onPress: () => Alert.alert("Help & Support", "Contact us at sgvrss@gmail.com"),
     },
     {
       label: "About",
       icon: "info",
-      onPress: () => Alert.alert("About", "School App v1.0\nBuilt with React Native"),
+      onPress: () => Alert.alert("About", "School App v1.0\nBuilt by SGV team!"),
     },
   ];
 
@@ -167,29 +162,26 @@ export default function ProfileScreen() {
 
       {/* Theme Section */}
       <View style={{ marginBottom: 16 }}>
-        <Text style={[styles.label, { marginBottom: 8 }]}>Theme</Text>
-        <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
-          {themeOptions.map((option) => (
-            <Pressable
-              key={option.key}
-              onPress={() => handleThemeChange(option.key)}
-              style={{
-                alignItems: "center",
-                paddingVertical: 8,
-                paddingHorizontal: 12,
-                borderRadius: 8,
-                backgroundColor: selectedTheme === option.key ? colors.primary + "20" : "transparent",
-              }}
-            >
-              <MaterialIcons
-                name={option.icon}
-                size={20}
-                color={selectedTheme === option.key ? colors.primary : colors.textSecondary}
-              />
-              <Text style={[styles.iconLabel, { fontSize: 12, marginTop: 4 }]}>{option.label}</Text>
-            </Pressable>
-          ))}
-        </View>
+        <Pressable
+          onPress={toggle}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            paddingVertical: 12,
+            paddingHorizontal: 16,
+            borderRadius: 8,
+            backgroundColor: colors.surface,
+          }}
+        >
+          <MaterialIcons
+            name={mode === "dark" ? "light-mode" : "dark-mode"}
+            size={20}
+            color={colors.primary}
+          />
+          <Text style={[styles.cardText, { marginLeft: 12 }]}>
+            {mode === "dark" ? "Light Mode" : "Dark Mode"}
+          </Text>
+        </Pressable>
       </View>
 
       {/* Menu Items */}
@@ -214,7 +206,7 @@ export default function ProfileScreen() {
       </View>
 
       {/* Social Media */}
-      <View style={{ flexDirection: "row", justifyContent: "center", paddingVertical: 20 }}>
+      <View style={{ flexDirection: "row", justifyContent: "space-around", paddingVertical: 20, paddingHorizontal: 16 }}>
         {socialItems.map((item, index) => (
           <Pressable
             key={index}
@@ -222,7 +214,7 @@ export default function ProfileScreen() {
             style={{
               alignItems: "center",
               padding: 8,
-              marginHorizontal: 12,
+              flex: 1,
             }}
           >
             <FontAwesome name={item.icon} size={24} color={item.color} />
