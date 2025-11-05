@@ -11,17 +11,7 @@ export default function NewsScreen() {
 
   return (
     <View style={styles.container}>
-      <Header
-        title="Latest News"
-        left={
-          <Pressable
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-          >
-            <MaterialIcons name="arrow-back" size={24} color={colors.primary} />
-          </Pressable>
-        }
-      />
+      <Header title="Latest News" />
 
       <FlatList
         data={SCHOOL.news}

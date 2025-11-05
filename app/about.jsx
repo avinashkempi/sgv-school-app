@@ -13,17 +13,7 @@ export default function About() {
 
   return (
     <ScrollView style={styles.container}>
-      <Header
-        title={SCHOOL.name}
-        left={
-          <Pressable
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-          >
-            <MaterialIcons name="arrow-back" size={24} color={colors.primary} />
-          </Pressable>
-        }
-      />
+      <Header title={SCHOOL.name} />
 
       {/* About Us Section */}
       <Animated.View style={[styles.card, { opacity: fadeAnim }]}>

@@ -162,18 +162,7 @@ export default function EventsScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentPaddingBottom}>
-      <Header
-        title="Events"
-        left={
-          <Pressable
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-            accessibilityLabel="Go back"
-          >
-            <MaterialIcons name="arrow-back" size={24} color={colors.primary} />
-          </Pressable>
-        }
-      />
+      <Header title="Events" />
 
       <View style={styles.card}>
         <View style={styles.headerRow}>

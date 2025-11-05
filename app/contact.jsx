@@ -20,17 +20,7 @@ export default function Contact() {
 
   return (
     <ScrollView style={styles.container}>
-      <Header
-        title="Contact Us"
-        left={
-          <Pressable
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-          >
-            <MaterialIcons name="arrow-back" size={24} color={colors.primary} />
-          </Pressable>
-        }
-      />
+      <Header title="Contact Us" />
 
       <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
         <View style={styles.iconRow}>
