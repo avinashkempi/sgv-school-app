@@ -8,11 +8,10 @@ import React, {
 import { StyleSheet, Appearance } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// Fonts reference from existing globalStyles
 const FONTS = {
-  bold: "Quicksand-Bold",
-  semiBold: "Quicksand-SemiBold",
-  regular: "Quicksand",
+  bold: "Lora-Bold",
+  semiBold: "Lora-SemiBold",
+  regular: "Lora",
 };
 
 const lightColors = {
@@ -26,6 +25,11 @@ const lightColors = {
   shadow: "#000",
   error: "#FF4C4C",
   white: "#ffffff",
+  roleSuperAdmin: "#FF6B6B",
+  roleAdmin: "#4ECDC4",
+  roleStaff: "#45B7D1",
+  roleClassTeacher: "#96CEB4",
+  roleStudent: "#FFEAA7",
 };
 
 const darkColors = {
@@ -39,7 +43,11 @@ const darkColors = {
   shadow: "#000",
   error: "#FF6B6B",
   white: "#ffffff",
-  // orange/yellow accents removed; use COLORS.primary or explicit hex in components
+  roleSuperAdmin: "#FF6B6B",
+  roleAdmin: "#4ECDC4",
+  roleStaff: "#45B7D1",
+  roleClassTeacher: "#96CEB4",
+  roleStudent: "#FFEAA7",
 };
 
 function createGlobalStyles(COLORS) {
@@ -65,7 +73,6 @@ function createGlobalStyles(COLORS) {
       color: COLORS.primary,
       marginBottom: 24,
       textAlign: "center",
-      letterSpacing: 0.3,
     },
     label: {
       fontSize: 18,
@@ -286,9 +293,9 @@ function createGlobalStyles(COLORS) {
       textAlign: "center",
     },
     cardCompact: {
-      paddingVertical: 20,
-      paddingHorizontal: 18,
-      marginTop: 12,
+      paddingVertical: 12,
+      paddingHorizontal: 14,
+      marginTop: 8,
     },
   });
 }

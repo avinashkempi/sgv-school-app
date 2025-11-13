@@ -39,16 +39,16 @@ const EventCard = ({ event, styles, colors }) => (
       </View>
       <MaterialCommunityIcons
         name={event.isSchoolEvent ? "school" : "calendar-star"}
-        size={20}
+        size={16}
         color={event.isSchoolEvent ? '#FFD700' : colors.primary}
         style={styles.smallLeftMargin}
       />
     </View>
-    <Text style={styles.newsText}>{event.title}</Text>
+    <Text style={[styles.newsText, { fontSize: 14, lineHeight: 20 }]}>{event.title}</Text>
     {event.isSchoolEvent && (
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-        <MaterialCommunityIcons name="school" size={14} color="#FFD700" />
-        <Text style={{ color: '#FFD700', fontSize: 12, marginLeft: 4 }}>School Event</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+        <MaterialCommunityIcons name="school" size={12} color="#FFD700" />
+        <Text style={{ color: '#FFD700', fontSize: 11, marginLeft: 4 }}>School Event</Text>
       </View>
     )}
   </View>
@@ -156,11 +156,10 @@ export default function EventsScreen() {
 
       <View style={styles.card}>
         <View style={styles.headerRow}>
-          <Text style={[styles.heading, { flex: 1 }]}>Calendar</Text>
           {isAuthenticated && selectedDate && (
             <Pressable
               onPress={() => setIsEventFormVisible(true)}
-              style={styles.addButton}
+              style={[styles.addButton, { marginLeft: 'auto' }]}
               accessibilityLabel="Add event"
             >
               <MaterialIcons name="add" size={24} color={colors.primary} />

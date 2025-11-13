@@ -10,8 +10,9 @@ import {
   ActivityIndicator,
   Modal,
 } from "react-native";
+
 import { MaterialIcons } from "@expo/vector-icons";
-import { Picker } from "@react-native-picker/picker";
+
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../theme";
@@ -27,19 +28,19 @@ export default function AdminScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("username"); // username, email, role
-  const [sortOrder, setSortOrder] = useState("asc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 20;
   const [showUserModal, setShowUserModal] = useState(false);
   const [modalMode, setModalMode] = useState("add"); // "add" or "edit"
   const [editingUser, setEditingUser] = useState(null);
   const [userForm, setUserForm] = useState({
-    username: "",
+    name: "",
+    phone: "",
     email: "",
     password: "",
     role: "student"
   });
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Available roles for dropdown
   const availableRoles = ["student", "class teacher", "staff", "admin", "super admin"];
@@ -50,7 +51,9 @@ export default function AdminScreen() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, pageSize]);
+  }, [searchQuery]);
+
+
 
   const checkAuthAndLoadUsers = async () => {
     try {
@@ -79,6 +82,15 @@ export default function AdminScreen() {
 
   const loadUsers = async () => {
     try {
+      // Try to load from cache first
+      const cachedUsers = await AsyncStorage.getItem("@cached_users");
+      if (cachedUsers) {
+        setUsers(JSON.parse(cachedUsers));
+        setLoading(false);
+        return;
+      }
+
+      // Only show loading if we need to fetch from API
       setLoading(true);
       const token = await AsyncStorage.getItem("@auth_token");
 
@@ -97,6 +109,8 @@ export default function AdminScreen() {
       const result = await response.json();
       if (result.success && result.data) {
         setUsers(result.data);
+        // Cache the data
+        await AsyncStorage.setItem("@cached_users", JSON.stringify(result.data));
       } else {
         throw new Error("Failed to load users");
       }
@@ -142,44 +156,72 @@ export default function AdminScreen() {
     }
   };
 
+  const deleteUser = async (userId, userName) => {
+    try {
+      const token = await AsyncStorage.getItem("@auth_token");
+
+      const response = await fetch(apiConfig.url(apiConfig.endpoints.users.delete(userId)), {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        // Update local state
+        setUsers(prevUsers => prevUsers.filter(u => u._id !== userId));
+        // Update cache
+        const cachedUsers = await AsyncStorage.getItem("@cached_users");
+        if (cachedUsers) {
+          const parsed = JSON.parse(cachedUsers);
+          const updated = parsed.filter(u => u._id !== userId);
+          await AsyncStorage.setItem("@cached_users", JSON.stringify(updated));
+        }
+        showToast(`User ${userName} deleted successfully`, "success");
+      } else {
+        throw new Error("Failed to delete user");
+      }
+    } catch (error) {
+      console.error("Delete user error:", error);
+      showToast("Failed to delete user", "error");
+    }
+  };
+
   const onRefresh = async () => {
     setRefreshing(true);
     await loadUsers();
     setRefreshing(false);
   };
 
-  const filteredAndSortedUsers = () => {
-    let filtered = users.filter(user =>
-      user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.role.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredUsers = () => {
+    return users.filter(user =>
+      (user.name && user.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (user.role && user.role.toLowerCase().includes(searchQuery.toLowerCase()))
     );
-
-    filtered.sort((a, b) => {
-      let aValue = a[sortBy].toLowerCase();
-      let bValue = b[sortBy].toLowerCase();
-
-      if (sortOrder === "asc") {
-        return aValue.localeCompare(bValue);
-      } else {
-        return bValue.localeCompare(aValue);
-      }
-    });
-
-    return filtered;
   };
 
-  const paginatedUsers = () => {
-    const filtered = filteredAndSortedUsers();
-    const startIndex = (currentPage - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    return filtered.slice(startIndex, endIndex);
+  const filteredAndSortedUsers = () => {
+    return filteredUsers();
   };
 
   const totalPages = Math.ceil(filteredAndSortedUsers().length / pageSize);
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
+  const paginatedUsers = () => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return filteredAndSortedUsers().slice(startIndex, startIndex + pageSize);
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
   };
 
 
@@ -187,15 +229,15 @@ export default function AdminScreen() {
   const getRoleColor = (role) => {
     switch (role) {
       case "super admin":
-        return "#FF6B6B";
+        return colors.roleSuperAdmin;
       case "admin":
-        return "#4ECDC4";
+        return colors.roleAdmin;
       case "staff":
-        return "#45B7D1";
+        return colors.roleStaff;
       case "class teacher":
-        return "#96CEB4";
+        return colors.roleClassTeacher;
       case "student":
-        return "#FFEAA7";
+        return colors.roleStudent;
       default:
         return colors.textSecondary;
     }
@@ -203,7 +245,7 @@ export default function AdminScreen() {
 
   const createUser = async () => {
     try {
-      if (!userForm.username || !userForm.email || !userForm.password) {
+      if (!userForm.name || !userForm.phone || !userForm.password) {
         showToast("Please fill in all required fields", "error");
         return;
       }
@@ -227,7 +269,7 @@ export default function AdminScreen() {
       if (result.success) {
         setUsers(prevUsers => [...prevUsers, result.user]);
         setShowUserModal(false);
-        setUserForm({ username: "", email: "", password: "", role: "student" });
+        setUserForm({ name: "", phone: "", email: "", password: "", role: "student" });
         showToast("User created successfully", "success");
       } else {
         throw new Error(result.message || "Failed to create user");
@@ -257,34 +299,39 @@ export default function AdminScreen() {
       <View style={{ padding: 16 }}>
         {/* Header */}
         <View style={{ marginBottom: 20 }}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+          <View style={{ marginBottom: 8 }}>
             <Text style={[styles.heading, { fontSize: 24 }]}>
               Admin Dashboard
             </Text>
-            <Pressable
-              onPress={() => {
-                setModalMode("add");
-                setUserForm({ username: "", email: "", password: "", role: "student" });
-                setShowUserModal(true);
-              }}
-              style={{
-                backgroundColor: colors.primary,
-                paddingHorizontal: 16,
-                paddingVertical: 8,
-                borderRadius: 8,
-                flexDirection: "row",
-                alignItems: "center",
-              }}
-            >
-              <MaterialIcons name="add" size={20} color={colors.white} />
-              <Text style={{ color: colors.white, fontWeight: "600", marginLeft: 6 }}>
-                Add
-              </Text>
-            </Pressable>
           </View>
           <Text style={[styles.text, { color: colors.textSecondary }]}>
             Manage user roles and permissions
           </Text>
+        </View>
+
+        {/* Add User Button */}
+        <View style={{ marginBottom: 16 }}>
+          <Pressable
+            onPress={() => {
+              setModalMode("add");
+              setUserForm({ name: "", phone: "", email: "", password: "", role: "student" });
+              setShowUserModal(true);
+            }}
+            style={{
+              backgroundColor: colors.primary,
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderRadius: 8,
+              flexDirection: "row",
+              alignItems: "center",
+              alignSelf: "flex-start",
+            }}
+          >
+            <MaterialIcons name="add" size={20} color={colors.white} />
+            <Text style={{ color: colors.white, fontWeight: "600", marginLeft: 6 }}>
+              Add User
+            </Text>
+          </Pressable>
         </View>
 
         {/* Search and Sort */}
@@ -300,99 +347,13 @@ export default function AdminScreen() {
               borderColor: colors.border,
               fontFamily: "Quicksand",
             }}
-            placeholder="Search by username, email, or role..."
+            placeholder="Search by name, email, or role..."
             placeholderTextColor={colors.textSecondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
 
-          <View style={{ marginTop: 10 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-              <View style={{ flex: 1, marginRight: 8 }}>
-                <Text style={[{ marginBottom: 4, fontFamily: "Quicksand-SemiBold", fontSize: 14 }]}>Sort by</Text>
-                <View style={{
-                  backgroundColor: colors.surface,
-                  borderRadius: 8,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  elevation: 2,
-                  shadowColor: colors.shadow,
-                  shadowOpacity: 0.06,
-                  shadowOffset: { width: 0, height: 1 },
-                  shadowRadius: 3,
-                }}>
-                  <Picker
-                    selectedValue={sortBy}
-                    onValueChange={(itemValue) => setSortBy(itemValue)}
-                    style={{
-                      color: colors.text,
-                      height: 30,
-                      fontFamily: "Quicksand",
-                    }}
-                  >
-                    <Picker.Item label="Username" value="username" />
-                    <Picker.Item label="Email" value="email" />
-                    <Picker.Item label="Role" value="role" />
-                  </Picker>
-                </View>
-              </View>
-              <View style={{ flex: 1, marginHorizontal: 8 }}>
-                <Text style={[{ marginBottom: 4, fontFamily: "Quicksand-SemiBold", fontSize: 14 }]}>Order</Text>
-                <View style={{
-                  backgroundColor: colors.surface,
-                  borderRadius: 8,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  elevation: 2,
-                  shadowColor: colors.shadow,
-                  shadowOpacity: 0.06,
-                  shadowOffset: { width: 0, height: 1 },
-                  shadowRadius: 3,
-                }}>
-                  <Picker
-                    selectedValue={sortOrder}
-                    onValueChange={(itemValue) => setSortOrder(itemValue)}
-                    style={{
-                      color: colors.text,
-                      height: 30,
-                      fontFamily: "Quicksand",
-                    }}
-                  >
-                    <Picker.Item label="Ascending" value="asc" />
-                    <Picker.Item label="Descending" value="desc" />
-                  </Picker>
-                </View>
-              </View>
-              <View style={{ flex: 1, marginLeft: 8 }}>
-                <Text style={[{ marginBottom: 4, fontFamily: "Quicksand-SemiBold", fontSize: 14 }]}>Per page</Text>
-                <View style={{
-                  backgroundColor: colors.surface,
-                  borderRadius: 8,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  elevation: 2,
-                  shadowColor: colors.shadow,
-                  shadowOpacity: 0.06,
-                  shadowOffset: { width: 0, height: 1 },
-                  shadowRadius: 3,
-                }}>
-                  <Picker
-                    selectedValue={pageSize}
-                    onValueChange={(itemValue) => setPageSize(itemValue)}
-                    style={{
-                      color: colors.text,
-                      height: 30,
-                      fontFamily: "Quicksand",
-                    }}
-                  >
-                    <Picker.Item label="20" value={20} />
-                    <Picker.Item label="50" value={50} />
-                    <Picker.Item label="50" value={100} />
-                  </Picker>
-                </View>
-              </View>
-            </View>
-          </View>
+
         </View>
 
         {/* Users List */}
@@ -416,7 +377,7 @@ export default function AdminScreen() {
               <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.cardText, { fontWeight: "600", fontSize: 16, marginBottom: 4 }]}>
-                    {userItem.username}
+                    {userItem.name}
                   </Text>
                   <Text style={[styles.text, { fontSize: 14, color: colors.textSecondary, marginBottom: 8 }]}>
                     {userItem.email}
@@ -445,27 +406,50 @@ export default function AdminScreen() {
                   </View>
                 </View>
 
-                <Pressable
-                  onPress={() => {
-                    setModalMode("edit");
-                    setEditingUser(userItem);
-                    setUserForm({ username: userItem.username, email: userItem.email, password: "", role: userItem.role });
-                    setShowUserModal(true);
-                  }}
-                  style={{
-                    backgroundColor: colors.primary,
-                    paddingHorizontal: 12,
-                    paddingVertical: 8,
-                    borderRadius: 8,
-                    flexDirection: "row",
-                    alignItems: "center",
-                  }}
-                >
-                  <MaterialIcons name="edit" size={16} color={colors.white} />
-                  <Text style={{ color: colors.white, fontWeight: "600", marginLeft: 6 }}>
-                    Edit Role
-                  </Text>
-                </Pressable>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <Pressable
+                    onPress={() => {
+                      setModalMode("edit");
+                      setEditingUser(userItem);
+                      setUserForm({ name: userItem.name, phone: userItem.phone, email: userItem.email, password: "", role: userItem.role });
+                      setShowUserModal(true);
+                    }}
+                    style={{
+                      backgroundColor: colors.primary,
+                      paddingHorizontal: 12,
+                      paddingVertical: 8,
+                      borderRadius: 8,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      marginRight: 8,
+                    }}
+                  >
+                    <MaterialIcons name="edit" size={16} color={colors.white} />
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() => {
+                      Alert.alert(
+                        "Delete User",
+                        `Are you sure you want to delete ${userItem.name}? This action cannot be undone.`,
+                        [
+                          { text: "Cancel", style: "cancel" },
+                          { text: "Delete", style: "destructive", onPress: () => deleteUser(userItem._id, userItem.name) },
+                        ]
+                      );
+                    }}
+                    style={{
+                      backgroundColor: colors.error,
+                      paddingHorizontal: 12,
+                      paddingVertical: 8,
+                      borderRadius: 8,
+                      flexDirection: "row",
+                      alignItems: "center",
+                    }}
+                  >
+                    <MaterialIcons name="delete" size={16} color={colors.white} />
+                  </Pressable>
+                </View>
               </View>
             </View>
           ))}
@@ -547,7 +531,7 @@ export default function AdminScreen() {
             {modalMode === "add" && (
               <>
                 <View style={{ marginBottom: 16 }}>
-                  <Text style={[styles.label, { marginBottom: 8 }]}>Username</Text>
+                  <Text style={[styles.label, { marginBottom: 8 }]}>Name</Text>
                   <TextInput
                     style={{
                       backgroundColor: colors.background,
@@ -558,10 +542,30 @@ export default function AdminScreen() {
                       borderWidth: 1,
                       borderColor: colors.border,
                     }}
-                    placeholder="Enter username"
+                    placeholder="Enter name"
                     placeholderTextColor={colors.textSecondary}
-                    value={userForm.username}
-                    onChangeText={(text) => setUserForm({ ...userForm, username: text })}
+                    value={userForm.name}
+                    onChangeText={(text) => setUserForm({ ...userForm, name: text })}
+                  />
+                </View>
+
+                <View style={{ marginBottom: 16 }}>
+                  <Text style={[styles.label, { marginBottom: 8 }]}>Phone</Text>
+                  <TextInput
+                    style={{
+                      backgroundColor: colors.background,
+                      borderRadius: 8,
+                      padding: 12,
+                      fontSize: 16,
+                      color: colors.text,
+                      borderWidth: 1,
+                      borderColor: colors.border,
+                    }}
+                    placeholder="Enter phone number"
+                    placeholderTextColor={colors.textSecondary}
+                    value={userForm.phone}
+                    onChangeText={(text) => setUserForm({ ...userForm, phone: text })}
+                    keyboardType="phone-pad"
                   />
                 </View>
 
@@ -588,22 +592,38 @@ export default function AdminScreen() {
 
                 <View style={{ marginBottom: 16 }}>
                   <Text style={[styles.label, { marginBottom: 8 }]}>Password</Text>
-                  <TextInput
-                    style={{
-                      backgroundColor: colors.background,
-                      borderRadius: 8,
-                      padding: 12,
-                      fontSize: 16,
-                      color: colors.text,
-                      borderWidth: 1,
-                      borderColor: colors.border,
-                    }}
-                    placeholder="Enter password"
-                    placeholderTextColor={colors.textSecondary}
-                    value={userForm.password}
-                    onChangeText={(text) => setUserForm({ ...userForm, password: text })}
-                    secureTextEntry
-                  />
+                  <View style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    backgroundColor: colors.background,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                  }}>
+                    <TextInput
+                      style={{
+                        flex: 1,
+                        padding: 12,
+                        fontSize: 16,
+                        color: colors.text,
+                      }}
+                      placeholder="Enter password"
+                      placeholderTextColor={colors.textSecondary}
+                      value={userForm.password}
+                      onChangeText={(text) => setUserForm({ ...userForm, password: text })}
+                      secureTextEntry={!showPassword}
+                    />
+                    <Pressable
+                      onPress={() => setShowPassword(!showPassword)}
+                      style={{ padding: 8 }}
+                    >
+                      <MaterialIcons
+                        name={showPassword ? "visibility-off" : "visibility"}
+                        size={24}
+                        color={colors.textSecondary}
+                      />
+                    </Pressable>
+                  </View>
                 </View>
               </>
             )}

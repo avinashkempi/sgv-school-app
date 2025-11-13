@@ -8,14 +8,14 @@ import { useRouter } from 'expo-router';
 import apiConfig from './config/apiConfig';
 
 export default function Login() {
-  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const { styles, colors, mode } = useTheme();
   const router = useRouter();
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      alert('Please enter both email and password.');
+    if (!phone || !password) {
+      alert('Please enter both phone number and password.');
       return;
     }
 
@@ -25,7 +25,7 @@ export default function Login() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ phone, password }),
       });
 
       const data = await response.json();
@@ -53,15 +53,15 @@ export default function Login() {
       <Header title="Login" />
 
       <View style={{ marginTop: 20 }}>
-        <Text style={[styles.label, { marginBottom: 10 }]}>Email</Text>
+        <Text style={[styles.label, { marginBottom: 10 }]}>Phone Number</Text>
         <TextInput
           style={[styles.input, { marginBottom: 20 }]}
-          value={email}
-          onChangeText={setEmail}
-          placeholder="Enter email"
+          value={phone}
+          onChangeText={setPhone}
+          placeholder="Enter phone number"
           placeholderTextColor={colors.textSecondary}
-          keyboardType="email-address"
-          autoCapitalize="none"
+          keyboardType="phone-pad"
+          maxLength={10}
         />
 
         <Text style={[styles.label, { marginBottom: 10 }]}>Password</Text>

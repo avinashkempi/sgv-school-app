@@ -9,10 +9,14 @@ import BottomNavigation from "./_utils/BottomNavigation";
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
-    Quicksand: require("../assets/fonts/Quicksand-Regular.ttf"),
-    "Quicksand-Medium": require("../assets/fonts/Quicksand-Medium.ttf"),
-    "Quicksand-SemiBold": require("../assets/fonts/Quicksand-SemiBold.ttf"),
-    "Quicksand-Bold": require("../assets/fonts/Quicksand-Bold.ttf"),
+    Lora: require("../assets/fonts/Lora-Regular.ttf"),
+    "Lora-Medium": require("../assets/fonts/Lora-Medium.ttf"),
+    "Lora-SemiBold": require("../assets/fonts/Lora-SemiBold.ttf"),
+    "Lora-Bold": require("../assets/fonts/Lora-Bold.ttf"),
+    "Lora-Italic": require("../assets/fonts/Lora-Italic.ttf"),
+    "Lora-MediumItalic": require("../assets/fonts/Lora-MediumItalic.ttf"),
+    "Lora-SemiBoldItalic": require("../assets/fonts/Lora-SemiBoldItalic.ttf"),
+    "Lora-BoldItalic": require("../assets/fonts/Lora-BoldItalic.ttf"),
   });
 
   useEffect(() => {
@@ -21,7 +25,7 @@ export default function RootLayout() {
         ...(Text.defaultProps || {}),
         style: {
           ...(Text.defaultProps?.style || {}),
-          fontFamily: "Quicksand",
+          fontFamily: "Lora",
         },
       };
     }

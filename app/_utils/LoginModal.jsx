@@ -17,16 +17,16 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
   const [serverError, setServerError] = useState('');
 
   // Login
-  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phoneRegex = /^[6-9]\d{9}$/;
 
   const resetState = () => {
     setLoading(false);
     setServerError('');
-    setEmail('');
+    setPhone('');
     setPassword('');
     setErrors({});
   };
@@ -38,8 +38,8 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
 
   const validateLogin = () => {
     const errs = {};
-    if (!email.trim()) errs.email = 'Email is required';
-    else if (!emailRegex.test(email)) errs.email = 'Invalid email';
+    if (!phone.trim()) errs.phone = 'Phone number is required';
+    else if (!phoneRegex.test(phone)) errs.phone = 'Invalid phone number (10 digits starting with 6-9)';
     if (!password) errs.password = 'Password is required';
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -64,7 +64,7 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
       const res = await fetch(apiConfig.url(apiConfig.endpoints.auth.login), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), password }),
+        body: JSON.stringify({ phone: phone.trim(), password }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -105,15 +105,15 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
 
           <View>
             <TextInput
-              placeholder="Enter your email address"
+              placeholder="Enter your phone number"
               placeholderTextColor="#999"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
+              value={phone}
+              onChangeText={setPhone}
+              keyboardType="phone-pad"
+              maxLength={10}
               style={styles.input}
             />
-            {errors.email ? <Text style={styles.fieldError}>{errors.email}</Text> : null}
+            {errors.phone ? <Text style={styles.fieldError}>{errors.phone}</Text> : null}
 
             <TextInput
               placeholder="Enter your password"

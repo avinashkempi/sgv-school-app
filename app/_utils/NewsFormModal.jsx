@@ -7,17 +7,40 @@ import { useToast } from './ToastProvider';
 import apiConfig from '../config/apiConfig';
 import { Checkbox } from 'react-native-paper';
 
-export default function EventFormModal({ isVisible, onClose, selectedDate, onSuccess }) {
+export default function NewsFormModal({ isVisible, onClose, onSuccess, editItem = null }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [isSchoolEvent, setIsSchoolEvent] = useState(false);
+  const [url, setUrl] = useState('');
+  const [privateNews, setPrivateNews] = useState(true);
   const [loading, setLoading] = useState(false);
   const { colors, styles: globalStyles } = useTheme();
   const { showToast } = useToast();
 
+  const isEditing = !!editItem;
+
+  useEffect(() => {
+    if (isVisible) {
+      if (isEditing && editItem) {
+        setTitle(editItem.title || '');
+        setDescription(editItem.description || '');
+        setUrl(editItem.url || '');
+        setPrivateNews(editItem.privateNews !== undefined ? editItem.privateNews : true);
+      } else {
+        setTitle('');
+        setDescription('');
+        setUrl('');
+        setPrivateNews(true);
+      }
+    }
+  }, [isVisible, isEditing, editItem]);
+
   const handleSubmit = async () => {
     if (!title.trim()) {
       showToast('Title is required');
+      return;
+    }
+    if (!description.trim()) {
+      showToast('Description is required');
       return;
     }
 
@@ -26,35 +49,46 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
 
       const token = await AsyncStorage.getItem('@auth_token');
       if (!token) {
-        showToast('Please login to create events');
+        showToast('Please login to create news');
         return;
       }
 
-      const response = await fetch(apiConfig.url(apiConfig.endpoints.events.create), {
-        method: 'POST',
+      const endpoint = isEditing
+        ? apiConfig.url(apiConfig.endpoints.news.update(editItem._id))
+        : apiConfig.url(apiConfig.endpoints.news.create);
+
+      const method = isEditing ? 'PUT' : 'POST';
+
+      const response = await fetch(endpoint, {
+        method: method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           title: title.trim(),
-          date: selectedDate,
           description: description.trim(),
-          isSchoolEvent: isSchoolEvent
+          url: url.trim(),
+          privateNews: privateNews
         })
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to create event');
+        throw new Error(data.message || `Failed to ${isEditing ? 'update' : 'create'} news`);
       }
 
-      showToast('Event created successfully');
-      onSuccess(data.event);
+      showToast(`News ${isEditing ? 'updated' : 'created'} successfully`);
+      onSuccess(data.news);
       onClose();
-      setTitle('');
-      setDescription('');
+
+      if (!isEditing) {
+        setTitle('');
+        setDescription('');
+        setUrl('');
+        setPrivateNews(true);
+      }
 
     } catch (error) {
       showToast(error.message);
@@ -73,15 +107,12 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
       <View style={styles.overlay}>
         <View style={[styles.container, { backgroundColor: colors.cardBackground }]}>
           <View style={styles.header}>
-            <Text style={[globalStyles.title, { fontSize: 16, color: colors.textPrimary }]}>New Event</Text>
+            <Text style={[globalStyles.title, { fontSize: 16, color: colors.textPrimary }]}>
+              {isEditing ? 'Edit News' : 'Add News'}
+            </Text>
             <Pressable onPress={onClose} hitSlop={8}>
               <MaterialIcons name="close" size={20} color={colors.textSecondary} />
             </Pressable>
-          </View>
-
-          <View style={styles.dateRow}>
-            <Text style={[styles.dateLabel, { color: colors.textSecondary }]}>Date:</Text>
-            <Text style={[styles.dateValue, { color: colors.textPrimary }]}>{selectedDate}</Text>
           </View>
 
           <TextInput
@@ -90,7 +121,7 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
               color: colors.textPrimary,
               borderColor: colors.border
             }]}
-            placeholder="Event title"
+            placeholder="News title"
             placeholderTextColor={colors.textSecondary}
             value={title}
             onChangeText={setTitle}
@@ -103,22 +134,37 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
               color: colors.textPrimary,
               borderColor: colors.border
             }]}
-            placeholder="Description (optional)"
+            placeholder="Description"
             placeholderTextColor={colors.textSecondary}
             value={description}
             onChangeText={setDescription}
+            multiline
+            numberOfLines={4}
             maxLength={500}
+          />
+
+          <TextInput
+            style={[styles.input, {
+              backgroundColor: colors.background,
+              color: colors.textPrimary,
+              borderColor: colors.border
+            }]}
+            placeholder="URL (optional)"
+            placeholderTextColor={colors.textSecondary}
+            value={url}
+            onChangeText={setUrl}
+            maxLength={200}
           />
 
           <View style={styles.checkboxRow}>
             <View style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 4, padding: 2 }}>
               <Checkbox
-                status={isSchoolEvent ? 'checked' : 'unchecked'}
-                onPress={() => setIsSchoolEvent(!isSchoolEvent)}
+                status={privateNews ? 'checked' : 'unchecked'}
+                onPress={() => setPrivateNews(!privateNews)}
                 color={colors.primary}
               />
             </View>
-            <Text style={[styles.checkboxLabel, { color: colors.textPrimary }]}>School Event</Text>
+            <Text style={[styles.checkboxLabel, { color: colors.textPrimary }]}>Private News</Text>
           </View>
 
           <Pressable
@@ -127,7 +173,7 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
             disabled={loading}
           >
             <Text style={[styles.buttonText, { color: colors.white }, loading && styles.buttonTextDisabled]}>
-              {loading ? 'Creating...' : 'Create'}
+              {loading ? (isEditing ? 'Updating...' : 'Creating...') : (isEditing ? 'Update' : 'Create')}
             </Text>
           </Pressable>
         </View>
@@ -158,20 +204,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
-  },
-  dateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  dateLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginRight: 8,
-  },
-  dateValue: {
-    fontSize: 14,
-    fontWeight: '600',
   },
   input: {
     borderWidth: 1,
