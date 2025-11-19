@@ -109,9 +109,15 @@ export default function NewsScreen() {
           setNews(globalNews);
           // Cache the fresh data
           await setCachedData(CACHE_KEYS.NEWS, result.news);
+          setLoading(false);
+          globalNewsLoading = false;
+          newsFetched = true;
         } else {
           globalNews = [];
           setNews([]);
+          setLoading(false);
+          globalNewsLoading = false;
+          newsFetched = true;
         }
       } catch (err) {
         console.warn('Failed to fetch fresh news:', err.message);

@@ -66,15 +66,18 @@ export default function useEvents() {
 
         const response = await fetch(apiConfig.url(apiConfig.endpoints.events.list), fetchOptions);
 
-        const data = await response.json();
-
         if (!response.ok) {
-          throw new Error(data.message || 'Failed to fetch events');
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
+
+        const data = await response.json();
 
         const eventsData = data.event || [];
         globalEvents = eventsData;
         setEvents(globalEvents);
+        setLoading(false);
+        globalEventsLoading = false;
+        eventsFetched = true;
 
         // Cache the fresh data
         await setCachedData(CACHE_KEYS.EVENTS, eventsData);
@@ -84,6 +87,9 @@ export default function useEvents() {
         if (!globalEvents.length) {
           setError(err.message);
           globalEventsError = err.message;
+          setLoading(false);
+          globalEventsLoading = false;
+          eventsFetched = true;
         }
       }
     };

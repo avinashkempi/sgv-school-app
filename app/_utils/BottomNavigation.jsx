@@ -191,13 +191,13 @@ export default function BottomNavigation() {
                     <MaterialCommunityIcons
                       name={isActive ? item.activeIcon : item.icon}
                       size={26}
-                      color={isActive ? colors.primary : colors.mode === "dark" ? colors.white : colors.textSecondary}
+                      color={isActive ? (colors.mode === "dark" ? colors.white : colors.primary) : "#000000"}
                     />
                   ) : (
                     <MaterialIcons
                       name={isActive ? item.activeIcon : item.icon}
                       size={26}
-                      color={isActive ? colors.primary : colors.mode === "dark" ? colors.white : colors.textSecondary}
+                      color={isActive ? (colors.mode === "dark" ? colors.white : colors.primary) : "#000000"}
                     />
                   )}
                 </Pressable>
@@ -227,7 +227,7 @@ export default function BottomNavigation() {
                   style={{
                     fontSize: 11,
                     fontFamily: styles.cardText.fontFamily,
-                    color: isActive ? colors.primary : colors.mode === "dark" ? colors.white : colors.textSecondary,
+                    color: isActive ? colors.primary : "#000000",
                     textAlign: "center",
                     fontWeight: isActive ? "600" : "400",
                     opacity: isActive ? 1 : 0.8,
