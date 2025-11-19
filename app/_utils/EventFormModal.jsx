@@ -7,13 +7,48 @@ import { useToast } from './ToastProvider';
 import apiConfig from '../config/apiConfig';
 import { Checkbox } from 'react-native-paper';
 
-export default function EventFormModal({ isVisible, onClose, selectedDate, onSuccess }) {
+// Helper to format dates for display in Indian format (DD-MM-YYYY)
+const formatIndianDate = (dateInput) => {
+  if (!dateInput) return "";
+  try {
+    // handle yyyy-mm-dd strings (selectedDate from calendar) by forcing midnight
+    const d =
+      typeof dateInput === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dateInput)
+        ? new Date(dateInput + "T00:00:00")
+        : new Date(dateInput);
+    if (isNaN(d)) return String(dateInput);
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+  } catch (e) {
+    return String(dateInput);
+  }
+};
+
+export default function EventFormModal({ isVisible, onClose, selectedDate, onSuccess, editItem = null }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [isSchoolEvent, setIsSchoolEvent] = useState(false);
   const [loading, setLoading] = useState(false);
   const { colors, styles: globalStyles } = useTheme();
   const { showToast } = useToast();
+
+  const isEditing = !!editItem;
+
+  useEffect(() => {
+    if (isVisible) {
+      if (isEditing && editItem) {
+        setTitle(editItem.title || '');
+        setDescription(editItem.description || '');
+        setIsSchoolEvent(editItem.isSchoolEvent !== undefined ? editItem.isSchoolEvent : false);
+      } else {
+        setTitle('');
+        setDescription('');
+        setIsSchoolEvent(false);
+      }
+    }
+  }, [isVisible, isEditing, editItem]);
 
   const handleSubmit = async () => {
     if (!title.trim()) {
@@ -30,15 +65,21 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
         return;
       }
 
-      const response = await fetch(apiConfig.url(apiConfig.endpoints.events.create), {
-        method: 'POST',
+      const endpoint = isEditing
+        ? apiConfig.url(apiConfig.endpoints.events.update(editItem._id))
+        : apiConfig.url(apiConfig.endpoints.events.create);
+
+      const method = isEditing ? 'PUT' : 'POST';
+
+      const response = await fetch(endpoint, {
+        method: method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           title: title.trim(),
-          date: selectedDate,
+          date: isEditing ? editItem.date : selectedDate,
           description: description.trim(),
           isSchoolEvent: isSchoolEvent
         })
@@ -50,7 +91,7 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
         throw new Error(data.message || 'Failed to create event');
       }
 
-      showToast('Event created successfully');
+      showToast(`Event ${isEditing ? 'updated' : 'created'} successfully`);
       onSuccess(data.event);
       onClose();
       setTitle('');
@@ -73,7 +114,9 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
       <View style={styles.overlay}>
         <View style={[styles.container, { backgroundColor: colors.cardBackground }]}>
           <View style={styles.header}>
-            <Text style={[globalStyles.title, { fontSize: 16, color: colors.textPrimary }]}>New Event</Text>
+            <Text style={[globalStyles.title, { fontSize: 16, color: colors.textPrimary }]}>
+              {isEditing ? 'Edit Event' : 'New Event'}
+            </Text>
             <Pressable onPress={onClose} hitSlop={8}>
               <MaterialIcons name="close" size={20} color={colors.textSecondary} />
             </Pressable>
@@ -81,7 +124,7 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
 
           <View style={styles.dateRow}>
             <Text style={[styles.dateLabel, { color: colors.textSecondary }]}>Date:</Text>
-            <Text style={[styles.dateValue, { color: colors.textPrimary }]}>{selectedDate}</Text>
+            <Text style={[styles.dateValue, { color: colors.textPrimary }]}>{isEditing ? formatIndianDate(editItem.date) : formatIndianDate(selectedDate)}</Text>
           </View>
 
           <TextInput
@@ -127,7 +170,7 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
             disabled={loading}
           >
             <Text style={[styles.buttonText, { color: colors.white }, loading && styles.buttonTextDisabled]}>
-              {loading ? 'Creating...' : 'Create'}
+              {loading ? (isEditing ? 'Updating...' : 'Creating...') : (isEditing ? 'Update' : 'Create')}
             </Text>
           </Pressable>
         </View>

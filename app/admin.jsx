@@ -18,14 +18,22 @@ import { useRouter } from "expo-router";
 import { useTheme } from "../theme";
 import apiConfig from "./config/apiConfig";
 import { useToast } from "./_utils/ToastProvider";
+import { getCachedData, setCachedData, updateCachedData, CACHE_KEYS, CACHE_EXPIRY } from "./utils/cache";
+
+// Global cache for users to persist across component re-mounts
+let globalUsers = [];
+let globalUsersLoading = true;
+let globalUsersError = null;
+let usersFetched = false;
 
 export default function AdminScreen() {
   const router = useRouter();
   const { styles, colors } = useTheme();
   const { showToast } = useToast();
   const [user, setUser] = useState(null);
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState(globalUsers);
+  const [loading, setLoading] = useState(globalUsersLoading);
+  const [error, setError] = useState(globalUsersError);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -53,8 +61,6 @@ export default function AdminScreen() {
     setCurrentPage(1);
   }, [searchQuery]);
 
-
-
   const checkAuthAndLoadUsers = async () => {
     try {
       const storedUser = await AsyncStorage.getItem("@auth_user");
@@ -73,6 +79,14 @@ export default function AdminScreen() {
       }
 
       setUser(parsedUser);
+
+      if (usersFetched) {
+        // If already fetched, use cached data
+        setUsers(globalUsers);
+        setLoading(globalUsersLoading);
+        return;
+      }
+
       await loadUsers();
     } catch (error) {
       console.error("Auth check error:", error);
@@ -83,15 +97,36 @@ export default function AdminScreen() {
   const loadUsers = async () => {
     try {
       // Try to load from cache first
-      const cachedUsers = await AsyncStorage.getItem("@cached_users");
+      const cachedUsers = await getCachedData(CACHE_KEYS.USERS, CACHE_EXPIRY.USERS);
       if (cachedUsers) {
-        setUsers(JSON.parse(cachedUsers));
+        globalUsers = cachedUsers;
+        setUsers(globalUsers);
         setLoading(false);
+        globalUsersLoading = false;
+        usersFetched = true;
+        // Fetch fresh data in background
+        fetchFreshUsers();
         return;
       }
 
       // Only show loading if we need to fetch from API
       setLoading(true);
+      await fetchFreshUsers();
+    } catch (error) {
+      console.error("Load users error:", error);
+      setError(error.message);
+      globalUsersError = error.message;
+      globalUsers = [];
+      setUsers([]);
+      setLoading(false);
+      globalUsersLoading = false;
+      usersFetched = true;
+      showToast("Failed to load users", "error");
+    }
+  };
+
+  const fetchFreshUsers = async () => {
+    try {
       const token = await AsyncStorage.getItem("@auth_token");
 
       const response = await fetch(apiConfig.url(apiConfig.endpoints.users.list), {
@@ -108,17 +143,23 @@ export default function AdminScreen() {
 
       const result = await response.json();
       if (result.success && result.data) {
-        setUsers(result.data);
+        globalUsers = result.data;
+        setUsers(globalUsers);
         // Cache the data
-        await AsyncStorage.setItem("@cached_users", JSON.stringify(result.data));
+        await setCachedData(CACHE_KEYS.USERS, result.data);
       } else {
+        globalUsers = [];
+        setUsers([]);
         throw new Error("Failed to load users");
       }
     } catch (error) {
-      console.error("Load users error:", error);
-      showToast("Failed to load users", "error");
-    } finally {
-      setLoading(false);
+      console.error("Fetch fresh users error:", error);
+      // Don't override existing cached data if fetch fails
+      if (!globalUsers.length) {
+        setError(error.message);
+        globalUsersError = error.message;
+        showToast("Failed to load users", "error");
+      }
     }
   };
 
@@ -177,12 +218,9 @@ export default function AdminScreen() {
         // Update local state
         setUsers(prevUsers => prevUsers.filter(u => u._id !== userId));
         // Update cache
-        const cachedUsers = await AsyncStorage.getItem("@cached_users");
-        if (cachedUsers) {
-          const parsed = JSON.parse(cachedUsers);
-          const updated = parsed.filter(u => u._id !== userId);
-          await AsyncStorage.setItem("@cached_users", JSON.stringify(updated));
-        }
+        await updateCachedData(CACHE_KEYS.USERS, (cachedUsers) =>
+          cachedUsers.filter(u => u._id !== userId)
+        );
         showToast(`User ${userName} deleted successfully`, "success");
       } else {
         throw new Error("Failed to delete user");

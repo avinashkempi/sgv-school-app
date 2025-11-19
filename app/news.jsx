@@ -8,14 +8,21 @@ import { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import apiConfig from "./config/apiConfig";
 import { useToast } from "./_utils/ToastProvider";
+import { getCachedData, setCachedData, CACHE_KEYS, CACHE_EXPIRY } from "./utils/cache";
+
+// Global cache for news to persist across component re-mounts
+let globalNews = [];
+let globalNewsLoading = true;
+let globalNewsError = null;
+let newsFetched = false;
 
 export default function NewsScreen() {
   const navigation = useNavigation();
   const { styles, colors } = useTheme();
   const { showToast } = useToast();
-  const [news, setNews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [news, setNews] = useState(globalNews);
+  const [loading, setLoading] = useState(globalNewsLoading);
+  const [error, setError] = useState(globalNewsError);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingNews, setEditingNews] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -43,11 +50,52 @@ export default function NewsScreen() {
       }
     };
 
+    if (newsFetched) {
+      // If already fetched, use cached data
+      setNews(globalNews);
+      setLoading(globalNewsLoading);
+      setError(globalNewsError);
+      checkAuth();
+      return;
+    }
+
     const fetchNews = async () => {
       try {
         setLoading(true);
         setError(null);
 
+        // Try to get cached data first
+        const cachedNews = await getCachedData(CACHE_KEYS.NEWS, CACHE_EXPIRY.NEWS);
+        if (cachedNews) {
+          globalNews = cachedNews;
+          setNews(globalNews);
+          setLoading(false);
+          globalNewsLoading = false;
+          newsFetched = true;
+          // Fetch fresh data in background
+          fetchFreshNews();
+          checkAuth();
+          return;
+        }
+
+        // No cache, fetch from API
+        await fetchFreshNews();
+        checkAuth();
+      } catch (err) {
+        console.warn('Failed to fetch news:', err.message);
+        setError(err.message);
+        globalNewsError = err.message;
+        globalNews = [];
+        setNews([]);
+        setLoading(false);
+        globalNewsLoading = false;
+        newsFetched = true;
+        checkAuth();
+      }
+    };
+
+    const fetchFreshNews = async () => {
+      try {
         const response = await fetch(apiConfig.url(apiConfig.endpoints.news.list));
 
         if (!response.ok) {
@@ -57,20 +105,24 @@ export default function NewsScreen() {
         const result = await response.json();
 
         if (result.success && result.news) {
-          setNews(result.news);
+          globalNews = result.news;
+          setNews(globalNews);
+          // Cache the fresh data
+          await setCachedData(CACHE_KEYS.NEWS, result.news);
         } else {
+          globalNews = [];
           setNews([]);
         }
       } catch (err) {
-        console.warn('Failed to fetch news:', err.message);
-        setError(err.message);
-        setNews([]);
-      } finally {
-        setLoading(false);
+        console.warn('Failed to fetch fresh news:', err.message);
+        // Don't override existing cached data if fetch fails
+        if (!globalNews.length) {
+          setError(err.message);
+          globalNewsError = err.message;
+        }
       }
     };
 
-    checkAuth();
     fetchNews();
   }, []); // Empty dependency array to fetch only once per session
 
@@ -95,13 +147,13 @@ export default function NewsScreen() {
   const handleNewsCreated = (newNews) => {
     if (editingNews) {
       // Update existing news
-      setNews((prevNews) =>
-        prevNews.map(item => item._id === newNews._id ? { ...newNews, updatedAt: new Date().toISOString() } : item)
-      );
+      globalNews = globalNews.map(item => item._id === newNews._id ? { ...newNews, updatedAt: new Date().toISOString() } : item);
+      setNews(globalNews);
       setEditingNews(null);
     } else {
       // Add new news
-      setNews((prevNews) => [{ ...newNews, createdAt: new Date().toISOString() }, ...prevNews]);
+      globalNews = [{ ...newNews, createdAt: new Date().toISOString() }, ...globalNews];
+      setNews(globalNews);
     }
   };
 
@@ -126,7 +178,8 @@ export default function NewsScreen() {
 
       const result = await response.json();
       if (result.success) {
-        setNews((prevNews) => prevNews.filter(item => item._id !== newsId));
+        globalNews = globalNews.filter(item => item._id !== newsId);
+        setNews(globalNews);
         showToast(`News "${newsTitle}" deleted successfully`);
       } else {
         throw new Error(result.message || 'Failed to delete news');
