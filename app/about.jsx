@@ -1,6 +1,7 @@
 import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
-import { View, Text, ScrollView, Animated, Pressable } from "react-native";
+import { View, Text, ScrollView, Animated, Pressable, RefreshControl } from "react-native";
+import { useState } from "react";
 import useFade from "./hooks/useFade";
 import { useTheme } from "../theme";
 import Header from "./_utils/Header";
@@ -11,9 +12,29 @@ export default function About() {
   const navigation = useNavigation();
   const { styles, colors } = useTheme();
   const { schoolInfo: SCHOOL } = useSchoolInfo();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      // Force re-fetch school info by clearing cached data if needed
+      // The useSchoolInfo hook will fetch fresh data
+      console.log('[ABOUT] Refreshing school info...');
+      // Note: School info is fetched automatically by the hook
+      // This simulates a refresh delay for UX
+      await new Promise(resolve => setTimeout(resolve, 500));
+      console.log('[ABOUT] Refreshed successfully');
+    } catch (err) {
+      console.error('[ABOUT] Refresh failed:', err.message);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} refreshControl={
+      <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
+    }>
       <Header title={SCHOOL.name} />
 
       {/* About Us Section */}

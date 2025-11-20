@@ -1,4 +1,4 @@
-import { View, Text, FlatList, Pressable, Alert } from "react-native";
+import { View, Text, FlatList, Pressable, Alert, RefreshControl } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useTheme } from "../theme";
@@ -7,6 +7,7 @@ import NewsFormModal from "./_utils/NewsFormModal";
 import { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import apiConfig from "./config/apiConfig";
+import apiFetch from "./_utils/apiFetch";
 import { useToast } from "./_utils/ToastProvider";
 import { getCachedData, setCachedData, CACHE_KEYS, CACHE_EXPIRY } from "./utils/cache";
 
@@ -28,6 +29,7 @@ export default function NewsScreen() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [user, setUser] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -96,15 +98,24 @@ export default function NewsScreen() {
 
     const fetchFreshNews = async () => {
       try {
-        const response = await fetch(apiConfig.url(apiConfig.endpoints.news.list));
+        console.log('[NEWS] Fetching fresh news from API...');
+        const response = await apiFetch(apiConfig.url(apiConfig.endpoints.news.list));
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const result = await response.json();
+        console.log('[NEWS] API response:', result);
 
         if (result.success && result.news) {
+          console.log(`[NEWS] Received ${result.news.length} news items from API`);
+
+          // Validate the data structure
+          if (!Array.isArray(result.news)) {
+            throw new Error('Invalid news data structure from API');
+          }
+
           globalNews = result.news;
           setNews(globalNews);
           // Cache the fresh data
@@ -112,7 +123,9 @@ export default function NewsScreen() {
           setLoading(false);
           globalNewsLoading = false;
           newsFetched = true;
+          console.log('[NEWS] Fresh news cached successfully');
         } else {
+          console.warn('[NEWS] API response missing success flag or news data');
           globalNews = [];
           setNews([]);
           setLoading(false);
@@ -120,11 +133,15 @@ export default function NewsScreen() {
           newsFetched = true;
         }
       } catch (err) {
-        console.warn('Failed to fetch fresh news:', err.message);
-        // Don't override existing cached data if fetch fails
+        console.error('[NEWS] Failed to fetch fresh news:', err.message);
+        // Set error even if we have cached data, so user knows fresh fetch failed
+        setError(err.message);
+        globalNewsError = err.message;
+        // Don't set loading to false if we have cached data
         if (!globalNews.length) {
-          setError(err.message);
-          globalNewsError = err.message;
+          setLoading(false);
+          globalNewsLoading = false;
+          newsFetched = true;
         }
       }
     };
@@ -171,7 +188,7 @@ export default function NewsScreen() {
         return;
       }
 
-      const response = await fetch(apiConfig.url(apiConfig.endpoints.news.delete(newsId)), {
+      const response = await apiFetch(apiConfig.url(apiConfig.endpoints.news.delete(newsId)), {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -201,45 +218,84 @@ export default function NewsScreen() {
     setIsModalVisible(true);
   };
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      console.log('[NEWS] Refreshing news from API...');
+      const response = await apiFetch(apiConfig.url(apiConfig.endpoints.news.list));
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.success && result.news) {
+        globalNews = result.news;
+        setNews(globalNews);
+        await setCachedData(CACHE_KEYS.NEWS, result.news);
+        console.log('[NEWS] Refreshed successfully');
+      }
+    } catch (err) {
+      console.error('[NEWS] Refresh failed:', err.message);
+      showToast('Failed to refresh news');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Header title="Latest News" />
 
       {isAuthenticated && (
-        <Pressable
-          style={[styles.button, { marginHorizontal: 16, marginBottom: 16, paddingVertical: 8, paddingHorizontal: 12, alignSelf: 'flex-end', flexDirection: 'row' }]}
-          onPress={() => setIsModalVisible(true)}
-        >
-          <MaterialIcons name="add" size={16} color={colors.white} />
-          <Text style={[styles.buttonText, { marginLeft: 4, fontSize: 14 }]}>Add News</Text>
-        </Pressable>
+        <View style={{ paddingHorizontal: 16, marginBottom: 16 }}>
+          <Pressable
+            style={[styles.buttonLarge, { alignSelf: 'flex-start', flexDirection: 'row' }]}
+            onPress={() => setIsModalVisible(true)}
+          >
+            <MaterialIcons name="add" size={20} color={colors.white} />
+            <Text style={[styles.buttonText, { marginLeft: 6 }]}>Add News</Text>
+          </Pressable>
+        </View>
       )}
 
       <FlatList
         data={news}
         keyExtractor={(item) => item._id}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
+        }
         ListEmptyComponent={
           <Text style={styles.empty}>No news available right now</Text>
         }
         renderItem={({ item }) => (
-          <View style={[styles.card, styles.cardCompact]}>
-            <View style={styles.headerRow}>
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{new Date(item.creationDate).toLocaleDateString()}</Text>
+          <View style={[styles.card]}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+                <View style={{
+                  backgroundColor: colors.primary,
+                  paddingHorizontal: 8,
+                  paddingVertical: 4,
+                  borderRadius: 6,
+                }}>
+                  <Text style={{ fontSize: 11, fontWeight: "600", color: colors.white }}>
+                    {new Date(item.creationDate).toLocaleDateString()}
+                  </Text>
+                </View>
+                {item.privateNews && (
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <MaterialIcons name="lock" size={14} color={colors.textSecondary} />
+                    <Text style={{ fontSize: 11, marginLeft: 2, color: colors.textSecondary, fontWeight: "500" }}>Private</Text>
+                  </View>
+                )}
               </View>
-              <MaterialCommunityIcons
-                name="calendar-text"
-                size={20}
-                color={colors.primary}
-                style={styles.smallLeftMargin}
-              />
               {isAdmin && (
-                <View style={{ flexDirection: 'row', marginLeft: 'auto' }}>
+                <View style={{ flexDirection: 'row', gap: 8, marginLeft: 12 }}>
                   <Pressable
                     onPress={() => handleEditNews(item)}
-                    style={{ padding: 4, marginRight: 8 }}
+                    style={[styles.buttonSmall, { minWidth: 44 }]}
                   >
-                    <MaterialIcons name="edit" size={20} color={colors.primary} />
+                    <MaterialIcons name="edit" size={18} color={colors.white} />
                   </Pressable>
                   <Pressable
                     onPress={() => {
@@ -252,32 +308,23 @@ export default function NewsScreen() {
                         ]
                       );
                     }}
-                    style={{ padding: 4 }}
+                    style={[styles.buttonSmall, { minWidth: 44, backgroundColor: colors.error }]}
                   >
-                    <MaterialIcons name="delete" size={20} color={colors.error || '#ff4444'} />
+                    <MaterialIcons name="delete" size={18} color={colors.white} />
                   </Pressable>
                 </View>
               )}
             </View>
-            <Text style={styles.newsText}>{item.title}</Text>
-            <Text style={styles.newsDescription}>{item.description}</Text>
+            <Text style={[styles.cardText, { fontWeight: "600", fontSize: 15, marginBottom: 8 }]} numberOfLines={2}>{item.title}</Text>
+            <Text style={[styles.text, { fontSize: 13, marginBottom: 8 }]} numberOfLines={3}>{item.description}</Text>
             {item.url && (
               <Pressable onPress={() => {
-                // Handle URL opening - could use Linking.openURL in a real app
                 console.log('Open URL:', item.url);
                 showToast('Link: ' + item.url);
               }}>
-                <Text style={[styles.newsFile, { color: colors.primary, textDecorationLine: 'underline' }]}>Link</Text>
+                <Text style={[styles.link, { fontSize: 13 }]}>🔗 View Link</Text>
               </Pressable>
             )}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 8 }}>
-              {item.privateNews && (
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <MaterialIcons name="lock" size={14} color={colors.textSecondary} />
-                  <Text style={[styles.privateNews, { fontSize: 12, marginLeft: 4 }]}>Private</Text>
-                </View>
-              )}
-            </View>
           </View>
         )}
         contentContainerStyle={styles.contentPaddingBottom}

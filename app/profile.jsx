@@ -98,7 +98,7 @@ export default function ProfileScreen() {
   ];
 
   return (
-    <ScrollView style={[styles.container, { paddingHorizontal: 16 }]}>
+    <ScrollView style={[styles.container, { paddingHorizontal: 16 }]} contentContainerStyle={styles.contentPaddingBottom}>
       {/* User Profile Section */}
       <View style={{ alignItems: "center", paddingVertical: 20 }}>
         <View style={{
@@ -126,59 +126,38 @@ export default function ProfileScreen() {
       </View>
 
       {/* Account Section */}
-      <View style={{ marginBottom: 16 }}>
+      <View style={{ marginBottom: 20 }}>
         {user ? (
           <Pressable
             onPress={handleLogout}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              paddingVertical: 12,
-              paddingHorizontal: 16,
-              borderRadius: 8,
-              backgroundColor: colors.error + "15",
-            }}
+            style={[styles.buttonLarge, { flexDirection: "row", width: "100%", justifyContent: "center" }]}
           >
-            <MaterialIcons name="logout" size={20} color={colors.error} />
-            <Text style={[styles.cardText, { marginLeft: 12, color: colors.error }]}>Logout</Text>
+            <MaterialIcons name="logout" size={20} color={colors.white} />
+            <Text style={[styles.buttonText, { marginLeft: 8 }]}>Logout</Text>
           </Pressable>
         ) : (
           <Pressable
             onPress={() => navigation.navigate('login')}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              paddingVertical: 12,
-              paddingHorizontal: 16,
-              borderRadius: 8,
-              backgroundColor: colors.primary + "15",
-            }}
+            style={[styles.buttonLarge, { flexDirection: "row", width: "100%", justifyContent: "center" }]}
           >
-            <MaterialIcons name="login" size={20} color={colors.primary} />
-            <Text style={[styles.cardText, { marginLeft: 12, color: colors.primary }]}>Login</Text>
+            <MaterialIcons name="login" size={20} color={colors.white} />
+            <Text style={[styles.buttonText, { marginLeft: 8 }]}>Login</Text>
           </Pressable>
         )}
       </View>
 
       {/* Theme Section */}
-      <View style={{ marginBottom: 16 }}>
+      <View style={{ marginBottom: 20 }}>
         <Pressable
           onPress={toggle}
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            paddingVertical: 12,
-            paddingHorizontal: 16,
-            borderRadius: 8,
-            backgroundColor: colors.surface,
-          }}
+          style={[styles.buttonSecondary, { flexDirection: "row", width: "100%", justifyContent: "center", alignItems: "center" }]}
         >
           <MaterialIcons
             name={mode === "dark" ? "light-mode" : "dark-mode"}
             size={20}
             color={colors.primary}
           />
-          <Text style={[styles.cardText, { marginLeft: 12 }]}>
+          <Text style={[styles.buttonText, { marginLeft: 8, color: colors.primary }]}>
             {mode === "dark" ? "Light Mode" : "Dark Mode"}
           </Text>
         </Pressable>

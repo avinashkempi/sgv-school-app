@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemeProvider, useTheme } from "../theme";
 import { ToastProvider } from "./_utils/ToastProvider";
+import LoadingProvider from "./_utils/LoadingProvider";
 import BottomNavigation from "./_utils/BottomNavigation";
 
 export default function RootLayout() {
@@ -38,10 +39,64 @@ export default function RootLayout() {
     const { styles } = useTheme();
     return (
       <SafeAreaView style={styles.safeArea}>
-        <ToastProvider>
-          <Stack screenOptions={{ headerShown: false }} />
-        </ToastProvider>
-        <BottomNavigation />
+        <LoadingProvider>
+          <ToastProvider>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                animationEnabled: true,
+                animationTypeForReplace: true,
+                transitionSpec: {
+                  open: {
+                    animation: 'timing',
+                    config: {
+                      duration: 400,
+                      useNativeDriver: true,
+                    },
+                  },
+                  close: {
+                    animation: 'timing',
+                    config: {
+                      duration: 300,
+                      useNativeDriver: true,
+                    },
+                  },
+                },
+                cardStyleInterpolator: ({ current, next, layouts }) => {
+                  return {
+                    cardStyle: {
+                      transform: [
+                        {
+                          translateX: current.progress.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [layouts.screen.width, 0],
+                          }),
+                        },
+                        {
+                          scale: current.progress.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [0.95, 1],
+                          }),
+                        },
+                      ],
+                      opacity: current.progress.interpolate({
+                        inputRange: [0, 0.3, 1],
+                        outputRange: [0.7, 0.85, 1],
+                      }),
+                    },
+                    overlayStyle: {
+                      opacity: current.progress.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, 0.08],
+                      }),
+                    },
+                  };
+                },
+              }}
+            />
+          </ToastProvider>
+          <BottomNavigation />
+        </LoadingProvider>
       </SafeAreaView>
     );
   }

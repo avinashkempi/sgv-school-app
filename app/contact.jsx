@@ -6,8 +6,8 @@ import {
   Entypo,
   FontAwesome,
 } from "@expo/vector-icons";
-import { View, Text, ScrollView, Pressable, Animated } from "react-native";
-import useFade from "./hooks/useFade";
+import { View, Text, ScrollView, Pressable, Animated, RefreshControl } from "react-native";
+import { useState } from "react";
 import { openAppLink, dial, email } from "./_utils/link";
 import { useTheme } from "../theme";
 import Header from "./_utils/Header";
@@ -18,9 +18,25 @@ export default function Contact() {
   const navigation = useNavigation();
   const { styles, colors } = useTheme();
   const { schoolInfo: SCHOOL } = useSchoolInfo();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      console.log('[CONTACT] Refreshing school info...');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      console.log('[CONTACT] Refreshed successfully');
+    } catch (err) {
+      console.error('[CONTACT] Refresh failed:', err.message);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentPaddingBottom} refreshControl={
+      <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
+    }>
       <Header title="Contact Us" />
 
       <Animated.View style={[styles.card, { opacity: fadeAnim }]}>

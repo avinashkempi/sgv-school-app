@@ -1,6 +1,6 @@
 // Events screen
 import { useState, useMemo, useEffect } from "react";
-import { ScrollView, View, Text, Pressable, Alert } from "react-native";
+import { ScrollView, View, Text, Pressable, Alert, RefreshControl } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Calendar } from "react-native-calendars";
@@ -12,6 +12,7 @@ import Header from "./_utils/Header";
 import EventFormModal from "./_utils/EventFormModal";
 import useEvents from "./hooks/useEvents";
 import apiConfig from "./config/apiConfig";
+import apiFetch from "./_utils/apiFetch";
 
 // Helper to format dates for display in Indian format (DD-MM-YYYY)
 const formatIndianDate = (dateInput) => {
@@ -33,35 +34,37 @@ const formatIndianDate = (dateInput) => {
 };
 
 const EventCard = ({ event, styles, colors, isAdmin, onEdit, onDelete }) => (
-  <View style={[styles.card, styles.cardCompact]}>
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center' }}>
-      <Text style={[styles.newsText, { fontSize: 14, lineHeight: 20, flex: 1 }]}>{event.title}</Text>
+  <View style={[styles.card]}>
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <View style={{ flex: 1, marginRight: 12 }}>
+        <Text style={[styles.cardText, { fontWeight: "600", fontSize: 15, marginBottom: 4 }]} numberOfLines={2}>{event.title}</Text>
+        {event.description && (
+          <Text style={[styles.text, { fontSize: 13, marginBottom: 8 }]} numberOfLines={2}>{event.description}</Text>
+        )}
+        {event.isSchoolEvent && (
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <MaterialCommunityIcons name="school" size={14} color="#FFD700" />
+            <Text style={{ color: '#FFD700', fontSize: 12, marginLeft: 4, fontWeight: "600" }}>School Event</Text>
+          </View>
+        )}
+      </View>
       {isAdmin && (
-        <View style={{ flexDirection: 'row' }}>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
           <Pressable
             onPress={onEdit}
-            style={{ padding: 4, marginRight: 8 }}
+            style={[styles.buttonSmall, { minWidth: 44 }]}
           >
-            <MaterialIcons name="edit" size={20} color={colors.primary} />
+            <MaterialIcons name="edit" size={18} color={colors.white} />
           </Pressable>
           <Pressable
             onPress={onDelete}
-            style={{ padding: 4 }}
+            style={[styles.buttonSmall, { minWidth: 44, backgroundColor: colors.error }]}
           >
-            <MaterialIcons name="delete" size={20} color={colors.error || '#ff4444'} />
+            <MaterialIcons name="delete" size={18} color={colors.white} />
           </Pressable>
         </View>
       )}
     </View>
-    {event.description && (
-      <Text style={[styles.newsDescription, { fontSize: 12, marginTop: 4 }]}>{event.description}</Text>
-    )}
-    {event.isSchoolEvent && (
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
-        <MaterialCommunityIcons name="school" size={12} color="#FFD700" />
-        <Text style={{ color: '#FFD700', fontSize: 11, marginLeft: 4 }}>School Event</Text>
-      </View>
-    )}
   </View>
 );
 
@@ -74,6 +77,7 @@ export default function EventsScreen() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [user, setUser] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
   const { styles, colors } = useTheme();
   const { showToast } = useToast();
   const { events: allEvents, loading, addEvent, updateEvent, removeEvent } = useEvents();
@@ -138,7 +142,7 @@ export default function EventsScreen() {
         return;
       }
 
-      const response = await fetch(apiConfig.url(apiConfig.endpoints.events.delete(eventId)), {
+      const response = await apiFetch(apiConfig.url(apiConfig.endpoints.events.delete(eventId)), {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -159,6 +163,32 @@ export default function EventsScreen() {
     } catch (error) {
       console.error('Delete event error:', error);
       showToast(error.message || 'Failed to delete event');
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      console.log('[EVENTS] Refreshing events from API...');
+      const response = await apiFetch(apiConfig.url(apiConfig.endpoints.events.list), {
+        headers: {
+          'Authorization': `Bearer ${await AsyncStorage.getItem('@auth_token') || ''}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to refresh events');
+      }
+
+      const result = await response.json();
+      if (result.success && result.events) {
+        console.log('[EVENTS] Refreshed successfully');
+      }
+    } catch (err) {
+      console.error('[EVENTS] Refresh failed:', err.message);
+      showToast('Failed to refresh events');
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -209,7 +239,9 @@ export default function EventsScreen() {
   }, [selectedDate, allEvents, colors.primary]);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentPaddingBottom}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentPaddingBottom} refreshControl={
+      <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
+    }>
       <Header title="Events" />
 
       <View style={styles.card}>

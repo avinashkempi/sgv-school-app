@@ -5,6 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from '../../theme';
 import { useToast } from './ToastProvider';
 import apiConfig from '../config/apiConfig';
+import apiFetch from './apiFetch';
 import { Checkbox } from 'react-native-paper';
 
 // Helper to format dates for display in Indian format (DD-MM-YYYY)
@@ -71,7 +72,7 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
 
       const method = isEditing ? 'PUT' : 'POST';
 
-      const response = await fetch(endpoint, {
+      const response = await apiFetch(endpoint, {
         method: method,
         headers: {
           'Content-Type': 'application/json',
@@ -128,8 +129,9 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
           </View>
 
           <TextInput
-            style={[styles.input, {
-              backgroundColor: colors.background,
+            style={[globalStyles.input, {
+              marginBottom: 12,
+              backgroundColor: colors.cardBackground,
               color: colors.textPrimary,
               borderColor: colors.border
             }]}
@@ -141,36 +143,38 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
           />
 
           <TextInput
-            style={[styles.input, {
-              backgroundColor: colors.background,
+            style={[globalStyles.input, {
+              marginBottom: 16,
+              backgroundColor: colors.cardBackground,
               color: colors.textPrimary,
-              borderColor: colors.border
+              borderColor: colors.border,
+              minHeight: 100,
+              paddingTop: 12,
             }]}
             placeholder="Description (optional)"
             placeholderTextColor={colors.textSecondary}
             value={description}
             onChangeText={setDescription}
             maxLength={500}
+            multiline
           />
 
-          <View style={styles.checkboxRow}>
-            <View style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 4, padding: 2 }}>
-              <Checkbox
-                status={isSchoolEvent ? 'checked' : 'unchecked'}
-                onPress={() => setIsSchoolEvent(!isSchoolEvent)}
-                color={colors.primary}
-              />
-            </View>
-            <Text style={[styles.checkboxLabel, { color: colors.textPrimary }]}>School Event</Text>
+          <View style={{ marginBottom: 16, flexDirection: 'row', alignItems: 'center' }}>
+            <Checkbox
+              status={isSchoolEvent ? 'checked' : 'unchecked'}
+              onPress={() => setIsSchoolEvent(!isSchoolEvent)}
+              color={colors.primary}
+            />
+            <Text style={[globalStyles.cardText, { color: colors.textPrimary }]}>Mark as School Event</Text>
           </View>
 
           <Pressable
-            style={[styles.button, { backgroundColor: colors.primary }, loading && styles.buttonDisabled]}
+            style={[globalStyles.buttonLarge, { width: "100%", backgroundColor: colors.primary }, loading && { opacity: 0.6 }]}
             onPress={handleSubmit}
             disabled={loading}
           >
-            <Text style={[styles.buttonText, { color: colors.white }, loading && styles.buttonTextDisabled]}>
-              {loading ? (isEditing ? 'Updating...' : 'Creating...') : (isEditing ? 'Update' : 'Create')}
+            <Text style={[globalStyles.buttonText, { color: colors.white }]}>
+              {loading ? (isEditing ? 'Updating...' : 'Creating...') : (isEditing ? 'Update Event' : 'Create Event')}
             </Text>
           </Pressable>
         </View>

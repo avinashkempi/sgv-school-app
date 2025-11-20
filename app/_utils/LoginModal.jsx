@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import apiConfig from '../config/apiConfig';
+import apiFetch from './apiFetch';
 
 const LoginModal = ({ isVisible, onClose, onSuccess }) => {
   // Common
@@ -61,7 +62,7 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
     if (!validateLogin()) return;
     setLoading(true);
     try {
-      const res = await fetch(apiConfig.url(apiConfig.endpoints.auth.login), {
+      const res = await apiFetch(apiConfig.url(apiConfig.endpoints.auth.login), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: phone.trim(), password }),

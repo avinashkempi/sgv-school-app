@@ -6,6 +6,7 @@ import Header from './_utils/Header';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import apiConfig from './config/apiConfig';
+import apiFetch from './_utils/apiFetch';
 
 export default function Login() {
   const [phone, setPhone] = useState('');
@@ -20,7 +21,7 @@ export default function Login() {
     }
 
     try {
-      const response = await fetch(apiConfig.url(apiConfig.endpoints.auth.login), {
+      const response = await apiFetch(apiConfig.url(apiConfig.endpoints.auth.login), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -44,7 +45,7 @@ export default function Login() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ padding: 20 }}>
+    <ScrollView style={styles.container} contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
       <StatusBar
         barStyle={mode === "dark" ? "light-content" : "dark-content"}
         backgroundColor={colors.background}
@@ -53,9 +54,9 @@ export default function Login() {
       <Header title="Login" />
 
       <View style={{ marginTop: 20 }}>
-        <Text style={[styles.label, { marginBottom: 10 }]}>Phone Number</Text>
+        <Text style={[styles.label, { marginBottom: 8, fontSize: 14 }]}>Phone Number</Text>
         <TextInput
-          style={[styles.input, { marginBottom: 20 }]}
+          style={[styles.input, { marginBottom: 16 }]}
           value={phone}
           onChangeText={setPhone}
           placeholder="Enter phone number"
@@ -64,9 +65,9 @@ export default function Login() {
           maxLength={10}
         />
 
-        <Text style={[styles.label, { marginBottom: 10 }]}>Password</Text>
+        <Text style={[styles.label, { marginBottom: 8, fontSize: 14 }]}>Password</Text>
         <TextInput
-          style={[styles.input, { marginBottom: 30 }]}
+          style={[styles.input, { marginBottom: 28 }]}
           value={password}
           onChangeText={setPassword}
           placeholder="Enter password"
@@ -75,10 +76,10 @@ export default function Login() {
         />
 
         <Pressable
-          style={[styles.navCard, { paddingVertical: 15, alignItems: 'center' }]}
+          style={[styles.buttonLarge, { width: "100%", alignItems: 'center' }]}
           onPress={handleLogin}
         >
-          <Text style={styles.cardText}>Login</Text>
+          <Text style={styles.buttonText}>Login</Text>
         </Pressable>
       </View>
     </ScrollView>

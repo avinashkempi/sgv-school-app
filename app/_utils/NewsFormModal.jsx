@@ -5,6 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from '../../theme';
 import { useToast } from './ToastProvider';
 import apiConfig from '../config/apiConfig';
+import apiFetch from './apiFetch';
 import { Checkbox } from 'react-native-paper';
 
 export default function NewsFormModal({ isVisible, onClose, onSuccess, editItem = null }) {
@@ -59,7 +60,7 @@ export default function NewsFormModal({ isVisible, onClose, onSuccess, editItem 
 
       const method = isEditing ? 'PUT' : 'POST';
 
-      const response = await fetch(endpoint, {
+      const response = await apiFetch(endpoint, {
         method: method,
         headers: {
           'Content-Type': 'application/json',
@@ -116,8 +117,9 @@ export default function NewsFormModal({ isVisible, onClose, onSuccess, editItem 
           </View>
 
           <TextInput
-            style={[styles.input, {
-              backgroundColor: colors.background,
+            style={[globalStyles.input, {
+              marginBottom: 12,
+              backgroundColor: colors.cardBackground,
               color: colors.textPrimary,
               borderColor: colors.border
             }]}
@@ -129,10 +131,13 @@ export default function NewsFormModal({ isVisible, onClose, onSuccess, editItem 
           />
 
           <TextInput
-            style={[styles.input, {
-              backgroundColor: colors.background,
+            style={[globalStyles.input, {
+              marginBottom: 12,
+              backgroundColor: colors.cardBackground,
               color: colors.textPrimary,
-              borderColor: colors.border
+              borderColor: colors.border,
+              minHeight: 100,
+              paddingTop: 12,
             }]}
             placeholder="Description"
             placeholderTextColor={colors.textSecondary}
@@ -144,8 +149,9 @@ export default function NewsFormModal({ isVisible, onClose, onSuccess, editItem 
           />
 
           <TextInput
-            style={[styles.input, {
-              backgroundColor: colors.background,
+            style={[globalStyles.input, {
+              marginBottom: 16,
+              backgroundColor: colors.cardBackground,
               color: colors.textPrimary,
               borderColor: colors.border
             }]}
@@ -156,24 +162,22 @@ export default function NewsFormModal({ isVisible, onClose, onSuccess, editItem 
             maxLength={200}
           />
 
-          <View style={styles.checkboxRow}>
-            <View style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 4, padding: 2 }}>
-              <Checkbox
-                status={privateNews ? 'checked' : 'unchecked'}
-                onPress={() => setPrivateNews(!privateNews)}
-                color={colors.primary}
-              />
-            </View>
-            <Text style={[styles.checkboxLabel, { color: colors.textPrimary }]}>Private News</Text>
+          <View style={{ marginBottom: 16, flexDirection: 'row', alignItems: 'center' }}>
+            <Checkbox
+              status={privateNews ? 'checked' : 'unchecked'}
+              onPress={() => setPrivateNews(!privateNews)}
+              color={colors.primary}
+            />
+            <Text style={[globalStyles.cardText, { color: colors.textPrimary }]}>Private News</Text>
           </View>
 
           <Pressable
-            style={[styles.button, { backgroundColor: colors.primary }, loading && styles.buttonDisabled]}
+            style={[globalStyles.buttonLarge, { width: "100%", backgroundColor: colors.primary }, loading && { opacity: 0.6 }]}
             onPress={handleSubmit}
             disabled={loading}
           >
-            <Text style={[styles.buttonText, { color: colors.white }, loading && styles.buttonTextDisabled]}>
-              {loading ? (isEditing ? 'Updating...' : 'Creating...') : (isEditing ? 'Update' : 'Create')}
+            <Text style={[globalStyles.buttonText, { color: colors.white }]}>
+              {loading ? (isEditing ? 'Updating...' : 'Creating...') : (isEditing ? 'Update News' : 'Create News')}
             </Text>
           </Pressable>
         </View>

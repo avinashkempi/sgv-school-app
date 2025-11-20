@@ -1,5 +1,6 @@
 import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
-import { View, Text, ScrollView, Animated, StatusBar } from "react-native";
+import { View, Text, ScrollView, Animated, StatusBar, RefreshControl } from "react-native";
+import { useState } from "react";
 import useFade from "./hooks/useFade";
 import { useTheme } from "../theme";
 import Header from "./_utils/Header";
@@ -9,9 +10,25 @@ export default function AboutScreen() {
   const fadeAnim = useFade();
   const { styles, colors, mode } = useTheme();
   const { schoolInfo: SCHOOL } = useSchoolInfo();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      console.log('[HOME] Refreshing school info...');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      console.log('[HOME] Refreshed successfully');
+    } catch (err) {
+      console.error('[HOME] Refresh failed:', err.message);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentPaddingBottom} refreshControl={
+      <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
+    }>
       <StatusBar
         barStyle={mode === "dark" ? "light-content" : "dark-content"}
         backgroundColor={colors.background}

@@ -17,6 +17,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../theme";
 import apiConfig from "./config/apiConfig";
+import apiFetch from "./_utils/apiFetch";
 import { useToast } from "./_utils/ToastProvider";
 import { getCachedData, setCachedData, updateCachedData, CACHE_KEYS, CACHE_EXPIRY } from "./utils/cache";
 
@@ -129,7 +130,7 @@ export default function AdminScreen() {
     try {
       const token = await AsyncStorage.getItem("@auth_token");
 
-      const response = await fetch(apiConfig.url(apiConfig.endpoints.users.list), {
+      const response = await apiFetch(apiConfig.url(apiConfig.endpoints.users.list), {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -145,17 +146,25 @@ export default function AdminScreen() {
       if (result.success && result.data) {
         globalUsers = result.data;
         setUsers(globalUsers);
+        setLoading(false);
+        globalUsersLoading = false;
+        usersFetched = true;
         // Cache the data
         await setCachedData(CACHE_KEYS.USERS, result.data);
       } else {
         globalUsers = [];
         setUsers([]);
+        setLoading(false);
+        globalUsersLoading = false;
+        usersFetched = true;
         throw new Error("Failed to load users");
       }
     } catch (error) {
       console.error("Fetch fresh users error:", error);
       // Don't override existing cached data if fetch fails
       if (!globalUsers.length) {
+        setLoading(false);
+        globalUsersLoading = false;
         setError(error.message);
         globalUsersError = error.message;
         showToast("Failed to load users", "error");
@@ -167,7 +176,7 @@ export default function AdminScreen() {
     try {
       const token = await AsyncStorage.getItem("@auth_token");
 
-      const response = await fetch(apiConfig.url(apiConfig.endpoints.users.update(userId)), {
+      const response = await apiFetch(apiConfig.url(apiConfig.endpoints.users.update(userId)), {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -201,7 +210,7 @@ export default function AdminScreen() {
     try {
       const token = await AsyncStorage.getItem("@auth_token");
 
-      const response = await fetch(apiConfig.url(apiConfig.endpoints.users.delete(userId)), {
+      const response = await apiFetch(apiConfig.url(apiConfig.endpoints.users.delete(userId)), {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -241,6 +250,7 @@ export default function AdminScreen() {
     return users.filter(user =>
       (user.name && user.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (user.phone && user.phone.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (user.role && user.role.toLowerCase().includes(searchQuery.toLowerCase()))
     );
   };
@@ -290,7 +300,7 @@ export default function AdminScreen() {
 
       const token = await AsyncStorage.getItem("@auth_token");
 
-      const response = await fetch(apiConfig.url(apiConfig.endpoints.users.create), {
+      const response = await apiFetch(apiConfig.url(apiConfig.endpoints.users.create), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -330,6 +340,7 @@ export default function AdminScreen() {
   return (
     <ScrollView
       style={styles.container}
+      contentContainerStyle={styles.contentPaddingBottom}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
       }
@@ -355,18 +366,10 @@ export default function AdminScreen() {
               setUserForm({ name: "", phone: "", email: "", password: "", role: "student" });
               setShowUserModal(true);
             }}
-            style={{
-              backgroundColor: colors.primary,
-              paddingHorizontal: 16,
-              paddingVertical: 8,
-              borderRadius: 8,
-              flexDirection: "row",
-              alignItems: "center",
-              alignSelf: "flex-start",
-            }}
+            style={[styles.buttonLarge, { alignSelf: "flex-start", flexDirection: "row" }]}
           >
             <MaterialIcons name="add" size={20} color={colors.white} />
-            <Text style={{ color: colors.white, fontWeight: "600", marginLeft: 6 }}>
+            <Text style={[styles.buttonText, { marginLeft: 6 }]}>
               Add User
             </Text>
           </Pressable>
@@ -374,24 +377,17 @@ export default function AdminScreen() {
 
         {/* Search and Sort */}
         <View style={{ marginBottom: 16 }}>
+          <Text style={[styles.label, { marginBottom: 8, fontSize: 14 }]}>Search Users</Text>
           <TextInput
-            style={{
-              backgroundColor: colors.surface,
-              borderRadius: 6,
-              padding: 10,
-              fontSize: 16,
-              color: colors.text,
-              borderWidth: 1,
-              borderColor: colors.border,
-              fontFamily: "Quicksand",
-            }}
-            placeholder="Search by name, email, or role..."
+            style={[styles.input, {
+              fontSize: 15,
+              color: colors.textPrimary,
+            }]}
+            placeholder="Search by name, email, phone, or role"
             placeholderTextColor={colors.textSecondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
-
-
         </View>
 
         {/* Users List */}
@@ -404,7 +400,7 @@ export default function AdminScreen() {
             <View
               key={userItem._id}
               style={{
-                backgroundColor: colors.surface,
+                backgroundColor: colors.cardBackground,
                 borderRadius: 12,
                 padding: 16,
                 marginBottom: 12,
@@ -414,18 +410,23 @@ export default function AdminScreen() {
             >
               <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.cardText, { fontWeight: "600", fontSize: 16, marginBottom: 4 }]}>
+                  <Text style={[styles.cardText, { fontWeight: "600", fontSize: 16, marginBottom: 8 }]}>
                     {userItem.name}
                   </Text>
-                  <Text style={[styles.text, { fontSize: 14, color: colors.textSecondary, marginBottom: 8 }]}>
+                  <Text style={[styles.text, { fontSize: 14, marginBottom: 4 }]}>
                     {userItem.email}
                   </Text>
+                  {userItem.phone && (
+                    <Text style={[styles.text, { fontSize: 14, marginBottom: 12 }]}>
+                      📱 {userItem.phone}
+                    </Text>
+                  )}
                   <View style={{ flexDirection: "row", alignItems: "center" }}>
                     <View
                       style={{
                         backgroundColor: getRoleColor(userItem.role),
-                        paddingHorizontal: 8,
-                        paddingVertical: 4,
+                        paddingHorizontal: 12,
+                        paddingVertical: 6,
                         borderRadius: 12,
                         marginRight: 8,
                       }}
@@ -434,7 +435,7 @@ export default function AdminScreen() {
                         style={{
                           fontSize: 12,
                           fontWeight: "600",
-                          color: "#000",
+                          color: "#fff",
                           textTransform: "capitalize",
                         }}
                       >
@@ -444,7 +445,7 @@ export default function AdminScreen() {
                   </View>
                 </View>
 
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
                   <Pressable
                     onPress={() => {
                       setModalMode("edit");
@@ -452,17 +453,9 @@ export default function AdminScreen() {
                       setUserForm({ name: userItem.name, phone: userItem.phone, email: userItem.email, password: "", role: userItem.role });
                       setShowUserModal(true);
                     }}
-                    style={{
-                      backgroundColor: colors.primary,
-                      paddingHorizontal: 12,
-                      paddingVertical: 8,
-                      borderRadius: 8,
-                      flexDirection: "row",
-                      alignItems: "center",
-                      marginRight: 8,
-                    }}
+                    style={[styles.buttonSmall, { minWidth: 44 }]}
                   >
-                    <MaterialIcons name="edit" size={16} color={colors.white} />
+                    <MaterialIcons name="edit" size={18} color={colors.white} />
                   </Pressable>
 
                   <Pressable
@@ -476,16 +469,9 @@ export default function AdminScreen() {
                         ]
                       );
                     }}
-                    style={{
-                      backgroundColor: colors.error,
-                      paddingHorizontal: 12,
-                      paddingVertical: 8,
-                      borderRadius: 8,
-                      flexDirection: "row",
-                      alignItems: "center",
-                    }}
+                    style={[styles.buttonSmall, { minWidth: 44, backgroundColor: colors.error }]}
                   >
-                    <MaterialIcons name="delete" size={16} color={colors.white} />
+                    <MaterialIcons name="delete" size={18} color={colors.white} />
                   </Pressable>
                 </View>
               </View>
@@ -503,17 +489,14 @@ export default function AdminScreen() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: 16 }}>
+            <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: 24, gap: 12 }}>
               <Pressable
                 onPress={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                style={{
-                  paddingHorizontal: 12,
-                  paddingVertical: 8,
-                  borderRadius: 6,
-                  backgroundColor: currentPage === 1 ? colors.surface : colors.primary,
-                  marginRight: 8,
-                }}
+                style={[
+                  styles.buttonSmall,
+                  { backgroundColor: currentPage === 1 ? colors.border : colors.primary, minWidth: 44 }
+                ]}
               >
                 <MaterialIcons
                   name="chevron-left"
@@ -522,20 +505,17 @@ export default function AdminScreen() {
                 />
               </Pressable>
 
-              <Text style={[styles.text, { marginHorizontal: 16 }]}>
-                Page {currentPage} of {totalPages}
+              <Text style={[styles.text, { marginHorizontal: 8 }]}>
+                {currentPage} / {totalPages}
               </Text>
 
               <Pressable
                 onPress={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                style={{
-                  paddingHorizontal: 12,
-                  paddingVertical: 8,
-                  borderRadius: 6,
-                  backgroundColor: currentPage === totalPages ? colors.surface : colors.primary,
-                  marginLeft: 8,
-                }}
+                style={[
+                  styles.buttonSmall,
+                  { backgroundColor: currentPage === totalPages ? colors.border : colors.primary, minWidth: 44 }
+                ]}
               >
                 <MaterialIcons
                   name="chevron-right"
@@ -556,30 +536,22 @@ export default function AdminScreen() {
         onRequestClose={() => setShowUserModal(false)}
       >
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" }}>
-          <View style={{ backgroundColor: "#ffffff", borderRadius: 12, padding: 20, width: "90%", maxWidth: 400 }}>
+          <View style={{ backgroundColor: colors.cardBackground, borderRadius: 12, padding: 20, width: "90%", maxWidth: 400 }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
               <Text style={[styles.heading, { fontSize: 20 }]}>
                 {modalMode === "add" ? "Add New User" : "Edit User Role"}
               </Text>
               <Pressable onPress={() => setShowUserModal(false)}>
-                <MaterialIcons name="close" size={24} color={colors.text} />
+                <MaterialIcons name="close" size={24} color={colors.textPrimary} />
               </Pressable>
             </View>
 
             {modalMode === "add" && (
               <>
                 <View style={{ marginBottom: 16 }}>
-                  <Text style={[styles.label, { marginBottom: 8 }]}>Name</Text>
+                  <Text style={[styles.label, { marginBottom: 8, fontSize: 14 }]}>Name *</Text>
                   <TextInput
-                    style={{
-                      backgroundColor: colors.background,
-                      borderRadius: 8,
-                      padding: 12,
-                      fontSize: 16,
-                      color: colors.text,
-                      borderWidth: 1,
-                      borderColor: colors.border,
-                    }}
+                    style={[styles.input]}
                     placeholder="Enter name"
                     placeholderTextColor={colors.textSecondary}
                     value={userForm.name}
@@ -588,17 +560,9 @@ export default function AdminScreen() {
                 </View>
 
                 <View style={{ marginBottom: 16 }}>
-                  <Text style={[styles.label, { marginBottom: 8 }]}>Phone</Text>
+                  <Text style={[styles.label, { marginBottom: 8, fontSize: 14 }]}>Phone *</Text>
                   <TextInput
-                    style={{
-                      backgroundColor: colors.background,
-                      borderRadius: 8,
-                      padding: 12,
-                      fontSize: 16,
-                      color: colors.text,
-                      borderWidth: 1,
-                      borderColor: colors.border,
-                    }}
+                    style={[styles.input]}
                     placeholder="Enter phone number"
                     placeholderTextColor={colors.textSecondary}
                     value={userForm.phone}
@@ -608,18 +572,10 @@ export default function AdminScreen() {
                 </View>
 
                 <View style={{ marginBottom: 16 }}>
-                  <Text style={[styles.label, { marginBottom: 8 }]}>Email</Text>
+                  <Text style={[styles.label, { marginBottom: 8, fontSize: 14 }]}>Email</Text>
                   <TextInput
-                    style={{
-                      backgroundColor: colors.background,
-                      borderRadius: 8,
-                      padding: 12,
-                      fontSize: 16,
-                      color: colors.text,
-                      borderWidth: 1,
-                      borderColor: colors.border,
-                    }}
-                    placeholder="Enter email"
+                    style={[styles.input]}
+                    placeholder="Enter email (optional)"
                     placeholderTextColor={colors.textSecondary}
                     value={userForm.email}
                     onChangeText={(text) => setUserForm({ ...userForm, email: text })}
@@ -628,22 +584,23 @@ export default function AdminScreen() {
                   />
                 </View>
 
-                <View style={{ marginBottom: 16 }}>
-                  <Text style={[styles.label, { marginBottom: 8 }]}>Password</Text>
-                  <View style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    backgroundColor: colors.background,
-                    borderRadius: 8,
+                <View style={{ marginBottom: 20 }}>
+                  <Text style={[styles.label, { marginBottom: 8, fontSize: 14 }]}>Password *</Text>
+                  <View style={[styles.input, {
                     borderWidth: 1,
                     borderColor: colors.border,
-                  }}>
+                    flexDirection: "row",
+                    alignItems: "center",
+                    paddingRight: 0,
+                    paddingLeft: 0,
+                  }]}>
                     <TextInput
                       style={{
                         flex: 1,
-                        padding: 12,
-                        fontSize: 16,
-                        color: colors.text,
+                        paddingVertical: 12,
+                        paddingHorizontal: 14,
+                        fontSize: 15,
+                        color: colors.textPrimary,
                       }}
                       placeholder="Enter password"
                       placeholderTextColor={colors.textSecondary}
@@ -653,7 +610,7 @@ export default function AdminScreen() {
                     />
                     <Pressable
                       onPress={() => setShowPassword(!showPassword)}
-                      style={{ padding: 8 }}
+                      style={{ paddingHorizontal: 12, paddingVertical: 12 }}
                     >
                       <MaterialIcons
                         name={showPassword ? "visibility-off" : "visibility"}
@@ -667,28 +624,29 @@ export default function AdminScreen() {
             )}
 
             <View style={{ marginBottom: 24 }}>
-              <Text style={[styles.label, { marginBottom: 8 }]}>Role</Text>
-              <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+              <Text style={[styles.label, { marginBottom: 12, fontSize: 14 }]}>Role</Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                 {availableRoles.map((role) => (
                   <Pressable
                     key={role}
                     onPress={() => setUserForm({ ...userForm, role })}
                     style={{
-                      backgroundColor: userForm.role === role ? colors.primary : colors.surface,
-                      paddingHorizontal: 12,
-                      paddingVertical: 8,
-                      borderRadius: 6,
-                      marginRight: 8,
-                      marginBottom: 8,
+                      backgroundColor: userForm.role === role ? colors.primary : colors.cardBackground,
+                      paddingHorizontal: 14,
+                      paddingVertical: 10,
+                      borderRadius: 8,
                       borderWidth: 1,
                       borderColor: userForm.role === role ? colors.primary : colors.border,
+                      minHeight: 44,
+                      justifyContent: "center",
+                      alignItems: "center",
                     }}
                   >
                     <Text
                       style={{
-                        fontSize: 14,
+                        fontSize: 13,
                         fontWeight: "600",
-                        color: userForm.role === role ? colors.white : colors.text,
+                        color: userForm.role === role ? colors.white : colors.textPrimary,
                         textTransform: "capitalize",
                       }}
                     >
@@ -699,32 +657,18 @@ export default function AdminScreen() {
               </View>
             </View>
 
-            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12 }}>
               <Pressable
                 onPress={() => setShowUserModal(false)}
-                style={{
-                  flex: 1,
-                  backgroundColor: colors.surface,
-                  paddingVertical: 12,
-                  borderRadius: 8,
-                  marginRight: 8,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                }}
+                style={[styles.buttonSecondary, { flex: 1 }]}
               >
-                <Text style={{ textAlign: "center", fontWeight: "600", color: colors.text }}>Cancel</Text>
+                <Text style={[styles.buttonText, { color: colors.textPrimary }]}>Cancel</Text>
               </Pressable>
               <Pressable
                 onPress={modalMode === "add" ? createUser : () => updateUserRole(editingUser._id, userForm.role)}
-                style={{
-                  flex: 1,
-                  backgroundColor: colors.primary,
-                  paddingVertical: 12,
-                  borderRadius: 8,
-                  marginLeft: 8,
-                }}
+                style={[styles.buttonLarge, { flex: 1 }]}
               >
-                <Text style={{ textAlign: "center", fontWeight: "600", color: colors.white }}>
+                <Text style={styles.buttonText}>
                   {modalMode === "add" ? "Create User" : "Update Role"}
                 </Text>
               </Pressable>

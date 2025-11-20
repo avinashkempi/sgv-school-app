@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import apiConfig from '../config/apiConfig';
+import apiFetch from '../_utils/apiFetch';
 import { SCHOOL as FALLBACK_SCHOOL } from '../../constants/basic-info';
 import { getCachedData, setCachedData, CACHE_KEYS, CACHE_EXPIRY } from '../utils/cache';
 
@@ -57,7 +58,7 @@ export default function useSchoolInfo() {
 
     const fetchFreshSchoolInfo = async () => {
       try {
-        const response = await fetch(apiConfig.url(apiConfig.endpoints.schoolInfo.get));
+        const response = await apiFetch(apiConfig.url(apiConfig.endpoints.schoolInfo.get));
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);

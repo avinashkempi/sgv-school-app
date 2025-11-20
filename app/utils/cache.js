@@ -23,6 +23,30 @@ const createCacheEntry = (data) => ({
   timestamp: Date.now(),
 });
 
+// Validate cached data based on expected structure
+const validateCachedData = (key, data) => {
+  if (!data) return false;
+
+  switch (key) {
+    case CACHE_KEYS.EVENTS:
+      return Array.isArray(data) && data.every(item =>
+        item && typeof item === 'object' && (item._id || item.id) && item.title
+      );
+    case CACHE_KEYS.NEWS:
+      return Array.isArray(data) && data.every(item =>
+        item && typeof item === 'object' && item._id && item.title
+      );
+    case CACHE_KEYS.USERS:
+      return Array.isArray(data) && data.every(item =>
+        item && typeof item === 'object' && item._id && item.name
+      );
+    case CACHE_KEYS.SCHOOL_INFO:
+      return data && typeof data === 'object';
+    default:
+      return true; // Allow other data types
+  }
+};
+
 // Get cached data if not expired
 export const getCachedData = async (key, expiryTime = 0) => {
   try {
@@ -49,10 +73,17 @@ export const getCachedData = async (key, expiryTime = 0) => {
 // Set cached data
 export const setCachedData = async (key, data) => {
   try {
+    // Validate data before caching
+    if (!validateCachedData(key, data)) {
+      console.warn(`[CACHE] Refusing to cache invalid data for ${key}`);
+      return;
+    }
+
     const cacheEntry = createCacheEntry(data);
     await AsyncStorage.setItem(key, JSON.stringify(cacheEntry));
+    console.log(`[CACHE] Cached data for ${key}: ${Array.isArray(data) ? data.length : 1} items`);
   } catch (error) {
-    console.warn(`Failed to set cached data for ${key}:`, error);
+    console.warn(`[CACHE] Failed to set cached data for ${key}:`, error);
   }
 };
 
