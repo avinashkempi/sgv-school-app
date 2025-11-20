@@ -2,10 +2,10 @@
 // Keep environment-specific URLs here so the rest of the app doesn't hardcode them.
 
 // Production API base
-// const BASE_URL = 'https://sgv-school-backend.onrender.com/api';
+const BASE_URL = 'https://sgv-school-backend.onrender.com/api';
 
 // Local development (uncomment to use local server)
-const BASE_URL = 'http://localhost:10000/api';
+// const BASE_URL = 'http://localhost:10000/api';
 
 const endpoints = {
   auth: {
