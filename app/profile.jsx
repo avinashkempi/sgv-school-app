@@ -92,111 +92,100 @@ export default function ProfileScreen() {
   ];
 
   const socialItems = [
-    { icon: "youtube-play", color: "#FF0000", onPress: () => handlePress(SCHOOL.socials.youtubeAppUrl, SCHOOL.socials.youtube) },
-    { icon: "instagram", color: "#C13584", onPress: () => handlePress(SCHOOL.socials.instagramAppUrl, SCHOOL.socials.instagram) },
-    { icon: "map-marker", color: colors.primary, onPress: () => handlePress(SCHOOL.mapAppUrl, SCHOOL.mapUrl) },
+    { type: "fontawesome", icon: "youtube", color: "#FF0000", onPress: () => handlePress(SCHOOL.socials.youtubeAppUrl, SCHOOL.socials.youtube), label: "YouTube" },
+    { type: "fontawesome", icon: "instagram", color: "#C13584", onPress: () => handlePress(SCHOOL.socials.instagramAppUrl, SCHOOL.socials.instagram), label: "Instagram" },
+    { type: "material", icon: "location-on", color: colors.primary, onPress: () => handlePress(SCHOOL.mapAppUrl, SCHOOL.mapUrl), label: "Location" },
   ];
 
   return (
-    <ScrollView style={[styles.container, { paddingHorizontal: 16 }]} contentContainerStyle={styles.contentPaddingBottom}>
-      {/* User Profile Section */}
-      <View style={{ alignItems: "center", paddingVertical: 20 }}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentPaddingBottom}>
+      {/* Profile Header - No Card */}
+      <View style={{ alignItems: "center", marginBottom: 28 }}>
         <View style={{
-          width: 60,
-          height: 60,
-          borderRadius: 30,
+          width: 80,
+          height: 80,
+          borderRadius: 40,
           backgroundColor: colors.primary,
           alignItems: "center",
           justifyContent: "center",
-          marginBottom: 12,
+          marginBottom: 16,
         }}>
-          <MaterialIcons name="person" size={30} color={colors.white} />
+          <MaterialIcons name="person" size={40} color={colors.white} />
         </View>
         {user ? (
-          <View style={{ alignItems: "center" }}>
-            <Text style={[styles.heading, { fontSize: 18 }]}>{user.username}</Text>
-            <Text style={[styles.text, { fontSize: 14 }]}>{user.email || "No email"}</Text>
-          </View>
+          <>
+            <Text style={[styles.heading, { fontSize: 20, marginBottom: 4 }]}>{user.username}</Text>
+            <Text style={[styles.text, { fontSize: 13, marginBottom: 8 }]}>{user.email || "No email"}</Text>
+            {user.phone && (
+              <Text style={[styles.text, { fontSize: 13, marginBottom: 4 }]}>📱 {user.phone}</Text>
+            )}
+            {user.role && (
+              <View style={{ marginTop: 8 }}>
+                <Text style={[styles.badge, { backgroundColor: colors.primary, paddingVertical: 4, paddingHorizontal: 12 }]}>
+                  <Text style={{ color: colors.white, fontFamily: "DMSans-SemiBold", fontSize: 12 }}>{user.role}</Text>
+                </Text>
+              </View>
+            )}
+          </>
         ) : (
-          <View style={{ alignItems: "center" }}>
-            <Text style={[styles.heading, { fontSize: 18 }]}>Guest</Text>
-            <Text style={[styles.text, { fontSize: 14 }]}>Login for more features</Text>
-          </View>
+          <>
+            <Text style={[styles.heading, { fontSize: 20, marginBottom: 4 }]}>Guest User</Text>
+            <Text style={[styles.text, { fontSize: 13, marginBottom: 0 }]}>Login for full access</Text>
+          </>
         )}
       </View>
 
-      {/* Account Section */}
-      <View style={{ marginBottom: 20 }}>
-        {user ? (
-          <Pressable
-            onPress={handleLogout}
-            style={[styles.buttonLarge, { flexDirection: "row", width: "100%", justifyContent: "center" }]}
-          >
-            <MaterialIcons name="logout" size={20} color={colors.white} />
-            <Text style={[styles.buttonText, { marginLeft: 8 }]}>Logout</Text>
-          </Pressable>
-        ) : (
-          <Pressable
-            onPress={() => navigation.navigate('login')}
-            style={[styles.buttonLarge, { flexDirection: "row", width: "100%", justifyContent: "center" }]}
-          >
-            <MaterialIcons name="login" size={20} color={colors.white} />
-            <Text style={[styles.buttonText, { marginLeft: 8 }]}>Login</Text>
-          </Pressable>
-        )}
-      </View>
+      {/* Auth Button */}
+      <Pressable
+        onPress={user ? handleLogout : () => navigation.navigate('login')}
+        style={[styles.buttonLarge, { marginBottom: 16, flexDirection: "row", justifyContent: "center", gap: 8 }]}
+      >
+        <MaterialIcons name={user ? "exit-to-app" : "person-add"} size={18} color={colors.white} />
+        <Text style={styles.buttonText}>{user ? "Logout" : "Login"}</Text>
+      </Pressable>
 
-      {/* Theme Section */}
-      <View style={{ marginBottom: 20 }}>
-        <Pressable
-          onPress={toggle}
-          style={[styles.buttonSecondary, { flexDirection: "row", width: "100%", justifyContent: "center", alignItems: "center" }]}
-        >
-          <MaterialIcons
-            name={mode === "dark" ? "light-mode" : "dark-mode"}
-            size={20}
-            color={colors.primary}
-          />
-          <Text style={[styles.buttonText, { marginLeft: 8, color: colors.primary }]}>
-            {mode === "dark" ? "Light Mode" : "Dark Mode"}
-          </Text>
-        </Pressable>
-      </View>
+      {/* Theme Toggle */}
+      <Pressable
+        onPress={toggle}
+        style={[styles.buttonSecondary, { marginBottom: 24, flexDirection: "row", justifyContent: "center", gap: 8 }]}
+      >
+        <MaterialIcons
+          name={mode === "dark" ? "wb-sunny" : "nightlight-round"}
+          size={18}
+          color={colors.primary}
+        />
+        <Text style={[styles.buttonText, { color: colors.primary }]}>
+          {mode === "dark" ? "Light Mode" : "Dark Mode"}
+        </Text>
+      </Pressable>
 
       {/* Menu Items */}
-      <View style={{ marginBottom: 16 }}>
-        {menuItems.map((item, index) => (
-          <Pressable
-            key={index}
-            onPress={item.onPress}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              paddingVertical: 12,
-              paddingHorizontal: 16,
-              borderRadius: 8,
-              marginBottom: 4,
-            }}
-          >
-            <MaterialIcons name={item.icon} size={20} color={colors.primary} />
-            <Text style={[styles.cardText, { marginLeft: 12 }]}>{item.label}</Text>
-          </Pressable>
-        ))}
-      </View>
+      {menuItems.map((item, index) => (
+        <Pressable
+          key={index}
+          onPress={item.onPress}
+          style={[styles.card, { flexDirection: "row", alignItems: "center", marginBottom: 8 }]}
+        >
+          <MaterialIcons name={item.icon} size={20} color={colors.primary} style={{ marginRight: 12 }} />
+          <Text style={[styles.text, { flex: 1, marginBottom: 0 }]}>{item.label}</Text>
+          <MaterialIcons name="chevron-right" size={18} color={colors.textSecondary} />
+        </Pressable>
+      ))}
 
-      {/* Social Media */}
-      <View style={{ flexDirection: "row", justifyContent: "space-around", paddingVertical: 20, paddingHorizontal: 16 }}>
+      {/* Social Links */}
+      <Text style={[styles.label, { fontSize: 12, marginTop: 24, marginBottom: 12 }]}>Follow Us</Text>
+      <View style={[styles.card, { flexDirection: "row", justifyContent: "space-evenly", alignItems: "center", paddingVertical: 16 }]}>
         {socialItems.map((item, index) => (
           <Pressable
             key={index}
             onPress={item.onPress}
-            style={{
-              alignItems: "center",
-              padding: 8,
-              flex: 1,
-            }}
+            style={{ alignItems: "center" }}
           >
-            <FontAwesome name={item.icon} size={24} color={item.color} />
+            {item.type === "fontawesome" ? (
+              <FontAwesome name={item.icon} size={28} color={item.color} />
+            ) : (
+              <MaterialIcons name={item.icon} size={28} color={item.color} />
+            )}
           </Pressable>
         ))}
       </View>

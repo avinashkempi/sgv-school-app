@@ -9,9 +9,10 @@ import { StyleSheet, Appearance } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const FONTS = {
-  bold: "Lora-Bold",
-  semiBold: "Lora-SemiBold",
-  regular: "Lora",
+  bold: "DMSans-Bold",
+  semiBold: "DMSans-SemiBold",
+  medium: "DMSans-Medium",
+  regular: "DMSans-Regular",
 };
 
 const lightColors = {

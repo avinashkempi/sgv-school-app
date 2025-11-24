@@ -4,20 +4,18 @@ import { Text } from "react-native";
 import { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemeProvider, useTheme } from "../theme";
-import { ToastProvider } from "./_utils/ToastProvider";
-import LoadingProvider from "./_utils/LoadingProvider";
-import BottomNavigation from "./_utils/BottomNavigation";
+import { ToastProvider } from "../components/ToastProvider";
+import LoadingProvider from "../components/LoadingProvider";
+import BottomNavigation from "../components/BottomNavigation";
+import ErrorBoundary from "../components/ErrorBoundary";
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
-    Lora: require("../assets/fonts/Lora-Regular.ttf"),
-    "Lora-Medium": require("../assets/fonts/Lora-Medium.ttf"),
-    "Lora-SemiBold": require("../assets/fonts/Lora-SemiBold.ttf"),
-    "Lora-Bold": require("../assets/fonts/Lora-Bold.ttf"),
-    "Lora-Italic": require("../assets/fonts/Lora-Italic.ttf"),
-    "Lora-MediumItalic": require("../assets/fonts/Lora-MediumItalic.ttf"),
-    "Lora-SemiBoldItalic": require("../assets/fonts/Lora-SemiBoldItalic.ttf"),
-    "Lora-BoldItalic": require("../assets/fonts/Lora-BoldItalic.ttf"),
+    // DMSans - Primary font family
+    'DMSans-Regular': require("../assets/fonts/DMSans-Regular.ttf"),
+    'DMSans-Medium': require("../assets/fonts/DMSans-Medium.ttf"),
+    'DMSans-SemiBold': require("../assets/fonts/DMSans-SemiBold.ttf"),
+    'DMSans-Bold': require("../assets/fonts/DMSans-Bold.ttf"),
   });
 
   useEffect(() => {
@@ -26,7 +24,7 @@ export default function RootLayout() {
         ...(Text.defaultProps || {}),
         style: {
           ...(Text.defaultProps?.style || {}),
-          fontFamily: "Lora",
+          fontFamily: "DMSans-Regular",
         },
       };
     }
@@ -45,7 +43,7 @@ export default function RootLayout() {
               screenOptions={{
                 headerShown: false,
                 animationEnabled: true,
-                animationTypeForReplace: true,
+                animationTypeForReplace: 'push',
                 transitionSpec: {
                   open: {
                     animation: 'timing',
@@ -103,7 +101,9 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider>
-      <Inner />
+      <ErrorBoundary>
+        <Inner />
+      </ErrorBoundary>
     </ThemeProvider>
   );
 }

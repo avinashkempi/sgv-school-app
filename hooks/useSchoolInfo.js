@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import apiConfig from '../config/apiConfig';
-import apiFetch from '../_utils/apiFetch';
-import { SCHOOL as FALLBACK_SCHOOL } from '../../constants/basic-info';
+import apiFetch from '../utils/apiFetch';
+import { SCHOOL as FALLBACK_SCHOOL } from '../constants/basic-info';
 import { getCachedData, setCachedData, CACHE_KEYS, CACHE_EXPIRY } from '../utils/cache';
 
 // Global cache for school info to persist across component re-mounts

@@ -1,15 +1,15 @@
 import { View, Text, FlatList, Pressable, Alert, RefreshControl } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../theme";
-import Header from "./_utils/Header";
-import NewsFormModal from "./_utils/NewsFormModal";
+import Header from "../components/Header";
+import NewsFormModal from "../components/NewsFormModal";
 import { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import apiConfig from "./config/apiConfig";
-import apiFetch from "./_utils/apiFetch";
-import { useToast } from "./_utils/ToastProvider";
-import { getCachedData, setCachedData, CACHE_KEYS, CACHE_EXPIRY } from "./utils/cache";
+import apiConfig from "../config/apiConfig";
+import apiFetch from "../utils/apiFetch";
+import { useToast } from "../components/ToastProvider";
+import { getCachedData, setCachedData, CACHE_KEYS, CACHE_EXPIRY } from "../utils/cache";
 
 // Global cache for news to persist across component re-mounts
 let globalNews = [];
@@ -149,7 +149,7 @@ export default function NewsScreen() {
     fetchNews();
   }, []); // Empty dependency array to fetch only once per session
 
-  if (loading) {
+  if (loading && news.length === 0) {
     return (
       <View style={styles.container}>
         <Header title="Latest News" />
@@ -158,7 +158,7 @@ export default function NewsScreen() {
     );
   }
 
-  if (error) {
+  if (error && news.length === 0) {
     return (
       <View style={styles.container}>
         <Header title="Latest News" />
@@ -272,20 +272,17 @@ export default function NewsScreen() {
           <View style={[styles.card]}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
-                <View style={{
-                  backgroundColor: colors.primary,
-                  paddingHorizontal: 8,
-                  paddingVertical: 4,
-                  borderRadius: 6,
-                }}>
-                  <Text style={{ fontSize: 11, fontWeight: "600", color: colors.white }}>
+                <View style={[styles.badge, { backgroundColor: colors.accent }]}>
+                  <Text style={[styles.badgeText]}>
                     {new Date(item.creationDate).toLocaleDateString()}
                   </Text>
                 </View>
                 {item.privateNews && (
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <MaterialIcons name="lock" size={14} color={colors.textSecondary} />
-                    <Text style={{ fontSize: 11, marginLeft: 2, color: colors.textSecondary, fontWeight: "500" }}>Private</Text>
+                  <View style={[styles.badge, { backgroundColor: colors.textSecondary }]}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <MaterialIcons name="lock" size={12} color={colors.white} />
+                      <Text style={[styles.badgeText, { marginLeft: 4 }]}>Private</Text>
+                    </View>
                   </View>
                 )}
               </View>
@@ -315,8 +312,8 @@ export default function NewsScreen() {
                 </View>
               )}
             </View>
-            <Text style={[styles.cardText, { fontWeight: "600", fontSize: 15, marginBottom: 8 }]} numberOfLines={2}>{item.title}</Text>
-            <Text style={[styles.text, { fontSize: 13, marginBottom: 8 }]} numberOfLines={3}>{item.description}</Text>
+            <Text style={[styles.cardText, { fontWeight: "600", fontSize: 16, marginBottom: 8 }]} numberOfLines={2}>{item.title}</Text>
+            <Text style={[styles.text, { fontSize: 14, marginBottom: 8 }]} numberOfLines={3}>{item.description}</Text>
             {item.url && (
               <Pressable onPress={() => {
                 console.log('Open URL:', item.url);

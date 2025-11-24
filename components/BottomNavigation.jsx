@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { View, Text, Pressable, Animated, Dimensions, Easing } from "react-native";
 import { useRouter, usePathname } from "expo-router";
-import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useTheme } from "../../theme";
-import { ROUTES } from "../../constants/routes";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useTheme } from "../theme";
+import { ROUTES } from "../constants/routes";
 import { BlurView } from "expo-blur";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -60,7 +60,7 @@ export default function BottomNavigation() {
       route: ROUTES.NEWS,
       label: "News",
       icon: "newspaper",
-      activeIcon: "newspaper-variant",
+      activeIcon: "newspaper",
     },
     {
       route: ROUTES.PROFILE,
@@ -128,20 +128,20 @@ export default function BottomNavigation() {
       paddingBottom: 8,
     }}>
       <BlurView
-        intensity={95}
+        intensity={90}
         tint={colors.mode === "dark" ? "dark" : "light"}
         style={{
           flexDirection: "column",
-          marginBottom: 20,
-          paddingBottom: 12, // Account for safe area
-          paddingTop: 12,
-          paddingHorizontal: 16,
-          borderRadius: 50,
-          shadowColor: colors.mode === "dark" ? "#001122" : "#4A90E2",
-          shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: colors.mode === "dark" ? 0.3 : 0.2,
-          shadowRadius: 12,
-          elevation: 5,
+          marginBottom: 16,
+          paddingBottom: 10,
+          paddingTop: 10,
+          paddingHorizontal: 12,
+          borderRadius: 24,
+          shadowColor: colors.shadow,
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.15,
+          shadowRadius: 8,
+          elevation: 4,
           overflow: "hidden",
         }}
       >
@@ -173,8 +173,8 @@ export default function BottomNavigation() {
           flexDirection: "row",
           justifyContent: "space-around",
           alignItems: "center",
-          paddingHorizontal: 8,
-          paddingBottom: 4,
+          paddingHorizontal: 4,
+          paddingBottom: 2,
         }}>
           {navigationItems.map((item, index) => {
             const isActive = activeTab === item.route;
@@ -185,22 +185,15 @@ export default function BottomNavigation() {
                 style={{
                   alignItems: "center",
                   justifyContent: "center",
+                  paddingVertical: 4,
                 }}
               >
-                  {item.icon === "newspaper" ? (
-                    <MaterialCommunityIcons
-                      name={isActive ? item.activeIcon : item.icon}
-                      size={26}
-                      color={isActive ? (colors.mode === "dark" ? colors.white : colors.primary) : "#000000"}
-                    />
-                  ) : (
-                    <MaterialIcons
-                      name={isActive ? item.activeIcon : item.icon}
-                      size={26}
-                      color={isActive ? (colors.mode === "dark" ? colors.white : colors.primary) : "#000000"}
-                    />
-                  )}
-                </Pressable>
+                <MaterialIcons
+                  name={isActive ? item.activeIcon : item.icon}
+                  size={24}
+                    color={isActive ? colors.primary : colors.textSecondary}
+                />
+              </Pressable>
             );
           })}
         </View>
@@ -210,7 +203,7 @@ export default function BottomNavigation() {
           flexDirection: "row",
           justifyContent: "space-around",
           alignItems: "center",
-          paddingHorizontal: 8,
+          paddingHorizontal: 4,
         }}>
           {navigationItems.map((item, index) => {
             const isActive = activeTab === item.route;
@@ -220,17 +213,17 @@ export default function BottomNavigation() {
                 style={{
                   alignItems: "center",
                   justifyContent: "center",
-                  minWidth: width / 5 - 32,
+                  minWidth: width / 5 - 24,
                 }}
               >
                 <Text
                   style={{
-                    fontSize: 11,
+                    fontSize: 10,
                     fontFamily: styles.cardText.fontFamily,
-                    color: isActive ? colors.primary : "#000000",
+                    color: isActive ? colors.primary : colors.textSecondary,
                     textAlign: "center",
                     fontWeight: isActive ? "600" : "400",
-                    opacity: isActive ? 1 : 0.8,
+                    opacity: isActive ? 1 : 0.75,
                   }}
                   numberOfLines={1}
                 >

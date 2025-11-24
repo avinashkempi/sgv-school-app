@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text } from "react-native";
-import { useTheme } from "../../theme";
+import { useTheme } from "../theme";
 
 const Header = ({ title }) => {
   const { styles } = useTheme();

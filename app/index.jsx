@@ -1,10 +1,10 @@
-import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import { View, Text, ScrollView, Animated, StatusBar, RefreshControl } from "react-native";
 import { useState } from "react";
-import useFade from "./hooks/useFade";
+import useFade from "../hooks/useFade";
 import { useTheme } from "../theme";
-import Header from "./_utils/Header";
-import useSchoolInfo from "./hooks/useSchoolInfo";
+import Header from "../components/Header";
+import useSchoolInfo from "../hooks/useSchoolInfo";
 
 export default function AboutScreen() {
   const fadeAnim = useFade();
@@ -38,18 +38,18 @@ export default function AboutScreen() {
 
       {/* About Us Section */}
       <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
-        <View style={styles.iconRow}>
-          <MaterialIcons name="info" size={22} color={colors.primary} />
-          <Text style={styles.label}>About Us</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+          <MaterialIcons name="info" size={28} color={colors.primary} style={{ marginRight: 12 }} />
+          <Text style={[styles.label, { fontSize: 18 }]}>About Us</Text>
         </View>
         <Text style={styles.text}>{SCHOOL.about}</Text>
       </Animated.View>
 
       {/* Branches Section */}
       <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
-        <View style={styles.iconRow}>
-          <FontAwesome5 name="school" size={20} color={colors.primary} />
-          <Text style={styles.label}>Branches</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+          <MaterialIcons name="school" size={26} color={colors.secondary} style={{ marginRight: 12 }} />
+          <Text style={[styles.label, { fontSize: 18 }]}>Branches</Text>
         </View>
         <Text style={styles.text}>
           1. Renuka Nagar, Mangasuli – Kindergarten to 8th Standard (9th and 10th
@@ -60,9 +60,9 @@ export default function AboutScreen() {
 
       {/* Mission Section */}
       <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
-        <View style={styles.iconRow}>
-          <MaterialIcons name="flag" size={22} color={colors.primary} />
-          <Text style={styles.label}>Our Mission</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+          <MaterialIcons name="flag" size={28} color={colors.accent} style={{ marginRight: 12 }} />
+          <Text style={[styles.label, { fontSize: 18 }]}>Our Mission</Text>
         </View>
         <Text style={styles.text}>{SCHOOL.mission}</Text>
       </Animated.View>

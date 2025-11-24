@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import Loader from './Loader';
-import { subscribeLoading } from './loadingService';
+import { subscribeLoading } from '../utils/loadingService';
 
 export function LoadingProvider({ children }) {
   const [loadingCount, setLoadingCount] = useState(0);

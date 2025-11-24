@@ -18,20 +18,7 @@ export const SCHOOL = {
     instagram: "https://www.instagram.com/sgv.school",
     instagramAppUrl: "instagram://user?username=sgv.school",
 
-    youtube: "https://www.youtube.com/@shreeguruvidyaenglishmediu4829",
-    youtubeAppUrl: "vnd.youtube://channel/UC7KTnWFyoN9_3j-KR9ckKxQ",
+    youtube: "https://www.youtube.com/@SgvSchoolMangasuli",
+    youtubeAppUrl: "vnd.youtube://user/SgvSchoolMangasuli",
   },
-
-  news: [
-    {
-      id: "1",
-      date: "April 10, 2025",
-      title: "🏆 Results published!",
-    },
-    {
-      id: "2",
-      date: "April 11, 2025",
-      title: "🎓 Admissions are now open for 2025–26 academic year!",
-    },
-  ],
 };

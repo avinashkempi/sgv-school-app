@@ -1,18 +1,101 @@
 // Events screen
-import { useState, useMemo, useEffect } from "react";
-import { ScrollView, View, Text, Pressable, Alert, RefreshControl } from "react-native";
+import React, { useState, useMemo, useEffect } from "react";
+import { ScrollView, View, Text, Pressable, Alert, RefreshControl, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import { Calendar } from "react-native-calendars";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { useTheme } from "../theme";
-import { useToast } from "./_utils/ToastProvider";
-import Header from "./_utils/Header";
-import EventFormModal from "./_utils/EventFormModal";
-import useEvents from "./hooks/useEvents";
-import apiConfig from "./config/apiConfig";
-import apiFetch from "./_utils/apiFetch";
+import { useToast } from "../components/ToastProvider";
+import Header from "../components/Header";
+import EventFormModal from "../components/EventFormModal";
+import useEvents from "../hooks/useEvents";
+import apiConfig from "../config/apiConfig";
+import apiFetch from "../utils/apiFetch";
+
+// Memoized day renderer component for performance
+const DayRenderer = React.memo(({ date, state, marking, onDayPress, colors }) => {
+  const hasSchoolEvent = marking?.hasSchoolEvent;
+  const hasEvent = marking?.marked;
+  const isSelected = marking?.selected;
+  const isToday = state === 'today';
+
+  return (
+    <Pressable
+      onPress={() => onDayPress({ dateString: date.dateString })}
+      style={{
+        width: 50,
+        height: 50,
+        justifyContent: 'center',
+        alignItems: 'center',
+        position: 'relative',
+      }}
+    >
+      {/* Circle border for school events */}
+      {hasSchoolEvent && (
+        <View
+          style={{
+            position: 'absolute',
+            width: 46,
+            height: 46,
+            borderRadius: 23,
+            borderWidth: 2.5,
+            borderColor: '#FFD700',
+          }}
+        />
+      )}
+
+      {/* Selected background */}
+      {isSelected && (
+        <View
+          style={{
+            position: 'absolute',
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: colors.primary,
+          }}
+        />
+      )}
+
+      {/* Date text */}
+      <Text
+        style={{
+          fontSize: 16,
+          fontWeight: isSelected ? '600' : isToday ? '600' : '400',
+          color: isSelected ? colors.white : state === 'disabled' ? colors.textSecondary : colors.textPrimary,
+          zIndex: 1,
+        }}
+      >
+        {date.day}
+      </Text>
+
+      {/* Dots for events */}
+      {hasEvent && !isSelected && (
+        <View
+          style={{
+            position: 'absolute',
+            bottom: 6,
+            width: 6,
+            height: 6,
+            borderRadius: 3,
+            backgroundColor: hasSchoolEvent ? '#FFD700' : colors.primary,
+          }}
+        />
+      )}
+    </Pressable>
+  );
+}, (prevProps, nextProps) => {
+  // Custom comparison for memoization - only re-render if these props change
+  return (
+    prevProps.marking?.hasSchoolEvent === nextProps.marking?.hasSchoolEvent &&
+    prevProps.marking?.marked === nextProps.marking?.marked &&
+    prevProps.marking?.selected === nextProps.marking?.selected &&
+    prevProps.state === nextProps.state &&
+    prevProps.date?.dateString === nextProps.date?.dateString
+  );
+});
 
 // Helper to format dates for display in Indian format (DD-MM-YYYY)
 const formatIndianDate = (dateInput) => {
@@ -37,14 +120,16 @@ const EventCard = ({ event, styles, colors, isAdmin, onEdit, onDelete }) => (
   <View style={[styles.card]}>
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
       <View style={{ flex: 1, marginRight: 12 }}>
-        <Text style={[styles.cardText, { fontWeight: "600", fontSize: 15, marginBottom: 4 }]} numberOfLines={2}>{event.title}</Text>
+        <Text style={[styles.cardText, { fontWeight: "600", fontSize: 16, marginBottom: 8 }]} numberOfLines={2}>{event.title}</Text>
         {event.description && (
-          <Text style={[styles.text, { fontSize: 13, marginBottom: 8 }]} numberOfLines={2}>{event.description}</Text>
+          <Text style={[styles.text, { fontSize: 14, marginBottom: 8 }]} numberOfLines={2}>{event.description}</Text>
         )}
         {event.isSchoolEvent && (
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <MaterialCommunityIcons name="school" size={14} color="#FFD700" />
-            <Text style={{ color: '#FFD700', fontSize: 12, marginLeft: 4, fontWeight: "600" }}>School Event</Text>
+          <View style={[styles.badge, { backgroundColor: colors.warning, alignSelf: 'flex-start' }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <MaterialIcons name="school" size={14} color={colors.white} />
+              <Text style={[styles.badgeText, { marginLeft: 4 }]}>School Event</Text>
+            </View>
           </View>
         )}
       </View>
@@ -80,7 +165,7 @@ export default function EventsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const { styles, colors } = useTheme();
   const { showToast } = useToast();
-  const { events: allEvents, loading, addEvent, updateEvent, removeEvent } = useEvents();
+  const { events: allEvents, loading, addEvent, updateEvent, removeEvent, fetchEventsRange } = useEvents();
 
   useEffect(() => {
     // Check authentication and admin role
@@ -196,15 +281,15 @@ export default function EventsScreen() {
     () =>
       selectedDate
         ? allEvents
-            .filter(
-              (event) => new Date(event.date).toISOString().split('T')[0] === selectedDate
-            )
-            .sort((a, b) => {
-              // School events first (true comes before false in descending order)
-              if (a.isSchoolEvent && !b.isSchoolEvent) return -1;
-              if (!a.isSchoolEvent && b.isSchoolEvent) return 1;
-              return 0;
-            })
+          .filter(
+            (event) => new Date(event.date).toISOString().split('T')[0] === selectedDate
+          )
+          .sort((a, b) => {
+            // School events first (true comes before false in descending order)
+            if (a.isSchoolEvent && !b.isSchoolEvent) return -1;
+            if (!a.isSchoolEvent && b.isSchoolEvent) return 1;
+            return 0;
+          })
         : [],
     [selectedDate, allEvents]
   );
@@ -215,14 +300,12 @@ export default function EventsScreen() {
       if (!acc[date]) {
         acc[date] = {
           marked: true,
-          dotColor: colors.primary,
-          selectedDotColor: colors.primary,
+          hasSchoolEvent: false,
         };
       }
-      // If any event on this date is a school event, show gold dot
+      // If any event on this date is a school event, flag it
       if (curr.isSchoolEvent) {
-        acc[date].dotColor = '#FFD700';
-        acc[date].selectedDotColor = '#FFD700';
+        acc[date].hasSchoolEvent = true;
       }
       return acc;
     }, {});
@@ -231,12 +314,11 @@ export default function EventsScreen() {
       dates[selectedDate] = {
         ...dates[selectedDate],
         selected: true,
-        selectedColor: colors.primary,
       };
     }
 
     return dates;
-  }, [selectedDate, allEvents, colors.primary]);
+  }, [selectedDate, allEvents]);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentPaddingBottom} refreshControl={
@@ -256,15 +338,36 @@ export default function EventsScreen() {
             </Pressable>
           )}
         </View>
-        
+
         <Calendar
           onDayPress={handleDateSelect}
+          onMonthChange={(month) => {
+            const date = new Date(month.dateString);
+            const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1).toISOString();
+            const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).toISOString();
+            fetchEventsRange(startOfMonth, endOfMonth, (error, count) => {
+              if (error) {
+                showToast(`Failed to load events: ${error.message || error}`);
+              } else {
+                showToast(`Loaded ${count} events`);
+              }
+            });
+          }}
           markedDates={markedDates}
+          dayComponent={({ date, state, marking }) => (
+            <DayRenderer
+              date={date}
+              state={state}
+              marking={marking}
+              onDayPress={handleDateSelect}
+              colors={colors}
+            />
+          )}
           theme={{
             backgroundColor: colors.background,
             calendarBackground: colors.cardBackground,
             textSectionTitleColor: colors.textSecondary,
-            selectedDayBackgroundColor: colors.primary,
+            selectedDayBackgroundColor: 'transparent',
             selectedDayTextColor: colors.white,
             todayTextColor: colors.primary,
             dayTextColor: colors.textPrimary,

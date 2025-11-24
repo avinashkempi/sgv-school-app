@@ -8,9 +8,11 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../theme';
 import apiConfig from '../config/apiConfig';
-import apiFetch from './apiFetch';
+import apiFetch from '../utils/apiFetch';
 
 const LoginModal = ({ isVisible, onClose, onSuccess }) => {
   // Common
@@ -21,6 +23,8 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
+
+  const { colors, styles: globalStyles } = useTheme();
 
   const phoneRegex = /^[6-9]\d{9}$/;
 
@@ -92,42 +96,56 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
   };
 
   return (
-    <Modal animationType="slide" visible={isVisible} transparent onRequestClose={handleClose}>
+    <Modal animationType="fade" visible={isVisible} transparent onRequestClose={handleClose}>
       <View style={styles.overlay}>
-        <View style={styles.container}>
-          <View style={styles.headerRow}>
-            <Text style={styles.title}>Login</Text>
-            <Pressable onPress={handleClose} style={styles.closeButton}>
-              <Text style={styles.closeText}>✕</Text>
+        <View style={[styles.container, { backgroundColor: colors.cardBackground }]}>
+          <View style={styles.header}>
+            <Text style={[globalStyles.title, { fontSize: 20, color: colors.textPrimary }]}>Login</Text>
+            <Pressable onPress={handleClose} hitSlop={8}>
+              <MaterialIcons name="close" size={24} color={colors.textSecondary} />
             </Pressable>
           </View>
 
-          {serverError ? <Text style={styles.serverError}>{serverError}</Text> : null}
+          {serverError ? <Text style={[styles.serverError, { color: colors.error }]}>{serverError}</Text> : null}
 
           <View>
             <TextInput
               placeholder="Enter your phone number"
-              placeholderTextColor="#999"
+              placeholderTextColor={colors.textSecondary}
               value={phone}
               onChangeText={setPhone}
               keyboardType="phone-pad"
               maxLength={10}
-              style={styles.input}
+              style={[globalStyles.input, {
+                backgroundColor: colors.cardBackground,
+                color: colors.textPrimary,
+                borderColor: colors.border,
+                marginBottom: 12,
+              }]}
             />
-            {errors.phone ? <Text style={styles.fieldError}>{errors.phone}</Text> : null}
+            {errors.phone ? <Text style={[styles.fieldError, { color: colors.error }]}>{errors.phone}</Text> : null}
 
             <TextInput
               placeholder="Enter your password"
-              placeholderTextColor="#999"
+              placeholderTextColor={colors.textSecondary}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
-              style={styles.input}
+              style={[globalStyles.input, {
+                backgroundColor: colors.cardBackground,
+                color: colors.textPrimary,
+                borderColor: colors.border,
+                marginBottom: 12,
+              }]}
             />
-            {errors.password ? <Text style={styles.fieldError}>{errors.password}</Text> : null}
+            {errors.password ? <Text style={[styles.fieldError, { color: colors.error }]}>{errors.password}</Text> : null}
 
-            <Pressable style={styles.submit} onPress={submitLogin} disabled={loading}>
-              {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitText}>Login</Text>}
+            <Pressable
+              style={[globalStyles.buttonLarge, { width: "100%", backgroundColor: colors.primary, marginTop: 8 }, loading && { opacity: 0.6 }]}
+              onPress={submitLogin}
+              disabled={loading}
+            >
+              {loading ? <ActivityIndicator color={colors.white} /> : <Text style={[globalStyles.buttonText, { color: colors.white }]}>Login</Text>}
             </Pressable>
           </View>
         </View>
@@ -139,53 +157,38 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 16,
+    padding: 20,
   },
   container: {
     width: '100%',
-    maxWidth: 480,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    elevation: 6,
+    maxWidth: 400,
+    borderRadius: 20,
+    padding: 24,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
   },
-  headerRow: {
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    justifyContent: 'space-between',
+    marginBottom: 20,
   },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    flex: 1,
+  fieldError: {
+    marginTop: -8,
+    marginBottom: 12,
+    fontSize: 13,
   },
-  closeButton: {
-    marginLeft: 'auto',
-    padding: 6,
+  serverError: {
+    marginBottom: 16,
+    textAlign: 'center',
+    fontSize: 14,
   },
-  closeText: { fontSize: 18, color: '#666' },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 8,
-    marginTop: 8,
-  },
-  submit: {
-    backgroundColor: '#1f6feb',
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginTop: 12,
-    alignItems: 'center',
-  },
-  submitText: { color: '#fff', fontWeight: '600' },
-  fieldError: { color: '#c00', marginTop: 4 },
-  serverError: { color: '#c00', marginBottom: 8, textAlign: 'center' },
 });
 
 export default React.memo(LoginModal);

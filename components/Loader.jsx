@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
-import { useTheme } from '../../theme';
+import { useTheme } from '../theme';
 
 const Loader = () => {
   const { colors } = useTheme();

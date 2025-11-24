@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Pressable, ScrollView, StatusBar } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../theme';
-import Header from './_utils/Header';
+import Header from "../components/Header";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
-import apiConfig from './config/apiConfig';
-import apiFetch from './_utils/apiFetch';
+import apiConfig from "../config/apiConfig";
+import apiFetch from "../utils/apiFetch";
 
 export default function Login() {
   const [phone, setPhone] = useState('');

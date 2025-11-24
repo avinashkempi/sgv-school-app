@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { useTheme } from "../../theme";
+import { useTheme } from "../theme";
 
 const ToastContext = createContext({ showToast: (_msg) => {} });
 

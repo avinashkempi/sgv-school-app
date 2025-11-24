@@ -16,10 +16,10 @@ import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../theme";
-import apiConfig from "./config/apiConfig";
-import apiFetch from "./_utils/apiFetch";
-import { useToast } from "./_utils/ToastProvider";
-import { getCachedData, setCachedData, updateCachedData, CACHE_KEYS, CACHE_EXPIRY } from "./utils/cache";
+import apiConfig from "../config/apiConfig";
+import apiFetch from "../utils/apiFetch";
+import { useToast } from "../components/ToastProvider";
+import { getCachedData, setCachedData, updateCachedData, CACHE_KEYS, CACHE_EXPIRY } from "../utils/cache";
 
 // Global cache for users to persist across component re-mounts
 let globalUsers = [];
@@ -195,8 +195,12 @@ export default function AdminScreen() {
         setUsers(prevUsers =>
           prevUsers.map(u => u._id === userId ? { ...u, role: newRole } : u)
         );
-        setShowUserModal(false);
         showToast("Role updated successfully", "success");
+
+        // Delay closing to ensure user sees success message
+        setTimeout(() => {
+          setShowUserModal(false);
+        }, 800);
       } else {
         throw new Error("Failed to update role");
       }
@@ -316,9 +320,13 @@ export default function AdminScreen() {
       const result = await response.json();
       if (result.success) {
         setUsers(prevUsers => [...prevUsers, result.user]);
-        setShowUserModal(false);
-        setUserForm({ name: "", phone: "", email: "", password: "", role: "student" });
         showToast("User created successfully", "success");
+
+        // Delay closing to ensure user sees success message
+        setTimeout(() => {
+          setShowUserModal(false);
+          setUserForm({ name: "", phone: "", email: "", password: "", role: "student" });
+        }, 800);
       } else {
         throw new Error(result.message || "Failed to create user");
       }
@@ -328,7 +336,7 @@ export default function AdminScreen() {
     }
   };
 
-  if (loading) {
+  if (loading && users.length === 0) {
     return (
       <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
         <ActivityIndicator size="large" color={colors.primary} />
@@ -399,14 +407,13 @@ export default function AdminScreen() {
           {paginatedUsers().map((userItem) => (
             <View
               key={userItem._id}
-              style={{
-                backgroundColor: colors.cardBackground,
-                borderRadius: 12,
-                padding: 16,
-                marginBottom: 12,
-                borderWidth: 1,
-                borderColor: colors.border,
-              }}
+              style={[
+                styles.card,
+                {
+                  paddingVertical: 16,
+                  paddingHorizontal: 16,
+                }
+              ]}
             >
               <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <View style={{ flex: 1 }}>
@@ -423,21 +430,20 @@ export default function AdminScreen() {
                   )}
                   <View style={{ flexDirection: "row", alignItems: "center" }}>
                     <View
-                      style={{
-                        backgroundColor: getRoleColor(userItem.role),
-                        paddingHorizontal: 12,
-                        paddingVertical: 6,
-                        borderRadius: 12,
-                        marginRight: 8,
-                      }}
+                      style={[
+                        styles.badge,
+                        {
+                          backgroundColor: getRoleColor(userItem.role),
+                        }
+                      ]}
                     >
                       <Text
-                        style={{
-                          fontSize: 12,
-                          fontWeight: "600",
-                          color: "#fff",
-                          textTransform: "capitalize",
-                        }}
+                        style={[
+                          styles.badgeText,
+                          {
+                            textTransform: "capitalize",
+                          }
+                        ]}
                       >
                         {userItem.role}
                       </Text>

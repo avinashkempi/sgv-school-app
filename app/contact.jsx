@@ -1,17 +1,13 @@
 import { useNavigation } from "@react-navigation/native";
 import {
   MaterialIcons,
-  FontAwesome5,
-  Feather,
-  Entypo,
-  FontAwesome,
 } from "@expo/vector-icons";
 import { View, Text, ScrollView, Pressable, Animated, RefreshControl } from "react-native";
 import { useState } from "react";
-import { openAppLink, dial, email } from "./_utils/link";
+import { openAppLink, dial, email } from "../utils/link";
 import { useTheme } from "../theme";
-import Header from "./_utils/Header";
-import useSchoolInfo from "./hooks/useSchoolInfo";
+import Header from "../components/Header";
+import useSchoolInfo from "../hooks/useSchoolInfo";
 
 export default function Contact() {
   const fadeAnim = useFade();
@@ -52,7 +48,7 @@ export default function Contact() {
 
       <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
         <View style={styles.iconRow}>
-          <Feather name="phone-call" size={20} color={colors.primary} />
+          <MaterialIcons name="phone" size={22} color={colors.primary} />
           <Text style={styles.label}>Phone</Text>
         </View>
         <Pressable onPress={() => dial(SCHOOL.phone)}>
@@ -74,7 +70,7 @@ export default function Contact() {
       {/* Social Media Section */}
       <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
         <View style={styles.iconRow}>
-          <Entypo name="share" size={20} color={colors.primary} />
+          <MaterialIcons name="share" size={22} color={colors.primary} />
           <Text style={styles.label}>Follow Us</Text>
         </View>
 
@@ -87,7 +83,7 @@ export default function Contact() {
             )
           }
         >
-          <FontAwesome5 name="instagram" size={22} color="#C13584" />
+          <MaterialIcons name="photo_camera" size={24} color="#C13584" />
           <Text style={styles.link}>Instagram</Text>
         </Pressable>
 
@@ -97,7 +93,7 @@ export default function Contact() {
             openAppLink(SCHOOL.socials.youtubeAppUrl, SCHOOL.socials.youtube)
           }
         >
-          <FontAwesome name="youtube-play" size={24} color="#FF0000" />
+          <MaterialIcons name="play_circle" size={24} color="#FF0000" />
           <Text style={styles.link}>YouTube</Text>
         </Pressable>
       </Animated.View>

@@ -10,11 +10,12 @@ export const CACHE_KEYS = {
 };
 
 // Cache expiry times (in milliseconds)
+// Increased to reduce loader visibility and API calls
 export const CACHE_EXPIRY = {
-  EVENTS: 30 * 60 * 1000, // 30 minutes
-  SCHOOL_INFO: 60 * 60 * 1000, // 1 hour
-  NEWS: 15 * 60 * 1000, // 15 minutes
-  USERS: 60 * 60 * 1000, // 1 hour
+  EVENTS: 120 * 60 * 1000, // 2 hours (was 30 minutes)
+  SCHOOL_INFO: 360 * 60 * 1000, // 6 hours (was 1 hour)
+  NEWS: 60 * 60 * 1000, // 1 hour (was 15 minutes)
+  USERS: 180 * 60 * 1000, // 3 hours (was 1 hour)
 };
 
 // Cache data structure

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, Pressable, StyleSheet, View } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useTheme } from "../../theme";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useTheme } from "../theme";
 
 export default function ThemeToggle({ size = 20 }) {
   const { mode, toggle, colors } = useTheme();
@@ -59,14 +59,14 @@ export default function ThemeToggle({ size = 20 }) {
       >
         <Animated.View style={{ opacity: fade, transform: [{ rotate: spin }] }}>
           {mode === "dark" ? (
-            <MaterialCommunityIcons
-              name="weather-night"
+            <MaterialIcons
+              name="wb-sunny"
               size={size}
               color={colors.primary}
             />
           ) : (
-            <MaterialCommunityIcons
-              name="weather-sunny"
+            <MaterialIcons
+              name="nightlight-round"
               size={size}
               color={colors.primary}
             />
