@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import React, { useState, useEffect, useMemo, useCallback, memo } from "react";
+import { View, Text, Pressable, StyleSheet, InteractionManager } from "react-native";
 import { useRouter, usePathname } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { useTheme } from "../theme";
 import { ROUTES } from "../constants/routes";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function BottomNavigation() {
+function BottomNavigation() {
   const router = useRouter();
   const pathname = usePathname();
   const { colors } = useTheme();
@@ -17,7 +18,7 @@ export default function BottomNavigation() {
     setActiveTab(pathname);
   }, [pathname]);
 
-  // Load user on mount and when pathname changes
+  // Load user only on mount - no need to reload on every pathname change
   useEffect(() => {
     const loadUser = async () => {
       try {
@@ -33,9 +34,10 @@ export default function BottomNavigation() {
       }
     };
     loadUser();
-  }, [pathname]);
+  }, []); // Only run once on mount
 
-  const navigationItems = [
+  // Memoize navigation items to prevent recalculation on every render
+  const navigationItems = useMemo(() => [
     {
       route: ROUTES.HOME,
       label: "Home",
@@ -62,13 +64,21 @@ export default function BottomNavigation() {
       label: "Admin",
       icon: "admin-panel-settings",
     }] : []),
-  ];
+  ], [user]); // Only recalculate when user changes
 
-  const handleTabPress = (route) => {
+  // Memoize handleTabPress to prevent creating new function on every render
+  const handleTabPress = useCallback((route) => {
     if (route === activeTab) return;
-    setActiveTab(route);
-    router.push(route);
-  };
+
+    // Haptic feedback for better UX
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
+
+    // Defer state update to avoid blocking the UI
+    InteractionManager.runAfterInteractions(() => {
+      setActiveTab(route);
+      router.push(route);
+    });
+  }, [activeTab, router]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.cardBackground }]}>
@@ -85,6 +95,8 @@ export default function BottomNavigation() {
               styles.tabItem,
               { opacity: pressed ? 0.6 : 1 }
             ]}
+            // Optimize hit slop for better tap response
+            hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
           >
             {/* Active indicator */}
             {isActive && (
@@ -118,6 +130,9 @@ export default function BottomNavigation() {
     </View>
   );
 }
+
+// Export memoized component to prevent unnecessary re-renders
+export default memo(BottomNavigation);
 
 const styles = StyleSheet.create({
   container: {

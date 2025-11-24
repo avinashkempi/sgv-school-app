@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { View, Text, ScrollView, Pressable, Alert, Switch } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons, FontAwesome } from "@expo/vector-icons";
@@ -57,7 +57,8 @@ export default function ProfileScreen() {
     }
   };
 
-  const menuItems = [
+  // Memoize menu items to prevent recalculation on every render
+  const menuItems = useMemo(() => [
     {
       label: "Help & Support",
       icon: "help-outline",
@@ -68,13 +69,14 @@ export default function ProfileScreen() {
       icon: "info-outline",
       onPress: () => Alert.alert("About", "School App v1.0\nBuilt by SGV team!"),
     },
-  ];
+  ], []);
 
-  const socialItems = [
+  // Memoize social items to prevent recalculation on every render
+  const socialItems = useMemo(() => [
     { type: "fontawesome", icon: "youtube-play", color: "#FF0000", onPress: () => handlePress(SCHOOL.socials.youtubeAppUrl, SCHOOL.socials.youtube), label: "YouTube" },
     { type: "fontawesome", icon: "instagram", color: "#C13584", onPress: () => handlePress(SCHOOL.socials.instagramAppUrl, SCHOOL.socials.instagram), label: "Instagram" },
     { type: "material", icon: "location-on", color: colors.primary, onPress: () => handlePress(SCHOOL.mapAppUrl, SCHOOL.mapUrl), label: "Location" },
-  ];
+  ], [colors.primary, handlePress]);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentPaddingBottom}>

@@ -47,14 +47,16 @@ export default function RootLayout() {
                 // Enable gesture navigation
                 gestureEnabled: true,
                 gestureDirection: 'horizontal',
-                // Modern, fast timing with spring animation
+                // Detach inactive screens for better memory usage
+                detachInactiveScreens: true,
+                // Optimized for speed and smoothness
                 transitionSpec: {
                   open: {
                     animation: 'spring',
                     config: {
                       stiffness: 1000,
                       damping: 500,
-                      mass: 3,
+                      mass: 1, // Reduced from 3 for faster animations
                       overshootClamping: true,
                       restDisplacementThreshold: 0.01,
                       restSpeedThreshold: 0.01,
@@ -63,13 +65,13 @@ export default function RootLayout() {
                   close: {
                     animation: 'timing',
                     config: {
-                      duration: 200,
+                      duration: 150, // Reduced from 200ms for snappier feel
                       useNativeDriver: true,
                     },
                   },
                 },
-                // iOS-style horizontal slide transition
-                cardStyleInterpolator: ({ current, next, layouts }) => {
+                // Simplified interpolator for better performance
+                cardStyleInterpolator: ({ current, layouts }) => {
                   return {
                     cardStyle: {
                       transform: [
@@ -80,15 +82,10 @@ export default function RootLayout() {
                           }),
                         },
                       ],
+                      // Simplified opacity for smoother rendering
                       opacity: current.progress.interpolate({
-                        inputRange: [0, 0.5, 0.9, 1],
-                        outputRange: [0, 0.25, 0.7, 1],
-                      }),
-                    },
-                    overlayStyle: {
-                      opacity: current.progress.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0, 0.5],
+                        inputRange: [0, 0.5, 1],
+                        outputRange: [0, 0.5, 1],
                       }),
                     },
                   };

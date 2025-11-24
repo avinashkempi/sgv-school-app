@@ -24,8 +24,8 @@ const DayRenderer = React.memo(({ date, state, marking, onDayPress, colors }) =>
     <Pressable
       onPress={() => onDayPress({ dateString: date.dateString })}
       style={{
-        width: 50,
-        height: 50,
+        width: 40,
+        height: 40, // Reduced height for vertical compactness
         justifyContent: 'center',
         alignItems: 'center',
         position: 'relative',
@@ -36,10 +36,10 @@ const DayRenderer = React.memo(({ date, state, marking, onDayPress, colors }) =>
         <View
           style={{
             position: 'absolute',
-            width: 46,
-            height: 46,
-            borderRadius: 23,
-            borderWidth: 2.5,
+            width: 42,
+            height: 42,
+            borderRadius: 20,
+            borderWidth: 2,
             borderColor: '#FFD700',
           }}
         />
@@ -75,10 +75,10 @@ const DayRenderer = React.memo(({ date, state, marking, onDayPress, colors }) =>
         <View
           style={{
             position: 'absolute',
-            bottom: 6,
-            width: 6,
-            height: 6,
-            borderRadius: 3,
+            bottom: 2,
+            width: 4,
+            height: 4,
+            borderRadius: 2,
             backgroundColor: hasSchoolEvent ? '' : colors.primary,
           }}
         />
@@ -115,7 +115,8 @@ const formatIndianDate = (dateInput) => {
   }
 };
 
-const EventCard = ({ event, styles, colors, isAdmin, onEdit, onDelete }) => (
+// Memoized EventCard component with custom comparison for optimal performance
+const EventCard = React.memo(({ event, styles, colors, isAdmin, onEdit, onDelete }) => (
   <View style={styles.cardMinimal}>
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
       <View style={{ flex: 1, marginRight: 12 }}>
@@ -170,7 +171,16 @@ const EventCard = ({ event, styles, colors, isAdmin, onEdit, onDelete }) => (
       )}
     </View>
   </View>
-);
+), (prevProps, nextProps) => {
+  // Custom comparison - only re-render if these props change
+  return (
+    prevProps.event._id === nextProps.event._id &&
+    prevProps.event.title === nextProps.event.title &&
+    prevProps.event.description === nextProps.event.description &&
+    prevProps.event.isSchoolEvent === nextProps.event.isSchoolEvent &&
+    prevProps.isAdmin === nextProps.isAdmin
+  );
+});
 
 export default function EventsScreen() {
   const navigation = useNavigation();
@@ -341,90 +351,151 @@ export default function EventsScreen() {
   }, [selectedDate, allEvents, refreshFlag]);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentPaddingBottom} refreshControl={
-      <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
-    }>
-      <Header title="Events" subtitle="View and manage events" />
+    <View style={styles.container}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.contentPaddingBottom}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
+        }
+      >
+        <Header title="Events" subtitle="View and manage events" />
 
-      <View style={styles.cardMinimal}>
+        <View style={styles.cardMinimal}>
 
-        <Calendar
-          onDayPress={handleDateSelect}
-          onMonthChange={(month) => {
-            const date = new Date(month.dateString);
-            const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1).toISOString();
-            const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).toISOString();
-            fetchEventsRange(startOfMonth, endOfMonth, (error, count) => {
-              if (error) {
-                showToast(`Failed to load events: ${error.message || error}`);
-              } else {
-                showToast(`Loaded ${count} events`);
-              }
-            });
-          }}
-          markedDates={markedDates}
-          dayComponent={({ date, state, marking }) => (
-            <DayRenderer
-              date={date}
-              state={state}
-              marking={marking}
-              onDayPress={handleDateSelect}
-              colors={colors}
-            />
-          )}
-          theme={{
-            backgroundColor: colors.background,
-            calendarBackground: colors.cardBackground,
-            textSectionTitleColor: colors.textSecondary,
-            selectedDayBackgroundColor: 'transparent',
-            selectedDayTextColor: colors.white,
-            todayTextColor: colors.primary,
-            dayTextColor: colors.textPrimary,
-            textDisabledColor: colors.textSecondary,
-            dotColor: colors.primary,
-            selectedDotColor: colors.white,
-            arrowColor: colors.primary,
-            monthTextColor: colors.textPrimary,
-          }}
-        />
-      </View>
-
-      {selectedDate && (
-        <View style={{ marginTop: 8 }}>
-          <Text style={[styles.label, { marginBottom: 12 }]}>Events on {formatIndianDate(selectedDate)}</Text>
-
-          {loading && filteredEvents.length === 0 ? (
-            <Text style={styles.empty}>Loading events...</Text>
-          ) : filteredEvents.length === 0 ? (
-            <Text style={styles.empty}>No events on this day</Text>
-          ) : (
-            filteredEvents.map((item) => (
-              <EventCard
-                key={item._id ?? item.id}
-                // format date for display only; keep original item.date on the source data
-                event={{ ...item, date: formatIndianDate(item.date) }}
-                styles={styles}
+          <Calendar
+            onDayPress={handleDateSelect}
+            onMonthChange={(month) => {
+              const date = new Date(month.dateString);
+              const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1).toISOString();
+              const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).toISOString();
+              fetchEventsRange(startOfMonth, endOfMonth, (error, count) => {
+                if (error) {
+                  showToast(`Failed to load events: ${error.message || error}`);
+                } else {
+                  showToast(`Loaded ${count} events`);
+                }
+              });
+            }}
+            markedDates={markedDates}
+            dayComponent={({ date, state, marking }) => (
+              <DayRenderer
+                date={date}
+                state={state}
+                marking={marking}
+                onDayPress={handleDateSelect}
                 colors={colors}
-                isAdmin={isAuthenticated}
-                onEdit={() => handleEditEvent(item)}
-                onDelete={() => {
-                  Alert.alert(
-                    "Delete Event",
-                    `Are you sure you want to delete "${item.title}"? This action cannot be undone.`,
-                    [
-                      { text: "Cancel", style: "cancel" },
-                      { text: "Delete", style: "destructive", onPress: () => handleDeleteEvent(item._id, item.title) },
-                    ]
-                  );
-                }}
               />
-            ))
-          )}
+            )}
+            style={{
+              paddingTop: 0,
+              paddingBottom: 8,
+            }}
+            theme={{
+              backgroundColor: colors.background,
+              calendarBackground: colors.cardBackground,
+              textSectionTitleColor: colors.textSecondary,
+              selectedDayBackgroundColor: 'transparent',
+              selectedDayTextColor: colors.white,
+              todayTextColor: colors.primary,
+              dayTextColor: colors.textPrimary,
+              textDisabledColor: colors.textSecondary,
+              dotColor: colors.primary,
+              selectedDotColor: colors.white,
+              arrowColor: colors.primary,
+              monthTextColor: colors.textPrimary,
+              // Compact styling
+              'stylesheet.calendar.header': {
+                header: {
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  paddingLeft: 10,
+                  paddingRight: 10,
+                  marginTop: 6,
+                  marginBottom: 6,
+                  alignItems: 'center'
+                },
+                monthText: {
+                  fontSize: 16,
+                  fontFamily: 'DMSans-Bold',
+                  color: colors.textPrimary,
+                  margin: 0
+                },
+                arrow: {
+                  padding: 8
+                }
+              },
+              'stylesheet.day.basic': {
+                base: {
+                  width: 36,
+                  height: 32,
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }
+              },
+              'stylesheet.calendar.main': {
+                week: {
+                  marginTop: 2,
+                  marginBottom: 2,
+                  flexDirection: 'row',
+                  justifyContent: 'space-around'
+                }
+              }
+            }}
+          />
         </View>
-      )}
 
-      {/* FAB for Add Event */}
-      {isAuthenticated && selectedDate && (
+        {selectedDate && (
+          <View style={{ marginTop: 8 }}>
+            <Text style={[styles.label, { marginBottom: 12 }]}>Events on {formatIndianDate(selectedDate)}</Text>
+
+            {loading && filteredEvents.length === 0 ? (
+              <Text style={styles.empty}>Loading events...</Text>
+            ) : filteredEvents.length === 0 ? (
+              <Text style={styles.empty}>No events on this day</Text>
+            ) : (
+              filteredEvents.map((item) => (
+                <EventCard
+                  key={item._id ?? item.id}
+                  // format date for display only; keep original item.date on the source data
+                  event={{ ...item, date: formatIndianDate(item.date) }}
+                  styles={styles}
+                  colors={colors}
+                  isAdmin={isAuthenticated}
+                  onEdit={() => handleEditEvent(item)}
+                  onDelete={() => {
+                    Alert.alert(
+                      "Delete Event",
+                      `Are you sure you want to delete "${item.title}"? This action cannot be undone.`,
+                      [
+                        { text: "Cancel", style: "cancel" },
+                        { text: "Delete", style: "destructive", onPress: () => handleDeleteEvent(item._id, item.title) },
+                      ]
+                    );
+                  }}
+                />
+              ))
+            )}
+          </View>
+        )}
+
+        <EventFormModal
+          isVisible={isEventFormVisible}
+          onClose={() => {
+            setIsEventFormVisible(false);
+            setEditingEvent(null);
+          }}
+          selectedDate={selectedDate}
+          onSuccess={(newEvent) => {
+            handleEventCreated(newEvent);
+            setIsEventFormVisible(false);
+          }}
+          editItem={editingEvent}
+        />
+      </ScrollView>
+
+      {/* FAB for Add Event - Outside ScrollView to stay fixed */}
+      {isAuthenticated && (
         <Pressable
           onPress={() => setIsEventFormVisible(true)}
           style={({ pressed }) => ([
@@ -435,21 +506,6 @@ export default function EventsScreen() {
           <MaterialIcons name="add" size={24} color={colors.white} />
         </Pressable>
       )}
-
-      <EventFormModal
-        isVisible={isEventFormVisible}
-        onClose={() => {
-          setIsEventFormVisible(false);
-          setEditingEvent(null);
-        }}
-        selectedDate={selectedDate}
-        onSuccess={(newEvent) => {
-          handleEventCreated(newEvent);
-          setIsEventFormVisible(false);
-        }}
-        editItem={editingEvent}
-      />
-
-    </ScrollView>
+    </View>
   );
 }
