@@ -6,6 +6,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from "../theme";
 import { SCHOOL } from "../constants/basic-info";
 import { Linking } from "react-native";
+// import { logFCMToken } from "../utils/fcm"; // Uncomment to log FCM token
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
@@ -25,6 +26,9 @@ export default function ProfileScreen() {
       }
     };
     loadUser();
+
+    // Uncomment the line below to log FCM token to console
+    // logFCMToken().catch(err => console.log('FCM token error:', err));
   }, []);
 
   const handleLogout = async () => {

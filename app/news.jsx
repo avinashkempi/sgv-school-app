@@ -1,10 +1,10 @@
 import { View, Text, FlatList, Pressable, Alert, RefreshControl } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../theme";
 import Header from "../components/Header";
 import NewsFormModal from "../components/NewsFormModal";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import apiConfig from "../config/apiConfig";
 import apiFetch from "../utils/apiFetch";
@@ -31,27 +31,77 @@ export default function NewsScreen() {
   const [user, setUser] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const token = await AsyncStorage.getItem('@auth_token');
-      const storedUser = await AsyncStorage.getItem('@auth_user');
-      setIsAuthenticated(!!token);
+  const checkAuth = useCallback(async () => {
+    const token = await AsyncStorage.getItem('@auth_token');
+    const storedUser = await AsyncStorage.getItem('@auth_user');
+    setIsAuthenticated(!!token);
 
-      if (token && storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          setUser(parsedUser);
-          const isAdminRole = !!(parsedUser && (parsedUser.role === 'admin' || parsedUser.role === 'super admin'));
-          setIsAdmin(isAdminRole);
-        } catch (e) {
-          console.warn('Failed to parse stored user', e);
-          setIsAdmin(false);
-        }
-      } else {
+    if (token && storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        const isAdminRole = !!(parsedUser && (parsedUser.role === 'admin' || parsedUser.role === 'super admin'));
+        setIsAdmin(isAdminRole);
+      } catch (e) {
+        console.warn('Failed to parse stored user', e);
         setIsAdmin(false);
       }
-    };
+    } else {
+      setIsAdmin(false);
+    }
+  }, []);
 
+  const fetchFreshNews = useCallback(async () => {
+    try {
+      console.log('[NEWS] Fetching fresh news from API...');
+      const response = await apiFetch(apiConfig.url(apiConfig.endpoints.news.list));
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('[NEWS] API response:', result);
+
+      if (result.success && result.news) {
+        console.log(`[NEWS] Received ${result.news.length} news items from API`);
+
+        // Validate the data structure
+        if (!Array.isArray(result.news)) {
+          throw new Error('Invalid news data structure from API');
+        }
+
+        globalNews = result.news;
+        setNews(globalNews);
+        // Cache the fresh data
+        await setCachedData(CACHE_KEYS.NEWS, result.news);
+        setLoading(false);
+        globalNewsLoading = false;
+        newsFetched = true;
+        console.log('[NEWS] Fresh news cached successfully');
+      } else {
+        console.warn('[NEWS] API response missing success flag or news data');
+        globalNews = [];
+        setNews([]);
+        setLoading(false);
+        globalNewsLoading = false;
+        newsFetched = true;
+      }
+    } catch (err) {
+      console.error('[NEWS] Failed to fetch fresh news:', err.message);
+      // Set error even if we have cached data, so user knows fresh fetch failed
+      setError(err.message);
+      globalNewsError = err.message;
+      // Don't set loading to false if we have cached data
+      if (!globalNews.length) {
+        setLoading(false);
+        globalNewsLoading = false;
+        newsFetched = true;
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     if (newsFetched) {
       // If already fetched, use cached data
       setNews(globalNews);
@@ -96,58 +146,18 @@ export default function NewsScreen() {
       }
     };
 
-    const fetchFreshNews = async () => {
-      try {
-        console.log('[NEWS] Fetching fresh news from API...');
-        const response = await apiFetch(apiConfig.url(apiConfig.endpoints.news.list));
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        console.log('[NEWS] API response:', result);
-
-        if (result.success && result.news) {
-          console.log(`[NEWS] Received ${result.news.length} news items from API`);
-
-          // Validate the data structure
-          if (!Array.isArray(result.news)) {
-            throw new Error('Invalid news data structure from API');
-          }
-
-          globalNews = result.news;
-          setNews(globalNews);
-          // Cache the fresh data
-          await setCachedData(CACHE_KEYS.NEWS, result.news);
-          setLoading(false);
-          globalNewsLoading = false;
-          newsFetched = true;
-          console.log('[NEWS] Fresh news cached successfully');
-        } else {
-          console.warn('[NEWS] API response missing success flag or news data');
-          globalNews = [];
-          setNews([]);
-          setLoading(false);
-          globalNewsLoading = false;
-          newsFetched = true;
-        }
-      } catch (err) {
-        console.error('[NEWS] Failed to fetch fresh news:', err.message);
-        // Set error even if we have cached data, so user knows fresh fetch failed
-        setError(err.message);
-        globalNewsError = err.message;
-        // Don't set loading to false if we have cached data
-        if (!globalNews.length) {
-          setLoading(false);
-          globalNewsLoading = false;
-          newsFetched = true;
-        }
-      }
-    };
-
     fetchNews();
-  }, []); // Empty dependency array to fetch only once per session
+  }, [checkAuth, fetchFreshNews]);
+
+  // Background fetch on focus
+  useFocusEffect(
+    useCallback(() => {
+      // If we already have data, fetch fresh data in background silently
+      if (newsFetched || globalNews.length > 0) {
+        fetchFreshNews();
+      }
+    }, [fetchFreshNews])
+  );
 
   if (loading && news.length === 0) {
     return (

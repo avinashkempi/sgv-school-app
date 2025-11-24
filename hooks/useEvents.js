@@ -98,24 +98,25 @@ export default function useEvents() {
 
     const fetchInitialEvents = async () => {
       try {
-      // setLoading(true);
-      setError(null);
+        // setLoading(true);
+        setError(null);
 
-      // Try to get cached data first
-      const cachedEvents = await getCachedData(CACHE_KEYS.EVENTS, CACHE_EXPIRY.EVENTS);
-      if (cachedEvents) {
-        globalEvents = cachedEvents;
-        setEvents(globalEvents);
-        // setLoading(false);
-        globalEventsLoading = false;
-        eventsFetched = true;
-        // Fetch fresh data in background using the new fetchEventsRange
-        const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString(); // Last month
-        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0).toISOString(); // Next month
-        fetchEventsRange(startOfMonth, endOfMonth);
-        return;
-      }
+        // Try to get cached data first
+        const cachedEvents = await getCachedData(CACHE_KEYS.EVENTS, CACHE_EXPIRY.EVENTS);
+        if (cachedEvents) {
+          globalEvents = cachedEvents;
+          setEvents(globalEvents);
+          setLoading(false); // Ensure loading is set to false immediately
+          globalEventsLoading = false;
+          eventsFetched = true;
+          
+          // Fetch fresh data in background
+          const now = new Date();
+          const startOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString(); // Last month
+          const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0).toISOString(); // Next month
+          fetchEventsRange(startOfMonth, endOfMonth);
+          return;
+        }
 
         // No cache, load mock data while fetching from API
         const mockEvents = (mockEventsData.event || []).map(event => ({
@@ -124,6 +125,7 @@ export default function useEvents() {
         }));
         globalEvents = mockEvents;
         setEvents(globalEvents);
+        setLoading(false); // Show mock data immediately
         console.log('[EVENTS] Loaded mock events data. Fetching fresh data from API...');
 
         // Fetch fresh data in background using the new fetchEventsRange

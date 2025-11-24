@@ -1,7 +1,6 @@
-// Events screen
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { ScrollView, View, Text, Pressable, Alert, RefreshControl, StyleSheet } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Calendar } from "react-native-calendars";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -196,21 +195,34 @@ export default function EventsScreen() {
     })();
   }, []);
 
+  // Fetch fresh events in background when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString(); // Last month
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0).toISOString(); // Next month
 
+      // This runs silently in background without triggering full screen loader
+      fetchEventsRange(startOfMonth, endOfMonth);
+    }, [fetchEventsRange])
+  );
+
+  const [refreshFlag, setRefreshFlag] = useState(false);
 
   const handleDateSelect = (day) => {
     setSelectedDate(day.dateString);
   };
 
+  // Modified handleEventCreated to toggle refreshFlag to trigger re-render
   const handleEventCreated = (newEvent) => {
     if (editingEvent) {
-      // Update existing event
       updateEvent(newEvent);
+      setRefreshFlag(prev => !prev);
       showToast('Event updated successfully');
       setEditingEvent(null);
     } else {
-      // Add new event
       addEvent(newEvent);
+      setRefreshFlag(prev => !prev);
     }
   };
 
@@ -291,7 +303,7 @@ export default function EventsScreen() {
             return 0;
           })
         : [],
-    [selectedDate, allEvents]
+    [selectedDate, allEvents, refreshFlag]
   );
 
   const markedDates = useMemo(() => {
@@ -318,7 +330,7 @@ export default function EventsScreen() {
     }
 
     return dates;
-  }, [selectedDate, allEvents]);
+  }, [selectedDate, allEvents, refreshFlag]);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentPaddingBottom} refreshControl={
@@ -384,7 +396,7 @@ export default function EventsScreen() {
         <View style={[styles.card, styles.eventList]}>
           <Text style={styles.sectionTitle}>Events on {formatIndianDate(selectedDate)}</Text>
 
-          {loading ? (
+          {loading && filteredEvents.length === 0 ? (
             <Text style={styles.empty}>Loading events...</Text>
           ) : filteredEvents.length === 0 ? (
             <Text style={styles.empty}>No events on this day</Text>
