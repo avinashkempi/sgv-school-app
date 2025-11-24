@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, Pressable, Alert } from "react-native";
+import { View, Text, ScrollView, Pressable, Alert, Switch } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons, FontAwesome } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -57,142 +57,227 @@ export default function ProfileScreen() {
     }
   };
 
-  const themeOptions = [
-    { key: "light", label: "Light", icon: "wb-sunny" },
-    { key: "dark", label: "Dark", icon: "nightlight-round" },
-    { key: "system", label: "Auto", icon: "settings-suggest" },
-  ];
-
-  const handleThemeChange = async (newTheme) => {
-    try {
-      if (newTheme === "system") {
-        await AsyncStorage.removeItem("@theme_mode");
-        setSelectedTheme("system");
-        toggle();
-      } else {
-        await AsyncStorage.setItem("@theme_mode", newTheme);
-        setSelectedTheme(newTheme);
-        if (newTheme !== mode) {
-          toggle();
-        }
-      }
-    } catch (e) {
-      console.warn('Failed to save theme preference', e);
-      Alert.alert("Error", "Failed to save theme preference");
-    }
-  };
-
   const menuItems = [
     {
       label: "Help & Support",
-      icon: "help",
+      icon: "help-outline",
       onPress: () => Alert.alert("Help & Support", "Contact us at sgvrss@gmail.com"),
     },
     {
-      label: "About",
-      icon: "info",
+      label: "About App",
+      icon: "info-outline",
       onPress: () => Alert.alert("About", "School App v1.0\nBuilt by SGV team!"),
     },
   ];
 
   const socialItems = [
-    { type: "fontawesome", icon: "youtube", color: "#FF0000", onPress: () => handlePress(SCHOOL.socials.youtubeAppUrl, SCHOOL.socials.youtube), label: "YouTube" },
+    { type: "fontawesome", icon: "youtube-play", color: "#FF0000", onPress: () => handlePress(SCHOOL.socials.youtubeAppUrl, SCHOOL.socials.youtube), label: "YouTube" },
     { type: "fontawesome", icon: "instagram", color: "#C13584", onPress: () => handlePress(SCHOOL.socials.instagramAppUrl, SCHOOL.socials.instagram), label: "Instagram" },
     { type: "material", icon: "location-on", color: colors.primary, onPress: () => handlePress(SCHOOL.mapAppUrl, SCHOOL.mapUrl), label: "Location" },
   ];
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentPaddingBottom}>
-      {/* Profile Header - No Card */}
-      <View style={{ alignItems: "center", marginBottom: 28 }}>
+      {/* Profile Header */}
+      <View style={{ alignItems: "center", marginTop: 20, marginBottom: 40 }}>
         <View style={{
-          width: 80,
-          height: 80,
-          borderRadius: 40,
-          backgroundColor: colors.primary,
+          width: 100,
+          height: 100,
+          borderRadius: 50,
+          backgroundColor: colors.cardBackground,
           alignItems: "center",
           justifyContent: "center",
           marginBottom: 16,
+          shadowColor: colors.shadow,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.1,
+          shadowRadius: 12,
+          elevation: 5,
         }}>
-          <MaterialIcons name="person" size={40} color={colors.white} />
+          <MaterialIcons name="person" size={50} color={colors.primary} />
         </View>
+
         {user ? (
           <>
-            <Text style={[styles.heading, { fontSize: 20, marginBottom: 4 }]}>{user.username}</Text>
-            <Text style={[styles.text, { fontSize: 13, marginBottom: 8 }]}>{user.email || "No email"}</Text>
+            <Text style={{ fontSize: 24, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 8 }}>
+              {user.username}
+            </Text>
+
             {user.phone && (
-              <Text style={[styles.text, { fontSize: 13, marginBottom: 4 }]}>📱 {user.phone}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                <MaterialIcons name="phone" size={16} color={colors.textSecondary} />
+                <Text style={{ fontSize: 14, fontFamily: "DMSans-Regular", color: colors.textSecondary }}>
+                  {user.phone}
+                </Text>
+              </View>
             )}
+
+            {user.email && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                <MaterialIcons name="email" size={16} color={colors.textSecondary} />
+                <Text style={{ fontSize: 14, fontFamily: "DMSans-Regular", color: colors.textSecondary }}>
+                  {user.email}
+                </Text>
+              </View>
+            )}
+
             {user.role && (
-              <View style={{ marginTop: 8 }}>
-                <Text style={[styles.badge, { backgroundColor: colors.primary, paddingVertical: 4, paddingHorizontal: 12 }]}>
-                  <Text style={{ color: colors.white, fontFamily: "DMSans-SemiBold", fontSize: 12 }}>{user.role}</Text>
+              <View style={{
+                backgroundColor: colors.primary + '15',
+                paddingVertical: 6,
+                paddingHorizontal: 16,
+                borderRadius: 20,
+                marginTop: 4
+              }}>
+                <Text style={{ color: colors.primary, fontFamily: "DMSans-Bold", fontSize: 12, textTransform: 'uppercase' }}>
+                  {user.role}
                 </Text>
               </View>
             )}
           </>
         ) : (
           <>
-            <Text style={[styles.heading, { fontSize: 20, marginBottom: 4 }]}>Guest User</Text>
-            <Text style={[styles.text, { fontSize: 13, marginBottom: 0 }]}>Login for full access</Text>
+            <Text style={{ fontSize: 24, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 4 }}>
+              Guest User
+            </Text>
+            <Text style={{ fontSize: 14, fontFamily: "DMSans-Regular", color: colors.textSecondary }}>
+              Login to access all features
+            </Text>
           </>
         )}
+      </View>
+
+      {/* Settings Section */}
+      <Text style={styles.label}>Settings</Text>
+      <View style={styles.cardMinimal}>
+        {/* Theme Toggle */}
+        <View style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          paddingVertical: 12,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.border + '40'
+        }}>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View style={{
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              backgroundColor: colors.background,
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginRight: 12
+            }}>
+              <MaterialIcons name="brightness-6" size={20} color={colors.textPrimary} />
+            </View>
+            <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.textPrimary }}>Dark Mode</Text>
+          </View>
+          <Switch
+            value={mode === 'dark'}
+            onValueChange={toggle}
+            trackColor={{ false: "#e0e0e0", true: colors.primary + '80' }}
+            thumbColor={mode === 'dark' ? colors.primary : "#f4f3f4"}
+          />
+        </View>
+
+        {/* Menu Items */}
+        {menuItems.map((item, index) => (
+          <Pressable
+            key={index}
+            onPress={item.onPress}
+            style={({ pressed }) => ({
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              paddingVertical: 16,
+              opacity: pressed ? 0.7 : 1,
+              borderBottomWidth: index < menuItems.length - 1 ? 1 : 0,
+              borderBottomColor: colors.border + '40'
+            })}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <View style={{
+                width: 36,
+                height: 36,
+                borderRadius: 10,
+                backgroundColor: colors.background,
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginRight: 12
+              }}>
+                <MaterialIcons name={item.icon} size={20} color={colors.textPrimary} />
+              </View>
+              <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.textPrimary }}>{item.label}</Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={20} color={colors.textSecondary} />
+          </Pressable>
+        ))}
+      </View>
+
+      {/* Social Links */}
+      <Text style={[styles.label, { marginTop: 24 }]}>Follow Us</Text>
+      <View style={{ flexDirection: 'row', gap: 12, marginBottom: 32 }}>
+        {socialItems.map((item, index) => (
+          <Pressable
+            key={index}
+            onPress={item.onPress}
+            style={({ pressed }) => ({
+              flex: 1,
+              backgroundColor: colors.cardBackground,
+              borderRadius: 16,
+              paddingVertical: 20,
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: pressed ? 0.9 : 1,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.05,
+              shadowRadius: 8,
+              elevation: 2,
+            })}
+          >
+            {item.type === "fontawesome" ? (
+              <FontAwesome name={item.icon} size={24} color={item.color} style={{ marginBottom: 8 }} />
+            ) : (
+              <MaterialIcons name={item.icon} size={24} color={item.color} style={{ marginBottom: 8 }} />
+            )}
+            <Text style={{ fontSize: 13, fontFamily: "DMSans-Medium", color: colors.textSecondary }}>{item.label}</Text>
+          </Pressable>
+        ))}
       </View>
 
       {/* Auth Button */}
       <Pressable
         onPress={user ? handleLogout : () => navigation.navigate('login')}
-        style={[styles.buttonLarge, { marginBottom: 16, flexDirection: "row", justifyContent: "center", gap: 8 }]}
-      >
-        <MaterialIcons name={user ? "exit-to-app" : "person-add"} size={18} color={colors.white} />
-        <Text style={styles.buttonText}>{user ? "Logout" : "Login"}</Text>
-      </Pressable>
-
-      {/* Theme Toggle */}
-      <Pressable
-        onPress={toggle}
-        style={[styles.buttonSecondary, { marginBottom: 24, flexDirection: "row", justifyContent: "center", gap: 8 }]}
+        style={({ pressed }) => ({
+          backgroundColor: user ? colors.error + '15' : colors.primary,
+          borderRadius: 16,
+          paddingVertical: 16,
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexDirection: 'row',
+          opacity: pressed ? 0.9 : 1,
+        })}
       >
         <MaterialIcons
-          name={mode === "dark" ? "wb-sunny" : "nightlight-round"}
-          size={18}
-          color={colors.primary}
+          name={user ? "logout" : "login"}
+          size={20}
+          color={user ? colors.error : colors.white}
+          style={{ marginRight: 8 }}
         />
-        <Text style={[styles.buttonText, { color: colors.primary }]}>
-          {mode === "dark" ? "Light Mode" : "Dark Mode"}
+        <Text style={{
+          fontSize: 16,
+          fontFamily: "DMSans-Bold",
+          color: user ? colors.error : colors.white
+        }}>
+          {user ? "Log Out" : "Log In"}
         </Text>
       </Pressable>
 
-      {/* Menu Items */}
-      {menuItems.map((item, index) => (
-        <Pressable
-          key={index}
-          onPress={item.onPress}
-          style={[styles.card, { flexDirection: "row", alignItems: "center", marginBottom: 8 }]}
-        >
-          <MaterialIcons name={item.icon} size={20} color={colors.primary} style={{ marginRight: 12 }} />
-          <Text style={[styles.text, { flex: 1, marginBottom: 0 }]}>{item.label}</Text>
-          <MaterialIcons name="chevron-right" size={18} color={colors.textSecondary} />
-        </Pressable>
-      ))}
-
-      {/* Social Links */}
-      <Text style={[styles.label, { fontSize: 12, marginTop: 24, marginBottom: 12 }]}>Follow Us</Text>
-      <View style={[styles.card, { flexDirection: "row", justifyContent: "space-evenly", alignItems: "center", paddingVertical: 16 }]}>
-        {socialItems.map((item, index) => (
-          <Pressable
-            key={index}
-            onPress={item.onPress}
-            style={{ alignItems: "center" }}
-          >
-            {item.type === "fontawesome" ? (
-              <FontAwesome name={item.icon} size={28} color={item.color} />
-            ) : (
-              <MaterialIcons name={item.icon} size={28} color={item.color} />
-            )}
-          </Pressable>
-        ))}
-      </View>
+      <Text style={{ textAlign: 'center', marginTop: 24, color: colors.textSecondary, fontSize: 12 }}>
+        Version 1.0.0
+      </Text>
     </ScrollView>
   );
 }

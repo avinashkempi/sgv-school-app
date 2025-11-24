@@ -9,14 +9,24 @@ export const CACHE_KEYS = {
   USERS: '@cached_users',
 };
 
-// Cache expiry times (in milliseconds)
-// Increased to reduce loader visibility and API calls
+// Cache expiry times (in milliseconds) - Hard expiry (cache deleted)
 export const CACHE_EXPIRY = {
-  EVENTS: 120 * 60 * 1000, // 2 hours (was 30 minutes)
-  SCHOOL_INFO: 360 * 60 * 1000, // 6 hours (was 1 hour)
-  NEWS: 60 * 60 * 1000, // 1 hour (was 15 minutes)
-  USERS: 180 * 60 * 1000, // 3 hours (was 1 hour)
+  EVENTS: 24 * 60 * 60 * 1000,   // 24 hours
+  SCHOOL_INFO: 7 * 24 * 60 * 60 * 1000, // 7 days
+  NEWS: 24 * 60 * 60 * 1000,     // 24 hours
+  USERS: 24 * 60 * 60 * 1000,    // 24 hours
 };
+
+// Stale times (in milliseconds) - When to refresh in background
+export const STALE_TIME = {
+  NEWS: 5 * 60 * 1000,           // 5 minutes
+  EVENTS: 5 * 60 * 1000,         // 5 minutes
+  USERS: 10 * 60 * 1000,         // 10 minutes
+  SCHOOL_INFO: 60 * 60 * 1000,   // 1 hour
+};
+
+// Refresh locks to prevent duplicate fetches
+const refreshLocks = new Map();
 
 // Cache data structure
 const createCacheEntry = (data) => ({
@@ -48,8 +58,8 @@ const validateCachedData = (key, data) => {
   }
 };
 
-// Get cached data if not expired
-export const getCachedData = async (key, expiryTime = 0) => {
+// Get cached data without expiry check (for stale-while-revalidate)
+export const getCachedDataRaw = async (key) => {
   try {
     const cached = await AsyncStorage.getItem(key);
     if (!cached) return null;
@@ -57,18 +67,74 @@ export const getCachedData = async (key, expiryTime = 0) => {
     const parsed = JSON.parse(cached);
     if (!parsed.timestamp) return null;
 
+    return parsed;
+  } catch (error) {
+    console.warn(`Failed to get cached data for ${key}:`, error);
+    return null;
+  }
+};
+
+// Get cached data if not expired
+export const getCachedData = async (key, expiryTime = 0) => {
+  try {
+    const cached = await getCachedDataRaw(key);
+    if (!cached) return null;
+
     const now = Date.now();
-    if (expiryTime > 0 && (now - parsed.timestamp) > expiryTime) {
+    if (expiryTime > 0 && (now - cached.timestamp) > expiryTime) {
       // Cache expired, remove it
       await AsyncStorage.removeItem(key);
       return null;
     }
 
-    return parsed.data;
+    return cached.data;
   } catch (error) {
     console.warn(`Failed to get cached data for ${key}:`, error);
     return null;
   }
+};
+
+// Check if cache is stale (needs background refresh)
+export const isCacheStale = async (key, staleTime) => {
+  try {
+    const cached = await getCachedDataRaw(key);
+    if (!cached) return true; // No cache = stale
+
+    const now = Date.now();
+    const age = now - cached.timestamp;
+    
+    return age > staleTime;
+  } catch (error) {
+    console.warn(`Failed to check cache staleness for ${key}:`, error);
+    return true; // On error, consider stale
+  }
+};
+
+// Check if a refresh is currently in progress
+export const isRefreshing = (key) => {
+  return refreshLocks.has(key);
+};
+
+// Set refresh lock
+export const setRefreshLock = (key) => {
+  refreshLocks.set(key, Date.now());
+};
+
+// Clear refresh lock
+export const clearRefreshLock = (key) => {
+  refreshLocks.delete(key);
+};
+
+// Get cache with staleness info
+export const getCacheWithMeta = async (key, expiryTime = 0, staleTime = 0) => {
+  const data = await getCachedData(key, expiryTime);
+  const isStale = await isCacheStale(key, staleTime);
+  
+  return {
+    data,
+    isStale,
+    exists: data !== null,
+  };
 };
 
 // Set cached data

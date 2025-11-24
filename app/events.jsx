@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { ScrollView, View, Text, Pressable, Alert, RefreshControl, StyleSheet } from "react-native";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Calendar } from "react-native-calendars";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -79,7 +79,7 @@ const DayRenderer = React.memo(({ date, state, marking, onDayPress, colors }) =>
             width: 6,
             height: 6,
             borderRadius: 3,
-            backgroundColor: hasSchoolEvent ? '#FFD700' : colors.primary,
+            backgroundColor: hasSchoolEvent ? '' : colors.primary,
           }}
         />
       )}
@@ -116,19 +116,29 @@ const formatIndianDate = (dateInput) => {
 };
 
 const EventCard = ({ event, styles, colors, isAdmin, onEdit, onDelete }) => (
-  <View style={[styles.card]}>
+  <View style={styles.cardMinimal}>
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
       <View style={{ flex: 1, marginRight: 12 }}>
-        <Text style={[styles.cardText, { fontWeight: "600", fontSize: 16, marginBottom: 8 }]} numberOfLines={2}>{event.title}</Text>
+        <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 8 }} numberOfLines={2}>
+          {event.title}
+        </Text>
         {event.description && (
-          <Text style={[styles.text, { fontSize: 14, marginBottom: 8 }]} numberOfLines={2}>{event.description}</Text>
+          <Text style={{ fontSize: 14, fontFamily: "DMSans-Regular", color: colors.textSecondary, lineHeight: 20, marginBottom: 12 }} numberOfLines={2}>
+            {event.description}
+          </Text>
         )}
         {event.isSchoolEvent && (
-          <View style={[styles.badge, { backgroundColor: colors.warning, alignSelf: 'flex-start' }]}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <MaterialIcons name="school" size={14} color={colors.white} />
-              <Text style={[styles.badgeText, { marginLeft: 4 }]}>School Event</Text>
-            </View>
+          <View style={{
+            backgroundColor: '#FFD700' + '20',
+            paddingVertical: 4,
+            paddingHorizontal: 12,
+            borderRadius: 20,
+            alignSelf: 'flex-start',
+            flexDirection: 'row',
+            alignItems: 'center'
+          }}>
+            <MaterialIcons name="school" size={14} color="#F59E0B" style={{ marginRight: 4 }} />
+            <Text style={{ fontSize: 12, fontFamily: "DMSans-Bold", color: "#F59E0B" }}>School Event</Text>
           </View>
         )}
       </View>
@@ -136,13 +146,13 @@ const EventCard = ({ event, styles, colors, isAdmin, onEdit, onDelete }) => (
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <Pressable
             onPress={onEdit}
-            style={[styles.buttonSmall, { minWidth: 44 }]}
+            style={[styles.buttonIcon, { backgroundColor: colors.primary }]}
           >
             <MaterialIcons name="edit" size={18} color={colors.white} />
           </Pressable>
           <Pressable
             onPress={onDelete}
-            style={[styles.buttonSmall, { minWidth: 44, backgroundColor: colors.error }]}
+            style={[styles.buttonIcon, { backgroundColor: colors.error }]}
           >
             <MaterialIcons name="delete" size={18} color={colors.white} />
           </Pressable>
@@ -194,18 +204,6 @@ export default function EventsScreen() {
       }
     })();
   }, []);
-
-  // Fetch fresh events in background when screen is focused
-  useFocusEffect(
-    useCallback(() => {
-      const now = new Date();
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString(); // Last month
-      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0).toISOString(); // Next month
-
-      // This runs silently in background without triggering full screen loader
-      fetchEventsRange(startOfMonth, endOfMonth);
-    }, [fetchEventsRange])
-  );
 
   const [refreshFlag, setRefreshFlag] = useState(false);
 
@@ -338,18 +336,7 @@ export default function EventsScreen() {
     }>
       <Header title="Events" />
 
-      <View style={styles.card}>
-        <View style={styles.headerRow}>
-          {isAuthenticated && selectedDate && (
-            <Pressable
-              onPress={() => setIsEventFormVisible(true)}
-              style={[styles.addButton, { marginLeft: 'auto' }]}
-              accessibilityLabel="Add event"
-            >
-              <MaterialIcons name="add" size={24} color={colors.primary} />
-            </Pressable>
-          )}
-        </View>
+      <View style={styles.cardMinimal}>
 
         <Calendar
           onDayPress={handleDateSelect}
@@ -393,8 +380,8 @@ export default function EventsScreen() {
       </View>
 
       {selectedDate && (
-        <View style={[styles.card, styles.eventList]}>
-          <Text style={styles.sectionTitle}>Events on {formatIndianDate(selectedDate)}</Text>
+        <View style={{ marginTop: 8 }}>
+          <Text style={[styles.label, { marginBottom: 12 }]}>Events on {formatIndianDate(selectedDate)}</Text>
 
           {loading && filteredEvents.length === 0 ? (
             <Text style={styles.empty}>Loading events...</Text>
@@ -424,6 +411,19 @@ export default function EventsScreen() {
             ))
           )}
         </View>
+      )}
+
+      {/* FAB for Add Event */}
+      {isAuthenticated && selectedDate && (
+        <Pressable
+          onPress={() => setIsEventFormVisible(true)}
+          style={({ pressed }) => ([
+            styles.fab,
+            { opacity: pressed ? 0.9 : 1 }
+          ])}
+        >
+          <MaterialIcons name="add" size={24} color={colors.white} />
+        </Pressable>
       )}
 
       <EventFormModal

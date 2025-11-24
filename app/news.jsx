@@ -257,18 +257,6 @@ export default function NewsScreen() {
     <View style={styles.container}>
       <Header title="Latest News" />
 
-      {isAuthenticated && (
-        <View style={{ paddingHorizontal: 16, marginBottom: 16 }}>
-          <Pressable
-            style={[styles.buttonLarge, { alignSelf: 'flex-start', flexDirection: 'row' }]}
-            onPress={() => setIsModalVisible(true)}
-          >
-            <MaterialIcons name="add" size={20} color={colors.white} />
-            <Text style={[styles.buttonText, { marginLeft: 6 }]}>Add News</Text>
-          </Pressable>
-        </View>
-      )}
-
       <FlatList
         data={news}
         keyExtractor={(item) => item._id}
@@ -279,28 +267,44 @@ export default function NewsScreen() {
           <Text style={styles.empty}>No news available right now</Text>
         }
         renderItem={({ item }) => (
-          <View style={[styles.card]}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
-                <View style={[styles.badge, { backgroundColor: colors.accent }]}>
-                  <Text style={[styles.badgeText]}>
-                    {new Date(item.creationDate).toLocaleDateString()}
+          <View style={styles.cardMinimal}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+              <View style={{ flex: 1, marginRight: 12 }}>
+                <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 8 }} numberOfLines={2}>
+                  {item.title}
+                </Text>
+                <Text style={{ fontSize: 14, fontFamily: "DMSans-Regular", color: colors.textSecondary, lineHeight: 20, marginBottom: 12 }} numberOfLines={3}>
+                  {item.description}
+                </Text>
+
+                {/* Metadata row */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                  <Text style={{ fontSize: 13, fontFamily: "DMSans-Medium", color: colors.textSecondary }}>
+                    {new Date(item.creationDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </Text>
-                </View>
-                {item.privateNews && (
-                  <View style={[styles.badge, { backgroundColor: colors.textSecondary }]}>
+                  {item.privateNews && (
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <MaterialIcons name="lock" size={12} color={colors.white} />
-                      <Text style={[styles.badgeText, { marginLeft: 4 }]}>Private</Text>
+                      <MaterialIcons name="lock" size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />
+                      <Text style={{ fontSize: 13, fontFamily: "DMSans-Medium", color: colors.textSecondary }}>Private</Text>
                     </View>
-                  </View>
+                  )}
+                </View>
+
+                {item.url && (
+                  <Pressable onPress={() => {
+                    console.log('Open URL:', item.url);
+                    showToast('Link: ' + item.url);
+                  }} style={{ marginTop: 12 }}>
+                    <Text style={{ fontSize: 14, fontFamily: "DMSans-SemiBold", color: colors.primary }}>🔗 View Link</Text>
+                  </Pressable>
                 )}
               </View>
+
               {isAdmin && (
-                <View style={{ flexDirection: 'row', gap: 8, marginLeft: 12 }}>
+                <View style={{ flexDirection: 'row', gap: 8 }}>
                   <Pressable
                     onPress={() => handleEditNews(item)}
-                    style={[styles.buttonSmall, { minWidth: 44 }]}
+                    style={[styles.buttonIcon, { backgroundColor: colors.primary }]}
                   >
                     <MaterialIcons name="edit" size={18} color={colors.white} />
                   </Pressable>
@@ -315,27 +319,30 @@ export default function NewsScreen() {
                         ]
                       );
                     }}
-                    style={[styles.buttonSmall, { minWidth: 44, backgroundColor: colors.error }]}
+                    style={[styles.buttonIcon, { backgroundColor: colors.error }]}
                   >
                     <MaterialIcons name="delete" size={18} color={colors.white} />
                   </Pressable>
                 </View>
               )}
             </View>
-            <Text style={[styles.cardText, { fontWeight: "600", fontSize: 16, marginBottom: 8 }]} numberOfLines={2}>{item.title}</Text>
-            <Text style={[styles.text, { fontSize: 14, marginBottom: 8 }]} numberOfLines={3}>{item.description}</Text>
-            {item.url && (
-              <Pressable onPress={() => {
-                console.log('Open URL:', item.url);
-                showToast('Link: ' + item.url);
-              }}>
-                <Text style={[styles.link, { fontSize: 13 }]}>🔗 View Link</Text>
-              </Pressable>
-            )}
           </View>
         )}
         contentContainerStyle={styles.contentPaddingBottom}
       />
+
+      {/* FAB for Add News */}
+      {isAuthenticated && (
+        <Pressable
+          onPress={() => setIsModalVisible(true)}
+          style={({ pressed }) => ([
+            styles.fab,
+            { opacity: pressed ? 0.9 : 1 }
+          ])}
+        >
+          <MaterialIcons name="add" size={24} color={colors.white} />
+        </Pressable>
+      )}
 
       <NewsFormModal
         isVisible={isModalVisible}

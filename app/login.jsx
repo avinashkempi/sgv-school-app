@@ -48,7 +48,6 @@ export default function Login() {
     <ScrollView style={styles.container} contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
       <StatusBar
         barStyle={mode === "dark" ? "light-content" : "dark-content"}
-        backgroundColor={colors.background}
       />
 
       <Header title="Login" />

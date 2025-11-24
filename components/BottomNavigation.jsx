@@ -1,25 +1,17 @@
-import React, { useState, useEffect, useRef } from "react";
-import { View, Text, Pressable, Animated, Dimensions, Easing } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useRouter, usePathname } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../theme";
 import { ROUTES } from "../constants/routes";
-import { BlurView } from "expo-blur";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const { width } = Dimensions.get("window");
 
 export default function BottomNavigation() {
   const router = useRouter();
   const pathname = usePathname();
-  const { colors, styles } = useTheme();
+  const { colors } = useTheme();
   const [activeTab, setActiveTab] = useState(ROUTES.HOME);
   const [user, setUser] = useState(null);
-
-  // Animation refs
-  const rippleAnim = useRef(new Animated.Value(0)).current;
-  const glowAnim = useRef(new Animated.Value(0)).current;
-  const activeIndexRef = useRef(0);
 
   useEffect(() => {
     setActiveTab(pathname);
@@ -48,192 +40,127 @@ export default function BottomNavigation() {
       route: ROUTES.HOME,
       label: "Home",
       icon: "home",
-      activeIcon: "home-filled",
     },
     {
       route: ROUTES.EVENTS,
       label: "Events",
       icon: "event",
-      activeIcon: "event-available",
     },
     {
       route: ROUTES.NEWS,
       label: "News",
-      icon: "newspaper",
-      activeIcon: "newspaper",
+      icon: "article",
     },
     {
       route: ROUTES.PROFILE,
-      label: "Profile",
+      label: "Menu",
       icon: "menu",
-      activeIcon: "menu-open",
     },
     // Show Admin menu if user role includes 'admin'
     ...(user && user.role && user.role.toLowerCase().includes('admin') ? [{
       route: ROUTES.ADMIN,
       label: "Admin",
       icon: "admin-panel-settings",
-      activeIcon: "admin-panel-settings",
     }] : []),
   ];
 
-  const handleTabPress = (route, index) => {
-    if (route === activeTab) return; // Prevent animation if same tab
-
+  const handleTabPress = (route) => {
+    if (route === activeTab) return;
     setActiveTab(route);
-
-    // Start ripple animation
-    rippleAnim.setValue(0);
-    Animated.timing(rippleAnim, {
-      toValue: 1,
-      duration: 600,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-
-    // Start glow animation
-    glowAnim.setValue(0);
-    Animated.sequence([
-      Animated.timing(glowAnim, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-      Animated.timing(glowAnim, {
-        toValue: 0,
-        duration: 400,
-        useNativeDriver: true,
-      }),
-    ]).start();
-
-    activeIndexRef.current = index;
     router.push(route);
   };
 
-  const getActiveIndex = () => {
-    return navigationItems.findIndex(item => item.route === activeTab);
-  };
-
-  const activeIndex = getActiveIndex();
-  const itemWidth = width / navigationItems.length;
-
   return (
-    <View style={{
-      position: "absolute",
-      bottom: 0,
-      left: 0,
-      right: 0,
-      backgroundColor: "transparent",
-      paddingHorizontal: 16,
-      paddingBottom: 8,
-    }}>
-      <BlurView
-        intensity={90}
-        tint={colors.mode === "dark" ? "dark" : "light"}
-        style={{
-          flexDirection: "column",
-          marginBottom: 16,
-          paddingBottom: 10,
-          paddingTop: 10,
-          paddingHorizontal: 12,
-          borderRadius: 24,
-          shadowColor: colors.shadow,
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.15,
-          shadowRadius: 8,
-          elevation: 4,
-          overflow: "hidden",
-        }}
-      >
-        {/* Ripple effect overlay */}
-        <Animated.View
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: colors.primary,
-            opacity: rippleAnim.interpolate({
-              inputRange: [0, 0.3, 0.6, 1],
-              outputRange: [0, 0.08, 0.04, 0],
-            }),
-            transform: [{
-              scale: rippleAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0.8, 1.2],
-              }),
-            }],
-            borderRadius: 20,
-          }}
-        />
+    <View style={[styles.container, { backgroundColor: colors.cardBackground }]}>
+      {/* Top border */}
+      <View style={[styles.topBorder, { backgroundColor: colors.border }]} />
 
-        {/* Icons Row */}
-        <View style={{
-          flexDirection: "row",
-          justifyContent: "space-around",
-          alignItems: "center",
-          paddingHorizontal: 4,
-          paddingBottom: 2,
-        }}>
-          {navigationItems.map((item, index) => {
-            const isActive = activeTab === item.route;
-            return (
-              <Pressable
-                key={index}
-                onPress={() => handleTabPress(item.route, index)}
-                style={{
-                  alignItems: "center",
-                  justifyContent: "center",
-                  paddingVertical: 4,
-                }}
-              >
-                <MaterialIcons
-                  name={isActive ? item.activeIcon : item.icon}
-                  size={24}
-                    color={isActive ? colors.primary : colors.textSecondary}
-                />
-              </Pressable>
-            );
-          })}
-        </View>
+      {navigationItems.map((item, index) => {
+        const isActive = activeTab === item.route;
+        return (
+          <Pressable
+            key={item.route}
+            onPress={() => handleTabPress(item.route)}
+            style={({ pressed }) => [
+              styles.tabItem,
+              { opacity: pressed ? 0.6 : 1 }
+            ]}
+          >
+            {/* Active indicator */}
+            {isActive && (
+              <View style={[styles.activeIndicator, { backgroundColor: colors.primary }]} />
+            )}
 
-        {/* Labels Row */}
-        <View style={{
-          flexDirection: "row",
-          justifyContent: "space-around",
-          alignItems: "center",
-          paddingHorizontal: 4,
-        }}>
-          {navigationItems.map((item, index) => {
-            const isActive = activeTab === item.route;
-            return (
-              <View
-                key={index}
-                style={{
-                  alignItems: "center",
-                  justifyContent: "center",
-                  minWidth: width / 5 - 24,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 10,
-                    fontFamily: styles.cardText.fontFamily,
-                    color: isActive ? colors.primary : colors.textSecondary,
-                    textAlign: "center",
-                    fontWeight: isActive ? "600" : "400",
-                    opacity: isActive ? 1 : 0.75,
-                  }}
-                  numberOfLines={1}
-                >
-                  {item.label}
-                </Text>
-              </View>
-            );
-          })}
-        </View>
-      </BlurView>
+            {/* Icon */}
+            <MaterialIcons
+              name={item.icon}
+              size={24}
+              color={isActive ? colors.primary : colors.textSecondary}
+              style={{ marginBottom: 4 }}
+            />
+
+            {/* Label */}
+            <Text
+              style={[
+                styles.label,
+                {
+                  color: isActive ? colors.primary : colors.textSecondary,
+                  fontFamily: isActive ? "DMSans-Bold" : "DMSans-Medium",
+                }
+              ]}
+              numberOfLines={1}
+            >
+              {item.label}
+            </Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    paddingBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  topBorder: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+    opacity: 0.3,
+  },
+  tabItem: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 8,
+    position: "relative",
+  },
+  activeIndicator: {
+    position: "absolute",
+    top: 0,
+    width: 32,
+    height: 3,
+    borderRadius: 2,
+  },
+  label: {
+    fontSize: 11,
+    letterSpacing: 0.3,
+  },
+});

@@ -77,11 +77,26 @@ function createGlobalStyles(COLORS) {
       marginBottom: 24,
       textAlign: "center",
     },
-    label: {
-      fontSize: 18,
-      fontFamily: FONTS.semiBold,
+    headerTitle: {
+      fontSize: 28,
+      fontFamily: FONTS.bold,
       color: COLORS.textPrimary,
+      letterSpacing: -0.5,
+      marginBottom: 4,
+    },
+    subHeader: {
+      fontSize: 15,
+      fontFamily: FONTS.regular,
+      color: COLORS.textSecondary,
+      marginBottom: 24,
+    },
+    label: {
+      fontSize: 14,
+      fontFamily: FONTS.semiBold,
+      color: COLORS.textSecondary,
       textTransform: "uppercase",
+      letterSpacing: 0.5,
+      marginBottom: 8,
     },
     text: {
       fontSize: 15,
@@ -136,6 +151,7 @@ function createGlobalStyles(COLORS) {
       backgroundColor: COLORS.border,
       marginVertical: 16,
     },
+    // Legacy card (keeping for backward compatibility if needed, but prefer cardMinimal)
     card: {
       backgroundColor: COLORS.cardBackground,
       borderRadius: 12,
@@ -145,6 +161,18 @@ function createGlobalStyles(COLORS) {
       borderLeftWidth: 4,
       borderLeftColor: COLORS.primary,
       ...shadowBase,
+    },
+    // New Minimalist Card
+    cardMinimal: {
+      backgroundColor: COLORS.cardBackground,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 12,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.03,
+      shadowRadius: 4,
+      elevation: 1,
     },
     shadowBox: {
       backgroundColor: COLORS.cardBackground,
@@ -172,6 +200,16 @@ function createGlobalStyles(COLORS) {
       color: COLORS.textPrimary,
       backgroundColor: COLORS.cardBackground,
     },
+    // New Minimalist Input
+    inputMinimal: {
+      backgroundColor: COLORS.background, // Slightly different from card bg
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      fontSize: 16,
+      color: COLORS.textPrimary,
+      borderWidth: 0, // No border by default
+    },
     inputFocused: {
       borderWidth: 2,
       borderColor: COLORS.primary,
@@ -198,6 +236,14 @@ function createGlobalStyles(COLORS) {
       justifyContent: "center",
       minHeight: 44,
     },
+    buttonIcon: {
+      padding: 8,
+      borderRadius: 8,
+      alignItems: "center",
+      justifyContent: "center",
+      minWidth: 36,
+      minHeight: 36,
+    },
     buttonLarge: {
       backgroundColor: COLORS.primary,
       paddingVertical: 14,
@@ -206,6 +252,11 @@ function createGlobalStyles(COLORS) {
       alignItems: "center",
       justifyContent: "center",
       minHeight: 48,
+      shadowColor: COLORS.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+      elevation: 4,
     },
     buttonSecondary: {
       backgroundColor: COLORS.cardBackground,
@@ -216,6 +267,23 @@ function createGlobalStyles(COLORS) {
       borderRadius: 12,
       alignItems: "center",
       justifyContent: "center",
+    },
+    // Floating Action Button
+    fab: {
+      position: "absolute",
+      bottom: 100, // Adjusted to avoid menu overlap
+      right: 24,
+      backgroundColor: COLORS.primary,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      justifyContent: "center",
+      alignItems: "center",
+      shadowColor: COLORS.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 6,
     },
     backButton: {
       flexDirection: "row",
@@ -254,12 +322,6 @@ function createGlobalStyles(COLORS) {
       borderLeftWidth: 3,
       borderLeftColor: COLORS.primary,
       ...shadowBase,
-    },
-    cardText: {
-      fontSize: 16,
-      fontFamily: FONTS.semiBold,
-      color: COLORS.textPrimary,
-      marginLeft: 12,
     },
     iconBox: {
       alignItems: "center",
@@ -431,17 +493,20 @@ export function ThemeProvider({ children }) {
   );
   const styles = useMemo(() => createGlobalStyles(colors), [colors]);
 
-  const setAndPersist = async (newMode) => {
-    try {
-      if (newMode === "system") {
-        await AsyncStorage.removeItem("@theme_mode");
-      } else {
-        await AsyncStorage.setItem("@theme_mode", newMode);
-      }
-    } catch (e) {
-      // ignore persistence error
-    }
+  const setAndPersist = (newMode) => {
+    // Update state immediately for instant UI feedback
     setMode(newMode);
+
+    // Persist to storage in the background
+    if (newMode === "system") {
+      AsyncStorage.removeItem("@theme_mode").catch(() => {
+        // ignore persistence error
+      });
+    } else {
+      AsyncStorage.setItem("@theme_mode", newMode).catch(() => {
+        // ignore persistence error
+      });
+    }
   };
 
   const toggle = () => setAndPersist(mode === "dark" ? "light" : "dark");
