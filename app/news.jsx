@@ -255,7 +255,7 @@ export default function NewsScreen() {
 
   return (
     <View style={styles.container}>
-      <Header title="Latest News" />
+      <Header title="Latest News" subtitle="Stay updated with announcements" />
 
       <FlatList
         data={news}
@@ -304,9 +304,14 @@ export default function NewsScreen() {
                 <View style={{ flexDirection: 'row', gap: 8 }}>
                   <Pressable
                     onPress={() => handleEditNews(item)}
-                    style={[styles.buttonIcon, { backgroundColor: colors.primary }]}
+                    style={({ pressed }) => ({
+                      padding: 8,
+                      backgroundColor: colors.background,
+                      borderRadius: 8,
+                      opacity: pressed ? 0.7 : 1,
+                    })}
                   >
-                    <MaterialIcons name="edit" size={18} color={colors.white} />
+                    <MaterialIcons name="edit" size={18} color={colors.textSecondary} />
                   </Pressable>
                   <Pressable
                     onPress={() => {
@@ -319,9 +324,14 @@ export default function NewsScreen() {
                         ]
                       );
                     }}
-                    style={[styles.buttonIcon, { backgroundColor: colors.error }]}
+                    style={({ pressed }) => ({
+                      padding: 8,
+                      backgroundColor: colors.error + '15',
+                      borderRadius: 8,
+                      opacity: pressed ? 0.7 : 1,
+                    })}
                   >
-                    <MaterialIcons name="delete" size={18} color={colors.white} />
+                    <MaterialIcons name="delete-outline" size={18} color={colors.error} />
                   </Pressable>
                 </View>
               )}

@@ -146,15 +146,25 @@ const EventCard = ({ event, styles, colors, isAdmin, onEdit, onDelete }) => (
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <Pressable
             onPress={onEdit}
-            style={[styles.buttonIcon, { backgroundColor: colors.primary }]}
+            style={({ pressed }) => ({
+              padding: 8,
+              backgroundColor: colors.background,
+              borderRadius: 8,
+              opacity: pressed ? 0.7 : 1,
+            })}
           >
-            <MaterialIcons name="edit" size={18} color={colors.white} />
+            <MaterialIcons name="edit" size={18} color={colors.textSecondary} />
           </Pressable>
           <Pressable
             onPress={onDelete}
-            style={[styles.buttonIcon, { backgroundColor: colors.error }]}
+            style={({ pressed }) => ({
+              padding: 8,
+              backgroundColor: colors.error + '15',
+              borderRadius: 8,
+              opacity: pressed ? 0.7 : 1,
+            })}
           >
-            <MaterialIcons name="delete" size={18} color={colors.white} />
+            <MaterialIcons name="delete-outline" size={18} color={colors.error} />
           </Pressable>
         </View>
       )}
@@ -334,7 +344,7 @@ export default function EventsScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.contentPaddingBottom} refreshControl={
       <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
     }>
-      <Header title="Events" />
+      <Header title="Events" subtitle="View and manage events" />
 
       <View style={styles.cardMinimal}>
 

@@ -44,22 +44,31 @@ export default function RootLayout() {
                 headerShown: false,
                 animationEnabled: true,
                 animationTypeForReplace: 'push',
+                // Enable gesture navigation
+                gestureEnabled: true,
+                gestureDirection: 'horizontal',
+                // Modern, fast timing with spring animation
                 transitionSpec: {
                   open: {
-                    animation: 'timing',
+                    animation: 'spring',
                     config: {
-                      duration: 400,
-                      useNativeDriver: true,
+                      stiffness: 1000,
+                      damping: 500,
+                      mass: 3,
+                      overshootClamping: true,
+                      restDisplacementThreshold: 0.01,
+                      restSpeedThreshold: 0.01,
                     },
                   },
                   close: {
                     animation: 'timing',
                     config: {
-                      duration: 300,
+                      duration: 200,
                       useNativeDriver: true,
                     },
                   },
                 },
+                // iOS-style horizontal slide transition
                 cardStyleInterpolator: ({ current, next, layouts }) => {
                   return {
                     cardStyle: {
@@ -70,22 +79,16 @@ export default function RootLayout() {
                             outputRange: [layouts.screen.width, 0],
                           }),
                         },
-                        {
-                          scale: current.progress.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [0.95, 1],
-                          }),
-                        },
                       ],
                       opacity: current.progress.interpolate({
-                        inputRange: [0, 0.3, 1],
-                        outputRange: [0.7, 0.85, 1],
+                        inputRange: [0, 0.5, 0.9, 1],
+                        outputRange: [0, 0.25, 0.7, 1],
                       }),
                     },
                     overlayStyle: {
                       opacity: current.progress.interpolate({
                         inputRange: [0, 1],
-                        outputRange: [0, 0.08],
+                        outputRange: [0, 0.5],
                       }),
                     },
                   };

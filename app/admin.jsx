@@ -22,6 +22,7 @@ import apiConfig from "../config/apiConfig";
 import apiFetch from "../utils/apiFetch";
 import { useToast } from "../components/ToastProvider";
 import { getCachedData, setCachedData, updateCachedData, CACHE_KEYS, CACHE_EXPIRY } from "../utils/cache";
+import Header from "../components/Header";
 
 // Global cache for users to persist across component re-mounts
 let globalUsers = [];
@@ -356,14 +357,7 @@ export default function AdminScreen() {
       >
         <View style={{ padding: 16, paddingTop: 24 }}>
           {/* Minimal Header */}
-          <View style={{ marginBottom: 24 }}>
-            <Text style={{ fontSize: 28, fontWeight: "700", color: colors.textPrimary, letterSpacing: -0.5 }}>
-              Admin
-            </Text>
-            <Text style={{ fontSize: 15, color: colors.textSecondary, marginTop: 4 }}>
-              Manage users and permissions
-            </Text>
-          </View>
+          <Header title="Admin" subtitle="Manage users and permissions" />
 
           {/* Minimal Search Bar */}
           <View style={{ marginBottom: 24 }}>

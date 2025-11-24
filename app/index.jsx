@@ -4,6 +4,7 @@ import { useState } from "react";
 import useFade from "../hooks/useFade";
 import { useTheme } from "../theme";
 import useSchoolInfo from "../hooks/useSchoolInfo";
+import Header from "../components/Header";
 
 export default function HomeScreen() {
   const fadeAnim = useFade();
@@ -38,24 +39,7 @@ export default function HomeScreen() {
       />
 
       {/* Minimalist Header */}
-      <View style={{ marginTop: 20, marginBottom: 32 }}>
-        <Text style={{
-          fontSize: 16,
-          color: colors.textSecondary,
-          fontFamily: "DMSans-Medium",
-          marginBottom: 4
-        }}>
-          Welcome to
-        </Text>
-        <Text style={{
-          fontSize: 32,
-          color: colors.textPrimary,
-          fontFamily: "DMSans-Bold",
-          letterSpacing: -1
-        }}>
-          {SCHOOL.name}
-        </Text>
-      </View>
+      <Header title={SCHOOL.name} variant="welcome" />
 
       {/* About Us Section */}
       <Animated.View style={[styles.cardMinimal, { opacity: fadeAnim }]}>
