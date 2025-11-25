@@ -34,6 +34,10 @@ const endpoints = {
     getById: (id) => `/users/${id}`,
     update: (id) => `/users/${id}`,
     delete: (id) => `/users/${id}`,
+  },
+  fcm: {
+    register: '/fcm/register',
+    unregister: '/fcm/unregister',
   }
 };
 
