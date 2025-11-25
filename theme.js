@@ -133,36 +133,15 @@ function createGlobalStyles(COLORS) {
       flexDirection: "row",
       alignItems: "center",
     },
-    column: {
-      flexDirection: "column",
-    },
-    center: {
-      justifyContent: "center",
-      alignItems: "center",
-    },
     fullWidth: {
       width: "100%",
-    },
-    fullHeight: {
-      height: "100%",
     },
     divider: {
       height: 1,
       backgroundColor: COLORS.border,
       marginVertical: 16,
     },
-    // Legacy card (keeping for backward compatibility if needed, but prefer cardMinimal)
-    card: {
-      backgroundColor: COLORS.cardBackground,
-      borderRadius: 12,
-      paddingVertical: 16,
-      paddingHorizontal: 16,
-      marginBottom: 16,
-      borderLeftWidth: 4,
-      borderLeftColor: COLORS.primary,
-      ...shadowBase,
-    },
-    // New Minimalist Card
+    // Minimalist Card (primary card style)
     cardMinimal: {
       backgroundColor: COLORS.cardBackground,
       borderRadius: 16,
@@ -173,21 +152,6 @@ function createGlobalStyles(COLORS) {
       shadowOpacity: 0.03,
       shadowRadius: 4,
       elevation: 1,
-    },
-    shadowBox: {
-      backgroundColor: COLORS.cardBackground,
-      borderRadius: 12,
-      padding: 16,
-      ...shadowBase,
-    },
-    socialIconBox: {
-      alignItems: "center",
-      justifyContent: "center",
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      borderRadius: 12,
-      backgroundColor: COLORS.cardBackground,
-      ...shadowBase,
     },
     input: {
       borderWidth: 1,
@@ -200,15 +164,15 @@ function createGlobalStyles(COLORS) {
       color: COLORS.textPrimary,
       backgroundColor: COLORS.cardBackground,
     },
-    // New Minimalist Input
+    // Minimalist Input
     inputMinimal: {
-      backgroundColor: COLORS.background, // Slightly different from card bg
+      backgroundColor: COLORS.background,
       borderRadius: 12,
       paddingHorizontal: 16,
       paddingVertical: 12,
       fontSize: 16,
       color: COLORS.textPrimary,
-      borderWidth: 0, // No border by default
+      borderWidth: 0,
     },
     inputFocused: {
       borderWidth: 2,
@@ -271,7 +235,7 @@ function createGlobalStyles(COLORS) {
     // Floating Action Button
     fab: {
       position: "absolute",
-      bottom: 100, // Adjusted to avoid menu overlap
+      bottom: 100,
       right: 24,
       backgroundColor: COLORS.primary,
       width: 56,
@@ -311,50 +275,6 @@ function createGlobalStyles(COLORS) {
     cardGroup: {
       marginBottom: 32,
     },
-    navCard: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: COLORS.cardBackground,
-      borderRadius: 12,
-      paddingVertical: 12,
-      paddingHorizontal: 14,
-      marginBottom: 12,
-      borderLeftWidth: 3,
-      borderLeftColor: COLORS.primary,
-      ...shadowBase,
-    },
-    iconBox: {
-      alignItems: "center",
-      justifyContent: "center",
-      textAlign: "center",
-      paddingVertical: 14,
-      paddingHorizontal: 18,
-      borderRadius: 12,
-      backgroundColor: COLORS.cardBackground,
-      elevation: 3,
-      shadowColor: COLORS.shadow,
-      shadowOpacity: 0.1,
-      shadowOffset: { width: 0, height: 2 },
-      shadowRadius: 6,
-    },
-    socialContainer: {
-      borderTopWidth: 1,
-      borderTopColor: COLORS.border,
-      paddingTop: 20,
-      flexDirection: "row",
-      justifyContent: "space-around",
-      paddingBottom: 20,
-    },
-    socialIconWrapper: {
-      alignItems: "center",
-      justifyContent: "center",
-      paddingVertical: 10,
-      paddingHorizontal: 14,
-      borderRadius: 12,
-      backgroundColor: COLORS.cardBackground,
-      borderWidth: 1,
-      borderColor: COLORS.border,
-    },
     safeArea: {
       flex: 1,
       backgroundColor: COLORS.background,
@@ -365,68 +285,17 @@ function createGlobalStyles(COLORS) {
     contentPaddingBottom: {
       paddingBottom: 100,
     },
-    socialTransformWrapper: {
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    highlight: {
-      fontFamily: FONTS.bold,
-    },
-    badge: {
-      backgroundColor: COLORS.primary,
-      borderRadius: 6,
-      paddingVertical: 4,
-      paddingHorizontal: 10,
-    },
-    badgeText: {
-      fontSize: 12,
-      color: "#fff",
-      fontFamily: FONTS.semiBold,
-    },
-    headerRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginBottom: 10,
-    },
-    newsText: {
-      fontSize: 16,
-      color: COLORS.textPrimary,
-      fontFamily: FONTS.semiBold,
-      lineHeight: 24,
-    },
     sectionTitle: {
       fontSize: 16,
       color: COLORS.textPrimary,
       fontFamily: FONTS.semiBold,
       marginBottom: 12,
     },
-    newsDescription: {
-      fontSize: 14,
-      color: COLORS.textSecondary,
-      fontFamily: FONTS.regular,
-      lineHeight: 20,
-      marginTop: 8,
-    },
-    newsFile: {
-      fontSize: 14,
-      fontFamily: FONTS.semiBold,
-      marginTop: 8,
-    },
-    privateNews: {
-      fontSize: 12,
-      color: COLORS.textSecondary,
-      fontFamily: FONTS.regular,
-    },
     empty: {
       fontSize: 16,
       color: COLORS.textSecondary,
       marginTop: 16,
       textAlign: "center",
-    },
-    cardCompact: {
-      paddingVertical: 12,
-      paddingHorizontal: 14,
-      marginTop: 8,
     },
   });
 }

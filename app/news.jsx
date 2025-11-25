@@ -159,6 +159,80 @@ export default function NewsScreen() {
     }, [fetchFreshNews])
   );
 
+  // Memoize renderItem BEFORE early returns to maintain hooks order
+  const renderNewsItem = useCallback(({ item }) => (
+    <View style={styles.cardMinimal}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+        <View style={{ flex: 1, marginRight: 12 }}>
+          <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 8 }} numberOfLines={2}>
+            {item.title}
+          </Text>
+          <Text style={{ fontSize: 14, fontFamily: "DMSans-Regular", color: colors.textSecondary, lineHeight: 20, marginBottom: 12 }} numberOfLines={3}>
+            {item.description}
+          </Text>
+
+          {/* Metadata row */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <Text style={{ fontSize: 13, fontFamily: "DMSans-Medium", color: colors.textSecondary }}>
+              {new Date(item.creationDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+            </Text>
+            {item.privateNews && (
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <MaterialIcons name="lock" size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />
+                <Text style={{ fontSize: 13, fontFamily: "DMSans-Medium", color: colors.textSecondary }}>Private</Text>
+              </View>
+            )}
+          </View>
+
+          {item.url && (
+            <Pressable onPress={() => {
+              console.log('Open URL:', item.url);
+              showToast('Link: ' + item.url);
+            }} style={{ marginTop: 12 }}>
+              <Text style={{ fontSize: 14, fontFamily: "DMSans-SemiBold", color: colors.primary }}>🔗 View Link</Text>
+            </Pressable>
+          )}
+        </View>
+
+        {isAdmin && (
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <Pressable
+              onPress={() => handleEditNews(item)}
+              style={({ pressed }) => ({
+                padding: 8,
+                backgroundColor: colors.background,
+                borderRadius: 8,
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <MaterialIcons name="edit" size={18} color={colors.textSecondary} />
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                Alert.alert(
+                  "Delete News",
+                  `Are you sure you want to delete "${item.title}"? This action cannot be undone.`,
+                  [
+                    { text: "Cancel", style: "cancel" },
+                    { text: "Delete", style: "destructive", onPress: () => handleDeleteNews(item._id, item.title) },
+                  ]
+                );
+              }}
+              style={({ pressed }) => ({
+                padding: 8,
+                backgroundColor: colors.error + '15',
+                borderRadius: 8,
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <MaterialIcons name="delete-outline" size={18} color={colors.error} />
+            </Pressable>
+          </View>
+        )}
+      </View>
+    </View>
+  ), [styles.cardMinimal, colors, isAdmin, showToast, handleEditNews, handleDeleteNews]);
+
   if (loading && news.length === 0) {
     return (
       <View style={styles.container}>
@@ -252,80 +326,6 @@ export default function NewsScreen() {
       setRefreshing(false);
     }
   };
-
-  // Memoize renderItem to prevent recreating function on every render
-  const renderNewsItem = useCallback(({ item }) => (
-    <View style={styles.cardMinimal}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-        <View style={{ flex: 1, marginRight: 12 }}>
-          <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 8 }} numberOfLines={2}>
-            {item.title}
-          </Text>
-          <Text style={{ fontSize: 14, fontFamily: "DMSans-Regular", color: colors.textSecondary, lineHeight: 20, marginBottom: 12 }} numberOfLines={3}>
-            {item.description}
-          </Text>
-
-          {/* Metadata row */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-            <Text style={{ fontSize: 13, fontFamily: "DMSans-Medium", color: colors.textSecondary }}>
-              {new Date(item.creationDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-            </Text>
-            {item.privateNews && (
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <MaterialIcons name="lock" size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />
-                <Text style={{ fontSize: 13, fontFamily: "DMSans-Medium", color: colors.textSecondary }}>Private</Text>
-              </View>
-            )}
-          </View>
-
-          {item.url && (
-            <Pressable onPress={() => {
-              console.log('Open URL:', item.url);
-              showToast('Link: ' + item.url);
-            }} style={{ marginTop: 12 }}>
-              <Text style={{ fontSize: 14, fontFamily: "DMSans-SemiBold", color: colors.primary }}>🔗 View Link</Text>
-            </Pressable>
-          )}
-        </View>
-
-        {isAdmin && (
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            <Pressable
-              onPress={() => handleEditNews(item)}
-              style={({ pressed }) => ({
-                padding: 8,
-                backgroundColor: colors.background,
-                borderRadius: 8,
-                opacity: pressed ? 0.7 : 1,
-              })}
-            >
-              <MaterialIcons name="edit" size={18} color={colors.textSecondary} />
-            </Pressable>
-            <Pressable
-              onPress={() => {
-                Alert.alert(
-                  "Delete News",
-                  `Are you sure you want to delete "${item.title}"? This action cannot be undone.`,
-                  [
-                    { text: "Cancel", style: "cancel" },
-                    { text: "Delete", style: "destructive", onPress: () => handleDeleteNews(item._id, item.title) },
-                  ]
-                );
-              }}
-              style={({ pressed }) => ({
-                padding: 8,
-                backgroundColor: colors.error + '15',
-                borderRadius: 8,
-                opacity: pressed ? 0.7 : 1,
-              })}
-            >
-              <MaterialIcons name="delete-outline" size={18} color={colors.error} />
-            </Pressable>
-          </View>
-        )}
-      </View>
-    </View>
-  ), [styles.cardMinimal, colors, isAdmin, showToast, handleEditNews, handleDeleteNews]);
 
   return (
     <View style={styles.container}>
