@@ -83,6 +83,7 @@ export default function useSchoolInfo() {
     if (!isConnected) return;
 
     try {
+      console.log(`[SCHOOL_INFO] Fetching fresh data from API... (Silent: ${silent})`);
       const response = await apiFetch(apiConfig.url(apiConfig.endpoints.schoolInfo.get), { silent });
 
       if (!response.ok) {
@@ -103,7 +104,8 @@ export default function useSchoolInfo() {
           mission: result.data.mission,
           about: result.data.about,
           socials: result.data.socials,
-          news: result.data.news || []
+          news: result.data.news || [],
+          photoUrl: result.data.photoUrl || []
         };
 
         globalSchoolInfo = transformedData;
@@ -136,5 +138,5 @@ export default function useSchoolInfo() {
     return unsubscribe;
   }, [registerOnlineCallback]);
 
-  return { schoolInfo, loading, error };
+  return { schoolInfo, loading, error, refresh: fetchFreshSchoolInfo };
 }

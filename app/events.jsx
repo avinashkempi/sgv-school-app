@@ -201,7 +201,7 @@ export default function EventsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const { styles, colors } = useTheme();
   const { showToast } = useToast();
-  const { events: allEvents, loading, addEvent, updateEvent, removeEvent, fetchEventsRange } = useEvents();
+  const { events: allEvents, loading, addEvent, updateEvent, removeEvent, fetchEventsRange, refreshEvents } = useEvents();
 
   useEffect(() => {
     // Check authentication and admin role
@@ -335,22 +335,9 @@ export default function EventsScreen() {
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      console.log('[EVENTS] Refreshing events from API...');
-      const response = await apiFetch(apiConfig.url(apiConfig.endpoints.events.list), {
-        silent: true,
-        headers: {
-          'Authorization': `Bearer ${await AsyncStorage.getItem('@auth_token') || ''}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to refresh events');
-      }
-
-      const result = await response.json();
-      if (result.success && result.events) {
-        console.log('[EVENTS] Refreshed successfully');
-      }
+      console.log('[EVENTS] Refreshing events...');
+      await refreshEvents(true); // silent=true
+      console.log('[EVENTS] Refreshed successfully');
     } catch (err) {
       console.error('[EVENTS] Refresh failed:', err.message);
       showToast('Failed to refresh events');

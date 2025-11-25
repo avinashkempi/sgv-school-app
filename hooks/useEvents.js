@@ -237,6 +237,20 @@ export default function useEvents() {
     addEvent,
     updateEvent,
     removeEvent,
-    fetchEventsRange
+    fetchEventsRange,
+    refreshEvents: useCallback(async (silent = true) => {
+      const { start, end } = currentRangeRef.current;
+      if (start && end) {
+        console.log('[EVENTS] Refreshing current range:', start, 'to', end);
+        await fetchEventsRange(start, end, null, silent);
+      } else {
+        // Default to current month if no range set
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0).toISOString();
+        console.log('[EVENTS] Refreshing default range');
+        await fetchEventsRange(startOfMonth, endOfMonth, null, silent);
+      }
+    }, [fetchEventsRange])
   };
 }

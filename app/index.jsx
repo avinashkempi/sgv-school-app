@@ -6,17 +6,19 @@ import { useTheme } from "../theme";
 import useSchoolInfo from "../hooks/useSchoolInfo";
 import Header from "../components/Header";
 
+import SchoolPhotoCarousel from "../components/SchoolPhotoCarousel";
+
 export default function HomeScreen() {
   const fadeAnim = useFade();
   const { styles, colors, mode } = useTheme();
-  const { schoolInfo: SCHOOL } = useSchoolInfo();
+  const { schoolInfo: SCHOOL, refresh } = useSchoolInfo();
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = async () => {
     setRefreshing(true);
     try {
       console.log('[HOME] Refreshing school info...');
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await refresh(true);
       console.log('[HOME] Refreshed successfully');
     } catch (err) {
       console.error('[HOME] Refresh failed:', err.message);
@@ -40,6 +42,9 @@ export default function HomeScreen() {
 
       {/* Minimalist Header */}
       <Header title={SCHOOL.name} variant="welcome" />
+
+      {/* School Photo Carousel */}
+      <SchoolPhotoCarousel photos={SCHOOL.photoUrl} />
 
       {/* About Us Section */}
       <Animated.View style={[styles.cardMinimal, { opacity: fadeAnim }]}>

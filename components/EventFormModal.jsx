@@ -32,6 +32,8 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
   const [description, setDescription] = useState('');
   const [isSchoolEvent, setIsSchoolEvent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
   const { colors, styles: globalStyles } = useTheme();
   const { showToast } = useToast();
 
@@ -48,12 +50,55 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
         setDescription('');
         setIsSchoolEvent(false);
       }
+      setErrors({});
+      setTouched({});
     }
   }, [isVisible, isEditing, editItem]);
 
+  const validateField = (name, value) => {
+    let error = "";
+    switch (name) {
+      case "title":
+        if (!value.trim()) error = "Title is required";
+        else if (value.trim().length < 3) error = "Title must be at least 3 characters";
+        break;
+      case "description":
+        if (value.trim() && value.trim().length < 10) error = "Description must be at least 10 characters if provided";
+        break;
+    }
+    return error;
+  };
+
+  const handleBlur = (field, value) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    const error = validateField(field, value);
+    setErrors(prev => ({ ...prev, [field]: error }));
+  };
+
+  const handleChange = (field, value) => {
+    if (field === 'title') setTitle(value);
+    if (field === 'description') setDescription(value);
+
+    if (touched[field]) {
+      const error = validateField(field, value);
+      setErrors(prev => ({ ...prev, [field]: error }));
+    }
+  };
+
   const handleSubmit = () => {
-    if (!title.trim()) {
-      showToast('Title is required');
+    const titleError = validateField("title", title);
+    const descriptionError = validateField("description", description);
+
+    setErrors({
+      title: titleError,
+      description: descriptionError
+    });
+    setTouched({
+      title: true,
+      description: true
+    });
+
+    if (titleError || descriptionError) {
       return;
     }
 
@@ -90,36 +135,50 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
             <Text style={[styles.dateValue, { color: colors.textPrimary }]}>{isEditing ? formatIndianDate(editItem.date) : formatIndianDate(selectedDate)}</Text>
           </View>
 
-          <TextInput
-            style={[globalStyles.input, {
-              marginBottom: 12,
-              backgroundColor: colors.cardBackground,
-              color: colors.textPrimary,
-              borderColor: colors.border
-            }]}
-            placeholder="Event title"
-            placeholderTextColor={colors.textSecondary}
-            value={title}
-            onChangeText={setTitle}
-            maxLength={100}
-          />
+          <View style={{ marginBottom: 12 }}>
+            <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 8, marginLeft: 4 }}>TITLE</Text>
+            <TextInput
+              style={[globalStyles.input, {
+                backgroundColor: colors.cardBackground,
+                color: colors.textPrimary,
+                borderColor: errors.title && touched.title ? colors.error : colors.border,
+                borderWidth: 1
+              }]}
+              placeholder="Event title"
+              placeholderTextColor={colors.textSecondary}
+              value={title}
+              onChangeText={(text) => handleChange('title', text)}
+              onBlur={() => handleBlur('title', title)}
+              maxLength={100}
+            />
+            {errors.title && touched.title && (
+              <Text style={{ color: colors.error, fontSize: 12, marginTop: 4, marginLeft: 4 }}>{errors.title}</Text>
+            )}
+          </View>
 
-          <TextInput
-            style={[globalStyles.input, {
-              marginBottom: 16,
-              backgroundColor: colors.cardBackground,
-              color: colors.textPrimary,
-              borderColor: colors.border,
-              minHeight: 100,
-              paddingTop: 12,
-            }]}
-            placeholder="Description (optional)"
-            placeholderTextColor={colors.textSecondary}
-            value={description}
-            onChangeText={setDescription}
-            maxLength={500}
-            multiline
-          />
+          <View style={{ marginBottom: 12 }}>
+            <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 8, marginLeft: 4 }}>DESCRIPTION (OPTIONAL)</Text>
+            <TextInput
+              style={[globalStyles.input, {
+                backgroundColor: colors.cardBackground,
+                color: colors.textPrimary,
+                borderColor: errors.description && touched.description ? colors.error : colors.border,
+                borderWidth: 1,
+                minHeight: 100,
+                paddingTop: 12,
+              }]}
+              placeholder="Description (optional)"
+              placeholderTextColor={colors.textSecondary}
+              value={description}
+              onChangeText={(text) => handleChange('description', text)}
+              onBlur={() => handleBlur('description', description)}
+              maxLength={500}
+              multiline
+            />
+            {errors.description && touched.description && (
+              <Text style={{ color: colors.error, fontSize: 12, marginTop: 4, marginLeft: 4 }}>{errors.description}</Text>
+            )}
+          </View>
 
           <View style={{ marginBottom: 16, flexDirection: 'row', alignItems: 'center' }}>
             <Checkbox

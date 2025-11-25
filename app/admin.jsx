@@ -374,11 +374,12 @@ export default function AdminScreen() {
         body: JSON.stringify(userData),
       });
 
+      const result = await response.json();
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(result.message || `Failed to create user (Status: ${response.status})`);
       }
 
-      const result = await response.json();
       if (result.success) {
         setUsers(prevUsers => [...prevUsers, result.user]);
         showToast("User created successfully", "success");

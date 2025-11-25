@@ -14,6 +14,8 @@ export default function NewsFormModal({ isVisible, onClose, onSuccess, editItem 
   const [url, setUrl] = useState('');
   const [privateNews, setPrivateNews] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
   const { colors, styles: globalStyles } = useTheme();
   const { showToast } = useToast();
 
@@ -32,16 +34,65 @@ export default function NewsFormModal({ isVisible, onClose, onSuccess, editItem 
         setUrl('');
         setPrivateNews(true);
       }
+      setErrors({});
+      setTouched({});
     }
   }, [isVisible, isEditing, editItem]);
 
-  const handleSubmit = () => {
-    if (!title.trim()) {
-      showToast('Title is required');
-      return;
+  const validateField = (name, value) => {
+    let error = "";
+    switch (name) {
+      case "title":
+        if (!value.trim()) error = "Title is required";
+        else if (value.trim().length < 3) error = "Title must be at least 3 characters";
+        break;
+      case "description":
+        if (!value.trim()) error = "Description is required";
+        else if (value.trim().length < 10) error = "Description must be at least 10 characters";
+        break;
+      case "url":
+        if (value.trim() && !/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/.test(value.trim())) {
+          error = "Invalid URL format";
+        }
+        break;
     }
-    if (!description.trim()) {
-      showToast('Description is required');
+    return error;
+  };
+
+  const handleBlur = (field, value) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    const error = validateField(field, value);
+    setErrors(prev => ({ ...prev, [field]: error }));
+  };
+
+  const handleChange = (field, value) => {
+    if (field === 'title') setTitle(value);
+    if (field === 'description') setDescription(value);
+    if (field === 'url') setUrl(value);
+
+    if (touched[field]) {
+      const error = validateField(field, value);
+      setErrors(prev => ({ ...prev, [field]: error }));
+    }
+  };
+
+  const handleSubmit = () => {
+    const titleError = validateField("title", title);
+    const descriptionError = validateField("description", description);
+    const urlError = validateField("url", url);
+
+    setErrors({
+      title: titleError,
+      description: descriptionError,
+      url: urlError
+    });
+    setTouched({
+      title: true,
+      description: true,
+      url: true
+    });
+
+    if (titleError || descriptionError || urlError) {
       return;
     }
 
@@ -53,10 +104,6 @@ export default function NewsFormModal({ isVisible, onClose, onSuccess, editItem 
       privateNews: privateNews,
       _id: editItem?._id // Pass ID if editing
     });
-
-    // Reset form is handled by parent closing/re-opening or we can do it here if needed, 
-    // but parent will likely close modal immediately.
-    // We can reset state when modal closes via useEffect.
   };
 
   return (
@@ -77,51 +124,74 @@ export default function NewsFormModal({ isVisible, onClose, onSuccess, editItem 
             </Pressable>
           </View>
 
-          <TextInput
-            style={[globalStyles.input, {
-              marginBottom: 12,
-              backgroundColor: colors.cardBackground,
-              color: colors.textPrimary,
-              borderColor: colors.border
-            }]}
-            placeholder="News title"
-            placeholderTextColor={colors.textSecondary}
-            value={title}
-            onChangeText={setTitle}
-            maxLength={100}
-          />
+          <View style={{ marginBottom: 12 }}>
+            <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 8, marginLeft: 4 }}>TITLE</Text>
+            <TextInput
+              style={[globalStyles.input, {
+                backgroundColor: colors.cardBackground,
+                color: colors.textPrimary,
+                borderColor: errors.title && touched.title ? colors.error : colors.border,
+                borderWidth: 1
+              }]}
+              placeholder="News title"
+              placeholderTextColor={colors.textSecondary}
+              value={title}
+              onChangeText={(text) => handleChange('title', text)}
+              onBlur={() => handleBlur('title', title)}
+              maxLength={100}
+            />
+            {errors.title && touched.title && (
+              <Text style={{ color: colors.error, fontSize: 12, marginTop: 4, marginLeft: 4 }}>{errors.title}</Text>
+            )}
+          </View>
 
-          <TextInput
-            style={[globalStyles.input, {
-              marginBottom: 12,
-              backgroundColor: colors.cardBackground,
-              color: colors.textPrimary,
-              borderColor: colors.border,
-              minHeight: 100,
-              paddingTop: 12,
-            }]}
-            placeholder="Description"
-            placeholderTextColor={colors.textSecondary}
-            value={description}
-            onChangeText={setDescription}
-            multiline
-            numberOfLines={4}
-            maxLength={500}
-          />
+          <View style={{ marginBottom: 12 }}>
+            <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 8, marginLeft: 4 }}>DESCRIPTION</Text>
+            <TextInput
+              style={[globalStyles.input, {
+                backgroundColor: colors.cardBackground,
+                color: colors.textPrimary,
+                borderColor: errors.description && touched.description ? colors.error : colors.border,
+                borderWidth: 1,
+                minHeight: 100,
+                paddingTop: 12,
+              }]}
+              placeholder="Description"
+              placeholderTextColor={colors.textSecondary}
+              value={description}
+              onChangeText={(text) => handleChange('description', text)}
+              onBlur={() => handleBlur('description', description)}
+              multiline
+              numberOfLines={4}
+              maxLength={500}
+            />
+            {errors.description && touched.description && (
+              <Text style={{ color: colors.error, fontSize: 12, marginTop: 4, marginLeft: 4 }}>{errors.description}</Text>
+            )}
+          </View>
 
-          <TextInput
-            style={[globalStyles.input, {
-              marginBottom: 16,
-              backgroundColor: colors.cardBackground,
-              color: colors.textPrimary,
-              borderColor: colors.border
-            }]}
-            placeholder="URL (optional)"
-            placeholderTextColor={colors.textSecondary}
-            value={url}
-            onChangeText={setUrl}
-            maxLength={200}
-          />
+          <View style={{ marginBottom: 16 }}>
+            <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 8, marginLeft: 4 }}>URL (OPTIONAL)</Text>
+            <TextInput
+              style={[globalStyles.input, {
+                backgroundColor: colors.cardBackground,
+                color: colors.textPrimary,
+                borderColor: errors.url && touched.url ? colors.error : colors.border,
+                borderWidth: 1
+              }]}
+              placeholder="https://example.com"
+              placeholderTextColor={colors.textSecondary}
+              value={url}
+              onChangeText={(text) => handleChange('url', text)}
+              onBlur={() => handleBlur('url', url)}
+              maxLength={200}
+              autoCapitalize="none"
+              keyboardType="url"
+            />
+            {errors.url && touched.url && (
+              <Text style={{ color: colors.error, fontSize: 12, marginTop: 4, marginLeft: 4 }}>{errors.url}</Text>
+            )}
+          </View>
 
           <View style={{ marginBottom: 16, flexDirection: 'row', alignItems: 'center' }}>
             <Checkbox
