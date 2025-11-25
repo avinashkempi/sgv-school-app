@@ -102,7 +102,7 @@ export default function ProfileScreen() {
         {user ? (
           <>
             <Text style={{ fontSize: 24, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 8 }}>
-              {user.username}
+              {user.name}
             </Text>
 
             {user.phone && (

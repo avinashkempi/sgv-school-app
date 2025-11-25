@@ -251,7 +251,7 @@ export default function NewsScreen() {
     // Close modal immediately and show background loader
     setIsModalVisible(false);
     setEditingNews(null);
-    setRefreshing(true);
+    showToast('Saving news...', 'info');
 
     try {
       const token = await AsyncStorage.getItem('@auth_token');
@@ -308,8 +308,6 @@ export default function NewsScreen() {
     } catch (error) {
       console.error('News submit error:', error);
       showToast(error.message || 'Failed to save news');
-    } finally {
-      setRefreshing(false);
     }
   };
 

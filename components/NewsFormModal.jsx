@@ -8,7 +8,7 @@ import apiConfig from '../config/apiConfig';
 import apiFetch from '../utils/apiFetch';
 import { Checkbox } from 'react-native-paper';
 
-export default function NewsFormModal({ isVisible, onClose, onSuccess, editItem = null }) {
+export default function NewsFormModal({ isVisible, onClose, onSubmit, editItem = null }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [url, setUrl] = useState('');
@@ -51,9 +51,7 @@ export default function NewsFormModal({ isVisible, onClose, onSuccess, editItem 
         else if (value.trim().length < 10) error = "Description must be at least 10 characters";
         break;
       case "url":
-        if (value.trim() && !/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/.test(value.trim())) {
-          error = "Invalid URL format";
-        }
+        // No validation - accept any input
         break;
     }
     return error;
@@ -97,7 +95,7 @@ export default function NewsFormModal({ isVisible, onClose, onSuccess, editItem 
     }
 
     // Pass data to parent component
-    onSuccess({
+    onSubmit({
       title: title.trim(),
       description: description.trim(),
       url: url.trim() || undefined,

@@ -265,7 +265,7 @@ export default function AdminScreen() {
     }
   };
 
-  const deleteUser = async (userId, userName) => {
+  const deleteUser = async (userId, name) => {
     try {
       const token = await AsyncStorage.getItem("@auth_token");
 
@@ -289,7 +289,7 @@ export default function AdminScreen() {
         await updateCachedData(CACHE_KEYS.USERS, (cachedUsers) =>
           cachedUsers.filter(u => u._id !== userId)
         );
-        showToast(`User ${userName} deleted successfully`, "success");
+        showToast(`User ${name} deleted successfully`, "success");
       } else {
         throw new Error("Failed to delete user");
       }

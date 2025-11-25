@@ -217,7 +217,7 @@ export default function EventsScreen() {
             const parsed = JSON.parse(user);
             const isAdmin = !!(parsed && (parsed.role === 'admin' || parsed.role === 'super admin'));
             setIsAuthenticated(isAdmin);
-            if (parsed && parsed.username) console.log('User loaded:', parsed.username, 'isAdmin:', isAdmin);
+            if (parsed && parsed.name) console.log('User loaded:', parsed.name, 'isAdmin:', isAdmin);
           } catch (e) {
             console.warn('Failed to parse stored user', e);
             setIsAuthenticated(false);
@@ -243,7 +243,7 @@ export default function EventsScreen() {
     // Close modal immediately and show background loader
     setIsEventFormVisible(false);
     setEditingEvent(null);
-    setRefreshing(true);
+    showToast('Saving event...', 'info');
 
     try {
       const token = await AsyncStorage.getItem('@auth_token');
@@ -290,8 +290,6 @@ export default function EventsScreen() {
     } catch (error) {
       console.error('Event submit error:', error);
       showToast(error.message || 'Failed to save event');
-    } finally {
-      setRefreshing(false);
     }
   };
 
