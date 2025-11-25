@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { View, Text, ScrollView, Pressable, Alert, Switch } from "react-native";
+import { View, Text, ScrollView, Pressable, Alert, Switch, RefreshControl } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons, FontAwesome } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from "../theme";
 import { SCHOOL } from "../constants/basic-info";
 import { Linking } from "react-native";
+import { formatDate } from "../utils/date";
 // import { logFCMToken } from "../utils/fcm"; // Uncomment to log FCM token
 
 export default function ProfileScreen() {
@@ -14,22 +15,64 @@ export default function ProfileScreen() {
   const [user, setUser] = useState(null);
   const [selectedTheme, setSelectedTheme] = useState(mode);
 
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const storedUser = await AsyncStorage.getItem('@auth_user');
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadUser = async () => {
+    try {
+      const storedUser = await AsyncStorage.getItem('@auth_user');
+      const token = await AsyncStorage.getItem('@auth_token');
+
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+
+          // Fetch latest profile from backend
+          if (token) {
+            try {
+              const apiConfig = require('../config/apiConfig').default;
+              const apiFetch = require('../utils/apiFetch').default;
+
+              const response = await apiFetch(`${apiConfig.baseUrl}/users/me`, {
+                method: 'GET',
+                headers: { Authorization: `Bearer ${token}` },
+              });
+
+              if (response.ok) {
+                const freshUserData = await response.json();
+                console.log('Fresh user data loaded:', freshUserData);
+
+                // Update AsyncStorage with fresh data
+                await AsyncStorage.setItem('@auth_user', JSON.stringify(freshUserData));
+                setUser(freshUserData);
+              }
+            } catch (err) {
+              console.log("Failed to refresh profile:", err);
+              // Continue with cached data if fetch fails
+            }
+          }
+        } catch (parseError) {
+          console.error("Failed to parse stored user:", parseError);
+          await AsyncStorage.removeItem('@auth_user');
         }
-      } catch (e) {
-        console.warn('Failed to load user', e);
       }
-    };
+    } catch (e) {
+      console.warn('Failed to load user', e);
+    }
+  };
+
+  useEffect(() => {
     loadUser();
 
     // Uncomment the line below to log FCM token to console
     // logFCMToken().catch(err => console.log('FCM token error:', err));
   }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadUser();
+    setRefreshing(false);
+  };
 
   const handleLogout = async () => {
     try {
@@ -79,7 +122,13 @@ export default function ProfileScreen() {
   ], [colors.primary, handlePress]);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentPaddingBottom}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentPaddingBottom}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
+      }
+    >
       {/* Profile Header */}
       <View style={{ alignItems: "center", marginTop: 20, marginBottom: 40 }}>
         <View style={{
@@ -105,37 +154,90 @@ export default function ProfileScreen() {
               {user.name}
             </Text>
 
-            {user.phone && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                <MaterialIcons name="phone" size={16} color={colors.textSecondary} />
-                <Text style={{ fontSize: 14, fontFamily: "DMSans-Regular", color: colors.textSecondary }}>
-                  {user.phone}
-                </Text>
-              </View>
-            )}
-
-            {user.email && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                <MaterialIcons name="email" size={16} color={colors.textSecondary} />
-                <Text style={{ fontSize: 14, fontFamily: "DMSans-Regular", color: colors.textSecondary }}>
-                  {user.email}
-                </Text>
-              </View>
-            )}
-
             {user.role && (
               <View style={{
                 backgroundColor: colors.primary + '15',
                 paddingVertical: 6,
                 paddingHorizontal: 16,
                 borderRadius: 20,
-                marginTop: 4
+                marginTop: 4,
+                marginBottom: 16
               }}>
                 <Text style={{ color: colors.primary, fontFamily: "DMSans-Bold", fontSize: 12, textTransform: 'uppercase' }}>
                   {user.role}
                 </Text>
               </View>
             )}
+
+            <View style={{ width: '100%', paddingHorizontal: 20 }}>
+              {/* Contact Info */}
+              <View style={{ backgroundColor: colors.cardBackground, borderRadius: 16, padding: 16, marginBottom: 16 }}>
+                <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.textSecondary, marginBottom: 12 }}>CONTACT INFO</Text>
+
+                {user.phone && (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                    <View style={{ width: 32, alignItems: 'center' }}><MaterialIcons name="phone" size={20} color={colors.primary} /></View>
+                    <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.textPrimary, marginLeft: 8 }}>{user.phone}</Text>
+                  </View>
+                )}
+
+                {user.email && (
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <View style={{ width: 32, alignItems: 'center' }}><MaterialIcons name="email" size={20} color={colors.primary} /></View>
+                    <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.textPrimary, marginLeft: 8 }}>{user.email}</Text>
+                  </View>
+                )}
+              </View>
+
+              {/* Role Specific Details */}
+              {(user.role === 'student' || user.role === 'class teacher' || user.role === 'staff') && (
+                <View style={{ backgroundColor: colors.cardBackground, borderRadius: 16, padding: 16, marginBottom: 16 }}>
+                  <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.textSecondary, marginBottom: 12 }}>
+                    {user.role === 'student' ? 'STUDENT DETAILS' : 'STAFF DETAILS'}
+                  </Text>
+
+                  {user.role === 'student' && (
+                    <>
+                      {user.guardianName && (
+                        <View style={{ marginBottom: 12 }}>
+                          <Text style={{ fontSize: 12, color: colors.textSecondary }}>Guardian Name</Text>
+                          <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.textPrimary }}>{user.guardianName}</Text>
+                        </View>
+                      )}
+                      {user.guardianPhone && (
+                        <View style={{ marginBottom: 12 }}>
+                          <Text style={{ fontSize: 12, color: colors.textSecondary }}>Guardian Phone</Text>
+                          <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.textPrimary }}>{user.guardianPhone}</Text>
+                        </View>
+                      )}
+                      {user.admissionDate && (
+                        <View>
+                          <Text style={{ fontSize: 12, color: colors.textSecondary }}>Admission Date</Text>
+                          <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.textPrimary }}>{formatDate(user.admissionDate)}</Text>
+                        </View>
+                      )}
+                    </>
+                  )}
+
+                  {(user.role === 'class teacher' || user.role === 'staff') && (
+                    <>
+                      {user.designation && (
+                        <View style={{ marginBottom: 12 }}>
+                          <Text style={{ fontSize: 12, color: colors.textSecondary }}>Designation</Text>
+                          <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.textPrimary }}>{user.designation}</Text>
+                        </View>
+                      )}
+                      {user.joiningDate && (
+                        <View>
+                          <Text style={{ fontSize: 12, color: colors.textSecondary }}>Joining Date</Text>
+                          <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.textPrimary }}>{formatDate(user.joiningDate)}</Text>
+                        </View>
+                      )}
+                    </>
+                  )}
+                </View>
+              )}
+            </View>
           </>
         ) : (
           <>

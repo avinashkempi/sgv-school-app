@@ -34,7 +34,7 @@ function BottomNavigation() {
       }
     };
     loadUser();
-  }, []); // Only run once on mount
+  }, [pathname]); // Reload user when route changes (e.g. login/logout)
 
   // Memoize navigation items to prevent recalculation on every render
   const navigationItems = useMemo(() => [
@@ -58,8 +58,20 @@ function BottomNavigation() {
       label: "Menu",
       icon: "menu",
     },
-    // Show Admin menu if user role includes 'admin'
-    ...(user && user.role && user.role.toLowerCase().includes('admin') ? [{
+    // Show My Class menu if user is a student
+    ...(user && user.role === 'student' ? [{
+      route: ROUTES.STUDENT_CLASS,
+      label: "My Class",
+      icon: "school",
+    }] : []),
+    // Show Classes menu if user is a teacher
+    ...(user && (user.role === 'class teacher' || user.role === 'staff') ? [{
+      route: ROUTES.TEACHER_CLASSES,
+      label: "Classes",
+      icon: "class",
+    }] : []),
+    // Show Admin menu if user role is admin or super admin
+    ...(user && (user.role === 'admin' || user.role === 'super admin') ? [{
       route: ROUTES.ADMIN,
       label: "Admin",
       icon: "admin-panel-settings",

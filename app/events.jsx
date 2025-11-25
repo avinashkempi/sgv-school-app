@@ -96,23 +96,12 @@ const DayRenderer = React.memo(({ date, state, marking, onDayPress, colors }) =>
   );
 });
 
+import { formatDate } from "../utils/date";
+
+// ... inside component
 // Helper to format dates for display in Indian format (DD-MM-YYYY)
 const formatIndianDate = (dateInput) => {
-  if (!dateInput) return "";
-  try {
-    // handle yyyy-mm-dd strings (selectedDate from calendar) by forcing midnight
-    const d =
-      typeof dateInput === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dateInput)
-        ? new Date(dateInput + "T00:00:00")
-        : new Date(dateInput);
-    if (isNaN(d)) return String(dateInput);
-    const day = String(d.getDate()).padStart(2, "0");
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const year = d.getFullYear();
-    return `${day}-${month}-${year}`;
-  } catch (e) {
-    return String(dateInput);
-  }
+  return formatDate(dateInput);
 };
 
 // Memoized EventCard component with custom comparison for optimal performance
@@ -522,7 +511,7 @@ export default function EventsScreen() {
             setEditingEvent(null);
           }}
           selectedDate={selectedDate}
-          onSubmit={(eventData) => {
+          onSuccess={(eventData) => {
             handleEventSubmit(eventData);
           }}
           editItem={editingEvent}

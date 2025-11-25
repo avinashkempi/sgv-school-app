@@ -10,6 +10,7 @@ import apiConfig from "../config/apiConfig";
 import apiFetch from "../utils/apiFetch";
 import { useToast } from "../components/ToastProvider";
 import { getCachedData, setCachedData, CACHE_KEYS, CACHE_EXPIRY } from "../utils/cache";
+import { formatDate } from "../utils/date";
 
 // Global cache for news to persist across component re-mounts
 let globalNews = [];
@@ -175,71 +176,69 @@ export default function NewsScreen() {
               {item.title}
             </Text>
           )}
-          <Text style={{ fontSize: 14, fontFamily: "DMSans-Regular", color: colors.textSecondary, lineHeight: 20, marginBottom: 12 }} numberOfLines={3}>
-            {item.description}
+          <Text style={{ fontSize: 13, fontFamily: "DMSans-Medium", color: colors.textSecondary }}>
+            {formatDate(item.creationDate)}
           </Text>
-
-          {/* Metadata row */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-            <Text style={{ fontSize: 13, fontFamily: "DMSans-Medium", color: colors.textSecondary }}>
-              {new Date(item.creationDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-            </Text>
-            {item.privateNews && (
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <MaterialIcons name="lock" size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />
-                <Text style={{ fontSize: 13, fontFamily: "DMSans-Medium", color: colors.textSecondary }}>Private</Text>
-              </View>
-            )}
-          </View>
-
-          {item.url && (
-            <Pressable onPress={() => {
-              Linking.openURL(item.url).catch(err => {
-                console.error("Failed to open URL:", err);
-                showToast('Failed to open link');
-              });
-            }} style={{ marginTop: 12 }}>
-              <Text style={{ fontSize: 14, fontFamily: "DMSans-SemiBold", color: colors.primary }}>🔗 Open Link</Text>
-            </Pressable>
-          )}
         </View>
-
-        {isAdmin && (
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            <Pressable
-              onPress={() => handleEditNews(item)}
-              style={({ pressed }) => ({
-                padding: 8,
-                backgroundColor: colors.background,
-                borderRadius: 8,
-                opacity: pressed ? 0.7 : 1,
-              })}
-            >
-              <MaterialIcons name="edit" size={18} color={colors.textSecondary} />
-            </Pressable>
-            <Pressable
-              onPress={() => {
-                Alert.alert(
-                  "Delete News",
-                  `Are you sure you want to delete "${item.title}"? This action cannot be undone.`,
-                  [
-                    { text: "Cancel", style: "cancel" },
-                    { text: "Delete", style: "destructive", onPress: () => handleDeleteNews(item._id, item.title) },
-                  ]
-                );
-              }}
-              style={({ pressed }) => ({
-                padding: 8,
-                backgroundColor: colors.error + '15',
-                borderRadius: 8,
-                opacity: pressed ? 0.7 : 1,
-              })}
-            >
-              <MaterialIcons name="delete-outline" size={18} color={colors.error} />
-            </Pressable>
+        {item.isPrivate && (
+          <View style={{ backgroundColor: colors.background, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 }}>
+            <Text style={{ fontSize: 10, fontFamily: "DMSans-Bold", color: colors.textSecondary, textTransform: "uppercase" }}>
+              Private
+            </Text>
           </View>
         )}
       </View>
+
+      <Text style={{ fontSize: 15, fontFamily: "DMSans-Regular", color: colors.textSecondary, lineHeight: 22 }} numberOfLines={3}>
+        {item.description}
+      </Text>
+
+      {item.url && (
+        <Pressable onPress={() => {
+          Linking.openURL(item.url).catch(err => {
+            console.error("Failed to open URL:", err);
+            showToast('Failed to open link');
+          });
+        }} style={{ marginTop: 12 }}>
+          <Text style={{ fontSize: 14, fontFamily: "DMSans-SemiBold", color: colors.primary }}>🔗 Open Link</Text>
+        </Pressable>
+      )}
+
+      {isAdmin && (
+        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 12, gap: 8, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 12 }}>
+          <Pressable
+            onPress={() => handleEditNews(item)}
+            style={({ pressed }) => ({
+              padding: 8,
+              backgroundColor: colors.background,
+              borderRadius: 8,
+              opacity: pressed ? 0.7 : 1,
+            })}
+          >
+            <MaterialIcons name="edit" size={18} color={colors.textSecondary} />
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              Alert.alert(
+                "Delete News",
+                `Are you sure you want to delete "${item.title}"? This action cannot be undone.`,
+                [
+                  { text: "Cancel", style: "cancel" },
+                  { text: "Delete", style: "destructive", onPress: () => handleDeleteNews(item._id, item.title) },
+                ]
+              );
+            }}
+            style={({ pressed }) => ({
+              padding: 8,
+              backgroundColor: colors.error + '15',
+              borderRadius: 8,
+              opacity: pressed ? 0.7 : 1,
+            })}
+          >
+            <MaterialIcons name="delete-outline" size={18} color={colors.error} />
+          </Pressable>
+        </View>
+      )}
     </View>
   ), [styles.cardMinimal, colors, isAdmin, showToast]); // Removed handleEditNews, handleDeleteNews from deps
 
@@ -398,7 +397,7 @@ export default function NewsScreen() {
       />
 
       {/* FAB for Add News */}
-      {isAuthenticated && (
+      {isAdmin && (
         <Pressable
           onPress={() => setIsModalVisible(true)}
           style={({ pressed }) => ([
