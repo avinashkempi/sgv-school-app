@@ -71,7 +71,7 @@ const DayRenderer = React.memo(({ date, state, marking, onDayPress, colors }) =>
       </Text>
 
       {/* Dots for events */}
-      {hasEvent && !isSelected && (
+      {hasEvent && !isSelected && !hasSchoolEvent && (
         <View
           style={{
             position: 'absolute',
@@ -79,7 +79,7 @@ const DayRenderer = React.memo(({ date, state, marking, onDayPress, colors }) =>
             width: 4,
             height: 4,
             borderRadius: 2,
-            backgroundColor: hasSchoolEvent ? '' : colors.primary,
+            backgroundColor: colors.primary,
           }}
         />
       )}
@@ -116,62 +116,69 @@ const formatIndianDate = (dateInput) => {
 };
 
 // Memoized EventCard component with custom comparison for optimal performance
-const EventCard = React.memo(({ event, styles, colors, isAdmin, onEdit, onDelete }) => (
-  <View style={styles.cardMinimal}>
-    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-      <View style={{ flex: 1, marginRight: 12 }}>
-        <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 8 }} numberOfLines={2}>
-          {event.title}
-        </Text>
-        {event.description && (
-          <Text style={{ fontSize: 14, fontFamily: "DMSans-Regular", color: colors.textSecondary, lineHeight: 20, marginBottom: 12 }} numberOfLines={2}>
-            {event.description}
+const EventCard = React.memo(({ event, styles, colors, isAdmin, onEdit, onDelete }) => {
+  // Sanitize event data to prevent rendering issues
+  const title = event.title?.trim() || 'Untitled Event';
+  const description = event.description?.trim();
+  const hasValidDescription = description && description.length > 1;
+
+  return (
+    <View style={styles.cardMinimal}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <View style={{ flex: 1, marginRight: 12 }}>
+          <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 8 }} numberOfLines={2}>
+            {title}
           </Text>
-        )}
-        {event.isSchoolEvent && (
-          <View style={{
-            backgroundColor: '#FFD700' + '20',
-            paddingVertical: 4,
-            paddingHorizontal: 12,
-            borderRadius: 20,
-            alignSelf: 'flex-start',
-            flexDirection: 'row',
-            alignItems: 'center'
-          }}>
-            <MaterialIcons name="school" size={14} color="#F59E0B" style={{ marginRight: 4 }} />
-            <Text style={{ fontSize: 12, fontFamily: "DMSans-Bold", color: "#F59E0B" }}>School Event</Text>
+          {hasValidDescription && (
+            <Text style={{ fontSize: 14, fontFamily: "DMSans-Regular", color: colors.textSecondary, lineHeight: 20, marginBottom: 12 }} numberOfLines={2}>
+              {description}
+            </Text>
+          )}
+          {event.isSchoolEvent && (
+            <View style={{
+              backgroundColor: '#FFD700' + '20',
+              paddingVertical: 4,
+              paddingHorizontal: 12,
+              borderRadius: 20,
+              alignSelf: 'flex-start',
+              flexDirection: 'row',
+              alignItems: 'center'
+            }}>
+              <MaterialIcons name="school" size={14} color="#F59E0B" style={{ marginRight: 4 }} />
+              <Text style={{ fontSize: 12, fontFamily: "DMSans-Bold", color: "#F59E0B" }}>School Event</Text>
+            </View>
+          )}
+        </View>
+        {isAdmin && (
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <Pressable
+              onPress={onEdit}
+              style={({ pressed }) => ({
+                padding: 8,
+                backgroundColor: colors.background,
+                borderRadius: 8,
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <MaterialIcons name="edit" size={18} color={colors.textSecondary} />
+            </Pressable>
+            <Pressable
+              onPress={onDelete}
+              style={({ pressed }) => ({
+                padding: 8,
+                backgroundColor: colors.error + '15',
+                borderRadius: 8,
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <MaterialIcons name="delete-outline" size={18} color={colors.error} />
+            </Pressable>
           </View>
         )}
       </View>
-      {isAdmin && (
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          <Pressable
-            onPress={onEdit}
-            style={({ pressed }) => ({
-              padding: 8,
-              backgroundColor: colors.background,
-              borderRadius: 8,
-              opacity: pressed ? 0.7 : 1,
-            })}
-          >
-            <MaterialIcons name="edit" size={18} color={colors.textSecondary} />
-          </Pressable>
-          <Pressable
-            onPress={onDelete}
-            style={({ pressed }) => ({
-              padding: 8,
-              backgroundColor: colors.error + '15',
-              borderRadius: 8,
-              opacity: pressed ? 0.7 : 1,
-            })}
-          >
-            <MaterialIcons name="delete-outline" size={18} color={colors.error} />
-          </Pressable>
-        </View>
-      )}
     </View>
-  </View>
-), (prevProps, nextProps) => {
+  );
+}, (prevProps, nextProps) => {
   // Custom comparison - only re-render if these props change
   return (
     prevProps.event._id === nextProps.event._id &&
@@ -457,7 +464,6 @@ export default function EventsScreen() {
               filteredEvents.map((item) => (
                 <EventCard
                   key={item._id ?? item.id}
-                  // format date for display only; keep original item.date on the source data
                   event={{ ...item, date: formatIndianDate(item.date) }}
                   styles={styles}
                   colors={colors}
