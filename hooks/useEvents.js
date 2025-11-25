@@ -1,16 +1,16 @@
-import { useState,useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import apiConfig from '../config/apiConfig';
-import { 
-  getCachedData, 
-  setCachedData, 
+import {
+  getCachedData,
+  setCachedData,
   isCacheStale,
   isRefreshing,
   setRefreshLock,
   clearRefreshLock,
-  CACHE_KEYS, 
+  CACHE_KEYS,
   CACHE_EXPIRY,
-  STALE_TIME 
+  STALE_TIME
 } from '../utils/cache';
 import apiFetch from '../utils/apiFetch';
 
@@ -37,7 +37,7 @@ export default function useEvents() {
 
     console.log(`[EVENTS] Fetching from API... ${queryString}`);
     const response = await apiFetch(
-      apiConfig.url(`${apiConfig.endpoints.events.list}${queryString}`), 
+      apiConfig.url(`${apiConfig.endpoints.events.list}${queryString}`),
       fetchOptions
     );
 
@@ -69,9 +69,9 @@ export default function useEvents() {
 
     try {
       setRefreshLock(cacheKey);
-      
+
       const eventsData = await fetchEventsFromAPI(startDate, endDate);
-      
+
       if (isMountedRef.current) {
         setEvents(eventsData);
         setError(null);
@@ -79,7 +79,7 @@ export default function useEvents() {
 
       await setCachedData(cacheKey, eventsData);
       console.log('[EVENTS] Cached successfully');
-      
+
       if (callback) callback(null, eventsData.length);
     } catch (err) {
       console.error('[EVENTS] Failed to fetch:', err.message);
@@ -102,15 +102,15 @@ export default function useEvents() {
       try {
         // Step 1: Try to load from cache first
         const cachedEvents = await getCachedData(cacheKey, CACHE_EXPIRY.EVENTS);
-        
-        if (cachedEvents && !cancelled) {
+
+        if (cachedEvents && cachedEvents.length > 0 && !cancelled) {
           console.log(`[EVENTS] Loaded ${cachedEvents.length} events from cache`);
           setEvents(cachedEvents);
           setLoading(false);
 
           // Step 2: Check if cache is stale
           const isStale = await isCacheStale(cacheKey, STALE_TIME.EVENTS);
-          
+
           if (isStale) {
             console.log('[EVENTS] Cache is stale, refreshing in background');
             // Refresh in background without showing loader
@@ -125,9 +125,9 @@ export default function useEvents() {
           const now = new Date();
           const startOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
           const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0).toISOString();
-          
+
           await fetchEventsRange(startOfMonth, endOfMonth);
-          
+
           if (!cancelled) {
             setLoading(false);
           }
@@ -160,7 +160,7 @@ export default function useEvents() {
     const normalized = { ...newEvent };
     if (!normalized._id && normalized.id) normalized._id = normalized.id;
     normalized.isSchoolEvent = Boolean(normalized.isSchoolEvent);
-    
+
     setEvents(prev => {
       const updated = [...prev, normalized];
       // Update cache in background
@@ -172,7 +172,7 @@ export default function useEvents() {
   const updateEvent = useCallback((updatedEvent) => {
     const normalized = { ...updatedEvent };
     if (!normalized._id && normalized.id) normalized._id = normalized.id;
-    
+
     setEvents(prev => {
       const updated = prev.map(event =>
         event._id === normalized._id ? normalized : event
@@ -192,13 +192,13 @@ export default function useEvents() {
     });
   }, []);
 
-  return { 
-    events, 
-    loading, 
-    error, 
-    addEvent, 
-    updateEvent, 
-    removeEvent, 
-    fetchEventsRange 
+  return {
+    events,
+    loading,
+    error,
+    addEvent,
+    updateEvent,
+    removeEvent,
+    fetchEventsRange
   };
 }

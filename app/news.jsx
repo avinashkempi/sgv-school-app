@@ -13,7 +13,7 @@ import { getCachedData, setCachedData, CACHE_KEYS, CACHE_EXPIRY } from "../utils
 
 // Global cache for news to persist across component re-mounts
 let globalNews = [];
-let globalNewsLoading = true;
+let globalNewsLoading = false; // Changed from true to false - no initial loader
 let globalNewsError = null;
 let newsFetched = false;
 
@@ -231,25 +231,11 @@ export default function NewsScreen() {
         )}
       </View>
     </View>
-  ), [styles.cardMinimal, colors, isAdmin, showToast, handleEditNews, handleDeleteNews]);
+  ), [styles.cardMinimal, colors, isAdmin, showToast]); // Removed handleEditNews, handleDeleteNews from deps
 
-  if (loading && news.length === 0) {
-    return (
-      <View style={styles.container}>
-        <Header title="Latest News" />
-        <Text style={styles.empty}>Loading news...</Text>
-      </View>
-    );
-  }
-
-  if (error && news.length === 0) {
-    return (
-      <View style={styles.container}>
-        <Header title="Latest News" />
-        <Text style={styles.empty}>Error loading news: {error}</Text>
-      </View>
-    );
-  }
+  // NO LOADING STATE - just show empty state if no data
+  // Removed: if (loading && news.length === 0) return <LoadingView />;
+  // Removed: if (error && news.length === 0) return <ErrorView />;
 
   const handleNewsCreated = (newNews) => {
     if (editingNews) {
