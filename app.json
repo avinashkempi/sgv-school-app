@@ -11,14 +11,6 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.sgvschool.app"
     },
-    "android": {
-      "package": "com.sgvschool.app",
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "versionCode": 7
-    },
     "web": {
       "bundler": "metro",
       "output": "static",
