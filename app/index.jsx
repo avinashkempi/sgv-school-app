@@ -58,7 +58,7 @@ export default function HomeScreen() {
             alignItems: 'center',
             marginRight: 12
           }}>
-            <MaterialIcons name="info-outline" size={24} color={colors.primary} />
+            <MaterialIcons name="apartment" size={24} color={colors.primary} />
           </View>
           <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>About Us</Text>
         </View>

@@ -11,8 +11,7 @@ import {
   Modal,
   StyleSheet,
   Platform,
-  TouchableWithoutFeedback,
-  Keyboard,
+
 } from "react-native";
 
 import { MaterialIcons } from "@expo/vector-icons";
@@ -377,7 +376,14 @@ export default function AdminScreen() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || `Failed to create user (Status: ${response.status})`);
+        let errorMessage = result.message || `Failed to create user (Status: ${response.status})`;
+
+        // Check for specific validation errors
+        if (result.errors && Array.isArray(result.errors) && result.errors.length > 0) {
+          errorMessage = result.errors[0].msg || errorMessage;
+        }
+
+        throw new Error(errorMessage);
       }
 
       if (result.success) {
@@ -658,219 +664,219 @@ export default function AdminScreen() {
         transparent={true}
         onRequestClose={() => setShowUserModal(false)}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.6)" }}>
-            <View style={{
-              backgroundColor: colors.cardBackground,
-              borderRadius: 24,
-              padding: 24,
-              width: "90%",
-              maxWidth: 400,
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 10 },
-              shadowOpacity: 0.25,
-              shadowRadius: 20,
-              elevation: 10,
-            }}>
-              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-                <Text style={{ fontSize: 22, fontWeight: "700", color: colors.textPrimary }}>
-                  {modalMode === "add" ? "New User" : "Edit User"}
-                </Text>
-                <Pressable onPress={() => setShowUserModal(false)} style={{ padding: 4 }}>
-                  <MaterialIcons name="close" size={24} color={colors.textSecondary} />
-                </Pressable>
-              </View>
 
-              {modalMode === "add" && (
-                <>
-                  <View style={{ marginBottom: 16 }}>
-                    <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 8, marginLeft: 4 }}>NAME</Text>
-                    <TextInput
-                      style={{
-                        backgroundColor: colors.background,
-                        borderRadius: 12,
-                        paddingHorizontal: 16,
-                        paddingVertical: 12,
-                        fontSize: 16,
-                        color: colors.textPrimary,
-                        borderWidth: 1,
-                        borderColor: errors.name && touched.name ? colors.error : "transparent"
-                      }}
-                      placeholder="Enter name"
-                      placeholderTextColor={colors.textSecondary}
-                      value={userForm.name}
-                      onChangeText={(text) => handleChange("name", text)}
-                      onBlur={() => handleBlur("name")}
-                    />
-                    {errors.name && touched.name && (
-                      <Text style={{ color: colors.error, fontSize: 12, marginTop: 4, marginLeft: 4 }}>{errors.name}</Text>
-                    )}
-                  </View>
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.6)" }}>
+          <View style={{
+            backgroundColor: colors.cardBackground,
+            borderRadius: 24,
+            padding: 24,
+            width: "90%",
+            maxWidth: 400,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 10 },
+            shadowOpacity: 0.25,
+            shadowRadius: 20,
+            elevation: 10,
+          }}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+              <Text style={{ fontSize: 22, fontWeight: "700", color: colors.textPrimary }}>
+                {modalMode === "add" ? "New User" : "Edit User"}
+              </Text>
+              <Pressable onPress={() => setShowUserModal(false)} style={{ padding: 4 }}>
+                <MaterialIcons name="close" size={24} color={colors.textSecondary} />
+              </Pressable>
+            </View>
 
-                  <View style={{ marginBottom: 16 }}>
-                    <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 8, marginLeft: 4 }}>PHONE</Text>
-                    <TextInput
-                      style={{
-                        backgroundColor: colors.background,
-                        borderRadius: 12,
-                        paddingHorizontal: 16,
-                        paddingVertical: 12,
-                        fontSize: 16,
-                        color: colors.textPrimary,
-                        borderWidth: 1,
-                        borderColor: errors.phone && touched.phone ? colors.error : "transparent"
-                      }}
-                      placeholder="Enter phone number"
-                      placeholderTextColor={colors.textSecondary}
-                      value={userForm.phone}
-                      onChangeText={(text) => handleChange("phone", text)}
-                      onBlur={() => handleBlur("phone")}
-                      keyboardType="phone-pad"
-                      maxLength={10}
-                    />
-                    {errors.phone && touched.phone && (
-                      <Text style={{ color: colors.error, fontSize: 12, marginTop: 4, marginLeft: 4 }}>{errors.phone}</Text>
-                    )}
-                  </View>
-
-                  <View style={{ marginBottom: 16 }}>
-                    <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 8, marginLeft: 4 }}>EMAIL</Text>
-                    <TextInput
-                      style={{
-                        backgroundColor: colors.background,
-                        borderRadius: 12,
-                        paddingHorizontal: 16,
-                        paddingVertical: 12,
-                        fontSize: 16,
-                        color: colors.textPrimary,
-                        borderWidth: 1,
-                        borderColor: errors.email && touched.email ? colors.error : "transparent"
-                      }}
-                      placeholder="Enter email (optional)"
-                      placeholderTextColor={colors.textSecondary}
-                      value={userForm.email}
-                      onChangeText={(text) => handleChange("email", text)}
-                      onBlur={() => handleBlur("email")}
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                    />
-                    {errors.email && touched.email && (
-                      <Text style={{ color: colors.error, fontSize: 12, marginTop: 4, marginLeft: 4 }}>{errors.email}</Text>
-                    )}
-                  </View>
-
-                  <View style={{ marginBottom: 24 }}>
-                    <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 8, marginLeft: 4 }}>PASSWORD</Text>
-                    <View style={{
+            {modalMode === "add" && (
+              <>
+                <View style={{ marginBottom: 16 }}>
+                  <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 8, marginLeft: 4 }}>NAME</Text>
+                  <TextInput
+                    style={{
                       backgroundColor: colors.background,
                       borderRadius: 12,
-                      flexDirection: "row",
-                      alignItems: "center",
+                      paddingHorizontal: 16,
+                      paddingVertical: 12,
+                      fontSize: 16,
+                      color: colors.textPrimary,
                       borderWidth: 1,
-                      borderColor: errors.password && touched.password ? colors.error : "transparent"
-                    }}>
-                      <TextInput
-                        style={{
-                          flex: 1,
-                          paddingHorizontal: 16,
-                          paddingVertical: 12,
-                          fontSize: 16,
-                          color: colors.textPrimary,
-                        }}
-                        placeholder="Enter password"
-                        placeholderTextColor={colors.textSecondary}
-                        value={userForm.password}
-                        onChangeText={(text) => handleChange("password", text)}
-                        onBlur={() => handleBlur("password")}
-                        secureTextEntry={!showPassword}
-                      />
-                      <Pressable
-                        onPress={() => setShowPassword(!showPassword)}
-                        style={{ paddingHorizontal: 16 }}
-                      >
-                        <MaterialIcons
-                          name={showPassword ? "visibility-off" : "visibility"}
-                          size={20}
-                          color={colors.textSecondary}
-                        />
-                      </Pressable>
-                    </View>
-                    {errors.password && touched.password && (
-                      <Text style={{ color: colors.error, fontSize: 12, marginTop: 4, marginLeft: 4 }}>{errors.password}</Text>
-                    )}
-                  </View>
-                </>
-              )}
+                      borderColor: errors.name && touched.name ? colors.error : "transparent"
+                    }}
+                    placeholder="Enter name"
+                    placeholderTextColor={colors.textSecondary}
+                    value={userForm.name}
+                    onChangeText={(text) => handleChange("name", text)}
+                    onBlur={() => handleBlur("name")}
+                  />
+                  {errors.name && touched.name && (
+                    <Text style={{ color: colors.error, fontSize: 12, marginTop: 4, marginLeft: 4 }}>{errors.name}</Text>
+                  )}
+                </View>
 
-              <View style={{ marginBottom: 32 }}>
-                <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 12, marginLeft: 4 }}>ROLE</Text>
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                  {availableRoles.map((role) => (
-                    <Pressable
-                      key={role}
-                      onPress={() => setUserForm({ ...userForm, role })}
+                <View style={{ marginBottom: 16 }}>
+                  <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 8, marginLeft: 4 }}>PHONE</Text>
+                  <TextInput
+                    style={{
+                      backgroundColor: colors.background,
+                      borderRadius: 12,
+                      paddingHorizontal: 16,
+                      paddingVertical: 12,
+                      fontSize: 16,
+                      color: colors.textPrimary,
+                      borderWidth: 1,
+                      borderColor: errors.phone && touched.phone ? colors.error : "transparent"
+                    }}
+                    placeholder="Enter phone number"
+                    placeholderTextColor={colors.textSecondary}
+                    value={userForm.phone}
+                    onChangeText={(text) => handleChange("phone", text)}
+                    onBlur={() => handleBlur("phone")}
+                    keyboardType="phone-pad"
+                    maxLength={10}
+                  />
+                  {errors.phone && touched.phone && (
+                    <Text style={{ color: colors.error, fontSize: 12, marginTop: 4, marginLeft: 4 }}>{errors.phone}</Text>
+                  )}
+                </View>
+
+                <View style={{ marginBottom: 16 }}>
+                  <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 8, marginLeft: 4 }}>EMAIL</Text>
+                  <TextInput
+                    style={{
+                      backgroundColor: colors.background,
+                      borderRadius: 12,
+                      paddingHorizontal: 16,
+                      paddingVertical: 12,
+                      fontSize: 16,
+                      color: colors.textPrimary,
+                      borderWidth: 1,
+                      borderColor: errors.email && touched.email ? colors.error : "transparent"
+                    }}
+                    placeholder="Enter email (optional)"
+                    placeholderTextColor={colors.textSecondary}
+                    value={userForm.email}
+                    onChangeText={(text) => handleChange("email", text)}
+                    onBlur={() => handleBlur("email")}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                  {errors.email && touched.email && (
+                    <Text style={{ color: colors.error, fontSize: 12, marginTop: 4, marginLeft: 4 }}>{errors.email}</Text>
+                  )}
+                </View>
+
+                <View style={{ marginBottom: 24 }}>
+                  <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 8, marginLeft: 4 }}>PASSWORD</Text>
+                  <View style={{
+                    backgroundColor: colors.background,
+                    borderRadius: 12,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    borderWidth: 1,
+                    borderColor: errors.password && touched.password ? colors.error : "transparent"
+                  }}>
+                    <TextInput
                       style={{
-                        backgroundColor: userForm.role === role ? colors.primary : colors.background,
+                        flex: 1,
                         paddingHorizontal: 16,
-                        paddingVertical: 8,
-                        borderRadius: 100,
-                        borderWidth: 1,
-                        borderColor: userForm.role === role ? colors.primary : "transparent",
+                        paddingVertical: 12,
+                        fontSize: 16,
+                        color: colors.textPrimary,
+                      }}
+                      placeholder="Enter password"
+                      placeholderTextColor={colors.textSecondary}
+                      value={userForm.password}
+                      onChangeText={(text) => handleChange("password", text)}
+                      onBlur={() => handleBlur("password")}
+                      secureTextEntry={!showPassword}
+                    />
+                    <Pressable
+                      onPress={() => setShowPassword(!showPassword)}
+                      style={{ paddingHorizontal: 16 }}
+                    >
+                      <MaterialIcons
+                        name={showPassword ? "visibility-off" : "visibility"}
+                        size={20}
+                        color={colors.textSecondary}
+                      />
+                    </Pressable>
+                  </View>
+                  {errors.password && touched.password && (
+                    <Text style={{ color: colors.error, fontSize: 12, marginTop: 4, marginLeft: 4 }}>{errors.password}</Text>
+                  )}
+                </View>
+              </>
+            )}
+
+            <View style={{ marginBottom: 32 }}>
+              <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 12, marginLeft: 4 }}>ROLE</Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                {availableRoles.map((role) => (
+                  <Pressable
+                    key={role}
+                    onPress={() => setUserForm({ ...userForm, role })}
+                    style={{
+                      backgroundColor: userForm.role === role ? colors.primary : colors.background,
+                      paddingHorizontal: 16,
+                      paddingVertical: 8,
+                      borderRadius: 100,
+                      borderWidth: 1,
+                      borderColor: userForm.role === role ? colors.primary : "transparent",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        fontWeight: "600",
+                        color: userForm.role === role ? "#fff" : colors.textSecondary,
+                        textTransform: "capitalize",
                       }}
                     >
-                      <Text
-                        style={{
-                          fontSize: 13,
-                          fontWeight: "600",
-                          color: userForm.role === role ? "#fff" : colors.textSecondary,
-                          textTransform: "capitalize",
-                        }}
-                      >
-                        {role}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </View>
-              </View>
-
-              <View style={{ flexDirection: "row", gap: 12 }}>
-                <Pressable
-                  onPress={() => setShowUserModal(false)}
-                  style={{
-                    flex: 1,
-                    paddingVertical: 14,
-                    borderRadius: 12,
-                    alignItems: "center",
-                    backgroundColor: colors.background,
-                  }}
-                >
-                  <Text style={{ fontSize: 16, fontWeight: "600", color: colors.textSecondary }}>Cancel</Text>
-                </Pressable>
-                <Pressable
-                  onPress={modalMode === "add" ? createUser : () => updateUserRole(editingUser._id, userForm.role)}
-                  disabled={modalMode === "add" && !isFormValid()}
-                  style={{
-                    flex: 1,
-                    paddingVertical: 14,
-                    borderRadius: 12,
-                    alignItems: "center",
-                    backgroundColor: colors.primary,
-                    shadowColor: colors.primary,
-                    shadowOffset: { width: 0, height: 4 },
-                    shadowOpacity: 0.2,
-                    shadowRadius: 8,
-                    elevation: 4,
-                    opacity: (modalMode === "add" && !isFormValid()) ? 0.5 : 1
-                  }}
-                >
-                  <Text style={{ fontSize: 16, fontWeight: "600", color: "#fff" }}>
-                    {modalMode === "add" ? "Create User" : "Save Changes"}
-                  </Text>
-                </Pressable>
+                      {role}
+                    </Text>
+                  </Pressable>
+                ))}
               </View>
             </View>
+
+            <View style={{ flexDirection: "row", gap: 12 }}>
+              <Pressable
+                onPress={() => setShowUserModal(false)}
+                style={{
+                  flex: 1,
+                  paddingVertical: 14,
+                  borderRadius: 12,
+                  alignItems: "center",
+                  backgroundColor: colors.background,
+                }}
+              >
+                <Text style={{ fontSize: 16, fontWeight: "600", color: colors.textSecondary }}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                onPress={modalMode === "add" ? createUser : () => updateUserRole(editingUser._id, userForm.role)}
+                disabled={modalMode === "add" && !isFormValid()}
+                style={{
+                  flex: 1,
+                  paddingVertical: 14,
+                  borderRadius: 12,
+                  alignItems: "center",
+                  backgroundColor: colors.primary,
+                  shadowColor: colors.primary,
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 8,
+                  elevation: 4,
+                  opacity: (modalMode === "add" && !isFormValid()) ? 0.5 : 1
+                }}
+              >
+                <Text style={{ fontSize: 16, fontWeight: "600", color: "#fff" }}>
+                  {modalMode === "add" ? "Create User" : "Save Changes"}
+                </Text>
+              </Pressable>
+            </View>
           </View>
-        </TouchableWithoutFeedback >
+        </View>
+
       </Modal >
     </View >
   );
