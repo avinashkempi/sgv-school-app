@@ -17,9 +17,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "versionCode": 7,
-      "enableEdgeToEdge": true,
-      "enable16KbPageSize": true
+      "versionCode": 7
     },
     "web": {
       "bundler": "metro",

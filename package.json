@@ -59,7 +59,6 @@
     "@expo/ngrok": "^4.1.0",
     "@types/jest": "^29.5.12",
     "@types/react": "~19.1.10",
-    "@types/react-native": "^0.72.8",
     "@types/react-test-renderer": "^18.3.0",
     "eslint": "^8.50.0",
     "eslint-config-prettier": "^9.0.0",
@@ -69,6 +68,9 @@
     "prettier": "^2.8.8",
     "react-test-renderer": "19.1.0",
     "typescript": "~5.9.2"
+  },
+  "overrides": {
+    "react-native-safe-area-context": "~5.6.0"
   },
   "private": true
 }
