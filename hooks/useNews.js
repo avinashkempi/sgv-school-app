@@ -1,17 +1,18 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import apiConfig from '../config/apiConfig';
-import { 
-  getCachedData, 
-  setCachedData, 
+import {
+  getCachedData,
+  setCachedData,
   isCacheStale,
   isRefreshing,
   setRefreshLock,
   clearRefreshLock,
-  CACHE_KEYS, 
+  CACHE_KEYS,
   CACHE_EXPIRY,
-  STALE_TIME 
+  STALE_TIME
 } from '../utils/cache';
 import apiFetch from '../utils/apiFetch';
+import { useNetworkStatus } from '../components/NetworkStatusProvider';
 
 export default function useNews() {
   const [news, setNews] = useState([]);
@@ -19,10 +20,12 @@ export default function useNews() {
   const [error, setError] = useState(null);
   const isMountedRef = useRef(true);
 
+  const { isConnected, registerOnlineCallback } = useNetworkStatus();
+
   // Fetch news from API
-  const fetchNewsFromAPI = useCallback(async () => {
-    console.log('[NEWS] Fetching from API...');
-    const response = await apiFetch(apiConfig.url(apiConfig.endpoints.news.list));
+  const fetchNewsFromAPI = useCallback(async (silent = false) => {
+    console.log(`[NEWS] Fetching from API... (Silent: ${silent})`);
+    const response = await apiFetch(apiConfig.url(apiConfig.endpoints.news.list), { silent });
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -37,13 +40,19 @@ export default function useNews() {
       console.log(`[NEWS] Received ${result.news.length} news items from API`);
       return result.news;
     }
-    
+
     return [];
   }, []);
 
   // Refresh news with caching
-  const refreshNews = useCallback(async () => {
+  const refreshNews = useCallback(async (silent = false) => {
     const cacheKey = CACHE_KEYS.NEWS;
+
+    // If offline, just return (we rely on cache)
+    if (!isConnected) {
+      console.log('[NEWS] Offline, skipping API fetch');
+      return;
+    }
 
     if (isRefreshing(cacheKey)) {
       console.log('[NEWS] Refresh already in progress, skipping');
@@ -52,9 +61,9 @@ export default function useNews() {
 
     try {
       setRefreshLock(cacheKey);
-      
-      const newsData = await fetchNewsFromAPI();
-      
+
+      const newsData = await fetchNewsFromAPI(silent);
+
       if (isMountedRef.current) {
         setNews(newsData);
         setError(null);
@@ -64,13 +73,11 @@ export default function useNews() {
       console.log('[NEWS] Cached successfully');
     } catch (err) {
       console.error('[NEWS] Failed to fetch:', err.message);
-      if (isMountedRef.current) {
-        setError(err.message);
-      }
+      // Suppress network errors as requested
     } finally {
       clearRefreshLock(cacheKey);
     }
-  }, [fetchNewsFromAPI]);
+  }, [fetchNewsFromAPI, isConnected, news.length]);
 
   // Initial load with cache-first strategy
   useEffect(() => {
@@ -82,7 +89,7 @@ export default function useNews() {
       try {
         // Step 1: Try to load from cache first
         const cachedNews = await getCachedData(cacheKey, CACHE_EXPIRY.NEWS);
-        
+
         if (cachedNews && !cancelled) {
           console.log(`[NEWS] Loaded ${cachedNews.length} news items from cache`);
           setNews(cachedNews);
@@ -90,16 +97,16 @@ export default function useNews() {
 
           // Step 2: Check if cache is stale
           const isStale = await isCacheStale(cacheKey, STALE_TIME.NEWS);
-          
-          if (isStale) {
+
+          if (isStale && isConnected) {
             console.log('[NEWS] Cache is stale, refreshing in background');
-            refreshNews();
+            refreshNews(true); // silent=true
           }
         } else {
           // Step 3: No cache, fetch from API
           console.log('[NEWS] No cache found, fetching from API');
-          await refreshNews();
-          
+          await refreshNews(true); // silent=true
+
           if (!cancelled) {
             setLoading(false);
           }
@@ -107,7 +114,7 @@ export default function useNews() {
       } catch (err) {
         console.error('[NEWS] Load error:', err);
         if (!cancelled) {
-          setError(err.message);
+          // setError(err.message); // Suppress error
           setLoading(false);
         }
       }
@@ -118,7 +125,16 @@ export default function useNews() {
     return () => {
       cancelled = true;
     };
-  }, [refreshNews]);
+  }, [refreshNews, isConnected]);
+
+  // Register online callback
+  useEffect(() => {
+    const unsubscribe = registerOnlineCallback(() => {
+      console.log('[NEWS] Network restored, refreshing news...');
+      refreshNews(true); // silent refresh
+    });
+    return unsubscribe;
+  }, [registerOnlineCallback, refreshNews]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -156,10 +172,10 @@ export default function useNews() {
     });
   }, []);
 
-  return { 
-    news, 
-    loading, 
-    error, 
+  return {
+    news,
+    loading,
+    error,
     refreshNews,
     addNews,
     updateNews,

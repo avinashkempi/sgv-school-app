@@ -1,4 +1,4 @@
-import { View, Text, FlatList, Pressable, Alert, RefreshControl } from "react-native";
+import { View, Text, FlatList, Pressable, Alert, RefreshControl, Linking } from "react-native";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../theme";
@@ -54,7 +54,7 @@ export default function NewsScreen() {
   const fetchFreshNews = useCallback(async () => {
     try {
       console.log('[NEWS] Fetching fresh news from API...');
-      const response = await apiFetch(apiConfig.url(apiConfig.endpoints.news.list));
+      const response = await apiFetch(apiConfig.url(apiConfig.endpoints.news.list), { silent: true });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -113,7 +113,7 @@ export default function NewsScreen() {
 
     const fetchNews = async () => {
       try {
-        setLoading(true);
+        // setLoading(true);
         setError(null);
 
         // Try to get cached data first
@@ -164,9 +164,17 @@ export default function NewsScreen() {
     <View style={styles.cardMinimal}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
         <View style={{ flex: 1, marginRight: 12 }}>
-          <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 8 }} numberOfLines={2}>
-            {item.title}
-          </Text>
+          {item.url ? (
+            <Pressable onPress={() => Linking.openURL(item.url)}>
+              <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.primary, marginBottom: 8, textDecorationLine: 'underline' }} numberOfLines={2}>
+                {item.title}
+              </Text>
+            </Pressable>
+          ) : (
+            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 8 }} numberOfLines={2}>
+              {item.title}
+            </Text>
+          )}
           <Text style={{ fontSize: 14, fontFamily: "DMSans-Regular", color: colors.textSecondary, lineHeight: 20, marginBottom: 12 }} numberOfLines={3}>
             {item.description}
           </Text>
@@ -186,10 +194,12 @@ export default function NewsScreen() {
 
           {item.url && (
             <Pressable onPress={() => {
-              console.log('Open URL:', item.url);
-              showToast('Link: ' + item.url);
+              Linking.openURL(item.url).catch(err => {
+                console.error("Failed to open URL:", err);
+                showToast('Failed to open link');
+              });
             }} style={{ marginTop: 12 }}>
-              <Text style={{ fontSize: 14, fontFamily: "DMSans-SemiBold", color: colors.primary }}>🔗 View Link</Text>
+              <Text style={{ fontSize: 14, fontFamily: "DMSans-SemiBold", color: colors.primary }}>🔗 Open Link</Text>
             </Pressable>
           )}
         </View>
@@ -237,16 +247,69 @@ export default function NewsScreen() {
   // Removed: if (loading && news.length === 0) return <LoadingView />;
   // Removed: if (error && news.length === 0) return <ErrorView />;
 
-  const handleNewsCreated = (newNews) => {
-    if (editingNews) {
-      // Update existing news
-      globalNews = globalNews.map(item => item._id === newNews._id ? { ...newNews, updatedAt: new Date().toISOString() } : item);
-      setNews(globalNews);
-      setEditingNews(null);
-    } else {
-      // Add new news
-      globalNews = [{ ...newNews, createdAt: new Date().toISOString() }, ...globalNews];
-      setNews(globalNews);
+  const handleNewsSubmit = async (newsData) => {
+    // Close modal immediately and show background loader
+    setIsModalVisible(false);
+    setEditingNews(null);
+    setRefreshing(true);
+
+    try {
+      const token = await AsyncStorage.getItem('@auth_token');
+      if (!token) {
+        showToast('Please login to manage news');
+        setRefreshing(false);
+        return;
+      }
+
+      const isEditing = !!newsData._id;
+      const endpoint = isEditing
+        ? apiConfig.url(apiConfig.endpoints.news.update(newsData._id))
+        : apiConfig.url(apiConfig.endpoints.news.create);
+
+      const method = isEditing ? 'PUT' : 'POST';
+
+      const response = await apiFetch(endpoint, {
+        method: method,
+        silent: true,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(newsData)
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || `Failed to ${isEditing ? 'update' : 'create'} news`);
+      }
+
+      const newNews = result.news;
+
+      if (isEditing) {
+        // Update existing news
+        globalNews = globalNews.map(item => item._id === newNews._id ? { ...newNews, updatedAt: new Date().toISOString() } : item);
+        setNews(globalNews);
+        showToast('News updated successfully');
+      } else {
+        // Add new news
+        const newItem = {
+          ...newNews,
+          _id: newNews._id || Date.now().toString(), // Fallback ID if missing
+          createdAt: new Date().toISOString()
+        };
+        globalNews = [newItem, ...globalNews];
+        setNews(globalNews);
+        showToast('News created successfully');
+      }
+
+      await setCachedData(CACHE_KEYS.NEWS, globalNews); // Update cache
+
+    } catch (error) {
+      console.error('News submit error:', error);
+      showToast(error.message || 'Failed to save news');
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -273,6 +336,7 @@ export default function NewsScreen() {
       if (result.success) {
         globalNews = globalNews.filter(item => item._id !== newsId);
         setNews(globalNews);
+        await setCachedData(CACHE_KEYS.NEWS, globalNews); // Update cache
         showToast(`News "${newsTitle}" deleted successfully`);
       } else {
         throw new Error(result.message || 'Failed to delete news');
@@ -292,7 +356,7 @@ export default function NewsScreen() {
     setRefreshing(true);
     try {
       console.log('[NEWS] Refreshing news from API...');
-      const response = await apiFetch(apiConfig.url(apiConfig.endpoints.news.list));
+      const response = await apiFetch(apiConfig.url(apiConfig.endpoints.news.list), { silent: true });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -319,7 +383,7 @@ export default function NewsScreen() {
 
       <FlatList
         data={news}
-        keyExtractor={(item) => item._id}
+        keyExtractor={(item) => item._id || item.id || Math.random().toString()}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
         }
@@ -354,7 +418,7 @@ export default function NewsScreen() {
           setIsModalVisible(false);
           setEditingNews(null);
         }}
-        onSuccess={handleNewsCreated}
+        onSubmit={handleNewsSubmit}
         editItem={editingNews}
       />
     </View>

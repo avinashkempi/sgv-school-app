@@ -51,62 +51,20 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
     }
   }, [isVisible, isEditing, editItem]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!title.trim()) {
       showToast('Title is required');
       return;
     }
 
-    try {
-      setLoading(true);
-
-      const token = await AsyncStorage.getItem('@auth_token');
-      if (!token) {
-        showToast('Please login to create events');
-        return;
-      }
-
-      const endpoint = isEditing
-        ? apiConfig.url(apiConfig.endpoints.events.update(editItem._id))
-        : apiConfig.url(apiConfig.endpoints.events.create);
-
-      const method = isEditing ? 'PUT' : 'POST';
-
-      const response = await apiFetch(endpoint, {
-        method: method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          title: title.trim(),
-          date: isEditing ? editItem.date : selectedDate,
-          description: description.trim(),
-          isSchoolEvent: isSchoolEvent
-        })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to create event');
-      }
-
-      showToast(`Event ${isEditing ? 'updated' : 'created'} successfully`);
-      onSuccess(data.event);
-
-      // Delay closing to ensure user sees success message
-      setTimeout(() => {
-        onClose();
-        setTitle('');
-        setDescription('');
-      }, 800);
-
-    } catch (error) {
-      showToast(error.message);
-    } finally {
-      setLoading(false);
-    }
+    // Pass data to parent component
+    onSuccess({
+      title: title.trim(),
+      date: isEditing ? editItem.date : selectedDate,
+      description: description.trim(),
+      isSchoolEvent: isSchoolEvent,
+      _id: editItem?._id // Pass ID if editing
+    });
   };
 
   return (
@@ -178,7 +136,7 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
             disabled={loading}
           >
             <Text style={[globalStyles.buttonText, { color: colors.white }]}>
-              {loading ? (isEditing ? 'Updating...' : 'Creating...') : (isEditing ? 'Update Event' : 'Create Event')}
+              {isEditing ? 'Update Event' : 'Create Event'}
             </Text>
           </Pressable>
         </View>

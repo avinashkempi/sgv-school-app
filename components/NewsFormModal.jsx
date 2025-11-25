@@ -35,7 +35,7 @@ export default function NewsFormModal({ isVisible, onClose, onSuccess, editItem 
     }
   }, [isVisible, isEditing, editItem]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!title.trim()) {
       showToast('Title is required');
       return;
@@ -45,60 +45,18 @@ export default function NewsFormModal({ isVisible, onClose, onSuccess, editItem 
       return;
     }
 
-    try {
-      setLoading(true);
+    // Pass data to parent component
+    onSuccess({
+      title: title.trim(),
+      description: description.trim(),
+      url: url.trim() || undefined,
+      privateNews: privateNews,
+      _id: editItem?._id // Pass ID if editing
+    });
 
-      const token = await AsyncStorage.getItem('@auth_token');
-      if (!token) {
-        showToast('Please login to create news');
-        return;
-      }
-
-      const endpoint = isEditing
-        ? apiConfig.url(apiConfig.endpoints.news.update(editItem._id))
-        : apiConfig.url(apiConfig.endpoints.news.create);
-
-      const method = isEditing ? 'PUT' : 'POST';
-
-      const response = await apiFetch(endpoint, {
-        method: method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          title: title.trim(),
-          description: description.trim(),
-          ...(url.trim() && { url: url.trim() }), // Only include URL if not empty
-          privateNews: privateNews
-        })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || `Failed to ${isEditing ? 'update' : 'create'} news`);
-      }
-
-      showToast(`News ${isEditing ? 'updated' : 'created'} successfully`);
-      onSuccess(data.news);
-
-      // Delay closing to ensure user sees success message
-      setTimeout(() => {
-        onClose();
-        if (!isEditing) {
-          setTitle('');
-          setDescription('');
-          setUrl('');
-          setPrivateNews(true);
-        }
-      }, 800);
-
-    } catch (error) {
-      showToast(error.message);
-    } finally {
-      setLoading(false);
-    }
+    // Reset form is handled by parent closing/re-opening or we can do it here if needed, 
+    // but parent will likely close modal immediately.
+    // We can reset state when modal closes via useEffect.
   };
 
   return (
@@ -180,7 +138,7 @@ export default function NewsFormModal({ isVisible, onClose, onSuccess, editItem 
             disabled={loading}
           >
             <Text style={[globalStyles.buttonText, { color: colors.white }]}>
-              {loading ? (isEditing ? 'Updating...' : 'Creating...') : (isEditing ? 'Update News' : 'Create News')}
+              {isEditing ? 'Update News' : 'Create News'}
             </Text>
           </Pressable>
         </View>

@@ -13,6 +13,7 @@ import {
   STALE_TIME
 } from '../utils/cache';
 import apiFetch from '../utils/apiFetch';
+import { useNetworkStatus } from '../components/NetworkStatusProvider';
 
 export default function useEvents() {
   const [events, setEvents] = useState([]);
@@ -20,10 +21,15 @@ export default function useEvents() {
   const [error, setError] = useState(null);
   const isMountedRef = useRef(true);
 
+  // Track current range for auto-refresh
+  const currentRangeRef = useRef({ start: null, end: null });
+
+  const { isConnected, registerOnlineCallback } = useNetworkStatus();
+
   // Fetch events from API  
-  const fetchEventsFromAPI = useCallback(async (startDate, endDate) => {
+  const fetchEventsFromAPI = useCallback(async (startDate, endDate, silent = false) => {
     const token = await AsyncStorage.getItem('@auth_token');
-    const fetchOptions = {};
+    const fetchOptions = { silent }; // Pass silent flag
     if (token) {
       fetchOptions.headers = { Authorization: `Bearer ${token}` };
     }
@@ -35,7 +41,7 @@ export default function useEvents() {
 
     const queryString = queryParts.length > 0 ? `?${queryParts.join('&')}` : '';
 
-    console.log(`[EVENTS] Fetching from API... ${queryString}`);
+    console.log(`[EVENTS] Fetching from API... ${queryString} (Silent: ${silent})`);
     const response = await apiFetch(
       apiConfig.url(`${apiConfig.endpoints.events.list}${queryString}`),
       fetchOptions
@@ -57,8 +63,18 @@ export default function useEvents() {
   }, []);
 
   // Fetch events with smart caching
-  const fetchEventsRange = useCallback(async (startDate, endDate, callback) => {
+  const fetchEventsRange = useCallback(async (startDate, endDate, callback, silent = false) => {
     const cacheKey = CACHE_KEYS.EVENTS;
+
+    // Update current range ref
+    currentRangeRef.current = { start: startDate, end: endDate };
+
+    // If offline, just return (we rely on cache which is already loaded)
+    if (!isConnected) {
+      console.log('[EVENTS] Offline, skipping API fetch');
+      if (callback) callback(null, 0);
+      return;
+    }
 
     // Prevent duplicate fetches
     if (isRefreshing(cacheKey)) {
@@ -70,7 +86,7 @@ export default function useEvents() {
     try {
       setRefreshLock(cacheKey);
 
-      const eventsData = await fetchEventsFromAPI(startDate, endDate);
+      const eventsData = await fetchEventsFromAPI(startDate, endDate, silent);
 
       if (isMountedRef.current) {
         setEvents(eventsData);
@@ -83,14 +99,12 @@ export default function useEvents() {
       if (callback) callback(null, eventsData.length);
     } catch (err) {
       console.error('[EVENTS] Failed to fetch:', err.message);
-      if (isMountedRef.current) {
-        setError(err.message);
-      }
+      // Suppress network errors as requested
       if (callback) callback(err);
     } finally {
       clearRefreshLock(cacheKey);
     }
-  }, [fetchEventsFromAPI]);
+  }, [fetchEventsFromAPI, isConnected, events.length]);
 
   // Initial load with cache-first strategy
   useEffect(() => {
@@ -108,16 +122,16 @@ export default function useEvents() {
           setEvents(cachedEvents);
           setLoading(false);
 
-          // Step 2: Check if cache is stale
+          // Step 2: Check if cache is stale or if we should refresh
           const isStale = await isCacheStale(cacheKey, STALE_TIME.EVENTS);
 
-          if (isStale) {
+          if (isStale && isConnected) {
             console.log('[EVENTS] Cache is stale, refreshing in background');
             // Refresh in background without showing loader
             const now = new Date();
             const startOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
             const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0).toISOString();
-            fetchEventsRange(startOfMonth, endOfMonth);
+            fetchEventsRange(startOfMonth, endOfMonth, null, true); // silent=true
           }
         } else {
           // Step 3: No cache, fetch from API
@@ -126,7 +140,7 @@ export default function useEvents() {
           const startOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
           const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0).toISOString();
 
-          await fetchEventsRange(startOfMonth, endOfMonth);
+          await fetchEventsRange(startOfMonth, endOfMonth, null, true); // silent=true (prevent global loader)
 
           if (!cancelled) {
             setLoading(false);
@@ -135,7 +149,7 @@ export default function useEvents() {
       } catch (err) {
         console.error('[EVENTS] Load error:', err);
         if (!cancelled) {
-          setError(err.message);
+          // setError(err.message); // Suppress error
           setLoading(false);
         }
       }
@@ -146,7 +160,26 @@ export default function useEvents() {
     return () => {
       cancelled = true;
     };
-  }, [fetchEventsRange]);
+  }, [fetchEventsRange, isConnected]);
+
+  // Register online callback for auto-refresh
+  useEffect(() => {
+    const unsubscribe = registerOnlineCallback(() => {
+      console.log('[EVENTS] Network restored, refreshing events...');
+      const { start, end } = currentRangeRef.current;
+      if (start && end) {
+        fetchEventsRange(start, end, null, true); // silent refresh
+      } else {
+        // Default range if none set
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0).toISOString();
+        fetchEventsRange(startOfMonth, endOfMonth, null, true);
+      }
+    });
+
+    return unsubscribe;
+  }, [registerOnlineCallback, fetchEventsRange]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -159,7 +192,12 @@ export default function useEvents() {
   const addEvent = useCallback((newEvent) => {
     const normalized = { ...newEvent };
     if (!normalized._id && normalized.id) normalized._id = normalized.id;
-    normalized.isSchoolEvent = Boolean(normalized.isSchoolEvent);
+    // Handle various boolean formats
+    if (typeof normalized.isSchoolEvent === 'string') {
+      normalized.isSchoolEvent = normalized.isSchoolEvent === 'true';
+    } else {
+      normalized.isSchoolEvent = Boolean(normalized.isSchoolEvent);
+    }
 
     setEvents(prev => {
       const updated = [...prev, normalized];

@@ -239,15 +239,59 @@ export default function EventsScreen() {
   };
 
   // Modified handleEventCreated to toggle refreshFlag to trigger re-render
-  const handleEventCreated = (newEvent) => {
-    if (editingEvent) {
-      updateEvent(newEvent);
+  const handleEventSubmit = async (eventData) => {
+    // Close modal immediately and show background loader
+    setIsEventFormVisible(false);
+    setEditingEvent(null);
+    setRefreshing(true);
+
+    try {
+      const token = await AsyncStorage.getItem('@auth_token');
+      if (!token) {
+        showToast('Please login to manage events');
+        setRefreshing(false);
+        return;
+      }
+
+      const isEditing = !!eventData._id;
+      const endpoint = isEditing
+        ? apiConfig.url(apiConfig.endpoints.events.update(eventData._id))
+        : apiConfig.url(apiConfig.endpoints.events.create);
+
+      const method = isEditing ? 'PUT' : 'POST';
+
+      const response = await apiFetch(endpoint, {
+        method: method,
+        silent: true,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(eventData)
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || `Failed to ${isEditing ? 'update' : 'create'} event`);
+      }
+
+      const newEvent = { ...result.event, isSchoolEvent: eventData.isSchoolEvent };
+
+      if (isEditing) {
+        updateEvent(newEvent);
+        showToast('Event updated successfully');
+      } else {
+        addEvent(newEvent);
+        showToast('Event created successfully');
+      }
       setRefreshFlag(prev => !prev);
-      showToast('Event updated successfully');
-      setEditingEvent(null);
-    } else {
-      addEvent(newEvent);
-      setRefreshFlag(prev => !prev);
+
+    } catch (error) {
+      console.error('Event submit error:', error);
+      showToast(error.message || 'Failed to save event');
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -293,6 +337,7 @@ export default function EventsScreen() {
     try {
       console.log('[EVENTS] Refreshing events from API...');
       const response = await apiFetch(apiConfig.url(apiConfig.endpoints.events.list), {
+        silent: true,
         headers: {
           'Authorization': `Bearer ${await AsyncStorage.getItem('@auth_token') || ''}`
         }
@@ -382,7 +427,7 @@ export default function EventsScreen() {
                 } else {
                   showToast(`Loaded ${count} events`);
                 }
-              });
+              }, true);
             }}
             markedDates={markedDates}
             dayComponent={({ date, state, marking }) => (
@@ -492,9 +537,8 @@ export default function EventsScreen() {
             setEditingEvent(null);
           }}
           selectedDate={selectedDate}
-          onSuccess={(newEvent) => {
-            handleEventCreated(newEvent);
-            setIsEventFormVisible(false);
+          onSubmit={(eventData) => {
+            handleEventSubmit(eventData);
           }}
           editItem={editingEvent}
         />

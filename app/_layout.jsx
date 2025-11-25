@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemeProvider, useTheme } from "../theme";
 import { ToastProvider } from "../components/ToastProvider";
 import LoadingProvider from "../components/LoadingProvider";
+import NetworkStatusProvider from "../components/NetworkStatusProvider";
 import BottomNavigation from "../components/BottomNavigation";
 import ErrorBoundary from "../components/ErrorBoundary";
 
@@ -39,61 +40,63 @@ export default function RootLayout() {
       <SafeAreaView style={styles.safeArea}>
         <LoadingProvider>
           <ToastProvider>
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                animationEnabled: true,
-                animationTypeForReplace: 'push',
-                // Enable gesture navigation
-                gestureEnabled: true,
-                gestureDirection: 'horizontal',
-                // Detach inactive screens for better memory usage
-                detachInactiveScreens: true,
-                // Optimized for speed and smoothness
-                transitionSpec: {
-                  open: {
-                    animation: 'spring',
-                    config: {
-                      stiffness: 1000,
-                      damping: 500,
-                      mass: 1, // Reduced from 3 for faster animations
-                      overshootClamping: true,
-                      restDisplacementThreshold: 0.01,
-                      restSpeedThreshold: 0.01,
+            <NetworkStatusProvider>
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  animationEnabled: true,
+                  animationTypeForReplace: 'push',
+                  // Enable gesture navigation
+                  gestureEnabled: true,
+                  gestureDirection: 'horizontal',
+                  // Detach inactive screens for better memory usage
+                  detachInactiveScreens: true,
+                  // Optimized for speed and smoothness
+                  transitionSpec: {
+                    open: {
+                      animation: 'spring',
+                      config: {
+                        stiffness: 1000,
+                        damping: 500,
+                        mass: 1, // Reduced from 3 for faster animations
+                        overshootClamping: true,
+                        restDisplacementThreshold: 0.01,
+                        restSpeedThreshold: 0.01,
+                      },
+                    },
+                    close: {
+                      animation: 'timing',
+                      config: {
+                        duration: 150, // Reduced from 200ms for snappier feel
+                        useNativeDriver: true,
+                      },
                     },
                   },
-                  close: {
-                    animation: 'timing',
-                    config: {
-                      duration: 150, // Reduced from 200ms for snappier feel
-                      useNativeDriver: true,
-                    },
+                  // Simplified interpolator for better performance
+                  cardStyleInterpolator: ({ current, layouts }) => {
+                    return {
+                      cardStyle: {
+                        transform: [
+                          {
+                            translateX: current.progress.interpolate({
+                              inputRange: [0, 1],
+                              outputRange: [layouts.screen.width, 0],
+                            }),
+                          },
+                        ],
+                        // Simplified opacity for smoother rendering
+                        opacity: current.progress.interpolate({
+                          inputRange: [0, 0.5, 1],
+                          outputRange: [0, 0.5, 1],
+                        }),
+                      },
+                    };
                   },
-                },
-                // Simplified interpolator for better performance
-                cardStyleInterpolator: ({ current, layouts }) => {
-                  return {
-                    cardStyle: {
-                      transform: [
-                        {
-                          translateX: current.progress.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [layouts.screen.width, 0],
-                          }),
-                        },
-                      ],
-                      // Simplified opacity for smoother rendering
-                      opacity: current.progress.interpolate({
-                        inputRange: [0, 0.5, 1],
-                        outputRange: [0, 0.5, 1],
-                      }),
-                    },
-                  };
-                },
-              }}
-            />
+                }}
+              />
+              <BottomNavigation />
+            </NetworkStatusProvider>
           </ToastProvider>
-          <BottomNavigation />
         </LoadingProvider>
       </SafeAreaView>
     );
