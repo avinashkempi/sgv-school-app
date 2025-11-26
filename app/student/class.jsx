@@ -177,6 +177,46 @@ export default function StudentClassScreen() {
                         </View>
                     ) : (
                         <View style={{ marginTop: 24 }}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                                <Text style={{ fontSize: 18, fontWeight: "700", color: colors.textPrimary }}>
+                                    Quick Actions
+                                </Text>
+                            </View>
+
+                            <Pressable
+                                onPress={() => router.push("/student/leaves")}
+                                style={({ pressed }) => ({
+                                    backgroundColor: colors.cardBackground,
+                                    borderRadius: 16,
+                                    padding: 16,
+                                    marginBottom: 24,
+                                    shadowColor: "#000",
+                                    shadowOffset: { width: 0, height: 1 },
+                                    shadowOpacity: 0.05,
+                                    shadowRadius: 4,
+                                    elevation: 1,
+                                    opacity: pressed ? 0.9 : 1,
+                                    flexDirection: "row",
+                                    justifyContent: "space-between",
+                                    alignItems: "center"
+                                })}
+                            >
+                                <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                                    <View style={{ backgroundColor: "#4CAF50" + "20", padding: 10, borderRadius: 10 }}>
+                                        <MaterialIcons name="event-note" size={24} color="#4CAF50" />
+                                    </View>
+                                    <View>
+                                        <Text style={{ fontSize: 16, fontWeight: "700", color: colors.textPrimary }}>
+                                            My Leaves
+                                        </Text>
+                                        <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
+                                            Apply and view leave status
+                                        </Text>
+                                    </View>
+                                </View>
+                                <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
+                            </Pressable>
+
                             <Text style={{ fontSize: 18, fontWeight: "700", color: colors.textPrimary, marginBottom: 16 }}>
                                 Subjects
                             </Text>

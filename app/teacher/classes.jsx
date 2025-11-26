@@ -90,6 +90,45 @@ export default function TeacherClassesScreen() {
                         </View>
                     ) : (
                         <View style={{ marginTop: 16 }}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                                <Text style={{ fontSize: 18, fontWeight: "700", color: colors.textPrimary }}>
+                                    Quick Actions
+                                </Text>
+                            </View>
+
+                            <Pressable
+                                onPress={() => router.push("/teacher/leaves")}
+                                style={({ pressed }) => ({
+                                    backgroundColor: colors.cardBackground,
+                                    borderRadius: 16,
+                                    padding: 16,
+                                    marginBottom: 24,
+                                    shadowColor: "#000",
+                                    shadowOffset: { width: 0, height: 1 },
+                                    shadowOpacity: 0.05,
+                                    shadowRadius: 4,
+                                    elevation: 1,
+                                    opacity: pressed ? 0.9 : 1,
+                                    flexDirection: "row",
+                                    justifyContent: "space-between",
+                                    alignItems: "center"
+                                })}
+                            >
+                                <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                                    <View style={{ backgroundColor: "#FF9800" + "20", padding: 10, borderRadius: 10 }}>
+                                        <MaterialIcons name="approval" size={24} color="#FF9800" />
+                                    </View>
+                                    <View>
+                                        <Text style={{ fontSize: 16, fontWeight: "700", color: colors.textPrimary }}>
+                                            Leave Requests
+                                        </Text>
+                                        <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
+                                            Approve or reject student leaves
+                                        </Text>
+                                    </View>
+                                </View>
+                                <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
+                            </Pressable>
                             {classes.length === 0 ? (
                                 <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
                                     <MaterialIcons name="class" size={48} color={colors.textSecondary} />

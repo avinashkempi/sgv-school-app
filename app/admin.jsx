@@ -511,6 +511,25 @@ export default function AdminScreen() {
               </View>
               <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Classes</Text>
             </Pressable>
+
+            <Pressable
+              onPress={() => router.push("/admin/leaves")}
+              style={({ pressed }) => ({
+                flex: 1,
+                minWidth: "45%",
+                backgroundColor: colors.cardBackground,
+                padding: 16,
+                borderRadius: 16,
+                alignItems: "center",
+                opacity: pressed ? 0.9 : 1,
+                elevation: 2,
+              })}
+            >
+              <View style={{ backgroundColor: "#FF9800" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
+                <MaterialIcons name="event-note" size={24} color="#FF9800" />
+              </View>
+              <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Leaves</Text>
+            </Pressable>
           </View >
 
           {/* Users List */}
