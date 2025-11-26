@@ -107,20 +107,48 @@ export default function RequestsScreen() {
                             <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
                         </Pressable>
 
-                        {/* Future: Complaints Card */}
-                        <View style={{
-                            backgroundColor: colors.cardBackground,
-                            borderRadius: 16,
-                            padding: 20,
-                            marginBottom: 16,
-                            opacity: 0.5,
-                            shadowColor: "#000",
-                            shadowOffset: { width: 0, height: 2 },
-                            shadowOpacity: 0.05,
-                            shadowRadius: 8,
-                            elevation: 2,
-                        }}>
-                            <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
+                        {/* Complaints Card */}
+                        <Pressable
+                            onPress={() => {
+                                if (user?.role === 'student') {
+                                    router.push('/student/complaints');
+                                } else if (user?.role === 'admin' || user?.role === 'super admin') {
+                                    router.push('/admin/complaints');
+                                } else {
+                                    // For teachers/staff, maybe they can also view/report? 
+                                    // For now, let's assume they can report like students or view like admins?
+                                    // Implementation plan only covered Student and Admin.
+                                    // Let's restrict to Student for now as per plan, or maybe allow all to report?
+                                    // The backend /api/complaints POST is for 'student' (req.user.userId).
+                                    // Let's stick to Student for now.
+                                    if (user?.role === 'student') {
+                                        router.push('/student/complaints');
+                                    } else {
+                                        // Show toast or alert? Or just do nothing?
+                                        // The requests screen seems to be shared.
+                                        // Let's just navigate to student complaints for students.
+                                        // If teacher, maybe they don't have complaints feature yet.
+                                        router.push('/student/complaints'); // Re-using student screen for now if they have access
+                                    }
+                                }
+                            }}
+                            style={({ pressed }) => ({
+                                backgroundColor: colors.cardBackground,
+                                borderRadius: 16,
+                                padding: 20,
+                                marginBottom: 16,
+                                shadowColor: "#000",
+                                shadowOffset: { width: 0, height: 2 },
+                                shadowOpacity: 0.05,
+                                shadowRadius: 8,
+                                elevation: 2,
+                                opacity: pressed ? 0.9 : 1,
+                                flexDirection: "row",
+                                justifyContent: "space-between",
+                                alignItems: "center"
+                            })}
+                        >
+                            <View style={{ flexDirection: "row", alignItems: "center", gap: 16, flex: 1 }}>
                                 <View style={{
                                     backgroundColor: colors.primary + "20",
                                     padding: 14,
@@ -142,11 +170,12 @@ export default function RequestsScreen() {
                                         color: colors.textSecondary,
                                         fontFamily: "DMSans-Regular"
                                     }}>
-                                        Coming soon
+                                        Report issues and track status
                                     </Text>
                                 </View>
                             </View>
-                        </View>
+                            <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
+                        </Pressable>
 
                         {/* Info card */}
                         <View style={{

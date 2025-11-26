@@ -74,7 +74,7 @@ export async function registerFCMTokenWithBackend(token) {
       }
     }
 
-    console.log('[FCM] Registering token with backend...', { userId, isAuthenticated, platform: Platform.OS });
+
 
     const response = await apiFetch(apiConfig.url(apiConfig.endpoints.fcm.register), {
       method: 'POST',
@@ -97,7 +97,7 @@ export async function registerFCMTokenWithBackend(token) {
     }
 
     const result = await response.json();
-    console.log('[FCM] Token registered successfully:', result);
+
     return true;
   } catch (error) {
     console.error('[FCM] Failed to register token with backend:', error);

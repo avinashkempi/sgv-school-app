@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, RefreshControl, ActivityIndicator, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { apiFetch } from '../../utils/apiFetch';
+import apiFetch from '../../utils/apiFetch';
+import apiConfig from '../../config/apiConfig';
 import { useToast } from '../../components/ToastProvider';
 import { Calendar } from 'react-native-calendars';
 
@@ -24,14 +25,16 @@ export default function StudentLeaves() {
 
     const fetchLeaves = useCallback(async () => {
         try {
-            const response = await apiFetch('/leaves/my-leaves');
-            if (response.success) {
-                setLeaves(response.data);
+            const response = await apiFetch(`${apiConfig.baseUrl}/leaves/my-leaves`);
+            const data = await response.json();
+
+            if (data.success) {
+                setLeaves(data.data);
             } else {
-                showToast('Error', response.message || 'Failed to fetch leaves', 'error');
+                showToast(data.message || 'Failed to fetch leaves', 'error');
             }
         } catch (error) {
-            showToast('Error', 'An error occurred while fetching leaves', 'error');
+            showToast('An error occurred while fetching leaves', 'error');
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -49,29 +52,33 @@ export default function StudentLeaves() {
 
     const handleApplyLeave = async () => {
         if (!startDate || !endDate || !reason) {
-            showToast('Error', 'Please fill in all fields', 'error');
+            showToast('Please fill in all fields', 'error');
             return;
         }
 
         setSubmitting(true);
         try {
-            const response = await apiFetch('/leaves/apply', {
+            const response = await apiFetch(`${apiConfig.baseUrl}/leaves/apply`, {
                 method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
                 body: JSON.stringify({ startDate, endDate, reason }),
             });
+            const data = await response.json();
 
-            if (response.success) {
-                showToast('Success', 'Leave application submitted successfully', 'success');
+            if (data.success) {
+                showToast('Leave application submitted successfully', 'success');
                 setModalVisible(false);
                 setStartDate('');
                 setEndDate('');
                 setReason('');
                 fetchLeaves();
             } else {
-                showToast('Error', response.message || 'Failed to apply for leave', 'error');
+                showToast(data.message || 'Failed to apply for leave', 'error');
             }
         } catch (error) {
-            showToast('Error', 'An error occurred', 'error');
+            showToast('An error occurred', 'error');
         } finally {
             setSubmitting(false);
         }
@@ -345,7 +352,7 @@ const styles = StyleSheet.create({
     },
     fab: {
         position: 'absolute',
-        bottom: 24,
+        bottom: 100,
         right: 24,
         backgroundColor: '#6200ee',
         width: 56,

@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, RefreshControl, ActivityIndicator, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { apiFetch } from '../../utils/apiFetch';
+import apiFetch from '../../utils/apiFetch';
+import apiConfig from '../../config/apiConfig';
 import { useToast } from '../../components/ToastProvider';
 
 export default function TeacherLeaves() {
@@ -19,14 +20,16 @@ export default function TeacherLeaves() {
 
     const fetchLeaves = useCallback(async () => {
         try {
-            const response = await apiFetch('/leaves/class-leaves');
-            if (response.success) {
-                setLeaves(response.data);
+            const response = await apiFetch(`${apiConfig.baseUrl}/leaves/class-leaves`);
+            const data = await response.json();
+
+            if (data.success) {
+                setLeaves(data.data);
             } else {
-                showToast('Error', response.message || 'Failed to fetch leaves', 'error');
+                showToast(data.message || 'Failed to fetch leaves', 'error');
             }
         } catch (error) {
-            showToast('Error', 'An error occurred while fetching leaves', 'error');
+            showToast('An error occurred while fetching leaves', 'error');
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -54,20 +57,24 @@ export default function TeacherLeaves() {
 
         setSubmitting(true);
         try {
-            const response = await apiFetch(`/leaves/${selectedLeave._id}/action`, {
+            const response = await apiFetch(`${apiConfig.baseUrl}/leaves/${selectedLeave._id}/action`, {
                 method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
                 body: JSON.stringify({ status: actionType, reason: actionReason }),
             });
+            const data = await response.json();
 
-            if (response.success) {
-                showToast('Success', `Leave request ${actionType}`, 'success');
+            if (data.success) {
+                showToast(`Leave request ${actionType}`, 'success');
                 setActionModalVisible(false);
                 fetchLeaves();
             } else {
-                showToast('Error', response.message || 'Failed to update leave status', 'error');
+                showToast(data.message || 'Failed to update leave status', 'error');
             }
         } catch (error) {
-            showToast('Error', 'An error occurred', 'error');
+            showToast('An error occurred', 'error');
         } finally {
             setSubmitting(false);
         }

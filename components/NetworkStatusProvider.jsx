@@ -43,7 +43,6 @@ export default function NetworkStatusProvider({ children }) {
 
             // If we just came online, trigger callbacks
             if (wasOffline && isNowOnline) {
-                console.log('[NETWORK] Device is back online. Triggering silent refreshes...');
 
                 if (Platform.OS === 'android') {
                     ToastAndroid.show('Back online', ToastAndroid.SHORT);

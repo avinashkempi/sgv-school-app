@@ -164,29 +164,55 @@ export default function SubjectDetailScreen() {
                     <Header title={subjectName || "Subject Details"} subtitle="Class Content" showBack />
 
                     {/* Quick Actions */}
-                    <Pressable
-                        onPress={() => router.push({
-                            pathname: "/teacher/subject/create-exam",
-                            params: { subjectId, classId: id }
-                        })}
-                        style={({ pressed }) => ({
-                            backgroundColor: colors.primary,
-                            borderRadius: 12,
-                            padding: 16,
-                            marginTop: 20,
-                            flexDirection: "row",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: 10,
-                            opacity: pressed ? 0.9 : 1,
-                            elevation: 3
-                        })}
-                    >
-                        <MaterialIcons name="add-circle" size={24} color="#fff" />
-                        <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: "#fff" }}>
-                            Create New Exam
-                        </Text>
-                    </Pressable>
+                    <View style={{ flexDirection: "row", gap: 12, marginTop: 20 }}>
+                        <Pressable
+                            onPress={() => router.push({
+                                pathname: "/teacher/subject/create-exam",
+                                params: { subjectId, classId: id }
+                            })}
+                            style={({ pressed }) => ({
+                                flex: 1,
+                                backgroundColor: colors.primary,
+                                borderRadius: 12,
+                                padding: 16,
+                                flexDirection: "row",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: 8,
+                                opacity: pressed ? 0.9 : 1,
+                                elevation: 3
+                            })}
+                        >
+                            <MaterialIcons name="add-circle" size={20} color="#fff" />
+                            <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: "#fff" }}>
+                                New Exam
+                            </Text>
+                        </Pressable>
+
+                        <Pressable
+                            onPress={() => router.push({
+                                pathname: "/teacher/subject/create-assignment",
+                                params: { subjectId, classId: id }
+                            })}
+                            style={({ pressed }) => ({
+                                flex: 1,
+                                backgroundColor: "#FF9800",
+                                borderRadius: 12,
+                                padding: 16,
+                                flexDirection: "row",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: 8,
+                                opacity: pressed ? 0.9 : 1,
+                                elevation: 3
+                            })}
+                        >
+                            <MaterialIcons name="add-task" size={20} color="#fff" />
+                            <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: "#fff" }}>
+                                New Assignment
+                            </Text>
+                        </Pressable>
+                    </View>
 
                     {loading ? (
                         <View style={{ marginTop: 100, alignItems: "center" }}>
@@ -203,9 +229,17 @@ export default function SubjectDetailScreen() {
                                 </View>
                             ) : (
                                 content.map((item) => (
-                                    <View
+                                    <Pressable
                                         key={item._id}
-                                        style={{
+                                        onPress={() => {
+                                            if (item.type === 'assignment') {
+                                                router.push({
+                                                    pathname: "/teacher/assignment/submissions",
+                                                    params: { assignmentId: item._id, title: item.title }
+                                                });
+                                            }
+                                        }}
+                                        style={({ pressed }) => ({
                                             backgroundColor: colors.cardBackground,
                                             borderRadius: 16,
                                             padding: 16,
@@ -217,7 +251,8 @@ export default function SubjectDetailScreen() {
                                             shadowOpacity: 0.05,
                                             shadowRadius: 4,
                                             elevation: 1,
-                                        }}
+                                            opacity: pressed ? 0.9 : 1
+                                        })}
                                     >
                                         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
                                             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
@@ -237,9 +272,18 @@ export default function SubjectDetailScreen() {
                                             {item.description}
                                         </Text>
 
+                                        {item.type === 'assignment' && (
+                                            <View style={{ marginTop: 12, flexDirection: "row", alignItems: "center", gap: 6 }}>
+                                                <MaterialIcons name="event" size={14} color={colors.error} />
+                                                <Text style={{ fontSize: 12, color: colors.error, fontFamily: "DMSans-Medium" }}>
+                                                    Due: {new Date(item.dueDate).toLocaleDateString()}
+                                                </Text>
+                                            </View>
+                                        )}
+
                                         <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 12, alignItems: "center" }}>
                                             <Text style={{ fontSize: 12, color: colors.textSecondary, fontWeight: "500" }}>
-                                                By: {item.author?.name || "Teacher"}
+                                                By: {item.author?.name || item.teacher?.name || "Teacher"}
                                             </Text>
                                             <View style={{ backgroundColor: colors.background, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 }}>
                                                 <Text style={{ fontSize: 10, fontWeight: "600", color: colors.textSecondary, textTransform: "uppercase" }}>
@@ -247,7 +291,7 @@ export default function SubjectDetailScreen() {
                                                 </Text>
                                             </View>
                                         </View>
-                                    </View>
+                                    </Pressable>
                                 ))
                             )}
                         </View>

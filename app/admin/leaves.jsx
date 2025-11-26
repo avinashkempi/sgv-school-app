@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, RefreshControl, ActivityIndicator, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { apiFetch } from '../../utils/apiFetch';
+import apiFetch from '../../utils/apiFetch';
+import apiConfig from '../../config/apiConfig';
 import { useToast } from '../../components/ToastProvider';
 
 export default function AdminLeaves() {
@@ -23,11 +24,13 @@ export default function AdminLeaves() {
 
     const fetchLeaves = useCallback(async () => {
         try {
-            const response = await apiFetch('/leaves/class-leaves'); // Admin gets all leaves if no classId provided
-            if (response.success) {
-                setLeaves(response.data);
+            const response = await apiFetch(`${apiConfig.baseUrl}/leaves/class-leaves`); // Admin gets all leaves if no classId provided
+            const data = await response.json();
+
+            if (data.success) {
+                setLeaves(data.data);
             } else {
-                showToast(response.message || 'Failed to fetch leaves', 'error');
+                showToast(data.message || 'Failed to fetch leaves', 'error');
             }
         } catch (error) {
             showToast('An error occurred while fetching leaves', 'error');
@@ -39,11 +42,13 @@ export default function AdminLeaves() {
 
     const fetchDailyStats = useCallback(async () => {
         try {
-            const response = await apiFetch('/leaves/daily-stats');
-            if (response.success) {
-                setDailyStats(response.data);
+            const response = await apiFetch(`${apiConfig.baseUrl}/leaves/daily-stats`);
+            const data = await response.json();
+
+            if (data.success) {
+                setDailyStats(data.data);
             } else {
-                showToast(response.message || 'Failed to fetch daily stats', 'error');
+                showToast(data.message || 'Failed to fetch daily stats', 'error');
             }
         } catch (error) {
             showToast('An error occurred while fetching stats', 'error');
@@ -82,17 +87,21 @@ export default function AdminLeaves() {
 
         setSubmitting(true);
         try {
-            const response = await apiFetch(`/leaves/${selectedLeave._id}/action`, {
+            const response = await apiFetch(`${apiConfig.baseUrl}/leaves/${selectedLeave._id}/action`, {
                 method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
                 body: JSON.stringify({ status: actionType, reason: actionReason }),
             });
+            const data = await response.json();
 
-            if (response.success) {
+            if (data.success) {
                 showToast(`Leave request ${actionType}`, 'success');
                 setActionModalVisible(false);
                 fetchLeaves(); // Refresh list
             } else {
-                showToast(response.message || 'Failed to update leave status', 'error');
+                showToast(data.message || 'Failed to update leave status', 'error');
             }
         } catch (error) {
             showToast('An error occurred', 'error');

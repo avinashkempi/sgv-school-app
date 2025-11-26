@@ -102,7 +102,7 @@ export const isCacheStale = async (key, staleTime) => {
 
     const now = Date.now();
     const age = now - cached.timestamp;
-    
+
     return age > staleTime;
   } catch (error) {
     console.warn(`Failed to check cache staleness for ${key}:`, error);
@@ -129,7 +129,7 @@ export const clearRefreshLock = (key) => {
 export const getCacheWithMeta = async (key, expiryTime = 0, staleTime = 0) => {
   const data = await getCachedData(key, expiryTime);
   const isStale = await isCacheStale(key, staleTime);
-  
+
   return {
     data,
     isStale,
@@ -148,7 +148,6 @@ export const setCachedData = async (key, data) => {
 
     const cacheEntry = createCacheEntry(data);
     await AsyncStorage.setItem(key, JSON.stringify(cacheEntry));
-    console.log(`[CACHE] Cached data for ${key}: ${Array.isArray(data) ? data.length : 1} items`);
   } catch (error) {
     console.warn(`[CACHE] Failed to set cached data for ${key}:`, error);
   }

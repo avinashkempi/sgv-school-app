@@ -568,6 +568,120 @@ export default function AdminScreen() {
               </View>
               <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Attendance</Text>
             </Pressable>
+
+            <Pressable
+              onPress={() => router.push("/admin/timetable")}
+              style={({ pressed }) => ({
+                flex: 1,
+                minWidth: "45%",
+                backgroundColor: colors.cardBackground,
+                borderRadius: 16,
+                padding: 16,
+                alignItems: "center",
+                elevation: 2,
+                opacity: pressed ? 0.7 : 1
+              })}
+            >
+              <View style={{ backgroundColor: "#9C27B0" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
+                <MaterialIcons name="schedule" size={24} color="#9C27B0" />
+              </View>
+              <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Timetable</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => router.push("/admin/fees")}
+              style={({ pressed }) => ({
+                flex: 1,
+                minWidth: "45%",
+                backgroundColor: colors.cardBackground,
+                borderRadius: 16,
+                padding: 16,
+                alignItems: "center",
+                elevation: 2,
+                opacity: pressed ? 0.7 : 1
+              })}
+            >
+              <View style={{ backgroundColor: "#FF5722" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
+                <MaterialIcons name="attach-money" size={24} color="#FF5722" />
+              </View>
+              <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Fees</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => router.push("/admin/exam-schedule")}
+              style={({ pressed }) => ({
+                flex: 1,
+                minWidth: "45%",
+                backgroundColor: colors.cardBackground,
+                borderRadius: 16,
+                padding: 16,
+                alignItems: "center",
+                elevation: 2,
+                opacity: pressed ? 0.7 : 1
+              })}
+            >
+              <View style={{ backgroundColor: "#E91E63" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
+                <MaterialIcons name="event" size={24} color="#E91E63" />
+              </View>
+              <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Exams</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => router.push("/admin/complaints")}
+              style={({ pressed }) => ({
+                flex: 1,
+                minWidth: "45%",
+                backgroundColor: colors.cardBackground,
+                borderRadius: 16,
+                padding: 16,
+                alignItems: "center",
+                elevation: 2,
+                opacity: pressed ? 0.7 : 1
+              })}
+            >
+              <View style={{ backgroundColor: "#607D8B" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
+                <MaterialIcons name="feedback" size={24} color="#607D8B" />
+              </View>
+              <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Complaints</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => router.push("/admin/send-notification")}
+              style={({ pressed }) => ({
+                flex: 1,
+                minWidth: "45%",
+                backgroundColor: colors.cardBackground,
+                borderRadius: 16,
+                padding: 16,
+                alignItems: "center",
+                elevation: 2,
+                opacity: pressed ? 0.7 : 1
+              })}
+            >
+              <View style={{ backgroundColor: "#3F51B5" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
+                <MaterialIcons name="campaign" size={24} color="#3F51B5" />
+              </View>
+              <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Broadcast</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => router.push("/history")}
+              style={({ pressed }) => ({
+                flex: 1,
+                minWidth: "45%",
+                backgroundColor: colors.cardBackground,
+                borderRadius: 16,
+                padding: 16,
+                alignItems: "center",
+                elevation: 2,
+                opacity: pressed ? 0.7 : 1
+              })}
+            >
+              <View style={{ backgroundColor: "#795548" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
+                <MaterialIcons name="history" size={24} color="#795548" />
+              </View>
+              <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>History</Text>
+            </Pressable>
           </View >
 
           {/* Users List */}

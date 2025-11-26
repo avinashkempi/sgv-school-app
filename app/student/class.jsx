@@ -58,7 +58,7 @@ export default function StudentClassScreen() {
                         // Update local storage
                         await AsyncStorage.setItem("@auth_user", JSON.stringify(freshUser));
                         parsedUser = freshUser;
-                        console.log("Refreshed user data in class view");
+
                     }
                 } catch (e) {
                     console.error("Failed to refresh user data:", e);
@@ -90,14 +90,14 @@ export default function StudentClassScreen() {
                 setClassData(cachedClass);
                 setSubjects(cachedSubjects);
                 setLoading(false);
-                console.log(`[STUDENT] Loaded class ${classId} from cache`);
+
             }
 
             // 2. Fetch API
             // 2. Fetch API
             // 2. Fetch API
             const fetchFromApi = async () => {
-                console.log(`[STUDENT] Fetching class details for ${classId}`);
+
 
                 // Load Full Class Details
                 const response = await apiFetch(`${apiConfig.baseUrl}/classes/${classId}/full-details`, {
@@ -109,7 +109,7 @@ export default function StudentClassScreen() {
                     const data = await response.json();
                     const { classData, subjects } = data;
 
-                    console.log(`[STUDENT] Fetched class:`, classData?.name);
+
 
                     if (classData) {
                         setClassData(classData);
@@ -279,6 +279,142 @@ export default function StudentClassScreen() {
                                         </Text>
                                         <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
                                             View academic performance
+                                        </Text>
+                                    </View>
+                                </View>
+                                <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
+                            </Pressable>
+
+                            <Pressable
+                                onPress={() => router.push("/student/assignments")}
+                                style={({ pressed }) => ({
+                                    backgroundColor: colors.cardBackground,
+                                    borderRadius: 16,
+                                    padding: 16,
+                                    marginBottom: 12,
+                                    shadowColor: "#000",
+                                    shadowOffset: { width: 0, height: 1 },
+                                    shadowOpacity: 0.05,
+                                    shadowRadius: 4,
+                                    elevation: 1,
+                                    opacity: pressed ? 0.9 : 1,
+                                    flexDirection: "row",
+                                    justifyContent: "space-between",
+                                    alignItems: "center"
+                                })}
+                            >
+                                <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                                    <View style={{ backgroundColor: "#9C27B0" + "20", padding: 10, borderRadius: 10 }}>
+                                        <MaterialIcons name="assignment" size={24} color="#9C27B0" />
+                                    </View>
+                                    <View>
+                                        <Text style={{ fontSize: 16, fontWeight: "700", color: colors.textPrimary }}>
+                                            Assignments
+                                        </Text>
+                                        <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
+                                            View pending tasks
+                                        </Text>
+                                    </View>
+                                </View>
+                                <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
+                            </Pressable>
+
+                            <Pressable
+                                onPress={() => router.push("/student/timetable")}
+                                style={({ pressed }) => ({
+                                    backgroundColor: colors.cardBackground,
+                                    borderRadius: 16,
+                                    padding: 16,
+                                    marginBottom: 24,
+                                    shadowColor: "#000",
+                                    shadowOffset: { width: 0, height: 1 },
+                                    shadowOpacity: 0.05,
+                                    shadowRadius: 4,
+                                    elevation: 1,
+                                    opacity: pressed ? 0.9 : 1,
+                                    flexDirection: "row",
+                                    justifyContent: "space-between",
+                                    alignItems: "center"
+                                })}
+                            >
+                                <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                                    <View style={{ backgroundColor: "#009688" + "20", padding: 10, borderRadius: 10 }}>
+                                        <MaterialIcons name="calendar-today" size={24} color="#009688" />
+                                    </View>
+                                    <View>
+                                        <Text style={{ fontSize: 16, fontWeight: "700", color: colors.textPrimary }}>
+                                            Timetable
+                                        </Text>
+                                        <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
+                                            View class schedule
+                                        </Text>
+                                    </View>
+                                </View>
+                                <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
+                            </Pressable>
+
+                            <Pressable
+                                onPress={() => router.push("/student/fees")}
+                                style={({ pressed }) => ({
+                                    backgroundColor: colors.cardBackground,
+                                    borderRadius: 16,
+                                    padding: 16,
+                                    marginBottom: 24,
+                                    shadowColor: "#000",
+                                    shadowOffset: { width: 0, height: 1 },
+                                    shadowOpacity: 0.05,
+                                    shadowRadius: 4,
+                                    elevation: 1,
+                                    opacity: pressed ? 0.9 : 1,
+                                    flexDirection: "row",
+                                    justifyContent: "space-between",
+                                    alignItems: "center"
+                                })}
+                            >
+                                <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                                    <View style={{ backgroundColor: "#FF5722" + "20", padding: 10, borderRadius: 10 }}>
+                                        <MaterialIcons name="attach-money" size={24} color="#FF5722" />
+                                    </View>
+                                    <View>
+                                        <Text style={{ fontSize: 16, fontWeight: "700", color: colors.textPrimary }}>
+                                            My Fees
+                                        </Text>
+                                        <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
+                                            View payment status
+                                        </Text>
+                                    </View>
+                                </View>
+                                <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
+                            </Pressable>
+
+                            <Pressable
+                                onPress={() => router.push("/student/exam-schedule")}
+                                style={({ pressed }) => ({
+                                    backgroundColor: colors.cardBackground,
+                                    borderRadius: 16,
+                                    padding: 16,
+                                    marginBottom: 24,
+                                    shadowColor: "#000",
+                                    shadowOffset: { width: 0, height: 1 },
+                                    shadowOpacity: 0.05,
+                                    shadowRadius: 4,
+                                    elevation: 1,
+                                    opacity: pressed ? 0.9 : 1,
+                                    flexDirection: "row",
+                                    justifyContent: "space-between",
+                                    alignItems: "center"
+                                })}
+                            >
+                                <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                                    <View style={{ backgroundColor: "#E91E63" + "20", padding: 10, borderRadius: 10 }}>
+                                        <MaterialIcons name="event" size={24} color="#E91E63" />
+                                    </View>
+                                    <View>
+                                        <Text style={{ fontSize: 16, fontWeight: "700", color: colors.textPrimary }}>
+                                            Exam Schedule
+                                        </Text>
+                                        <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
+                                            Upcoming exams & dates
                                         </Text>
                                     </View>
                                 </View>

@@ -212,112 +212,67 @@ export default function TeacherDashboard() {
                         textAlign: "center",
                         paddingHorizontal: 40
                     }}>
-                        Contact admin to assign subjects
+                        Check "My Subjects" tab to see subjects you teach
                     </Text>
                 </View>
             ) : (
-                Object.entries(groupedSubjects).map(([subjectName, classes]) => (
-                    <View key={subjectName} style={{ marginBottom: 20 }}>
-                        {/* Subject Header */}
-                        <View style={{
+                allMySubjects.map((subj) => (
+                    <Pressable
+                        key={subj._id}
+                        onPress={() => router.push(`/teacher/subject/${subj._id}`)}
+                        style={({ pressed }) => ({
+                            backgroundColor: colors.cardBackground,
+                            borderRadius: 12,
+                            padding: 14,
+                            marginBottom: 8,
+                            marginLeft: 12,
+                            opacity: pressed ? 0.9 : 1,
                             flexDirection: "row",
+                            justifyContent: "space-between",
                             alignItems: "center",
-                            marginBottom: 12,
-                            gap: 8
-                        }}>
-                            <View style={{
-                                backgroundColor: colors.primary + "20",
-                                padding: 8,
-                                borderRadius: 8
-                            }}>
-                                <MaterialIcons name="book" size={20} color={colors.primary} />
-                            </View>
-                            <Text style={{
-                                fontSize: 17,
-                                fontFamily: "DMSans-Bold",
-                                color: colors.textPrimary
-                            }}>
-                                {subjectName}
-                            </Text>
-                            <View style={{
-                                backgroundColor: colors.textSecondary + "20",
-                                paddingHorizontal: 8,
-                                paddingVertical: 2,
-                                borderRadius: 10
-                            }}>
+                            borderLeftWidth: 3,
+                            borderLeftColor: colors.primary
+                        })}
+                    >
+                        <View style={{ flex: 1 }}>
+                            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                                 <Text style={{
-                                    fontSize: 11,
-                                    color: colors.textSecondary,
-                                    fontFamily: " DMSans-Bold"
+                                    fontSize: 16,
+                                    fontFamily: "DMSans-SemiBold",
+                                    color: colors.textPrimary
                                 }}>
-                                    {classes.length} {classes.length === 1 ? 'class' : 'classes'}
+                                    {subj.class.name} {subj.class.section ? `- ${subj.class.section}` : ""}
                                 </Text>
-                            </View>
-                        </View>
-
-                        {/* Classes for this subject */}
-                        {classes.map((subj) => (
-                            <Pressable
-                                key={subj._id}
-                                onPress={() => router.push({
-                                    pathname: "/teacher/class/subject/[subjectId]",
-                                    params: { id: subj.class._id, subjectId: subj._id }
-                                })}
-                                style={({ pressed }) => ({
-                                    backgroundColor: colors.cardBackground,
-                                    borderRadius: 12,
-                                    padding: 14,
-                                    marginBottom: 8,
-                                    marginLeft: 12,
-                                    opacity: pressed ? 0.9 : 1,
-                                    flexDirection: "row",
-                                    justifyContent: "space-between",
-                                    alignItems: "center",
-                                    borderLeftWidth: 3,
-                                    borderLeftColor: colors.primary
-                                })}
-                            >
-                                <View style={{ flex: 1 }}>
-                                    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                                {subj.isClassTeacher && (
+                                    <View style={{
+                                        backgroundColor: colors.success + "20",
+                                        paddingHorizontal: 6,
+                                        paddingVertical: 2,
+                                        borderRadius: 4
+                                    }}>
                                         <Text style={{
-                                            fontSize: 16,
-                                            fontFamily: "DMSans-SemiBold",
-                                            color: colors.textPrimary
+                                            fontSize: 10,
+                                            color: colors.success,
+                                            fontFamily: "DMSans-Bold"
                                         }}>
-                                            {subj.class.name} {subj.class.section ? `- ${subj.class.section}` : ""}
+                                            MY CLASS
                                         </Text>
-                                        {subj.isClassTeacher && (
-                                            <View style={{
-                                                backgroundColor: colors.success + "20",
-                                                paddingHorizontal: 6,
-                                                paddingVertical: 2,
-                                                borderRadius: 4
-                                            }}>
-                                                <Text style={{
-                                                    fontSize: 10,
-                                                    color: colors.success,
-                                                    fontFamily: "DMSans-Bold"
-                                                }}>
-                                                    MY CLASS
-                                                </Text>
-                                            </View>
-                                        )}
                                     </View>
-                                    {subj.class.branch && (
-                                        <Text style={{
-                                            fontSize: 12,
-                                            color: colors.textSecondary,
-                                            fontFamily: "DMSans-Regular",
-                                            marginTop: 2
-                                        }}>
-                                            {subj.class.branch}
-                                        </Text>
-                                    )}
-                                </View>
-                                <MaterialIcons name="chevron-right" size={20} color={colors.textSecondary} />
-                            </Pressable>
-                        ))}
-                    </View>
+                                )}
+                            </View>
+                            {subj.class.branch && (
+                                <Text style={{
+                                    fontSize: 12,
+                                    color: colors.textSecondary,
+                                    fontFamily: "DMSans-Regular",
+                                    marginTop: 2
+                                }}>
+                                    {subj.class.branch}
+                                </Text>
+                            )}
+                        </View>
+                        <MaterialIcons name="chevron-right" size={20} color={colors.textSecondary} />
+                    </Pressable>
                 ))
             )}
         </View>
@@ -362,6 +317,41 @@ export default function TeacherDashboard() {
                                 </Text>
                                 <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2, fontFamily: "DMSans-Regular" }}>
                                     Approve or reject student leaves
+                                </Text>
+                            </View>
+                        </View>
+                        <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
+                    </Pressable>
+
+                    {/* Quick Action: History */}
+                    <Pressable
+                        onPress={() => router.push("/history")}
+                        style={({ pressed }) => ({
+                            backgroundColor: colors.cardBackground,
+                            borderRadius: 16,
+                            padding: 16,
+                            marginBottom: 24,
+                            shadowColor: "#000",
+                            shadowOffset: { width: 0, height: 1 },
+                            shadowOpacity: 0.05,
+                            shadowRadius: 4,
+                            elevation: 1,
+                            opacity: pressed ? 0.9 : 1,
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            alignItems: "center"
+                        })}
+                    >
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                            <View style={{ backgroundColor: "#795548" + "20", padding: 10, borderRadius: 10 }}>
+                                <MaterialIcons name="history" size={24} color="#795548" />
+                            </View>
+                            <View>
+                                <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
+                                    History
+                                </Text>
+                                <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2, fontFamily: "DMSans-Regular" }}>
+                                    View past assignments & exams
                                 </Text>
                             </View>
                         </View>

@@ -1,0 +1,214 @@
+import React, { useState, useEffect } from "react";
+import {
+    View,
+    Text,
+    ScrollView,
+    Pressable,
+    ActivityIndicator,
+    RefreshControl,
+} from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
+import { useTheme } from "../../theme";
+import apiConfig from "../../config/apiConfig";
+import apiFetch from "../../utils/apiFetch";
+import { useToast } from "../../components/ToastProvider";
+import Header from "../../components/Header";
+
+const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+export default function StudentTimetableScreen() {
+    const router = useRouter();
+    const { styles, colors } = useTheme();
+    const { showToast } = useToast();
+
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [schedule, setSchedule] = useState({});
+    const [selectedDay, setSelectedDay] = useState('Monday');
+    const [currentDay, setCurrentDay] = useState('');
+
+    useEffect(() => {
+        // Set current day
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const today = days[new Date().getDay()];
+        if (DAYS.includes(today)) {
+            setSelectedDay(today);
+            setCurrentDay(today);
+        } else {
+            setSelectedDay('Monday'); // Default to Monday if Sunday
+        }
+
+        loadTimetable();
+    }, []);
+
+    const loadTimetable = async () => {
+        try {
+            const token = await AsyncStorage.getItem("@auth_token");
+            const response = await apiFetch(`${apiConfig.baseUrl}/timetable/my-timetable`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+
+                // Convert array to object map
+                const scheduleMap = {};
+                DAYS.forEach(day => scheduleMap[day] = []);
+
+                if (data.schedule) {
+                    data.schedule.forEach(daySchedule => {
+                        scheduleMap[daySchedule.day] = daySchedule.periods.sort((a, b) => a.periodNumber - b.periodNumber);
+                    });
+                }
+                setSchedule(scheduleMap);
+            } else {
+                // If 404, just show empty schedule, don't error
+                if (response.status !== 404) {
+                    showToast("Failed to load timetable", "error");
+                }
+            }
+        } catch (error) {
+            console.error(error);
+            showToast("Error loading timetable", "error");
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    };
+
+    const onRefresh = () => {
+        setRefreshing(true);
+        loadTimetable();
+    };
+
+    if (loading) {
+        return (
+            <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: "center", alignItems: "center" }}>
+                <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+        );
+    }
+
+    return (
+        <View style={{ flex: 1, backgroundColor: colors.background }}>
+            <ScrollView
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
+                contentContainerStyle={{ paddingBottom: 100 }}
+            >
+                <View style={{ padding: 16, paddingTop: 24 }}>
+                    <Header title="My Timetable" subtitle="Class Schedule" showBack />
+
+                    {/* Day Tabs */}
+                    <View style={{ marginTop: 24 }}>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                            <View style={{ flexDirection: "row", gap: 8 }}>
+                                {DAYS.map((day) => (
+                                    <Pressable
+                                        key={day}
+                                        onPress={() => setSelectedDay(day)}
+                                        style={{
+                                            paddingHorizontal: 16,
+                                            paddingVertical: 8,
+                                            backgroundColor: selectedDay === day ? colors.primary : colors.cardBackground,
+                                            borderRadius: 12,
+                                            borderWidth: 1,
+                                            borderColor: selectedDay === day ? colors.primary : colors.textSecondary + "20"
+                                        }}
+                                    >
+                                        <Text style={{
+                                            color: selectedDay === day ? "#fff" : colors.textPrimary,
+                                            fontFamily: selectedDay === day ? "DMSans-Bold" : "DMSans-Medium"
+                                        }}>
+                                            {day.slice(0, 3)}
+                                        </Text>
+                                    </Pressable>
+                                ))}
+                            </View>
+                        </ScrollView>
+                    </View>
+
+                    {/* Schedule List */}
+                    <View style={{ marginTop: 24 }}>
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
+                                {selectedDay}
+                            </Text>
+                            {selectedDay === currentDay && (
+                                <View style={{ backgroundColor: colors.success + "20", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 }}>
+                                    <Text style={{ fontSize: 12, color: colors.success, fontFamily: "DMSans-Bold" }}>TODAY</Text>
+                                </View>
+                            )}
+                        </View>
+
+                        {(!schedule[selectedDay] || schedule[selectedDay].length === 0) ? (
+                            <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
+                                <MaterialIcons name="event-busy" size={48} color={colors.textSecondary} />
+                                <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16 }}>
+                                    No classes scheduled
+                                </Text>
+                            </View>
+                        ) : (
+                            schedule[selectedDay].map((period, index) => (
+                                <View
+                                    key={index}
+                                    style={{
+                                        backgroundColor: colors.cardBackground,
+                                        borderRadius: 16,
+                                        padding: 16,
+                                        marginBottom: 12,
+                                        flexDirection: "row",
+                                        gap: 16,
+                                        shadowColor: "#000",
+                                        shadowOffset: { width: 0, height: 1 },
+                                        shadowOpacity: 0.05,
+                                        shadowRadius: 4,
+                                        elevation: 1,
+                                    }}
+                                >
+                                    {/* Time Column */}
+                                    <View style={{ alignItems: "center", justifyContent: "center", width: 60 }}>
+                                        <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
+                                            {period.startTime}
+                                        </Text>
+                                        <View style={{ width: 1, height: 10, backgroundColor: colors.textSecondary + "40", marginVertical: 2 }} />
+                                        <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                                            {period.endTime}
+                                        </Text>
+                                    </View>
+
+                                    {/* Divider */}
+                                    <View style={{ width: 4, backgroundColor: colors.primary, borderRadius: 2 }} />
+
+                                    {/* Details Column */}
+                                    <View style={{ flex: 1, justifyContent: "center" }}>
+                                        <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 4 }}>
+                                            {period.subject?.name || "Subject"}
+                                        </Text>
+                                        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                                            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                                                <MaterialIcons name="person" size={14} color={colors.textSecondary} />
+                                                <Text style={{ fontSize: 13, color: colors.textSecondary }}>
+                                                    {period.teacher?.name || "Teacher"}
+                                                </Text>
+                                            </View>
+                                            {period.roomNumber && (
+                                                <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                                                    <MaterialIcons name="room" size={14} color={colors.textSecondary} />
+                                                    <Text style={{ fontSize: 13, color: colors.textSecondary }}>
+                                                        Room {period.roomNumber}
+                                                    </Text>
+                                                </View>
+                                            )}
+                                        </View>
+                                    </View>
+                                </View>
+                            ))
+                        )}
+                    </View>
+                </View>
+            </ScrollView>
+        </View>
+    );
+}
