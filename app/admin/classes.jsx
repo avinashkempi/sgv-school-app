@@ -63,67 +63,50 @@ export default function ClassesScreen() {
     const loadData = async () => {
         const cacheKeyClasses = "@admin_classes";
         const cacheKeyYears = "@admin_academic_years";
-        const cacheKeyUsers = "@admin_users";
+        const cacheKeyTeachers = "@admin_teachers";
 
         try {
             const token = await AsyncStorage.getItem("@auth_token");
 
             // 1. Try to load from cache first
-            const [cachedClasses, cachedYears, cachedUsers] = await Promise.all([
+            const [cachedClasses, cachedYears, cachedTeachers] = await Promise.all([
                 getCachedData(cacheKeyClasses),
                 getCachedData(cacheKeyYears),
-                getCachedData(cacheKeyUsers)
+                getCachedData(cacheKeyTeachers)
             ]);
 
-            if (cachedClasses && cachedYears && cachedUsers) {
+            if (cachedClasses && cachedYears && cachedTeachers) {
                 setClasses(cachedClasses);
                 setAcademicYears(cachedYears);
-                const teacherList = cachedUsers.data.filter(u => u.role === 'class teacher' || u.role === 'staff');
-                setTeachers(teacherList);
+                setTeachers(cachedTeachers);
                 setLoading(false);
                 console.log("[ADMIN_CLASSES] Loaded from cache");
             }
 
             // 2. Fetch from API (Silent refresh if cache exists)
             const fetchFromApi = async () => {
-                // Load Classes
-                const classesRes = await apiFetch(`${apiConfig.baseUrl}/classes`, {
+                const response = await apiFetch(`${apiConfig.baseUrl}/classes/admin/init`, {
                     headers: { Authorization: `Bearer ${token}` },
                     silent: !!cachedClasses
                 });
 
-                // Load Academic Years
-                const yearsRes = await apiFetch(`${apiConfig.baseUrl}/academic-year`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                    silent: !!cachedYears
-                });
+                if (response.ok) {
+                    const data = await response.json();
+                    const { classes, academicYears, teachers } = data;
 
-                // Load Users
-                const usersRes = await apiFetch(`${apiConfig.url(apiConfig.endpoints.users.list)}`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                    silent: !!cachedUsers
-                });
-
-                if (classesRes.ok && yearsRes.ok && usersRes.ok) {
-                    const classesData = await classesRes.json();
-                    const yearsData = await yearsRes.json();
-                    const usersData = await usersRes.json();
-
-                    setClasses(classesData);
-                    setAcademicYears(yearsData);
-
-                    const teacherList = usersData.data.filter(u => u.role === 'class teacher' || u.role === 'staff');
-                    setTeachers(teacherList);
+                    setClasses(classes);
+                    setAcademicYears(academicYears);
+                    setTeachers(teachers);
 
                     // Update Cache
                     await Promise.all([
-                        setCachedData(cacheKeyClasses, classesData),
-                        setCachedData(cacheKeyYears, yearsData),
-                        setCachedData(cacheKeyUsers, usersData)
+                        setCachedData(cacheKeyClasses, classes),
+                        setCachedData(cacheKeyYears, academicYears),
+                        setCachedData(cacheKeyTeachers, teachers)
                     ]);
 
                     // Set default active academic year if not set
-                    const activeYear = yearsData.find(y => y.isActive);
+                    const activeYear = academicYears.find(y => y.isActive);
                     if (activeYear && !form.academicYear) {
                         setForm(prev => ({ ...prev, academicYear: activeYear._id }));
                     }
@@ -241,12 +224,11 @@ export default function ClassesScreen() {
                                 } catch (e) {
                                     console.error("[DELETE_CLASS] Error reading response:", e);
                                 }
-                                // Fallback to Alert since Toast is reported invisible
-                                Alert.alert("Deletion Failed", errorMsg);
+                                showToast(errorMsg, "error");
                             }
                         } catch (error) {
                             console.error("[DELETE_CLASS] Error:", error);
-                            Alert.alert("Error", "An unexpected error occurred while deleting the class.");
+                            showToast("An unexpected error occurred", "error");
                         } finally {
                             setDeletingId(null);
                         }

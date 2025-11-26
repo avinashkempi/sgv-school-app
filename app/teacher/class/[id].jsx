@@ -51,11 +51,7 @@ export default function ClassDetailsScreen() {
         loadData();
     }, [id]);
 
-    useEffect(() => {
-        if (activeTab === "students") {
-            loadStudents();
-        }
-    }, [activeTab]);
+
 
     const loadUserData = async () => {
         try {
@@ -72,48 +68,47 @@ export default function ClassDetailsScreen() {
     const loadData = async () => {
         const cacheKeyClass = `@class_details_${id}`;
         const cacheKeySubjects = `@class_subjects_${id}`;
+        const cacheKeyStudents = `@class_students_${id}`;
 
         try {
             const token = await AsyncStorage.getItem("@auth_token");
 
             // 1. Try to load from cache first
-            const [cachedClass, cachedSubjects] = await Promise.all([
+            const [cachedClass, cachedSubjects, cachedStudents] = await Promise.all([
                 getCachedData(cacheKeyClass),
-                getCachedData(cacheKeySubjects)
+                getCachedData(cacheKeySubjects),
+                getCachedData(cacheKeyStudents)
             ]);
 
             if (cachedClass && cachedSubjects) {
                 setClassData(cachedClass);
                 setSubjects(cachedSubjects);
+                if (cachedStudents) setStudents(cachedStudents);
                 setLoading(false);
                 console.log(`[CLASS] Loaded class ${id} from cache`);
             }
 
             // 2. Fetch from API (Silent refresh if cache exists)
             const fetchFromApi = async () => {
-                // Load Class Details
-                const classesRes = await apiFetch(`${apiConfig.baseUrl}/classes`, {
+                const response = await apiFetch(`${apiConfig.baseUrl}/classes/${id}/full-details`, {
                     headers: { Authorization: `Bearer ${token}` },
-                    silent: !!cachedClass // Silent if we have cache
+                    silent: !!cachedClass
                 });
 
-                // Load Subjects
-                const subjectsRes = await apiFetch(`${apiConfig.baseUrl}/classes/${id}/subjects`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                    silent: !!cachedSubjects
-                });
+                if (response.ok) {
+                    const data = await response.json();
+                    const { classData, subjects, students } = data;
 
-                if (classesRes.ok && subjectsRes.ok) {
-                    const classesData = await classesRes.json();
-                    const subjectsData = await subjectsRes.json();
-                    const currentClass = classesData.find(c => c._id === id);
-
-                    if (currentClass) {
-                        setClassData(currentClass);
-                        setCachedData(cacheKeyClass, currentClass);
+                    if (classData) {
+                        setClassData(classData);
+                        setCachedData(cacheKeyClass, classData);
                     }
-                    setSubjects(subjectsData);
-                    setCachedData(cacheKeySubjects, subjectsData);
+                    setSubjects(subjects);
+                    setCachedData(cacheKeySubjects, subjects);
+
+                    setStudents(students);
+                    setCachedData(cacheKeyStudents, students);
+
                     console.log(`[CLASS] Refreshed class ${id} from API`);
                 } else {
                     if (!cachedClass) showToast("Failed to load class data", "error");
@@ -135,39 +130,7 @@ export default function ClassDetailsScreen() {
         }
     };
 
-    const loadStudents = async () => {
-        const cacheKeyStudents = `@class_students_${id}`;
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
 
-            // 1. Try cache
-            const cachedStudents = await getCachedData(cacheKeyStudents);
-            if (cachedStudents) {
-                setStudents(cachedStudents);
-                console.log(`[CLASS] Loaded students for ${id} from cache`);
-            }
-
-            // 2. Fetch API
-            if (isConnected) {
-                const response = await apiFetch(`${apiConfig.baseUrl}/classes/${id}/students`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                    silent: !!cachedStudents
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    setStudents(data);
-                    setCachedData(cacheKeyStudents, data);
-                    console.log(`[CLASS] Refreshed students for ${id} from API`);
-                } else {
-                    if (!cachedStudents) showToast("Failed to load students", "error");
-                }
-            }
-        } catch (error) {
-            console.error(error);
-            if (!students.length) showToast("Error loading students", "error");
-        }
-    };
 
     const loadAvailableStudents = async () => {
         // No caching for available students as it changes frequently and is an admin action
@@ -275,7 +238,7 @@ export default function ClassDetailsScreen() {
                 showToast("Student added successfully", "success");
                 setShowAddStudentModal(false);
                 setSearchQuery("");
-                loadStudents();
+                loadData();
             } else {
                 const data = await response.json();
                 showToast(data.message || "Failed to add student", "error");
@@ -308,7 +271,7 @@ export default function ClassDetailsScreen() {
 
                             if (response.ok) {
                                 showToast("Student removed successfully", "success");
-                                loadStudents();
+                                loadData();
                             } else {
                                 const data = await response.json();
                                 showToast(data.message || "Failed to remove student", "error");
@@ -327,9 +290,7 @@ export default function ClassDetailsScreen() {
         setRefreshing(true);
         try {
             await loadData();
-            if (activeTab === "students") {
-                await loadStudents();
-            }
+            await loadData();
         } finally {
             setRefreshing(false);
         }

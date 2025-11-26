@@ -95,37 +95,29 @@ export default function StudentClassScreen() {
 
             // 2. Fetch API
             // 2. Fetch API
+            // 2. Fetch API
             const fetchFromApi = async () => {
                 console.log(`[STUDENT] Fetching class details for ${classId}`);
 
-                // Load Class Details - Fetch specific class instead of all
-                const classRes = await apiFetch(`${apiConfig.baseUrl}/classes/${classId}`, {
+                // Load Full Class Details
+                const response = await apiFetch(`${apiConfig.baseUrl}/classes/${classId}/full-details`, {
                     headers: { Authorization: `Bearer ${token}` },
                     silent: !!cachedClass
                 });
 
-                // Load Subjects
-                const subjectsRes = await apiFetch(`${apiConfig.baseUrl}/classes/${classId}/subjects`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                    silent: !!cachedSubjects
-                });
+                if (response.ok) {
+                    const data = await response.json();
+                    const { classData, subjects } = data;
 
-                if (classRes.ok && subjectsRes.ok) {
-                    const currentClass = await classRes.json();
-                    const subjectsData = await subjectsRes.json();
+                    console.log(`[STUDENT] Fetched class:`, classData?.name);
 
-                    console.log(`[STUDENT] Fetched class:`, currentClass?.name);
-
-                    if (currentClass) {
-                        setClassData(currentClass);
-                        setCachedData(cacheKeyClass, currentClass);
+                    if (classData) {
+                        setClassData(classData);
+                        setCachedData(cacheKeyClass, classData);
                     }
-                    setSubjects(subjectsData);
-                    setCachedData(cacheKeySubjects, subjectsData);
+                    setSubjects(subjects);
+                    setCachedData(cacheKeySubjects, subjects);
                 } else {
-                    if (!classRes.ok) console.error("[STUDENT] Failed to fetch class:", classRes.status);
-                    if (!subjectsRes.ok) console.error("[STUDENT] Failed to fetch subjects:", subjectsRes.status);
-
                     if (!cachedClass) showToast("Failed to load class data", "error");
                 }
             };

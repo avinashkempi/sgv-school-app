@@ -511,10 +511,10 @@ export default function AdminScreen() {
               </View>
               <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Classes</Text>
             </Pressable>
-          </View>
+          </View >
 
           {/* Users List */}
-          <View>
+          < View >
             <Text style={{
               fontSize: 14,
               fontWeight: "600",
@@ -526,157 +526,163 @@ export default function AdminScreen() {
               All Users ({filteredAndSortedUsers().length})
             </Text>
 
-            {paginatedUsers().map((userItem) => (
-              <View
-                key={userItem._id}
-                style={{
-                  backgroundColor: colors.cardBackground,
-                  borderRadius: 16,
-                  padding: 16,
-                  marginBottom: 12,
-                  // Very subtle shadow
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 1 },
-                  shadowOpacity: 0.03,
-                  shadowRadius: 4,
-                  elevation: 1,
-                }}
-              >
-                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                  <View style={{ flex: 1, marginRight: 12 }}>
-                    <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
-                      <Text style={{ fontSize: 17, fontWeight: "600", color: colors.textPrimary, marginRight: 8 }}>
-                        {userItem.name}
-                      </Text>
-                      <View
-                        style={{
-                          backgroundColor: getRoleColor(userItem.role) + "20", // 20% opacity
-                          paddingHorizontal: 8,
-                          paddingVertical: 2,
-                          borderRadius: 100,
-                        }}
-                      >
-                        <Text
+            {
+              paginatedUsers().map((userItem) => (
+                <View
+                  key={userItem._id}
+                  style={{
+                    backgroundColor: colors.cardBackground,
+                    borderRadius: 16,
+                    padding: 16,
+                    marginBottom: 12,
+                    // Very subtle shadow
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.03,
+                    shadowRadius: 4,
+                    elevation: 1,
+                  }}
+                >
+                  <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                    <View style={{ flex: 1, marginRight: 12 }}>
+                      <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
+                        <Text style={{ fontSize: 17, fontWeight: "600", color: colors.textPrimary, marginRight: 8 }}>
+                          {userItem.name}
+                        </Text>
+                        <View
                           style={{
-                            fontSize: 11,
-                            fontWeight: "600",
-                            color: getRoleColor(userItem.role),
-                            textTransform: "uppercase",
+                            backgroundColor: getRoleColor(userItem.role) + "20", // 20% opacity
+                            paddingHorizontal: 8,
+                            paddingVertical: 2,
+                            borderRadius: 100,
                           }}
                         >
-                          {userItem.role}
-                        </Text>
+                          <Text
+                            style={{
+                              fontSize: 11,
+                              fontWeight: "600",
+                              color: getRoleColor(userItem.role),
+                              textTransform: "uppercase",
+                            }}
+                          >
+                            {userItem.role}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View style={{ gap: 2 }}>
+                        {userItem.email ? (
+                          <Text style={{ fontSize: 14, color: colors.textSecondary }}>
+                            {userItem.email}
+                          </Text>
+                        ) : null}
+                        {userItem.phone ? (
+                          <Text style={{ fontSize: 13, color: colors.textSecondary, opacity: 0.8 }}>
+                            {userItem.phone}
+                          </Text>
+                        ) : null}
                       </View>
                     </View>
 
-                    <View style={{ gap: 2 }}>
-                      {userItem.email ? (
-                        <Text style={{ fontSize: 14, color: colors.textSecondary }}>
-                          {userItem.email}
-                        </Text>
-                      ) : null}
-                      {userItem.phone ? (
-                        <Text style={{ fontSize: 13, color: colors.textSecondary, opacity: 0.8 }}>
-                          {userItem.phone}
-                        </Text>
-                      ) : null}
+                    <View style={{ flexDirection: "row", gap: 8 }}>
+                      <Pressable
+                        onPress={() => {
+                          setModalMode("edit");
+                          setEditingUser(userItem);
+                          setUserForm({ name: userItem.name, phone: userItem.phone, email: userItem.email, password: "", role: userItem.role });
+                          setShowUserModal(true);
+                        }}
+                        style={({ pressed }) => ({
+                          padding: 8,
+                          backgroundColor: colors.background,
+                          borderRadius: 8,
+                          opacity: pressed ? 0.7 : 1,
+                        })}
+                      >
+                        <MaterialIcons name="edit" size={18} color={colors.textSecondary} />
+                      </Pressable>
+
+                      <Pressable
+                        onPress={() => {
+                          Alert.alert(
+                            "Delete User",
+                            `Are you sure you want to delete ${userItem.name}?`,
+                            [
+                              { text: "Cancel", style: "cancel" },
+                              { text: "Delete", style: "destructive", onPress: () => deleteUser(userItem._id, userItem.name) },
+                            ]
+                          );
+                        }}
+                        style={({ pressed }) => ({
+                          padding: 8,
+                          backgroundColor: colors.error + "15",
+                          borderRadius: 8,
+                          opacity: pressed ? 0.7 : 1,
+                        })}
+                      >
+                        <MaterialIcons name="delete-outline" size={18} color={colors.error} />
+                      </Pressable>
                     </View>
                   </View>
-
-                  <View style={{ flexDirection: "row", gap: 8 }}>
-                    <Pressable
-                      onPress={() => {
-                        setModalMode("edit");
-                        setEditingUser(userItem);
-                        setUserForm({ name: userItem.name, phone: userItem.phone, email: userItem.email, password: "", role: userItem.role });
-                        setShowUserModal(true);
-                      }}
-                      style={({ pressed }) => ({
-                        padding: 8,
-                        backgroundColor: colors.background,
-                        borderRadius: 8,
-                        opacity: pressed ? 0.7 : 1,
-                      })}
-                    >
-                      <MaterialIcons name="edit" size={18} color={colors.textSecondary} />
-                    </Pressable>
-
-                    <Pressable
-                      onPress={() => {
-                        Alert.alert(
-                          "Delete User",
-                          `Are you sure you want to delete ${userItem.name}?`,
-                          [
-                            { text: "Cancel", style: "cancel" },
-                            { text: "Delete", style: "destructive", onPress: () => deleteUser(userItem._id, userItem.name) },
-                          ]
-                        );
-                      }}
-                      style={({ pressed }) => ({
-                        padding: 8,
-                        backgroundColor: colors.error + "15",
-                        borderRadius: 8,
-                        opacity: pressed ? 0.7 : 1,
-                      })}
-                    >
-                      <MaterialIcons name="delete-outline" size={18} color={colors.error} />
-                    </Pressable>
-                  </View>
                 </View>
-              </View>
-            ))}
+              ))
+            }
 
-            {filteredAndSortedUsers().length === 0 && (
-              <View style={{ alignItems: "center", padding: 40, opacity: 0.6 }}>
-                <MaterialIcons name="search-off" size={48} color={colors.textSecondary} />
-                <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16 }}>
-                  No users found
-                </Text>
-              </View>
-            )}
+            {
+              filteredAndSortedUsers().length === 0 && (
+                <View style={{ alignItems: "center", padding: 40, opacity: 0.6 }}>
+                  <MaterialIcons name="search-off" size={48} color={colors.textSecondary} />
+                  <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16 }}>
+                    No users found
+                  </Text>
+                </View>
+              )
+            }
 
             {/* Pagination */}
-            {totalPages > 1 && (
-              <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: 24, gap: 16 }}>
-                <Pressable
-                  onPress={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  style={{
-                    padding: 10,
-                    backgroundColor: currentPage === 1 ? colors.background : colors.cardBackground,
-                    borderRadius: 8,
-                    opacity: currentPage === 1 ? 0.5 : 1,
-                  }}
-                >
-                  <MaterialIcons
-                    name="chevron-left"
-                    size={24}
-                    color={colors.textPrimary}
-                  />
-                </Pressable>
+            {
+              totalPages > 1 && (
+                <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: 24, gap: 16 }}>
+                  <Pressable
+                    onPress={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    style={{
+                      padding: 10,
+                      backgroundColor: currentPage === 1 ? colors.background : colors.cardBackground,
+                      borderRadius: 8,
+                      opacity: currentPage === 1 ? 0.5 : 1,
+                    }}
+                  >
+                    <MaterialIcons
+                      name="chevron-left"
+                      size={24}
+                      color={colors.textPrimary}
+                    />
+                  </Pressable>
 
-                <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>
-                  {currentPage} / {totalPages}
-                </Text>
+                  <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>
+                    {currentPage} / {totalPages}
+                  </Text>
 
-                <Pressable
-                  onPress={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  style={{
-                    padding: 10,
-                    backgroundColor: currentPage === totalPages ? colors.background : colors.cardBackground,
-                    borderRadius: 8,
-                    opacity: currentPage === totalPages ? 0.5 : 1,
-                  }}
-                >
-                  <MaterialIcons
-                    name="chevron-right"
-                    size={24}
-                    color={colors.textPrimary}
-                  />
-                </Pressable>
-              </View>
-            )}
+                  <Pressable
+                    onPress={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    style={{
+                      padding: 10,
+                      backgroundColor: currentPage === totalPages ? colors.background : colors.cardBackground,
+                      borderRadius: 8,
+                      opacity: currentPage === totalPages ? 0.5 : 1,
+                    }}
+                  >
+                    <MaterialIcons
+                      name="chevron-right"
+                      size={24}
+                      color={colors.textPrimary}
+                    />
+                  </Pressable>
+                </View>
+              )
+            }
           </View>
         </View>
       </ScrollView>
@@ -995,23 +1001,30 @@ export default function AdminScreen() {
                 </View>
               )}
 
-              <View style={{ flexDirection: "row", gap: 12, marginTop: 16 }}>
+              {/* Action Buttons */}
+              <View style={{ flexDirection: "row", gap: 12, marginTop: 8 }}>
                 <Pressable
                   onPress={() => setShowUserModal(false)}
-                  style={{
+                  style={({ pressed }) => ({
                     flex: 1,
                     paddingVertical: 14,
                     borderRadius: 12,
                     alignItems: "center",
                     backgroundColor: colors.background,
-                  }}
+                    borderWidth: 1,
+                    borderColor: "transparent",
+                    opacity: pressed ? 0.8 : 1,
+                  })}
                 >
-                  <Text style={{ fontSize: 16, fontWeight: "600", color: colors.textSecondary }}>Cancel</Text>
+                  <Text style={{ fontSize: 16, fontWeight: "600", color: colors.textSecondary }}>
+                    Cancel
+                  </Text>
                 </Pressable>
+
                 <Pressable
-                  onPress={modalMode === "add" ? createUser : () => updateUserRole(editingUser._id, userForm.role)}
+                  onPress={modalMode === "add" ? handleCreateUser : handleUpdateUser}
                   disabled={modalMode === "add" && !isFormValid()}
-                  style={{
+                  style={({ pressed }) => ({
                     flex: 1,
                     paddingVertical: 14,
                     borderRadius: 12,
@@ -1022,8 +1035,8 @@ export default function AdminScreen() {
                     shadowOpacity: 0.2,
                     shadowRadius: 8,
                     elevation: 4,
-                    opacity: (modalMode === "add" && !isFormValid()) ? 0.5 : 1
-                  }}
+                    opacity: (modalMode === "add" && !isFormValid()) ? 0.5 : (pressed ? 0.9 : 1)
+                  })}
                 >
                   <Text style={{ fontSize: 16, fontWeight: "600", color: "#fff" }}>
                     {modalMode === "add" ? "Create User" : "Save Changes"}

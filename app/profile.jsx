@@ -4,6 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons, FontAwesome } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from "../theme";
+import { useToast } from "../components/ToastProvider";
 import { SCHOOL } from "../constants/basic-info";
 import { Linking } from "react-native";
 import { formatDate } from "../utils/date";
@@ -12,6 +13,7 @@ import { formatDate } from "../utils/date";
 export default function ProfileScreen() {
   const navigation = useNavigation();
   const { styles, colors, mode, toggle } = useTheme();
+  const { showToast } = useToast();
   const [user, setUser] = useState(null);
   const [selectedTheme, setSelectedTheme] = useState(mode);
 
@@ -83,7 +85,7 @@ export default function ProfileScreen() {
       router.replace('/login');
     } catch (error) {
       console.error('Logout failed:', error);
-      Alert.alert('Error', 'Failed to logout. Please try again.');
+      showToast('Failed to logout. Please try again.', 'error');
     }
   };
 
