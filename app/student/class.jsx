@@ -94,9 +94,12 @@ export default function StudentClassScreen() {
             }
 
             // 2. Fetch API
+            // 2. Fetch API
             const fetchFromApi = async () => {
-                // Load Class Details
-                const classesRes = await apiFetch(`${apiConfig.baseUrl}/classes`, {
+                console.log(`[STUDENT] Fetching class details for ${classId}`);
+
+                // Load Class Details - Fetch specific class instead of all
+                const classRes = await apiFetch(`${apiConfig.baseUrl}/classes/${classId}`, {
                     headers: { Authorization: `Bearer ${token}` },
                     silent: !!cachedClass
                 });
@@ -107,10 +110,11 @@ export default function StudentClassScreen() {
                     silent: !!cachedSubjects
                 });
 
-                if (classesRes.ok && subjectsRes.ok) {
-                    const classesData = await classesRes.json();
+                if (classRes.ok && subjectsRes.ok) {
+                    const currentClass = await classRes.json();
                     const subjectsData = await subjectsRes.json();
-                    const currentClass = classesData.find(c => c._id === classId);
+
+                    console.log(`[STUDENT] Fetched class:`, currentClass?.name);
 
                     if (currentClass) {
                         setClassData(currentClass);
@@ -118,8 +122,10 @@ export default function StudentClassScreen() {
                     }
                     setSubjects(subjectsData);
                     setCachedData(cacheKeySubjects, subjectsData);
-                    console.log(`[STUDENT] Refreshed class ${classId} from API`);
                 } else {
+                    if (!classRes.ok) console.error("[STUDENT] Failed to fetch class:", classRes.status);
+                    if (!subjectsRes.ok) console.error("[STUDENT] Failed to fetch subjects:", subjectsRes.status);
+
                     if (!cachedClass) showToast("Failed to load class data", "error");
                 }
             };
@@ -146,7 +152,10 @@ export default function StudentClassScreen() {
 
     if (!classData) {
         return (
-            <View style={[styles.container, { justifyContent: "center", alignItems: "center", padding: 20 }]}>
+            <ScrollView
+                contentContainerStyle={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 20 }}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
+            >
                 <MaterialIcons name="school" size={64} color={colors.textSecondary} />
                 <Text style={{ fontSize: 18, fontWeight: "600", color: colors.textPrimary, marginTop: 16, textAlign: "center" }}>
                     No Class Assigned
@@ -154,7 +163,7 @@ export default function StudentClassScreen() {
                 <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: 8, textAlign: "center" }}>
                     Please contact your administrator to be assigned to a class.
                 </Text>
-            </View>
+            </ScrollView>
         );
     }
 

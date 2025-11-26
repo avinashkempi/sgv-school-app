@@ -55,13 +55,24 @@ export default function TeacherClassesScreen() {
             });
 
             if (response.ok) {
+                console.log("[TEACHER_CLASSES] User:", parsedUser);
                 const allClasses = await response.json();
+                console.log("[TEACHER_CLASSES] Total classes:", allClasses.length);
+
                 // Filter classes where the current user is the class teacher
-                // Also include classes where they are a subject teacher (if we had that logic fully linked)
-                // For now, just class teacher
-                const myClasses = allClasses.filter(c =>
-                    c.classTeacher && c.classTeacher._id === parsedUser.id
-                );
+                const myClasses = allClasses.filter(c => {
+                    if (!c.classTeacher) return false;
+
+                    const teacherId = typeof c.classTeacher === 'object' ? c.classTeacher._id : c.classTeacher;
+                    const userId = parsedUser._id || parsedUser.id;
+
+                    // Debug log for the first few items to verify logic
+                    // console.log(`[TEACHER_CLASSES] Checking class ${c.name}: Teacher ${teacherId} vs User ${userId}`);
+
+                    return String(teacherId) === String(userId);
+                });
+
+                console.log("[TEACHER_CLASSES] Filtered classes:", myClasses.length);
                 setClasses(myClasses);
             } else {
                 showToast("Failed to load classes", "error");

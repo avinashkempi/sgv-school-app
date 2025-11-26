@@ -335,9 +335,16 @@ export default function ClassDetailsScreen() {
         }
     };
 
-    const isClassTeacher = user && classData &&
-        classData.classTeacher &&
-        classData.classTeacher._id === user.id;
+    const isClassTeacher = (() => {
+        if (!user || !classData || !classData.classTeacher) return false;
+
+        const teacherId = typeof classData.classTeacher === 'object' ? classData.classTeacher._id : classData.classTeacher;
+        const userId = user._id || user.id;
+
+        console.log(`[CLASS_DETAILS] Checking teacher: Class Teacher ${teacherId} vs User ${userId}`);
+
+        return String(teacherId) === String(userId);
+    })();
 
     console.log("User:", user);
     console.log("ClassData:", classData);

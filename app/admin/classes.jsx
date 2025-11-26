@@ -34,6 +34,7 @@ export default function ClassesScreen() {
     const [user, setUser] = useState(null);
     const [modalMode, setModalMode] = useState("create"); // "create" or "edit"
     const [editingClassId, setEditingClassId] = useState(null);
+    const [deletingId, setDeletingId] = useState(null);
 
     const [form, setForm] = useState({
         name: "",
@@ -206,6 +207,8 @@ export default function ClassesScreen() {
                     text: "Delete",
                     style: "destructive",
                     onPress: async () => {
+                        console.log("[DELETE_CLASS] Attempting to delete:", classId);
+                        setDeletingId(classId);
                         try {
                             const token = await AsyncStorage.getItem("@auth_token");
                             const response = await apiFetch(`${apiConfig.baseUrl}/classes/${classId}`, {
@@ -213,16 +216,39 @@ export default function ClassesScreen() {
                                 headers: { Authorization: `Bearer ${token}` },
                             });
 
+                            console.log("[DELETE_CLASS] Response status:", response.status);
+
                             if (response.ok) {
+                                // Optimistic Update
+                                const updatedClasses = classes.filter(c => c._id !== classId);
+                                setClasses(updatedClasses);
+
+                                // Update Cache
+                                await setCachedData("@admin_classes", updatedClasses);
+
                                 showToast("Class deleted", "success");
-                                loadData();
                             } else {
-                                const data = await response.json();
-                                showToast(data.msg || "Failed to delete", "error");
+                                let errorMsg = "Failed to delete";
+                                try {
+                                    const text = await response.text();
+                                    console.log("[DELETE_CLASS] Raw error response:", text);
+                                    try {
+                                        const data = JSON.parse(text);
+                                        errorMsg = data.msg || data.message || data.error || JSON.stringify(data);
+                                    } catch {
+                                        errorMsg = text.substring(0, 100); // Limit length if raw text
+                                    }
+                                } catch (e) {
+                                    console.error("[DELETE_CLASS] Error reading response:", e);
+                                }
+                                // Fallback to Alert since Toast is reported invisible
+                                Alert.alert("Deletion Failed", errorMsg);
                             }
                         } catch (error) {
-                            console.error(error);
-                            showToast("Error deleting class", "error");
+                            console.error("[DELETE_CLASS] Error:", error);
+                            Alert.alert("Error", "An unexpected error occurred while deleting the class.");
+                        } finally {
+                            setDeletingId(null);
                         }
                     }
                 }
@@ -234,8 +260,6 @@ export default function ClassesScreen() {
         setRefreshing(true);
         loadData();
     };
-
-
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -295,15 +319,21 @@ export default function ClassesScreen() {
                                             >
                                                 <MaterialIcons name="edit" size={20} color={colors.textSecondary} />
                                             </Pressable>
-                                            <Pressable
-                                                onPress={(e) => {
-                                                    e.stopPropagation();
-                                                    handleDelete(cls._id, cls.name);
-                                                }}
-                                                style={{ padding: 8 }}
-                                            >
-                                                <MaterialIcons name="delete" size={20} color={colors.error} />
-                                            </Pressable>
+                                            {deletingId === cls._id ? (
+                                                <View style={{ padding: 8 }}>
+                                                    <ActivityIndicator size="small" color={colors.error} />
+                                                </View>
+                                            ) : (
+                                                <Pressable
+                                                    onPress={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDelete(cls._id, cls.name);
+                                                    }}
+                                                    style={{ padding: 8 }}
+                                                >
+                                                    <MaterialIcons name="delete" size={20} color={colors.error} />
+                                                </Pressable>
+                                            )}
                                         </>
                                     )}
                                     <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
