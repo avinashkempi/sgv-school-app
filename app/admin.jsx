@@ -530,6 +530,25 @@ export default function AdminScreen() {
               </View>
               <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Leaves</Text>
             </Pressable>
+
+            <Pressable
+              onPress={() => router.push("/admin/teacher-subjects")}
+              style={({ pressed }) => ({
+                flex: 1,
+                minWidth: "45%",
+                backgroundColor: colors.cardBackground,
+                padding: 16,
+                borderRadius: 16,
+                alignItems: "center",
+                opacity: pressed ? 0.9 : 1,
+                elevation: 2,
+              })}
+            >
+              <View style={{ backgroundColor: "#4CAF50" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
+                <MaterialIcons name="assignment-ind" size={24} color="#4CAF50" />
+              </View>
+              <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Teacher Subjects</Text>
+            </Pressable>
           </View >
 
           {/* Users List */}
@@ -1041,7 +1060,7 @@ export default function AdminScreen() {
                 </Pressable>
 
                 <Pressable
-                  onPress={modalMode === "add" ? handleCreateUser : handleUpdateUser}
+                  onPress={modalMode === "add" ? createUser : () => updateUserRole(editingUser._id, userForm.role)}
                   disabled={modalMode === "add" && !isFormValid()}
                   style={({ pressed }) => ({
                     flex: 1,

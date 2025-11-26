@@ -11,6 +11,8 @@ import BottomNavigation from "../components/BottomNavigation";
 import ErrorBoundary from "../components/ErrorBoundary";
 import * as Notifications from 'expo-notifications';
 import { getFCMToken, registerFCMTokenWithBackend } from '../utils/fcm';
+import { NavigationProvider } from "../context/NavigationContext";
+import SideDrawer from "../components/SideDrawer";
 
 // Configure how notifications are displayed when app is in foreground
 Notifications.setNotificationHandler({
@@ -66,19 +68,22 @@ function Inner() {
     <SafeAreaView style={styles.safeArea}>
       <ToastProvider>
         <NetworkStatusProvider>
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              animationEnabled: false, // Disable animations
-              animation: 'none', // Ensure no animation
-              // Enable gesture navigation
-              gestureEnabled: true,
-              gestureDirection: 'horizontal',
-              // Detach inactive screens for better memory usage
-              detachInactiveScreens: true,
-            }}
-          />
-          <BottomNavigation />
+          <NavigationProvider>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                animationEnabled: false, // Disable animations
+                animation: 'none', // Ensure no animation
+                // Enable gesture navigation
+                gestureEnabled: true,
+                gestureDirection: 'horizontal',
+                // Detach inactive screens for better memory usage
+                detachInactiveScreens: true,
+              }}
+            />
+            <BottomNavigation />
+            <SideDrawer />
+          </NavigationProvider>
         </NetworkStatusProvider>
       </ToastProvider>
     </SafeAreaView>

@@ -239,30 +239,53 @@ export default function StudentClassScreen() {
                                         style={({ pressed }) => ({
                                             backgroundColor: colors.cardBackground,
                                             borderRadius: 16,
-                                            padding: 16,
-                                            marginBottom: 12,
+                                            padding: 18,
+                                            marginBottom: 14,
                                             shadowColor: "#000",
-                                            shadowOffset: { width: 0, height: 1 },
-                                            shadowOpacity: 0.05,
-                                            shadowRadius: 4,
-                                            elevation: 1,
+                                            shadowOffset: { width: 0, height: 2 },
+                                            shadowOpacity: 0.06,
+                                            shadowRadius: 6,
+                                            elevation: 2,
                                             opacity: pressed ? 0.9 : 1,
                                             flexDirection: "row",
                                             justifyContent: "space-between",
                                             alignItems: "center"
                                         })}
                                     >
-                                        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                                            <View style={{ backgroundColor: colors.primary + "20", padding: 10, borderRadius: 10 }}>
-                                                <MaterialIcons name="book" size={24} color={colors.primary} />
+                                        <View style={{ flexDirection: "row", alignItems: "center", gap: 14, flex: 1 }}>
+                                            <View style={{ backgroundColor: colors.primary + "20", padding: 12, borderRadius: 12 }}>
+                                                <MaterialIcons name="book" size={26} color={colors.primary} />
                                             </View>
-                                            <View>
-                                                <Text style={{ fontSize: 16, fontWeight: "700", color: colors.textPrimary }}>
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={{
+                                                    fontSize: 17,
+                                                    fontFamily: "DMSans-Bold",
+                                                    color: colors.textPrimary,
+                                                    marginBottom: 4
+                                                }}>
                                                     {subject.name}
                                                 </Text>
-                                                <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
-                                                    Tap to view content
-                                                </Text>
+                                                {subject.teachers && subject.teachers.length > 0 ? (
+                                                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
+                                                        <MaterialIcons name="person" size={14} color={colors.textSecondary} />
+                                                        <Text style={{
+                                                            fontSize: 13,
+                                                            color: colors.textSecondary,
+                                                            fontFamily: "DMSans-Medium"
+                                                        }}>
+                                                            {subject.teachers.map(t => t.name).join(", ")}
+                                                        </Text>
+                                                    </View>
+                                                ) : (
+                                                    <Text style={{
+                                                        fontSize: 12,
+                                                        color: colors.textSecondary,
+                                                        fontStyle: "italic",
+                                                        fontFamily: "DMSans-Regular"
+                                                    }}>
+                                                        No teacher assigned
+                                                    </Text>
+                                                )}
                                             </View>
                                         </View>
                                         <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />

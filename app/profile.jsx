@@ -1,22 +1,15 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { View, Text, ScrollView, Pressable, Alert, Switch, RefreshControl } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { MaterialIcons, FontAwesome } from "@expo/vector-icons";
+import React, { useState, useEffect } from "react";
+import { View, Text, ScrollView, RefreshControl, Pressable } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from "../theme";
 import { useToast } from "../components/ToastProvider";
-import { SCHOOL } from "../constants/basic-info";
-import { Linking } from "react-native";
 import { formatDate } from "../utils/date";
-// import { logFCMToken } from "../utils/fcm"; // Uncomment to log FCM token
 
 export default function ProfileScreen() {
-  const navigation = useNavigation();
-  const { styles, colors, mode, toggle } = useTheme();
+  const { styles, colors } = useTheme();
   const { showToast } = useToast();
   const [user, setUser] = useState(null);
-  const [selectedTheme, setSelectedTheme] = useState(mode);
-
   const [refreshing, setRefreshing] = useState(false);
 
   const loadUser = async () => {
@@ -29,7 +22,6 @@ export default function ProfileScreen() {
           const parsedUser = JSON.parse(storedUser);
           setUser(parsedUser);
 
-          // Fetch latest profile from backend
           if (token) {
             try {
               const apiConfig = require('../config/apiConfig').default;
@@ -42,15 +34,11 @@ export default function ProfileScreen() {
 
               if (response.ok) {
                 const freshUserData = await response.json();
-                console.log('Fresh user data loaded:', freshUserData);
-
-                // Update AsyncStorage with fresh data
                 await AsyncStorage.setItem('@auth_user', JSON.stringify(freshUserData));
                 setUser(freshUserData);
               }
             } catch (err) {
               console.log("Failed to refresh profile:", err);
-              // Continue with cached data if fetch fails
             }
           }
         } catch (parseError) {
@@ -65,9 +53,6 @@ export default function ProfileScreen() {
 
   useEffect(() => {
     loadUser();
-
-    // Uncomment the line below to log FCM token to console
-    // logFCMToken().catch(err => console.log('FCM token error:', err));
   }, []);
 
   const onRefresh = async () => {
@@ -89,39 +74,10 @@ export default function ProfileScreen() {
     }
   };
 
-  const handlePress = async (appUrl, fallbackUrl) => {
-    try {
-      const supported = await Linking.canOpenURL(appUrl);
-      if (supported) {
-        await Linking.openURL(appUrl);
-      } else {
-        await Linking.openURL(fallbackUrl);
-      }
-    } catch (err) {
-      console.error("Failed to open link:", err);
-    }
+  const handleLogin = () => {
+    const { router } = require('expo-router');
+    router.replace('/login');
   };
-
-  // Memoize menu items to prevent recalculation on every render
-  const menuItems = useMemo(() => [
-    {
-      label: "Help & Support",
-      icon: "help-outline",
-      onPress: () => Alert.alert("Help & Support", "Contact us at sgvrss@gmail.com"),
-    },
-    {
-      label: "About App",
-      icon: "info-outline",
-      onPress: () => Alert.alert("About", "School App v1.0\nBuilt by SGV team!"),
-    },
-  ], []);
-
-  // Memoize social items to prevent recalculation on every render
-  const socialItems = useMemo(() => [
-    { type: "fontawesome", icon: "youtube-play", color: "#FF0000", onPress: () => handlePress(SCHOOL.socials.youtubeAppUrl, SCHOOL.socials.youtube), label: "YouTube" },
-    { type: "fontawesome", icon: "instagram", color: "#C13584", onPress: () => handlePress(SCHOOL.socials.instagramAppUrl, SCHOOL.socials.instagram), label: "Instagram" },
-    { type: "material", icon: "location-on", color: colors.primary, onPress: () => handlePress(SCHOOL.mapAppUrl, SCHOOL.mapUrl), label: "Location" },
-  ], [colors.primary, handlePress]);
 
   return (
     <ScrollView
@@ -131,7 +87,6 @@ export default function ProfileScreen() {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
       }
     >
-      {/* Profile Header */}
       <View style={{ alignItems: "center", marginTop: 20, marginBottom: 40 }}>
         <View style={{
           width: 100,
@@ -172,7 +127,6 @@ export default function ProfileScreen() {
             )}
 
             <View style={{ width: '100%', paddingHorizontal: 20 }}>
-              {/* Contact Info */}
               <View style={{ backgroundColor: colors.cardBackground, borderRadius: 16, padding: 16, marginBottom: 16 }}>
                 <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.textSecondary, marginBottom: 12 }}>CONTACT INFO</Text>
 
@@ -191,7 +145,6 @@ export default function ProfileScreen() {
                 )}
               </View>
 
-              {/* Role Specific Details */}
               {(user.role === 'student' || user.role === 'class teacher' || user.role === 'staff') && (
                 <View style={{ backgroundColor: colors.cardBackground, borderRadius: 16, padding: 16, marginBottom: 16 }}>
                   <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.textSecondary, marginBottom: 12 }}>
@@ -253,133 +206,34 @@ export default function ProfileScreen() {
         )}
       </View>
 
-      {/* Settings Section */}
-      <Text style={styles.label}>Settings</Text>
-      <View style={styles.cardMinimal}>
-        {/* Theme Toggle */}
-        <View style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          paddingVertical: 12,
-          borderBottomWidth: 1,
-          borderBottomColor: colors.border + '40'
-        }}>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <View style={{
-              width: 36,
-              height: 36,
-              borderRadius: 10,
-              backgroundColor: colors.background,
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginRight: 12
-            }}>
-              <MaterialIcons name="brightness-6" size={20} color={colors.textPrimary} />
-            </View>
-            <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.textPrimary }}>Dark Mode</Text>
-          </View>
-          <Switch
-            value={mode === 'dark'}
-            onValueChange={toggle}
-            trackColor={{ false: "#e0e0e0", true: colors.primary + '80' }}
-            thumbColor={mode === 'dark' ? colors.primary : "#f4f3f4"}
+      <View style={{ paddingHorizontal: 20 }}>
+        <Pressable
+          onPress={user ? handleLogout : handleLogin}
+          style={({ pressed }) => ({
+            backgroundColor: user ? colors.error + '15' : colors.primary,
+            borderRadius: 16,
+            paddingVertical: 16,
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'row',
+            opacity: pressed ? 0.9 : 1,
+          })}
+        >
+          <MaterialIcons
+            name={user ? "logout" : "login"}
+            size={20}
+            color={user ? colors.error : colors.white}
+            style={{ marginRight: 8 }}
           />
-        </View>
-
-        {/* Menu Items */}
-        {menuItems.map((item, index) => (
-          <Pressable
-            key={index}
-            onPress={item.onPress}
-            style={({ pressed }) => ({
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              paddingVertical: 16,
-              opacity: pressed ? 0.7 : 1,
-              borderBottomWidth: index < menuItems.length - 1 ? 1 : 0,
-              borderBottomColor: colors.border + '40'
-            })}
-          >
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <View style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                backgroundColor: colors.background,
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginRight: 12
-              }}>
-                <MaterialIcons name={item.icon} size={20} color={colors.textPrimary} />
-              </View>
-              <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.textPrimary }}>{item.label}</Text>
-            </View>
-            <MaterialIcons name="chevron-right" size={20} color={colors.textSecondary} />
-          </Pressable>
-        ))}
+          <Text style={{
+            fontSize: 16,
+            fontFamily: "DMSans-Bold",
+            color: user ? colors.error : colors.white
+          }}>
+            {user ? "Log Out" : "Log In"}
+          </Text>
+        </Pressable>
       </View>
-
-      {/* Social Links */}
-      <Text style={[styles.label, { marginTop: 24 }]}>Follow Us</Text>
-      <View style={{ flexDirection: 'row', gap: 12, marginBottom: 32 }}>
-        {socialItems.map((item, index) => (
-          <Pressable
-            key={index}
-            onPress={item.onPress}
-            style={({ pressed }) => ({
-              flex: 1,
-              backgroundColor: colors.cardBackground,
-              borderRadius: 16,
-              paddingVertical: 20,
-              alignItems: 'center',
-              justifyContent: 'center',
-              opacity: pressed ? 0.9 : 1,
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.05,
-              shadowRadius: 8,
-              elevation: 2,
-            })}
-          >
-            {item.type === "fontawesome" ? (
-              <FontAwesome name={item.icon} size={24} color={item.color} style={{ marginBottom: 8 }} />
-            ) : (
-              <MaterialIcons name={item.icon} size={24} color={item.color} style={{ marginBottom: 8 }} />
-            )}
-            <Text style={{ fontSize: 13, fontFamily: "DMSans-Medium", color: colors.textSecondary }}>{item.label}</Text>
-          </Pressable>
-        ))}
-      </View>
-
-      {/* Auth Button */}
-      <Pressable
-        onPress={user ? handleLogout : () => navigation.navigate('login')}
-        style={({ pressed }) => ({
-          backgroundColor: user ? colors.error + '15' : colors.primary,
-          borderRadius: 16,
-          paddingVertical: 16,
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexDirection: 'row',
-          opacity: pressed ? 0.9 : 1,
-        })}
-      >
-        <MaterialIcons
-          name={user ? "logout" : "login"}
-          size={20}
-          color={user ? colors.error : colors.white}
-          style={{ marginRight: 8 }}
-        />
-        <Text style={{
-          fontSize: 16,
-          fontFamily: "DMSans-Bold",
-          color: user ? colors.error : colors.white
-        }}>
-          {user ? "Log Out" : "Log In"}
-        </Text>
-      </Pressable>
 
       <Text style={{ textAlign: 'center', marginTop: 24, color: colors.textSecondary, fontSize: 12 }}>
         Version 1.0.0

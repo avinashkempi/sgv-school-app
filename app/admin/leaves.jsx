@@ -27,10 +27,10 @@ export default function AdminLeaves() {
             if (response.success) {
                 setLeaves(response.data);
             } else {
-                showToast('Error', response.message || 'Failed to fetch leaves', 'error');
+                showToast(response.message || 'Failed to fetch leaves', 'error');
             }
         } catch (error) {
-            showToast('Error', 'An error occurred while fetching leaves', 'error');
+            showToast('An error occurred while fetching leaves', 'error');
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -43,10 +43,10 @@ export default function AdminLeaves() {
             if (response.success) {
                 setDailyStats(response.data);
             } else {
-                showToast('Error', response.message || 'Failed to fetch daily stats', 'error');
+                showToast(response.message || 'Failed to fetch daily stats', 'error');
             }
         } catch (error) {
-            showToast('Error', 'An error occurred while fetching stats', 'error');
+            showToast('An error occurred while fetching stats', 'error');
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -88,14 +88,14 @@ export default function AdminLeaves() {
             });
 
             if (response.success) {
-                showToast('Success', `Leave request ${actionType}`, 'success');
+                showToast(`Leave request ${actionType}`, 'success');
                 setActionModalVisible(false);
                 fetchLeaves(); // Refresh list
             } else {
-                showToast('Error', response.message || 'Failed to update leave status', 'error');
+                showToast(response.message || 'Failed to update leave status', 'error');
             }
         } catch (error) {
-            showToast('Error', 'An error occurred', 'error');
+            showToast('An error occurred', 'error');
         } finally {
             setSubmitting(false);
         }
