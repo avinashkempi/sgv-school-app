@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, StatusBar } from 'react-native';
+import { View, Text, TextInput, Pressable, ScrollView, StatusBar, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../theme';
 import Header from "../components/Header";
@@ -11,6 +11,7 @@ import apiFetch from "../utils/apiFetch";
 export default function Login() {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const { styles, colors, mode } = useTheme();
   const router = useRouter();
 
@@ -20,6 +21,7 @@ export default function Login() {
       return;
     }
 
+    setLoading(true);
     try {
       const response = await apiFetch(apiConfig.url(apiConfig.endpoints.auth.login), {
         method: 'POST',
@@ -41,6 +43,8 @@ export default function Login() {
     } catch (error) {
       console.error('Login error:', error);
       alert('Network error. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -62,6 +66,7 @@ export default function Login() {
           placeholderTextColor={colors.textSecondary}
           keyboardType="phone-pad"
           maxLength={10}
+          editable={!loading}
         />
 
         <Text style={[styles.label, { marginBottom: 8, fontSize: 14 }]}>Password</Text>
@@ -72,13 +77,19 @@ export default function Login() {
           placeholder="Enter password"
           secureTextEntry
           placeholderTextColor={colors.textSecondary}
+          editable={!loading}
         />
 
         <Pressable
-          style={[styles.buttonLarge, { width: "100%", alignItems: 'center' }]}
+          style={[styles.buttonLarge, { width: "100%", alignItems: 'center', opacity: loading ? 0.7 : 1 }]}
           onPress={handleLogin}
+          disabled={loading}
         >
-          <Text style={styles.buttonText}>Login</Text>
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Login</Text>
+          )}
         </Pressable>
       </View>
     </ScrollView>
