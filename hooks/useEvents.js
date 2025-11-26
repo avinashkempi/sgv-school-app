@@ -41,7 +41,8 @@ export default function useEvents() {
 
     const queryString = queryParts.length > 0 ? `?${queryParts.join('&')}` : '';
 
-    console.log(`[EVENTS] Fetching from API... ${queryString} (Silent: ${silent})`);
+
+
     const response = await apiFetch(
       apiConfig.url(`${apiConfig.endpoints.events.list}${queryString}`),
       fetchOptions
@@ -58,7 +59,7 @@ export default function useEvents() {
       throw new Error('Invalid events data structure from API');
     }
 
-    console.log(`[EVENTS] Received ${eventsData.length} events from API`);
+
     return eventsData;
   }, []);
 
@@ -71,14 +72,14 @@ export default function useEvents() {
 
     // If offline, just return (we rely on cache which is already loaded)
     if (!isConnected) {
-      console.log('[EVENTS] Offline, skipping API fetch');
+
       if (callback) callback(null, 0);
       return;
     }
 
     // Prevent duplicate fetches
     if (isRefreshing(cacheKey)) {
-      console.log('[EVENTS] Refresh already in progress, skipping');
+
       if (callback) callback(null, 0);
       return;
     }
@@ -94,17 +95,16 @@ export default function useEvents() {
       }
 
       await setCachedData(cacheKey, eventsData);
-      console.log('[EVENTS] Cached successfully');
+
 
       if (callback) callback(null, eventsData.length);
     } catch (err) {
-      console.error('[EVENTS] Failed to fetch:', err.message);
+
       // Suppress network errors as requested
       if (callback) callback(err);
     } finally {
-      clearRefreshLock(cacheKey);
     }
-  }, [fetchEventsFromAPI, isConnected, events.length]);
+  }, [fetchEventsFromAPI, isConnected]);
 
   // Initial load with cache-first strategy
   useEffect(() => {
@@ -118,7 +118,7 @@ export default function useEvents() {
         const cachedEvents = await getCachedData(cacheKey, CACHE_EXPIRY.EVENTS);
 
         if (cachedEvents && cachedEvents.length > 0 && !cancelled) {
-          console.log(`[EVENTS] Loaded ${cachedEvents.length} events from cache`);
+
           setEvents(cachedEvents);
           setLoading(false);
 
@@ -126,7 +126,7 @@ export default function useEvents() {
           const isStale = await isCacheStale(cacheKey, STALE_TIME.EVENTS);
 
           if (isStale && isConnected) {
-            console.log('[EVENTS] Cache is stale, refreshing in background');
+
             // Refresh in background without showing loader
             const now = new Date();
             const startOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
@@ -135,7 +135,7 @@ export default function useEvents() {
           }
         } else {
           // Step 3: No cache, fetch from API
-          console.log('[EVENTS] No cache found, fetching from API');
+
           const now = new Date();
           const startOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
           const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0).toISOString();
@@ -147,7 +147,7 @@ export default function useEvents() {
           }
         }
       } catch (err) {
-        console.error('[EVENTS] Load error:', err);
+
         if (!cancelled) {
           // setError(err.message); // Suppress error
           setLoading(false);
@@ -165,7 +165,7 @@ export default function useEvents() {
   // Register online callback for auto-refresh
   useEffect(() => {
     const unsubscribe = registerOnlineCallback(() => {
-      console.log('[EVENTS] Network restored, refreshing events...');
+
       const { start, end } = currentRangeRef.current;
       if (start && end) {
         fetchEventsRange(start, end, null, true); // silent refresh
@@ -241,14 +241,12 @@ export default function useEvents() {
     refreshEvents: useCallback(async (silent = true) => {
       const { start, end } = currentRangeRef.current;
       if (start && end) {
-        console.log('[EVENTS] Refreshing current range:', start, 'to', end);
         await fetchEventsRange(start, end, null, silent);
       } else {
         // Default to current month if no range set
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
         const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0).toISOString();
-        console.log('[EVENTS] Refreshing default range');
         await fetchEventsRange(startOfMonth, endOfMonth, null, silent);
       }
     }, [fetchEventsRange])

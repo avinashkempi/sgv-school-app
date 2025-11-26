@@ -265,7 +265,11 @@ export default function EventsScreen() {
         throw new Error(result.message || `Failed to ${isEditing ? 'update' : 'create'} event`);
       }
 
-      const newEvent = { ...result.event, isSchoolEvent: eventData.isSchoolEvent };
+      const newEvent = {
+        ...(result.event || {}),
+        isSchoolEvent: eventData.isSchoolEvent,
+        date: result.event?.date || eventData.date // Ensure date is present
+      };
 
       if (isEditing) {
         updateEvent(newEvent);
@@ -337,9 +341,14 @@ export default function EventsScreen() {
     () =>
       selectedDate
         ? allEvents
-          .filter(
-            (event) => new Date(event.date).toISOString().split('T')[0] === selectedDate
-          )
+          .filter((event) => {
+            if (!event || !event.date) return false;
+            try {
+              return new Date(event.date).toISOString().split('T')[0] === selectedDate;
+            } catch (e) {
+              return false;
+            }
+          })
           .sort((a, b) => {
             // School events first (true comes before false in descending order)
             if (a.isSchoolEvent && !b.isSchoolEvent) return -1;
@@ -352,16 +361,21 @@ export default function EventsScreen() {
 
   const markedDates = useMemo(() => {
     const dates = allEvents.reduce((acc, curr) => {
-      const date = new Date(curr.date).toISOString().split('T')[0];
-      if (!acc[date]) {
-        acc[date] = {
-          marked: true,
-          hasSchoolEvent: false,
-        };
-      }
-      // If any event on this date is a school event, flag it
-      if (curr.isSchoolEvent) {
-        acc[date].hasSchoolEvent = true;
+      if (!curr || !curr.date) return acc;
+      try {
+        const date = new Date(curr.date).toISOString().split('T')[0];
+        if (!acc[date]) {
+          acc[date] = {
+            marked: true,
+            hasSchoolEvent: false,
+          };
+        }
+        // If any event on this date is a school event, flag it
+        if (curr.isSchoolEvent) {
+          acc[date].hasSchoolEvent = true;
+        }
+      } catch (e) {
+        // Ignore invalid dates
       }
       return acc;
     }, {});

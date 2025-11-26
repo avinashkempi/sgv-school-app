@@ -24,7 +24,8 @@ export default function useNews() {
 
   // Fetch news from API
   const fetchNewsFromAPI = useCallback(async (silent = false) => {
-    console.log(`[NEWS] Fetching from API... (Silent: ${silent})`);
+
+
     const response = await apiFetch(apiConfig.url(apiConfig.endpoints.news.list), { silent });
 
     if (!response.ok) {
@@ -37,7 +38,7 @@ export default function useNews() {
       if (!Array.isArray(result.news)) {
         throw new Error('Invalid news data structure from API');
       }
-      console.log(`[NEWS] Received ${result.news.length} news items from API`);
+
       return result.news;
     }
 
@@ -50,12 +51,10 @@ export default function useNews() {
 
     // If offline, just return (we rely on cache)
     if (!isConnected) {
-      console.log('[NEWS] Offline, skipping API fetch');
       return;
     }
 
     if (isRefreshing(cacheKey)) {
-      console.log('[NEWS] Refresh already in progress, skipping');
       return;
     }
 
@@ -70,14 +69,12 @@ export default function useNews() {
       }
 
       await setCachedData(cacheKey, newsData);
-      console.log('[NEWS] Cached successfully');
+
     } catch (err) {
-      console.error('[NEWS] Failed to fetch:', err.message);
       // Suppress network errors as requested
     } finally {
-      clearRefreshLock(cacheKey);
     }
-  }, [fetchNewsFromAPI, isConnected, news.length]);
+  }, [fetchNewsFromAPI, isConnected]);
 
   // Initial load with cache-first strategy
   useEffect(() => {
@@ -91,7 +88,7 @@ export default function useNews() {
         const cachedNews = await getCachedData(cacheKey, CACHE_EXPIRY.NEWS);
 
         if (cachedNews && !cancelled) {
-          console.log(`[NEWS] Loaded ${cachedNews.length} news items from cache`);
+
           setNews(cachedNews);
           setLoading(false);
 
@@ -99,12 +96,10 @@ export default function useNews() {
           const isStale = await isCacheStale(cacheKey, STALE_TIME.NEWS);
 
           if (isStale && isConnected) {
-            console.log('[NEWS] Cache is stale, refreshing in background');
             refreshNews(true); // silent=true
           }
         } else {
           // Step 3: No cache, fetch from API
-          console.log('[NEWS] No cache found, fetching from API');
           await refreshNews(true); // silent=true
 
           if (!cancelled) {
@@ -112,7 +107,7 @@ export default function useNews() {
           }
         }
       } catch (err) {
-        console.error('[NEWS] Load error:', err);
+
         if (!cancelled) {
           // setError(err.message); // Suppress error
           setLoading(false);
@@ -130,7 +125,6 @@ export default function useNews() {
   // Register online callback
   useEffect(() => {
     const unsubscribe = registerOnlineCallback(() => {
-      console.log('[NEWS] Network restored, refreshing news...');
       refreshNews(true); // silent refresh
     });
     return unsubscribe;

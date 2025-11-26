@@ -17,11 +17,9 @@ export default function HomeScreen() {
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      console.log('[HOME] Refreshing school info...');
       await refresh(true);
-      console.log('[HOME] Refreshed successfully');
     } catch (err) {
-      console.error('[HOME] Refresh failed:', err.message);
+      // Suppress error
     } finally {
       setRefreshing(false);
     }

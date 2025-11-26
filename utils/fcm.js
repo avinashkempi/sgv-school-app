@@ -25,9 +25,6 @@ export async function getFCMToken() {
     // Get the device-specific push token (FCM on Android, APNs on iOS)
     const devicePushToken = await Notifications.getDevicePushTokenAsync();
 
-    console.log('[FCM] Device Push Token:', devicePushToken.data);
-    console.log('[FCM] Token Type:', devicePushToken.type); // 'ios' or 'android'
-
     return devicePushToken.data; // This is the actual FCM token on Android
   } catch (error) {
     console.error('[FCM] Failed to get token:', error);
@@ -42,10 +39,6 @@ export async function getFCMToken() {
 export async function logFCMToken() {
   try {
     const token = await getFCMToken();
-    console.log('═══════════════════════════════════════════════════════════════');
-    console.log('FCM REGISTRATION TOKEN:');
-    console.log(token);
-    console.log('═══════════════════════════════════════════════════════════════');
     return token;
   } catch (error) {
     console.error('Failed to retrieve FCM token:', error);

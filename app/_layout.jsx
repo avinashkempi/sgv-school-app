@@ -21,6 +21,70 @@ Notifications.setNotificationHandler({
   }),
 });
 
+// separate component so we can use useTheme inside ThemeProvider
+function Inner() {
+  const { styles } = useTheme();
+
+  // Setup push notifications
+  useEffect(() => {
+    let notificationSubscription;
+    let responseSubscription;
+
+    const setupNotifications = async () => {
+      try {
+        // Get and register FCM token
+        const token = await getFCMToken();
+        if (token) {
+          await registerFCMTokenWithBackend(token);
+        }
+
+        // Listen for foreground notifications
+        notificationSubscription = Notifications.addNotificationReceivedListener(notification => {
+          // Handle foreground notification
+        });
+
+        // Listen for notification taps (when user clicks notification)
+        responseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
+          // You can add navigation logic here if needed
+          // e.g., navigate to news page when news notification is tapped
+        });
+      } catch (error) {
+        // Don't throw - app should work even if notifications fail
+      }
+    };
+
+    setupNotifications();
+
+    // Cleanup subscriptions on unmount
+    return () => {
+      notificationSubscription?.remove();
+      responseSubscription?.remove();
+    };
+  }, []);
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <ToastProvider>
+        <NetworkStatusProvider>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              animationEnabled: false, // Disable animations
+              animation: 'none', // Ensure no animation
+              // Enable gesture navigation
+              gestureEnabled: true,
+              gestureDirection: 'horizontal',
+              // Detach inactive screens for better memory usage
+              detachInactiveScreens: true,
+            }}
+          />
+          <BottomNavigation />
+        </NetworkStatusProvider>
+      </ToastProvider>
+    </SafeAreaView>
+  );
+}
+
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     // DMSans - Primary font family
@@ -43,115 +107,6 @@ export default function RootLayout() {
   }, [fontsLoaded]);
 
   if (!fontsLoaded) return null;
-
-  // separate component so we can use useTheme inside ThemeProvider
-  function Inner() {
-    const { styles } = useTheme();
-
-    // Setup push notifications
-    useEffect(() => {
-      let notificationSubscription;
-      let responseSubscription;
-
-      const setupNotifications = async () => {
-        try {
-          // Get and register FCM token
-          console.log('[Notifications] Setting up FCM...');
-          const token = await getFCMToken();
-          if (token) {
-            await registerFCMTokenWithBackend(token);
-            console.log('[Notifications] FCM token registered with backend');
-          }
-
-          // Listen for foreground notifications
-          notificationSubscription = Notifications.addNotificationReceivedListener(notification => {
-            console.log('[Notifications] Received in foreground:', notification.request.content);
-          });
-
-          // Listen for notification taps (when user clicks notification)
-          responseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
-            console.log('[Notifications] User tapped notification:', response.notification.request.content);
-            // You can add navigation logic here if needed
-            // e.g., navigate to news page when news notification is tapped
-          });
-        } catch (error) {
-          console.error('[Notifications] Setup failed:', error);
-          // Don't throw - app should work even if notifications fail
-        }
-      };
-
-      setupNotifications();
-
-      // Cleanup subscriptions on unmount
-      return () => {
-        notificationSubscription?.remove();
-        responseSubscription?.remove();
-      };
-    }, []);
-
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        <ToastProvider>
-          <NetworkStatusProvider>
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                animationEnabled: true,
-                animationTypeForReplace: 'push',
-                // Enable gesture navigation
-                gestureEnabled: true,
-                gestureDirection: 'horizontal',
-                // Detach inactive screens for better memory usage
-                detachInactiveScreens: true,
-                // Optimized for speed and smoothness
-                transitionSpec: {
-                  open: {
-                    animation: 'spring',
-                    config: {
-                      stiffness: 1000,
-                      damping: 500,
-                      mass: 1, // Reduced from 3 for faster animations
-                      overshootClamping: true,
-                      restDisplacementThreshold: 0.01,
-                      restSpeedThreshold: 0.01,
-                    },
-                  },
-                  close: {
-                    animation: 'timing',
-                    config: {
-                      duration: 150, // Reduced from 200ms for snappier feel
-                      useNativeDriver: true,
-                    },
-                  },
-                },
-                // Simplified interpolator for better performance
-                cardStyleInterpolator: ({ current, layouts }) => {
-                  return {
-                    cardStyle: {
-                      transform: [
-                        {
-                          translateX: current.progress.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [layouts.screen.width, 0],
-                          }),
-                        },
-                      ],
-                      // Simplified opacity for smoother rendering
-                      opacity: current.progress.interpolate({
-                        inputRange: [0, 0.5, 1],
-                        outputRange: [0, 0.5, 1],
-                      }),
-                    },
-                  };
-                },
-              }}
-            />
-            <BottomNavigation />
-          </NetworkStatusProvider>
-        </ToastProvider>
-      </SafeAreaView>
-    );
-  }
 
   return (
     <ThemeProvider>

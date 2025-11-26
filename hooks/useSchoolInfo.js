@@ -58,14 +58,14 @@ export default function useSchoolInfo() {
           await fetchFreshSchoolInfo(true);
         } else {
           // Offline and no cache, use fallback
-          console.log('[SCHOOL_INFO] Offline and no cache, using fallback');
+
           globalSchoolInfo = FALLBACK_SCHOOL;
           setLoading(false);
           globalLoading = false;
           isFetched = true;
         }
       } catch (err) {
-        console.warn('Failed to fetch school info from backend, using fallback:', err.message);
+
         // setError(err.message); // Suppress error
         // globalError = err.message;
         // Keep the fallback data already set in state
@@ -83,7 +83,7 @@ export default function useSchoolInfo() {
     if (!isConnected) return;
 
     try {
-      console.log(`[SCHOOL_INFO] Fetching fresh data from API... (Silent: ${silent})`);
+
       const response = await apiFetch(apiConfig.url(apiConfig.endpoints.schoolInfo.get), { silent });
 
       if (!response.ok) {
@@ -115,11 +115,11 @@ export default function useSchoolInfo() {
         await setCachedData(CACHE_KEYS.SCHOOL_INFO, transformedData);
       } else {
         // If backend doesn't have data, keep fallback
-        console.warn('Backend returned no school info data, using fallback');
+
         if (!globalSchoolInfo) globalSchoolInfo = FALLBACK_SCHOOL;
       }
     } catch (err) {
-      console.warn('Failed to fetch fresh school info:', err.message);
+
       // Don't override existing cached data if fetch fails
       if (!globalSchoolInfo) {
         // setError(err.message); // Suppress error
@@ -132,7 +132,7 @@ export default function useSchoolInfo() {
   // Register online callback
   useEffect(() => {
     const unsubscribe = registerOnlineCallback(() => {
-      console.log('[SCHOOL_INFO] Network restored, refreshing info...');
+
       fetchFreshSchoolInfo(true);
     });
     return unsubscribe;

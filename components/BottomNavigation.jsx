@@ -85,10 +85,12 @@ function BottomNavigation() {
     // Haptic feedback for better UX
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
 
-    // Defer state update to avoid blocking the UI
-    InteractionManager.runAfterInteractions(() => {
+    // Use requestAnimationFrame to ensure the UI update (ripple effect) happens
+    // before the heavy navigation work starts
+    requestAnimationFrame(() => {
       setActiveTab(route);
-      router.push(route);
+      // Use replace instead of push to prevent stack buildup and memory leaks
+      router.replace(route);
     });
   }, [activeTab, router]);
 
