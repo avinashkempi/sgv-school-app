@@ -1,0 +1,402 @@
+import React, { useState, useEffect } from "react";
+import {
+    View,
+    Text,
+    ScrollView,
+    Pressable,
+    ActivityIndicator,
+    RefreshControl,
+    Dimensions,
+} from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
+import { useTheme } from "../../theme";
+import apiConfig from "../../config/apiConfig";
+import apiFetch from "../../utils/apiFetch";
+import { useToast } from "../../components/ToastProvider";
+import Header from "../../components/Header";
+
+const { width } = Dimensions.get('window');
+const cellSize = (width - 80) / 7; // 7 days in a week, accounting for padding
+
+export default function StudentAttendanceScreen() {
+    const router = useRouter();
+    const { styles, colors } = useTheme();
+    const { showToast } = useToast();
+
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [user, setUser] = useState(null);
+    const [summary, setSummary] = useState(null);
+    const [attendanceHistory, setAttendanceHistory] = useState([]);
+    const [selectedMonth, setSelectedMonth] = useState(new Date());
+
+    useEffect(() => {
+        loadData();
+    }, []);
+
+    const loadData = async () => {
+        try {
+            const token = await AsyncStorage.getItem("@auth_token");
+            const storedUser = await AsyncStorage.getItem("@auth_user");
+
+            if (!storedUser) {
+                router.replace("/login");
+                return;
+            }
+
+            const parsedUser = JSON.parse(storedUser);
+            setUser(parsedUser);
+
+            // Load attendance summary
+            const summaryResponse = await apiFetch(
+                `${apiConfig.baseUrl}/attendance/student/${parsedUser._id}/summary`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            if (summaryResponse.ok) {
+                const data = await summaryResponse.json();
+                setSummary(data);
+            }
+
+            // Load attendance history
+            const historyResponse = await apiFetch(
+                `${apiConfig.baseUrl}/attendance/student/${parsedUser._id}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            if (historyResponse.ok) {
+                const data = await historyResponse.json();
+                setAttendanceHistory(data.attendance || []);
+            }
+        } catch (error) {
+            console.error(error);
+            showToast("Error loading attendance", "error");
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    };
+
+    const onRefresh = () => {
+        setRefreshing(true);
+        loadData();
+    };
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'present': return colors.success;
+            case 'absent': return colors.error;
+            case 'late': return '#FF9800';
+            case 'excused': return '#2196F3';
+            default: return colors.textSecondary;
+        }
+    };
+
+    const renderCalendar = () => {
+        const year = selectedMonth.getFullYear();
+        const month = selectedMonth.getMonth();
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        const weeks = [];
+        let week = [];
+
+        // Fill empty cells before first day
+        for (let i = 0; i < firstDay; i++) {
+            week.push(null);
+        }
+
+        // Fill days
+        for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(year, month, day);
+            const dateStr = date.toISOString().split('T')[0];
+            const attendance = attendanceHistory.find(a =>
+                new Date(a.date).toISOString().split('T')[0] === dateStr
+            );
+
+            week.push({ day, attendance });
+
+            if (week.length === 7) {
+                weeks.push(week);
+                week = [];
+            }
+        }
+
+        // Fill remaining empty cells
+        while (week.length < 7 && week.length > 0) {
+            week.push(null);
+        }
+        if (week.length > 0) {
+            weeks.push(week);
+        }
+
+        return (
+            <View style={{ marginTop: 20 }}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                    <Pressable onPress={() => setSelectedMonth(new Date(year, month - 1))}>
+                        <MaterialIcons name="chevron-left" size={28} color={colors.textPrimary} />
+                    </Pressable>
+                    <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
+                        {selectedMonth.toLocaleDateString('default', { month: 'long', year: 'numeric' })}
+                    </Text>
+                    <Pressable
+                        onPress={() => setSelectedMonth(new Date(year, month + 1))}
+                        disabled={month >= new Date().getMonth() && year >= new Date().getFullYear()}
+                    >
+                        <MaterialIcons
+                            name="chevron-right"
+                            size={28}
+                            color={month >= new Date().getMonth() && year >= new Date().getFullYear()
+                                ? colors.textSecondary + "50"
+                                : colors.textPrimary}
+                        />
+                    </Pressable>
+                </View>
+
+                {/* Day labels */}
+                <View style={{ flexDirection: "row", marginBottom: 8 }}>
+                    {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
+                        <View key={index} style={{ width: cellSize, alignItems: "center" }}>
+                            <Text style={{ fontSize: 12, fontFamily: "DMSans-Bold", color: colors.textSecondary }}>
+                                {day}
+                            </Text>
+                        </View>
+                    ))}
+                </View>
+
+                {/* Calendar grid */}
+                {weeks.map((week, weekIndex) => (
+                    <View key={weekIndex} style={{ flexDirection: "row", marginBottom: 4 }}>
+                        {week.map((cell, cellIndex) => {
+                            if (!cell) {
+                                return <View key={cellIndex} style={{ width: cellSize }} />;
+                            }
+
+                            const { day, attendance } = cell;
+                            const status = attendance?.status;
+
+                            return (
+                                <View
+                                    key={cellIndex}
+                                    style={{
+                                        width: cellSize,
+                                        height: cellSize,
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        margin: 2
+                                    }}
+                                >
+                                    <View style={{
+                                        width: cellSize - 8,
+                                        height: cellSize - 8,
+                                        borderRadius: 8,
+                                        backgroundColor: status
+                                            ? getStatusColor(status) + "20"
+                                            : colors.background,
+                                        borderWidth: status ? 2 : 1,
+                                        borderColor: status
+                                            ? getStatusColor(status)
+                                            : colors.textSecondary + "20",
+                                        alignItems: "center",
+                                        justifyContent: "center"
+                                    }}>
+                                        <Text style={{
+                                            fontSize: 14,
+                                            fontFamily: "DMSans-SemiBold",
+                                            color: status ? getStatusColor(status) : colors.textPrimary
+                                        }}>
+                                            {day}
+                                        </Text>
+                                    </View>
+                                </View>
+                            );
+                        })}
+                    </View>
+                ))}
+
+                {/* Legend */}
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, marginTop: 16, justifyContent: "center" }}>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                        <View style={{ width: 16, height: 16, borderRadius: 4, backgroundColor: colors.success + "40" }} />
+                        <Text style={{ fontSize: 11, color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>Present</Text>
+                    </View>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                        <View style={{ width: 16, height: 16, borderRadius: 4, backgroundColor: colors.error + "40" }} />
+                        <Text style={{ fontSize: 11, color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>Absent</Text>
+                    </View>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                        <View style={{ width: 16, height: 16, borderRadius: 4, backgroundColor: "#FF9800" + "40" }} />
+                        <Text style={{ fontSize: 11, color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>Late</Text>
+                    </View>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                        <View style={{ width: 16, height: 16, borderRadius: 4, backgroundColor: "#2196F3" + "40" }} />
+                        <Text style={{ fontSize: 11, color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>Excused</Text>
+                    </View>
+                </View>
+            </View>
+        );
+    };
+
+    if (loading) {
+        return (
+            <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: "center", alignItems: "center" }}>
+                <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+        );
+    }
+
+    return (
+        <View style={{ flex: 1, backgroundColor: colors.background }}>
+            <ScrollView
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
+                contentContainerStyle={{ paddingBottom: 100 }}
+            >
+                <View style={{ padding: 16, paddingTop: 24 }}>
+                    <Header
+                        title="My Attendance"
+                        subtitle="Track your attendance record"
+                    />
+
+                    {/* Overall Percentage - Big Display */}
+                    <View style={{
+                        backgroundColor: colors.primary,
+                        borderRadius: 20,
+                        padding: 24,
+                        marginTop: 20,
+                        alignItems: "center",
+                        elevation: 4
+                    }}>
+                        <Text style={{ fontSize: 16, color: "#fff", opacity: 0.9, fontFamily: "DMSans-Medium" }}>
+                            Overall Attendance
+                        </Text>
+                        <Text style={{ fontSize: 64, fontFamily: "DMSans-Bold", color: "#fff", marginTop: 8 }}>
+                            {summary?.overall?.percentage || 0}%
+                        </Text>
+                        <View style={{ flexDirection: "row", gap: 24, marginTop: 16 }}>
+                            <View style={{ alignItems: "center" }}>
+                                <Text style={{ fontSize: 28, fontFamily: "DMSans-Bold", color: "#fff" }}>
+                                    {summary?.overall?.present || 0}
+                                </Text>
+                                <Text style={{ fontSize: 12, color: "#fff", opacity: 0.8, fontFamily: "DMSans-Regular" }}>
+                                    Present
+                                </Text>
+                            </View>
+                            <View style={{ alignItems: "center" }}>
+                                <Text style={{ fontSize: 28, fontFamily: "DMSans-Bold", color: "#fff" }}>
+                                    {summary?.overall?.total || 0}
+                                </Text>
+                                <Text style={{ fontSize: 12, color: "#fff", opacity: 0.8, fontFamily: "DMSans-Regular" }}>
+                                    Total Days
+                                </Text>
+                            </View>
+                        </View>
+                    </View>
+
+                    {/* Subject-wise Breakdown */}
+                    {summary?.subjectWise && summary.subjectWise.length > 0 && (
+                        <View style={{ marginTop: 24 }}>
+                            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 12 }}>
+                                Subject-wise Attendance
+                            </Text>
+                            {summary.subjectWise.map((subject) => (
+                                <View
+                                    key={subject.subjectId}
+                                    style={{
+                                        backgroundColor: colors.cardBackground,
+                                        borderRadius: 12,
+                                        padding: 16,
+                                        marginBottom: 10,
+                                        elevation: 1
+                                    }}
+                                >
+                                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={{ fontSize: 16, fontFamily: "DMSans-SemiBold", color: colors.textPrimary }}>
+                                                {subject.name}
+                                            </Text>
+                                            <Text style={{ fontSize: 13, color: colors.textSecondary, marginTop: 4, fontFamily: "DMSans-Regular" }}>
+                                                {subject.present} / {subject.total} classes
+                                            </Text>
+                                        </View>
+                                        <View style={{ alignItems: "flex-end" }}>
+                                            <Text style={{
+                                                fontSize: 24,
+                                                fontFamily: "DMSans-Bold",
+                                                color: parseFloat(subject.percentage) >= 75 ? colors.success : colors.error
+                                            }}>
+                                                {subject.percentage}%
+                                            </Text>
+                                            {parseFloat(subject.percentage) < 75 && (
+                                                <View style={{ backgroundColor: colors.error + "20", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, marginTop: 4 }}>
+                                                    <Text style={{ fontSize: 10, color: colors.error, fontFamily: "DMSans-Bold" }}>
+                                                        LOW
+                                                    </Text>
+                                                </View>
+                                            )}
+                                        </View>
+                                    </View>
+                                </View>
+                            ))}
+                        </View>
+                    )}
+
+                    {/* Calendar View */}
+                    <View style={{
+                        backgroundColor: colors.cardBackground,
+                        borderRadius: 16,
+                        padding: 16,
+                        marginTop: 24,
+                        elevation: 2
+                    }}>
+                        <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 4 }}>
+                            Attendance Calendar
+                        </Text>
+                        {renderCalendar()}
+                    </View>
+
+                    {/* Monthly Summary */}
+                    {summary?.monthlyBreakdown && summary.monthlyBreakdown.length > 0 && (
+                        <View style={{ marginTop: 24 }}>
+                            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 12 }}>
+                                Monthly Summary
+                            </Text>
+                            {summary.monthlyBreakdown.slice(0, 6).map((month) => (
+                                <View
+                                    key={month.month}
+                                    style={{
+                                        backgroundColor: colors.cardBackground,
+                                        borderRadius: 12,
+                                        padding: 16,
+                                        marginBottom: 8,
+                                        flexDirection: "row",
+                                        justifyContent: "space-between",
+                                        alignItems: "center",
+                                        elevation: 1
+                                    }}
+                                >
+                                    <View>
+                                        <Text style={{ fontSize: 15, fontFamily: "DMSans-SemiBold", color: colors.textPrimary }}>
+                                            {month.month}
+                                        </Text>
+                                        <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2, fontFamily: "DMSans-Regular" }}>
+                                            {month.present} / {month.total} days
+                                        </Text>
+                                    </View>
+                                    <Text style={{
+                                        fontSize: 20,
+                                        fontFamily: "DMSans-Bold",
+                                        color: parseFloat(month.percentage) >= 75 ? colors.success : colors.error
+                                    }}>
+                                        {month.percentage}%
+                                    </Text>
+                                </View>
+                            ))}
+                        </View>
+                    )}
+                </View>
+            </ScrollView>
+        </View>
+    );
+}

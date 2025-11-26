@@ -163,6 +163,31 @@ export default function SubjectDetailScreen() {
                 <View style={{ padding: 16, paddingTop: 24 }}>
                     <Header title={subjectName || "Subject Details"} subtitle="Class Content" showBack />
 
+                    {/* Quick Actions */}
+                    <Pressable
+                        onPress={() => router.push({
+                            pathname: "/teacher/subject/create-exam",
+                            params: { subjectId, classId: id }
+                        })}
+                        style={({ pressed }) => ({
+                            backgroundColor: colors.primary,
+                            borderRadius: 12,
+                            padding: 16,
+                            marginTop: 20,
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 10,
+                            opacity: pressed ? 0.9 : 1,
+                            elevation: 3
+                        })}
+                    >
+                        <MaterialIcons name="add-circle" size={24} color="#fff" />
+                        <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: "#fff" }}>
+                            Create New Exam
+                        </Text>
+                    </Pressable>
+
                     {loading ? (
                         <View style={{ marginTop: 100, alignItems: "center" }}>
                             <ActivityIndicator size="large" color={colors.primary} />

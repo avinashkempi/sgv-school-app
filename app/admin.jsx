@@ -549,6 +549,25 @@ export default function AdminScreen() {
               </View>
               <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Teacher Subjects</Text>
             </Pressable>
+
+            <Pressable
+              onPress={() => router.push("/admin/attendance")}
+              style={({ pressed }) => ({
+                flex: 1,
+                minWidth: "45%",
+                backgroundColor: colors.cardBackground,
+                borderRadius: 16,
+                padding: 16,
+                alignItems: "center",
+                elevation: 2,
+                opacity: pressed ? 0.7 : 1
+              })}
+            >
+              <View style={{ backgroundColor: "#2196F3" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
+                <MaterialIcons name="analytics" size={24} color="#2196F3" />
+              </View>
+              <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Attendance</Text>
+            </Pressable>
           </View >
 
           {/* Users List */}
