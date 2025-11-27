@@ -21,9 +21,11 @@ export default function SideDrawer() {
     const slideAnim = useRef(new Animated.Value(DRAWER_WIDTH)).current;
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const { showToast } = useToast();
+    const [isVisible, setIsVisible] = React.useState(false);
 
     useEffect(() => {
         if (isDrawerOpen) {
+            setIsVisible(true);
             Animated.parallel([
                 Animated.spring(slideAnim, {
                     toValue: 0,
@@ -50,7 +52,11 @@ export default function SideDrawer() {
                     duration: 200,
                     useNativeDriver: true,
                 }),
-            ]).start();
+            ]).start(({ finished }) => {
+                if (finished) {
+                    setIsVisible(false);
+                }
+            });
         }
     }, [isDrawerOpen]);
 
@@ -93,7 +99,7 @@ export default function SideDrawer() {
         showToast('School App v1.0 - Built by SGV team!', 'info');
     };
 
-    if (!isDrawerOpen && slideAnim._value === DRAWER_WIDTH) return null;
+    if (!isVisible) return null;
 
     const gradientColors = mode === 'dark'
         ? [colors.primary + '40', colors.primary + '10']
@@ -111,7 +117,8 @@ export default function SideDrawer() {
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    zIndex: 999,
+                    zIndex: 2000,
+                    elevation: 20,
                 }}
             >
                 <Pressable style={{ flex: 1 }} onPress={closeDrawer} />
@@ -126,12 +133,12 @@ export default function SideDrawer() {
                     right: 0,
                     width: DRAWER_WIDTH,
                     backgroundColor: colors.background,
-                    zIndex: 1000,
+                    zIndex: 2001,
                     shadowColor: "#000",
                     shadowOffset: { width: -4, height: 0 },
                     shadowOpacity: 0.25,
                     shadowRadius: 12,
-                    elevation: 16,
+                    elevation: 21,
                     transform: [{ translateX: slideAnim }],
                 }}
             >

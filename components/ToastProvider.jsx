@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useCallback } from "react";
 import { StyleSheet, Text, View, Platform } from "react-native";
 import { useTheme } from "../theme";
 import Animated, {
-  SlideInDown,
+  SlideInUp,
   SlideOutUp,
   Layout
 } from 'react-native-reanimated';
@@ -78,7 +78,7 @@ function ToastItem({ msg, type, onDismiss }) {
 
   return (
     <Animated.View
-      entering={SlideInDown.springify().damping(20).stiffness(150)}
+      entering={SlideInUp.springify().damping(20).stiffness(150)}
       exiting={SlideOutUp.springify().damping(20).stiffness(150)}
       layout={Layout.springify()}
       style={styles.toastWrapper}

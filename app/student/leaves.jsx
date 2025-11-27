@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, RefreshControl, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, RefreshControl, ActivityIndicator, ScrollView, Switch } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import apiFetch from '../../utils/apiFetch';
 import apiConfig from '../../config/apiConfig';
 import { useToast } from '../../components/ToastProvider';
-import { Calendar } from 'react-native-calendars';
 
 export default function StudentLeaves() {
     const router = useRouter();
@@ -16,18 +16,19 @@ export default function StudentLeaves() {
     const [modalVisible, setModalVisible] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
-    // Form state
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
+    // Form State
+    const [startDate, setStartDate] = useState(new Date());
+    const [endDate, setEndDate] = useState(new Date());
     const [reason, setReason] = useState('');
-    const [showStartCalendar, setShowStartCalendar] = useState(false);
-    const [showEndCalendar, setShowEndCalendar] = useState(false);
+    const [showStartPicker, setShowStartPicker] = useState(false);
+    const [showEndPicker, setShowEndPicker] = useState(false);
+    const [isHalfDay, setIsHalfDay] = useState(false);
+    const [halfDaySlot, setHalfDaySlot] = useState('morning'); // 'morning' or 'afternoon'
 
     const fetchLeaves = useCallback(async () => {
         try {
             const response = await apiFetch(`${apiConfig.baseUrl}/leaves/my-leaves`);
             const data = await response.json();
-
             if (data.success) {
                 setLeaves(data.data);
             } else {
@@ -51,37 +52,64 @@ export default function StudentLeaves() {
     };
 
     const handleApplyLeave = async () => {
-        if (!startDate || !endDate || !reason) {
-            showToast('Please fill in all fields', 'error');
+        if (!reason.trim()) {
+            showToast('Please enter a reason', 'error');
             return;
+        }
+
+        if (!isHalfDay && endDate < startDate) {
+            showToast('End date cannot be before start date', 'error');
+            return;
+        }
+
+        // If half day, start and end date should be same (usually)
+        // But backend handles logic. For UI simplicity, if half day, we can force end date = start date
+        let finalEndDate = endDate;
+        if (isHalfDay) {
+            finalEndDate = startDate;
         }
 
         setSubmitting(true);
         try {
+            const payload = {
+                startDate: startDate.toISOString().split('T')[0],
+                endDate: finalEndDate.toISOString().split('T')[0],
+                reason,
+                leaveType: isHalfDay ? 'half' : 'full',
+                halfDaySlot: isHalfDay ? halfDaySlot : undefined
+            };
+
             const response = await apiFetch(`${apiConfig.baseUrl}/leaves/apply`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ startDate, endDate, reason }),
+                body: JSON.stringify(payload),
             });
             const data = await response.json();
 
             if (data.success) {
-                showToast('Leave application submitted successfully', 'success');
+                showToast('Leave applied successfully', 'success');
                 setModalVisible(false);
-                setStartDate('');
-                setEndDate('');
                 setReason('');
+                setIsHalfDay(false);
                 fetchLeaves();
             } else {
-                showToast(data.message || 'Failed to apply for leave', 'error');
+                showToast(data.message || 'Failed to apply leave', 'error');
             }
         } catch (error) {
             showToast('An error occurred', 'error');
         } finally {
             setSubmitting(false);
         }
+    };
+
+    const formatDate = (date) => {
+        return date.toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        });
     };
 
     const getStatusColor = (status) => {
@@ -92,33 +120,31 @@ export default function StudentLeaves() {
         }
     };
 
-    const formatDate = (dateString) => {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-GB'); // dd/mm/yyyy
-    };
-
     const renderItem = ({ item }) => (
         <View style={styles.card}>
             <View style={styles.cardHeader}>
-                <Text style={styles.dateRange}>
-                    {formatDate(item.startDate)} - {formatDate(item.endDate)}
-                </Text>
+                <View>
+                    <Text style={styles.dateRange}>
+                        {formatDate(new Date(item.startDate))}
+                        {item.leaveType === 'full' && item.startDate !== item.endDate && ` - ${formatDate(new Date(item.endDate))}`}
+                    </Text>
+                    <Text style={styles.leaveTypeBadge}>
+                        {item.leaveType === 'half' ? `Half Day (${item.halfDaySlot})` : 'Full Day'}
+                    </Text>
+                </View>
                 <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
                     <Text style={styles.statusText}>{item.status.toUpperCase()}</Text>
                 </View>
             </View>
+
             <Text style={styles.reasonLabel}>Reason:</Text>
             <Text style={styles.reasonText}>{item.reason}</Text>
 
-            {item.status !== 'pending' && (
-                <View style={styles.actionInfo}>
-                    <Text style={styles.actionText}>
-                        {item.status === 'approved' ? 'Approved' : 'Rejected'} by Teacher/Admin
-                    </Text>
-                    {item.actionReason && (
-                        <Text style={styles.actionReason}>Note: {item.actionReason}</Text>
-                    )}
+            {item.status === 'rejected' && (
+                <View style={styles.rejectionBox}>
+                    <Text style={styles.rejectionTitle}>Rejection Details:</Text>
+                    <Text style={styles.rejectionText}><Text style={{ fontWeight: 'bold' }}>Reason:</Text> {item.rejectionReason}</Text>
+                    <Text style={styles.rejectionText}><Text style={{ fontWeight: 'bold' }}>Comments:</Text> {item.rejectionComments}</Text>
                 </View>
             )}
         </View>
@@ -131,11 +157,13 @@ export default function StudentLeaves() {
                     <Ionicons name="arrow-back" size={24} color="#333" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>My Leaves</Text>
-                <View style={{ width: 24 }} />
+                <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.addButton}>
+                    <Ionicons name="add" size={24} color="#fff" />
+                </TouchableOpacity>
             </View>
 
             {loading ? (
-                <ActivityIndicator size="large" color="#6200ee" style={styles.loader} />
+                <ActivityIndicator size="large" color="#2F6CD4" style={styles.loader} />
             ) : (
                 <FlatList
                     data={leaves}
@@ -143,18 +171,9 @@ export default function StudentLeaves() {
                     keyExtractor={(item) => item._id}
                     contentContainerStyle={styles.listContent}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-                    ListEmptyComponent={
-                        <Text style={styles.emptyText}>No leave history found.</Text>
-                    }
+                    ListEmptyComponent={<Text style={styles.emptyText}>No leave history found.</Text>}
                 />
             )}
-
-            <TouchableOpacity
-                style={styles.fab}
-                onPress={() => setModalVisible(true)}
-            >
-                <Ionicons name="add" size={30} color="#fff" />
-            </TouchableOpacity>
 
             <Modal
                 visible={modalVisible}
@@ -164,93 +183,124 @@ export default function StudentLeaves() {
             >
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Apply for Leave</Text>
-
-                        <Text style={styles.label}>Start Date</Text>
-                        <TouchableOpacity
-                            style={styles.dateInput}
-                            onPress={() => {
-                                setShowStartCalendar(!showStartCalendar);
-                                setShowEndCalendar(false);
-                            }}
-                        >
-                            <Text>{startDate || 'Select Start Date'}</Text>
-                            <Ionicons name="calendar-outline" size={20} color="#666" />
-                        </TouchableOpacity>
-
-                        {showStartCalendar && (
-                            <Calendar
-                                onDayPress={day => {
-                                    setStartDate(day.dateString);
-                                    setShowStartCalendar(false);
-                                }}
-                                markedDates={{
-                                    [startDate]: { selected: true, selectedColor: '#6200ee' }
-                                }}
-                                theme={{
-                                    todayTextColor: '#6200ee',
-                                    arrowColor: '#6200ee',
-                                }}
-                            />
-                        )}
-
-                        <Text style={styles.label}>End Date</Text>
-                        <TouchableOpacity
-                            style={styles.dateInput}
-                            onPress={() => {
-                                setShowEndCalendar(!showEndCalendar);
-                                setShowStartCalendar(false);
-                            }}
-                        >
-                            <Text>{endDate || 'Select End Date'}</Text>
-                            <Ionicons name="calendar-outline" size={20} color="#666" />
-                        </TouchableOpacity>
-
-                        {showEndCalendar && (
-                            <Calendar
-                                onDayPress={day => {
-                                    setEndDate(day.dateString);
-                                    setShowEndCalendar(false);
-                                }}
-                                markedDates={{
-                                    [endDate]: { selected: true, selectedColor: '#6200ee' }
-                                }}
-                                theme={{
-                                    todayTextColor: '#6200ee',
-                                    arrowColor: '#6200ee',
-                                }}
-                            />
-                        )}
-
-                        <Text style={styles.label}>Reason</Text>
-                        <TextInput
-                            style={[styles.input, styles.textArea]}
-                            placeholder="Reason for leave"
-                            value={reason}
-                            onChangeText={setReason}
-                            multiline
-                            numberOfLines={3}
-                        />
-
-                        <View style={styles.modalButtons}>
-                            <TouchableOpacity
-                                style={[styles.button, styles.cancelButton]}
-                                onPress={() => setModalVisible(false)}
-                            >
-                                <Text style={styles.cancelButtonText}>Cancel</Text>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>Apply for Leave</Text>
+                            <TouchableOpacity onPress={() => setModalVisible(false)}>
+                                <Ionicons name="close" size={24} color="#333" />
                             </TouchableOpacity>
+                        </View>
+
+                        <ScrollView>
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.label}>Leave Type</Text>
+                                <View style={styles.row}>
+                                    <Text style={styles.valueText}>{isHalfDay ? 'Half Day' : 'Full Day'}</Text>
+                                    <Switch
+                                        value={isHalfDay}
+                                        onValueChange={setIsHalfDay}
+                                        trackColor={{ false: "#767577", true: "#81b0ff" }}
+                                        thumbColor={isHalfDay ? "#2F6CD4" : "#f4f3f4"}
+                                    />
+                                </View>
+                            </View>
+
+                            {isHalfDay && (
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.label}>Slot</Text>
+                                    <View style={styles.slotContainer}>
+                                        <TouchableOpacity
+                                            style={[styles.slotButton, halfDaySlot === 'morning' && styles.activeSlot]}
+                                            onPress={() => setHalfDaySlot('morning')}
+                                        >
+                                            <Text style={[styles.slotText, halfDaySlot === 'morning' && styles.activeSlotText]}>Morning</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={[styles.slotButton, halfDaySlot === 'afternoon' && styles.activeSlot]}
+                                            onPress={() => setHalfDaySlot('afternoon')}
+                                        >
+                                            <Text style={[styles.slotText, halfDaySlot === 'afternoon' && styles.activeSlotText]}>Afternoon</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            )}
+
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.label}>Start Date</Text>
+                                <TouchableOpacity
+                                    style={styles.dateButton}
+                                    onPress={() => setShowStartPicker(true)}
+                                >
+                                    <Text style={styles.dateText}>{formatDate(startDate)}</Text>
+                                    <Ionicons name="calendar-outline" size={20} color="#666" />
+                                </TouchableOpacity>
+                                {showStartPicker && (
+                                    <DateTimePicker
+                                        value={startDate}
+                                        mode="date"
+                                        display="default"
+                                        minimumDate={new Date()}
+                                        onChange={(event, selectedDate) => {
+                                            setShowStartPicker(false);
+                                            if (selectedDate) {
+                                                setStartDate(selectedDate);
+                                                if (selectedDate > endDate) {
+                                                    setEndDate(selectedDate);
+                                                }
+                                            }
+                                        }}
+                                    />
+                                )}
+                            </View>
+
+                            {!isHalfDay && (
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.label}>End Date</Text>
+                                    <TouchableOpacity
+                                        style={styles.dateButton}
+                                        onPress={() => setShowEndPicker(true)}
+                                    >
+                                        <Text style={styles.dateText}>{formatDate(endDate)}</Text>
+                                        <Ionicons name="calendar-outline" size={20} color="#666" />
+                                    </TouchableOpacity>
+                                    {showEndPicker && (
+                                        <DateTimePicker
+                                            value={endDate}
+                                            mode="date"
+                                            display="default"
+                                            minimumDate={startDate}
+                                            onChange={(event, selectedDate) => {
+                                                setShowEndPicker(false);
+                                                if (selectedDate) setEndDate(selectedDate);
+                                            }}
+                                        />
+                                    )}
+                                </View>
+                            )}
+
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.label}>Reason</Text>
+                                <TextInput
+                                    style={[styles.input, styles.textArea]}
+                                    placeholder="Enter reason for leave..."
+                                    value={reason}
+                                    onChangeText={setReason}
+                                    multiline
+                                    numberOfLines={4}
+                                />
+                            </View>
+
                             <TouchableOpacity
-                                style={[styles.button, styles.submitButton]}
+                                style={styles.submitButton}
                                 onPress={handleApplyLeave}
                                 disabled={submitting}
                             >
                                 {submitting ? (
-                                    <ActivityIndicator color="#fff" size="small" />
+                                    <ActivityIndicator color="#fff" />
                                 ) : (
-                                    <Text style={styles.submitButtonText}>Submit</Text>
+                                    <Text style={styles.submitButtonText}>Submit Application</Text>
                                 )}
                             </TouchableOpacity>
-                        </View>
+                        </ScrollView>
                     </View>
                 </View>
             </Modal>
@@ -279,12 +329,23 @@ const styles = StyleSheet.create({
     backButton: {
         padding: 4,
     },
+    fab: {
+        position: 'absolute',
+        bottom: 100,
+        right: 20,
+        backgroundColor: '#2F6CD4',
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderRadius: 30,
+        elevation: 4,
+    },
     loader: {
         marginTop: 20,
     },
     listContent: {
         padding: 16,
-        paddingBottom: 80,
     },
     card: {
         backgroundColor: '#fff',
@@ -292,21 +353,23 @@ const styles = StyleSheet.create({
         padding: 16,
         marginBottom: 12,
         elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
     },
     cardHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         marginBottom: 8,
     },
     dateRange: {
         fontSize: 16,
-        fontWeight: '600',
+        fontWeight: 'bold',
         color: '#333',
+    },
+    leaveTypeBadge: {
+        fontSize: 12,
+        color: '#666',
+        marginTop: 2,
+        fontStyle: 'italic'
     },
     statusBadge: {
         paddingHorizontal: 8,
@@ -321,28 +384,31 @@ const styles = StyleSheet.create({
     reasonLabel: {
         fontSize: 14,
         color: '#666',
-        marginBottom: 4,
+        marginTop: 8,
+        marginBottom: 2,
     },
     reasonText: {
         fontSize: 14,
         color: '#333',
-        marginBottom: 8,
     },
-    actionInfo: {
-        marginTop: 8,
-        paddingTop: 8,
-        borderTopWidth: 1,
-        borderTopColor: '#eee',
+    rejectionBox: {
+        marginTop: 12,
+        padding: 10,
+        backgroundColor: '#FFEBEE',
+        borderRadius: 8,
+        borderLeftWidth: 3,
+        borderLeftColor: '#F44336'
     },
-    actionText: {
+    rejectionTitle: {
         fontSize: 12,
-        color: '#666',
-        fontStyle: 'italic',
+        fontWeight: 'bold',
+        color: '#D32F2F',
+        marginBottom: 4
     },
-    actionReason: {
+    rejectionText: {
         fontSize: 12,
-        color: '#666',
-        marginTop: 2,
+        color: '#D32F2F',
+        marginBottom: 2
     },
     emptyText: {
         textAlign: 'center',
@@ -350,46 +416,90 @@ const styles = StyleSheet.create({
         color: '#666',
         fontSize: 16,
     },
-    fab: {
-        position: 'absolute',
-        bottom: 100,
-        right: 24,
-        backgroundColor: '#6200ee',
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        justifyContent: 'center',
-        alignItems: 'center',
-        elevation: 6,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-    },
     modalContainer: {
         flex: 1,
         backgroundColor: 'rgba(0,0,0,0.5)',
-        justifyContent: 'center',
-        padding: 20,
+        justifyContent: 'flex-end',
     },
     modalContent: {
         backgroundColor: '#fff',
-        borderRadius: 16,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
         padding: 20,
-        maxHeight: '80%',
+        maxHeight: '90%',
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 20,
     },
     modalTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        marginBottom: 20,
-        textAlign: 'center',
         color: '#333',
+    },
+    inputGroup: {
+        marginBottom: 20,
     },
     label: {
         fontSize: 14,
         color: '#666',
-        marginBottom: 6,
+        marginBottom: 8,
         fontWeight: '500',
+    },
+    row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: '#f9f9f9',
+        padding: 12,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#ddd',
+    },
+    valueText: {
+        fontSize: 16,
+        color: '#333',
+    },
+    slotContainer: {
+        flexDirection: 'row',
+        gap: 12
+    },
+    slotButton: {
+        flex: 1,
+        padding: 12,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#ddd',
+        alignItems: 'center',
+        backgroundColor: '#f9f9f9'
+    },
+    activeSlot: {
+        borderColor: '#2F6CD4',
+        backgroundColor: '#EDE7F6'
+    },
+    slotText: {
+        color: '#666',
+        fontWeight: '500'
+    },
+    activeSlotText: {
+        color: '#2F6CD4',
+        fontWeight: 'bold'
+    },
+    dateButton: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        backgroundColor: '#f9f9f9',
+        borderWidth: 1,
+        borderColor: '#ddd',
+        borderRadius: 8,
+        padding: 12,
+    },
+    dateText: {
+        fontSize: 16,
+        color: '#333',
     },
     input: {
         backgroundColor: '#f9f9f9',
@@ -398,50 +508,22 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         padding: 12,
         fontSize: 16,
-        marginBottom: 16,
-    },
-    dateInput: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        backgroundColor: '#f9f9f9',
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 8,
-        padding: 12,
-        marginBottom: 16,
     },
     textArea: {
-        height: 80,
+        height: 100,
         textAlignVertical: 'top',
     },
-    modalButtons: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 10,
-    },
-    button: {
-        flex: 1,
-        padding: 14,
-        borderRadius: 8,
-        alignItems: 'center',
-    },
-    cancelButton: {
-        backgroundColor: '#f5f5f5',
-        marginRight: 10,
-    },
     submitButton: {
-        backgroundColor: '#6200ee',
-        marginLeft: 10,
-    },
-    cancelButtonText: {
-        color: '#666',
-        fontWeight: '600',
-        fontSize: 16,
+        backgroundColor: '#2F6CD4',
+        padding: 16,
+        borderRadius: 12,
+        alignItems: 'center',
+        marginTop: 10,
+        marginBottom: 20,
     },
     submitButtonText: {
         color: '#fff',
-        fontWeight: '600',
         fontSize: 16,
+        fontWeight: 'bold',
     },
 });

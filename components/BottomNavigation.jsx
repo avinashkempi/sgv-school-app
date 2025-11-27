@@ -63,7 +63,7 @@ function BottomNavigation() {
       label: "Admin",
       icon: "admin-panel-settings",
     }, {
-      route: "/teacher/classes",
+      route: "/admin/classes",
       label: "Classes",
       icon: "class",
     }] : []),

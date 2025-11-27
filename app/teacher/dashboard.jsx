@@ -287,42 +287,6 @@ export default function TeacherDashboard() {
                 <View style={{ padding: 16, paddingTop: 24 }}>
                     <Header title="My Teaching" subtitle="Manage your classes and subjects" />
 
-                    {/* Quick Action: Leave Requests */}
-                    <Pressable
-                        onPress={() => router.push("/teacher/leaves")}
-                        style={({ pressed }) => ({
-                            backgroundColor: colors.cardBackground,
-                            borderRadius: 16,
-                            padding: 16,
-                            marginTop: 16,
-                            marginBottom: 24,
-                            shadowColor: "#000",
-                            shadowOffset: { width: 0, height: 1 },
-                            shadowOpacity: 0.05,
-                            shadowRadius: 4,
-                            elevation: 1,
-                            opacity: pressed ? 0.9 : 1,
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            alignItems: "center"
-                        })}
-                    >
-                        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                            <View style={{ backgroundColor: "#FF9800" + "20", padding: 10, borderRadius: 10 }}>
-                                <MaterialIcons name="approval" size={24} color="#FF9800" />
-                            </View>
-                            <View>
-                                <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
-                                    Leave Requests
-                                </Text>
-                                <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2, fontFamily: "DMSans-Regular" }}>
-                                    Approve or reject student leaves
-                                </Text>
-                            </View>
-                        </View>
-                        <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
-                    </Pressable>
-
                     {/* Quick Action: History */}
                     <Pressable
                         onPress={() => router.push("/history")}
@@ -351,7 +315,7 @@ export default function TeacherDashboard() {
                                     History
                                 </Text>
                                 <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2, fontFamily: "DMSans-Regular" }}>
-                                    View past assignments & exams
+                                    View past exams
                                 </Text>
                             </View>
                         </View>

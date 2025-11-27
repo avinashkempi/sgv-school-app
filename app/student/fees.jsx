@@ -31,8 +31,15 @@ export default function StudentFeesScreen() {
     const loadFees = async () => {
         try {
             const token = await AsyncStorage.getItem("@auth_token");
-            const userStr = await AsyncStorage.getItem("@user");
+            const userStr = await AsyncStorage.getItem("@auth_user");
             const user = JSON.parse(userStr);
+
+            if (!user || !user.id) {
+                console.error("User data missing:", { user, userStr });
+                showToast("User information not found. Please log in again.", "error");
+                setLoading(false);
+                return;
+            }
 
             const response = await apiFetch(`${apiConfig.baseUrl}/fees/student/${user.id}`, {
                 headers: { Authorization: `Bearer ${token}` }

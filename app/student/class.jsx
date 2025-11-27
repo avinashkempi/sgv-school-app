@@ -184,40 +184,6 @@ export default function StudentClassScreen() {
                             </View>
 
                             <Pressable
-                                onPress={() => router.push("/student/leaves")}
-                                style={({ pressed }) => ({
-                                    backgroundColor: colors.cardBackground,
-                                    borderRadius: 16,
-                                    padding: 16,
-                                    marginBottom: 24,
-                                    shadowColor: "#000",
-                                    shadowOffset: { width: 0, height: 1 },
-                                    shadowOpacity: 0.05,
-                                    shadowRadius: 4,
-                                    elevation: 1,
-                                    opacity: pressed ? 0.9 : 1,
-                                    flexDirection: "row",
-                                    justifyContent: "space-between",
-                                    alignItems: "center"
-                                })}
-                            >
-                                <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                                    <View style={{ backgroundColor: "#4CAF50" + "20", padding: 10, borderRadius: 10 }}>
-                                        <MaterialIcons name="event-note" size={24} color="#4CAF50" />
-                                    </View>
-                                    <View>
-                                        <Text style={{ fontSize: 16, fontWeight: "700", color: colors.textPrimary }}>
-                                            My Leaves
-                                        </Text>
-                                        <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
-                                            Apply and view leave status
-                                        </Text>
-                                    </View>
-                                </View>
-                                <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
-                            </Pressable>
-
-                            <Pressable
                                 onPress={() => router.push("/student/attendance")}
                                 style={({ pressed }) => ({
                                     backgroundColor: colors.cardBackground,
@@ -279,40 +245,6 @@ export default function StudentClassScreen() {
                                         </Text>
                                         <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
                                             View academic performance
-                                        </Text>
-                                    </View>
-                                </View>
-                                <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
-                            </Pressable>
-
-                            <Pressable
-                                onPress={() => router.push("/student/assignments")}
-                                style={({ pressed }) => ({
-                                    backgroundColor: colors.cardBackground,
-                                    borderRadius: 16,
-                                    padding: 16,
-                                    marginBottom: 12,
-                                    shadowColor: "#000",
-                                    shadowOffset: { width: 0, height: 1 },
-                                    shadowOpacity: 0.05,
-                                    shadowRadius: 4,
-                                    elevation: 1,
-                                    opacity: pressed ? 0.9 : 1,
-                                    flexDirection: "row",
-                                    justifyContent: "space-between",
-                                    alignItems: "center"
-                                })}
-                            >
-                                <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                                    <View style={{ backgroundColor: "#9C27B0" + "20", padding: 10, borderRadius: 10 }}>
-                                        <MaterialIcons name="assignment" size={24} color="#9C27B0" />
-                                    </View>
-                                    <View>
-                                        <Text style={{ fontSize: 16, fontWeight: "700", color: colors.textPrimary }}>
-                                            Assignments
-                                        </Text>
-                                        <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
-                                            View pending tasks
                                         </Text>
                                     </View>
                                 </View>
