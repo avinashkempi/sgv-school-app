@@ -9,6 +9,7 @@ import {
     ActivityIndicator,
     Modal,
     Alert,
+    FlatList
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -39,12 +40,15 @@ export default function ClassDetailsScreen() {
     // Modals
     const [showAddSubjectModal, setShowAddSubjectModal] = useState(false);
     const [showAddStudentModal, setShowAddStudentModal] = useState(false);
+    const [saving, setSaving] = useState(false);
 
     const [activeTab, setActiveTab] = useState("subjects"); // subjects, students
     const [searchQuery, setSearchQuery] = useState("");
     const [user, setUser] = useState(null);
 
     const [subjectName, setSubjectName] = useState("");
+    const [globalSubjects, setGlobalSubjects] = useState([]);
+    const [selectedGlobalSubject, setSelectedGlobalSubject] = useState(null);
 
     useEffect(() => {
         loadUserData();
@@ -136,13 +140,17 @@ export default function ClassDetailsScreen() {
         // No caching for available students as it changes frequently and is an admin action
         try {
             const token = await AsyncStorage.getItem("@auth_token");
-            const response = await apiFetch(`${apiConfig.baseUrl}/users?role=student`, {
+            // Fetch with high limit to get all students for client-side filtering
+            // TODO: Implement server-side search for better performance
+            const response = await apiFetch(`${apiConfig.baseUrl}/users?role=student&limit=1000`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
             if (response.ok) {
-                const data = await response.json();
-                const unassigned = data.filter(s => !s.currentClass);
+                const result = await response.json();
+                // Handle both new paginated structure and potential old array structure
+                const users = Array.isArray(result) ? result : (result.data || []);
+                const unassigned = users.filter(s => !s.currentClass);
                 setAvailableStudents(unassigned);
             } else {
                 showToast("Failed to load available students", "error");
@@ -153,13 +161,30 @@ export default function ClassDetailsScreen() {
         }
     };
 
+    const loadGlobalSubjects = async () => {
+        try {
+            const token = await AsyncStorage.getItem("@auth_token");
+            const response = await apiFetch(`${apiConfig.baseUrl}/subjects`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setGlobalSubjects(data);
+            }
+        } catch (error) {
+            console.error("Failed to load global subjects:", error);
+        }
+    };
+
     const handleAddSubject = async () => {
-        if (!subjectName.trim()) {
-            showToast("Subject name is required", "error");
+        if (!selectedGlobalSubject) {
+            showToast("Please select a subject", "error");
             return;
         }
 
         try {
+            setSaving(true);
             const token = await AsyncStorage.getItem("@auth_token");
             const response = await apiFetch(`${apiConfig.baseUrl}/classes/${id}/subjects`, {
                 method: "POST",
@@ -167,13 +192,17 @@ export default function ClassDetailsScreen() {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({ name: subjectName }),
+                body: JSON.stringify({
+                    name: selectedGlobalSubject.name,
+                    globalSubjectId: selectedGlobalSubject._id
+                }),
             });
 
             if (response.ok) {
                 showToast("Subject added successfully", "success");
                 setShowAddSubjectModal(false);
-                setSubjectName("");
+                setSelectedGlobalSubject(null);
+                setSearchQuery("");
                 loadData(); // Reload subjects
             } else {
                 const data = await response.json();
@@ -182,6 +211,8 @@ export default function ClassDetailsScreen() {
         } catch (error) {
             console.error(error);
             showToast("Error adding subject", "error");
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -222,8 +253,26 @@ export default function ClassDetailsScreen() {
         );
     };
 
-    const handleAddStudent = async (studentId) => {
+    const [selectedStudentIds, setSelectedStudentIds] = useState([]);
+
+    const toggleStudentSelection = (studentId) => {
+        setSelectedStudentIds(prev => {
+            if (prev.includes(studentId)) {
+                return prev.filter(id => id !== studentId);
+            } else {
+                return [...prev, studentId];
+            }
+        });
+    };
+
+    const handleBulkAddStudents = async () => {
+        if (selectedStudentIds.length === 0) {
+            showToast("Please select at least one student", "error");
+            return;
+        }
+
         try {
+            setSaving(true);
             const token = await AsyncStorage.getItem("@auth_token");
             const response = await apiFetch(`${apiConfig.baseUrl}/classes/${id}/students`, {
                 method: "POST",
@@ -231,21 +280,25 @@ export default function ClassDetailsScreen() {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({ studentId }),
+                body: JSON.stringify({ studentIds: selectedStudentIds }),
             });
 
             if (response.ok) {
-                showToast("Student added successfully", "success");
+                const data = await response.json();
+                showToast(data.message || "Students added successfully", "success");
                 setShowAddStudentModal(false);
                 setSearchQuery("");
+                setSelectedStudentIds([]);
                 loadData();
             } else {
                 const data = await response.json();
-                showToast(data.message || "Failed to add student", "error");
+                showToast(data.message || "Failed to add students", "error");
             }
         } catch (error) {
             console.error(error);
-            showToast("Error adding student", "error");
+            showToast("Error adding students", "error");
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -302,14 +355,18 @@ export default function ClassDetailsScreen() {
         const teacherId = typeof classData.classTeacher === 'object' ? classData.classTeacher._id : classData.classTeacher;
         const userId = user._id || user.id;
 
-        console.log(`[CLASS_DETAILS] Checking teacher: Class Teacher ${teacherId} vs User ${userId}`);
-
         return String(teacherId) === String(userId);
+    })();
+
+    const canManageClass = (() => {
+        if (!user) return false;
+        return user.role === 'admin' || user.role === 'super admin';
     })();
 
     console.log("User:", user);
     console.log("ClassData:", classData);
     console.log("Is Class Teacher:", isClassTeacher);
+    console.log("Can Manage Class:", canManageClass);
 
 
     const filteredAvailableStudents = availableStudents.filter(s =>
@@ -432,7 +489,7 @@ export default function ClassDetailsScreen() {
                                         </View>
 
                                         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                                            {isClassTeacher && (
+                                            {canManageClass && (
                                                 <Pressable
                                                     onPress={(e) => {
                                                         e.stopPropagation();
@@ -499,7 +556,7 @@ export default function ClassDetailsScreen() {
                                                     </Text>
                                                 )}
                                             </View>
-                                            {isClassTeacher && (
+                                            {canManageClass && (
                                                 <Pressable
                                                     onPress={() => handleRemoveStudent(student._id, student.name)}
                                                     style={{ padding: 8 }}
@@ -518,14 +575,17 @@ export default function ClassDetailsScreen() {
             </ScrollView>
 
             {/* FAB for Add Subject or Add Student */}
-            {isClassTeacher && (
+            {canManageClass && (
                 <Pressable
                     onPress={() => {
                         if (activeTab === "subjects") {
+                            loadGlobalSubjects();
                             setShowAddSubjectModal(true);
+                            setSearchQuery("");
                         } else {
                             loadAvailableStudents();
                             setShowAddStudentModal(true);
+                            setSelectedStudentIds([]); // Reset selection
                         }
                     }}
                     style={{
@@ -555,25 +615,64 @@ export default function ClassDetailsScreen() {
                         </Text>
 
                         <TextInput
-                            placeholder="Subject Name (e.g. Mathematics)"
+                            placeholder="Search subjects..."
                             placeholderTextColor={colors.textSecondary}
                             style={{
                                 backgroundColor: colors.background,
                                 padding: 12,
                                 borderRadius: 8,
                                 color: colors.textPrimary,
-                                marginBottom: 24
+                                marginBottom: 16
                             }}
-                            value={subjectName}
-                            onChangeText={setSubjectName}
-                            autoFocus
+                            value={searchQuery}
+                            onChangeText={setSearchQuery}
                         />
+
+                        <View style={{ height: 300 }}>
+                            <FlatList
+                                data={globalSubjects.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()))}
+                                keyExtractor={(item) => item._id}
+                                renderItem={({ item }) => (
+                                    <Pressable
+                                        onPress={() => setSelectedGlobalSubject(item)}
+                                        style={{
+                                            padding: 12,
+                                            borderRadius: 8,
+                                            backgroundColor: selectedGlobalSubject?._id === item._id ? colors.primary + "20" : colors.background,
+                                            marginBottom: 8,
+                                            borderWidth: 1,
+                                            borderColor: selectedGlobalSubject?._id === item._id ? colors.primary : "transparent",
+                                            flexDirection: "row",
+                                            justifyContent: "space-between",
+                                            alignItems: "center"
+                                        }}
+                                    >
+                                        <Text style={{
+                                            fontSize: 16,
+                                            color: selectedGlobalSubject?._id === item._id ? colors.primary : colors.textPrimary,
+                                            fontWeight: selectedGlobalSubject?._id === item._id ? "600" : "400"
+                                        }}>
+                                            {item.name}
+                                        </Text>
+                                        {selectedGlobalSubject?._id === item._id && (
+                                            <MaterialIcons name="check" size={20} color={colors.primary} />
+                                        )}
+                                    </Pressable>
+                                )}
+                                ListEmptyComponent={
+                                    <Text style={{ textAlign: "center", color: colors.textSecondary, marginTop: 20 }}>
+                                        No subjects found. Please ask admin to add it to the master list.
+                                    </Text>
+                                }
+                            />
+                        </View>
 
                         <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: 12 }}>
                             <Pressable
                                 onPress={() => {
                                     setShowAddSubjectModal(false);
-                                    setSubjectName("");
+                                    setSelectedGlobalSubject(null);
+                                    setSearchQuery("");
                                 }}
                                 style={{ padding: 12 }}
                             >
@@ -581,9 +680,21 @@ export default function ClassDetailsScreen() {
                             </Pressable>
                             <Pressable
                                 onPress={handleAddSubject}
-                                style={{ backgroundColor: colors.primary, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 8 }}
+                                disabled={saving}
+                                style={{
+                                    backgroundColor: saving ? colors.disabled : colors.primary,
+                                    paddingHorizontal: 20,
+                                    paddingVertical: 12,
+                                    borderRadius: 8,
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    gap: 8
+                                }}
                             >
-                                <Text style={{ color: "#fff", fontWeight: "600" }}>Add Subject</Text>
+                                {saving && <ActivityIndicator size="small" color="#fff" />}
+                                <Text style={{ color: "#fff", fontWeight: "600" }}>
+                                    {saving ? "Adding..." : "Add Subject"}
+                                </Text>
                             </Pressable>
                         </View>
                     </View>
@@ -595,7 +706,7 @@ export default function ClassDetailsScreen() {
                 <View style={{ flex: 1, justifyContent: "center", backgroundColor: "rgba(0,0,0,0.5)", padding: 20 }}>
                     <View style={{ backgroundColor: colors.cardBackground, borderRadius: 16, padding: 24, maxHeight: "80%" }}>
                         <Text style={{ fontSize: 20, fontWeight: "700", color: colors.textPrimary, marginBottom: 16 }}>
-                            Add Student to Class
+                            Add Students to Class
                         </Text>
 
                         <TextInput
@@ -621,44 +732,86 @@ export default function ClassDetailsScreen() {
                                     </Text>
                                 </View>
                             ) : (
-                                filteredAvailableStudents.map((student) => (
-                                    <Pressable
-                                        key={student._id}
-                                        onPress={() => handleAddStudent(student._id)}
-                                        style={({ pressed }) => ({
-                                            backgroundColor: pressed ? colors.background : colors.cardBackground,
-                                            borderRadius: 12,
-                                            padding: 12,
-                                            marginBottom: 8,
-                                            borderWidth: 1,
-                                            borderColor: colors.border
-                                        })}
-                                    >
-                                        <Text style={{ fontSize: 16, fontWeight: "600", color: colors.textPrimary }}>
-                                            {student.name}
-                                        </Text>
-                                        <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: 2 }}>
-                                            {student.phone}
-                                        </Text>
-                                        {student.admissionDate && (
-                                            <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 4 }}>
-                                                Admitted: {formatDate(student.admissionDate)}
-                                            </Text>
-                                        )}
-                                    </Pressable>
-                                ))
+                                filteredAvailableStudents.map((student) => {
+                                    const isSelected = selectedStudentIds.includes(student._id);
+                                    return (
+                                        <Pressable
+                                            key={student._id}
+                                            onPress={() => toggleStudentSelection(student._id)}
+                                            style={({ pressed }) => ({
+                                                backgroundColor: isSelected ? colors.primary + "10" : (pressed ? colors.background : colors.cardBackground),
+                                                borderRadius: 12,
+                                                padding: 12,
+                                                marginBottom: 8,
+                                                borderWidth: 1,
+                                                borderColor: isSelected ? colors.primary : colors.border,
+                                                flexDirection: "row",
+                                                alignItems: "center",
+                                                gap: 12
+                                            })}
+                                        >
+                                            <View style={{
+                                                width: 24,
+                                                height: 24,
+                                                borderRadius: 12,
+                                                borderWidth: 2,
+                                                borderColor: isSelected ? colors.primary : colors.textSecondary,
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                backgroundColor: isSelected ? colors.primary : "transparent"
+                                            }}>
+                                                {isSelected && <MaterialIcons name="check" size={16} color="#fff" />}
+                                            </View>
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={{ fontSize: 16, fontWeight: "600", color: colors.textPrimary }}>
+                                                    {student.name}
+                                                </Text>
+                                                <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: 2 }}>
+                                                    {student.phone}
+                                                </Text>
+                                                {student.admissionDate && (
+                                                    <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 4 }}>
+                                                        Admitted: {formatDate(student.admissionDate)}
+                                                    </Text>
+                                                )}
+                                            </View>
+                                        </Pressable>
+                                    );
+                                })
                             )}
                         </ScrollView>
 
-                        <Pressable
-                            onPress={() => {
-                                setShowAddStudentModal(false);
-                                setSearchQuery("");
-                            }}
-                            style={{ marginTop: 16, padding: 12, alignItems: "center" }}
-                        >
-                            <Text style={{ color: colors.textSecondary, fontWeight: "600" }}>Close</Text>
-                        </Pressable>
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 16, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 16 }}>
+                            <Pressable
+                                onPress={() => {
+                                    setShowAddStudentModal(false);
+                                    setSearchQuery("");
+                                    setSelectedStudentIds([]);
+                                }}
+                                style={{ padding: 12 }}
+                            >
+                                <Text style={{ color: colors.textSecondary, fontWeight: "600" }}>Cancel</Text>
+                            </Pressable>
+
+                            <Pressable
+                                onPress={handleBulkAddStudents}
+                                disabled={selectedStudentIds.length === 0 || saving}
+                                style={{
+                                    backgroundColor: (selectedStudentIds.length > 0 && !saving) ? colors.primary : colors.disabled,
+                                    paddingHorizontal: 20,
+                                    paddingVertical: 12,
+                                    borderRadius: 8,
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    gap: 8
+                                }}
+                            >
+                                {saving && <ActivityIndicator size="small" color="#fff" />}
+                                <Text style={{ color: "#fff", fontWeight: "600" }}>
+                                    {saving ? "Adding..." : `Add ${selectedStudentIds.length > 0 ? `${selectedStudentIds.length} ` : ""}Selected`}
+                                </Text>
+                            </Pressable>
+                        </View>
                     </View>
                 </View>
             </Modal>

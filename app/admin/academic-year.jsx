@@ -15,6 +15,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
+import { Picker } from "@react-native-picker/picker";
 import { useTheme } from "../../theme";
 import apiConfig from "../../config/apiConfig";
 import apiFetch from "../../utils/apiFetch";
@@ -27,6 +28,7 @@ export default function AcademicYearScreen() {
     const router = useRouter();
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
+    const [activeTab, setActiveTab] = useState("years"); // "years" | "reports"
     const [years, setYears] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -38,6 +40,12 @@ export default function AcademicYearScreen() {
         endDate: "",
         isActive: false
     });
+    const [saving, setSaving] = useState(false);
+
+    // Reports State
+    const [selectedYearId, setSelectedYearId] = useState(null);
+    const [reportData, setReportData] = useState(null);
+    const [reportLoading, setReportLoading] = useState(false);
 
     useEffect(() => {
         loadUserRole();
@@ -49,33 +57,7 @@ export default function AcademicYearScreen() {
             const storedUser = await AsyncStorage.getItem("@auth_user");
             if (storedUser) {
                 const parsedUser = JSON.parse(storedUser);
-                console.log("Stored user data:", parsedUser);
-                console.log("User role from AsyncStorage:", parsedUser.role);
                 setUserRole(parsedUser.role);
-            }
-
-            // Fetch fresh user data from backend to sync with database
-            const token = await AsyncStorage.getItem("@auth_token");
-            if (token) {
-                try {
-                    const response = await apiFetch(`${apiConfig.baseUrl}/users/me`, {
-                        method: "GET",
-                        headers: { Authorization: `Bearer ${token}` },
-                    });
-
-                    if (response.ok) {
-                        const freshUserData = await response.json();
-                        console.log("Fresh user data from backend:", freshUserData);
-                        console.log("Fresh user role:", freshUserData.role);
-
-                        // Update AsyncStorage with fresh data
-                        await AsyncStorage.setItem("@auth_user", JSON.stringify(freshUserData));
-                        setUserRole(freshUserData.role);
-                    }
-                } catch (error) {
-                    console.error("Failed to fetch fresh user data:", error);
-                    // Continue with cached data if fetch fails
-                }
             }
         } catch (error) {
             console.error("Failed to load user role:", error);
@@ -86,35 +68,29 @@ export default function AcademicYearScreen() {
         const cacheKey = "@admin_academic_years";
         try {
             const token = await AsyncStorage.getItem("@auth_token");
-
-            // 1. Try cache
             const cachedData = await getCachedData(cacheKey);
             if (cachedData) {
                 setYears(cachedData);
                 setLoading(false);
-                console.log("[ACADEMIC_YEAR] Loaded from cache");
+                if (cachedData.length > 0 && !selectedYearId) {
+                    setSelectedYearId(cachedData[0]._id);
+                }
             }
 
-            // 2. Fetch API (Silent if cache exists)
-            const fetchFromApi = async () => {
-                const response = await apiFetch(`${apiConfig.baseUrl}/academic-year`, {
-                    method: "GET",
-                    headers: { Authorization: `Bearer ${token}` },
-                    silent: !!cachedData
-                });
+            const response = await apiFetch(`${apiConfig.baseUrl}/academic-year`, {
+                method: "GET",
+                headers: { Authorization: `Bearer ${token}` },
+                silent: !!cachedData
+            });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    setYears(data);
-                    setCachedData(cacheKey, data);
-                    console.log("[ACADEMIC_YEAR] Refreshed from API");
-                } else {
-                    if (!cachedData) showToast("Failed to load academic years", "error");
+            if (response.ok) {
+                const data = await response.json();
+                setYears(data);
+                setCachedData(cacheKey, data);
+                if (data.length > 0 && !selectedYearId) {
+                    setSelectedYearId(data[0]._id);
                 }
-            };
-
-            await fetchFromApi();
-
+            }
         } catch (error) {
             console.error(error);
             showToast("Error loading data", "error");
@@ -124,12 +100,49 @@ export default function AcademicYearScreen() {
         }
     };
 
+    const loadReport = async (yearId) => {
+        if (!yearId) return;
+        setReportLoading(true);
+        try {
+            const token = await AsyncStorage.getItem("@auth_token");
+            const response = await apiFetch(`${apiConfig.baseUrl}/academic-year/${yearId}/reports`, {
+                method: "GET",
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setReportData(data);
+            } else {
+                showToast("Failed to load report", "error");
+            }
+        } catch (error) {
+            console.error(error);
+            showToast("Error loading report", "error");
+        } finally {
+            setReportLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (activeTab === "reports" && selectedYearId) {
+            loadReport(selectedYearId);
+        }
+    }, [activeTab, selectedYearId]);
+
     const handleCreate = async () => {
         if (!form.name || !form.startDate || !form.endDate) {
             showToast("Please fill all fields", "error");
             return;
         }
 
+        // Validate format YYYY-YYYY
+        if (!/^\d{4}-\d{4}$/.test(form.name)) {
+            showToast("Name must be in YYYY-YYYY format", "error");
+            return;
+        }
+
+        setSaving(true);
         try {
             const token = await AsyncStorage.getItem("@auth_token");
             const response = await apiFetch(`${apiConfig.baseUrl}/academic-year`, {
@@ -153,42 +166,43 @@ export default function AcademicYearScreen() {
         } catch (error) {
             console.error(error);
             showToast("Error creating academic year", "error");
+        } finally {
+            setSaving(false);
         }
     };
 
-    const handleUpgrade = async (id, name) => {
+    const handleIncrement = async (id, name) => {
         Alert.alert(
-            "Upgrade Academic Year",
-            `Are you sure you want to set ${name} as the active academic year? This will deactivate the current one.`,
+            "Activate & Promote",
+            `WARNING: This will activate ${name}, promote all eligible students to the next class, and create history records for the current year. This action cannot be easily undone.`,
             [
                 { text: "Cancel", style: "cancel" },
                 {
-                    text: "Upgrade",
+                    text: "Proceed",
+                    style: "destructive",
                     onPress: async () => {
                         try {
                             const token = await AsyncStorage.getItem("@auth_token");
-                            const response = await apiFetch(`${apiConfig.baseUrl}/academic-year/upgrade`, {
+                            // Use /increment endpoint instead of /upgrade
+                            const response = await apiFetch(`${apiConfig.baseUrl}/academic-year/increment`, {
                                 method: "POST",
                                 headers: {
                                     "Content-Type": "application/json",
                                     Authorization: `Bearer ${token}`,
                                 },
-                                body: JSON.stringify({ id }),
+                                body: JSON.stringify({ nextYearId: id }),
                             });
 
-                            console.log("Upgrade response status:", response.status);
-
                             if (response.ok) {
-                                showToast("Academic Year Upgraded!", "success");
+                                showToast("Year Incremented & Students Promoted!", "success");
                                 loadYears();
                             } else {
                                 const errorData = await response.json();
-                                console.log("Upgrade error:", errorData);
-                                showToast(errorData.msg || `Failed to upgrade (Status: ${response.status})`, "error");
+                                showToast(errorData.msg || "Failed to increment year", "error");
                             }
                         } catch (error) {
-                            console.error("Upgrade error:", error);
-                            showToast(error.message || "Error upgrading", "error");
+                            console.error("Increment error:", error);
+                            showToast("Error incrementing year", "error");
                         }
                     },
                 },
@@ -199,7 +213,130 @@ export default function AcademicYearScreen() {
     const onRefresh = () => {
         setRefreshing(true);
         loadYears();
+        if (activeTab === "reports" && selectedYearId) {
+            loadReport(selectedYearId);
+        }
     };
+
+    const renderYearsTab = () => (
+        <View style={{ marginTop: 16 }}>
+            {years.map((year) => (
+                <View
+                    key={year._id}
+                    style={{
+                        backgroundColor: colors.cardBackground,
+                        borderRadius: 16,
+                        padding: 16,
+                        marginBottom: 12,
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        borderWidth: year.isActive ? 2 : 0,
+                        borderColor: colors.primary
+                    }}
+                >
+                    <View>
+                        <Text style={{ fontSize: 18, fontWeight: "700", color: colors.textPrimary }}>
+                            {year.name}
+                        </Text>
+                        <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: 4 }}>
+                            {formatDate(year.startDate)} - {formatDate(year.endDate)}
+                        </Text>
+                        {year.isActive && (
+                            <View style={{ backgroundColor: colors.primary + "20", alignSelf: "flex-start", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, marginTop: 8 }}>
+                                <Text style={{ color: colors.primary, fontSize: 12, fontWeight: "600" }}>ACTIVE</Text>
+                            </View>
+                        )}
+                    </View>
+
+                    {!year.isActive && userRole === 'super admin' && (
+                        <Pressable
+                            onPress={() => handleIncrement(year._id, year.name)}
+                            style={{
+                                backgroundColor: colors.cardBackground,
+                                borderWidth: 1,
+                                borderColor: colors.primary,
+                                paddingHorizontal: 12,
+                                paddingVertical: 8,
+                                borderRadius: 8
+                            }}
+                        >
+                            <Text style={{ color: colors.primary, fontWeight: "600" }}>Activate & Promote</Text>
+                        </Pressable>
+                    )}
+                </View>
+            ))}
+        </View>
+    );
+
+    const renderReportsTab = () => (
+        <View style={{ marginTop: 16 }}>
+            <View style={{ backgroundColor: colors.cardBackground, borderRadius: 12, marginBottom: 16 }}>
+                <Picker
+                    selectedValue={selectedYearId}
+                    onValueChange={(itemValue) => setSelectedYearId(itemValue)}
+                    style={{ color: colors.textPrimary }}
+                    dropdownIconColor={colors.textPrimary}
+                >
+                    {years.map((year) => (
+                        <Picker.Item key={year._id} label={year.name} value={year._id} />
+                    ))}
+                </Picker>
+            </View>
+
+            {reportLoading ? (
+                <ActivityIndicator size="large" color={colors.primary} />
+            ) : reportData ? (
+                <View>
+                    {/* Student Summary */}
+                    <View style={localStyles.card(colors)}>
+                        <Text style={localStyles.cardTitle(colors)}>Student Distribution</Text>
+                        {Object.entries(reportData.classWiseStudents || {}).map(([className, students]) => (
+                            <View key={className} style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
+                                <Text style={{ color: colors.textSecondary }}>{className}</Text>
+                                <Text style={{ color: colors.textPrimary, fontWeight: "600" }}>{students.length}</Text>
+                            </View>
+                        ))}
+                    </View>
+
+                    {/* Teacher Leaves */}
+                    <View style={localStyles.card(colors)}>
+                        <Text style={localStyles.cardTitle(colors)}>Teacher Leaves</Text>
+                        {reportData.teacherLeaves && reportData.teacherLeaves.length > 0 ? (
+                            reportData.teacherLeaves.map((leave, index) => (
+                                <View key={index} style={{ marginBottom: 12, borderBottomWidth: 1, borderBottomColor: colors.border, paddingBottom: 8 }}>
+                                    <Text style={{ color: colors.textPrimary, fontWeight: "600" }}>{leave.applicant?.name}</Text>
+                                    <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
+                                        {formatDate(leave.startDate)} - {formatDate(leave.endDate)} ({leave.leaveType})
+                                    </Text>
+                                    <Text style={{ color: colors.textSecondary, fontSize: 12 }}>Reason: {leave.reason}</Text>
+                                </View>
+                            ))
+                        ) : (
+                            <Text style={{ color: colors.textSecondary }}>No leaves recorded.</Text>
+                        )}
+                    </View>
+
+                    {/* Teacher Attendance Summary */}
+                    <View style={localStyles.card(colors)}>
+                        <Text style={localStyles.cardTitle(colors)}>Teacher Attendance Stats</Text>
+                        {reportData.teacherAttendance && reportData.teacherAttendance.length > 0 ? (
+                            reportData.teacherAttendance.map((record, index) => (
+                                <View key={index} style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 4 }}>
+                                    <Text style={{ color: colors.textSecondary }}>{record.user} ({record.status})</Text>
+                                    <Text style={{ color: colors.textPrimary, fontWeight: "600" }}>{record.count} days</Text>
+                                </View>
+                            ))
+                        ) : (
+                            <Text style={{ color: colors.textSecondary }}>No attendance data.</Text>
+                        )}
+                    </View>
+                </View>
+            ) : (
+                <Text style={{ color: colors.textSecondary, textAlign: "center" }}>Select a year to view reports</Text>
+            )}
+        </View>
+    );
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -208,76 +345,59 @@ export default function AcademicYearScreen() {
                 contentContainerStyle={{ paddingBottom: 100 }}
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
-                    <Header title="Academic Years" subtitle="Manage school years" showBack />
+                    <Header title="Academic Years" subtitle="Manage & Reports" showBack />
 
-                    <View style={{ marginTop: 16 }}>
-                        {years.map((year) => (
-                            <View
-                                key={year._id}
-                                style={{
-                                    backgroundColor: colors.cardBackground,
-                                    borderRadius: 16,
-                                    padding: 16,
-                                    marginBottom: 12,
-                                    flexDirection: "row",
-                                    justifyContent: "space-between",
-                                    alignItems: "center",
-                                    borderWidth: year.isActive ? 2 : 0,
-                                    borderColor: colors.primary
-                                }}
-                            >
-                                <View>
-                                    <Text style={{ fontSize: 18, fontWeight: "700", color: colors.textPrimary }}>
-                                        {year.name}
-                                    </Text>
-                                    <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: 4 }}>
-                                        {formatDate(year.startDate)} - {formatDate(year.endDate)}
-                                    </Text>
-                                    {year.isActive && (
-                                        <View style={{ backgroundColor: colors.primary + "20", alignSelf: "flex-start", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, marginTop: 8 }}>
-                                            <Text style={{ color: colors.primary, fontSize: 12, fontWeight: "600" }}>ACTIVE</Text>
-                                        </View>
-                                    )}
-                                </View>
-
-                                {!year.isActive && userRole === 'super admin' && (
-                                    <Pressable
-                                        onPress={() => handleUpgrade(year._id, year.name)}
-                                        style={{
-                                            backgroundColor: colors.cardBackground,
-                                            borderWidth: 1,
-                                            borderColor: colors.primary,
-                                            paddingHorizontal: 12,
-                                            paddingVertical: 8,
-                                            borderRadius: 8
-                                        }}
-                                    >
-                                        <Text style={{ color: colors.primary, fontWeight: "600" }}>Set Active</Text>
-                                    </Pressable>
-                                )}
-                            </View>
-                        ))}
+                    {/* Tabs */}
+                    <View style={{ flexDirection: "row", marginTop: 16, backgroundColor: colors.cardBackground, borderRadius: 12, padding: 4 }}>
+                        <Pressable
+                            onPress={() => setActiveTab("years")}
+                            style={{
+                                flex: 1,
+                                paddingVertical: 10,
+                                alignItems: "center",
+                                borderRadius: 8,
+                                backgroundColor: activeTab === "years" ? colors.primary : "transparent"
+                            }}
+                        >
+                            <Text style={{ color: activeTab === "years" ? "#fff" : colors.textSecondary, fontWeight: "600" }}>Management</Text>
+                        </Pressable>
+                        <Pressable
+                            onPress={() => setActiveTab("reports")}
+                            style={{
+                                flex: 1,
+                                paddingVertical: 10,
+                                alignItems: "center",
+                                borderRadius: 8,
+                                backgroundColor: activeTab === "reports" ? colors.primary : "transparent"
+                            }}
+                        >
+                            <Text style={{ color: activeTab === "reports" ? "#fff" : colors.textSecondary, fontWeight: "600" }}>Reports</Text>
+                        </Pressable>
                     </View>
+
+                    {activeTab === "years" ? renderYearsTab() : renderReportsTab()}
                 </View>
             </ScrollView>
 
-            <Pressable
-                onPress={() => setShowModal(true)}
-                style={{
-                    position: "absolute",
-                    bottom: 90,
-                    right: 24,
-                    backgroundColor: colors.primary,
-                    width: 56,
-                    height: 56,
-                    borderRadius: 28,
-                    justifyContent: "center",
-                    alignItems: "center",
-                    elevation: 6,
-                }}
-            >
-                <MaterialIcons name="add" size={28} color="#fff" />
-            </Pressable>
+            {activeTab === "years" && (
+                <Pressable
+                    onPress={() => setShowModal(true)}
+                    style={{
+                        position: "absolute",
+                        bottom: 90,
+                        right: 24,
+                        backgroundColor: colors.primary,
+                        width: 56,
+                        height: 56,
+                        borderRadius: 28,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        elevation: 6,
+                    }}
+                >
+                    <MaterialIcons name="add" size={28} color="#fff" />
+                </Pressable>
+            )}
 
             <Modal visible={showModal} animationType="slide" transparent>
                 <View style={{ flex: 1, justifyContent: "center", backgroundColor: "rgba(0,0,0,0.5)", padding: 20 }}>
@@ -334,9 +454,22 @@ export default function AcademicYearScreen() {
                             </Pressable>
                             <Pressable
                                 onPress={handleCreate}
-                                style={{ backgroundColor: colors.primary, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 8 }}
+                                disabled={saving}
+                                style={{
+                                    backgroundColor: colors.primary,
+                                    paddingHorizontal: 20,
+                                    paddingVertical: 12,
+                                    borderRadius: 8,
+                                    opacity: saving ? 0.7 : 1,
+                                    minWidth: 80,
+                                    alignItems: 'center'
+                                }}
                             >
-                                <Text style={{ color: "#fff", fontWeight: "600" }}>Create</Text>
+                                {saving ? (
+                                    <ActivityIndicator size="small" color="#fff" />
+                                ) : (
+                                    <Text style={{ color: "#fff", fontWeight: "600" }}>Create</Text>
+                                )}
                             </Pressable>
                         </View>
                     </View>
@@ -345,3 +478,21 @@ export default function AcademicYearScreen() {
         </View>
     );
 }
+
+const localStyles = {
+    card: (colors) => ({
+        backgroundColor: colors.cardBackground,
+        borderRadius: 16,
+        padding: 16,
+        marginBottom: 12,
+    }),
+    cardTitle: (colors) => ({
+        fontSize: 16,
+        fontWeight: "700",
+        color: colors.textPrimary,
+        marginBottom: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+        paddingBottom: 8
+    })
+};

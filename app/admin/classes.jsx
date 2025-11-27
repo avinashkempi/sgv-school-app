@@ -35,12 +35,12 @@ export default function ClassesScreen() {
     const [modalMode, setModalMode] = useState("create"); // "create" or "edit"
     const [editingClassId, setEditingClassId] = useState(null);
     const [deletingId, setDeletingId] = useState(null);
+    const [saving, setSaving] = useState(false);
 
     const [form, setForm] = useState({
         name: "",
         section: "",
         branch: "Main",
-        academicYear: "",
         classTeacher: ""
     });
 
@@ -105,11 +105,7 @@ export default function ClassesScreen() {
                         setCachedData(cacheKeyTeachers, teachers)
                     ]);
 
-                    // Set default active academic year if not set
-                    const activeYear = academicYears.find(y => y.isActive);
-                    if (activeYear && !form.academicYear) {
-                        setForm(prev => ({ ...prev, academicYear: activeYear._id }));
-                    }
+
                     console.log("[ADMIN_CLASSES] Refreshed from API");
                 } else {
                     if (!cachedClasses) showToast("Failed to load data", "error");
@@ -128,12 +124,13 @@ export default function ClassesScreen() {
     };
 
     const handleSubmit = async () => {
-        if (!form.name || !form.academicYear) {
-            showToast("Name and Academic Year are required", "error");
+        if (!form.name) {
+            showToast("Name is required", "error");
             return;
         }
 
         try {
+            setSaving(true);
             const token = await AsyncStorage.getItem("@auth_token");
             const url = modalMode === "create"
                 ? `${apiConfig.baseUrl}/classes`
@@ -164,6 +161,8 @@ export default function ClassesScreen() {
         } catch (error) {
             console.error(error);
             showToast("Error saving class", "error");
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -172,7 +171,6 @@ export default function ClassesScreen() {
             name: cls.name,
             section: cls.section || "",
             branch: cls.branch,
-            academicYear: cls.academicYear?._id || cls.academicYear,
             classTeacher: cls.classTeacher?._id || cls.classTeacher || ""
         });
         setModalMode("edit");
@@ -281,7 +279,7 @@ export default function ClassesScreen() {
                                         {cls.name} {cls.section ? `- ${cls.section}` : ""}
                                     </Text>
                                     <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: 4 }}>
-                                        {cls.academicYear?.name} • {cls.branch}
+                                        {cls.branch}
                                     </Text>
                                     {cls.classTeacher && (
                                         <Text style={{ fontSize: 13, color: colors.primary, marginTop: 4, fontWeight: "500" }}>
@@ -383,32 +381,7 @@ export default function ClassesScreen() {
                             onChangeText={(t) => setForm({ ...form, section: t })}
                         />
 
-                        {/* Simple Dropdown for Academic Year (Simplified as text input for now or list) */}
-                        {/* In a real app, use a proper Picker/Select component */}
-                        <View style={{ marginBottom: 12 }}>
-                            <Text style={{ color: colors.textSecondary, marginBottom: 4, fontSize: 12 }}>Academic Year</Text>
-                            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                                {academicYears.map(year => (
-                                    <Pressable
-                                        key={year._id}
-                                        onPress={() => setForm({ ...form, academicYear: year._id })}
-                                        style={{
-                                            paddingHorizontal: 12,
-                                            paddingVertical: 8,
-                                            backgroundColor: form.academicYear === year._id ? colors.primary : colors.background,
-                                            borderRadius: 8,
-                                            marginRight: 8,
-                                            borderWidth: 1,
-                                            borderColor: form.academicYear === year._id ? colors.primary : colors.border
-                                        }}
-                                    >
-                                        <Text style={{ color: form.academicYear === year._id ? '#fff' : colors.textPrimary }}>
-                                            {year.name}
-                                        </Text>
-                                    </Pressable>
-                                ))}
-                            </ScrollView>
-                        </View>
+
 
                         {/* Simple Dropdown for Teacher */}
                         <View style={{ marginBottom: 24 }}>
@@ -442,10 +415,20 @@ export default function ClassesScreen() {
                             </Pressable>
                             <Pressable
                                 onPress={handleSubmit}
-                                style={{ backgroundColor: colors.primary, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 8 }}
+                                disabled={saving}
+                                style={{
+                                    backgroundColor: saving ? colors.disabled : colors.primary,
+                                    paddingHorizontal: 20,
+                                    paddingVertical: 12,
+                                    borderRadius: 8,
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    gap: 8
+                                }}
                             >
+                                {saving && <ActivityIndicator size="small" color="#fff" />}
                                 <Text style={{ color: "#fff", fontWeight: "600" }}>
-                                    {modalMode === "create" ? "Create" : "Update"}
+                                    {saving ? "Saving..." : (modalMode === "create" ? "Create" : "Update")}
                                 </Text>
                             </Pressable>
                         </View>

@@ -234,10 +234,6 @@ export default function ProfileScreen() {
           </Text>
         </Pressable>
       </View>
-
-      <Text style={{ textAlign: 'center', marginTop: 24, color: colors.textSecondary, fontSize: 12 }}>
-        Version 1.0.0
-      </Text>
     </ScrollView>
   );
 }

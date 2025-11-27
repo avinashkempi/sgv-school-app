@@ -38,6 +38,14 @@ const endpoints = {
   fcm: {
     register: '/fcm/register',
     unregister: '/fcm/unregister',
+  },
+  subjects: {
+    list: '/subjects',
+    create: '/subjects',
+    getById: (id) => `/subjects/${id}`,
+    update: (id) => `/subjects/${id}`,
+    delete: (id) => `/subjects/${id}`,
+    usage: (id) => `/subjects/${id}/usage`,
   }
 };
 

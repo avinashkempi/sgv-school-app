@@ -41,7 +41,11 @@ export default function AdminScreen() {
   const [error, setError] = useState(globalUsersError);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const pageSize = 20;
   const [showUserModal, setShowUserModal] = useState(false);
   const [modalMode, setModalMode] = useState("add"); // "add" or "edit"
@@ -61,9 +65,10 @@ export default function AdminScreen() {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   // Available roles for dropdown
-  const availableRoles = ["student", "class teacher", "staff", "admin", "super admin"];
+  const availableRoles = ["student", "teacher", "class teacher", "staff", "admin", "super admin"];
 
   const validateField = (name, value) => {
     let error = "";
@@ -118,8 +123,12 @@ export default function AdminScreen() {
   }, []);
 
   useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery]);
+    const delayDebounceFn = setTimeout(() => {
+      loadUsers();
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery, roleFilter, sortBy, sortOrder, currentPage]);
 
   const checkAuthAndLoadUsers = async () => {
     try {
@@ -195,7 +204,19 @@ export default function AdminScreen() {
     try {
       const token = await AsyncStorage.getItem("@auth_token");
 
-      const response = await apiFetch(apiConfig.url(apiConfig.endpoints.users.list), {
+      const queryParams = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: pageSize.toString(),
+        search: searchQuery,
+        role: roleFilter,
+        sortBy,
+        order: sortOrder
+      });
+
+      // Construct URL manually to ensure correct formatting
+      const url = `${apiConfig.url(apiConfig.endpoints.users.list)}?${queryParams.toString()}`;
+
+      const response = await apiFetch(url, {
         method: "GET",
         silent: true,
         headers: {
@@ -209,17 +230,20 @@ export default function AdminScreen() {
       }
 
       const result = await response.json();
-      if (result.success && result.data) {
+      if (result.success) {
         globalUsers = result.data;
-        setUsers(globalUsers);
+        setUsers(result.data);
+        setTotalPages(result.pagination.pages);
         setLoading(false);
         globalUsersLoading = false;
         usersFetched = true;
-        // Cache the data
-        await setCachedData(CACHE_KEYS.USERS, result.data);
+        // Only cache if default view
+        if (currentPage === 1 && !searchQuery && roleFilter === 'all') {
+          await setCachedData(CACHE_KEYS.USERS, result.data);
+        }
       } else {
-        globalUsers = [];
         setUsers([]);
+        setTotalPages(1);
         setLoading(false);
         globalUsersLoading = false;
         usersFetched = true;
@@ -227,19 +251,17 @@ export default function AdminScreen() {
       }
     } catch (error) {
       console.error("Fetch fresh users error:", error);
-      // Don't override existing cached data if fetch fails
-      if (!globalUsers.length) {
-        setLoading(false);
-        globalUsersLoading = false;
-        setError(error.message);
-        globalUsersError = error.message;
-        showToast("Failed to load users", "error");
-      }
+      setLoading(false);
+      globalUsersLoading = false;
+      setError(error.message);
+      globalUsersError = error.message;
+      showToast("Failed to load users", "error");
     }
   };
 
   const updateUserRole = async (userId, newRole) => {
     try {
+      setSaving(true);
       const token = await AsyncStorage.getItem("@auth_token");
 
       const response = await apiFetch(apiConfig.url(apiConfig.endpoints.users.update(userId)), {
@@ -262,17 +284,15 @@ export default function AdminScreen() {
           prevUsers.map(u => u._id === userId ? { ...u, role: newRole } : u)
         );
         showToast("Role updated successfully", "success");
-
-        // Delay closing to ensure user sees success message
-        setTimeout(() => {
-          setShowUserModal(false);
-        }, 800);
+        setShowUserModal(false);
       } else {
         throw new Error("Failed to update role");
       }
     } catch (error) {
       console.error("Update role error:", error);
       showToast("Failed to update role", "error");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -316,26 +336,6 @@ export default function AdminScreen() {
     setRefreshing(false);
   };
 
-  const filteredUsers = () => {
-    return users.filter(user =>
-      (user.name && user.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (user.phone && user.phone.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (user.role && user.role.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
-  };
-
-  const filteredAndSortedUsers = () => {
-    return filteredUsers();
-  };
-
-  const totalPages = Math.ceil(filteredAndSortedUsers().length / pageSize);
-
-  const paginatedUsers = () => {
-    const startIndex = (currentPage - 1) * pageSize;
-    return filteredAndSortedUsers().slice(startIndex, startIndex + pageSize);
-  };
-
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage);
@@ -351,6 +351,7 @@ export default function AdminScreen() {
       case "staff":
         return colors.roleStaff;
       case "class teacher":
+      case "teacher":
         return colors.roleClassTeacher;
       case "student":
         return colors.roleStudent;
@@ -366,9 +367,7 @@ export default function AdminScreen() {
         return;
       }
 
-      // Close modal immediately and show background loader
-      setShowUserModal(false);
-      setRefreshing(true);
+      setSaving(true);
 
       const userData = { ...userForm }; // Capture form data
 
@@ -401,6 +400,7 @@ export default function AdminScreen() {
         setUsers(prevUsers => [...prevUsers, result.user]);
         showToast("User created successfully", "success");
         setUserForm({ name: "", phone: "", email: "", password: "", role: "student" });
+        setShowUserModal(false);
       } else {
         throw new Error(result.message || "Failed to create user");
       }
@@ -408,7 +408,7 @@ export default function AdminScreen() {
       console.error("Create user error:", error);
       showToast(error.message || "Failed to create user", "error");
     } finally {
-      setRefreshing(false);
+      setSaving(false);
     }
   };
 
@@ -435,7 +435,7 @@ export default function AdminScreen() {
           <Header title="Admin" subtitle="Manage users and permissions" />
 
           {/* Minimal Search Bar */}
-          <View style={{ marginBottom: 24 }}>
+          <View style={{ marginBottom: 16 }}>
             <View style={{
               flexDirection: "row",
               alignItems: "center",
@@ -462,7 +462,10 @@ export default function AdminScreen() {
                 placeholder="Search users..."
                 placeholderTextColor={colors.textSecondary}
                 value={searchQuery}
-                onChangeText={setSearchQuery}
+                onChangeText={(text) => {
+                  setSearchQuery(text);
+                  setCurrentPage(1); // Reset to page 1 on search
+                }}
               />
               {searchQuery.length > 0 && (
                 <Pressable onPress={() => setSearchQuery("")}>
@@ -472,26 +475,102 @@ export default function AdminScreen() {
             </View>
           </View>
 
+          {/* Filters and Sort */}
+          <View style={{ marginBottom: 24 }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+              {/* Role Filter */}
+              {["all", "student", "teacher", "class teacher", "admin", "staff"].map((role) => (
+                <Pressable
+                  key={role}
+                  onPress={() => {
+                    setRoleFilter(role);
+                    setCurrentPage(1);
+                  }}
+                  style={{
+                    paddingHorizontal: 16,
+                    paddingVertical: 8,
+                    backgroundColor: roleFilter === role ? colors.primary : colors.cardBackground,
+                    borderRadius: 20,
+                    borderWidth: 1,
+                    borderColor: roleFilter === role ? colors.primary : colors.border,
+                  }}
+                >
+                  <Text style={{
+                    color: roleFilter === role ? "#fff" : colors.textSecondary,
+                    fontWeight: "600",
+                    textTransform: "capitalize"
+                  }}>
+                    {role === "all" ? "All Roles" : role}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+
+            <View style={{ flexDirection: "row", marginTop: 12, gap: 12 }}>
+              {/* Sort By */}
+              <Pressable
+                onPress={() => setSortBy(sortBy === "createdAt" ? "name" : "createdAt")}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  backgroundColor: colors.cardBackground,
+                  borderRadius: 8,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                }}
+              >
+                <MaterialIcons name="sort" size={16} color={colors.textSecondary} style={{ marginRight: 4 }} />
+                <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
+                  Sort: {sortBy === "createdAt" ? "Date" : "Name"}
+                </Text>
+              </Pressable>
+
+              {/* Sort Order */}
+              <Pressable
+                onPress={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  backgroundColor: colors.cardBackground,
+                  borderRadius: 8,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                }}
+              >
+                <MaterialIcons name={sortOrder === "asc" ? "arrow-upward" : "arrow-downward"} size={16} color={colors.textSecondary} style={{ marginRight: 4 }} />
+                <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
+                  {sortOrder === "asc" ? "Ascending" : "Descending"}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+
           {/* Admin Actions Grid */}
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 24 }}>
-            <Pressable
-              onPress={() => router.push("/admin/academic-year")}
-              style={({ pressed }) => ({
-                flex: 1,
-                minWidth: "45%",
-                backgroundColor: colors.cardBackground,
-                padding: 16,
-                borderRadius: 16,
-                alignItems: "center",
-                opacity: pressed ? 0.9 : 1,
-                elevation: 2,
-              })}
-            >
-              <View style={{ backgroundColor: colors.primary + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                <MaterialIcons name="calendar-today" size={24} color={colors.primary} />
-              </View>
-              <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Academic Year</Text>
-            </Pressable>
+            {user?.role === 'super admin' && (
+              <Pressable
+                onPress={() => router.push("/admin/academic-year")}
+                style={({ pressed }) => ({
+                  flex: 1,
+                  minWidth: "45%",
+                  backgroundColor: colors.cardBackground,
+                  padding: 16,
+                  borderRadius: 16,
+                  alignItems: "center",
+                  opacity: pressed ? 0.9 : 1,
+                  elevation: 2,
+                })}
+              >
+                <View style={{ backgroundColor: colors.primary + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
+                  <MaterialIcons name="calendar-today" size={24} color={colors.primary} />
+                </View>
+                <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Academic Year</Text>
+              </Pressable>
+            )}
 
 
 
@@ -533,6 +612,25 @@ export default function AdminScreen() {
                 <MaterialIcons name="assignment-ind" size={24} color="#4CAF50" />
               </View>
               <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Teacher Subjects</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => router.push("/admin/subjects")}
+              style={({ pressed }) => ({
+                flex: 1,
+                minWidth: "45%",
+                backgroundColor: colors.cardBackground,
+                padding: 16,
+                borderRadius: 16,
+                alignItems: "center",
+                opacity: pressed ? 0.9 : 1,
+                elevation: 2,
+              })}
+            >
+              <View style={{ backgroundColor: "#673AB7" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
+                <MaterialIcons name="menu-book" size={24} color="#673AB7" />
+              </View>
+              <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Subjects</Text>
             </Pressable>
 
             <Pressable
@@ -679,11 +777,11 @@ export default function AdminScreen() {
               textTransform: "uppercase",
               letterSpacing: 0.5
             }}>
-              All Users ({filteredAndSortedUsers().length})
+              All Users
             </Text>
 
             {
-              paginatedUsers().map((userItem) => (
+              users.map((userItem) => (
                 <View
                   key={userItem._id}
                   style={{
@@ -785,7 +883,7 @@ export default function AdminScreen() {
             }
 
             {
-              filteredAndSortedUsers().length === 0 && (
+              users.length === 0 && (
                 <View style={{ alignItems: "center", padding: 40, opacity: 0.6 }}>
                   <MaterialIcons name="search-off" size={48} color={colors.textSecondary} />
                   <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16 }}>
@@ -796,49 +894,40 @@ export default function AdminScreen() {
             }
 
             {/* Pagination */}
-            {
-              totalPages > 1 && (
-                <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: 24, gap: 16 }}>
-                  <Pressable
-                    onPress={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    style={{
-                      padding: 10,
-                      backgroundColor: currentPage === 1 ? colors.background : colors.cardBackground,
-                      borderRadius: 8,
-                      opacity: currentPage === 1 ? 0.5 : 1,
-                    }}
-                  >
-                    <MaterialIcons
-                      name="chevron-left"
-                      size={24}
-                      color={colors.textPrimary}
-                    />
-                  </Pressable>
+            {totalPages > 1 && (
+              <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: 24, gap: 16 }}>
+                <Pressable
+                  onPress={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  style={{
+                    padding: 10,
+                    backgroundColor: currentPage === 1 ? colors.background : colors.cardBackground,
+                    borderRadius: 8,
+                    opacity: currentPage === 1 ? 0.5 : 1,
+                  }}
+                >
+                  <MaterialIcons name="chevron-left" size={24} color={colors.textPrimary} />
+                </Pressable>
 
-                  <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>
-                    {currentPage} / {totalPages}
-                  </Text>
+                <Text style={{ fontSize: 16, fontWeight: "600", color: colors.textPrimary }}>
+                  Page {currentPage} of {totalPages}
+                </Text>
 
-                  <Pressable
-                    onPress={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    style={{
-                      padding: 10,
-                      backgroundColor: currentPage === totalPages ? colors.background : colors.cardBackground,
-                      borderRadius: 8,
-                      opacity: currentPage === totalPages ? 0.5 : 1,
-                    }}
-                  >
-                    <MaterialIcons
-                      name="chevron-right"
-                      size={24}
-                      color={colors.textPrimary}
-                    />
-                  </Pressable>
-                </View>
-              )
-            }
+                <Pressable
+                  onPress={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  style={{
+                    padding: 10,
+                    backgroundColor: currentPage === totalPages ? colors.background : colors.cardBackground,
+                    borderRadius: 8,
+                    opacity: currentPage === totalPages ? 0.5 : 1,
+                  }}
+                >
+                  <MaterialIcons name="chevron-right" size={24} color={colors.textPrimary} />
+                </Pressable>
+              </View>
+            )}
+
           </View>
         </View>
       </ScrollView>
@@ -1179,7 +1268,7 @@ export default function AdminScreen() {
 
                 <Pressable
                   onPress={modalMode === "add" ? createUser : () => updateUserRole(editingUser._id, userForm.role)}
-                  disabled={modalMode === "add" && !isFormValid()}
+                  disabled={(modalMode === "add" && !isFormValid()) || saving}
                   style={({ pressed }) => ({
                     flex: 1,
                     paddingVertical: 14,
@@ -1191,12 +1280,16 @@ export default function AdminScreen() {
                     shadowOpacity: 0.2,
                     shadowRadius: 8,
                     elevation: 4,
-                    opacity: (modalMode === "add" && !isFormValid()) ? 0.5 : (pressed ? 0.9 : 1)
+                    opacity: ((modalMode === "add" && !isFormValid()) || saving) ? 0.5 : (pressed ? 0.9 : 1)
                   })}
                 >
-                  <Text style={{ fontSize: 16, fontWeight: "600", color: "#fff" }}>
-                    {modalMode === "add" ? "Create User" : "Save Changes"}
-                  </Text>
+                  {saving ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={{ fontSize: 16, fontWeight: "600", color: "#fff" }}>
+                      {modalMode === "add" ? "Create User" : "Save Changes"}
+                    </Text>
+                  )}
                 </Pressable>
               </View>
             </ScrollView>

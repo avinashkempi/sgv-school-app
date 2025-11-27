@@ -13,6 +13,9 @@ import * as Notifications from 'expo-notifications';
 import { getFCMToken, registerFCMTokenWithBackend } from '../utils/fcm';
 import { NavigationProvider } from "../context/NavigationContext";
 import SideDrawer from "../components/SideDrawer";
+import apiConfig from "../config/apiConfig";
+import apiFetch from "../utils/apiFetch";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Configure how notifications are displayed when app is in foreground
 Notifications.setNotificationHandler({
@@ -55,7 +58,27 @@ function Inner() {
       }
     };
 
+    const preloadData = async () => {
+      try {
+        const token = await AsyncStorage.getItem("@auth_token");
+        if (!token) return;
+
+        // Preload Academic Years
+        const response = await apiFetch(`${apiConfig.baseUrl}/academic-year`, {
+          headers: { Authorization: `Bearer ${token}` },
+          silent: true
+        });
+        if (response.ok) {
+          const data = await response.json();
+          await AsyncStorage.setItem("@admin_academic_years", JSON.stringify({ data, timestamp: Date.now() }));
+        }
+      } catch (e) {
+        console.log("Preload error", e);
+      }
+    };
+
     setupNotifications();
+    preloadData();
 
     // Cleanup subscriptions on unmount
     return () => {

@@ -52,7 +52,7 @@ function BottomNavigation() {
       icon: "school",
     }] : []),
     // Show My Teach menu if user is a teacher
-    ...(user && (user.role === 'class teacher' || user.role === 'staff') ? [{
+    ...(user && (user.role === 'class teacher' || user.role === 'teacher' || user.role === 'staff') ? [{
       route: ROUTES.TEACHER_CLASSES,
       label: "My Teach",
       icon: "school",
@@ -68,7 +68,7 @@ function BottomNavigation() {
       icon: "class",
     }] : []),
     // Requests Tab - for logged-in students and teachers
-    ...(user && (user.role === 'student' || user.role === 'class teacher' || user.role === 'staff') ? [{
+    ...(user && (user.role === 'student' || user.role === 'class teacher' || user.role === 'teacher' || user.role === 'staff') ? [{
       route: "/requests",
       label: "Requests",
       icon: "assignment",

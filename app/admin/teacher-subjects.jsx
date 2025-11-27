@@ -30,6 +30,7 @@ export default function TeacherSubjectsScreen() {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedTeacher, setSelectedTeacher] = useState(null);
     const [showModal, setShowModal] = useState(false);
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         checkAuthAndLoadData();
@@ -96,6 +97,7 @@ export default function TeacherSubjectsScreen() {
 
     const handleAssignSubject = async (subjectId, teacherId) => {
         try {
+            setSaving(true);
             const token = await AsyncStorage.getItem("@auth_token");
 
             const response = await apiFetch(
@@ -121,6 +123,8 @@ export default function TeacherSubjectsScreen() {
         } catch (error) {
             console.error(error);
             showToast("Error assigning teacher", "error");
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -405,13 +409,13 @@ export default function TeacherSubjectsScreen() {
                                                 handleAssignSubject(subject._id, selectedTeacher._id);
                                             }
                                         }}
-                                        disabled={isAssigned}
+                                        disabled={isAssigned || saving}
                                         style={({ pressed }) => ({
                                             backgroundColor: isAssigned ? colors.success + "10" : colors.background,
                                             borderRadius: 12,
                                             padding: 14,
                                             marginBottom: 10,
-                                            opacity: isAssigned ? 0.6 : (pressed ? 0.9 : 1),
+                                            opacity: (isAssigned || saving) ? 0.6 : (pressed ? 0.9 : 1),
                                             borderWidth: isAssigned ? 1 : 0,
                                             borderColor: colors.success
                                         })}
