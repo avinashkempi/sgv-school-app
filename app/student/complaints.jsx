@@ -203,7 +203,7 @@ export default function StudentComplaintsScreen() {
                 onPress={() => setShowCreateModal(true)}
                 style={{
                     position: "absolute",
-                    bottom: 24,
+                    bottom: 110,
                     right: 24,
                     backgroundColor: colors.primary,
                     width: 56,

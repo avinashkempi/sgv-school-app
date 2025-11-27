@@ -260,7 +260,7 @@ export default function SubjectDetailScreen() {
                 onPress={() => setShowPostModal(true)}
                 style={({ pressed }) => ({
                     position: "absolute",
-                    bottom: 90,
+                    bottom: 110,
                     right: 24,
                     backgroundColor: colors.primary,
                     width: 56,

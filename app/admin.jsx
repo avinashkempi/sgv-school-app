@@ -941,7 +941,7 @@ export default function AdminScreen() {
         }}
         style={({ pressed }) => ({
           position: "absolute",
-          bottom: 100,
+          bottom: 110,
           right: 24,
           backgroundColor: colors.primary,
           width: 56,

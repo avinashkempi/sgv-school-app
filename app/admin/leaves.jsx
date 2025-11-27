@@ -207,7 +207,7 @@ export default function AdminLeaves() {
                 <View>
                     <Text style={styles.studentName}>{item.applicant?.name || 'Unknown'}</Text>
                     <Text style={styles.classInfo}>
-                        {item.applicantRole === 'student' ? `Class: ${item.class?.name || ''} ${item.class?.section || ''}` : item.applicantRole.toUpperCase()}
+                        {item.applicantRole === 'student' ? `Class: ${item.class?.name || ''} ${item.class?.section || ''}` : (item.applicantRole || 'Unknown').toUpperCase()}
                     </Text>
                 </View>
                 <View style={styles.dateContainer}>
@@ -275,7 +275,7 @@ export default function AdminLeaves() {
                 <View>
                     <Text style={styles.studentName}>{item.applicant?.name || 'Unknown'}</Text>
                     <Text style={styles.classInfo}>
-                        {item.applicantRole === 'student' ? `Class: ${item.class?.name || ''} ${item.class?.section || ''}` : item.applicantRole.toUpperCase()}
+                        {item.applicantRole === 'student' ? `Class: ${item.class?.name || ''} ${item.class?.section || ''}` : (item.applicantRole || 'Unknown').toUpperCase()}
                     </Text>
                 </View>
                 <View style={[styles.statusBadge, { backgroundColor: '#4CAF50' }]}>

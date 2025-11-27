@@ -324,27 +324,29 @@ export default function ClassesScreen() {
                 </View>
             </ScrollView>
 
-            <Pressable
-                onPress={() => {
-                    setModalMode("create");
-                    setForm({ ...form, name: "", section: "" });
-                    setShowModal(true);
-                }}
-                style={{
-                    position: "absolute",
-                    bottom: 90,
-                    right: 24,
-                    backgroundColor: colors.primary,
-                    width: 56,
-                    height: 56,
-                    borderRadius: 28,
-                    justifyContent: "center",
-                    alignItems: "center",
-                    elevation: 6,
-                }}
-            >
-                <MaterialIcons name="add" size={28} color="#fff" />
-            </Pressable>
+            {user?.role === 'super admin' && (
+                <Pressable
+                    onPress={() => {
+                        setModalMode("create");
+                        setForm({ ...form, name: "", section: "" });
+                        setShowModal(true);
+                    }}
+                    style={{
+                        position: "absolute",
+                        bottom: 110,
+                        right: 24,
+                        backgroundColor: colors.primary,
+                        width: 56,
+                        height: 56,
+                        borderRadius: 28,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        elevation: 6,
+                    }}
+                >
+                    <MaterialIcons name="add" size={28} color="#fff" />
+                </Pressable>
+            )}
 
             <Modal visible={showModal} animationType="slide" transparent>
                 <View style={{ flex: 1, justifyContent: "center", backgroundColor: "rgba(0,0,0,0.5)", padding: 20 }}>
@@ -432,9 +434,9 @@ export default function ClassesScreen() {
                                 </Text>
                             </Pressable>
                         </View>
-                    </View>
-                </View>
-            </Modal>
-        </View>
+                    </View >
+                </View >
+            </Modal >
+        </View >
     );
 }

@@ -238,7 +238,7 @@ export default function TeacherLeaves() {
                     </Text>
                 </View>
                 <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-                    <Text style={styles.statusText}>{item.status.toUpperCase()}</Text>
+                    <Text style={styles.statusText}>{(item.status || 'pending').toUpperCase()}</Text>
                 </View>
             </View>
             <Text style={styles.reasonLabel}>Reason:</Text>

@@ -569,42 +569,45 @@ export default function ClassDetailsScreen() {
                                 ))
                             )}
                         </View>
-                    )}
+                    )
+                    }
 
-                </View>
-            </ScrollView>
+                </View >
+            </ScrollView >
 
             {/* FAB for Add Subject or Add Student */}
-            {canManageClass && (
-                <Pressable
-                    onPress={() => {
-                        if (activeTab === "subjects") {
-                            loadGlobalSubjects();
-                            setShowAddSubjectModal(true);
-                            setSearchQuery("");
-                        } else {
-                            loadAvailableStudents();
-                            setShowAddStudentModal(true);
-                            setSelectedStudentIds([]); // Reset selection
-                        }
-                    }}
-                    style={{
-                        position: "absolute",
-                        bottom: 90,
-                        right: 24,
-                        backgroundColor: colors.primary,
-                        width: 56,
-                        height: 56,
-                        borderRadius: 28,
-                        justifyContent: "center",
-                        alignItems: "center",
-                        elevation: 6,
-                        zIndex: 9999,
-                    }}
-                >
-                    <MaterialIcons name="add" size={28} color="#fff" />
-                </Pressable>
-            )}
+            {
+                canManageClass && (
+                    <Pressable
+                        onPress={() => {
+                            if (activeTab === "subjects") {
+                                loadGlobalSubjects();
+                                setShowAddSubjectModal(true);
+                                setSearchQuery("");
+                            } else {
+                                loadAvailableStudents();
+                                setShowAddStudentModal(true);
+                                setSelectedStudentIds([]); // Reset selection
+                            }
+                        }}
+                        style={{
+                            position: "absolute",
+                            bottom: 90,
+                            right: 24,
+                            backgroundColor: colors.primary,
+                            width: 56,
+                            height: 56,
+                            borderRadius: 28,
+                            justifyContent: "center",
+                            alignItems: "center",
+                            elevation: 6,
+                            zIndex: 9999,
+                        }}
+                    >
+                        <MaterialIcons name="add" size={28} color="#fff" />
+                    </Pressable>
+                )
+            }
 
             {/* Add Subject Modal */}
             <Modal visible={showAddSubjectModal} animationType="slide" transparent>
@@ -815,6 +818,6 @@ export default function ClassDetailsScreen() {
                     </View>
                 </View>
             </Modal>
-        </View>
+        </View >
     );
 }

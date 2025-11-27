@@ -294,7 +294,7 @@ export default function ManageSubjectsScreen() {
                 }}
                 style={{
                     position: "absolute",
-                    bottom: 32,
+                    bottom: 110,
                     right: 24,
                     backgroundColor: colors.primary,
                     width: 56,
@@ -397,12 +397,13 @@ export default function ManageSubjectsScreen() {
                                 </Text>
                             )}
                         </Pressable>
-                    </View>
-                </KeyboardAvoidingView>
-            </Modal>
+                    </View >
+                </KeyboardAvoidingView >
+            </Modal >
 
             {/* Details Modal */}
-            <Modal visible={showDetailsModal} animationType="slide" transparent onRequestClose={() => setShowDetailsModal(false)}>
+            < Modal visible={showDetailsModal} animationType="slide" transparent onRequestClose={() => setShowDetailsModal(false)
+            }>
                 <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.5)" }}>
                     <View style={{ backgroundColor: colors.cardBackground, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: "80%" }}>
                         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
@@ -452,7 +453,7 @@ export default function ManageSubjectsScreen() {
                         )}
                     </View>
                 </View>
-            </Modal>
-        </View>
+            </Modal >
+        </View >
     );
 }
