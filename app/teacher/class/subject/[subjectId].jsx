@@ -29,6 +29,7 @@ export default function SubjectDetailScreen() {
     const { isConnected } = useNetworkStatus();
 
     const [subjectName, setSubjectName] = useState("");
+    const [subjectTeachers, setSubjectTeachers] = useState([]);
     const [content, setContent] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -65,7 +66,10 @@ export default function SubjectDetailScreen() {
                 if (subjectsRes.ok) {
                     const subjects = await subjectsRes.json();
                     const currentSubject = subjects.find(s => s._id === subjectId);
-                    if (currentSubject) setSubjectName(currentSubject.name);
+                    if (currentSubject) {
+                        setSubjectName(currentSubject.name);
+                        setSubjectTeachers(currentSubject.teachers || []);
+                    }
                 }
 
                 // Fetch Content for this subject
@@ -161,7 +165,11 @@ export default function SubjectDetailScreen() {
                 contentContainerStyle={{ paddingBottom: 100 }}
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
-                    <Header title={subjectName || "Subject Details"} subtitle="Class Content" showBack />
+                    <Header
+                        title={subjectName || "Subject Details"}
+                        subtitle={subjectTeachers.length > 0 ? `Teachers: ${subjectTeachers.map(t => t.name).join(", ")}` : "Class Content"}
+                        showBack
+                    />
 
                     {/* Quick Actions */}
                     <Pressable

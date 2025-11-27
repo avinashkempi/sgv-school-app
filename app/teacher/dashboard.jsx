@@ -219,7 +219,10 @@ export default function TeacherDashboard() {
                 allMySubjects.map((subj) => (
                     <Pressable
                         key={subj._id}
-                        onPress={() => router.push(`/teacher/subject/${subj._id}`)}
+                        onPress={() => router.push({
+                            pathname: `/teacher/class/subject/${subj._id}`,
+                            params: { id: subj.class._id, subjectId: subj._id }
+                        })}
                         style={({ pressed }) => ({
                             backgroundColor: colors.cardBackground,
                             borderRadius: 12,

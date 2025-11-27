@@ -68,7 +68,7 @@ export default function AdminScreen() {
   const [saving, setSaving] = useState(false);
 
   // Available roles for dropdown
-  const availableRoles = ["student", "teacher", "class teacher", "staff", "admin", "super admin"];
+  const availableRoles = ["student", "teacher", "staff", "admin", "super admin"];
 
   const validateField = (name, value) => {
     let error = "";
@@ -434,129 +434,66 @@ export default function AdminScreen() {
           {/* Minimal Header */}
           <Header title="Admin" subtitle="Manage users and permissions" />
 
-          {/* Minimal Search Bar */}
-          <View style={{ marginBottom: 16 }}>
-            <View style={{
-              flexDirection: "row",
-              alignItems: "center",
-              backgroundColor: colors.cardBackground,
-              borderRadius: 12,
-              paddingHorizontal: 16,
-              height: 50,
-              // Soft shadow
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.05,
-              shadowRadius: 8,
-              elevation: 2,
-            }}>
-              <MaterialIcons name="search" size={22} color={colors.textSecondary} />
-              <TextInput
-                style={{
-                  flex: 1,
-                  marginLeft: 12,
-                  fontSize: 16,
-                  color: colors.textPrimary,
-                  height: "100%",
-                }}
-                placeholder="Search users..."
-                placeholderTextColor={colors.textSecondary}
-                value={searchQuery}
-                onChangeText={(text) => {
-                  setSearchQuery(text);
-                  setCurrentPage(1); // Reset to page 1 on search
-                }}
-              />
-              {searchQuery.length > 0 && (
-                <Pressable onPress={() => setSearchQuery("")}>
-                  <MaterialIcons name="close" size={20} color={colors.textSecondary} />
-                </Pressable>
-              )}
-            </View>
-          </View>
-
-          {/* Filters and Sort */}
-          <View style={{ marginBottom: 24 }}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-              {/* Role Filter */}
-              {["all", "student", "teacher", "class teacher", "admin", "staff"].map((role) => (
-                <Pressable
-                  key={role}
-                  onPress={() => {
-                    setRoleFilter(role);
-                    setCurrentPage(1);
-                  }}
-                  style={{
-                    paddingHorizontal: 16,
-                    paddingVertical: 8,
-                    backgroundColor: roleFilter === role ? colors.primary : colors.cardBackground,
-                    borderRadius: 20,
-                    borderWidth: 1,
-                    borderColor: roleFilter === role ? colors.primary : colors.border,
-                  }}
-                >
-                  <Text style={{
-                    color: roleFilter === role ? "#fff" : colors.textSecondary,
-                    fontWeight: "600",
-                    textTransform: "capitalize"
-                  }}>
-                    {role === "all" ? "All Roles" : role}
-                  </Text>
-                </Pressable>
-              ))}
-            </ScrollView>
-
-            <View style={{ flexDirection: "row", marginTop: 12, gap: 12 }}>
-              {/* Sort By */}
-              <Pressable
-                onPress={() => setSortBy(sortBy === "createdAt" ? "name" : "createdAt")}
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
-                  backgroundColor: colors.cardBackground,
-                  borderRadius: 8,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                }}
-              >
-                <MaterialIcons name="sort" size={16} color={colors.textSecondary} style={{ marginRight: 4 }} />
-                <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
-                  Sort: {sortBy === "createdAt" ? "Date" : "Name"}
-                </Text>
-              </Pressable>
-
-              {/* Sort Order */}
-              <Pressable
-                onPress={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
-                  backgroundColor: colors.cardBackground,
-                  borderRadius: 8,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                }}
-              >
-                <MaterialIcons name={sortOrder === "asc" ? "arrow-upward" : "arrow-downward"} size={16} color={colors.textSecondary} style={{ marginRight: 4 }} />
-                <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
-                  {sortOrder === "asc" ? "Ascending" : "Descending"}
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-
-          {/* Admin Actions Grid */}
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 24 }}>
+          {/* Admin Actions - Organized by Category */}
+          <View>
+            {/* Academic Management Section - Super Admin Only */}
             {user?.role === 'super admin' && (
+              <>
+                <Text style={{ fontSize: 13, fontWeight: "700", color: colors.textSecondary, marginBottom: 12, marginTop: 8, textTransform: "uppercase", letterSpacing: 1 }}>
+                  Academic Management
+                </Text>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
+                  <Pressable
+                    onPress={() => router.push("/admin/academic-year")}
+                    style={({ pressed }) => ({
+                      flex: 1,
+                      minWidth: "30%",
+                      backgroundColor: colors.cardBackground,
+                      padding: 16,
+                      borderRadius: 16,
+                      alignItems: "center",
+                      opacity: pressed ? 0.9 : 1,
+                      elevation: 2,
+                    })}
+                  >
+                    <View style={{ backgroundColor: colors.primary + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
+                      <MaterialIcons name="calendar-today" size={24} color={colors.primary} />
+                    </View>
+                    <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textPrimary, textAlign: "center" }}>Academic Year</Text>
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() => router.push("/admin/subjects")}
+                    style={({ pressed }) => ({
+                      flex: 1,
+                      minWidth: "30%",
+                      backgroundColor: colors.cardBackground,
+                      padding: 16,
+                      borderRadius: 16,
+                      alignItems: "center",
+                      opacity: pressed ? 0.9 : 1,
+                      elevation: 2,
+                    })}
+                  >
+                    <View style={{ backgroundColor: "#673AB7" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
+                      <MaterialIcons name="menu-book" size={24} color="#673AB7" />
+                    </View>
+                    <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textPrimary, textAlign: "center" }}>Subjects</Text>
+                  </Pressable>
+                </View>
+              </>
+            )}
+
+            {/* Teaching Management Section - Admin & Super Admin */}
+            <Text style={{ fontSize: 13, fontWeight: "700", color: colors.textSecondary, marginBottom: 12, marginTop: 8, textTransform: "uppercase", letterSpacing: 1 }}>
+              Teaching Management
+            </Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
               <Pressable
-                onPress={() => router.push("/admin/academic-year")}
+                onPress={() => router.push("/admin/teacher-subjects")}
                 style={({ pressed }) => ({
                   flex: 1,
-                  minWidth: "45%",
+                  minWidth: "30%",
                   backgroundColor: colors.cardBackground,
                   padding: 16,
                   borderRadius: 16,
@@ -565,369 +502,462 @@ export default function AdminScreen() {
                   elevation: 2,
                 })}
               >
-                <View style={{ backgroundColor: colors.primary + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                  <MaterialIcons name="calendar-today" size={24} color={colors.primary} />
+                <View style={{ backgroundColor: "#4CAF50" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
+                  <MaterialIcons name="assignment-ind" size={24} color="#4CAF50" />
                 </View>
-                <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Academic Year</Text>
+                <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textPrimary, textAlign: "center" }}>Teacher Subjects</Text>
               </Pressable>
-            )}
+            </View>
 
+            {/* Class Operations Section */}
+            <Text style={{ fontSize: 13, fontWeight: "700", color: colors.textSecondary, marginBottom: 12, marginTop: 8, textTransform: "uppercase", letterSpacing: 1 }}>
+              Class Operations
+            </Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
+              <Pressable
+                onPress={() => router.push("/admin/attendance")}
+                style={({ pressed }) => ({
+                  flex: 1,
+                  minWidth: "30%",
+                  backgroundColor: colors.cardBackground,
+                  borderRadius: 16,
+                  padding: 16,
+                  alignItems: "center",
+                  elevation: 2,
+                  opacity: pressed ? 0.7 : 1
+                })}
+              >
+                <View style={{ backgroundColor: "#2196F3" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
+                  <MaterialIcons name="analytics" size={24} color="#2196F3" />
+                </View>
+                <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textPrimary, textAlign: "center" }}>Attendance</Text>
+              </Pressable>
 
+              <Pressable
+                onPress={() => router.push("/admin/timetable")}
+                style={({ pressed }) => ({
+                  flex: 1,
+                  minWidth: "30%",
+                  backgroundColor: colors.cardBackground,
+                  borderRadius: 16,
+                  padding: 16,
+                  alignItems: "center",
+                  elevation: 2,
+                  opacity: pressed ? 0.7 : 1
+                })}
+              >
+                <View style={{ backgroundColor: "#9C27B0" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
+                  <MaterialIcons name="schedule" size={24} color="#9C27B0" />
+                </View>
+                <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textPrimary, textAlign: "center" }}>Timetable</Text>
+              </Pressable>
 
+              <Pressable
+                onPress={() => router.push("/admin/exam-schedule")}
+                style={({ pressed }) => ({
+                  flex: 1,
+                  minWidth: "30%",
+                  backgroundColor: colors.cardBackground,
+                  borderRadius: 16,
+                  padding: 16,
+                  alignItems: "center",
+                  elevation: 2,
+                  opacity: pressed ? 0.7 : 1
+                })}
+              >
+                <View style={{ backgroundColor: "#E91E63" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
+                  <MaterialIcons name="event" size={24} color="#E91E63" />
+                </View>
+                <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textPrimary, textAlign: "center" }}>Exams</Text>
+              </Pressable>
+            </View>
 
+            {/* Financial Section */}
+            <Text style={{ fontSize: 13, fontWeight: "700", color: colors.textSecondary, marginBottom: 12, marginTop: 8, textTransform: "uppercase", letterSpacing: 1 }}>
+              Financial
+            </Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
+              <Pressable
+                onPress={() => router.push("/admin/fees")}
+                style={({ pressed }) => ({
+                  flex: 1,
+                  minWidth: "30%",
+                  backgroundColor: colors.cardBackground,
+                  borderRadius: 16,
+                  padding: 16,
+                  alignItems: "center",
+                  elevation: 2,
+                  opacity: pressed ? 0.7 : 1
+                })}
+              >
+                <View style={{ backgroundColor: "#FF5722" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
+                  <MaterialIcons name="attach-money" size={24} color="#FF5722" />
+                </View>
+                <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textPrimary, textAlign: "center" }}>Fees</Text>
+              </Pressable>
+            </View>
 
-            <Pressable
-              onPress={() => router.push("/admin/leaves")}
-              style={({ pressed }) => ({
-                flex: 1,
-                minWidth: "45%",
-                backgroundColor: colors.cardBackground,
-                padding: 16,
-                borderRadius: 16,
-                alignItems: "center",
-                opacity: pressed ? 0.9 : 1,
-                elevation: 2,
-              })}
-            >
-              <View style={{ backgroundColor: "#FF9800" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                <MaterialIcons name="event-note" size={24} color="#FF9800" />
-              </View>
-              <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Leaves</Text>
-            </Pressable>
+            {/* Communication & Requests Section */}
+            <Text style={{ fontSize: 13, fontWeight: "700", color: colors.textSecondary, marginBottom: 12, marginTop: 8, textTransform: "uppercase", letterSpacing: 1 }}>
+              Communication & Requests
+            </Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
+              <Pressable
+                onPress={() => router.push("/admin/leaves")}
+                style={({ pressed }) => ({
+                  flex: 1,
+                  minWidth: "30%",
+                  backgroundColor: colors.cardBackground,
+                  padding: 16,
+                  borderRadius: 16,
+                  alignItems: "center",
+                  opacity: pressed ? 0.9 : 1,
+                  elevation: 2,
+                })}
+              >
+                <View style={{ backgroundColor: "#FF9800" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
+                  <MaterialIcons name="event-note" size={24} color="#FF9800" />
+                </View>
+                <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textPrimary, textAlign: "center" }}>Leaves</Text>
+              </Pressable>
 
-            <Pressable
-              onPress={() => router.push("/admin/teacher-subjects")}
-              style={({ pressed }) => ({
-                flex: 1,
-                minWidth: "45%",
-                backgroundColor: colors.cardBackground,
-                padding: 16,
-                borderRadius: 16,
-                alignItems: "center",
-                opacity: pressed ? 0.9 : 1,
-                elevation: 2,
-              })}
-            >
-              <View style={{ backgroundColor: "#4CAF50" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                <MaterialIcons name="assignment-ind" size={24} color="#4CAF50" />
-              </View>
-              <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Teacher Subjects</Text>
-            </Pressable>
+              <Pressable
+                onPress={() => router.push("/admin/complaints")}
+                style={({ pressed }) => ({
+                  flex: 1,
+                  minWidth: "30%",
+                  backgroundColor: colors.cardBackground,
+                  borderRadius: 16,
+                  padding: 16,
+                  alignItems: "center",
+                  elevation: 2,
+                  opacity: pressed ? 0.7 : 1
+                })}
+              >
+                <View style={{ backgroundColor: "#607D8B" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
+                  <MaterialIcons name="feedback" size={24} color="#607D8B" />
+                </View>
+                <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textPrimary, textAlign: "center" }}>Complaints</Text>
+              </Pressable>
 
-            <Pressable
-              onPress={() => router.push("/admin/subjects")}
-              style={({ pressed }) => ({
-                flex: 1,
-                minWidth: "45%",
-                backgroundColor: colors.cardBackground,
-                padding: 16,
-                borderRadius: 16,
-                alignItems: "center",
-                opacity: pressed ? 0.9 : 1,
-                elevation: 2,
-              })}
-            >
-              <View style={{ backgroundColor: "#673AB7" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                <MaterialIcons name="menu-book" size={24} color="#673AB7" />
-              </View>
-              <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Subjects</Text>
-            </Pressable>
+              <Pressable
+                onPress={() => router.push("/admin/send-notification")}
+                style={({ pressed }) => ({
+                  flex: 1,
+                  minWidth: "30%",
+                  backgroundColor: colors.cardBackground,
+                  borderRadius: 16,
+                  padding: 16,
+                  alignItems: "center",
+                  elevation: 2,
+                  opacity: pressed ? 0.7 : 1
+                })}
+              >
+                <View style={{ backgroundColor: "#3F51B5" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
+                  <MaterialIcons name="campaign" size={24} color="#3F51B5" />
+                </View>
+                <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textPrimary, textAlign: "center" }}>Broadcast</Text>
+              </Pressable>
+            </View>
 
-            <Pressable
-              onPress={() => router.push("/admin/attendance")}
-              style={({ pressed }) => ({
-                flex: 1,
-                minWidth: "45%",
-                backgroundColor: colors.cardBackground,
-                borderRadius: 16,
-                padding: 16,
-                alignItems: "center",
-                elevation: 2,
-                opacity: pressed ? 0.7 : 1
-              })}
-            >
-              <View style={{ backgroundColor: "#2196F3" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                <MaterialIcons name="analytics" size={24} color="#2196F3" />
-              </View>
-              <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Attendance</Text>
-            </Pressable>
+            {/* Reports Section */}
+            <Text style={{ fontSize: 13, fontWeight: "700", color: colors.textSecondary, marginBottom: 12, marginTop: 8, textTransform: "uppercase", letterSpacing: 1 }}>
+              Reports
+            </Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
+              <Pressable
+                onPress={() => router.push("/history")}
+                style={({ pressed }) => ({
+                  flex: 1,
+                  minWidth: "30%",
+                  backgroundColor: colors.cardBackground,
+                  borderRadius: 16,
+                  padding: 16,
+                  alignItems: "center",
+                  elevation: 2,
+                  opacity: pressed ? 0.7 : 1
+                })}
+              >
+                <View style={{ backgroundColor: "#795548" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
+                  <MaterialIcons name="history" size={24} color="#795548" />
+                </View>
+                <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textPrimary, textAlign: "center" }}>History</Text>
+              </Pressable>
+            </View>
+          </View>
 
-            <Pressable
-              onPress={() => router.push("/admin/timetable")}
-              style={({ pressed }) => ({
-                flex: 1,
-                minWidth: "45%",
-                backgroundColor: colors.cardBackground,
-                borderRadius: 16,
-                padding: 16,
-                alignItems: "center",
-                elevation: 2,
-                opacity: pressed ? 0.7 : 1
-              })}
-            >
-              <View style={{ backgroundColor: "#9C27B0" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                <MaterialIcons name="schedule" size={24} color="#9C27B0" />
-              </View>
-              <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Timetable</Text>
-            </Pressable>
-
-            <Pressable
-              onPress={() => router.push("/admin/fees")}
-              style={({ pressed }) => ({
-                flex: 1,
-                minWidth: "45%",
-                backgroundColor: colors.cardBackground,
-                borderRadius: 16,
-                padding: 16,
-                alignItems: "center",
-                elevation: 2,
-                opacity: pressed ? 0.7 : 1
-              })}
-            >
-              <View style={{ backgroundColor: "#FF5722" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                <MaterialIcons name="attach-money" size={24} color="#FF5722" />
-              </View>
-              <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Fees</Text>
-            </Pressable>
-
-            <Pressable
-              onPress={() => router.push("/admin/exam-schedule")}
-              style={({ pressed }) => ({
-                flex: 1,
-                minWidth: "45%",
-                backgroundColor: colors.cardBackground,
-                borderRadius: 16,
-                padding: 16,
-                alignItems: "center",
-                elevation: 2,
-                opacity: pressed ? 0.7 : 1
-              })}
-            >
-              <View style={{ backgroundColor: "#E91E63" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                <MaterialIcons name="event" size={24} color="#E91E63" />
-              </View>
-              <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Exams</Text>
-            </Pressable>
-
-            <Pressable
-              onPress={() => router.push("/admin/complaints")}
-              style={({ pressed }) => ({
-                flex: 1,
-                minWidth: "45%",
-                backgroundColor: colors.cardBackground,
-                borderRadius: 16,
-                padding: 16,
-                alignItems: "center",
-                elevation: 2,
-                opacity: pressed ? 0.7 : 1
-              })}
-            >
-              <View style={{ backgroundColor: "#607D8B" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                <MaterialIcons name="feedback" size={24} color="#607D8B" />
-              </View>
-              <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Complaints</Text>
-            </Pressable>
-
-            <Pressable
-              onPress={() => router.push("/admin/send-notification")}
-              style={({ pressed }) => ({
-                flex: 1,
-                minWidth: "45%",
-                backgroundColor: colors.cardBackground,
-                borderRadius: 16,
-                padding: 16,
-                alignItems: "center",
-                elevation: 2,
-                opacity: pressed ? 0.7 : 1
-              })}
-            >
-              <View style={{ backgroundColor: "#3F51B5" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                <MaterialIcons name="campaign" size={24} color="#3F51B5" />
-              </View>
-              <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Broadcast</Text>
-            </Pressable>
-
-            <Pressable
-              onPress={() => router.push("/history")}
-              style={({ pressed }) => ({
-                flex: 1,
-                minWidth: "45%",
-                backgroundColor: colors.cardBackground,
-                borderRadius: 16,
-                padding: 16,
-                alignItems: "center",
-                elevation: 2,
-                opacity: pressed ? 0.7 : 1
-              })}
-            >
-              <View style={{ backgroundColor: "#795548" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                <MaterialIcons name="history" size={24} color="#795548" />
-              </View>
-              <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>History</Text>
-            </Pressable>
-          </View >
-
-          {/* Users List */}
-          < View >
-            <Text style={{
-              fontSize: 14,
-              fontWeight: "600",
-              color: colors.textSecondary,
-              marginBottom: 16,
-              textTransform: "uppercase",
-              letterSpacing: 0.5
-            }}>
-              All Users
+          {/* User Management Section */}
+          <View style={{ marginTop: 24 }}>
+            <Text style={{ fontSize: 13, fontWeight: "700", color: colors.textSecondary, marginBottom: 12, textTransform: "uppercase", letterSpacing: 1 }}>
+              User Management
             </Text>
 
-            {
-              users.map((userItem) => (
-                <View
-                  key={userItem._id}
+            {/* Search Bar */}
+            <View style={{ marginBottom: 16 }}>
+              <View style={{
+                flexDirection: "row",
+                alignItems: "center",
+                backgroundColor: colors.cardBackground,
+                borderRadius: 12,
+                paddingHorizontal: 16,
+                height: 50,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.05,
+                shadowRadius: 8,
+                elevation: 2,
+              }}>
+                <MaterialIcons name="search" size={22} color={colors.textSecondary} />
+                <TextInput
                   style={{
+                    flex: 1,
+                    marginLeft: 12,
+                    fontSize: 16,
+                    color: colors.textPrimary,
+                    height: "100%",
+                  }}
+                  placeholder="Search users..."
+                  placeholderTextColor={colors.textSecondary}
+                  value={searchQuery}
+                  onChangeText={(text) => {
+                    setSearchQuery(text);
+                    setCurrentPage(1);
+                  }}
+                />
+                {searchQuery.length > 0 && (
+                  <Pressable onPress={() => setSearchQuery("")}>
+                    <MaterialIcons name="close" size={20} color={colors.textSecondary} />
+                  </Pressable>
+                )}
+              </View>
+            </View>
+
+            {/* Filters and Sort */}
+            <View style={{ marginBottom: 16 }}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                {/* Role Filter */}
+                {["all", "student", "teacher", "admin", "staff"].map((role) => (
+                  <Pressable
+                    key={role}
+                    onPress={() => {
+                      setRoleFilter(role);
+                      setCurrentPage(1);
+                    }}
+                    style={{
+                      paddingHorizontal: 16,
+                      paddingVertical: 8,
+                      backgroundColor: roleFilter === role ? colors.primary : colors.cardBackground,
+                      borderRadius: 20,
+                      borderWidth: 1,
+                      borderColor: roleFilter === role ? colors.primary : colors.border,
+                    }}
+                  >
+                    <Text style={{
+                      color: roleFilter === role ? "#fff" : colors.textSecondary,
+                      fontWeight: "600",
+                      textTransform: "capitalize"
+                    }}>
+                      {role === "all" ? "All Roles" : role}
+                    </Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+
+              <View style={{ flexDirection: "row", marginTop: 12, gap: 12 }}>
+                {/* Sort By */}
+                <Pressable
+                  onPress={() => setSortBy(sortBy === "createdAt" ? "name" : "createdAt")}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
                     backgroundColor: colors.cardBackground,
-                    borderRadius: 16,
-                    padding: 16,
-                    marginBottom: 12,
-                    // Very subtle shadow
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 1 },
-                    shadowOpacity: 0.03,
-                    shadowRadius: 4,
-                    elevation: 1,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: colors.border,
                   }}
                 >
-                  <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                    <View style={{ flex: 1, marginRight: 12 }}>
-                      <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
-                        <Text style={{ fontSize: 17, fontWeight: "600", color: colors.textPrimary, marginRight: 8 }}>
-                          {userItem.name}
-                        </Text>
-                        <View
-                          style={{
-                            backgroundColor: getRoleColor(userItem.role) + "20", // 20% opacity
-                            paddingHorizontal: 8,
-                            paddingVertical: 2,
-                            borderRadius: 100,
-                          }}
-                        >
-                          <Text
+                  <MaterialIcons name="sort" size={16} color={colors.textSecondary} style={{ marginRight: 4 }} />
+                  <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
+                    Sort: {sortBy === "createdAt" ? "Date" : "Name"}
+                  </Text>
+                </Pressable>
+
+                {/* Sort Order */}
+                <Pressable
+                  onPress={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                    backgroundColor: colors.cardBackground,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                  }}
+                >
+                  <MaterialIcons name={sortOrder === "asc" ? "arrow-upward" : "arrow-downward"} size={16} color={colors.textSecondary} style={{ marginRight: 4 }} />
+                  <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
+                    {sortOrder === "asc" ? "Ascending" : "Descending"}
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+
+            {/* Users List */}
+            < View >
+
+              {
+                users.map((userItem) => (
+                  <View
+                    key={userItem._id}
+                    style={{
+                      backgroundColor: colors.cardBackground,
+                      borderRadius: 16,
+                      padding: 16,
+                      marginBottom: 12,
+                      // Very subtle shadow
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowOpacity: 0.03,
+                      shadowRadius: 4,
+                      elevation: 1,
+                    }}
+                  >
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                      <View style={{ flex: 1, marginRight: 12 }}>
+                        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
+                          <Text style={{ fontSize: 17, fontWeight: "600", color: colors.textPrimary, marginRight: 8 }}>
+                            {userItem.name}
+                          </Text>
+                          <View
                             style={{
-                              fontSize: 11,
-                              fontWeight: "600",
-                              color: getRoleColor(userItem.role),
-                              textTransform: "uppercase",
+                              backgroundColor: getRoleColor(userItem.role) + "20", // 20% opacity
+                              paddingHorizontal: 8,
+                              paddingVertical: 2,
+                              borderRadius: 100,
                             }}
                           >
-                            {userItem.role}
-                          </Text>
+                            <Text
+                              style={{
+                                fontSize: 11,
+                                fontWeight: "600",
+                                color: getRoleColor(userItem.role),
+                                textTransform: "uppercase",
+                              }}
+                            >
+                              {userItem.role}
+                            </Text>
+                          </View>
+                        </View>
+
+                        <View style={{ gap: 2 }}>
+                          {userItem.email ? (
+                            <Text style={{ fontSize: 14, color: colors.textSecondary }}>
+                              {userItem.email}
+                            </Text>
+                          ) : null}
+                          {userItem.phone ? (
+                            <Text style={{ fontSize: 13, color: colors.textSecondary, opacity: 0.8 }}>
+                              {userItem.phone}
+                            </Text>
+                          ) : null}
                         </View>
                       </View>
 
-                      <View style={{ gap: 2 }}>
-                        {userItem.email ? (
-                          <Text style={{ fontSize: 14, color: colors.textSecondary }}>
-                            {userItem.email}
-                          </Text>
-                        ) : null}
-                        {userItem.phone ? (
-                          <Text style={{ fontSize: 13, color: colors.textSecondary, opacity: 0.8 }}>
-                            {userItem.phone}
-                          </Text>
-                        ) : null}
+                      <View style={{ flexDirection: "row", gap: 8 }}>
+                        <Pressable
+                          onPress={() => {
+                            setModalMode("edit");
+                            setEditingUser(userItem);
+                            setUserForm({ name: userItem.name, phone: userItem.phone, email: userItem.email, password: "", role: userItem.role });
+                            setShowUserModal(true);
+                          }}
+                          style={({ pressed }) => ({
+                            padding: 8,
+                            backgroundColor: colors.background,
+                            borderRadius: 8,
+                            opacity: pressed ? 0.7 : 1,
+                          })}
+                        >
+                          <MaterialIcons name="edit" size={18} color={colors.textSecondary} />
+                        </Pressable>
+
+                        <Pressable
+                          onPress={() => {
+                            Alert.alert(
+                              "Delete User",
+                              `Are you sure you want to delete ${userItem.name}?`,
+                              [
+                                { text: "Cancel", style: "cancel" },
+                                { text: "Delete", style: "destructive", onPress: () => deleteUser(userItem._id, userItem.name) },
+                              ]
+                            );
+                          }}
+                          style={({ pressed }) => ({
+                            padding: 8,
+                            backgroundColor: colors.error + "15",
+                            borderRadius: 8,
+                            opacity: pressed ? 0.7 : 1,
+                          })}
+                        >
+                          <MaterialIcons name="delete-outline" size={18} color={colors.error} />
+                        </Pressable>
                       </View>
                     </View>
-
-                    <View style={{ flexDirection: "row", gap: 8 }}>
-                      <Pressable
-                        onPress={() => {
-                          setModalMode("edit");
-                          setEditingUser(userItem);
-                          setUserForm({ name: userItem.name, phone: userItem.phone, email: userItem.email, password: "", role: userItem.role });
-                          setShowUserModal(true);
-                        }}
-                        style={({ pressed }) => ({
-                          padding: 8,
-                          backgroundColor: colors.background,
-                          borderRadius: 8,
-                          opacity: pressed ? 0.7 : 1,
-                        })}
-                      >
-                        <MaterialIcons name="edit" size={18} color={colors.textSecondary} />
-                      </Pressable>
-
-                      <Pressable
-                        onPress={() => {
-                          Alert.alert(
-                            "Delete User",
-                            `Are you sure you want to delete ${userItem.name}?`,
-                            [
-                              { text: "Cancel", style: "cancel" },
-                              { text: "Delete", style: "destructive", onPress: () => deleteUser(userItem._id, userItem.name) },
-                            ]
-                          );
-                        }}
-                        style={({ pressed }) => ({
-                          padding: 8,
-                          backgroundColor: colors.error + "15",
-                          borderRadius: 8,
-                          opacity: pressed ? 0.7 : 1,
-                        })}
-                      >
-                        <MaterialIcons name="delete-outline" size={18} color={colors.error} />
-                      </Pressable>
-                    </View>
                   </View>
-                </View>
-              ))
-            }
+                ))
+              }
 
-            {
-              users.length === 0 && (
-                <View style={{ alignItems: "center", padding: 40, opacity: 0.6 }}>
-                  <MaterialIcons name="search-off" size={48} color={colors.textSecondary} />
-                  <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16 }}>
-                    No users found
+              {
+                users.length === 0 && (
+                  <View style={{ alignItems: "center", padding: 40, opacity: 0.6 }}>
+                    <MaterialIcons name="search-off" size={48} color={colors.textSecondary} />
+                    <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16 }}>
+                      No users found
+                    </Text>
+                  </View>
+                )
+              }
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: 24, gap: 16 }}>
+                  <Pressable
+                    onPress={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    style={{
+                      padding: 10,
+                      backgroundColor: currentPage === 1 ? colors.background : colors.cardBackground,
+                      borderRadius: 8,
+                      opacity: currentPage === 1 ? 0.5 : 1,
+                    }}
+                  >
+                    <MaterialIcons name="chevron-left" size={24} color={colors.textPrimary} />
+                  </Pressable>
+
+                  <Text style={{ fontSize: 16, fontWeight: "600", color: colors.textPrimary }}>
+                    Page {currentPage} of {totalPages}
                   </Text>
+
+                  <Pressable
+                    onPress={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    style={{
+                      padding: 10,
+                      backgroundColor: currentPage === totalPages ? colors.background : colors.cardBackground,
+                      borderRadius: 8,
+                      opacity: currentPage === totalPages ? 0.5 : 1,
+                    }}
+                  >
+                    <MaterialIcons name="chevron-right" size={24} color={colors.textPrimary} />
+                  </Pressable>
                 </View>
-              )
-            }
+              )}
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: 24, gap: 16 }}>
-                <Pressable
-                  onPress={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  style={{
-                    padding: 10,
-                    backgroundColor: currentPage === 1 ? colors.background : colors.cardBackground,
-                    borderRadius: 8,
-                    opacity: currentPage === 1 ? 0.5 : 1,
-                  }}
-                >
-                  <MaterialIcons name="chevron-left" size={24} color={colors.textPrimary} />
-                </Pressable>
-
-                <Text style={{ fontSize: 16, fontWeight: "600", color: colors.textPrimary }}>
-                  Page {currentPage} of {totalPages}
-                </Text>
-
-                <Pressable
-                  onPress={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  style={{
-                    padding: 10,
-                    backgroundColor: currentPage === totalPages ? colors.background : colors.cardBackground,
-                    borderRadius: 8,
-                    opacity: currentPage === totalPages ? 0.5 : 1,
-                  }}
-                >
-                  <MaterialIcons name="chevron-right" size={24} color={colors.textPrimary} />
-                </Pressable>
-              </View>
-            )}
-
+            </View>
           </View>
         </View>
       </ScrollView>

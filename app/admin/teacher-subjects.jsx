@@ -31,6 +31,7 @@ export default function TeacherSubjectsScreen() {
     const [selectedTeacher, setSelectedTeacher] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [selectedSubjects, setSelectedSubjects] = useState([]);
 
     useEffect(() => {
         checkAuthAndLoadData();
@@ -128,6 +129,61 @@ export default function TeacherSubjectsScreen() {
         }
     };
 
+    const handleAssignMultipleSubjects = async () => {
+        if (selectedSubjects.length === 0) {
+            showToast("Please select at least one subject", "error");
+            return;
+        }
+
+        try {
+            setSaving(true);
+            const token = await AsyncStorage.getItem("@auth_token");
+            let successCount = 0;
+            let errorCount = 0;
+
+            // Assign each selected subject
+            for (const subjectId of selectedSubjects) {
+                try {
+                    const response = await apiFetch(
+                        `${apiConfig.baseUrl}/teachers/subjects/${subjectId}/assign`,
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
+                            },
+                            body: JSON.stringify({ teacherId: selectedTeacher._id }),
+                        }
+                    );
+
+                    if (response.ok) {
+                        successCount++;
+                    } else {
+                        errorCount++;
+                    }
+                } catch (error) {
+                    errorCount++;
+                }
+            }
+
+            if (successCount > 0) {
+                showToast(`${successCount} subject(s) assigned successfully`, "success");
+                await loadData();
+                setSelectedSubjects([]);
+                setShowModal(false);
+            }
+
+            if (errorCount > 0) {
+                showToast(`${errorCount} subject(s) failed to assign`, "error");
+            }
+        } catch (error) {
+            console.error(error);
+            showToast("Error assigning subjects", "error");
+        } finally {
+            setSaving(false);
+        }
+    };
+
     const handleRemoveSubject = async (subjectId, teacherId) => {
         try {
             const token = await AsyncStorage.getItem("@auth_token");
@@ -150,6 +206,16 @@ export default function TeacherSubjectsScreen() {
             console.error(error);
             showToast("Error removing teacher", "error");
         }
+    };
+
+    const toggleSubjectSelection = (subjectId) => {
+        setSelectedSubjects(prev => {
+            if (prev.includes(subjectId)) {
+                return prev.filter(id => id !== subjectId);
+            } else {
+                return [...prev, subjectId];
+            }
+        });
     };
 
     return (
@@ -278,6 +344,7 @@ export default function TeacherSubjectsScreen() {
                                             <Pressable
                                                 onPress={() => {
                                                     setSelectedTeacher(teacher);
+                                                    setSelectedSubjects([]);
                                                     setShowModal(true);
                                                 }}
                                                 style={({ pressed }) => ({
@@ -377,7 +444,10 @@ export default function TeacherSubjectsScreen() {
                 visible={showModal}
                 animationType="fade"
                 transparent={true}
-                onRequestClose={() => setShowModal(false)}
+                onRequestClose={() => {
+                    setShowModal(false);
+                    setSelectedSubjects([]);
+                }}
             >
                 <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.6)" }}>
                     <View style={{
@@ -388,40 +458,71 @@ export default function TeacherSubjectsScreen() {
                         maxWidth: 500,
                         maxHeight: "80%",
                     }}>
-                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                            <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
-                                Assign Subject to {selectedTeacher?.name}
-                            </Text>
-                            <Pressable onPress={() => setShowModal(false)}>
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                            <View style={{ flex: 1 }}>
+                                <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
+                                    Assign Subjects
+                                </Text>
+                                <Text style={{ fontSize: 14, color: colors.textSecondary, fontFamily: "DMSans-Regular", marginTop: 2 }}>
+                                    {selectedTeacher?.name}
+                                </Text>
+                            </View>
+                            <Pressable onPress={() => {
+                                setShowModal(false);
+                                setSelectedSubjects([]);
+                            }}>
                                 <MaterialIcons name="close" size={24} color={colors.textSecondary} />
                             </Pressable>
                         </View>
 
-                        <ScrollView showsVerticalScrollIndicator={false}>
+                        {/* Selection Counter */}
+                        {selectedSubjects.length > 0 && (
+                            <View style={{
+                                backgroundColor: colors.primary + "15",
+                                padding: 10,
+                                borderRadius: 8,
+                                marginBottom: 12,
+                                flexDirection: "row",
+                                alignItems: "center",
+                                justifyContent: "space-between"
+                            }}>
+                                <Text style={{ fontSize: 14, fontFamily: "DMSans-SemiBold", color: colors.primary }}>
+                                    {selectedSubjects.length} subject{selectedSubjects.length !== 1 ? 's' : ''} selected
+                                </Text>
+                                <Pressable onPress={() => setSelectedSubjects([])}>
+                                    <Text style={{ fontSize: 13, fontFamily: "DMSans-Bold", color: colors.primary }}>
+                                        Clear All
+                                    </Text>
+                                </Pressable>
+                            </View>
+                        )}
+
+                        <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: "70%" }}>
                             {subjects.map((subject) => {
                                 const isAssigned = subject.teachers.some(t => t._id === selectedTeacher?._id);
+                                const isSelected = selectedSubjects.includes(subject._id);
 
                                 return (
                                     <Pressable
                                         key={subject._id}
                                         onPress={() => {
                                             if (!isAssigned) {
-                                                handleAssignSubject(subject._id, selectedTeacher._id);
+                                                toggleSubjectSelection(subject._id);
                                             }
                                         }}
                                         disabled={isAssigned || saving}
                                         style={({ pressed }) => ({
-                                            backgroundColor: isAssigned ? colors.success + "10" : colors.background,
+                                            backgroundColor: isAssigned ? colors.success + "10" : isSelected ? colors.primary + "15" : colors.background,
                                             borderRadius: 12,
                                             padding: 14,
                                             marginBottom: 10,
                                             opacity: (isAssigned || saving) ? 0.6 : (pressed ? 0.9 : 1),
-                                            borderWidth: isAssigned ? 1 : 0,
-                                            borderColor: colors.success
+                                            borderWidth: isAssigned ? 1 : isSelected ? 2 : 0,
+                                            borderColor: isAssigned ? colors.success : isSelected ? colors.primary : "transparent"
                                         })}
                                     >
                                         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                                            <View style={{ flex: 1 }}>
+                                            <View style={{ flex: 1, marginRight: 12 }}>
                                                 <Text style={{
                                                     fontSize: 16,
                                                     fontFamily: "DMSans-SemiBold",
@@ -438,14 +539,77 @@ export default function TeacherSubjectsScreen() {
                                                     {subject.class.name} {subject.class.section ? `- ${subject.class.section}` : ""}
                                                 </Text>
                                             </View>
-                                            {isAssigned && (
-                                                <MaterialIcons name="check-circle" size={24} color={colors.success} />
+                                            {isAssigned ? (
+                                                <View style={{
+                                                    backgroundColor: colors.success + "20",
+                                                    padding: 6,
+                                                    borderRadius: 20,
+                                                    flexDirection: "row",
+                                                    alignItems: "center",
+                                                    paddingHorizontal: 10
+                                                }}>
+                                                    <MaterialIcons name="check-circle" size={18} color={colors.success} />
+                                                    <Text style={{
+                                                        fontSize: 11,
+                                                        fontFamily: "DMSans-Bold",
+                                                        color: colors.success,
+                                                        marginLeft: 4
+                                                    }}>
+                                                        Assigned
+                                                    </Text>
+                                                </View>
+                                            ) : (
+                                                <View style={{
+                                                    width: 24,
+                                                    height: 24,
+                                                    borderRadius: 6,
+                                                    borderWidth: 2,
+                                                    borderColor: isSelected ? colors.primary : colors.textSecondary + "40",
+                                                    backgroundColor: isSelected ? colors.primary : "transparent",
+                                                    justifyContent: "center",
+                                                    alignItems: "center"
+                                                }}>
+                                                    {isSelected && (
+                                                        <MaterialIcons name="check" size={18} color="#fff" />
+                                                    )}
+                                                </View>
                                             )}
                                         </View>
                                     </Pressable>
                                 );
                             })}
                         </ScrollView>
+
+                        {/* Assign Button */}
+                        <Pressable
+                            onPress={handleAssignMultipleSubjects}
+                            disabled={saving || selectedSubjects.length === 0}
+                            style={({ pressed }) => ({
+                                backgroundColor: selectedSubjects.length > 0 ? colors.primary : colors.textSecondary + "30",
+                                padding: 16,
+                                borderRadius: 12,
+                                marginTop: 16,
+                                opacity: pressed ? 0.8 : 1,
+                                flexDirection: "row",
+                                justifyContent: "center",
+                                alignItems: "center"
+                            })}
+                        >
+                            {saving ? (
+                                <ActivityIndicator size="small" color="#fff" />
+                            ) : (
+                                <>
+                                    <MaterialIcons name="check" size={20} color="#fff" style={{ marginRight: 8 }} />
+                                    <Text style={{
+                                        color: "#fff",
+                                        fontSize: 16,
+                                        fontFamily: "DMSans-Bold"
+                                    }}>
+                                        Assign {selectedSubjects.length > 0 ? `(${selectedSubjects.length})` : 'Selected'}
+                                    </Text>
+                                </>
+                            )}
+                        </Pressable>
                     </View>
                 </View>
             </Modal>

@@ -282,8 +282,8 @@ const styles = StyleSheet.create({
   activePill: {
     position: "absolute",
     top: 0,
-    left: 4,
-    right: 4,
+    left: -16,
+    right: -16,
     bottom: 0,
     borderRadius: 16,
     zIndex: 0,

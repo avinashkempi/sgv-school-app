@@ -48,7 +48,7 @@ export default function ClassDetailsScreen() {
 
     const [subjectName, setSubjectName] = useState("");
     const [globalSubjects, setGlobalSubjects] = useState([]);
-    const [selectedGlobalSubject, setSelectedGlobalSubject] = useState(null);
+    const [selectedGlobalSubjectIds, setSelectedGlobalSubjectIds] = useState([]);
 
     useEffect(() => {
         loadUserData();
@@ -177,40 +177,67 @@ export default function ClassDetailsScreen() {
         }
     };
 
+    const toggleSubjectSelection = (subjectId) => {
+        setSelectedGlobalSubjectIds(prev => {
+            if (prev.includes(subjectId)) {
+                return prev.filter(id => id !== subjectId);
+            } else {
+                return [...prev, subjectId];
+            }
+        });
+    };
+
     const handleAddSubject = async () => {
-        if (!selectedGlobalSubject) {
-            showToast("Please select a subject", "error");
+        if (selectedGlobalSubjectIds.length === 0) {
+            showToast("Please select at least one subject", "error");
             return;
         }
 
         try {
             setSaving(true);
             const token = await AsyncStorage.getItem("@auth_token");
-            const response = await apiFetch(`${apiConfig.baseUrl}/classes/${id}/subjects`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    name: selectedGlobalSubject.name,
-                    globalSubjectId: selectedGlobalSubject._id
-                }),
-            });
 
-            if (response.ok) {
-                showToast("Subject added successfully", "success");
-                setShowAddSubjectModal(false);
-                setSelectedGlobalSubject(null);
-                setSearchQuery("");
-                loadData(); // Reload subjects
-            } else {
-                const data = await response.json();
-                showToast(data.msg || "Failed to add subject", "error");
+            // Add subjects one by one
+            let successCount = 0;
+            let failCount = 0;
+
+            for (const subjectId of selectedGlobalSubjectIds) {
+                const subject = globalSubjects.find(s => s._id === subjectId);
+                if (!subject) continue;
+
+                const response = await apiFetch(`${apiConfig.baseUrl}/classes/${id}/subjects`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        name: subject.name,
+                        globalSubjectId: subject._id
+                    }),
+                });
+
+                if (response.ok) {
+                    successCount++;
+                } else {
+                    failCount++;
+                }
             }
+
+            if (successCount > 0) {
+                showToast(`${successCount} subject(s) added successfully`, "success");
+            }
+            if (failCount > 0) {
+                showToast(`${failCount} subject(s) failed to add`, "error");
+            }
+
+            setShowAddSubjectModal(false);
+            setSelectedGlobalSubjectIds([]);
+            setSearchQuery("");
+            loadData(); // Reload subjects
         } catch (error) {
             console.error(error);
-            showToast("Error adding subject", "error");
+            showToast("Error adding subjects", "error");
         } finally {
             setSaving(false);
         }
@@ -474,17 +501,23 @@ export default function ClassDetailsScreen() {
                                             alignItems: "center"
                                         })}
                                     >
-                                        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                                        <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}>
                                             <View style={{ backgroundColor: colors.primary + "20", padding: 10, borderRadius: 10 }}>
                                                 <MaterialIcons name="book" size={24} color={colors.primary} />
                                             </View>
-                                            <View>
+                                            <View style={{ flex: 1 }}>
                                                 <Text style={{ fontSize: 16, fontWeight: "700", color: colors.textPrimary }}>
                                                     {subject.name}
                                                 </Text>
-                                                <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
-                                                    Tap to view content
-                                                </Text>
+                                                {subject.teachers && subject.teachers.length > 0 ? (
+                                                    <Text style={{ fontSize: 13, color: colors.textSecondary, marginTop: 2, fontFamily: "DMSans-Medium" }}>
+                                                        {subject.teachers.map(t => t.name).join(", ")}
+                                                    </Text>
+                                                ) : (
+                                                    <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2, fontStyle: "italic" }}>
+                                                        No teachers assigned
+                                                    </Text>
+                                                )}
                                             </View>
                                         </View>
 
@@ -582,6 +615,11 @@ export default function ClassDetailsScreen() {
                         onPress={() => {
                             if (activeTab === "subjects") {
                                 loadGlobalSubjects();
+                                // Pre-select already added subjects
+                                const alreadyAddedIds = subjects
+                                    .filter(s => s.globalSubject)
+                                    .map(s => typeof s.globalSubject === 'object' ? s.globalSubject._id : s.globalSubject);
+                                setSelectedGlobalSubjectIds(alreadyAddedIds);
                                 setShowAddSubjectModal(true);
                                 setSearchQuery("");
                             } else {
@@ -612,9 +650,9 @@ export default function ClassDetailsScreen() {
             {/* Add Subject Modal */}
             <Modal visible={showAddSubjectModal} animationType="slide" transparent>
                 <View style={{ flex: 1, justifyContent: "center", backgroundColor: "rgba(0,0,0,0.5)", padding: 20 }}>
-                    <View style={{ backgroundColor: colors.cardBackground, borderRadius: 16, padding: 24 }}>
+                    <View style={{ backgroundColor: colors.cardBackground, borderRadius: 16, padding: 24, maxHeight: "80%" }}>
                         <Text style={{ fontSize: 20, fontWeight: "700", color: colors.textPrimary, marginBottom: 16 }}>
-                            Add New Subject
+                            Add Subjects to Class
                         </Text>
 
                         <TextInput
@@ -631,61 +669,99 @@ export default function ClassDetailsScreen() {
                             onChangeText={setSearchQuery}
                         />
 
-                        <View style={{ height: 300 }}>
-                            <FlatList
-                                data={globalSubjects.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()))}
-                                keyExtractor={(item) => item._id}
-                                renderItem={({ item }) => (
-                                    <Pressable
-                                        onPress={() => setSelectedGlobalSubject(item)}
-                                        style={{
-                                            padding: 12,
-                                            borderRadius: 8,
-                                            backgroundColor: selectedGlobalSubject?._id === item._id ? colors.primary + "20" : colors.background,
-                                            marginBottom: 8,
-                                            borderWidth: 1,
-                                            borderColor: selectedGlobalSubject?._id === item._id ? colors.primary : "transparent",
-                                            flexDirection: "row",
-                                            justifyContent: "space-between",
-                                            alignItems: "center"
-                                        }}
-                                    >
-                                        <Text style={{
-                                            fontSize: 16,
-                                            color: selectedGlobalSubject?._id === item._id ? colors.primary : colors.textPrimary,
-                                            fontWeight: selectedGlobalSubject?._id === item._id ? "600" : "400"
-                                        }}>
-                                            {item.name}
-                                        </Text>
-                                        {selectedGlobalSubject?._id === item._id && (
-                                            <MaterialIcons name="check" size={20} color={colors.primary} />
-                                        )}
-                                    </Pressable>
-                                )}
-                                ListEmptyComponent={
-                                    <Text style={{ textAlign: "center", color: colors.textSecondary, marginTop: 20 }}>
-                                        No subjects found. Please ask admin to add it to the master list.
+                        <ScrollView style={{ maxHeight: 400 }}>
+                            {globalSubjects.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 ? (
+                                <View style={{ alignItems: "center", paddingVertical: 40 }}>
+                                    <MaterialIcons name="library-books" size={48} color={colors.textSecondary} />
+                                    <Text style={{ color: colors.textSecondary, marginTop: 16 }}>
+                                        {searchQuery ? "No subjects found" : "No subjects available. Please ask admin to add subjects to the master list."}
                                     </Text>
-                                }
-                            />
-                        </View>
+                                </View>
+                            ) : (
+                                globalSubjects.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase())).map((item) => {
+                                    const isSelected = selectedGlobalSubjectIds.includes(item._id);
+                                    // Check if this subject is already added to the class
+                                    const isAlreadyAdded = subjects.some(s =>
+                                        s.globalSubject && (
+                                            typeof s.globalSubject === 'object'
+                                                ? s.globalSubject._id === item._id
+                                                : s.globalSubject === item._id
+                                        )
+                                    );
+                                    return (
+                                        <Pressable
+                                            key={item._id}
+                                            onPress={() => !isAlreadyAdded && toggleSubjectSelection(item._id)}
+                                            disabled={isAlreadyAdded}
+                                            style={({ pressed }) => ({
+                                                backgroundColor: isAlreadyAdded
+                                                    ? colors.disabled + "30"
+                                                    : isSelected ? colors.primary + "10" : (pressed ? colors.background : colors.cardBackground),
+                                                borderRadius: 12,
+                                                padding: 12,
+                                                marginBottom: 8,
+                                                borderWidth: 1,
+                                                borderColor: isAlreadyAdded
+                                                    ? colors.textSecondary
+                                                    : isSelected ? colors.primary : colors.border,
+                                                flexDirection: "row",
+                                                alignItems: "center",
+                                                gap: 12,
+                                                opacity: isAlreadyAdded ? 0.6 : 1
+                                            })}
+                                        >
+                                            <View style={{
+                                                width: 24,
+                                                height: 24,
+                                                borderRadius: 12,
+                                                borderWidth: 2,
+                                                borderColor: isAlreadyAdded || isSelected ? colors.primary : colors.textSecondary,
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                backgroundColor: isAlreadyAdded || isSelected ? colors.primary : "transparent"
+                                            }}>
+                                                {(isSelected || isAlreadyAdded) && <MaterialIcons name="check" size={16} color="#fff" />}
+                                            </View>
+                                            <View style={{ flex: 1 }}>
+                                                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                                                    <Text style={{ fontSize: 16, fontWeight: "600", color: colors.textPrimary }}>
+                                                        {item.name}
+                                                    </Text>
+                                                    {isAlreadyAdded && (
+                                                        <View style={{ backgroundColor: colors.success + "20", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 }}>
+                                                            <Text style={{ fontSize: 11, color: colors.success, fontWeight: "600" }}>ADDED</Text>
+                                                        </View>
+                                                    )}
+                                                </View>
+                                                {item.code && (
+                                                    <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: 2 }}>
+                                                        Code: {item.code}
+                                                    </Text>
+                                                )}
+                                            </View>
+                                        </Pressable>
+                                    );
+                                })
+                            )}
+                        </ScrollView>
 
-                        <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: 12 }}>
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 16, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 16 }}>
                             <Pressable
                                 onPress={() => {
                                     setShowAddSubjectModal(false);
-                                    setSelectedGlobalSubject(null);
+                                    setSelectedGlobalSubjectIds([]);
                                     setSearchQuery("");
                                 }}
                                 style={{ padding: 12 }}
                             >
                                 <Text style={{ color: colors.textSecondary, fontWeight: "600" }}>Cancel</Text>
                             </Pressable>
+
                             <Pressable
                                 onPress={handleAddSubject}
-                                disabled={saving}
+                                disabled={selectedGlobalSubjectIds.length === 0 || saving}
                                 style={{
-                                    backgroundColor: saving ? colors.disabled : colors.primary,
+                                    backgroundColor: (selectedGlobalSubjectIds.length > 0 && !saving) ? colors.primary : colors.disabled,
                                     paddingHorizontal: 20,
                                     paddingVertical: 12,
                                     borderRadius: 8,
@@ -696,7 +772,7 @@ export default function ClassDetailsScreen() {
                             >
                                 {saving && <ActivityIndicator size="small" color="#fff" />}
                                 <Text style={{ color: "#fff", fontWeight: "600" }}>
-                                    {saving ? "Adding..." : "Add Subject"}
+                                    {saving ? "Adding..." : `Add ${selectedGlobalSubjectIds.length > 0 ? `${selectedGlobalSubjectIds.length} ` : ""}Selected`}
                                 </Text>
                             </Pressable>
                         </View>

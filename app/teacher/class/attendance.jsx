@@ -145,7 +145,7 @@ export default function MarkAttendanceScreen() {
                 },
                 body: JSON.stringify({
                     classId,
-                    subjectId: subjectId || null,
+                    subjectId: null, // Force class-based attendance
                     date: dateStr,
                     attendanceRecords
                 })

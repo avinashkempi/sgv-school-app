@@ -6,10 +6,12 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import apiFetch from '../../utils/apiFetch';
 import apiConfig from '../../config/apiConfig';
 import { useToast } from '../../components/ToastProvider';
+import { useTheme } from '../../theme';
 
 export default function AdminAttendance() {
     const router = useRouter();
     const { showToast } = useToast();
+    const { colors } = useTheme();
     const [activeTab, setActiveTab] = useState('student'); // 'student', 'staff', 'my_attendance'
 
     // Common State
@@ -38,12 +40,22 @@ export default function AdminAttendance() {
                 // Fetch Classes
                 const res = await apiFetch(`${apiConfig.baseUrl}/classes`);
                 const data = await res.json();
-                if (data.success) {
-                    setClasses(data.data);
-                    // If class selected, fetch attendance for it
-                    if (selectedClass) {
-                        fetchStudentAttendance(selectedClass._id);
-                    }
+
+                // Handle different response formats
+                let classData = [];
+                if (Array.isArray(data)) {
+                    classData = data;
+                } else if (data.success && data.data) {
+                    classData = data.data;
+                } else {
+                    classData = data;
+                }
+
+                setClasses(classData);
+
+                // If class selected, fetch attendance for it
+                if (selectedClass) {
+                    fetchStudentAttendance(selectedClass._id);
                 }
             } else if (activeTab === 'staff') {
                 // Fetch Staff List & Attendance
@@ -62,6 +74,7 @@ export default function AdminAttendance() {
             }
         } catch (error) {
             showToast('Error fetching data', 'error');
+            console.error(error);
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -97,7 +110,7 @@ export default function AdminAttendance() {
         let nextStatus = 'present';
         if (currentStatus === 'present') nextStatus = 'absent';
         else if (currentStatus === 'absent') nextStatus = 'late';
-        else if (currentStatus === 'late') nextStatus = 'present'; // Loop back to present for ease, or null to clear? Let's stick to valid statuses once clicked.
+        else if (currentStatus === 'late') nextStatus = 'present';
 
         // If it was null, start with present
         if (!currentStatus) nextStatus = 'present';
@@ -196,31 +209,31 @@ export default function AdminAttendance() {
 
             <View style={styles.tabContainer}>
                 <TouchableOpacity
-                    style={[styles.tab, activeTab === 'student' && styles.activeTab]}
+                    style={[styles.tab, activeTab === 'student' && { borderBottomColor: colors.primary }]}
                     onPress={() => setActiveTab('student')}
                 >
-                    <Text style={[styles.tabText, activeTab === 'student' && styles.activeTabText]}>Student</Text>
+                    <Text style={[styles.tabText, activeTab === 'student' && { color: colors.primary, fontWeight: 'bold' }]}>Student</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.tab, activeTab === 'staff' && styles.activeTab]}
+                    style={[styles.tab, activeTab === 'staff' && { borderBottomColor: colors.primary }]}
                     onPress={() => setActiveTab('staff')}
                 >
-                    <Text style={[styles.tabText, activeTab === 'staff' && styles.activeTabText]}>Staff</Text>
+                    <Text style={[styles.tabText, activeTab === 'staff' && { color: colors.primary, fontWeight: 'bold' }]}>Staff</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.tab, activeTab === 'my_attendance' && styles.activeTab]}
+                    style={[styles.tab, activeTab === 'my_attendance' && { borderBottomColor: colors.primary }]}
                     onPress={() => setActiveTab('my_attendance')}
                 >
-                    <Text style={[styles.tabText, activeTab === 'my_attendance' && styles.activeTabText]}>My Log</Text>
+                    <Text style={[styles.tabText, activeTab === 'my_attendance' && { color: colors.primary, fontWeight: 'bold' }]}>My Log</Text>
                 </TouchableOpacity>
             </View>
 
             {/* Date Picker for Student/Staff tabs */}
             {activeTab !== 'my_attendance' && (
                 <View style={styles.dateBar}>
-                    <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.dateSelector}>
-                        <Ionicons name="calendar" size={20} color="#6200ee" />
-                        <Text style={styles.dateText}>{date.toDateString()}</Text>
+                    <TouchableOpacity onPress={() => setShowDatePicker(true)} style={[styles.dateSelector, { backgroundColor: colors.primary + '15' }]}>
+                        <Ionicons name="calendar" size={20} color={colors.primary} />
+                        <Text style={[styles.dateText, { color: colors.primary }]}>{date.toDateString()}</Text>
                     </TouchableOpacity>
                     {showDatePicker && (
                         <DateTimePicker
@@ -237,7 +250,7 @@ export default function AdminAttendance() {
             )}
 
             {loading ? (
-                <ActivityIndicator size="large" color="#6200ee" style={styles.loader} />
+                <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
             ) : (
                 <View style={{ flex: 1 }}>
                     {activeTab === 'student' && (
@@ -247,7 +260,7 @@ export default function AdminAttendance() {
                                 {classes.map((cls) => (
                                     <TouchableOpacity
                                         key={cls._id}
-                                        style={[styles.classChip, selectedClass?._id === cls._id && styles.activeClassChip]}
+                                        style={[styles.classChip, selectedClass?._id === cls._id && { backgroundColor: colors.primary, borderColor: colors.primary }]}
                                         onPress={() => setSelectedClass(cls)}
                                     >
                                         <Text style={[styles.classChipText, selectedClass?._id === cls._id && styles.activeClassChipText]}>
@@ -286,7 +299,7 @@ export default function AdminAttendance() {
                             />
                             <View style={styles.footer}>
                                 <TouchableOpacity
-                                    style={styles.saveButton}
+                                    style={[styles.saveButton, { backgroundColor: colors.primary }]}
                                     onPress={saveStaffAttendance}
                                     disabled={submittingStaff}
                                 >
@@ -340,22 +353,20 @@ const styles = StyleSheet.create({
     backButton: { padding: 4 },
     tabContainer: { flexDirection: 'row', backgroundColor: '#fff', paddingHorizontal: 16, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: '#eee' },
     tab: { flex: 1, paddingVertical: 10, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
-    activeTab: { borderBottomColor: '#6200ee' },
     tabText: { fontSize: 16, color: '#666', fontWeight: '500' },
-    activeTabText: { color: '#6200ee', fontWeight: 'bold' },
     dateBar: { flexDirection: 'row', justifyContent: 'center', padding: 12, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eee' },
-    dateSelector: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f0e6ff', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
-    dateText: { marginLeft: 8, color: '#6200ee', fontWeight: '600' },
+    dateSelector: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
+    dateText: { marginLeft: 8, fontWeight: '600' },
     loader: { marginTop: 20 },
-    listContent: { padding: 16 },
+    listContent: { padding: 16, paddingBottom: 100 },
     staffCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', padding: 16, borderRadius: 12, marginBottom: 12, elevation: 1 },
     staffInfo: { flex: 1 },
     staffName: { fontSize: 16, fontWeight: 'bold', color: '#333' },
     staffRole: { fontSize: 12, color: '#666' },
     statusIndicator: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, minWidth: 80, alignItems: 'center' },
     statusText: { color: '#fff', fontWeight: 'bold', fontSize: 12 },
-    footer: { padding: 16, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#eee' },
-    saveButton: { backgroundColor: '#6200ee', padding: 16, borderRadius: 12, alignItems: 'center' },
+    footer: { padding: 16, paddingBottom: 80, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#eee' },
+    saveButton: { padding: 16, borderRadius: 12, alignItems: 'center' },
     saveButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
     summaryCard: { flexDirection: 'row', justifyContent: 'space-around', backgroundColor: '#fff', margin: 16, padding: 16, borderRadius: 12, elevation: 2 },
     summaryItem: { alignItems: 'center' },
@@ -371,7 +382,6 @@ const styles = StyleSheet.create({
     sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 12 },
     classScroll: { maxHeight: 50, marginBottom: 16 },
     classChip: { paddingHorizontal: 16, paddingVertical: 8, backgroundColor: '#fff', borderRadius: 20, marginRight: 8, borderWidth: 1, borderColor: '#ddd' },
-    activeClassChip: { backgroundColor: '#6200ee', borderColor: '#6200ee' },
     classChipText: { color: '#666' },
     activeClassChipText: { color: '#fff', fontWeight: 'bold' },
     studentRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#eee' },
