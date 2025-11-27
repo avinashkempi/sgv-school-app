@@ -46,7 +46,8 @@ export default function AdminTimetableScreen() {
         endTime: new Date(),
         subject: "",
         teacher: "",
-        roomNumber: ""
+        subject: "",
+        teacher: ""
     });
     const [showTimePicker, setShowTimePicker] = useState({ show: false, mode: 'start' }); // mode: 'start' | 'end'
 
@@ -186,7 +187,8 @@ export default function AdminTimetableScreen() {
                 endTime: new Date(),
                 subject: "",
                 teacher: "",
-                roomNumber: ""
+                subject: "",
+                teacher: ""
             });
         }
         setModalVisible(true);
@@ -208,7 +210,8 @@ export default function AdminTimetableScreen() {
             teacher: tempPeriod.teacher,
             startTime: formatTime(tempPeriod.startTime),
             endTime: formatTime(tempPeriod.endTime),
-            roomNumber: tempPeriod.roomNumber
+            startTime: formatTime(tempPeriod.startTime),
+            endTime: formatTime(tempPeriod.endTime)
         };
 
         const updatedDaySchedule = [...(schedule[selectedDay] || [])];
@@ -524,21 +527,7 @@ export default function AdminTimetableScreen() {
                                 </>
                             )}
 
-                            {/* Room Number */}
-                            <Text style={{ color: colors.textSecondary, marginBottom: 8 }}>Room Number</Text>
-                            <TextInput
-                                value={tempPeriod.roomNumber}
-                                onChangeText={(t) => setTempPeriod({ ...tempPeriod, roomNumber: t })}
-                                placeholder="e.g. 101"
-                                placeholderTextColor={colors.textSecondary}
-                                style={{
-                                    backgroundColor: colors.background,
-                                    padding: 12,
-                                    borderRadius: 10,
-                                    color: colors.textPrimary,
-                                    marginBottom: 24
-                                }}
-                            />
+
 
                             <Pressable
                                 onPress={savePeriod}

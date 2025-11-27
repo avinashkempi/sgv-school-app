@@ -12,7 +12,6 @@ import ErrorBoundary from "../components/ErrorBoundary";
 import * as Notifications from 'expo-notifications';
 import { getFCMToken, registerFCMTokenWithBackend } from '../utils/fcm';
 import { NavigationProvider } from "../context/NavigationContext";
-import SideDrawer from "../components/SideDrawer";
 import apiConfig from "../config/apiConfig";
 import apiFetch from "../utils/apiFetch";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -105,7 +104,6 @@ function Inner() {
               }}
             />
             <BottomNavigation />
-            <SideDrawer />
           </NavigationProvider>
         </NetworkStatusProvider>
       </ToastProvider>

@@ -6,13 +6,11 @@ import * as Haptics from "expo-haptics";
 import { useTheme } from "../theme";
 import { ROUTES } from "../constants/routes";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigationContext } from "../context/NavigationContext";
 
 function BottomNavigation() {
   const router = useRouter();
   const pathname = usePathname();
   const { colors, mode } = useTheme();
-  const { openDrawer } = useNavigationContext();
   const [activeTab, setActiveTab] = useState(ROUTES.HOME);
   const [user, setUser] = useState(null);
 
@@ -68,21 +66,17 @@ function BottomNavigation() {
       icon: "class",
     }] : []),
     // Requests Tab - for logged-in students and teachers
-    ...(user && (user.role === 'student' || user.role === 'class teacher' || user.role === 'teacher' || user.role === 'staff') ? [{
+    ...(user && (user.role === 'student' || user.role === 'class teacher' || user.role === 'teacher' || user.role === 'staff' || user.role === 'admin' || user.role === 'super admin') ? [{
       route: "/requests",
-      label: "Requests",
+      label: "Attendance",
       icon: "assignment",
     }] : []),
+
+    // Menu Tab
     {
-      route: ROUTES.PROFILE,
-      label: "Profile",
-      icon: "person",
-    },
-    // More Tab (Triggers Drawer)
-    {
-      route: "MORE",
-      label: "More",
-      icon: "menu",
+      route: "/menu",
+      label: "Menu",
+      icon: "grid-view",
     },
   ], [user]);
 
@@ -91,10 +85,7 @@ function BottomNavigation() {
     // Haptic feedback for better UX
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
 
-    if (route === "MORE") {
-      openDrawer();
-      return;
-    }
+
 
     if (route === activeTab) return;
 
@@ -105,7 +96,7 @@ function BottomNavigation() {
       // Use replace instead of push to prevent stack buildup and memory leaks
       router.replace(route);
     });
-  }, [activeTab, router, openDrawer]);
+  }, [activeTab, router]);
 
   // Glassmorphism background color
   const glassBackground = mode === 'dark'
@@ -282,8 +273,8 @@ const styles = StyleSheet.create({
   activePill: {
     position: "absolute",
     top: 0,
-    left: -16,
-    right: -16,
+    left: -8,
+    right: -8,
     bottom: 0,
     borderRadius: 16,
     zIndex: 0,

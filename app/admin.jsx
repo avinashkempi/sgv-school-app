@@ -514,24 +514,7 @@ export default function AdminScreen() {
               Class Operations
             </Text>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
-              <Pressable
-                onPress={() => router.push("/admin/attendance")}
-                style={({ pressed }) => ({
-                  flex: 1,
-                  minWidth: "30%",
-                  backgroundColor: colors.cardBackground,
-                  borderRadius: 16,
-                  padding: 16,
-                  alignItems: "center",
-                  elevation: 2,
-                  opacity: pressed ? 0.7 : 1
-                })}
-              >
-                <View style={{ backgroundColor: "#2196F3" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                  <MaterialIcons name="analytics" size={24} color="#2196F3" />
-                </View>
-                <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textPrimary, textAlign: "center" }}>Attendance</Text>
-              </Pressable>
+
 
               <Pressable
                 onPress={() => router.push("/admin/timetable")}
@@ -602,24 +585,7 @@ export default function AdminScreen() {
               Communication & Requests
             </Text>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
-              <Pressable
-                onPress={() => router.push("/admin/leaves")}
-                style={({ pressed }) => ({
-                  flex: 1,
-                  minWidth: "30%",
-                  backgroundColor: colors.cardBackground,
-                  padding: 16,
-                  borderRadius: 16,
-                  alignItems: "center",
-                  opacity: pressed ? 0.9 : 1,
-                  elevation: 2,
-                })}
-              >
-                <View style={{ backgroundColor: "#FF9800" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                  <MaterialIcons name="event-note" size={24} color="#FF9800" />
-                </View>
-                <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textPrimary, textAlign: "center" }}>Leaves</Text>
-              </Pressable>
+
 
               <Pressable
                 onPress={() => router.push("/admin/complaints")}
@@ -688,9 +654,32 @@ export default function AdminScreen() {
 
           {/* User Management Section */}
           <View style={{ marginTop: 24 }}>
-            <Text style={{ fontSize: 13, fontWeight: "700", color: colors.textSecondary, marginBottom: 12, textTransform: "uppercase", letterSpacing: 1 }}>
-              User Management
-            </Text>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <Text style={{ fontSize: 13, fontWeight: "700", color: colors.textSecondary, textTransform: "uppercase", letterSpacing: 1 }}>
+                User Management
+              </Text>
+              <Pressable
+                onPress={() => {
+                  setModalMode("add");
+                  setUserForm({ name: "", phone: "", email: "", password: "", role: "student" });
+                  setShowUserModal(true);
+                }}
+                style={({ pressed }) => ({
+                  flexDirection: "row",
+                  alignItems: "center",
+                  backgroundColor: colors.primary + "15",
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  borderRadius: 8,
+                  opacity: pressed ? 0.7 : 1
+                })}
+              >
+                <MaterialIcons name="add" size={18} color={colors.primary} style={{ marginRight: 4 }} />
+                <Text style={{ fontSize: 13, fontWeight: "600", color: colors.primary }}>
+                  Add User
+                </Text>
+              </Pressable>
+            </View>
 
             {/* Search Bar */}
             <View style={{ marginBottom: 16 }}>
@@ -963,32 +952,7 @@ export default function AdminScreen() {
       </ScrollView>
 
       {/* Floating Action Button */}
-      <Pressable
-        onPress={() => {
-          setModalMode("add");
-          setUserForm({ name: "", phone: "", email: "", password: "", role: "student" });
-          setShowUserModal(true);
-        }}
-        style={({ pressed }) => ({
-          position: "absolute",
-          bottom: 110,
-          right: 24,
-          backgroundColor: colors.primary,
-          width: 56,
-          height: 56,
-          borderRadius: 28,
-          justifyContent: "center",
-          alignItems: "center",
-          shadowColor: colors.primary,
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.3,
-          shadowRadius: 8,
-          elevation: 6,
-          transform: [{ scale: pressed ? 0.95 : 1 }],
-        })}
-      >
-        <MaterialIcons name="add" size={28} color="#fff" />
-      </Pressable>
+
 
       {/* User Modal */}
       <Modal

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import {
     View,
     Text,
@@ -9,91 +9,24 @@ import {
     Dimensions,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
-import { useTheme } from "../../theme";
-import apiConfig from "../../config/apiConfig";
-import apiFetch from "../../utils/apiFetch";
-import { useToast } from "../../components/ToastProvider";
-import Header from "../../components/Header";
-import ModernCalendar from "../../components/ModernCalendar";
+import { useTheme } from "../theme";
+import Header from "./Header";
+import ModernCalendar from "./ModernCalendar";
 
 const { width } = Dimensions.get('window');
 const cellSize = (width - 80) / 7; // 7 days in a week, accounting for padding
 
-export default function StudentAttendanceScreen() {
-    const router = useRouter();
+export default function AttendanceView({
+    attendanceHistory,
+    summary,
+    loading,
+    onRefresh,
+    refreshing,
+    title = "My Attendance",
+    subtitle = "Track your attendance record"
+}) {
     const { styles, colors } = useTheme();
-    const { showToast } = useToast();
-
-    const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
-    const [user, setUser] = useState(null);
-    const [summary, setSummary] = useState(null);
-    const [attendanceHistory, setAttendanceHistory] = useState([]);
     const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().split('T')[0]);
-
-    useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = async () => {
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const storedUser = await AsyncStorage.getItem("@auth_user");
-
-            if (!storedUser) {
-                router.replace("/login");
-                return;
-            }
-
-            const parsedUser = JSON.parse(storedUser);
-            setUser(parsedUser);
-
-            const userId = parsedUser.id || parsedUser._id;
-
-            if (!userId) {
-                console.error("User ID missing in stored user object");
-                await AsyncStorage.removeItem("@auth_token");
-                await AsyncStorage.removeItem("@auth_user");
-                router.replace("/login");
-                return;
-            }
-
-            // Load attendance summary
-            const summaryResponse = await apiFetch(
-                `${apiConfig.baseUrl}/attendance/student/${userId}/summary`,
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            if (summaryResponse.ok) {
-                const data = await summaryResponse.json();
-                setSummary(data);
-            }
-
-            // Load attendance history
-            const historyResponse = await apiFetch(
-                `${apiConfig.baseUrl}/attendance/student/${userId}`,
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            if (historyResponse.ok) {
-                const data = await historyResponse.json();
-                setAttendanceHistory(data.attendance || []);
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading attendance", "error");
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    };
-
-    const onRefresh = () => {
-        setRefreshing(true);
-        loadData();
-    };
 
     const getStatusColor = (status) => {
         switch (status) {
@@ -144,8 +77,8 @@ export default function StudentAttendanceScreen() {
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
                     <Header
-                        title="My Attendance"
-                        subtitle="Track your attendance record"
+                        title={title}
+                        subtitle={subtitle}
                     />
 
                     {/* Overall Percentage - Big Display */}
@@ -161,12 +94,12 @@ export default function StudentAttendanceScreen() {
                             Overall Attendance
                         </Text>
                         <Text style={{ fontSize: 64, fontFamily: "DMSans-Bold", color: "#fff", marginTop: 8 }}>
-                            {summary?.overall?.percentage || 0}%
+                            {summary?.percentage || 0}%
                         </Text>
                         <View style={{ flexDirection: "row", gap: 24, marginTop: 16 }}>
                             <View style={{ alignItems: "center" }}>
                                 <Text style={{ fontSize: 28, fontFamily: "DMSans-Bold", color: "#fff" }}>
-                                    {summary?.overall?.present || 0}
+                                    {summary?.present || 0}
                                 </Text>
                                 <Text style={{ fontSize: 12, color: "#fff", opacity: 0.8, fontFamily: "DMSans-Regular" }}>
                                     Present
@@ -174,7 +107,7 @@ export default function StudentAttendanceScreen() {
                             </View>
                             <View style={{ alignItems: "center" }}>
                                 <Text style={{ fontSize: 28, fontFamily: "DMSans-Bold", color: "#fff" }}>
-                                    {summary?.overall?.total || 0}
+                                    {summary?.total || 0}
                                 </Text>
                                 <Text style={{ fontSize: 12, color: "#fff", opacity: 0.8, fontFamily: "DMSans-Regular" }}>
                                     Total Days
@@ -182,54 +115,6 @@ export default function StudentAttendanceScreen() {
                             </View>
                         </View>
                     </View>
-
-                    {/* Subject-wise Breakdown */}
-                    {summary?.subjectWise && summary.subjectWise.length > 0 && (
-                        <View style={{ marginTop: 24 }}>
-                            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 12 }}>
-                                Subject-wise Attendance
-                            </Text>
-                            {summary.subjectWise.map((subject) => (
-                                <View
-                                    key={subject.subjectId}
-                                    style={{
-                                        backgroundColor: colors.cardBackground,
-                                        borderRadius: 12,
-                                        padding: 16,
-                                        marginBottom: 10,
-                                        elevation: 1
-                                    }}
-                                >
-                                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                                        <View style={{ flex: 1 }}>
-                                            <Text style={{ fontSize: 16, fontFamily: "DMSans-SemiBold", color: colors.textPrimary }}>
-                                                {subject.name}
-                                            </Text>
-                                            <Text style={{ fontSize: 13, color: colors.textSecondary, marginTop: 4, fontFamily: "DMSans-Regular" }}>
-                                                {subject.present} / {subject.total} classes
-                                            </Text>
-                                        </View>
-                                        <View style={{ alignItems: "flex-end" }}>
-                                            <Text style={{
-                                                fontSize: 24,
-                                                fontFamily: "DMSans-Bold",
-                                                color: parseFloat(subject.percentage) >= 75 ? colors.success : colors.error
-                                            }}>
-                                                {subject.percentage}%
-                                            </Text>
-                                            {parseFloat(subject.percentage) < 75 && (
-                                                <View style={{ backgroundColor: colors.error + "20", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, marginTop: 4 }}>
-                                                    <Text style={{ fontSize: 10, color: colors.error, fontFamily: "DMSans-Bold" }}>
-                                                        LOW
-                                                    </Text>
-                                                </View>
-                                            )}
-                                        </View>
-                                    </View>
-                                </View>
-                            ))}
-                        </View>
-                    )}
 
                     {/* Calendar View */}
                     <View style={{

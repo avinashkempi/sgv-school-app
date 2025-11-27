@@ -37,6 +37,8 @@ export default function AdminFeesScreen() {
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [feeDetails, setFeeDetails] = useState(null);
     const [paymentAmount, setPaymentAmount] = useState("");
+    const [bookNumber, setBookNumber] = useState("");
+    const [manualReceiptNumber, setManualReceiptNumber] = useState("");
     const [paymentMethod, setPaymentMethod] = useState("cash");
     const [remarks, setRemarks] = useState("");
     const [processingPayment, setProcessingPayment] = useState(false);
@@ -147,6 +149,8 @@ export default function AdminFeesScreen() {
                 body: JSON.stringify({
                     studentId: selectedStudent._id,
                     amount: Number(paymentAmount),
+                    bookNumber,
+                    manualReceiptNumber,
                     paymentMethod,
                     remarks
                 })
@@ -156,7 +160,10 @@ export default function AdminFeesScreen() {
                 showToast("Payment recorded successfully", "success");
                 setSelectedStudent(null);
                 setFeeDetails(null);
+                setFeeDetails(null);
                 setPaymentAmount("");
+                setBookNumber("");
+                setManualReceiptNumber("");
                 setRemarks("");
                 loadAnalytics(); // Refresh stats
             } else {
@@ -389,6 +396,39 @@ export default function AdminFeesScreen() {
                                 </View>
 
                                 <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 16 }}>Record Payment</Text>
+
+                                <View style={{ flexDirection: "row", gap: 10, marginBottom: 16 }}>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={{ color: colors.textSecondary, marginBottom: 8 }}>Book No.</Text>
+                                        <TextInput
+                                            value={bookNumber}
+                                            onChangeText={setBookNumber}
+                                            placeholder="Optional"
+                                            placeholderTextColor={colors.textSecondary}
+                                            style={{
+                                                backgroundColor: colors.cardBackground,
+                                                padding: 12,
+                                                borderRadius: 10,
+                                                color: colors.textPrimary
+                                            }}
+                                        />
+                                    </View>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={{ color: colors.textSecondary, marginBottom: 8 }}>Receipt No.</Text>
+                                        <TextInput
+                                            value={manualReceiptNumber}
+                                            onChangeText={setManualReceiptNumber}
+                                            placeholder="Optional"
+                                            placeholderTextColor={colors.textSecondary}
+                                            style={{
+                                                backgroundColor: colors.cardBackground,
+                                                padding: 12,
+                                                borderRadius: 10,
+                                                color: colors.textPrimary
+                                            }}
+                                        />
+                                    </View>
+                                </View>
 
                                 <Text style={{ color: colors.textSecondary, marginBottom: 8 }}>Amount</Text>
                                 <TextInput

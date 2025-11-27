@@ -180,28 +180,7 @@ export default function StudentClassScreen() {
                             </Text>
 
                             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 24 }}>
-                                <Pressable
-                                    onPress={() => router.push("/student/attendance")}
-                                    style={({ pressed }) => ({
-                                        flex: 1,
-                                        minWidth: "45%",
-                                        backgroundColor: colors.cardBackground,
-                                        borderRadius: 16,
-                                        padding: 16,
-                                        alignItems: "center",
-                                        elevation: 2,
-                                        opacity: pressed ? 0.9 : 1,
-                                        shadowColor: "#000",
-                                        shadowOffset: { width: 0, height: 1 },
-                                        shadowOpacity: 0.05,
-                                        shadowRadius: 4,
-                                    })}
-                                >
-                                    <View style={{ backgroundColor: "#2196F3" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                                        <MaterialIcons name="event-available" size={24} color="#2196F3" />
-                                    </View>
-                                    <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Attendance</Text>
-                                </Pressable>
+
 
                                 <Pressable
                                     onPress={() => router.push("/student/report-card")}

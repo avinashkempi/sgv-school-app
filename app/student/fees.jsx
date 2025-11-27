@@ -158,6 +158,13 @@ export default function StudentFeesScreen() {
                                         <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
                                             Receipt: {payment.receiptNumber}
                                         </Text>
+                                        {(payment.bookNumber || payment.manualReceiptNumber) && (
+                                            <Text style={{ fontSize: 12, color: '#666', marginTop: 2 }}>
+                                                {payment.bookNumber ? `Book: ${payment.bookNumber}` : ''}
+                                                {payment.bookNumber && payment.manualReceiptNumber ? ' | ' : ''}
+                                                {payment.manualReceiptNumber ? `Receipt: ${payment.manualReceiptNumber}` : ''}
+                                            </Text>
+                                        )}
                                     </View>
                                     <View style={{ alignItems: "flex-end" }}>
                                         <View style={{ backgroundColor: colors.success + "20", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 }}>

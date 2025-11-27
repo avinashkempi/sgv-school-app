@@ -2,13 +2,14 @@ import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { ScrollView, View, Text, Pressable, Alert, RefreshControl, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { Calendar } from "react-native-calendars";
+
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { useTheme } from "../theme";
 import { useToast } from "../components/ToastProvider";
 import Header from "../components/Header";
 import EventFormModal from "../components/EventFormModal";
+import ModernCalendar from "../components/ModernCalendar";
 import useEvents from "../hooks/useEvents";
 import apiConfig from "../config/apiConfig";
 import apiFetch from "../utils/apiFetch";
@@ -403,7 +404,8 @@ export default function EventsScreen() {
 
         <View style={styles.cardMinimal}>
 
-          <Calendar
+          <ModernCalendar
+            current={selectedDate}
             onDayPress={handleDateSelect}
             onMonthChange={(month) => {
               const date = new Date(month.dateString);
@@ -432,53 +434,13 @@ export default function EventsScreen() {
               paddingBottom: 8,
             }}
             theme={{
-              backgroundColor: colors.background,
-              calendarBackground: colors.cardBackground,
-              textSectionTitleColor: colors.textSecondary,
-              selectedDayBackgroundColor: 'transparent',
-              selectedDayTextColor: colors.white,
-              todayTextColor: colors.primary,
-              dayTextColor: colors.textPrimary,
-              textDisabledColor: colors.textSecondary,
-              dotColor: colors.primary,
-              selectedDotColor: colors.white,
-              arrowColor: colors.primary,
-              monthTextColor: colors.textPrimary,
-              // Compact styling
-              'stylesheet.calendar.header': {
-                header: {
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  paddingLeft: 10,
-                  paddingRight: 10,
-                  marginTop: 6,
-                  marginBottom: 6,
-                  alignItems: 'center'
-                },
-                monthText: {
-                  fontSize: 16,
-                  fontFamily: 'DMSans-Bold',
-                  color: colors.textPrimary,
-                  margin: 0
-                },
-                arrow: {
-                  padding: 8
-                }
-              },
+              calendarBackground: 'transparent',
               'stylesheet.day.basic': {
                 base: {
-                  width: 36,
-                  height: 32,
+                  width: 40,
+                  height: 40,
                   alignItems: 'center',
                   justifyContent: 'center'
-                }
-              },
-              'stylesheet.calendar.main': {
-                week: {
-                  marginTop: 2,
-                  marginBottom: 2,
-                  flexDirection: 'row',
-                  justifyContent: 'space-around'
                 }
               }
             }}

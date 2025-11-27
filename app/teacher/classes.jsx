@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "../../theme";
 import apiConfig from "../../config/apiConfig";
 import apiFetch from "../../utils/apiFetch";
@@ -18,6 +18,8 @@ import Header from "../../components/Header";
 
 export default function TeacherClassesScreen() {
     const router = useRouter();
+    const params = useLocalSearchParams();
+    const { action } = params;
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
     const [classes, setClasses] = useState([]);
@@ -106,7 +108,16 @@ export default function TeacherClassesScreen() {
                                 classes.map((cls) => (
                                     <Pressable
                                         key={cls._id}
-                                        onPress={() => router.push(`/teacher/class/${cls._id}`)}
+                                        onPress={() => {
+                                            if (action === 'attendance') {
+                                                router.push({
+                                                    pathname: "/teacher/class/attendance",
+                                                    params: { classId: cls._id }
+                                                });
+                                            } else {
+                                                router.push(`/teacher/class/${cls._id}`);
+                                            }
+                                        }}
                                         style={({ pressed }) => ({
                                             backgroundColor: colors.cardBackground,
                                             borderRadius: 16,

@@ -157,9 +157,7 @@ export default function StudentLeaves() {
                     <Ionicons name="arrow-back" size={24} color="#333" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>My Leaves</Text>
-                <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.addButton}>
-                    <Ionicons name="add" size={24} color="#fff" />
-                </TouchableOpacity>
+
             </View>
 
             {loading ? (
@@ -174,6 +172,11 @@ export default function StudentLeaves() {
                     ListEmptyComponent={<Text style={styles.emptyText}>No leave history found.</Text>}
                 />
             )}
+
+            <TouchableOpacity style={styles.fab} onPress={() => setModalVisible(true)}>
+                <Ionicons name="add" size={24} color="#fff" />
+                <Text style={styles.fabText}>Apply Leave</Text>
+            </TouchableOpacity>
 
             <Modal
                 visible={modalVisible}
@@ -340,6 +343,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         borderRadius: 30,
         elevation: 4,
+    },
+    fabText: {
+        color: '#fff',
+        fontWeight: 'bold',
+        marginLeft: 8,
     },
     loader: {
         marginTop: 20,

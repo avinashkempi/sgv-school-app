@@ -114,12 +114,12 @@ export default function TeacherSubjectsScreen() {
             );
 
             if (response.ok) {
-                showToast("Teacher assigned successfully", "success");
+                showToast(`Successfully assigned subject to ${selectedTeacher.name}`, "success");
                 await loadData();
                 setShowModal(false);
             } else {
                 const error = await response.json();
-                showToast(error.message || "Failed to assign teacher", "error");
+                showToast(error.message || `Failed to assign subject to ${selectedTeacher.name}`, "error");
             }
         } catch (error) {
             console.error(error);
@@ -167,14 +167,14 @@ export default function TeacherSubjectsScreen() {
             }
 
             if (successCount > 0) {
-                showToast(`${successCount} subject(s) assigned successfully`, "success");
+                showToast(`Successfully assigned ${successCount} subject(s) to ${selectedTeacher.name}`, "success");
                 await loadData();
                 setSelectedSubjects([]);
                 setShowModal(false);
             }
 
             if (errorCount > 0) {
-                showToast(`${errorCount} subject(s) failed to assign`, "error");
+                showToast(`Failed to assign ${errorCount} subject(s) to ${selectedTeacher.name}`, "error");
             }
         } catch (error) {
             console.error(error);
@@ -197,10 +197,18 @@ export default function TeacherSubjectsScreen() {
             );
 
             if (response.ok) {
-                showToast("Teacher removed successfully", "success");
+                // Find teacher name for the message
+                const teacher = teachers.find(t => t._id === teacherId);
+                const teacherName = teacher ? teacher.name : "Teacher";
+
+                // Find subject name
+                const subject = subjects.find(s => s._id === subjectId);
+                const subjectName = subject ? subject.name : "Subject";
+
+                showToast(`Removed ${teacherName} from ${subjectName}`, "success");
                 await loadData();
             } else {
-                showToast("Failed to remove teacher", "error");
+                showToast("Failed to remove teacher from subject", "error");
             }
         } catch (error) {
             console.error(error);

@@ -48,7 +48,7 @@ export default function AdminLeaves() {
                 if (data.success) {
                     // Group requests by role for SectionList
                     const studentRequests = data.data.filter(r => r.applicantRole === 'student');
-                    const teacherRequests = data.data.filter(r => r.applicantRole === 'class teacher');
+                    const teacherRequests = data.data.filter(r => r.applicantRole === 'teacher');
                     const adminRequests = data.data.filter(r => r.applicantRole === 'admin');
 
                     const sections = [];

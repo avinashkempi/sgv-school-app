@@ -414,31 +414,7 @@ export default function ClassDetailsScreen() {
                         showBack
                     />
 
-                    {/* Mark Attendance Button */}
-                    <Pressable
-                        onPress={() => router.push({
-                            pathname: "/teacher/class/attendance",
-                            params: { classId: id }
-                        })}
-                        style={({ pressed }) => ({
-                            backgroundColor: colors.primary,
-                            borderRadius: 12,
-                            padding: 16,
-                            marginTop: 20,
-                            marginBottom: 24,
-                            flexDirection: "row",
-                            alignItems: "center",
-                            justifyContent: " center",
-                            gap: 10,
-                            opacity: pressed ? 0.9 : 1,
-                            elevation: 3
-                        })}
-                    >
-                        <MaterialIcons name="fact-check" size={24} color="#fff" />
-                        <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: "#fff" }}>
-                            Mark Attendance
-                        </Text>
-                    </Pressable>
+
 
                     {/* Tabs */}
                     <View style={{ flexDirection: "row", marginBottom: 24, backgroundColor: colors.cardBackground, padding: 4, borderRadius: 12 }}>

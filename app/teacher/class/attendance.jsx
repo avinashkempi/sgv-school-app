@@ -109,11 +109,7 @@ export default function MarkAttendanceScreen() {
         );
     };
 
-    const handleMarkAllAbsent = () => {
-        setStudents(prevStudents =>
-            prevStudents.map(s => ({ ...s, status: 'absent' }))
-        );
-    };
+
 
     const handleSaveAttendance = async () => {
         try {
@@ -269,30 +265,34 @@ export default function MarkAttendanceScreen() {
                             </Text>
                         </Pressable>
 
-                        <Pressable
-                            onPress={handleMarkAllAbsent}
-                            style={({ pressed }) => ({
-                                flex: 1,
-                                backgroundColor: colors.error + "15",
-                                borderRadius: 12,
-                                padding: 14,
-                                flexDirection: "row",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                gap: 8,
-                                opacity: pressed ? 0.7 : 1
-                            })}
-                        >
-                            <MaterialIcons name="cancel" size={20} color={colors.error} />
-                            <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.error }}>
-                                All Absent
+
+                    </View>
+
+                    {/* Attendance Summary */}
+                    <View style={{ flexDirection: 'row', gap: 12, marginTop: 24, marginBottom: 8 }}>
+                        <View style={{ flex: 1, backgroundColor: colors.success + '15', padding: 12, borderRadius: 12, alignItems: 'center' }}>
+                            <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.success }}>
+                                {students.filter(s => s.status === 'present').length}
                             </Text>
-                        </Pressable>
+                            <Text style={{ fontSize: 12, color: colors.success, fontFamily: "DMSans-Medium" }}>Present</Text>
+                        </View>
+                        <View style={{ flex: 1, backgroundColor: colors.error + '15', padding: 12, borderRadius: 12, alignItems: 'center' }}>
+                            <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.error }}>
+                                {students.filter(s => s.status === 'absent').length}
+                            </Text>
+                            <Text style={{ fontSize: 12, color: colors.error, fontFamily: "DMSans-Medium" }}>Absent</Text>
+                        </View>
+                        <View style={{ flex: 1, backgroundColor: colors.primary + '15', padding: 12, borderRadius: 12, alignItems: 'center' }}>
+                            <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.primary }}>
+                                {students.length}
+                            </Text>
+                            <Text style={{ fontSize: 12, color: colors.primary, fontFamily: "DMSans-Medium" }}>Total</Text>
+                        </View>
                     </View>
 
                     {/* Students List */}
-                    <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginTop: 28, marginBottom: 16 }}>
-                        Students ({students.length})
+                    <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 16 }}>
+                        Students List
                     </Text>
 
                     {loading ? (
