@@ -220,6 +220,41 @@ export default function SendNotificationScreen() {
                                 Specific Class
                             </Text>
                         </Pressable>
+                        <Pressable
+                            onPress={() => setTarget('teacher')}
+                            style={{
+                                flex: 1,
+                                padding: 16,
+                                backgroundColor: target === 'teacher' ? colors.primary + "15" : colors.cardBackground,
+                                borderWidth: 1,
+                                borderColor: target === 'teacher' ? colors.primary : colors.textSecondary + "20",
+                                borderRadius: 12,
+                                alignItems: "center"
+                            }}
+                        >
+                            <MaterialIcons name="school" size={24} color={target === 'teacher' ? colors.primary : colors.textSecondary} />
+                            <Text style={{ marginTop: 8, color: target === 'teacher' ? colors.primary : colors.textPrimary, fontWeight: "600" }}>
+                                Teachers
+                            </Text>
+                        </Pressable>
+
+                        <Pressable
+                            onPress={() => setTarget('staff')}
+                            style={{
+                                flex: 1,
+                                padding: 16,
+                                backgroundColor: target === 'staff' ? colors.primary + "15" : colors.cardBackground,
+                                borderWidth: 1,
+                                borderColor: target === 'staff' ? colors.primary : colors.textSecondary + "20",
+                                borderRadius: 12,
+                                alignItems: "center"
+                            }}
+                        >
+                            <MaterialIcons name="badge" size={24} color={target === 'staff' ? colors.primary : colors.textSecondary} />
+                            <Text style={{ marginTop: 8, color: target === 'staff' ? colors.primary : colors.textPrimary, fontWeight: "600" }}>
+                                Staff
+                            </Text>
+                        </Pressable>
                     </View>
                 </View>
 

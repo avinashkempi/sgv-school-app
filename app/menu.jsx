@@ -80,13 +80,14 @@ export default function MenuScreen() {
             route: "/news",
             color: "#2196F3"
         },
-        {
+        // Only show Complaints if user is logged in
+        ...(user ? [{
             title: "Complaints & Feedback",
             subtitle: "Raise issues or share feedback",
             icon: "feedback",
             action: navigateToComplaints,
             color: "#FF5722"
-        },
+        }] : []),
 
     ];
 
@@ -213,28 +214,55 @@ export default function MenuScreen() {
                     </Pressable>
                 </View>
 
-                {/* Logout Button */}
-                <Pressable
-                    onPress={handleLogout}
-                    style={({ pressed }) => ({
-                        marginTop: 24,
-                        backgroundColor: colors.error + '10',
-                        borderRadius: 16,
-                        padding: 18,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 10,
-                        borderWidth: 1,
-                        borderColor: colors.error + '20',
-                        opacity: pressed ? 0.8 : 1
-                    })}
-                >
-                    <MaterialIcons name="logout" size={22} color={colors.error} />
-                    <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.error }}>
-                        Log Out
-                    </Text>
-                </Pressable>
+                {/* Logout / Login Button */}
+                {user ? (
+                    <Pressable
+                        onPress={handleLogout}
+                        style={({ pressed }) => ({
+                            marginTop: 24,
+                            backgroundColor: colors.error + '10',
+                            borderRadius: 16,
+                            padding: 18,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 10,
+                            borderWidth: 1,
+                            borderColor: colors.error + '20',
+                            opacity: pressed ? 0.8 : 1
+                        })}
+                    >
+                        <MaterialIcons name="logout" size={22} color={colors.error} />
+                        <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.error }}>
+                            Log Out
+                        </Text>
+                    </Pressable>
+                ) : (
+                    <Pressable
+                        onPress={() => router.replace('/login')}
+                        style={({ pressed }) => ({
+                            marginTop: 24,
+                            backgroundColor: colors.primary,
+                            borderRadius: 16,
+                            padding: 18,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 10,
+                            opacity: pressed ? 0.9 : 1,
+                            shadowColor: colors.primary,
+                            shadowOffset: { width: 0, height: 4 },
+                            shadowOpacity: 0.3,
+                            shadowRadius: 8,
+                            elevation: 4,
+                        })}
+                    >
+                        <MaterialIcons name="login" size={22} color="#fff" />
+                        <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: "#fff" }}>
+                            Log In
+                        </Text>
+                    </Pressable>
+                )}
 
                 <Text style={{ textAlign: 'center', marginTop: 24, color: colors.textSecondary, fontSize: 12, fontFamily: "DMSans-Regular" }}>
                     App Version 1.0.0 • Build 2024

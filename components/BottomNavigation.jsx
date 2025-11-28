@@ -85,8 +85,6 @@ function BottomNavigation() {
     // Haptic feedback for better UX
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
 
-
-
     if (route === activeTab) return;
 
     // Use requestAnimationFrame to ensure the UI update (ripple effect) happens
@@ -100,8 +98,8 @@ function BottomNavigation() {
 
   // Glassmorphism background color
   const glassBackground = mode === 'dark'
-    ? 'rgba(30, 30, 30, 0.85)'
-    : 'rgba(255, 255, 255, 0.85)';
+    ? 'rgba(30, 41, 59, 0.9)' // Darker slate
+    : 'rgba(255, 255, 255, 0.9)';
 
   return (
     <View style={styles.wrapper}>
@@ -172,9 +170,7 @@ const TabItem = memo(({ item, isActive, onPress, colors, mode }) => {
     ]).start();
   }, [isActive]);
 
-  const activePillBackground = mode === 'dark'
-    ? colors.primary + '20'
-    : colors.primary + '15';
+  const activePillBackground = colors.primaryLight;
 
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
@@ -243,7 +239,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     paddingHorizontal: 16,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 16,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 20,
   },
   container: {
     flexDirection: "row",
@@ -273,8 +269,8 @@ const styles = StyleSheet.create({
   activePill: {
     position: "absolute",
     top: 0,
-    left: -8,
-    right: -8,
+    left: -4,
+    right: -4,
     bottom: 0,
     borderRadius: 16,
     zIndex: 0,

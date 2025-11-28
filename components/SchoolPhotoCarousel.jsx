@@ -82,7 +82,7 @@ export default function SchoolPhotoCarousel({ photos }) {
                 });
                 // activeIndex will be updated by handleViewableItemsChanged
             }
-        }, 2000);
+        }, 3000); // Slower auto-scroll for better UX
 
         return () => clearInterval(interval);
     }, [activeIndex, photos]);
@@ -92,9 +92,9 @@ export default function SchoolPhotoCarousel({ photos }) {
         return null;
     }
 
-    // Calculate item width based on container padding (16px on each side = 32px total)
+    // Calculate item width based on container padding (20px on each side = 40px total)
     // We want the carousel to fill the available width
-    const ITEM_WIDTH = SCREEN_WIDTH - 32;
+    const ITEM_WIDTH = SCREEN_WIDTH - 40;
     const ITEM_HEIGHT = ITEM_WIDTH * 0.5625; // 16:9 Aspect Ratio
 
     return (
@@ -138,7 +138,7 @@ export default function SchoolPhotoCarousel({ photos }) {
 
                         const dotWidth = scrollX.interpolate({
                             inputRange,
-                            outputRange: [8, 20, 8],
+                            outputRange: [6, 20, 6],
                             extrapolate: 'clamp',
                         });
 
@@ -171,17 +171,24 @@ export default function SchoolPhotoCarousel({ photos }) {
 const styles = StyleSheet.create({
     container: {
         marginBottom: 24,
-        borderRadius: 16,
+        borderRadius: 24,
         overflow: 'hidden',
+        // Shadow for the whole carousel container
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.08,
+        shadowRadius: 20,
+        elevation: 6,
+        backgroundColor: 'transparent' // Let the card background show through
     },
     itemContainer: {
         overflow: 'hidden',
-        borderRadius: 16,
+        borderRadius: 24,
     },
     imageContainer: {
         flex: 1,
         overflow: 'hidden',
-        borderRadius: 16,
+        borderRadius: 24,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -207,8 +214,8 @@ const styles = StyleSheet.create({
         marginTop: 12,
     },
     dot: {
-        height: 8,
-        borderRadius: 4,
-        marginHorizontal: 4,
+        height: 6,
+        borderRadius: 3,
+        marginHorizontal: 3,
     },
 });

@@ -72,7 +72,7 @@ function Inner() {
           await AsyncStorage.setItem("@admin_academic_years", JSON.stringify({ data, timestamp: Date.now() }));
         }
       } catch (e) {
-        console.log("Preload error", e);
+
       }
     };
 

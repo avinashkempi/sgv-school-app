@@ -52,7 +52,7 @@ export default function SubjectDetailScreen() {
             if (cachedContent) {
                 setContent(cachedContent);
                 setLoading(false);
-                console.log(`[SUBJECT] Loaded content for ${subjectId} from cache`);
+
             }
 
             // 2. Fetch API
@@ -82,7 +82,7 @@ export default function SubjectDetailScreen() {
                     const contentData = await contentRes.json();
                     setContent(contentData);
                     setCachedData(cacheKeyContent, contentData);
-                    console.log(`[SUBJECT] Refreshed content for ${subjectId} from API`);
+
                 } else {
                     if (!cachedContent) showToast("Failed to load content", "error");
                 }

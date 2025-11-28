@@ -144,13 +144,13 @@ export default function StudentClassScreen() {
         return (
             <ScrollView
                 contentContainerStyle={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 20 }}
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} />}
             >
                 <MaterialIcons name="school" size={64} color={colors.textSecondary} />
-                <Text style={{ fontSize: 18, fontWeight: "600", color: colors.textPrimary, marginTop: 16, textAlign: "center" }}>
+                <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginTop: 16, textAlign: "center" }}>
                     No Class Assigned
                 </Text>
-                <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: 8, textAlign: "center" }}>
+                <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: 8, textAlign: "center", fontFamily: "DMSans-Regular" }}>
                     Please contact your administrator to be assigned to a class.
                 </Text>
             </ScrollView>
@@ -158,12 +158,13 @@ export default function StudentClassScreen() {
     }
 
     return (
-        <View style={{ flex: 1, backgroundColor: colors.background }}>
+        <View style={styles.container}>
             <ScrollView
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} />}
                 contentContainerStyle={{ paddingBottom: 100 }}
+                showsVerticalScrollIndicator={false}
             >
-                <View style={{ padding: 16, paddingTop: 24 }}>
+                <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
                     <Header
                         title={classData.name}
                         subtitle={`Section ${classData.section || 'N/A'} • ${classData.academicYear?.name || ''}`}
@@ -174,182 +175,118 @@ export default function StudentClassScreen() {
                             <ActivityIndicator size="large" color={colors.primary} />
                         </View>
                     ) : (
-                        <View style={{ marginTop: 24 }}>
-                            <Text style={{ fontSize: 18, fontWeight: "700", color: colors.textPrimary, marginBottom: 16 }}>
-                                Quick Actions
-                            </Text>
+                        <View style={{ gap: 24 }}>
+                            <View>
+                                <Text style={styles.sectionTitle}>
+                                    Quick Actions
+                                </Text>
 
-                            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 24 }}>
-
-
-                                <Pressable
-                                    onPress={() => router.push("/student/report-card")}
-                                    style={({ pressed }) => ({
-                                        flex: 1,
-                                        minWidth: "45%",
-                                        backgroundColor: colors.cardBackground,
-                                        borderRadius: 16,
-                                        padding: 16,
-                                        alignItems: "center",
-                                        elevation: 2,
-                                        opacity: pressed ? 0.9 : 1,
-                                        shadowColor: "#000",
-                                        shadowOffset: { width: 0, height: 1 },
-                                        shadowOpacity: 0.05,
-                                        shadowRadius: 4,
-                                    })}
-                                >
-                                    <View style={{ backgroundColor: "#FF9800" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                                        <MaterialIcons name="assessment" size={24} color="#FF9800" />
-                                    </View>
-                                    <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Report Card</Text>
-                                </Pressable>
-
-                                <Pressable
-                                    onPress={() => router.push("/student/timetable")}
-                                    style={({ pressed }) => ({
-                                        flex: 1,
-                                        minWidth: "45%",
-                                        backgroundColor: colors.cardBackground,
-                                        borderRadius: 16,
-                                        padding: 16,
-                                        alignItems: "center",
-                                        elevation: 2,
-                                        opacity: pressed ? 0.9 : 1,
-                                        shadowColor: "#000",
-                                        shadowOffset: { width: 0, height: 1 },
-                                        shadowOpacity: 0.05,
-                                        shadowRadius: 4,
-                                    })}
-                                >
-                                    <View style={{ backgroundColor: "#009688" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                                        <MaterialIcons name="calendar-today" size={24} color="#009688" />
-                                    </View>
-                                    <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Timetable</Text>
-                                </Pressable>
-
-                                <Pressable
-                                    onPress={() => router.push("/student/fees")}
-                                    style={({ pressed }) => ({
-                                        flex: 1,
-                                        minWidth: "45%",
-                                        backgroundColor: colors.cardBackground,
-                                        borderRadius: 16,
-                                        padding: 16,
-                                        alignItems: "center",
-                                        elevation: 2,
-                                        opacity: pressed ? 0.9 : 1,
-                                        shadowColor: "#000",
-                                        shadowOffset: { width: 0, height: 1 },
-                                        shadowOpacity: 0.05,
-                                        shadowRadius: 4,
-                                    })}
-                                >
-                                    <View style={{ backgroundColor: "#FF5722" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                                        <MaterialIcons name="attach-money" size={24} color="#FF5722" />
-                                    </View>
-                                    <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Fees</Text>
-                                </Pressable>
-
-                                <Pressable
-                                    onPress={() => router.push("/student/exam-schedule")}
-                                    style={({ pressed }) => ({
-                                        flex: 1,
-                                        minWidth: "45%",
-                                        backgroundColor: colors.cardBackground,
-                                        borderRadius: 16,
-                                        padding: 16,
-                                        alignItems: "center",
-                                        elevation: 2,
-                                        opacity: pressed ? 0.9 : 1,
-                                        shadowColor: "#000",
-                                        shadowOffset: { width: 0, height: 1 },
-                                        shadowOpacity: 0.05,
-                                        shadowRadius: 4,
-                                    })}
-                                >
-                                    <View style={{ backgroundColor: "#E91E63" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                                        <MaterialIcons name="event" size={24} color="#E91E63" />
-                                    </View>
-                                    <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>Exams</Text>
-                                </Pressable>
+                                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
+                                    <MenuCard
+                                        title="Report Card"
+                                        icon="assessment"
+                                        color="#FF9800"
+                                        onPress={() => router.push("/student/report-card")}
+                                    />
+                                    <MenuCard
+                                        title="Timetable"
+                                        icon="calendar-today"
+                                        color="#009688"
+                                        onPress={() => router.push("/student/timetable")}
+                                    />
+                                    <MenuCard
+                                        title="Fees"
+                                        icon="attach-money"
+                                        color="#FF5722"
+                                        onPress={() => router.push("/student/fees")}
+                                    />
+                                    <MenuCard
+                                        title="Exams"
+                                        icon="event"
+                                        color="#E91E63"
+                                        onPress={() => router.push("/student/exam-schedule")}
+                                    />
+                                </View>
                             </View>
 
-                            <Text style={{ fontSize: 18, fontWeight: "700", color: colors.textPrimary, marginBottom: 16 }}>
-                                Subjects
-                            </Text>
+                            <View>
+                                <Text style={styles.sectionTitle}>
+                                    Subjects
+                                </Text>
 
-                            {subjects.length === 0 ? (
-                                <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
-                                    <MaterialIcons name="library-books" size={48} color={colors.textSecondary} />
-                                    <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16 }}>
-                                        No subjects added yet.
-                                    </Text>
-                                </View>
-                            ) : (
-                                subjects.map((subject) => (
-                                    <Pressable
-                                        key={subject._id}
-                                        onPress={() => router.push({
-                                            pathname: "/student/class/subject/[subjectId]",
-                                            params: { id: classData._id, subjectId: subject._id }
-                                        })}
-                                        style={({ pressed }) => ({
-                                            backgroundColor: colors.cardBackground,
-                                            borderRadius: 16,
-                                            padding: 16,
-                                            marginBottom: 12,
-                                            shadowColor: "#000",
-                                            shadowOffset: { width: 0, height: 1 },
-                                            shadowOpacity: 0.03,
-                                            shadowRadius: 4,
-                                            elevation: 1,
-                                            opacity: pressed ? 0.9 : 1,
-                                            flexDirection: "row",
-                                            justifyContent: "space-between",
-                                            alignItems: "center"
-                                        })}
-                                    >
-                                        <View style={{ flexDirection: "row", alignItems: "center", gap: 14, flex: 1 }}>
-                                            <View style={{ backgroundColor: colors.primary + "15", padding: 12, borderRadius: 12 }}>
-                                                <MaterialIcons name="book" size={26} color={colors.primary} />
-                                            </View>
-                                            <View style={{ flex: 1 }}>
-                                                <Text style={{
-                                                    fontSize: 17,
-                                                    fontFamily: "DMSans-Bold",
-                                                    color: colors.textPrimary,
-                                                    marginBottom: 4
-                                                }}>
-                                                    {subject.name}
-                                                </Text>
-                                                {subject.teachers && subject.teachers.length > 0 ? (
-                                                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
-                                                        <MaterialIcons name="person" size={14} color={colors.textSecondary} />
-                                                        <Text style={{
-                                                            fontSize: 13,
-                                                            color: colors.textSecondary,
-                                                            fontFamily: "DMSans-Medium"
-                                                        }}>
-                                                            {subject.teachers.map(t => t.name).join(", ")}
-                                                        </Text>
-                                                    </View>
-                                                ) : (
-                                                    <Text style={{
-                                                        fontSize: 12,
-                                                        color: colors.textSecondary,
-                                                        fontStyle: "italic",
-                                                        fontFamily: "DMSans-Regular"
+                                {subjects.length === 0 ? (
+                                    <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
+                                        <MaterialIcons name="library-books" size={48} color={colors.textSecondary} />
+                                        <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16, fontFamily: "DMSans-Medium" }}>
+                                            No subjects added yet.
+                                        </Text>
+                                    </View>
+                                ) : (
+                                    <View style={{ gap: 12 }}>
+                                        {subjects.map((subject) => (
+                                            <Pressable
+                                                key={subject._id}
+                                                onPress={() => router.push({
+                                                    pathname: "/student/class/subject/[subjectId]",
+                                                    params: { id: classData._id, subjectId: subject._id }
+                                                })}
+                                                style={({ pressed }) => [
+                                                    styles.cardMinimal,
+                                                    {
+                                                        flexDirection: "row",
+                                                        justifyContent: "space-between",
+                                                        alignItems: "center",
+                                                        padding: 16,
+                                                        opacity: pressed ? 0.9 : 1,
+                                                    }
+                                                ]}
+                                            >
+                                                <View style={{ flexDirection: "row", alignItems: "center", gap: 14, flex: 1 }}>
+                                                    <View style={{
+                                                        backgroundColor: colors.primary + "15",
+                                                        padding: 12,
+                                                        borderRadius: 12
                                                     }}>
-                                                        No teacher assigned
-                                                    </Text>
-                                                )}
-                                            </View>
-                                        </View>
-                                        <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
-                                    </Pressable>
-                                ))
-                            )}
+                                                        <MaterialIcons name="book" size={24} color={colors.primary} />
+                                                    </View>
+                                                    <View style={{ flex: 1 }}>
+                                                        <Text style={{
+                                                            fontSize: 16,
+                                                            fontFamily: "DMSans-Bold",
+                                                            color: colors.textPrimary,
+                                                            marginBottom: 4
+                                                        }}>
+                                                            {subject.name}
+                                                        </Text>
+                                                        {subject.teachers && subject.teachers.length > 0 ? (
+                                                            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                                                                <MaterialIcons name="person" size={14} color={colors.textSecondary} />
+                                                                <Text style={{
+                                                                    fontSize: 13,
+                                                                    color: colors.textSecondary,
+                                                                    fontFamily: "DMSans-Medium"
+                                                                }}>
+                                                                    {subject.teachers.map(t => t.name).join(", ")}
+                                                                </Text>
+                                                            </View>
+                                                        ) : (
+                                                            <Text style={{
+                                                                fontSize: 12,
+                                                                color: colors.textSecondary,
+                                                                fontStyle: "italic",
+                                                                fontFamily: "DMSans-Regular"
+                                                            }}>
+                                                                No teacher assigned
+                                                            </Text>
+                                                        )}
+                                                    </View>
+                                                </View>
+                                                <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
+                                            </Pressable>
+                                        ))}
+                                    </View>
+                                )}
+                            </View>
                         </View>
                     )}
                 </View>
@@ -357,3 +294,47 @@ export default function StudentClassScreen() {
         </View>
     );
 }
+
+// Helper Component for Menu Cards
+const MenuCard = ({ title, icon, color, onPress }) => {
+    const { colors } = useTheme();
+
+    return (
+        <Pressable
+            onPress={onPress}
+            style={({ pressed }) => ({
+                flex: 1,
+                minWidth: "45%",
+                backgroundColor: colors.cardBackground,
+                padding: 20,
+                borderRadius: 24,
+                alignItems: "center",
+                opacity: pressed ? 0.9 : 1,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.05,
+                shadowRadius: 12,
+                elevation: 3,
+                borderWidth: 1,
+                borderColor: colors.border
+            })}
+        >
+            <View style={{
+                backgroundColor: color + "15",
+                padding: 16,
+                borderRadius: 20,
+                marginBottom: 12
+            }}>
+                <MaterialIcons name={icon} size={28} color={color} />
+            </View>
+            <Text style={{
+                fontSize: 15,
+                fontFamily: "DMSans-Bold",
+                color: colors.textPrimary,
+                textAlign: "center"
+            }}>
+                {title}
+            </Text>
+        </Pressable>
+    );
+};

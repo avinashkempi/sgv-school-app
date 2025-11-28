@@ -6,25 +6,28 @@ import { useTheme } from "../theme";
 
 const Header = ({ title, subtitle, variant = "default" }) => {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, styles } = useTheme();
 
   // Variant "welcome" is for home page style
   if (variant === "welcome") {
     return (
-      <View style={{ marginTop: 20, marginBottom: 32 }}>
+      <View style={{ marginTop: 10, marginBottom: 32 }}>
         <Text style={{
           fontSize: 16,
           color: colors.textSecondary,
           fontFamily: "DMSans-Medium",
-          marginBottom: 4
+          marginBottom: 8,
+          letterSpacing: 0.5,
+          textTransform: 'uppercase'
         }}>
           Welcome to
         </Text>
         <Text style={{
-          fontSize: 32,
+          fontSize: 36,
           color: colors.textPrimary,
           fontFamily: "DMSans-Bold",
-          letterSpacing: -1
+          letterSpacing: -1.5,
+          lineHeight: 42
         }}>
           {title}
         </Text>
@@ -35,20 +38,21 @@ const Header = ({ title, subtitle, variant = "default" }) => {
   // Default variant - minimalist header with optional subtitle
   return (
     <View style={{ marginBottom: 24, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, paddingRight: 16 }}>
         <Text style={{
           fontSize: 28,
-          fontWeight: "700",
+          fontFamily: "DMSans-Bold",
           color: colors.textPrimary,
-          letterSpacing: -0.5
+          letterSpacing: -1
         }}>
           {title}
         </Text>
         {subtitle && (
           <Text style={{
-            fontSize: 15,
+            fontSize: 16,
             color: colors.textSecondary,
-            marginTop: 4
+            marginTop: 4,
+            fontFamily: "DMSans-Regular"
           }}>
             {subtitle}
           </Text>
@@ -59,19 +63,16 @@ const Header = ({ title, subtitle, variant = "default" }) => {
       <Pressable
         onPress={() => router.push("/notifications")}
         style={({ pressed }) => ({
-          padding: 8,
+          padding: 10,
           backgroundColor: colors.cardBackground,
-          borderRadius: 12,
+          borderRadius: 14,
           opacity: pressed ? 0.7 : 1,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.05,
-          shadowRadius: 4,
-          elevation: 2,
+          borderWidth: 1,
+          borderColor: colors.border,
+          ...styles.shadow
         })}
       >
         <MaterialIcons name="notifications-none" size={24} color={colors.textPrimary} />
-        {/* We could add a badge here if we had the count */}
       </Pressable>
     </View>
   );

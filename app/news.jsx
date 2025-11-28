@@ -54,7 +54,7 @@ export default function NewsScreen() {
 
   const fetchFreshNews = useCallback(async () => {
     try {
-      console.log('[NEWS] Fetching fresh news from API...');
+
       const response = await apiFetch(apiConfig.url(apiConfig.endpoints.news.list), { silent: true });
 
       if (!response.ok) {
@@ -62,10 +62,10 @@ export default function NewsScreen() {
       }
 
       const result = await response.json();
-      console.log('[NEWS] API response:', result);
+
 
       if (result.success && result.news) {
-        console.log(`[NEWS] Received ${result.news.length} news items from API`);
+
 
         // Validate the data structure
         if (!Array.isArray(result.news)) {
@@ -79,7 +79,7 @@ export default function NewsScreen() {
         setLoading(false);
         globalNewsLoading = false;
         newsFetched = true;
-        console.log('[NEWS] Fresh news cached successfully');
+
       } else {
         console.warn('[NEWS] API response missing success flag or news data');
         globalNews = [];
@@ -352,7 +352,7 @@ export default function NewsScreen() {
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      console.log('[NEWS] Refreshing news from API...');
+
       const response = await apiFetch(apiConfig.url(apiConfig.endpoints.news.list), { silent: true });
 
       if (!response.ok) {
@@ -364,7 +364,7 @@ export default function NewsScreen() {
         globalNews = result.news;
         setNews(globalNews);
         await setCachedData(CACHE_KEYS.NEWS, result.news);
-        console.log('[NEWS] Refreshed successfully');
+
       }
     } catch (err) {
       console.error('[NEWS] Refresh failed:', err.message);
@@ -376,19 +376,27 @@ export default function NewsScreen() {
 
   return (
     <View style={styles.container}>
-      <Header title="Latest News" subtitle="Stay updated with announcements" />
+      <View style={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 10 }}>
+        <Header title="Latest News" subtitle="Stay updated with announcements" />
+      </View>
 
       <FlatList
         data={news}
         keyExtractor={(item) => item._id || item.id || Math.random().toString()}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} />
         }
         ListEmptyComponent={
-          <Text style={styles.empty}>No news available right now</Text>
+          <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
+            <MaterialIcons name="article" size={48} color={colors.textSecondary} />
+            <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16, fontFamily: "DMSans-Medium" }}>
+              No news available right now
+            </Text>
+          </View>
         }
         renderItem={renderNewsItem}
-        contentContainerStyle={styles.contentPaddingBottom}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}
+        showsVerticalScrollIndicator={false}
         // Performance optimizations
         removeClippedSubviews={true}
         maxToRenderPerBatch={10}

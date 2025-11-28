@@ -89,7 +89,7 @@ export default function ClassDetailsScreen() {
                 setSubjects(cachedSubjects);
                 if (cachedStudents) setStudents(cachedStudents);
                 setLoading(false);
-                console.log(`[CLASS] Loaded class ${id} from cache`);
+
             }
 
             // 2. Fetch from API (Silent refresh if cache exists)
@@ -113,7 +113,7 @@ export default function ClassDetailsScreen() {
                     setStudents(students);
                     setCachedData(cacheKeyStudents, students);
 
-                    console.log(`[CLASS] Refreshed class ${id} from API`);
+
                 } else {
                     if (!cachedClass) showToast("Failed to load class data", "error");
                 }
@@ -390,10 +390,10 @@ export default function ClassDetailsScreen() {
         return user.role === 'admin' || user.role === 'super admin';
     })();
 
-    console.log("User:", user);
-    console.log("ClassData:", classData);
-    console.log("Is Class Teacher:", isClassTeacher);
-    console.log("Can Manage Class:", canManageClass);
+
+
+
+
 
 
     const filteredAvailableStudents = availableStudents.filter(s =>

@@ -44,12 +44,12 @@ export default function StudentReportCardScreen() {
             }
 
             const parsedUser = JSON.parse(storedUser);
-            console.log("[Report Card] Parsed user:", parsedUser);
+
             setUser(parsedUser);
 
             // Get user ID - handle both id and _id for backward compatibility
             const userId = parsedUser.id || parsedUser._id;
-            console.log("[Report Card] User ID:", userId);
+
 
             if (!userId) {
                 console.error("[Report Card] No user ID found in stored user data");

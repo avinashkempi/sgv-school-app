@@ -1,6 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { View, Text, ScrollView, Animated, StatusBar, RefreshControl, StyleSheet } from "react-native";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useFade from "../hooks/useFade";
 import { useTheme } from "../theme";
 import useSchoolInfo from "../hooks/useSchoolInfo";
@@ -25,6 +25,22 @@ export default function HomeScreen() {
     }
   };
 
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const storedUser = await require('@react-native-async-storage/async-storage').default.getItem('@auth_user');
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+    loadUser();
+  }, [refreshing]);
+
   return (
     <ScrollView
       style={styles.container}
@@ -39,7 +55,7 @@ export default function HomeScreen() {
       />
 
       {/* Minimalist Header */}
-      <Header title={SCHOOL.name} variant="welcome" />
+      <Header title={SCHOOL.name} subtitle={user ? `Welcome, ${user.name.split(' ')[0]}` : "Welcome"} variant="welcome" />
 
       {/* School Photo Carousel */}
       <SchoolPhotoCarousel photos={SCHOOL.photoUrl} />

@@ -15,52 +15,53 @@ const FONTS = {
   regular: "DMSans-Regular",
 };
 
+// Modern, Premium Color Palette
 const lightColors = {
-  primary: "#2F6CD4",
-  secondary: "#FF5E1C",
-  background: "#f7f8fc",
-  cardBackground: "#ffffff",
-  textPrimary: "#1A1D1E",
-  textSecondary: "#6C7278",
-  border: "#EEEFFF",
-  shadow: "#1A1D1E",
-  error: "#FF4C4C",
-  white: "#ffffff",
-  roleSuperAdmin: "#FF6B6B",
-  roleAdmin: "#4ECDC4",
-  roleStaff: "#45B7D1",
-  roleClassTeacher: "#96CEB4",
-  roleStudent: "#FFEAA7",
-  success: "#4CAF50",
+  primary: "#2563EB", // Vibrant Blue (Inter-like)
+  secondary: "#F97316", // Modern Orange
+  background: "#F8FAFC", // Cool Gray 50
+  cardBackground: "#FFFFFF",
+  textPrimary: "#0F172A", // Slate 900
+  textSecondary: "#64748B", // Slate 500
+  border: "#E2E8F0", // Slate 200
+  shadow: "#64748B",
+  error: "#EF4444", // Red 500
+  white: "#FFFFFF",
+  roleSuperAdmin: "#F43F5E", // Rose 500
+  roleAdmin: "#10B981", // Emerald 500
+  roleStaff: "#0EA5E9", // Sky 500
+  roleClassTeacher: "#8B5CF6", // Violet 500
+  roleStudent: "#F59E0B", // Amber 500
+  success: "#22C55E", // Green 500
   // Surface variants for pills/backgrounds
-  primaryLight: "#2F6CD415",
-  successLight: "#4CAF5015",
-  errorLight: "#FF4C4C15",
-  warningLight: "#FF980015",
+  primaryLight: "#EFF6FF", // Blue 50
+  successLight: "#F0FDF4", // Green 50
+  errorLight: "#FEF2F2", // Red 50
+  warningLight: "#FFFBEB", // Amber 50
 };
 
 const darkColors = {
-  primary: "#5BA3FF",
-  secondary: "#FF8C5A",
-  background: "#0D1117",
-  cardBackground: "#161B22",
-  textPrimary: "#E6EDF3",
-  textSecondary: "#8B949E",
-  border: "#30363D",
+  primary: "#3B82F6", // Blue 500
+  secondary: "#FB923C", // Orange 400
+  background: "#0F172A", // Slate 900
+  cardBackground: "#1E293B", // Slate 800
+  textPrimary: "#F1F5F9", // Slate 100
+  textSecondary: "#94A3B8", // Slate 400
+  border: "#334155", // Slate 700
   shadow: "#000000",
-  error: "#FF6B6B",
-  white: "#ffffff",
-  roleSuperAdmin: "#FF5757",
-  roleAdmin: "#58D4B6",
-  roleStaff: "#64C0FF",
-  roleClassTeacher: "#79E89F",
-  roleStudent: "#FFE348",
-  success: "#4CAF50",
+  error: "#F87171", // Red 400
+  white: "#FFFFFF",
+  roleSuperAdmin: "#FB7185", // Rose 400
+  roleAdmin: "#34D399", // Emerald 400
+  roleStaff: "#38BDF8", // Sky 400
+  roleClassTeacher: "#A78BFA", // Violet 400
+  roleStudent: "#FBBF24", // Amber 400
+  success: "#4ADE80", // Green 400
   // Surface variants
-  primaryLight: "#5BA3FF20",
-  successLight: "#4CAF5020",
-  errorLight: "#FF6B6B20",
-  warningLight: "#FF980020",
+  primaryLight: "rgba(59, 130, 246, 0.15)",
+  successLight: "rgba(74, 222, 128, 0.15)",
+  errorLight: "rgba(248, 113, 113, 0.15)",
+  warningLight: "rgba(251, 191, 36, 0.15)",
 };
 
 function createGlobalStyles(COLORS, mode) {
@@ -68,17 +69,17 @@ function createGlobalStyles(COLORS, mode) {
     container: {
       flex: 1,
       backgroundColor: COLORS.background,
-      paddingHorizontal: 16,
-      paddingTop: 20,
-      paddingBottom: 24,
+      paddingHorizontal: 20, // Increased padding
+      paddingTop: 24,
+      paddingBottom: 32,
     },
     title: {
-      fontSize: 28,
+      fontSize: 32, // Larger title
       fontFamily: FONTS.bold,
-      color: COLORS.primary,
+      color: COLORS.textPrimary, // Use textPrimary instead of primary for cleaner look
       marginBottom: 24,
-      textAlign: "center",
-      letterSpacing: -0.5,
+      textAlign: "left", // Left align for modern feel
+      letterSpacing: -1,
     },
     headerTitle: {
       fontSize: 24,
@@ -88,29 +89,29 @@ function createGlobalStyles(COLORS, mode) {
       marginBottom: 4,
     },
     subHeader: {
-      fontSize: 15,
+      fontSize: 16,
       fontFamily: FONTS.regular,
       color: COLORS.textSecondary,
-      marginBottom: 24,
-      lineHeight: 22,
+      marginBottom: 32,
+      lineHeight: 24,
     },
     label: {
       fontSize: 13,
       fontFamily: FONTS.semiBold,
       color: COLORS.textSecondary,
       textTransform: "uppercase",
-      letterSpacing: 0.8,
+      letterSpacing: 0.5,
       marginBottom: 8,
     },
     text: {
-      fontSize: 15,
+      fontSize: 16,
       fontFamily: FONTS.regular,
       color: COLORS.textSecondary,
-      lineHeight: 24,
-      marginBottom: 10,
+      lineHeight: 26,
+      marginBottom: 12,
     },
     link: {
-      fontSize: 15,
+      fontSize: 16,
       fontFamily: FONTS.semiBold,
       color: COLORS.primary,
     },
@@ -128,10 +129,10 @@ function createGlobalStyles(COLORS, mode) {
       letterSpacing: 0.3,
     },
     errorText: {
-      fontSize: 13,
+      fontSize: 14,
       fontFamily: FONTS.medium,
       color: COLORS.error,
-      marginTop: 6,
+      marginTop: 8,
     },
     row: {
       flexDirection: "row",
@@ -143,124 +144,123 @@ function createGlobalStyles(COLORS, mode) {
     divider: {
       height: 1,
       backgroundColor: COLORS.border,
-      marginVertical: 16,
-      opacity: 0.6,
+      marginVertical: 24,
     },
     // Premium Card Style
     card: {
       backgroundColor: COLORS.cardBackground,
-      borderRadius: 20,
-      padding: 20,
-      marginBottom: 16,
+      borderRadius: 24, // More rounded
+      padding: 24,
+      marginBottom: 20,
       shadowColor: COLORS.shadow,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: mode === 'dark' ? 0.3 : 0.06,
-      shadowRadius: 12,
-      elevation: 4,
+      shadowOffset: { width: 0, height: 8 }, // Deeper shadow
+      shadowOpacity: mode === 'dark' ? 0.4 : 0.08,
+      shadowRadius: 16,
+      elevation: 6,
       borderWidth: 1,
       borderColor: mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
     },
     // Legacy support for cardMinimal (aliased to card for consistency)
     cardMinimal: {
       backgroundColor: COLORS.cardBackground,
-      borderRadius: 16,
-      padding: 16,
-      marginBottom: 12,
+      borderRadius: 20,
+      padding: 20,
+      marginBottom: 16,
       shadowColor: COLORS.shadow,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: mode === 'dark' ? 0.2 : 0.04,
-      shadowRadius: 8,
-      elevation: 2,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: mode === 'dark' ? 0.3 : 0.05,
+      shadowRadius: 12,
+      elevation: 3,
       borderWidth: 1,
       borderColor: mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
     },
     // Glassmorphism Utility
     glass: {
-      backgroundColor: mode === 'dark' ? 'rgba(22, 27, 34, 0.8)' : 'rgba(255, 255, 255, 0.8)',
-      borderColor: mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.4)',
+      backgroundColor: mode === 'dark' ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.7)',
+      borderColor: mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.5)',
       borderWidth: 1,
     },
     input: {
       borderWidth: 1,
       borderColor: COLORS.border,
-      borderRadius: 12,
-      paddingVertical: 14,
-      paddingHorizontal: 16,
-      fontSize: 15,
+      borderRadius: 16, // More rounded
+      paddingVertical: 16,
+      paddingHorizontal: 20,
+      fontSize: 16,
       fontFamily: FONTS.regular,
       color: COLORS.textPrimary,
-      backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.03)' : '#F8F9FA',
+      backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.03)' : '#FFFFFF',
     },
     inputMinimal: {
-      backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#F5F7FA',
-      borderRadius: 14,
-      paddingHorizontal: 16,
-      paddingVertical: 14,
+      backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#F1F5F9',
+      borderRadius: 16,
+      paddingHorizontal: 20,
+      paddingVertical: 16,
       fontSize: 16,
       color: COLORS.textPrimary,
       borderWidth: 0,
     },
     inputFocused: {
-      borderWidth: 1.5,
+      borderWidth: 2,
       borderColor: COLORS.primary,
       backgroundColor: COLORS.cardBackground,
     },
     inputError: {
-      borderWidth: 1.5,
+      borderWidth: 2,
       borderColor: COLORS.error,
     },
     button: {
       backgroundColor: COLORS.primary,
-      paddingVertical: 14,
+      paddingVertical: 16,
       paddingHorizontal: 24,
-      borderRadius: 14,
+      borderRadius: 16,
       alignItems: "center",
       justifyContent: "center",
       shadowColor: COLORS.primary,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.2,
-      shadowRadius: 8,
-      elevation: 4,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.25,
+      shadowRadius: 16,
+      elevation: 6,
     },
     buttonSmall: {
       backgroundColor: COLORS.primary,
       paddingVertical: 10,
       paddingHorizontal: 16,
-      borderRadius: 10,
+      borderRadius: 12,
       alignItems: "center",
       justifyContent: "center",
       minHeight: 40,
     },
     buttonIcon: {
-      padding: 10,
-      borderRadius: 12,
+      padding: 12,
+      borderRadius: 16,
       alignItems: "center",
       justifyContent: "center",
-      minWidth: 40,
-      minHeight: 40,
+      minWidth: 48,
+      minHeight: 48,
       backgroundColor: COLORS.primaryLight,
     },
     buttonLarge: {
       backgroundColor: COLORS.primary,
-      paddingVertical: 16,
+      paddingVertical: 18,
       paddingHorizontal: 32,
-      borderRadius: 16,
+      borderRadius: 20,
       alignItems: "center",
       justifyContent: "center",
-      minHeight: 56,
+      minHeight: 60,
       shadowColor: COLORS.primary,
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.25,
-      shadowRadius: 16,
-      elevation: 8,
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.3,
+      shadowRadius: 20,
+      elevation: 10,
     },
     buttonSecondary: {
       backgroundColor: 'transparent',
-      borderWidth: 1.5,
+      borderWidth: 2,
       borderColor: COLORS.border,
-      paddingVertical: 12,
+      paddingVertical: 14,
       paddingHorizontal: 20,
-      borderRadius: 14,
+      borderRadius: 16,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -269,16 +269,16 @@ function createGlobalStyles(COLORS, mode) {
       bottom: 100,
       right: 24,
       backgroundColor: COLORS.primary,
-      width: 56,
-      height: 56,
-      borderRadius: 28,
+      width: 64, // Slightly larger
+      height: 64,
+      borderRadius: 32,
       justifyContent: "center",
       alignItems: "center",
       shadowColor: COLORS.primary,
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.3,
-      shadowRadius: 12,
-      elevation: 8,
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.35,
+      shadowRadius: 20,
+      elevation: 10,
     },
     backButton: {
       flexDirection: "row",
@@ -293,18 +293,18 @@ function createGlobalStyles(COLORS, mode) {
       gap: 12,
     },
     heading: {
-      fontSize: 22,
+      fontSize: 24,
       fontFamily: FONTS.bold,
       color: COLORS.primary,
-      textAlign: "center",
-      marginBottom: 12,
+      textAlign: "left",
+      marginBottom: 16,
       letterSpacing: -0.5,
     },
     cardText: {
-      fontSize: 15,
+      fontSize: 16,
       fontFamily: FONTS.regular,
       color: COLORS.textPrimary,
-      lineHeight: 24,
+      lineHeight: 26,
     },
     cardGroup: {
       marginBottom: 32,
@@ -317,19 +317,19 @@ function createGlobalStyles(COLORS, mode) {
       marginLeft: 8,
     },
     contentPaddingBottom: {
-      paddingBottom: 100,
+      paddingBottom: 120,
     },
     sectionTitle: {
-      fontSize: 18,
+      fontSize: 20,
       color: COLORS.textPrimary,
       fontFamily: FONTS.bold,
-      marginBottom: 16,
-      letterSpacing: -0.3,
+      marginBottom: 20,
+      letterSpacing: -0.5,
     },
     empty: {
       fontSize: 16,
       color: COLORS.textSecondary,
-      marginTop: 24,
+      marginTop: 32,
       textAlign: "center",
       fontFamily: FONTS.medium,
     },
@@ -403,13 +403,13 @@ export function ThemeProvider({ children }) {
   // Gradient Constants
   const gradients = useMemo(() => ({
     primary: mode === 'dark'
-      ? [colors.primary, '#4A90E2']
-      : [colors.primary, '#1976D2'],
+      ? [colors.primary, '#60A5FA'] // Lighter blue for dark mode
+      : [colors.primary, '#1D4ED8'], // Darker blue for light mode
     card: mode === 'dark'
-      ? [colors.cardBackground, '#1C2128']
-      : [colors.cardBackground, '#F8F9FA'],
-    success: ['#4CAF50', '#43A047'],
-    error: ['#FF4C4C', '#D32F2F'],
+      ? [colors.cardBackground, '#1E293B']
+      : [colors.cardBackground, '#F8FAFC'],
+    success: ['#22C55E', '#16A34A'],
+    error: ['#EF4444', '#DC2626'],
   }), [colors, mode]);
 
   const setAndPersist = (newMode) => {

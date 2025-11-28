@@ -412,250 +412,137 @@ export default function AdminScreen() {
     }
   };
 
-  if (loading && users.length === 0) {
-    return (
-      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={[styles.text, { marginTop: 16 }]}>Loading users...</Text>
-      </View>
-    );
-  }
-
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <View style={styles.container}>
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: 100 }}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} />
         }
+        showsVerticalScrollIndicator={false}
       >
-        <View style={{ padding: 16, paddingTop: 24 }}>
+        <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
           {/* Minimal Header */}
           <Header title="Admin" subtitle="Manage users and permissions" />
 
           {/* Admin Actions - Organized by Category */}
-          <View>
+          <View style={{ gap: 24 }}>
             {/* Academic Management Section - Super Admin Only */}
             {user?.role === 'super admin' && (
-              <>
-                <Text style={{ fontSize: 13, fontWeight: "700", color: colors.textSecondary, marginBottom: 12, marginTop: 8, textTransform: "uppercase", letterSpacing: 1 }}>
+              <View>
+                <Text style={styles.sectionTitle}>
                   Academic Management
                 </Text>
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
-                  <Pressable
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
+                  <MenuCard
+                    title="Academic Year"
+                    icon="calendar-today"
+                    color={colors.primary}
                     onPress={() => router.push("/admin/academic-year")}
-                    style={({ pressed }) => ({
-                      flex: 1,
-                      minWidth: "30%",
-                      backgroundColor: colors.cardBackground,
-                      padding: 16,
-                      borderRadius: 16,
-                      alignItems: "center",
-                      opacity: pressed ? 0.9 : 1,
-                      elevation: 2,
-                    })}
-                  >
-                    <View style={{ backgroundColor: colors.primary + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                      <MaterialIcons name="calendar-today" size={24} color={colors.primary} />
-                    </View>
-                    <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textPrimary, textAlign: "center" }}>Academic Year</Text>
-                  </Pressable>
-
-                  <Pressable
+                  />
+                  <MenuCard
+                    title="Subjects"
+                    icon="menu-book"
+                    color="#673AB7"
                     onPress={() => router.push("/admin/subjects")}
-                    style={({ pressed }) => ({
-                      flex: 1,
-                      minWidth: "30%",
-                      backgroundColor: colors.cardBackground,
-                      padding: 16,
-                      borderRadius: 16,
-                      alignItems: "center",
-                      opacity: pressed ? 0.9 : 1,
-                      elevation: 2,
-                    })}
-                  >
-                    <View style={{ backgroundColor: "#673AB7" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                      <MaterialIcons name="menu-book" size={24} color="#673AB7" />
-                    </View>
-                    <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textPrimary, textAlign: "center" }}>Subjects</Text>
-                  </Pressable>
+                  />
                 </View>
-              </>
+              </View>
             )}
 
             {/* Teaching Management Section - Admin & Super Admin */}
-            <Text style={{ fontSize: 13, fontWeight: "700", color: colors.textSecondary, marginBottom: 12, marginTop: 8, textTransform: "uppercase", letterSpacing: 1 }}>
-              Teaching Management
-            </Text>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
-              <Pressable
-                onPress={() => router.push("/admin/teacher-subjects")}
-                style={({ pressed }) => ({
-                  flex: 1,
-                  minWidth: "30%",
-                  backgroundColor: colors.cardBackground,
-                  padding: 16,
-                  borderRadius: 16,
-                  alignItems: "center",
-                  opacity: pressed ? 0.9 : 1,
-                  elevation: 2,
-                })}
-              >
-                <View style={{ backgroundColor: "#4CAF50" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                  <MaterialIcons name="assignment-ind" size={24} color="#4CAF50" />
-                </View>
-                <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textPrimary, textAlign: "center" }}>Teacher Subjects</Text>
-              </Pressable>
+            <View>
+              <Text style={styles.sectionTitle}>
+                Teaching Management
+              </Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
+                <MenuCard
+                  title="Teacher Subjects"
+                  icon="assignment-ind"
+                  color="#4CAF50"
+                  onPress={() => router.push("/admin/teacher-subjects")}
+                />
+              </View>
             </View>
 
             {/* Class Operations Section */}
-            <Text style={{ fontSize: 13, fontWeight: "700", color: colors.textSecondary, marginBottom: 12, marginTop: 8, textTransform: "uppercase", letterSpacing: 1 }}>
-              Class Operations
-            </Text>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
-
-
-              <Pressable
-                onPress={() => router.push("/admin/timetable")}
-                style={({ pressed }) => ({
-                  flex: 1,
-                  minWidth: "30%",
-                  backgroundColor: colors.cardBackground,
-                  borderRadius: 16,
-                  padding: 16,
-                  alignItems: "center",
-                  elevation: 2,
-                  opacity: pressed ? 0.7 : 1
-                })}
-              >
-                <View style={{ backgroundColor: "#9C27B0" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                  <MaterialIcons name="schedule" size={24} color="#9C27B0" />
-                </View>
-                <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textPrimary, textAlign: "center" }}>Timetable</Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => router.push("/admin/exam-schedule")}
-                style={({ pressed }) => ({
-                  flex: 1,
-                  minWidth: "30%",
-                  backgroundColor: colors.cardBackground,
-                  borderRadius: 16,
-                  padding: 16,
-                  alignItems: "center",
-                  elevation: 2,
-                  opacity: pressed ? 0.7 : 1
-                })}
-              >
-                <View style={{ backgroundColor: "#E91E63" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                  <MaterialIcons name="event" size={24} color="#E91E63" />
-                </View>
-                <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textPrimary, textAlign: "center" }}>Exams</Text>
-              </Pressable>
+            <View>
+              <Text style={styles.sectionTitle}>
+                Class Operations
+              </Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
+                <MenuCard
+                  title="Timetable"
+                  icon="schedule"
+                  color="#9C27B0"
+                  onPress={() => router.push("/admin/timetable")}
+                />
+                <MenuCard
+                  title="Exams"
+                  icon="event"
+                  color="#E91E63"
+                  onPress={() => router.push("/admin/exam-schedule")}
+                />
+              </View>
             </View>
 
             {/* Financial Section */}
-            <Text style={{ fontSize: 13, fontWeight: "700", color: colors.textSecondary, marginBottom: 12, marginTop: 8, textTransform: "uppercase", letterSpacing: 1 }}>
-              Financial
-            </Text>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
-              <Pressable
-                onPress={() => router.push("/admin/fees")}
-                style={({ pressed }) => ({
-                  flex: 1,
-                  minWidth: "30%",
-                  backgroundColor: colors.cardBackground,
-                  borderRadius: 16,
-                  padding: 16,
-                  alignItems: "center",
-                  elevation: 2,
-                  opacity: pressed ? 0.7 : 1
-                })}
-              >
-                <View style={{ backgroundColor: "#FF5722" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                  <MaterialIcons name="attach-money" size={24} color="#FF5722" />
-                </View>
-                <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textPrimary, textAlign: "center" }}>Fees</Text>
-              </Pressable>
+            <View>
+              <Text style={styles.sectionTitle}>
+                Financial
+              </Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
+                <MenuCard
+                  title="Fees"
+                  icon="attach-money"
+                  color="#FF5722"
+                  onPress={() => router.push("/admin/fees")}
+                />
+              </View>
             </View>
 
             {/* Communication & Requests Section */}
-            <Text style={{ fontSize: 13, fontWeight: "700", color: colors.textSecondary, marginBottom: 12, marginTop: 8, textTransform: "uppercase", letterSpacing: 1 }}>
-              Communication & Requests
-            </Text>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
-
-
-              <Pressable
-                onPress={() => router.push("/admin/complaints")}
-                style={({ pressed }) => ({
-                  flex: 1,
-                  minWidth: "30%",
-                  backgroundColor: colors.cardBackground,
-                  borderRadius: 16,
-                  padding: 16,
-                  alignItems: "center",
-                  elevation: 2,
-                  opacity: pressed ? 0.7 : 1
-                })}
-              >
-                <View style={{ backgroundColor: "#607D8B" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                  <MaterialIcons name="feedback" size={24} color="#607D8B" />
-                </View>
-                <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textPrimary, textAlign: "center" }}>Complaints</Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => router.push("/admin/send-notification")}
-                style={({ pressed }) => ({
-                  flex: 1,
-                  minWidth: "30%",
-                  backgroundColor: colors.cardBackground,
-                  borderRadius: 16,
-                  padding: 16,
-                  alignItems: "center",
-                  elevation: 2,
-                  opacity: pressed ? 0.7 : 1
-                })}
-              >
-                <View style={{ backgroundColor: "#3F51B5" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                  <MaterialIcons name="campaign" size={24} color="#3F51B5" />
-                </View>
-                <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textPrimary, textAlign: "center" }}>Broadcast</Text>
-              </Pressable>
+            <View>
+              <Text style={styles.sectionTitle}>
+                Communication
+              </Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
+                <MenuCard
+                  title="Complaints"
+                  icon="feedback"
+                  color="#607D8B"
+                  onPress={() => router.push("/admin/complaints")}
+                />
+                <MenuCard
+                  title="Broadcast"
+                  icon="campaign"
+                  color="#3F51B5"
+                  onPress={() => router.push("/admin/send-notification")}
+                />
+              </View>
             </View>
 
             {/* Reports Section */}
-            <Text style={{ fontSize: 13, fontWeight: "700", color: colors.textSecondary, marginBottom: 12, marginTop: 8, textTransform: "uppercase", letterSpacing: 1 }}>
-              Reports
-            </Text>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
-              <Pressable
-                onPress={() => router.push("/history")}
-                style={({ pressed }) => ({
-                  flex: 1,
-                  minWidth: "30%",
-                  backgroundColor: colors.cardBackground,
-                  borderRadius: 16,
-                  padding: 16,
-                  alignItems: "center",
-                  elevation: 2,
-                  opacity: pressed ? 0.7 : 1
-                })}
-              >
-                <View style={{ backgroundColor: "#795548" + "15", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                  <MaterialIcons name="history" size={24} color="#795548" />
-                </View>
-                <Text style={{ fontSize: 14, fontWeight: "600", color: colors.textPrimary, textAlign: "center" }}>History</Text>
-              </Pressable>
+            <View>
+              <Text style={styles.sectionTitle}>
+                Reports
+              </Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
+                <MenuCard
+                  title="History"
+                  icon="history"
+                  color="#795548"
+                  onPress={() => router.push("/history")}
+                />
+              </View>
             </View>
           </View>
 
           {/* User Management Section */}
-          <View style={{ marginTop: 24 }}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <Text style={{ fontSize: 13, fontWeight: "700", color: colors.textSecondary, textTransform: "uppercase", letterSpacing: 1 }}>
+          <View style={{ marginTop: 32 }}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <Text style={styles.sectionTitle}>
                 User Management
               </Text>
               <Pressable
@@ -667,42 +554,42 @@ export default function AdminScreen() {
                 style={({ pressed }) => ({
                   flexDirection: "row",
                   alignItems: "center",
-                  backgroundColor: colors.primary + "15",
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
-                  borderRadius: 8,
-                  opacity: pressed ? 0.7 : 1
+                  backgroundColor: colors.primary,
+                  paddingHorizontal: 16,
+                  paddingVertical: 8,
+                  borderRadius: 20,
+                  opacity: pressed ? 0.9 : 1,
+                  shadowColor: colors.primary,
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 8,
+                  elevation: 4,
                 })}
               >
-                <MaterialIcons name="add" size={18} color={colors.primary} style={{ marginRight: 4 }} />
-                <Text style={{ fontSize: 13, fontWeight: "600", color: colors.primary }}>
+                <MaterialIcons name="add" size={20} color="#fff" style={{ marginRight: 4 }} />
+                <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: "#fff" }}>
                   Add User
                 </Text>
               </Pressable>
             </View>
 
             {/* Search Bar */}
-            <View style={{ marginBottom: 16 }}>
-              <View style={{
+            <View style={{ marginBottom: 20 }}>
+              <View style={[styles.input, {
                 flexDirection: "row",
                 alignItems: "center",
-                backgroundColor: colors.cardBackground,
-                borderRadius: 12,
                 paddingHorizontal: 16,
-                height: 50,
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.05,
-                shadowRadius: 8,
-                elevation: 2,
-              }}>
-                <MaterialIcons name="search" size={22} color={colors.textSecondary} />
+                height: 56,
+                borderRadius: 16
+              }]}>
+                <MaterialIcons name="search" size={24} color={colors.textSecondary} />
                 <TextInput
                   style={{
                     flex: 1,
                     marginLeft: 12,
                     fontSize: 16,
                     color: colors.textPrimary,
+                    fontFamily: "DMSans-Regular",
                     height: "100%",
                   }}
                   placeholder="Search users..."
@@ -722,8 +609,8 @@ export default function AdminScreen() {
             </View>
 
             {/* Filters and Sort */}
-            <View style={{ marginBottom: 16 }}>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+            <View style={{ marginBottom: 20 }}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingRight: 20 }}>
                 {/* Role Filter */}
                 {["all", "student", "teacher", "admin", "staff"].map((role) => (
                   <Pressable
@@ -739,12 +626,18 @@ export default function AdminScreen() {
                       borderRadius: 20,
                       borderWidth: 1,
                       borderColor: roleFilter === role ? colors.primary : colors.border,
+                      elevation: roleFilter === role ? 4 : 0,
+                      shadowColor: roleFilter === role ? colors.primary : "#000",
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: roleFilter === role ? 0.3 : 0,
+                      shadowRadius: 4,
                     }}
                   >
                     <Text style={{
                       color: roleFilter === role ? "#fff" : colors.textSecondary,
-                      fontWeight: "600",
-                      textTransform: "capitalize"
+                      fontFamily: roleFilter === role ? "DMSans-Bold" : "DMSans-Medium",
+                      textTransform: "capitalize",
+                      fontSize: 14
                     }}>
                       {role === "all" ? "All Roles" : role}
                     </Text>
@@ -752,23 +645,23 @@ export default function AdminScreen() {
                 ))}
               </ScrollView>
 
-              <View style={{ flexDirection: "row", marginTop: 12, gap: 12 }}>
+              <View style={{ flexDirection: "row", marginTop: 16, gap: 12 }}>
                 {/* Sort By */}
                 <Pressable
                   onPress={() => setSortBy(sortBy === "createdAt" ? "name" : "createdAt")}
                   style={{
                     flexDirection: "row",
                     alignItems: "center",
-                    paddingHorizontal: 12,
-                    paddingVertical: 6,
+                    paddingHorizontal: 14,
+                    paddingVertical: 8,
                     backgroundColor: colors.cardBackground,
-                    borderRadius: 8,
+                    borderRadius: 12,
                     borderWidth: 1,
                     borderColor: colors.border,
                   }}
                 >
-                  <MaterialIcons name="sort" size={16} color={colors.textSecondary} style={{ marginRight: 4 }} />
-                  <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
+                  <MaterialIcons name="sort" size={18} color={colors.textSecondary} style={{ marginRight: 6 }} />
+                  <Text style={{ color: colors.textSecondary, fontSize: 13, fontFamily: "DMSans-Medium" }}>
                     Sort: {sortBy === "createdAt" ? "Date" : "Name"}
                   </Text>
                 </Pressable>
@@ -779,16 +672,16 @@ export default function AdminScreen() {
                   style={{
                     flexDirection: "row",
                     alignItems: "center",
-                    paddingHorizontal: 12,
-                    paddingVertical: 6,
+                    paddingHorizontal: 14,
+                    paddingVertical: 8,
                     backgroundColor: colors.cardBackground,
-                    borderRadius: 8,
+                    borderRadius: 12,
                     borderWidth: 1,
                     borderColor: colors.border,
                   }}
                 >
-                  <MaterialIcons name={sortOrder === "asc" ? "arrow-upward" : "arrow-downward"} size={16} color={colors.textSecondary} style={{ marginRight: 4 }} />
-                  <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
+                  <MaterialIcons name={sortOrder === "asc" ? "arrow-upward" : "arrow-downward"} size={18} color={colors.textSecondary} style={{ marginRight: 6 }} />
+                  <Text style={{ color: colors.textSecondary, fontSize: 13, fontFamily: "DMSans-Medium" }}>
                     {sortOrder === "asc" ? "Ascending" : "Descending"}
                   </Text>
                 </Pressable>
@@ -796,163 +689,164 @@ export default function AdminScreen() {
             </View>
 
             {/* Users List */}
-            < View >
-
-              {
-                users.map((userItem) => (
-                  <View
-                    key={userItem._id}
-                    style={{
-                      backgroundColor: colors.cardBackground,
-                      borderRadius: 16,
-                      padding: 16,
-                      marginBottom: 12,
-                      // Very subtle shadow
-                      shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 1 },
-                      shadowOpacity: 0.03,
-                      shadowRadius: 4,
-                      elevation: 1,
-                    }}
-                  >
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                      <View style={{ flex: 1, marginRight: 12 }}>
-                        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
-                          <Text style={{ fontSize: 17, fontWeight: "600", color: colors.textPrimary, marginRight: 8 }}>
-                            {userItem.name}
-                          </Text>
-                          <View
-                            style={{
-                              backgroundColor: getRoleColor(userItem.role) + "20", // 20% opacity
-                              paddingHorizontal: 8,
-                              paddingVertical: 2,
-                              borderRadius: 100,
-                            }}
-                          >
-                            <Text
+            <View>
+              {loading && users.length === 0 ? (
+                <View style={{ padding: 40, alignItems: 'center' }}>
+                  <ActivityIndicator size="large" color={colors.primary} />
+                  <Text style={{ marginTop: 16, color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>Loading users...</Text>
+                </View>
+              ) : (
+                <>
+                  {users.map((userItem) => (
+                    <View
+                      key={userItem._id}
+                      style={[styles.cardMinimal, { marginBottom: 16, padding: 16 }]}
+                    >
+                      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                        <View style={{ flex: 1, marginRight: 12 }}>
+                          <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
+                            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginRight: 8 }}>
+                              {userItem.name}
+                            </Text>
+                            <View
                               style={{
-                                fontSize: 11,
-                                fontWeight: "600",
-                                color: getRoleColor(userItem.role),
-                                textTransform: "uppercase",
+                                backgroundColor: getRoleColor(userItem.role) + "20",
+                                paddingHorizontal: 10,
+                                paddingVertical: 4,
+                                borderRadius: 12,
                               }}
                             >
-                              {userItem.role}
-                            </Text>
+                              <Text
+                                style={{
+                                  fontSize: 11,
+                                  fontFamily: "DMSans-Bold",
+                                  color: getRoleColor(userItem.role),
+                                  textTransform: "uppercase",
+                                }}
+                              >
+                                {userItem.role}
+                              </Text>
+                            </View>
+                          </View>
+
+                          <View style={{ gap: 4 }}>
+                            {userItem.email ? (
+                              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                                <MaterialIcons name="email" size={14} color={colors.textSecondary} style={{ marginRight: 6 }} />
+                                <Text style={{ fontSize: 14, color: colors.textSecondary, fontFamily: "DMSans-Regular" }}>
+                                  {userItem.email}
+                                </Text>
+                              </View>
+                            ) : null}
+                            {userItem.phone ? (
+                              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                                <MaterialIcons name="phone" size={14} color={colors.textSecondary} style={{ marginRight: 6 }} />
+                                <Text style={{ fontSize: 14, color: colors.textSecondary, fontFamily: "DMSans-Regular" }}>
+                                  {userItem.phone}
+                                </Text>
+                              </View>
+                            ) : null}
                           </View>
                         </View>
 
-                        <View style={{ gap: 2 }}>
-                          {userItem.email ? (
-                            <Text style={{ fontSize: 14, color: colors.textSecondary }}>
-                              {userItem.email}
-                            </Text>
-                          ) : null}
-                          {userItem.phone ? (
-                            <Text style={{ fontSize: 13, color: colors.textSecondary, opacity: 0.8 }}>
-                              {userItem.phone}
-                            </Text>
-                          ) : null}
+                        <View style={{ flexDirection: "row", gap: 12 }}>
+                          <Pressable
+                            onPress={() => {
+                              setModalMode("edit");
+                              setEditingUser(userItem);
+                              setUserForm({ name: userItem.name, phone: userItem.phone, email: userItem.email, password: "", role: userItem.role });
+                              setShowUserModal(true);
+                            }}
+                            style={({ pressed }) => ({
+                              padding: 10,
+                              backgroundColor: colors.background,
+                              borderRadius: 12,
+                              opacity: pressed ? 0.7 : 1,
+                              borderWidth: 1,
+                              borderColor: colors.border
+                            })}
+                          >
+                            <MaterialIcons name="edit" size={20} color={colors.textSecondary} />
+                          </Pressable>
+
+                          <Pressable
+                            onPress={() => {
+                              Alert.alert(
+                                "Delete User",
+                                `Are you sure you want to delete ${userItem.name}?`,
+                                [
+                                  { text: "Cancel", style: "cancel" },
+                                  { text: "Delete", style: "destructive", onPress: () => deleteUser(userItem._id, userItem.name) },
+                                ]
+                              );
+                            }}
+                            style={({ pressed }) => ({
+                              padding: 10,
+                              backgroundColor: colors.error + "15",
+                              borderRadius: 12,
+                              opacity: pressed ? 0.7 : 1,
+                            })}
+                          >
+                            <MaterialIcons name="delete-outline" size={20} color={colors.error} />
+                          </Pressable>
                         </View>
                       </View>
-
-                      <View style={{ flexDirection: "row", gap: 8 }}>
-                        <Pressable
-                          onPress={() => {
-                            setModalMode("edit");
-                            setEditingUser(userItem);
-                            setUserForm({ name: userItem.name, phone: userItem.phone, email: userItem.email, password: "", role: userItem.role });
-                            setShowUserModal(true);
-                          }}
-                          style={({ pressed }) => ({
-                            padding: 8,
-                            backgroundColor: colors.background,
-                            borderRadius: 8,
-                            opacity: pressed ? 0.7 : 1,
-                          })}
-                        >
-                          <MaterialIcons name="edit" size={18} color={colors.textSecondary} />
-                        </Pressable>
-
-                        <Pressable
-                          onPress={() => {
-                            Alert.alert(
-                              "Delete User",
-                              `Are you sure you want to delete ${userItem.name}?`,
-                              [
-                                { text: "Cancel", style: "cancel" },
-                                { text: "Delete", style: "destructive", onPress: () => deleteUser(userItem._id, userItem.name) },
-                              ]
-                            );
-                          }}
-                          style={({ pressed }) => ({
-                            padding: 8,
-                            backgroundColor: colors.error + "15",
-                            borderRadius: 8,
-                            opacity: pressed ? 0.7 : 1,
-                          })}
-                        >
-                          <MaterialIcons name="delete-outline" size={18} color={colors.error} />
-                        </Pressable>
-                      </View>
                     </View>
-                  </View>
-                ))
-              }
+                  ))}
 
-              {
-                users.length === 0 && (
-                  <View style={{ alignItems: "center", padding: 40, opacity: 0.6 }}>
-                    <MaterialIcons name="search-off" size={48} color={colors.textSecondary} />
-                    <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16 }}>
-                      No users found
-                    </Text>
-                  </View>
-                )
-              }
+                  {users.length === 0 && (
+                    <View style={{ alignItems: "center", padding: 40, opacity: 0.6 }}>
+                      <MaterialIcons name="search-off" size={64} color={colors.textSecondary} />
+                      <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16, fontFamily: "DMSans-Medium" }}>
+                        No users found
+                      </Text>
+                    </View>
+                  )}
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: 24, gap: 16 }}>
-                  <Pressable
-                    onPress={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    style={{
-                      padding: 10,
-                      backgroundColor: currentPage === 1 ? colors.background : colors.cardBackground,
-                      borderRadius: 8,
-                      opacity: currentPage === 1 ? 0.5 : 1,
-                    }}
-                  >
-                    <MaterialIcons name="chevron-left" size={24} color={colors.textPrimary} />
-                  </Pressable>
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: 24, gap: 16 }}>
+                      <Pressable
+                        onPress={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        style={{
+                          padding: 12,
+                          backgroundColor: currentPage === 1 ? colors.background : colors.cardBackground,
+                          borderRadius: 12,
+                          opacity: currentPage === 1 ? 0.5 : 1,
+                          borderWidth: 1,
+                          borderColor: colors.border
+                        }}
+                      >
+                        <MaterialIcons name="chevron-left" size={24} color={colors.textPrimary} />
+                      </Pressable>
 
-                  <Text style={{ fontSize: 16, fontWeight: "600", color: colors.textPrimary }}>
-                    Page {currentPage} of {totalPages}
-                  </Text>
+                      <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
+                        Page {currentPage} of {totalPages}
+                      </Text>
 
-                  <Pressable
-                    onPress={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    style={{
-                      padding: 10,
-                      backgroundColor: currentPage === totalPages ? colors.background : colors.cardBackground,
-                      borderRadius: 8,
-                      opacity: currentPage === totalPages ? 0.5 : 1,
-                    }}
-                  >
-                    <MaterialIcons name="chevron-right" size={24} color={colors.textPrimary} />
-                  </Pressable>
-                </View>
+                      <Pressable
+                        onPress={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        style={{
+                          padding: 12,
+                          backgroundColor: currentPage === totalPages ? colors.background : colors.cardBackground,
+                          borderRadius: 12,
+                          opacity: currentPage === totalPages ? 0.5 : 1,
+                          borderWidth: 1,
+                          borderColor: colors.border
+                        }}
+                      >
+                        <MaterialIcons name="chevron-right" size={24} color={colors.textPrimary} />
+                      </Pressable>
+                    </View>
+                  )}
+                </>
               )}
-
             </View>
           </View>
         </View>
       </ScrollView>
-
-      {/* Floating Action Button */}
-
 
       {/* User Modal */}
       <Modal
@@ -962,44 +856,31 @@ export default function AdminScreen() {
         onRequestClose={() => setShowUserModal(false)}
       >
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.6)" }}>
-          <View style={{
-            backgroundColor: colors.cardBackground,
-            borderRadius: 24,
-            padding: 24,
+          <View style={[styles.card, {
             width: "90%",
             maxWidth: 400,
-            maxHeight: "90%", // Allow scrolling if content is long
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 10 },
-            shadowOpacity: 0.25,
-            shadowRadius: 20,
-            elevation: 10,
-          }}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-                <Text style={{ fontSize: 22, fontWeight: "700", color: colors.textPrimary }}>
+            maxHeight: "90%",
+            padding: 0,
+            overflow: 'hidden'
+          }]}>
+            <View style={{ padding: 24, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                <Text style={{ fontSize: 24, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
                   {modalMode === "add" ? "New User" : "Edit User"}
                 </Text>
                 <Pressable onPress={() => setShowUserModal(false)} style={{ padding: 4 }}>
                   <MaterialIcons name="close" size={24} color={colors.textSecondary} />
                 </Pressable>
               </View>
+            </View>
 
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 24 }}>
               {modalMode === "add" && (
                 <>
-                  <View style={{ marginBottom: 16 }}>
-                    <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 8, marginLeft: 4 }}>NAME</Text>
+                  <View style={{ marginBottom: 20 }}>
+                    <Text style={[styles.label, { marginBottom: 8 }]}>NAME</Text>
                     <TextInput
-                      style={{
-                        backgroundColor: colors.background,
-                        borderRadius: 12,
-                        paddingHorizontal: 16,
-                        paddingVertical: 12,
-                        fontSize: 16,
-                        color: colors.textPrimary,
-                        borderWidth: 1,
-                        borderColor: errors.name && touched.name ? colors.error : "transparent"
-                      }}
+                      style={styles.input}
                       placeholder="Enter name"
                       placeholderTextColor={colors.textSecondary}
                       value={userForm.name}
@@ -1007,23 +888,14 @@ export default function AdminScreen() {
                       onBlur={() => handleBlur("name")}
                     />
                     {errors.name && touched.name && (
-                      <Text style={{ color: colors.error, fontSize: 12, marginTop: 4, marginLeft: 4 }}>{errors.name}</Text>
+                      <Text style={styles.errorText}>{errors.name}</Text>
                     )}
                   </View>
 
-                  <View style={{ marginBottom: 16 }}>
-                    <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 8, marginLeft: 4 }}>PHONE</Text>
+                  <View style={{ marginBottom: 20 }}>
+                    <Text style={[styles.label, { marginBottom: 8 }]}>PHONE</Text>
                     <TextInput
-                      style={{
-                        backgroundColor: colors.background,
-                        borderRadius: 12,
-                        paddingHorizontal: 16,
-                        paddingVertical: 12,
-                        fontSize: 16,
-                        color: colors.textPrimary,
-                        borderWidth: 1,
-                        borderColor: errors.phone && touched.phone ? colors.error : "transparent"
-                      }}
+                      style={styles.input}
                       placeholder="Enter phone number"
                       placeholderTextColor={colors.textSecondary}
                       value={userForm.phone}
@@ -1033,23 +905,14 @@ export default function AdminScreen() {
                       maxLength={10}
                     />
                     {errors.phone && touched.phone && (
-                      <Text style={{ color: colors.error, fontSize: 12, marginTop: 4, marginLeft: 4 }}>{errors.phone}</Text>
+                      <Text style={styles.errorText}>{errors.phone}</Text>
                     )}
                   </View>
 
-                  <View style={{ marginBottom: 16 }}>
-                    <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 8, marginLeft: 4 }}>EMAIL</Text>
+                  <View style={{ marginBottom: 20 }}>
+                    <Text style={[styles.label, { marginBottom: 8 }]}>EMAIL</Text>
                     <TextInput
-                      style={{
-                        backgroundColor: colors.background,
-                        borderRadius: 12,
-                        paddingHorizontal: 16,
-                        paddingVertical: 12,
-                        fontSize: 16,
-                        color: colors.textPrimary,
-                        borderWidth: 1,
-                        borderColor: errors.email && touched.email ? colors.error : "transparent"
-                      }}
+                      style={styles.input}
                       placeholder="Enter email (optional)"
                       placeholderTextColor={colors.textSecondary}
                       value={userForm.email}
@@ -1059,27 +922,20 @@ export default function AdminScreen() {
                       autoCapitalize="none"
                     />
                     {errors.email && touched.email && (
-                      <Text style={{ color: colors.error, fontSize: 12, marginTop: 4, marginLeft: 4 }}>{errors.email}</Text>
+                      <Text style={styles.errorText}>{errors.email}</Text>
                     )}
                   </View>
 
                   <View style={{ marginBottom: 24 }}>
-                    <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 8, marginLeft: 4 }}>PASSWORD</Text>
-                    <View style={{
-                      backgroundColor: colors.background,
-                      borderRadius: 12,
-                      flexDirection: "row",
-                      alignItems: "center",
-                      borderWidth: 1,
-                      borderColor: errors.password && touched.password ? colors.error : "transparent"
-                    }}>
+                    <Text style={[styles.label, { marginBottom: 8 }]}>PASSWORD</Text>
+                    <View style={[styles.input, { flexDirection: "row", alignItems: "center", paddingHorizontal: 16 }]}>
                       <TextInput
                         style={{
                           flex: 1,
-                          paddingHorizontal: 16,
-                          paddingVertical: 12,
                           fontSize: 16,
                           color: colors.textPrimary,
+                          fontFamily: "DMSans-Regular",
+                          height: "100%"
                         }}
                         placeholder="Enter password"
                         placeholderTextColor={colors.textSecondary}
@@ -1090,7 +946,6 @@ export default function AdminScreen() {
                       />
                       <Pressable
                         onPress={() => setShowPassword(!showPassword)}
-                        style={{ paddingHorizontal: 16 }}
                       >
                         <MaterialIcons
                           name={showPassword ? "visibility-off" : "visibility"}
@@ -1100,14 +955,14 @@ export default function AdminScreen() {
                       </Pressable>
                     </View>
                     {errors.password && touched.password && (
-                      <Text style={{ color: colors.error, fontSize: 12, marginTop: 4, marginLeft: 4 }}>{errors.password}</Text>
+                      <Text style={styles.errorText}>{errors.password}</Text>
                     )}
                   </View>
 
                   {/* Role Selection */}
                   <View style={{ marginBottom: 24 }}>
-                    <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 8, marginLeft: 4 }}>ROLE</Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <Text style={[styles.label, { marginBottom: 12 }]}>ROLE</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
                       {availableRoles.map((role) => (
                         <Pressable
                           key={role}
@@ -1117,15 +972,15 @@ export default function AdminScreen() {
                             paddingVertical: 10,
                             backgroundColor: userForm.role === role ? colors.primary : colors.background,
                             borderRadius: 12,
-                            marginRight: 8,
                             borderWidth: 1,
                             borderColor: userForm.role === role ? colors.primary : colors.border
                           }}
                         >
                           <Text style={{
                             color: userForm.role === role ? "#fff" : colors.textPrimary,
-                            fontWeight: "600",
-                            textTransform: "capitalize"
+                            fontFamily: "DMSans-Bold",
+                            textTransform: "capitalize",
+                            fontSize: 14
                           }}>
                             {role}
                           </Text>
@@ -1137,38 +992,20 @@ export default function AdminScreen() {
                   {/* Student Specific Fields */}
                   {userForm.role === "student" && (
                     <>
-                      <View style={{ marginBottom: 16 }}>
-                        <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 8, marginLeft: 4 }}>GUARDIAN NAME</Text>
+                      <View style={{ marginBottom: 20 }}>
+                        <Text style={[styles.label, { marginBottom: 8 }]}>GUARDIAN NAME</Text>
                         <TextInput
-                          style={{
-                            backgroundColor: colors.background,
-                            borderRadius: 12,
-                            paddingHorizontal: 16,
-                            paddingVertical: 12,
-                            fontSize: 16,
-                            color: colors.textPrimary,
-                            borderWidth: 1,
-                            borderColor: "transparent"
-                          }}
+                          style={styles.input}
                           placeholder="Enter guardian name"
                           placeholderTextColor={colors.textSecondary}
                           value={userForm.guardianName}
                           onChangeText={(text) => handleChange("guardianName", text)}
                         />
                       </View>
-                      <View style={{ marginBottom: 16 }}>
-                        <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 8, marginLeft: 4 }}>GUARDIAN PHONE</Text>
+                      <View style={{ marginBottom: 20 }}>
+                        <Text style={[styles.label, { marginBottom: 8 }]}>GUARDIAN PHONE</Text>
                         <TextInput
-                          style={{
-                            backgroundColor: colors.background,
-                            borderRadius: 12,
-                            paddingHorizontal: 16,
-                            paddingVertical: 12,
-                            fontSize: 16,
-                            color: colors.textPrimary,
-                            borderWidth: 1,
-                            borderColor: "transparent"
-                          }}
+                          style={styles.input}
                           placeholder="Enter guardian phone"
                           placeholderTextColor={colors.textSecondary}
                           value={userForm.guardianPhone}
@@ -1183,19 +1020,10 @@ export default function AdminScreen() {
                   {/* Teacher Specific Fields */}
                   {(userForm.role === "class teacher" || userForm.role === "staff") && (
                     <>
-                      <View style={{ marginBottom: 16 }}>
-                        <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 8, marginLeft: 4 }}>DESIGNATION</Text>
+                      <View style={{ marginBottom: 20 }}>
+                        <Text style={[styles.label, { marginBottom: 8 }]}>DESIGNATION</Text>
                         <TextInput
-                          style={{
-                            backgroundColor: colors.background,
-                            borderRadius: 12,
-                            paddingHorizontal: 16,
-                            paddingVertical: 12,
-                            fontSize: 16,
-                            color: colors.textPrimary,
-                            borderWidth: 1,
-                            borderColor: "transparent"
-                          }}
+                          style={styles.input}
                           placeholder="Enter designation"
                           placeholderTextColor={colors.textSecondary}
                           value={userForm.designation}
@@ -1209,7 +1037,7 @@ export default function AdminScreen() {
 
               {modalMode === "edit" && (
                 <View style={{ marginBottom: 32 }}>
-                  <Text style={{ fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 12, marginLeft: 4 }}>ROLE</Text>
+                  <Text style={[styles.label, { marginBottom: 12 }]}>ROLE</Text>
                   <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                     {availableRoles.map((role) => (
                       <Pressable
@@ -1218,16 +1046,16 @@ export default function AdminScreen() {
                         style={{
                           backgroundColor: userForm.role === role ? colors.primary : colors.background,
                           paddingHorizontal: 16,
-                          paddingVertical: 8,
-                          borderRadius: 100,
+                          paddingVertical: 10,
+                          borderRadius: 12,
                           borderWidth: 1,
-                          borderColor: userForm.role === role ? colors.primary : "transparent",
+                          borderColor: userForm.role === role ? colors.primary : colors.border,
                         }}
                       >
                         <Text
                           style={{
-                            fontSize: 13,
-                            fontWeight: "600",
+                            fontSize: 14,
+                            fontFamily: "DMSans-Bold",
                             color: userForm.role === role ? "#fff" : colors.textSecondary,
                             textTransform: "capitalize",
                           }}
@@ -1241,21 +1069,21 @@ export default function AdminScreen() {
               )}
 
               {/* Action Buttons */}
-              <View style={{ flexDirection: "row", gap: 12, marginTop: 8 }}>
+              <View style={{ flexDirection: "row", gap: 16, marginTop: 12 }}>
                 <Pressable
                   onPress={() => setShowUserModal(false)}
                   style={({ pressed }) => ({
                     flex: 1,
-                    paddingVertical: 14,
-                    borderRadius: 12,
+                    paddingVertical: 16,
+                    borderRadius: 16,
                     alignItems: "center",
                     backgroundColor: colors.background,
                     borderWidth: 1,
-                    borderColor: "transparent",
+                    borderColor: colors.border,
                     opacity: pressed ? 0.8 : 1,
                   })}
                 >
-                  <Text style={{ fontSize: 16, fontWeight: "600", color: colors.textSecondary }}>
+                  <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.textSecondary }}>
                     Cancel
                   </Text>
                 </Pressable>
@@ -1263,24 +1091,19 @@ export default function AdminScreen() {
                 <Pressable
                   onPress={modalMode === "add" ? createUser : () => updateUserRole(editingUser._id, userForm.role)}
                   disabled={(modalMode === "add" && !isFormValid()) || saving}
-                  style={({ pressed }) => ({
-                    flex: 1,
-                    paddingVertical: 14,
-                    borderRadius: 12,
-                    alignItems: "center",
-                    backgroundColor: colors.primary,
-                    shadowColor: colors.primary,
-                    shadowOffset: { width: 0, height: 4 },
-                    shadowOpacity: 0.2,
-                    shadowRadius: 8,
-                    elevation: 4,
-                    opacity: ((modalMode === "add" && !isFormValid()) || saving) ? 0.5 : (pressed ? 0.9 : 1)
-                  })}
+                  style={({ pressed }) => [
+                    styles.button,
+                    {
+                      flex: 1,
+                      opacity: ((modalMode === "add" && !isFormValid()) || saving) ? 0.5 : (pressed ? 0.9 : 1),
+                      marginBottom: 0 // Override default margin
+                    }
+                  ]}
                 >
                   {saving ? (
                     <ActivityIndicator size="small" color="#fff" />
                   ) : (
-                    <Text style={{ fontSize: 16, fontWeight: "600", color: "#fff" }}>
+                    <Text style={styles.buttonText}>
                       {modalMode === "add" ? "Create User" : "Save Changes"}
                     </Text>
                   )}
@@ -1293,3 +1116,47 @@ export default function AdminScreen() {
     </View>
   );
 }
+
+// Helper Component for Menu Cards
+const MenuCard = ({ title, icon, color, onPress }) => {
+  const { colors } = useTheme();
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => ({
+        flex: 1,
+        minWidth: "30%",
+        backgroundColor: colors.cardBackground,
+        padding: 20,
+        borderRadius: 24,
+        alignItems: "center",
+        opacity: pressed ? 0.9 : 1,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 12,
+        elevation: 3,
+        borderWidth: 1,
+        borderColor: colors.border
+      })}
+    >
+      <View style={{
+        backgroundColor: color + "15",
+        padding: 16,
+        borderRadius: 20,
+        marginBottom: 12
+      }}>
+        <MaterialIcons name={icon} size={28} color={color} />
+      </View>
+      <Text style={{
+        fontSize: 14,
+        fontFamily: "DMSans-Bold",
+        color: colors.textPrimary,
+        textAlign: "center"
+      }}>
+        {title}
+      </Text>
+    </Pressable>
+  );
+};

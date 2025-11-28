@@ -80,7 +80,7 @@ export default function ClassesScreen() {
                 setAcademicYears(cachedYears);
                 setTeachers(cachedTeachers);
                 setLoading(false);
-                console.log("[ADMIN_CLASSES] Loaded from cache");
+
             }
 
             // 2. Fetch from API (Silent refresh if cache exists)
@@ -106,7 +106,7 @@ export default function ClassesScreen() {
                     ]);
 
 
-                    console.log("[ADMIN_CLASSES] Refreshed from API");
+
                 } else {
                     if (!cachedClasses) showToast("Failed to load data", "error");
                 }
@@ -188,7 +188,7 @@ export default function ClassesScreen() {
                     text: "Delete",
                     style: "destructive",
                     onPress: async () => {
-                        console.log("[DELETE_CLASS] Attempting to delete:", classId);
+
                         setDeletingId(classId);
                         try {
                             const token = await AsyncStorage.getItem("@auth_token");
@@ -197,7 +197,7 @@ export default function ClassesScreen() {
                                 headers: { Authorization: `Bearer ${token}` },
                             });
 
-                            console.log("[DELETE_CLASS] Response status:", response.status);
+
 
                             if (response.ok) {
                                 // Optimistic Update
@@ -212,7 +212,7 @@ export default function ClassesScreen() {
                                 let errorMsg = "Failed to delete";
                                 try {
                                     const text = await response.text();
-                                    console.log("[DELETE_CLASS] Raw error response:", text);
+
                                     try {
                                         const data = JSON.parse(text);
                                         errorMsg = data.msg || data.message || data.error || JSON.stringify(data);

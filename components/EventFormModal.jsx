@@ -6,7 +6,7 @@ import { useTheme } from '../theme';
 import { useToast } from './ToastProvider';
 import apiConfig from '../config/apiConfig';
 import apiFetch from '../utils/apiFetch';
-import { Checkbox } from 'react-native-paper';
+
 
 // Helper to format dates for display in Indian format (DD-MM-YYYY)
 const formatIndianDate = (dateInput) => {
@@ -180,14 +180,18 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
             )}
           </View>
 
-          <View style={{ marginBottom: 16, flexDirection: 'row', alignItems: 'center' }}>
-            <Checkbox
-              status={isSchoolEvent ? 'checked' : 'unchecked'}
-              onPress={() => setIsSchoolEvent(!isSchoolEvent)}
+          <Pressable
+            style={{ marginBottom: 16, flexDirection: 'row', alignItems: 'center' }}
+            onPress={() => setIsSchoolEvent(!isSchoolEvent)}
+          >
+            <MaterialIcons
+              name={isSchoolEvent ? "check-box" : "check-box-outline-blank"}
+              size={24}
               color={colors.primary}
+              style={{ marginRight: 8 }}
             />
             <Text style={[globalStyles.cardText, { color: colors.textPrimary }]}>Mark as School Event</Text>
-          </View>
+          </Pressable>
 
           <Pressable
             style={[globalStyles.buttonLarge, { width: "100%", backgroundColor: colors.primary }, loading && { opacity: 0.6 }]}

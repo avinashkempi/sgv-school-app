@@ -38,7 +38,7 @@ export default function ProfileScreen() {
                 setUser(freshUserData);
               }
             } catch (err) {
-              console.log("Failed to refresh profile:", err);
+
             }
           }
         } catch (parseError) {

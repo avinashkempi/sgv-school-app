@@ -6,7 +6,7 @@ import { useTheme } from '../theme';
 import { useToast } from './ToastProvider';
 import apiConfig from '../config/apiConfig';
 import apiFetch from '../utils/apiFetch';
-import { Checkbox } from 'react-native-paper';
+
 
 export default function NewsFormModal({ isVisible, onClose, onSubmit, editItem = null }) {
   const [title, setTitle] = useState('');
@@ -191,14 +191,18 @@ export default function NewsFormModal({ isVisible, onClose, onSubmit, editItem =
             )}
           </View>
 
-          <View style={{ marginBottom: 16, flexDirection: 'row', alignItems: 'center' }}>
-            <Checkbox
-              status={privateNews ? 'checked' : 'unchecked'}
-              onPress={() => setPrivateNews(!privateNews)}
+          <Pressable
+            style={{ marginBottom: 16, flexDirection: 'row', alignItems: 'center' }}
+            onPress={() => setPrivateNews(!privateNews)}
+          >
+            <MaterialIcons
+              name={privateNews ? "check-box" : "check-box-outline-blank"}
+              size={24}
               color={colors.primary}
+              style={{ marginRight: 8 }}
             />
             <Text style={[globalStyles.cardText, { color: colors.textPrimary }]}>Private News</Text>
-          </View>
+          </Pressable>
 
           <Pressable
             style={[globalStyles.buttonLarge, { width: "100%", backgroundColor: colors.primary }, loading && { opacity: 0.6 }]}

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { ScrollView, View, Text, Pressable, Alert, RefreshControl, StyleSheet } from "react-native";
+import { ScrollView, View, Text, Pressable, Alert, RefreshControl, StyleSheet, ActivityIndicator } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -207,7 +207,9 @@ export default function EventsScreen() {
             const parsed = JSON.parse(user);
             const isAdmin = !!(parsed && (parsed.role === 'admin' || parsed.role === 'super admin'));
             setIsAuthenticated(isAdmin);
-            if (parsed && parsed.name) console.log('User loaded:', parsed.name, 'isAdmin:', isAdmin);
+            if (parsed && parsed.name) {
+              // User loaded
+            }
           } catch (e) {
             console.warn('Failed to parse stored user', e);
             setIsAuthenticated(false);
@@ -327,9 +329,9 @@ export default function EventsScreen() {
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      console.log('[EVENTS] Refreshing events...');
+
       await refreshEvents(true); // silent=true
-      console.log('[EVENTS] Refreshed successfully');
+
     } catch (err) {
       console.error('[EVENTS] Refresh failed:', err.message);
       showToast('Failed to refresh events');
@@ -395,90 +397,103 @@ export default function EventsScreen() {
     <View style={styles.container}>
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={styles.contentPaddingBottom}
+        contentContainerStyle={{ paddingBottom: 100 }}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} />
         }
+        showsVerticalScrollIndicator={false}
       >
-        <Header title="Events" subtitle="View and manage events" />
+        <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
+          <Header title="Events" subtitle="View and manage events" />
 
-        <View style={styles.cardMinimal}>
-
-          <ModernCalendar
-            current={selectedDate}
-            onDayPress={handleDateSelect}
-            onMonthChange={(month) => {
-              const date = new Date(month.dateString);
-              const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1).toISOString();
-              const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).toISOString();
-              fetchEventsRange(startOfMonth, endOfMonth, (error, count) => {
-                if (error) {
-                  showToast(`Failed to load events: ${error.message || error}`);
-                } else {
-                  showToast(`Loaded ${count} events`);
-                }
-              }, true);
-            }}
-            markedDates={markedDates}
-            dayComponent={({ date, state, marking }) => (
-              <DayRenderer
-                date={date}
-                state={state}
-                marking={marking}
-                onDayPress={handleDateSelect}
-                colors={colors}
-              />
-            )}
-            style={{
-              paddingTop: 0,
-              paddingBottom: 8,
-            }}
-            theme={{
-              calendarBackground: 'transparent',
-              'stylesheet.day.basic': {
-                base: {
-                  width: 40,
-                  height: 40,
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }
-              }
-            }}
-          />
-        </View>
-
-        {selectedDate && (
-          <View style={{ marginTop: 8 }}>
-            <Text style={[styles.label, { marginBottom: 12 }]}>Events on {formatIndianDate(selectedDate)}</Text>
-
-            {loading && filteredEvents.length === 0 ? (
-              <Text style={styles.empty}>Loading events...</Text>
-            ) : filteredEvents.length === 0 ? (
-              <Text style={styles.empty}>No events on this day</Text>
-            ) : (
-              filteredEvents.map((item) => (
-                <EventCard
-                  key={item._id ?? item.id}
-                  event={{ ...item, date: formatIndianDate(item.date) }}
-                  styles={styles}
+          <View style={[styles.card, { padding: 0, overflow: 'hidden', marginBottom: 24 }]}>
+            <ModernCalendar
+              current={selectedDate}
+              onDayPress={handleDateSelect}
+              onMonthChange={(month) => {
+                const date = new Date(month.dateString);
+                const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1).toISOString();
+                const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).toISOString();
+                fetchEventsRange(startOfMonth, endOfMonth, (error, count) => {
+                  if (error) {
+                    showToast(`Failed to load events: ${error.message || error}`);
+                  } else {
+                    showToast(`Loaded ${count} events`);
+                  }
+                }, true);
+              }}
+              markedDates={markedDates}
+              dayComponent={({ date, state, marking }) => (
+                <DayRenderer
+                  date={date}
+                  state={state}
+                  marking={marking}
+                  onDayPress={handleDateSelect}
                   colors={colors}
-                  isAdmin={isAuthenticated}
-                  onEdit={() => handleEditEvent(item)}
-                  onDelete={() => {
-                    Alert.alert(
-                      "Delete Event",
-                      `Are you sure you want to delete "${item.title}"? This action cannot be undone.`,
-                      [
-                        { text: "Cancel", style: "cancel" },
-                        { text: "Delete", style: "destructive", onPress: () => handleDeleteEvent(item._id, item.title) },
-                      ]
-                    );
-                  }}
                 />
-              ))
-            )}
+              )}
+              style={{
+                borderRadius: 24,
+              }}
+              theme={{
+                calendarBackground: 'transparent',
+                'stylesheet.day.basic': {
+                  base: {
+                    width: 40,
+                    height: 40,
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }
+                }
+              }}
+            />
           </View>
-        )}
+
+          {selectedDate && (
+            <View>
+              <Text style={[styles.sectionTitle, { marginBottom: 16 }]}>
+                Events on {formatIndianDate(selectedDate)}
+              </Text>
+
+              {loading && filteredEvents.length === 0 ? (
+                <View style={{ alignItems: 'center', padding: 20 }}>
+                  <ActivityIndicator size="small" color={colors.primary} />
+                  <Text style={{ color: colors.textSecondary, marginTop: 8, fontFamily: "DMSans-Regular" }}>Loading events...</Text>
+                </View>
+              ) : filteredEvents.length === 0 ? (
+                <View style={{ alignItems: 'center', padding: 40, opacity: 0.6 }}>
+                  <MaterialIcons name="event-busy" size={48} color={colors.textSecondary} />
+                  <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16, fontFamily: "DMSans-Medium" }}>
+                    No events on this day
+                  </Text>
+                </View>
+              ) : (
+                <View style={{ gap: 12 }}>
+                  {filteredEvents.map((item) => (
+                    <EventCard
+                      key={item._id ?? item.id}
+                      event={{ ...item, date: formatIndianDate(item.date) }}
+                      styles={styles}
+                      colors={colors}
+                      isAdmin={isAuthenticated}
+                      onEdit={() => handleEditEvent(item)}
+                      onDelete={() => {
+                        Alert.alert(
+                          "Delete Event",
+                          `Are you sure you want to delete "${item.title}"? This action cannot be undone.`,
+                          [
+                            { text: "Cancel", style: "cancel" },
+                            { text: "Delete", style: "destructive", onPress: () => handleDeleteEvent(item._id, item.title) },
+                          ]
+                        );
+                      }}
+                    />
+                  ))}
+                </View>
+              )}
+            </View>
+          )}
+        </View>
 
         <EventFormModal
           isVisible={isEventFormVisible}
