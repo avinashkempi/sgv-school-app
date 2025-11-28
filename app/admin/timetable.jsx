@@ -425,11 +425,22 @@ export default function AdminTimetableScreen() {
                 animationType="slide"
                 onRequestClose={() => setModalVisible(false)}
             >
-                <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
-                    <View style={{ backgroundColor: colors.cardBackground, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: "80%" }}>
-                        <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 20 }}>
-                            {editingPeriod ? "Edit Period" : "Add Period"}
-                        </Text>
+                <Pressable
+                    style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}
+                    onPress={() => setModalVisible(false)}
+                >
+                    <Pressable
+                        style={{ backgroundColor: colors.cardBackground, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: "80%" }}
+                        onPress={(e) => e.stopPropagation()}
+                    >
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                            <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
+                                {editingPeriod ? "Edit Period" : "Add Period"}
+                            </Text>
+                            <Pressable onPress={() => setModalVisible(false)} hitSlop={10}>
+                                <MaterialIcons name="close" size={24} color={colors.textSecondary} />
+                            </Pressable>
+                        </View>
 
                         <ScrollView>
                             {/* Period Number */}
@@ -544,8 +555,8 @@ export default function AdminTimetableScreen() {
                                 </Text>
                             </Pressable>
                         </ScrollView>
-                    </View>
-                </View>
+                    </Pressable>
+                </Pressable>
             </Modal>
 
             {showTimePicker.show && (

@@ -11,6 +11,7 @@ import apiFetch from "../utils/apiFetch";
 export default function Login() {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { styles, colors, mode } = useTheme();
   const router = useRouter();
@@ -70,15 +71,33 @@ export default function Login() {
         />
 
         <Text style={[styles.label, { marginBottom: 8, fontSize: 14 }]}>Password</Text>
-        <TextInput
-          style={[styles.input, { marginBottom: 28 }]}
-          value={password}
-          onChangeText={setPassword}
-          placeholder="Enter password"
-          secureTextEntry
-          placeholderTextColor={colors.textSecondary}
-          editable={!loading}
-        />
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 28 }}>
+          <TextInput
+            style={[styles.input, { flex: 1, marginBottom: 0, borderTopRightRadius: 0, borderBottomRightRadius: 0 }]}
+            value={password}
+            onChangeText={setPassword}
+            placeholder="Enter password"
+            secureTextEntry={!showPassword}
+            placeholderTextColor={colors.textSecondary}
+            editable={!loading}
+          />
+          <Pressable
+            onPress={() => setShowPassword(!showPassword)}
+            style={{
+              backgroundColor: colors.cardBackground,
+              borderWidth: 1,
+              borderColor: mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+              borderLeftWidth: 0,
+              height: 50, // Match input height
+              justifyContent: 'center',
+              paddingHorizontal: 12,
+              borderTopRightRadius: 12,
+              borderBottomRightRadius: 12
+            }}
+          >
+            <MaterialIcons name={showPassword ? "visibility" : "visibility-off"} size={20} color={colors.textSecondary} />
+          </Pressable>
+        </View>
 
         <Pressable
           style={[styles.buttonLarge, { width: "100%", alignItems: 'center', opacity: loading ? 0.7 : 1 }]}

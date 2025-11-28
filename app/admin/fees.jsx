@@ -120,6 +120,7 @@ export default function AdminFeesScreen() {
             if (response.ok) {
                 const data = await response.json();
                 setAllStudents(data.data || []);
+                // showToast(`Loaded ${data.data?.length || 0} students`, "info"); // Debug
             }
         } catch (error) {
             console.error(error);
@@ -680,7 +681,9 @@ export default function AdminFeesScreen() {
                                         {processingPayment ? (
                                             <ActivityIndicator color="#fff" />
                                         ) : (
-                                            <Text style={{ color: "#fff", fontFamily: "DMSans-Bold", fontSize: 18 }}>Record Payment</Text>
+                                            <Text style={{ color: "#fff", fontSize: 18, fontFamily: "DMSans-Bold" }}>
+                                                Pay ₹{paymentAmount || "0"}
+                                            </Text>
                                         )}
                                     </Pressable>
                                 </View>
@@ -689,300 +692,389 @@ export default function AdminFeesScreen() {
                     </View>
                 )}
 
-                {activeTab === 'structure' && (
-                    <View style={{ padding: 16 }}>
-                        {/* 1. Context Header (Sticky-like) */}
-                        <View style={{ marginBottom: 24 }}>
-                            <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>Select Class & Year</Text>
-                            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                                <View style={{ flexDirection: "row", gap: 8 }}>
-                                    {classes.map(cls => (
+                {
+                    activeTab === 'structure' && (
+                        <View style={{ padding: 16 }}>
+                            {/* 1. Context Header (Sticky-like) */}
+                            <View style={{ marginBottom: 24 }}>
+                                <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>Select Class & Year</Text>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                                    <View style={{ flexDirection: "row", gap: 8 }}>
+                                        {classes.map(cls => (
+                                            <Pressable
+                                                key={cls._id}
+                                                onPress={() => loadFeeStructure(cls._id)}
+                                                style={{
+                                                    paddingHorizontal: 16,
+                                                    paddingVertical: 8,
+                                                    backgroundColor: selectedClassId === cls._id ? colors.primary : colors.cardBackground,
+                                                    borderRadius: 20,
+                                                    borderWidth: 1,
+                                                    borderColor: selectedClassId === cls._id ? colors.primary : colors.textSecondary + "20"
+                                                }}
+                                            >
+                                                <Text style={{ color: selectedClassId === cls._id ? "#fff" : colors.textPrimary, fontFamily: "DMSans-Medium" }}>
+                                                    {cls.name} {cls.section}
+                                                </Text>
+                                            </Pressable>
+                                        ))}
+                                    </View>
+                                </ScrollView>
+                            </View>
+
+                            {selectedClassId ? (
+                                <View>
+                                    {/* 2. Target Selection (Segmented Control) */}
+                                    <View style={{
+                                        flexDirection: "row",
+                                        backgroundColor: colors.cardBackground,
+                                        borderRadius: 12,
+                                        padding: 4,
+                                        marginBottom: 24
+                                    }}>
                                         <Pressable
-                                            key={cls._id}
-                                            onPress={() => loadFeeStructure(cls._id)}
+                                            onPress={() => setStructureType('class_default')}
                                             style={{
-                                                paddingHorizontal: 16,
-                                                paddingVertical: 8,
-                                                backgroundColor: selectedClassId === cls._id ? colors.primary : colors.cardBackground,
-                                                borderRadius: 20,
-                                                borderWidth: 1,
-                                                borderColor: selectedClassId === cls._id ? colors.primary : colors.textSecondary + "20"
+                                                flex: 1,
+                                                paddingVertical: 10,
+                                                alignItems: "center",
+                                                backgroundColor: structureType === 'class_default' ? colors.background : "transparent",
+                                                borderRadius: 10,
+                                                shadowColor: structureType === 'class_default' ? "#000" : "transparent",
+                                                shadowOffset: { width: 0, height: 2 },
+                                                shadowOpacity: structureType === 'class_default' ? 0.1 : 0,
+                                                shadowRadius: 4,
+                                                elevation: structureType === 'class_default' ? 2 : 0
                                             }}
                                         >
-                                            <Text style={{ color: selectedClassId === cls._id ? "#fff" : colors.textPrimary, fontFamily: "DMSans-Medium" }}>
-                                                {cls.name} {cls.section}
-                                            </Text>
+                                            <Text style={{
+                                                color: structureType === 'class_default' ? colors.primary : colors.textSecondary,
+                                                fontFamily: "DMSans-Bold"
+                                            }}>Class Default</Text>
                                         </Pressable>
-                                    ))}
-                                </View>
-                            </ScrollView>
-                        </View>
+                                        <Pressable
+                                            onPress={() => setStructureType('student_specific')}
+                                            style={{
+                                                flex: 1,
+                                                paddingVertical: 10,
+                                                alignItems: "center",
+                                                backgroundColor: structureType === 'student_specific' ? colors.background : "transparent",
+                                                borderRadius: 10,
+                                                shadowColor: structureType === 'student_specific' ? "#000" : "transparent",
+                                                shadowOffset: { width: 0, height: 2 },
+                                                shadowOpacity: structureType === 'student_specific' ? 0.1 : 0,
+                                                shadowRadius: 4,
+                                                elevation: structureType === 'student_specific' ? 2 : 0
+                                            }}
+                                        >
+                                            <Text style={{
+                                                color: structureType === 'student_specific' ? colors.primary : colors.textSecondary,
+                                                fontFamily: "DMSans-Bold"
+                                            }}>Specific Student</Text>
+                                        </Pressable>
+                                    </View>
 
-                        {selectedClassId ? (
-                            <View>
-                                {/* 2. Target Selection (Segmented Control) */}
-                                <View style={{
-                                    flexDirection: "row",
-                                    backgroundColor: colors.cardBackground,
-                                    borderRadius: 12,
-                                    padding: 4,
-                                    marginBottom: 24
-                                }}>
-                                    <Pressable
-                                        onPress={() => setStructureType('class_default')}
-                                        style={{
-                                            flex: 1,
-                                            paddingVertical: 10,
-                                            alignItems: "center",
-                                            backgroundColor: structureType === 'class_default' ? colors.background : "transparent",
-                                            borderRadius: 10,
-                                            shadowColor: structureType === 'class_default' ? "#000" : "transparent",
-                                            shadowOffset: { width: 0, height: 2 },
-                                            shadowOpacity: structureType === 'class_default' ? 0.1 : 0,
-                                            shadowRadius: 4,
-                                            elevation: structureType === 'class_default' ? 2 : 0
-                                        }}
-                                    >
-                                        <Text style={{
-                                            color: structureType === 'class_default' ? colors.primary : colors.textSecondary,
-                                            fontFamily: "DMSans-Bold"
-                                        }}>Class Default</Text>
-                                    </Pressable>
-                                    <Pressable
-                                        onPress={() => setStructureType('student_specific')}
-                                        style={{
-                                            flex: 1,
-                                            paddingVertical: 10,
-                                            alignItems: "center",
-                                            backgroundColor: structureType === 'student_specific' ? colors.background : "transparent",
-                                            borderRadius: 10,
-                                            shadowColor: structureType === 'student_specific' ? "#000" : "transparent",
-                                            shadowOffset: { width: 0, height: 2 },
-                                            shadowOpacity: structureType === 'student_specific' ? 0.1 : 0,
-                                            shadowRadius: 4,
-                                            elevation: structureType === 'student_specific' ? 2 : 0
-                                        }}
-                                    >
-                                        <Text style={{
-                                            color: structureType === 'student_specific' ? colors.primary : colors.textSecondary,
-                                            fontFamily: "DMSans-Bold"
-                                        }}>Specific Student</Text>
-                                    </Pressable>
-                                </View>
+                                    {/* 3. Student Selection (Conditional) */}
+                                    {structureType === 'student_specific' && (
+                                        <View style={{ marginBottom: 24 }}>
+                                            <View style={{ flexDirection: "row", gap: 10, marginBottom: 12 }}>
+                                                <TextInput
+                                                    value={studentSearchQuery}
+                                                    onChangeText={setStudentSearchQuery}
+                                                    placeholder="Search student..."
+                                                    placeholderTextColor={colors.textSecondary}
+                                                    style={{
+                                                        flex: 1,
+                                                        backgroundColor: colors.cardBackground,
+                                                        padding: 12,
+                                                        borderRadius: 12,
+                                                        color: colors.textPrimary,
+                                                        fontFamily: "DMSans-Medium"
+                                                    }}
+                                                />
+                                                <Pressable
+                                                    onPress={() => searchStudent(studentSearchQuery, setStudentSearchResults, selectedClassId)}
+                                                    style={{
+                                                        backgroundColor: colors.primary,
+                                                        width: 48,
+                                                        height: 48,
+                                                        borderRadius: 12,
+                                                        justifyContent: "center",
+                                                        alignItems: "center"
+                                                    }}
+                                                >
+                                                    <MaterialIcons name="search" size={24} color="#fff" />
+                                                </Pressable>
+                                            </View>
 
-                                {/* 3. Student Selection (Conditional) */}
-                                {structureType === 'student_specific' && (
-                                    <View style={{ marginBottom: 24 }}>
-                                        <View style={{ flexDirection: "row", gap: 10, marginBottom: 12 }}>
+                                            {/* Search Results */}
+                                            {studentSearchResults.length > 0 && (
+                                                <View style={{ maxHeight: 150, backgroundColor: colors.cardBackground, borderRadius: 12, marginBottom: 12, padding: 8 }}>
+                                                    <ScrollView nestedScrollEnabled>
+                                                        {studentSearchResults.map(student => (
+                                                            <Pressable
+                                                                key={student._id}
+                                                                onPress={() => {
+                                                                    if (!selectedStudents.find(s => s._id === student._id)) {
+                                                                        setSelectedStudents([...selectedStudents, student]);
+                                                                    }
+                                                                    setStudentSearchResults([]);
+                                                                    setStudentSearchQuery("");
+                                                                }}
+                                                                style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: colors.textSecondary + "10" }}
+                                                            >
+                                                                <Text style={{ color: colors.textPrimary, fontFamily: "DMSans-Medium" }}>{student.name}</Text>
+                                                                <Text style={{ color: colors.textSecondary, fontSize: 12 }}>{student.phone}</Text>
+                                                            </Pressable>
+                                                        ))}
+                                                    </ScrollView>
+                                                </View>
+                                            )}
+
+                                            {/* Selected Students Chips */}
+                                            {selectedStudents.length > 0 && (
+                                                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                                                    {selectedStudents.map((student, index) => (
+                                                        <View key={student._id} style={{
+                                                            flexDirection: "row",
+                                                            alignItems: "center",
+                                                            backgroundColor: colors.primary + "15",
+                                                            paddingHorizontal: 12,
+                                                            paddingVertical: 8,
+                                                            borderRadius: 20,
+                                                            borderWidth: 1,
+                                                            borderColor: colors.primary + "30"
+                                                        }}>
+                                                            <Text style={{ color: colors.primary, marginRight: 6, fontFamily: "DMSans-Medium" }}>{student.name}</Text>
+                                                            <Pressable onPress={() => {
+                                                                const newSelected = [...selectedStudents];
+                                                                newSelected.splice(index, 1);
+                                                                setSelectedStudents(newSelected);
+                                                            }}>
+                                                                <MaterialIcons name="close" size={16} color={colors.primary} />
+                                                            </Pressable>
+                                                        </View>
+                                                    ))}
+                                                </View>
+                                            )}
+                                        </View>
+                                    )}
+
+                                    {/* 4. Fee Components (The Core) */}
+                                    <View style={{ backgroundColor: colors.cardBackground, borderRadius: 16, padding: 20, marginBottom: 24 }}>
+                                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                                            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>Fee Breakdown</Text>
+                                            <View style={{ backgroundColor: colors.success + "20", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
+                                                <Text style={{ color: colors.success, fontFamily: "DMSans-Bold", fontSize: 12 }}>
+                                                    {structureComponents.length} Items
+                                                </Text>
+                                            </View>
+                                        </View>
+
+                                        {structureComponents.length === 0 ? (
+                                            <View style={{ alignItems: "center", paddingVertical: 20 }}>
+                                                <Text style={{ color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>No fee components added yet.</Text>
+                                            </View>
+                                        ) : (
+                                            <View>
+                                                {structureComponents.map((comp, index) => (
+                                                    <View key={index} style={{
+                                                        flexDirection: "row",
+                                                        justifyContent: "space-between",
+                                                        alignItems: "center",
+                                                        paddingVertical: 12,
+                                                        borderBottomWidth: index === structureComponents.length - 1 ? 0 : 1,
+                                                        borderBottomColor: colors.textSecondary + "10"
+                                                    }}>
+                                                        <Text style={{ color: colors.textPrimary, fontFamily: "DMSans-Medium", fontSize: 16 }}>{comp.name}</Text>
+                                                        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                                                            <Text style={{ color: colors.textPrimary, fontFamily: "DMSans-Bold", fontSize: 16 }}>₹{comp.amount}</Text>
+                                                            <Pressable onPress={() => removeComponent(index)} hitSlop={10}>
+                                                                <MaterialIcons name="remove-circle-outline" size={20} color={colors.error} />
+                                                            </Pressable>
+                                                        </View>
+                                                    </View>
+                                                ))}
+
+                                                <View style={{ marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: colors.textSecondary + "20", flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                                                    <Text style={{ color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>Total Amount</Text>
+                                                    <Text style={{ color: colors.primary, fontFamily: "DMSans-Bold", fontSize: 20 }}>
+                                                        ₹{structureComponents.reduce((sum, item) => sum + Number(item.amount), 0)}
+                                                    </Text>
+                                                </View>
+                                            </View>
+                                        )}
+                                    </View>
+
+                                    {/* 5. Adding Components (Action) */}
+                                    <View style={{ marginBottom: 32 }}>
+                                        <Text style={{ color: colors.textSecondary, marginBottom: 12, fontFamily: "DMSans-Medium" }}>Add New Component</Text>
+                                        <View style={{ flexDirection: "row", gap: 12 }}>
                                             <TextInput
-                                                value={studentSearchQuery}
-                                                onChangeText={setStudentSearchQuery}
-                                                placeholder="Search student..."
+                                                value={newComponent.name}
+                                                onChangeText={(t) => setNewComponent({ ...newComponent, name: t })}
+                                                placeholder="Name (e.g. Tuition)"
+                                                placeholderTextColor={colors.textSecondary}
+                                                style={{
+                                                    flex: 2,
+                                                    backgroundColor: colors.cardBackground,
+                                                    padding: 16,
+                                                    borderRadius: 12,
+                                                    color: colors.textPrimary,
+                                                    fontFamily: "DMSans-Medium"
+                                                }}
+                                            />
+                                            <TextInput
+                                                value={newComponent.amount}
+                                                onChangeText={(t) => setNewComponent({ ...newComponent, amount: t })}
+                                                placeholder="Amount"
+                                                keyboardType="numeric"
                                                 placeholderTextColor={colors.textSecondary}
                                                 style={{
                                                     flex: 1,
                                                     backgroundColor: colors.cardBackground,
-                                                    padding: 12,
+                                                    padding: 16,
                                                     borderRadius: 12,
                                                     color: colors.textPrimary,
                                                     fontFamily: "DMSans-Medium"
                                                 }}
                                             />
                                             <Pressable
-                                                onPress={() => searchStudent(studentSearchQuery, setStudentSearchResults, selectedClassId)}
+                                                onPress={addComponent}
                                                 style={{
-                                                    backgroundColor: colors.primary,
-                                                    width: 48,
-                                                    height: 48,
+                                                    backgroundColor: colors.secondary,
+                                                    width: 56,
                                                     borderRadius: 12,
                                                     justifyContent: "center",
                                                     alignItems: "center"
                                                 }}
                                             >
-                                                <MaterialIcons name="search" size={24} color="#fff" />
+                                                <MaterialIcons name="add" size={28} color="#fff" />
                                             </Pressable>
                                         </View>
-
-                                        {/* Search Results */}
-                                        {studentSearchResults.length > 0 && (
-                                            <View style={{ maxHeight: 150, backgroundColor: colors.cardBackground, borderRadius: 12, marginBottom: 12, padding: 8 }}>
-                                                <ScrollView nestedScrollEnabled>
-                                                    {studentSearchResults.map(student => (
-                                                        <Pressable
-                                                            key={student._id}
-                                                            onPress={() => {
-                                                                if (!selectedStudents.find(s => s._id === student._id)) {
-                                                                    setSelectedStudents([...selectedStudents, student]);
-                                                                }
-                                                                setStudentSearchResults([]);
-                                                                setStudentSearchQuery("");
-                                                            }}
-                                                            style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: colors.textSecondary + "10" }}
-                                                        >
-                                                            <Text style={{ color: colors.textPrimary, fontFamily: "DMSans-Medium" }}>{student.name}</Text>
-                                                            <Text style={{ color: colors.textSecondary, fontSize: 12 }}>{student.phone}</Text>
-                                                        </Pressable>
-                                                    ))}
-                                                </ScrollView>
-                                            </View>
-                                        )}
-
-                                        {/* Selected Students Chips */}
-                                        {selectedStudents.length > 0 && (
-                                            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                                                {selectedStudents.map((student, index) => (
-                                                    <View key={student._id} style={{
-                                                        flexDirection: "row",
-                                                        alignItems: "center",
-                                                        backgroundColor: colors.primary + "15",
-                                                        paddingHorizontal: 12,
-                                                        paddingVertical: 8,
-                                                        borderRadius: 20,
-                                                        borderWidth: 1,
-                                                        borderColor: colors.primary + "30"
-                                                    }}>
-                                                        <Text style={{ color: colors.primary, marginRight: 6, fontFamily: "DMSans-Medium" }}>{student.name}</Text>
-                                                        <Pressable onPress={() => {
-                                                            const newSelected = [...selectedStudents];
-                                                            newSelected.splice(index, 1);
-                                                            setSelectedStudents(newSelected);
-                                                        }}>
-                                                            <MaterialIcons name="close" size={16} color={colors.primary} />
-                                                        </Pressable>
-                                                    </View>
-                                                ))}
-                                            </View>
-                                        )}
-                                    </View>
-                                )}
-
-                                {/* 4. Fee Components (The Core) */}
-                                <View style={{ backgroundColor: colors.cardBackground, borderRadius: 16, padding: 20, marginBottom: 24 }}>
-                                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                                        <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>Fee Breakdown</Text>
-                                        <View style={{ backgroundColor: colors.success + "20", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
-                                            <Text style={{ color: colors.success, fontFamily: "DMSans-Bold", fontSize: 12 }}>
-                                                {structureComponents.length} Items
-                                            </Text>
-                                        </View>
                                     </View>
 
-                                    {structureComponents.length === 0 ? (
-                                        <View style={{ alignItems: "center", paddingVertical: 20 }}>
-                                            <Text style={{ color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>No fee components added yet.</Text>
-                                        </View>
-                                    ) : (
-                                        <View>
-                                            {structureComponents.map((comp, index) => (
-                                                <View key={index} style={{
-                                                    flexDirection: "row",
-                                                    justifyContent: "space-between",
-                                                    alignItems: "center",
-                                                    paddingVertical: 12,
-                                                    borderBottomWidth: index === structureComponents.length - 1 ? 0 : 1,
-                                                    borderBottomColor: colors.textSecondary + "10"
-                                                }}>
-                                                    <Text style={{ color: colors.textPrimary, fontFamily: "DMSans-Medium", fontSize: 16 }}>{comp.name}</Text>
-                                                    <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                                                        <Text style={{ color: colors.textPrimary, fontFamily: "DMSans-Bold", fontSize: 16 }}>₹{comp.amount}</Text>
-                                                        <Pressable onPress={() => removeComponent(index)} hitSlop={10}>
-                                                            <MaterialIcons name="remove-circle-outline" size={20} color={colors.error} />
-                                                        </Pressable>
-                                                    </View>
-                                                </View>
-                                            ))}
-
-                                            <View style={{ marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: colors.textSecondary + "20", flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                                                <Text style={{ color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>Total Amount</Text>
-                                                <Text style={{ color: colors.primary, fontFamily: "DMSans-Bold", fontSize: 20 }}>
-                                                    ₹{structureComponents.reduce((sum, item) => sum + Number(item.amount), 0)}
-                                                </Text>
-                                            </View>
-                                        </View>
-                                    )}
+                                    {/* 6. Save Action */}
+                                    <Pressable
+                                        onPress={saveStructure}
+                                        disabled={savingStructure}
+                                        style={{
+                                            backgroundColor: colors.primary,
+                                            padding: 18,
+                                            borderRadius: 16,
+                                            alignItems: "center",
+                                            shadowColor: colors.primary,
+                                            shadowOffset: { width: 0, height: 4 },
+                                            shadowOpacity: 0.3,
+                                            shadowRadius: 8,
+                                            elevation: 4,
+                                            opacity: savingStructure ? 0.7 : 1
+                                        }}
+                                    >
+                                        {savingStructure ? (
+                                            <ActivityIndicator color="#fff" />
+                                        ) : (
+                                            <Text style={{ color: "#fff", fontFamily: "DMSans-Bold", fontSize: 18 }}>Save Fee Structure</Text>
+                                        )}
+                                    </Pressable>
                                 </View>
+                            ) : (
+                                <View style={{ alignItems: "center", marginTop: 40 }}>
+                                    <MaterialIcons name="class" size={48} color={colors.textSecondary + "40"} />
+                                    <Text style={{ color: colors.textSecondary, marginTop: 16, fontFamily: "DMSans-Medium" }}>Select a class to manage fees</Text>
+                                </View>
+                            )}
+                        </View>
+                    )
+                }
 
-                                {/* 5. Adding Components (Action) */}
-                                <View style={{ marginBottom: 32 }}>
-                                    <Text style={{ color: colors.textSecondary, marginBottom: 12, fontFamily: "DMSans-Medium" }}>Add New Component</Text>
-                                    <View style={{ flexDirection: "row", gap: 12 }}>
-                                        <TextInput
-                                            value={newComponent.name}
-                                            onChangeText={(t) => setNewComponent({ ...newComponent, name: t })}
-                                            placeholder="Name (e.g. Tuition)"
-                                            placeholderTextColor={colors.textSecondary}
-                                            style={{
-                                                flex: 2,
-                                                backgroundColor: colors.cardBackground,
-                                                padding: 16,
-                                                borderRadius: 12,
-                                                color: colors.textPrimary,
-                                                fontFamily: "DMSans-Medium"
-                                            }}
-                                        />
-                                        <TextInput
-                                            value={newComponent.amount}
-                                            onChangeText={(t) => setNewComponent({ ...newComponent, amount: t })}
-                                            placeholder="Amount"
-                                            keyboardType="numeric"
-                                            placeholderTextColor={colors.textSecondary}
-                                            style={{
-                                                flex: 1,
-                                                backgroundColor: colors.cardBackground,
-                                                padding: 16,
-                                                borderRadius: 12,
-                                                color: colors.textPrimary,
-                                                fontFamily: "DMSans-Medium"
-                                            }}
-                                        />
+                {
+                    activeTab === 'students' && (
+                        <View style={{ padding: 16 }}>
+                            {/* Search Header */}
+                            <View style={{ flexDirection: "row", gap: 12, marginBottom: 16 }}>
+                                <TextInput
+                                    value={studentSearchQuery}
+                                    onChangeText={setStudentSearchQuery}
+                                    placeholder="Search students..."
+                                    placeholderTextColor={colors.textSecondary}
+                                    style={{
+                                        flex: 1,
+                                        backgroundColor: colors.cardBackground,
+                                        padding: 12,
+                                        borderRadius: 12,
+                                        color: colors.textPrimary,
+                                        fontFamily: "DMSans-Medium"
+                                    }}
+                                />
+                                <View style={{
+                                    backgroundColor: colors.primary,
+                                    width: 48,
+                                    height: 48,
+                                    borderRadius: 12,
+                                    justifyContent: "center",
+                                    alignItems: "center"
+                                }}>
+                                    <MaterialIcons name="search" size={24} color="#fff" />
+                                </View>
+                            </View>
+
+                            {loadingStudents ? (
+                                <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 40 }} />
+                            ) : (
+                                <FlatList
+                                    data={allStudents.filter(s => s.name.toLowerCase().includes(studentSearchQuery.toLowerCase()))}
+                                    scrollEnabled={false}
+                                    keyExtractor={(item) => item._id}
+                                    contentContainerStyle={{ paddingBottom: 20 }}
+                                    renderItem={({ item }) => (
                                         <Pressable
-                                            onPress={addComponent}
+                                            onPress={() => {
+                                                setSelectedStudent(item);
+                                                setActiveTab('collect');
+                                            }}
                                             style={{
-                                                backgroundColor: colors.secondary,
-                                                width: 56,
-                                                borderRadius: 12,
-                                                justifyContent: "center",
-                                                alignItems: "center"
+                                                backgroundColor: colors.cardBackground,
+                                                padding: 16,
+                                                borderRadius: 16,
+                                                marginBottom: 12,
+                                                flexDirection: "row",
+                                                alignItems: "center",
+                                                justifyContent: "space-between",
+                                                shadowColor: "#000",
+                                                shadowOffset: { width: 0, height: 2 },
+                                                shadowOpacity: 0.05,
+                                                shadowRadius: 8,
+                                                elevation: 2
                                             }}
                                         >
-                                            <MaterialIcons name="add" size={28} color="#fff" />
+                                            <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                                                <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: colors.primary + "10", justifyContent: "center", alignItems: "center" }}>
+                                                    <Text style={{ fontFamily: "DMSans-Bold", color: colors.primary, fontSize: 18 }}>
+                                                        {item.name.charAt(0)}
+                                                    </Text>
+                                                </View>
+                                                <View>
+                                                    <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary, fontSize: 16 }}>{item.name}</Text>
+                                                    <Text style={{ color: colors.textSecondary, fontSize: 13 }}>{item.phone}</Text>
+                                                </View>
+                                            </View>
+                                            <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
                                         </Pressable>
-                                    </View>
-                                </View>
-
-                                {/* 6. Save Action */}
-                                <Pressable
-                                    onPress={saveStructure}
-                                    disabled={savingStructure}
-                                    style={{
-                                        backgroundColor: colors.primary,
-                                        padding: 18,
-                                        borderRadius: 16,
-                                        alignItems: "center",
-                                        shadowColor: colors.primary,
-                                        shadowOffset: { width: 0, height: 4 },
-                                        shadowOpacity: 0.3,
-                                        shadowRadius: 8,
-                                        elevation: 4,
-                                        opacity: savingStructure ? 0.7 : 1
-                                    }}
-                                >
-                                    {savingStructure ? (
-                                        <ActivityIndicator color="#fff" />
-                                    ) : (
-                                        <Text style={{ color: "#fff", fontFamily: "DMSans-Bold", fontSize: 18 }}>Save Fee Structure</Text>
                                     )}
-                                </Pressable>
-                            </View>
-                        ) : (
-                            <View style={{ alignItems: "center", marginTop: 40 }}>
-                                <MaterialIcons name="class" size={48} color={colors.textSecondary + "40"} />
-                                <Text style={{ color: colors.textSecondary, marginTop: 16, fontFamily: "DMSans-Medium" }}>Select a class to manage fees</Text>
-                            </View>
-                        )}
-                    </View>
-                )}
-            </ScrollView>
-        </View>
+                                    ListEmptyComponent={() => (
+                                        <View style={{ alignItems: "center", marginTop: 40 }}>
+                                            <MaterialIcons name="person-off" size={48} color={colors.textSecondary + "40"} />
+                                            <Text style={{ color: colors.textSecondary, marginTop: 16, fontFamily: "DMSans-Medium" }}>No students found</Text>
+                                        </View>
+                                    )}
+                                />
+                            )}
+                        </View>
+                    )
+                }
+
+            </ScrollView >
+        </View >
     );
 }

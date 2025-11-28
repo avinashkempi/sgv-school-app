@@ -55,15 +55,7 @@ export default function MenuScreen() {
     };
 
     const navigateToComplaints = () => {
-        if (!user) return;
-        if (user.role === 'student') {
-            router.push('/student/complaints');
-        } else if (user.role === 'admin' || user.role === 'super admin') {
-            router.push('/admin/complaints');
-        } else {
-            // Fallback or toast for other roles if they don't have complaints yet
-            showToast('Complaints not available for this role yet', 'info');
-        }
+        router.push('/complaints');
     };
 
     const menuItems = [
