@@ -409,6 +409,7 @@ export default function AdminAttendance() {
                                         </TouchableOpacity>
                                     </View>
                                     <FlatList
+                                        style={{ flex: 1 }}
                                         data={studentAttendance}
                                         keyExtractor={(item) => item.student._id}
                                         renderItem={({ item, index }) => (
@@ -451,6 +452,7 @@ export default function AdminAttendance() {
                                 </TouchableOpacity>
                             </View>
                             <FlatList
+                                style={{ flex: 1 }}
                                 data={staffList}
                                 renderItem={renderStaffItem}
                                 keyExtractor={(item) => item.user._id}
@@ -509,7 +511,7 @@ const styles = StyleSheet.create({
     staffRole: { fontSize: 12, color: '#666' },
     statusIndicator: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, minWidth: 80, alignItems: 'center' },
     statusText: { color: '#fff', fontWeight: 'bold', fontSize: 12 },
-    footer: { padding: 16, paddingBottom: 80, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#eee' },
+    footer: { padding: 16, paddingBottom: 110, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#eee' },
     saveButton: { padding: 16, borderRadius: 12, alignItems: 'center' },
     saveButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
     summaryCard: { flexDirection: 'row', justifyContent: 'space-around', backgroundColor: '#fff', margin: 16, padding: 16, borderRadius: 12, elevation: 2 },
