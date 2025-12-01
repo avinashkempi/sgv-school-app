@@ -20,6 +20,13 @@ buildscript {
     }
 }
 
+
+ext {
+    react = [
+        buildFromSource: true
+    ]
+}
+
 allprojects {
   repositories {
     google()
