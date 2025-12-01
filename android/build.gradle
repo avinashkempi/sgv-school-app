@@ -13,7 +13,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath('com.android.tools.build:gradle:8.6.0')
+        classpath('com.android.tools.build:gradle:8.7.3')
         classpath('com.facebook.react:react-native-gradle-plugin')
         classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
         classpath('com.google.gms:google-services:4.4.1')
@@ -23,8 +23,15 @@ buildscript {
 
 ext {
     react = [
-        buildFromSource: true
+        buildFromSource: false
     ]
+}
+
+if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+    rootProject.buildDir = file("C:/Users/LENOVO/.gemini/build/${rootProject.name}")
+    subprojects {
+        buildDir = file("C:/Users/LENOVO/.gemini/build/${rootProject.name}/${project.name}")
+    }
 }
 
 allprojects {
