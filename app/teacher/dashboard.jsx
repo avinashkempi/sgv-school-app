@@ -12,7 +12,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
 import apiConfig from "../../config/apiConfig";
-import apiFetch from "../../utils/apiFetch";
+import { useApiQuery } from "../../hooks/useApi";
 import { useToast } from "../../components/ToastProvider";
 import Header from "../../components/Header";
 
@@ -21,57 +21,40 @@ export default function TeacherDashboard() {
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
 
-    const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [user, setUser] = useState(null);
     const [activeTab, setActiveTab] = useState('classTeacher'); // 'classTeacher' or 'mySubjects'
 
-    // Data from API
-    const [asClassTeacher, setAsClassTeacher] = useState([]);
-    const [allMySubjects, setAllMySubjects] = useState([]);
-
     useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = async () => {
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
+        const loadUser = async () => {
             const storedUser = await AsyncStorage.getItem("@auth_user");
-
             if (!storedUser) {
                 router.replace("/login");
                 return;
             }
-
-            const parsedUser = JSON.parse(storedUser);
-            setUser(parsedUser);
-
-            // Call new unified endpoint
-            const response = await apiFetch(
-                `${apiConfig.baseUrl}/teachers/my-classes-and-subjects`,
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            if (response.ok) {
-                const data = await response.json();
-                setAsClassTeacher(data.asClassTeacher || []);
-                setAllMySubjects(data.allMySubjects || []);
-            } else {
-                showToast("Failed to load data", "error");
+            try {
+                setUser(JSON.parse(storedUser));
+            } catch (e) {
+                console.error("Failed to parse stored user:", e);
+                await AsyncStorage.removeItem("@auth_user");
+                router.replace("/login");
             }
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading data", "error");
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    };
+        };
+        loadUser();
+    }, []);
 
-    const onRefresh = () => {
+    const { data: dashboardData, isLoading: loading, refetch } = useApiQuery(
+        ['teacherDashboard'],
+        `${apiConfig.baseUrl}/teachers/my-classes-and-subjects`
+    );
+
+    const asClassTeacher = dashboardData?.asClassTeacher || [];
+    const allMySubjects = dashboardData?.allMySubjects || [];
+
+    const onRefresh = async () => {
         setRefreshing(true);
-        loadData();
+        await refetch();
+        setRefreshing(false);
     };
 
     // Group subjects by subject name for display

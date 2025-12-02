@@ -18,119 +18,76 @@ import { useRouter } from "expo-router";
 import { Picker } from "@react-native-picker/picker";
 import { useTheme } from "../../theme";
 import apiConfig from "../../config/apiConfig";
-import apiFetch from "../../utils/apiFetch";
-import { useToast } from "../../components/ToastProvider";
-import Header from "../../components/Header";
-import { formatDate } from "../../utils/date";
-import { getCachedData, setCachedData } from "../../utils/cache";
+import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/useApi";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function AcademicYearScreen() {
     const router = useRouter();
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
+    const queryClient = useQueryClient();
     const [activeTab, setActiveTab] = useState("years"); // "years" | "reports"
-    const [years, setYears] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
     const [showModal, setShowModal] = useState(false);
-    const [userRole, setUserRole] = useState(null);
     const [form, setForm] = useState({
         name: "",
         startDate: "",
         endDate: "",
         isActive: false
     });
-    const [saving, setSaving] = useState(false);
-
-    // Reports State
     const [selectedYearId, setSelectedYearId] = useState(null);
-    const [reportData, setReportData] = useState(null);
-    const [reportLoading, setReportLoading] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
 
+    // Fetch User Role
+    const { data: userData } = useApiQuery(
+        ['currentUser'],
+        `${apiConfig.baseUrl}/auth/me`
+    );
+    const userRole = userData?.role;
+
+    // Fetch Academic Years
+    const { data: years = [], isLoading: loadingYears, refetch: refetchYears } = useApiQuery(
+        ['academicYears'],
+        `${apiConfig.baseUrl}/academic-year`
+    );
+
+    // Fetch Reports
+    const { data: reportData, isLoading: reportLoading, refetch: refetchReport } = useApiQuery(
+        ['academicYearReport', selectedYearId],
+        `${apiConfig.baseUrl}/academic-year/${selectedYearId}/reports`,
+        {
+            enabled: !!selectedYearId && activeTab === "reports",
+        }
+    );
+
+    // Set default selected year
     useEffect(() => {
-        loadUserRole();
-        loadYears();
-    }, []);
-
-    const loadUserRole = async () => {
-        try {
-            const storedUser = await AsyncStorage.getItem("@auth_user");
-            if (storedUser) {
-                const parsedUser = JSON.parse(storedUser);
-                setUserRole(parsedUser.role);
-            }
-        } catch (error) {
-            console.error("Failed to load user role:", error);
+        if (years.length > 0 && !selectedYearId) {
+            setSelectedYearId(years[0]._id);
         }
-    };
+    }, [years, selectedYearId]);
 
-    const loadYears = async () => {
-        const cacheKey = "@admin_academic_years";
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const cachedData = await getCachedData(cacheKey);
-            if (cachedData) {
-                setYears(cachedData);
-                setLoading(false);
-                if (cachedData.length > 0 && !selectedYearId) {
-                    setSelectedYearId(cachedData[0]._id);
-                }
-            }
+    // Mutations
+    const createYearMutation = useApiMutation({
+        mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/academic-year`, 'POST'),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['academicYears'] });
+            showToast("Academic Year created", "success");
+            setShowModal(false);
+            setForm({ name: "", startDate: "", endDate: "", isActive: false });
+        },
+        onError: (error) => showToast(error.message || "Failed to create", "error")
+    });
 
-            const response = await apiFetch(`${apiConfig.baseUrl}/academic-year`, {
-                method: "GET",
-                headers: { Authorization: `Bearer ${token}` },
-                silent: !!cachedData
-            });
+    const incrementYearMutation = useApiMutation({
+        mutationFn: (nextYearId) => createApiMutationFn(`${apiConfig.baseUrl}/academic-year/increment`, 'POST')({ nextYearId }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['academicYears'] });
+            showToast("Year Incremented & Students Promoted!", "success");
+        },
+        onError: (error) => showToast(error.message || "Failed to increment year", "error")
+    });
 
-            if (response.ok) {
-                const data = await response.json();
-                setYears(data);
-                setCachedData(cacheKey, data);
-                if (data.length > 0 && !selectedYearId) {
-                    setSelectedYearId(data[0]._id);
-                }
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading data", "error");
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    };
-
-    const loadReport = async (yearId) => {
-        if (!yearId) return;
-        setReportLoading(true);
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const response = await apiFetch(`${apiConfig.baseUrl}/academic-year/${yearId}/reports`, {
-                method: "GET",
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setReportData(data);
-            } else {
-                showToast("Failed to load report", "error");
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading report", "error");
-        } finally {
-            setReportLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        if (activeTab === "reports" && selectedYearId) {
-            loadReport(selectedYearId);
-        }
-    }, [activeTab, selectedYearId]);
-
-    const handleCreate = async () => {
+    const handleCreate = () => {
         if (!form.name || !form.startDate || !form.endDate) {
             showToast("Please fill all fields", "error");
             return;
@@ -142,36 +99,10 @@ export default function AcademicYearScreen() {
             return;
         }
 
-        setSaving(true);
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const response = await apiFetch(`${apiConfig.baseUrl}/academic-year`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify(form),
-            });
-
-            if (response.ok) {
-                showToast("Academic Year created", "success");
-                setShowModal(false);
-                setForm({ name: "", startDate: "", endDate: "", isActive: false });
-                loadYears();
-            } else {
-                const data = await response.json();
-                showToast(data.msg || "Failed to create", "error");
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error creating academic year", "error");
-        } finally {
-            setSaving(false);
-        }
+        createYearMutation.mutate(form);
     };
 
-    const handleIncrement = async (id, name) => {
+    const handleIncrement = (id, name) => {
         Alert.alert(
             "Activate & Promote",
             `WARNING: This will activate ${name}, promote all eligible students to the next class, and create history records for the current year. This action cannot be easily undone.`,
@@ -180,42 +111,16 @@ export default function AcademicYearScreen() {
                 {
                     text: "Proceed",
                     style: "destructive",
-                    onPress: async () => {
-                        try {
-                            const token = await AsyncStorage.getItem("@auth_token");
-                            // Use /increment endpoint instead of /upgrade
-                            const response = await apiFetch(`${apiConfig.baseUrl}/academic-year/increment`, {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                    Authorization: `Bearer ${token}`,
-                                },
-                                body: JSON.stringify({ nextYearId: id }),
-                            });
-
-                            if (response.ok) {
-                                showToast("Year Incremented & Students Promoted!", "success");
-                                loadYears();
-                            } else {
-                                const errorData = await response.json();
-                                showToast(errorData.msg || "Failed to increment year", "error");
-                            }
-                        } catch (error) {
-                            console.error("Increment error:", error);
-                            showToast("Error incrementing year", "error");
-                        }
-                    },
+                    onPress: () => incrementYearMutation.mutate(id),
                 },
             ]
         );
     };
 
-    const onRefresh = () => {
+    const onRefresh = async () => {
         setRefreshing(true);
-        loadYears();
-        if (activeTab === "reports" && selectedYearId) {
-            loadReport(selectedYearId);
-        }
+        await Promise.all([refetchYears(), refetchReport()]);
+        setRefreshing(false);
     };
 
     const renderYearsTab = () => (

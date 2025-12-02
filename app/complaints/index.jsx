@@ -13,7 +13,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from "../../theme";
 import apiConfig from "../../config/apiConfig";
-import apiFetch from "../../utils/apiFetch";
+import { useApiQuery } from "../../hooks/useApi";
 import Header from "../../components/Header";
 import { useToast } from "../../components/ToastProvider";
 
@@ -23,8 +23,7 @@ export default function ComplaintsScreen() {
     const { showToast } = useToast();
 
     const [activeTab, setActiveTab] = useState("my_complaints"); // 'my_complaints', 'inbox'
-    const [complaints, setComplaints] = useState([]);
-    const [loading, setLoading] = useState(true);
+
     const [refreshing, setRefreshing] = useState(false);
     const [userRole, setUserRole] = useState(null);
 
@@ -32,11 +31,7 @@ export default function ComplaintsScreen() {
         checkUserRole();
     }, []);
 
-    useEffect(() => {
-        if (userRole) {
-            loadComplaints();
-        }
-    }, [activeTab, userRole]);
+
 
     const checkUserRole = async () => {
         const role = await AsyncStorage.getItem("userRole");
@@ -50,30 +45,18 @@ export default function ComplaintsScreen() {
         }
     };
 
-    const loadComplaints = async () => {
-        setLoading(true);
-        try {
-            const endpoint = activeTab === 'inbox' ? '/complaints/inbox' : '/complaints/my-complaints';
-            const response = await apiFetch(`${apiConfig.baseUrl}${endpoint}`);
-            if (response.ok) {
-                const data = await response.json();
-                setComplaints(data);
-            } else {
-                // If inbox is empty or unauthorized (e.g. student trying to access inbox), handle gracefully
-                setComplaints([]);
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading complaints", "error");
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    };
+    const { data: complaintsData, isLoading: loading, refetch } = useApiQuery(
+        ['complaints', activeTab],
+        `${apiConfig.baseUrl}${activeTab === 'inbox' ? '/complaints/inbox' : '/complaints/my-complaints'}`,
+        { enabled: !!userRole }
+    );
 
-    const onRefresh = () => {
+    const complaints = complaintsData || [];
+
+    const onRefresh = async () => {
         setRefreshing(true);
-        loadComplaints();
+        await refetch();
+        setRefreshing(false);
     };
 
     const getStatusColor = (status) => {

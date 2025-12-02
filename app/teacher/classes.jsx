@@ -12,7 +12,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "../../theme";
 import apiConfig from "../../config/apiConfig";
-import apiFetch from "../../utils/apiFetch";
+import { useApiQuery } from "../../hooks/useApi";
 import { useToast } from "../../components/ToastProvider";
 import Header from "../../components/Header";
 
@@ -22,59 +22,36 @@ export default function TeacherClassesScreen() {
     const { action } = params;
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
-    const [classes, setClasses] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
     const [user, setUser] = useState(null);
 
     useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = async () => {
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
+        const loadUser = async () => {
             const storedUser = await AsyncStorage.getItem("@auth_user");
-
             if (!storedUser) {
                 router.replace("/login");
                 return;
             }
-
-            let parsedUser;
             try {
-                parsedUser = JSON.parse(storedUser);
-                setUser(parsedUser);
+                setUser(JSON.parse(storedUser));
             } catch (e) {
                 console.error("Failed to parse stored user:", e);
                 await AsyncStorage.removeItem("@auth_user");
                 router.replace("/login");
-                return;
             }
+        };
+        loadUser();
+    }, []);
 
-            const response = await apiFetch(`${apiConfig.baseUrl}/classes/my-classes`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+    const { data: classesData, isLoading: loading, refetch } = useApiQuery(
+        ['teacherClasses'],
+        `${apiConfig.baseUrl}/classes/my-classes`
+    );
+    const classes = classesData || [];
 
-            if (response.ok) {
-                const myClasses = await response.json();
-
-                setClasses(myClasses);
-            } else {
-                showToast("Failed to load classes", "error");
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading data", "error");
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    };
-
-    const onRefresh = () => {
+    const onRefresh = async () => {
         setRefreshing(true);
-        loadData();
+        await refetch();
+        setRefreshing(false);
     };
 
     return (

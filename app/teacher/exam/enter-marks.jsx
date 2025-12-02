@@ -13,89 +13,98 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "../../../theme";
 import apiConfig from "../../../config/apiConfig";
-import apiFetch from "../../../utils/apiFetch";
+import { useApiQuery, useApiMutation, createApiMutationFn } from "../../../hooks/useApi";
+import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "../../../components/ToastProvider";
 import Header from "../../../components/Header";
 
 export default function EnterMarksScreen() {
     const router = useRouter();
     const params = useLocalSearchParams();
+    const queryClient = useQueryClient();
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
 
     const { examId } = params;
 
-    const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [saving, setSaving] = useState(false);
-    const [exam, setExam] = useState(null);
-    const [students, setStudents] = useState([]);
     const [marksData, setMarksData] = useState({});
-    const [existingMarks, setExistingMarks] = useState({});
 
+    // Fetch Exam Details
+    const { data: exam, isLoading: examLoading } = useApiQuery(
+        ['examDetails', examId],
+        `${apiConfig.baseUrl}/exams/${examId}`,
+        { enabled: !!examId }
+    );
+
+    // Fetch Students (using exam.class._id)
+    const { data: classData, isLoading: studentsLoading } = useApiQuery(
+        ['classStudents', exam?.class?._id],
+        `${apiConfig.baseUrl}/classes/${exam?.class?._id}/full-details`,
+        { enabled: !!exam?.class?._id }
+    );
+    const students = classData?.students || [];
+
+    // Fetch Existing Marks
+    const { data: existingMarksData, isLoading: marksLoading, refetch: refetchMarks } = useApiQuery(
+        ['examMarks', examId],
+        `${apiConfig.baseUrl}/marks/exam/${examId}`,
+        { enabled: !!examId }
+    );
+
+    // Process existing marks into maps
+    const existingMarks = {};
     useEffect(() => {
-        loadData();
-    }, [examId]);
-
-    const loadData = async () => {
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-
-            // Load exam details
-            const examResponse = await apiFetch(`${apiConfig.baseUrl}/exams/${examId}`, {
-                headers: { Authorization: `Bearer ${token}` }
+        if (existingMarksData) {
+            const marksMap = {};
+            const existingMap = {};
+            existingMarksData.forEach(mark => {
+                const studentId = mark.student._id;
+                marksMap[studentId] = mark.marksObtained.toString();
+                existingMap[studentId] = mark;
             });
-
-            if (examResponse.ok) {
-                const examData = await examResponse.json();
-                setExam(examData);
-
-                // Load students in the class
-                const studentsResponse = await apiFetch(
-                    `${apiConfig.baseUrl}/classes/${examData.class._id}/full-details`,
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
-
-                if (studentsResponse.ok) {
-                    const classData = await studentsResponse.json();
-                    setStudents(classData.students || []);
-                }
-
-                // Load existing marks
-                const marksResponse = await apiFetch(
-                    `${apiConfig.baseUrl}/marks/exam/${examId}`,
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
-
-                if (marksResponse.ok) {
-                    const marks = await marksResponse.json();
-                    const marksMap = {};
-                    const existingMap = {};
-
-                    marks.forEach(mark => {
-                        const studentId = mark.student._id;
-                        marksMap[studentId] = mark.marksObtained.toString();
-                        existingMap[studentId] = mark;
-                    });
-
-                    setMarksData(marksMap);
-                    setExistingMarks(existingMap);
-                }
-            } else {
-                showToast("Failed to load exam", "error");
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading data", "error");
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
+            setMarksData(marksMap);
+            // We can't set existingMarks state directly as it's derived, 
+            // but we can use a ref or just use the data directly if we memoize it.
+            // For now, let's just use the existingMarksData in render.
         }
-    };
+    }, [existingMarksData]);
 
-    const onRefresh = () => {
+    // Create a map for easy lookup in render
+    const existingMarksMap = React.useMemo(() => {
+        const map = {};
+        if (existingMarksData) {
+            existingMarksData.forEach(mark => {
+                map[mark.student._id] = mark;
+            });
+        }
+        return map;
+    }, [existingMarksData]);
+
+
+    const saveMarksMutation = useApiMutation({
+        mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/marks/bulk`, 'POST'),
+        onSuccess: (result) => {
+            const failures = result.results.filter(r => !r.success);
+            if (failures.length > 0) {
+                showToast(`Marks saved with ${failures.length} errors`, "warning");
+            } else {
+                showToast("All marks saved successfully", "success");
+            }
+            queryClient.invalidateQueries({ queryKey: ['examMarks', examId] });
+            refetchMarks();
+        },
+        onError: (error) => showToast(error.message || "Failed to save marks", "error")
+    });
+
+    const onRefresh = async () => {
         setRefreshing(true);
-        loadData();
+        await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ['examDetails', examId] }),
+            queryClient.invalidateQueries({ queryKey: ['classStudents', exam?.class?._id] }),
+            refetchMarks()
+        ]);
+        setRefreshing(false);
     };
 
     const handleMarksChange = (studentId, value) => {
@@ -105,69 +114,34 @@ export default function EnterMarksScreen() {
         }));
     };
 
-    const handleSaveMarks = async () => {
-        try {
-            setSaving(true);
-            const token = await AsyncStorage.getItem("@auth_token");
+    const handleSaveMarks = () => {
+        // Prepare marks data for bulk upload
+        const marksArray = Object.keys(marksData)
+            .filter(studentId => marksData[studentId] !== '' && marksData[studentId] !== undefined)
+            .map(studentId => ({
+                studentId,
+                marksObtained: parseFloat(marksData[studentId])
+            }));
 
-            // Prepare marks data for bulk upload
-            const marksArray = Object.keys(marksData)
-                .filter(studentId => marksData[studentId] !== '' && marksData[studentId] !== undefined)
-                .map(studentId => ({
-                    studentId,
-                    marksObtained: parseFloat(marksData[studentId])
-                }));
-
-            if (marksArray.length === 0) {
-                showToast("Please enter marks for at least one student", "warning");
-                setSaving(false);
-                return;
-            }
-
-            // Validate all marks
-            const invalidMarks = marksArray.filter(
-                m => isNaN(m.marksObtained) || m.marksObtained < 0 || m.marksObtained > exam.totalMarks
-            );
-
-            if (invalidMarks.length > 0) {
-                showToast(`Marks must be between 0 and ${exam.totalMarks}`, "error");
-                setSaving(false);
-                return;
-            }
-
-            const response = await apiFetch(`${apiConfig.baseUrl}/marks/bulk`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    examId,
-                    marksData: marksArray
-                })
-            });
-
-            if (response.ok) {
-                const result = await response.json();
-                const failures = result.results.filter(r => !r.success);
-
-                if (failures.length > 0) {
-                    showToast(`Marks saved with ${failures.length} errors`, "warning");
-                } else {
-                    showToast("All marks saved successfully", "success");
-                }
-
-                loadData(); // Reload to show updated marks
-            } else {
-                const error = await response.json();
-                showToast(error.message || "Failed to save marks", "error");
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error saving marks", "error");
-        } finally {
-            setSaving(false);
+        if (marksArray.length === 0) {
+            showToast("Please enter marks for at least one student", "warning");
+            return;
         }
+
+        // Validate all marks
+        const invalidMarks = marksArray.filter(
+            m => isNaN(m.marksObtained) || m.marksObtained < 0 || m.marksObtained > exam.totalMarks
+        );
+
+        if (invalidMarks.length > 0) {
+            showToast(`Marks must be between 0 and ${exam.totalMarks}`, "error");
+            return;
+        }
+
+        saveMarksMutation.mutate({
+            examId,
+            marksData: marksArray
+        });
     };
 
     const getGradeColor = (grade) => {
@@ -177,6 +151,8 @@ export default function EnterMarksScreen() {
         if (grade === 'D') return '#FF5722';
         return colors.error;
     };
+
+    const loading = examLoading || studentsLoading || marksLoading;
 
     if (loading) {
         return (
@@ -259,7 +235,7 @@ export default function EnterMarksScreen() {
                         </View>
                     ) : (
                         students.map((student, index) => {
-                            const existingMark = existingMarks[student._id];
+                            const existingMark = existingMarksMap[student._id];
                             const currentValue = marksData[student._id] || '';
 
                             return (
@@ -348,7 +324,7 @@ export default function EnterMarksScreen() {
                     {students.length > 0 && (
                         <Pressable
                             onPress={handleSaveMarks}
-                            disabled={saving}
+                            disabled={saveMarksMutation.isPending}
                             style={({ pressed }) => ({
                                 backgroundColor: colors.primary,
                                 borderRadius: 12,
@@ -358,11 +334,11 @@ export default function EnterMarksScreen() {
                                 alignItems: "center",
                                 justifyContent: "center",
                                 gap: 8,
-                                opacity: pressed || saving ? 0.7 : 1,
+                                opacity: pressed || saveMarksMutation.isPending ? 0.7 : 1,
                                 elevation: 3
                             })}
                         >
-                            {saving ? (
+                            {saveMarksMutation.isPending ? (
                                 <ActivityIndicator size="small" color="#fff" />
                             ) : (
                                 <>

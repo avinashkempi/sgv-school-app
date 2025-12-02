@@ -13,7 +13,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../../theme";
 import apiConfig from "../../config/apiConfig";
-import apiFetch from "../../utils/apiFetch";
+import { useApiMutation, createApiMutationFn } from "../../hooks/useApi";
 import Header from "../../components/Header";
 import { useToast } from "../../components/ToastProvider";
 
@@ -28,7 +28,7 @@ export default function RaiseComplaintScreen() {
     const [priority, setPriority] = useState("Medium");
     const [visibility, setVisibility] = useState("teacher"); // 'teacher', 'admin' (for students)
     const [userRole, setUserRole] = useState(null);
-    const [submitting, setSubmitting] = useState(false);
+
 
     useEffect(() => {
         checkUserRole();
@@ -43,39 +43,30 @@ export default function RaiseComplaintScreen() {
         }
     };
 
-    const handleSubmit = async () => {
+    const raiseComplaintMutation = useApiMutation({
+        mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/complaints`, 'POST'),
+        onSuccess: () => {
+            showToast("Complaint raised successfully", "success");
+            router.back();
+            // Invalidate queries if needed, but we don't have easy access to queryClient here unless we import it
+            // Assuming the list page will refetch on focus or we can rely on stale time
+        },
+        onError: (error) => showToast(error.message || "Failed to raise complaint", "error")
+    });
+
+    const handleSubmit = () => {
         if (!title.trim() || !description.trim()) {
             showToast("Please fill all fields", "error");
             return;
         }
 
-        setSubmitting(true);
-        try {
-            const response = await apiFetch(`${apiConfig.baseUrl}/complaints`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    title,
-                    description,
-                    category,
-                    priority,
-                    visibility
-                })
-            });
-
-            if (response.ok) {
-                showToast("Complaint raised successfully", "success");
-                router.back();
-            } else {
-                const errorData = await response.json();
-                showToast(errorData.message || "Failed to raise complaint", "error");
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error raising complaint", "error");
-        } finally {
-            setSubmitting(false);
-        }
+        raiseComplaintMutation.mutate({
+            title,
+            description,
+            category,
+            priority,
+            visibility
+        });
     };
 
     const categories = userRole === 'teacher'
@@ -226,7 +217,7 @@ export default function RaiseComplaintScreen() {
                 {/* Submit Button */}
                 <Pressable
                     onPress={handleSubmit}
-                    disabled={submitting}
+                    disabled={raiseComplaintMutation.isPending}
                     style={{
                         backgroundColor: colors.primary,
                         padding: 18,
@@ -237,10 +228,10 @@ export default function RaiseComplaintScreen() {
                         shadowOpacity: 0.3,
                         shadowRadius: 8,
                         elevation: 4,
-                        opacity: submitting ? 0.7 : 1
+                        opacity: raiseComplaintMutation.isPending ? 0.7 : 1
                     }}
                 >
-                    {submitting ? (
+                    {raiseComplaintMutation.isPending ? (
                         <ActivityIndicator color="#fff" />
                     ) : (
                         <Text style={{ color: "#fff", fontFamily: "DMSans-Bold", fontSize: 18 }}>Submit Complaint</Text>

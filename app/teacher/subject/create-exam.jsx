@@ -12,8 +12,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "../../../theme";
 import apiConfig from "../../../config/apiConfig";
-import apiFetch from "../../../utils/apiFetch";
 import { useToast } from "../../../components/ToastProvider";
+import { useApiMutation, createApiMutationFn } from "../../../hooks/useApi";
+import { useQueryClient } from "@tanstack/react-query";
 import Header from "../../../components/Header";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
@@ -22,10 +23,10 @@ export default function CreateExamScreen() {
     const params = useLocalSearchParams();
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
+    const queryClient = useQueryClient();
 
     const { subjectId, classId } = params;
 
-    const [loading, setLoading] = useState(false);
     const [examName, setExamName] = useState("");
     const [examType, setExamType] = useState("unit-test");
     const [totalMarks, setTotalMarks] = useState("");
@@ -42,7 +43,22 @@ export default function CreateExamScreen() {
         { value: 'assignment', label: 'Assignment' }
     ];
 
-    const handleCreateExam = async () => {
+    const createExamMutation = useApiMutation({
+        mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/exams`, 'POST'),
+        onSuccess: (exam) => {
+            showToast("Exam created successfully", "success");
+            queryClient.invalidateQueries({ queryKey: ['classExams', classId] });
+            router.back();
+            // Navigate to marks entry screen
+            router.push({
+                pathname: "/teacher/exam/enter-marks",
+                params: { examId: exam._id }
+            });
+        },
+        onError: (error) => showToast(error.message || "Failed to create exam", "error")
+    });
+
+    const handleCreateExam = () => {
         if (!examName.trim()) {
             showToast("Exam name is required", "error");
             return;
@@ -53,47 +69,16 @@ export default function CreateExamScreen() {
             return;
         }
 
-        try {
-            setLoading(true);
-            const token = await AsyncStorage.getItem("@auth_token");
-
-            const response = await apiFetch(`${apiConfig.baseUrl}/exams`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    name: examName,
-                    type: examType,
-                    classId,
-                    subjectId,
-                    totalMarks: parseFloat(totalMarks),
-                    date: date.toISOString(),
-                    instructions,
-                    duration: duration ? parseInt(duration) : null
-                })
-            });
-
-            if (response.ok) {
-                const exam = await response.json();
-                showToast("Exam created successfully", "success");
-                router.back();
-                // Navigate to marks entry screen
-                router.push({
-                    pathname: "/teacher/exam/enter-marks",
-                    params: { examId: exam._id }
-                });
-            } else {
-                const error = await response.json();
-                showToast(error.message || "Failed to create exam", "error");
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error creating exam", "error");
-        } finally {
-            setLoading(false);
-        }
+        createExamMutation.mutate({
+            name: examName,
+            type: examType,
+            classId,
+            subjectId,
+            totalMarks: parseFloat(totalMarks),
+            date: date.toISOString(),
+            instructions,
+            duration: duration ? parseInt(duration) : null
+        });
     };
 
     const onDateChange = (event, selectedDate) => {
@@ -284,7 +269,7 @@ export default function CreateExamScreen() {
                     {/* Create Button */}
                     <Pressable
                         onPress={handleCreateExam}
-                        disabled={loading}
+                        disabled={createExamMutation.isPending}
                         style={({ pressed }) => ({
                             backgroundColor: colors.primary,
                             borderRadius: 12,
@@ -294,11 +279,11 @@ export default function CreateExamScreen() {
                             alignItems: "center",
                             justifyContent: "center",
                             gap: 8,
-                            opacity: pressed || loading ? 0.7 : 1,
+                            opacity: pressed || createExamMutation.isPending ? 0.7 : 1,
                             elevation: 3
                         })}
                     >
-                        {loading ? (
+                        {createExamMutation.isPending ? (
                             <ActivityIndicator size="small" color="#fff" />
                         ) : (
                             <>

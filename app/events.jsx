@@ -10,9 +10,8 @@ import { useToast } from "../components/ToastProvider";
 import Header from "../components/Header";
 import EventFormModal from "../components/EventFormModal";
 import ModernCalendar from "../components/ModernCalendar";
-import useEvents from "../hooks/useEvents";
-import apiConfig from "../config/apiConfig";
-import apiFetch from "../utils/apiFetch";
+import { useApiQuery, useApiMutation, createApiMutationFn } from "../hooks/useApi";
+import { useQueryClient } from "@tanstack/react-query";
 
 // Memoized day renderer component for performance
 const DayRenderer = React.memo(({ date, state, marking, onDayPress, colors }) => {
@@ -185,44 +184,51 @@ export default function EventsScreen() {
   const [selectedDate, setSelectedDate] = useState(today);
   const [isEventFormVisible, setIsEventFormVisible] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [user, setUser] = useState(null);
-  const [refreshing, setRefreshing] = useState(false);
-  const { styles, colors } = useTheme();
-  const { showToast } = useToast();
-  const { events: allEvents, loading, addEvent, updateEvent, removeEvent, fetchEventsRange, refreshEvents } = useEvents();
+  const queryClient = useQueryClient();
+  const { events: allEvents, isLoading: loading, refetch } = useApiQuery(
+    ['events'],
+    apiConfig.url(apiConfig.endpoints.events.list),
+    {
+      select: (data) => data.events || [],
+    }
+  );
 
-  useEffect(() => {
-    // Check authentication and admin role
-    (async () => {
-      try {
-        const [token, user] = await Promise.all([
-          AsyncStorage.getItem('@auth_token'),
-          AsyncStorage.getItem('@auth_user'),
-        ]);
+  const { data: userData } = useApiQuery(
+    ['currentUser'],
+    `${apiConfig.baseUrl}/auth/me`
+  );
+  const isAuthenticated = userData?.role === 'admin' || userData?.role === 'super admin';
 
-        if (token && user) {
-          try {
-            const parsed = JSON.parse(user);
-            const isAdmin = !!(parsed && (parsed.role === 'admin' || parsed.role === 'super admin'));
-            setIsAuthenticated(isAdmin);
-            if (parsed && parsed.name) {
-              // User loaded
-            }
-          } catch (e) {
-            console.warn('Failed to parse stored user', e);
-            setIsAuthenticated(false);
-          }
-        } else {
-          setIsAuthenticated(false);
-        }
-      } catch (err) {
-        console.error('Auth check error:', err);
-        setIsAuthenticated(false);
-      }
-    })();
-  }, []);
+  // Mutations
+  const createEventMutation = useApiMutation({
+    mutationFn: createApiMutationFn(apiConfig.url(apiConfig.endpoints.events.create), 'POST'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      showToast('Event created successfully');
+      setIsEventFormVisible(false);
+    },
+    onError: (error) => showToast(error.message || 'Failed to create event')
+  });
+
+  const updateEventMutation = useApiMutation({
+    mutationFn: (data) => createApiMutationFn(apiConfig.url(apiConfig.endpoints.events.update(data._id)), 'PUT')(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      showToast('Event updated successfully');
+      setIsEventFormVisible(false);
+      setEditingEvent(null);
+    },
+    onError: (error) => showToast(error.message || 'Failed to update event')
+  });
+
+  const deleteEventMutation = useApiMutation({
+    mutationFn: (id) => createApiMutationFn(apiConfig.url(apiConfig.endpoints.events.delete(id)), 'DELETE')(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      showToast('Event deleted successfully');
+    },
+    onError: (error) => showToast(error.message || 'Failed to delete event')
+  });
 
   const [refreshFlag, setRefreshFlag] = useState(false);
 
@@ -231,61 +237,11 @@ export default function EventsScreen() {
   };
 
   // Modified handleEventCreated to toggle refreshFlag to trigger re-render
-  const handleEventSubmit = async (eventData) => {
-    // Close modal immediately and show background loader
-    setIsEventFormVisible(false);
-    setEditingEvent(null);
-    showToast('Saving event...', 'info');
-
-    try {
-      const token = await AsyncStorage.getItem('@auth_token');
-      if (!token) {
-        showToast('Please login to manage events');
-        setRefreshing(false);
-        return;
-      }
-
-      const isEditing = !!eventData._id;
-      const endpoint = isEditing
-        ? apiConfig.url(apiConfig.endpoints.events.update(eventData._id))
-        : apiConfig.url(apiConfig.endpoints.events.create);
-
-      const method = isEditing ? 'PUT' : 'POST';
-
-      const response = await apiFetch(endpoint, {
-        method: method,
-        silent: true,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(eventData)
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || `Failed to ${isEditing ? 'update' : 'create'} event`);
-      }
-
-      const newEvent = {
-        ...(result.event || {}),
-        isSchoolEvent: eventData.isSchoolEvent,
-        date: result.event?.date || eventData.date // Ensure date is present
-      };
-
-      if (isEditing) {
-        updateEvent(newEvent);
-        showToast('Event updated successfully');
-      } else {
-        addEvent(newEvent);
-        showToast('Event created successfully');
-      }
-      setRefreshFlag(prev => !prev);
-
-    } catch (error) {
-      console.error('Event submit error:', error);
-      showToast(error.message || 'Failed to save event');
+  const handleEventSubmit = (eventData) => {
+    if (eventData._id) {
+      updateEventMutation.mutate(eventData);
+    } else {
+      createEventMutation.mutate(eventData);
     }
   };
 
@@ -294,50 +250,14 @@ export default function EventsScreen() {
     setIsEventFormVisible(true);
   };
 
-  const handleDeleteEvent = async (eventId, eventTitle) => {
-    try {
-      const token = await AsyncStorage.getItem('@auth_token');
-      if (!token) {
-        showToast('Please login to delete events');
-        return;
-      }
-
-      const response = await apiFetch(apiConfig.url(apiConfig.endpoints.events.delete(eventId)), {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete event');
-      }
-
-      const result = await response.json();
-      if (result.success) {
-        removeEvent(eventId);
-        showToast(`Event "${eventTitle}" deleted successfully`);
-      } else {
-        throw new Error(result.message || 'Failed to delete event');
-      }
-    } catch (error) {
-      console.error('Delete event error:', error);
-      showToast(error.message || 'Failed to delete event');
-    }
+  const handleDeleteEvent = (eventId, eventTitle) => {
+    deleteEventMutation.mutate(eventId);
   };
 
   const onRefresh = async () => {
     setRefreshing(true);
-    try {
-
-      await refreshEvents(true); // silent=true
-
-    } catch (err) {
-      console.error('[EVENTS] Refresh failed:', err.message);
-      showToast('Failed to refresh events');
-    } finally {
-      setRefreshing(false);
-    }
+    await refetch();
+    setRefreshing(false);
   };
 
   const filteredEvents = useMemo(
@@ -411,16 +331,8 @@ export default function EventsScreen() {
               current={selectedDate}
               onDayPress={handleDateSelect}
               onMonthChange={(month) => {
-                const date = new Date(month.dateString);
-                const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1).toISOString();
-                const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).toISOString();
-                fetchEventsRange(startOfMonth, endOfMonth, (error, count) => {
-                  if (error) {
-                    showToast(`Failed to load events: ${error.message || error}`);
-                  } else {
-                    showToast(`Loaded ${count} events`);
-                  }
-                }, true);
+                // React Query handles caching automatically, no need to manually fetch range
+                // But if we want to prefetch, we could do it here
               }}
               markedDates={markedDates}
               dayComponent={({ date, state, marking }) => (

@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 import { useFonts } from "expo-font";
-import { Text } from "react-native";
+import { Text, Platform } from "react-native";
 import { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemeProvider, useTheme } from "../theme";
@@ -15,6 +15,8 @@ import { NavigationProvider } from "../context/NavigationContext";
 import apiConfig from "../config/apiConfig";
 import apiFetch from "../utils/apiFetch";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+import { queryClient, persister } from '../utils/queryClient';
 
 // Configure how notifications are displayed when app is in foreground
 Notifications.setNotificationHandler({
@@ -35,6 +37,8 @@ function Inner() {
     let responseSubscription;
 
     const setupNotifications = async () => {
+      if (Platform.OS === 'web') return;
+
       try {
         // Get and register FCM token
         const token = await getFCMToken();
@@ -57,27 +61,7 @@ function Inner() {
       }
     };
 
-    const preloadData = async () => {
-      try {
-        const token = await AsyncStorage.getItem("@auth_token");
-        if (!token) return;
-
-        // Preload Academic Years
-        const response = await apiFetch(`${apiConfig.baseUrl}/academic-year`, {
-          headers: { Authorization: `Bearer ${token}` },
-          silent: true
-        });
-        if (response.ok) {
-          const data = await response.json();
-          await AsyncStorage.setItem("@admin_academic_years", JSON.stringify({ data, timestamp: Date.now() }));
-        }
-      } catch (e) {
-
-      }
-    };
-
     setupNotifications();
-    preloadData();
 
     // Cleanup subscriptions on unmount
     return () => {
@@ -135,10 +119,15 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
-    <ThemeProvider>
-      <ErrorBoundary>
-        <Inner />
-      </ErrorBoundary>
-    </ThemeProvider>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{ persister }}
+    >
+      <ThemeProvider>
+        <ErrorBoundary>
+          <Inner />
+        </ErrorBoundary>
+      </ThemeProvider>
+    </PersistQueryClientProvider>
   );
 }

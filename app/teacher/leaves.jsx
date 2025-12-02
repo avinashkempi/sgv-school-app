@@ -3,20 +3,18 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, R
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import apiFetch from '../../utils/apiFetch';
+import { useApiQuery, useApiMutation, createApiMutationFn } from '../../hooks/useApi';
+import { useQueryClient } from '@tanstack/react-query';
 import apiConfig from '../../config/apiConfig';
 import { useToast } from '../../components/ToastProvider';
 
 export default function TeacherLeaves() {
     const router = useRouter();
+    const queryClient = useQueryClient();
     const { showToast } = useToast();
     const [activeTab, setActiveTab] = useState('requests'); // 'requests' or 'my_leaves'
 
     // Data State
-    const [requests, setRequests] = useState([]);
-    const [myLeaves, setMyLeaves] = useState([]);
-    const [leaveBalance, setLeaveBalance] = useState(null);
-    const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
     // Action Modal State
@@ -26,7 +24,6 @@ export default function TeacherLeaves() {
     const [actionReason, setActionReason] = useState('');
     const [rejectionReason, setRejectionReason] = useState('');
     const [rejectionComments, setRejectionComments] = useState('');
-    const [submittingAction, setSubmittingAction] = useState(false);
 
     // Apply Leave Modal State
     const [applyModalVisible, setApplyModalVisible] = useState(false);
@@ -37,42 +34,68 @@ export default function TeacherLeaves() {
     const [showEndPicker, setShowEndPicker] = useState(false);
     const [isHalfDay, setIsHalfDay] = useState(false);
     const [halfDaySlot, setHalfDaySlot] = useState('morning');
-    const [submittingApplication, setSubmittingApplication] = useState(false);
 
-    const fetchData = useCallback(async () => {
-        try {
-            if (activeTab === 'requests') {
-                const response = await apiFetch(`${apiConfig.baseUrl}/leaves/pending`);
-                const data = await response.json();
-                if (data.success) setRequests(data.data);
-                else showToast(data.message, 'error');
-            } else {
-                // Fetch My Leaves
-                const leavesRes = await apiFetch(`${apiConfig.baseUrl}/leaves/my-leaves`);
-                const leavesData = await leavesRes.json();
-                if (leavesData.success) setMyLeaves(leavesData.data);
+    // Fetch Pending Requests
+    const { data: requestsData, isLoading: requestsLoading, refetch: refetchRequests } = useApiQuery(
+        ['teacherLeaveRequests'],
+        `${apiConfig.baseUrl}/leaves/pending`,
+        { enabled: activeTab === 'requests' }
+    );
+    const requests = requestsData?.data || [];
 
-                // Fetch Balance
-                const balanceRes = await apiFetch(`${apiConfig.baseUrl}/leaves/balance`);
-                const balanceData = await balanceRes.json();
-                if (balanceData.success) setLeaveBalance(balanceData.data);
-            }
-        } catch (error) {
-            showToast('Error fetching data', 'error');
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    }, [activeTab]);
+    // Fetch My Leaves
+    const { data: myLeavesData, isLoading: myLeavesLoading, refetch: refetchMyLeaves } = useApiQuery(
+        ['teacherMyLeaves'],
+        `${apiConfig.baseUrl}/leaves/my-leaves`,
+        { enabled: activeTab === 'my_leaves' }
+    );
+    const myLeaves = myLeavesData?.data || [];
 
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+    // Fetch Leave Balance
+    const { data: balanceData, isLoading: balanceLoading, refetch: refetchBalance } = useApiQuery(
+        ['teacherLeaveBalance'],
+        `${apiConfig.baseUrl}/leaves/balance`,
+        { enabled: activeTab === 'my_leaves' }
+    );
+    const leaveBalance = balanceData?.data || null;
 
-    const onRefresh = () => {
+    const loading = activeTab === 'requests' ? requestsLoading : (myLeavesLoading || balanceLoading);
+
+    const onRefresh = async () => {
         setRefreshing(true);
-        fetchData();
+        if (activeTab === 'requests') {
+            await refetchRequests();
+        } else {
+            await Promise.all([refetchMyLeaves(), refetchBalance()]);
+        }
+        setRefreshing(false);
     };
+
+    // Mutations
+    const actionMutation = useApiMutation({
+        mutationFn: async ({ requestId, payload }) => {
+            return createApiMutationFn(`${apiConfig.baseUrl}/leaves/${requestId}/action`, 'PUT')(payload);
+        },
+        onSuccess: (data) => {
+            showToast(`Leave ${actionType} successfully`, 'success');
+            setActionModalVisible(false);
+            queryClient.invalidateQueries({ queryKey: ['teacherLeaveRequests'] });
+        },
+        onError: (error) => showToast(error.message || 'Error updating status', 'error')
+    });
+
+    const applyLeaveMutation = useApiMutation({
+        mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/leaves/apply`, 'POST'),
+        onSuccess: (data) => {
+            showToast('Leave applied successfully', 'success');
+            setApplyModalVisible(false);
+            setReason('');
+            setIsHalfDay(false);
+            queryClient.invalidateQueries({ queryKey: ['teacherMyLeaves'] });
+            queryClient.invalidateQueries({ queryKey: ['teacherLeaveBalance'] });
+        },
+        onError: (error) => showToast(error.message || 'Error applying leave', 'error')
+    });
 
     // --- Action Handlers ---
 
@@ -85,45 +108,25 @@ export default function TeacherLeaves() {
         setActionModalVisible(true);
     };
 
-    const handleAction = async () => {
+    const handleAction = () => {
         if (actionType === 'rejected' && (!rejectionReason || !rejectionComments)) {
             showToast('Rejection reason and comments are required', 'error');
             return;
         }
 
-        setSubmittingAction(true);
-        try {
-            const payload = {
-                status: actionType,
-                reason: actionReason,
-                rejectionReason: actionType === 'rejected' ? rejectionReason : undefined,
-                rejectionComments: actionType === 'rejected' ? rejectionComments : undefined
-            };
+        const payload = {
+            status: actionType,
+            reason: actionReason,
+            rejectionReason: actionType === 'rejected' ? rejectionReason : undefined,
+            rejectionComments: actionType === 'rejected' ? rejectionComments : undefined
+        };
 
-            const response = await apiFetch(`${apiConfig.baseUrl}/leaves/${selectedRequest._id}/action`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-            });
-            const data = await response.json();
-
-            if (data.success) {
-                showToast(`Leave ${actionType} successfully`, 'success');
-                setActionModalVisible(false);
-                fetchData();
-            } else {
-                showToast(data.message, 'error');
-            }
-        } catch (error) {
-            showToast('Error updating status', 'error');
-        } finally {
-            setSubmittingAction(false);
-        }
+        actionMutation.mutate({ requestId: selectedRequest._id, payload });
     };
 
     // --- Apply Leave Handlers ---
 
-    const handleApplyLeave = async () => {
+    const handleApplyLeave = () => {
         if (!reason.trim()) {
             showToast('Please enter a reason', 'error');
             return;
@@ -137,37 +140,15 @@ export default function TeacherLeaves() {
         let finalEndDate = endDate;
         if (isHalfDay) finalEndDate = startDate;
 
-        setSubmittingApplication(true);
-        try {
-            const payload = {
-                startDate: startDate.toISOString().split('T')[0],
-                endDate: finalEndDate.toISOString().split('T')[0],
-                reason,
-                leaveType: isHalfDay ? 'half' : 'full',
-                halfDaySlot: isHalfDay ? halfDaySlot : undefined
-            };
+        const payload = {
+            startDate: startDate.toISOString().split('T')[0],
+            endDate: finalEndDate.toISOString().split('T')[0],
+            reason,
+            leaveType: isHalfDay ? 'half' : 'full',
+            halfDaySlot: isHalfDay ? halfDaySlot : undefined
+        };
 
-            const response = await apiFetch(`${apiConfig.baseUrl}/leaves/apply`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-            });
-            const data = await response.json();
-
-            if (data.success) {
-                showToast('Leave applied successfully', 'success');
-                setApplyModalVisible(false);
-                setReason('');
-                setIsHalfDay(false);
-                fetchData();
-            } else {
-                showToast(data.message, 'error');
-            }
-        } catch (error) {
-            showToast('Error applying leave', 'error');
-        } finally {
-            setSubmittingApplication(false);
-        }
+        applyLeaveMutation.mutate(payload);
     };
 
     // --- Render Items ---
@@ -375,9 +356,9 @@ export default function TeacherLeaves() {
                             <TouchableOpacity
                                 style={[styles.button, actionType === 'approved' ? styles.approveButton : styles.rejectButton]}
                                 onPress={handleAction}
-                                disabled={submittingAction}
+                                disabled={actionMutation.isPending}
                             >
-                                {submittingAction ? (
+                                {actionMutation.isPending ? (
                                     <ActivityIndicator color="#fff" size="small" />
                                 ) : (
                                     <Text style={styles.submitButtonText}>
@@ -506,9 +487,9 @@ export default function TeacherLeaves() {
                             <TouchableOpacity
                                 style={styles.submitButton}
                                 onPress={handleApplyLeave}
-                                disabled={submittingApplication}
+                                disabled={applyLeaveMutation.isPending}
                             >
-                                {submittingApplication ? (
+                                {applyLeaveMutation.isPending ? (
                                     <ActivityIndicator color="#fff" />
                                 ) : (
                                     <Text style={styles.submitButtonText}>Submit Application</Text>

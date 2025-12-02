@@ -12,134 +12,75 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from "../../../../theme";
-import apiConfig from "../../../../config/apiConfig";
-import apiFetch from "../../../../utils/apiFetch";
-import { useToast } from "../../../../components/ToastProvider";
-import Header from "../../../../components/Header";
-import { formatDate } from "../../../../utils/date";
-import { getCachedData, setCachedData } from "../../../../utils/cache";
-import { useNetworkStatus } from "../../../../components/NetworkStatusProvider";
+import { useApiQuery, useApiMutation, createApiMutationFn } from "../../../../hooks/useApi";
+import { useQueryClient } from "@tanstack/react-query";
 import PostContentModal from "../../../../components/PostContentModal";
+import apiConfig from "../../../../config/apiConfig";
+import { useToast } from "../../../../components/ToastProvider";
 
 export default function SubjectDetailScreen() {
     const { id, subjectId } = useLocalSearchParams(); // classId and subjectId
     const router = useRouter();
+    const queryClient = useQueryClient();
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
-    const { isConnected } = useNetworkStatus();
 
-    const [subjectName, setSubjectName] = useState("");
-    const [subjectTeachers, setSubjectTeachers] = useState([]);
-    const [content, setContent] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [showPostModal, setShowPostModal] = useState(false);
     const [user, setUser] = useState(null);
 
     useEffect(() => {
-        loadData();
+        loadUserData();
     }, []);
 
-    const loadData = async () => {
-        const cacheKeyContent = `@subject_content_${subjectId}`;
+    const loadUserData = async () => {
         try {
-            const token = await AsyncStorage.getItem("@auth_token");
             const storedUser = await AsyncStorage.getItem("@auth_user");
             if (storedUser) setUser(JSON.parse(storedUser));
-
-            // 1. Try cache
-            const cachedContent = await getCachedData(cacheKeyContent);
-            if (cachedContent) {
-                setContent(cachedContent);
-                setLoading(false);
-
-            }
-
-            // 2. Fetch API
-            const fetchFromApi = async () => {
-                // Fetch Subject Details (to get name)
-                const subjectsRes = await apiFetch(`${apiConfig.baseUrl}/classes/${id}/subjects`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                    silent: !!cachedContent
-                });
-
-                if (subjectsRes.ok) {
-                    const subjects = await subjectsRes.json();
-                    const currentSubject = subjects.find(s => s._id === subjectId);
-                    if (currentSubject) {
-                        setSubjectName(currentSubject.name);
-                        setSubjectTeachers(currentSubject.teachers || []);
-                    }
-                }
-
-                // Fetch Content for this subject
-                const contentRes = await apiFetch(`${apiConfig.baseUrl}/classes/${id}/subjects/${subjectId}/content`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                    silent: !!cachedContent
-                });
-
-                if (contentRes.ok) {
-                    const contentData = await contentRes.json();
-                    setContent(contentData);
-                    setCachedData(cacheKeyContent, contentData);
-
-                } else {
-                    if (!cachedContent) showToast("Failed to load content", "error");
-                }
-            };
-
-            if (isConnected) {
-                await fetchFromApi();
-            } else if (!cachedContent) {
-                showToast("No internet connection", "error");
-            }
-
         } catch (error) {
-            console.error(error);
-            if (!content.length) showToast("Error loading data", "error");
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
+            console.error("Failed to load user:", error);
         }
     };
+
+    // Fetch Subject Details
+    const { data: subjects } = useApiQuery(
+        ['classSubjects', id],
+        `${apiConfig.baseUrl}/classes/${id}/subjects`,
+        { enabled: !!id }
+    );
+
+    const currentSubject = subjects?.find(s => s._id === subjectId);
+    const subjectName = currentSubject?.name || "";
+    const subjectTeachers = currentSubject?.teachers || [];
+
+    // Fetch Content
+    const { data: contentData, isLoading: loading, refetch } = useApiQuery(
+        ['subjectContent', subjectId],
+        `${apiConfig.baseUrl}/classes/${id}/subjects/${subjectId}/content`,
+        { enabled: !!subjectId && !!id }
+    );
+    const content = contentData || [];
 
     const onRefresh = async () => {
         setRefreshing(true);
-        try {
-            await loadData();
-        } finally {
-            setRefreshing(false);
-        }
+        await refetch();
+        setRefreshing(false);
     };
 
-    const handlePostContent = async (data) => {
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
+    const postContentMutation = useApiMutation({
+        mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/classes/${id}/content`, 'POST'),
+        onSuccess: () => {
+            showToast("Content posted successfully", "success");
+            setShowPostModal(false);
+            queryClient.invalidateQueries({ queryKey: ['subjectContent', subjectId] });
+        },
+        onError: (error) => showToast(error.message || "Failed to post content", "error")
+    });
 
-            // Add subjectId to the data
-            const payload = { ...data, subject: subjectId };
-
-            const response = await apiFetch(`${apiConfig.baseUrl}/classes/${id}/content`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify(payload),
-            });
-
-            if (response.ok) {
-                showToast("Content posted successfully", "success");
-                setShowPostModal(false);
-                onRefresh();
-            } else {
-                const errorData = await response.json();
-                showToast(errorData.msg || "Failed to post content", "error");
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error posting content", "error");
-        }
+    const handlePostContent = (data) => {
+        // Add subjectId to the data
+        const payload = { ...data, subject: subjectId };
+        postContentMutation.mutate(payload);
     };
 
     const getContentTypeColor = (type) => {

@@ -3,21 +3,14 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, R
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import apiFetch from '../../utils/apiFetch';
-import apiConfig from '../../config/apiConfig';
-import { useToast } from '../../components/ToastProvider';
+import { useApiQuery, useApiMutation, createApiMutationFn } from '../../hooks/useApi';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function AdminLeaves() {
     const router = useRouter();
     const { showToast } = useToast();
+    const queryClient = useQueryClient();
     const [activeTab, setActiveTab] = useState('requests'); // 'requests', 'my_leaves', 'daily'
-
-    // Data State
-    const [requests, setRequests] = useState([]);
-    const [myLeaves, setMyLeaves] = useState([]);
-    const [dailyStats, setDailyStats] = useState([]);
-    const [leaveBalance, setLeaveBalance] = useState(null);
-    const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
     // Action Modal State
@@ -27,7 +20,6 @@ export default function AdminLeaves() {
     const [actionReason, setActionReason] = useState('');
     const [rejectionReason, setRejectionReason] = useState('');
     const [rejectionComments, setRejectionComments] = useState('');
-    const [submittingAction, setSubmittingAction] = useState(false);
 
     // Apply Leave Modal State
     const [applyModalVisible, setApplyModalVisible] = useState(false);
@@ -38,56 +30,91 @@ export default function AdminLeaves() {
     const [showEndPicker, setShowEndPicker] = useState(false);
     const [isHalfDay, setIsHalfDay] = useState(false);
     const [halfDaySlot, setHalfDaySlot] = useState('morning');
-    const [submittingApplication, setSubmittingApplication] = useState(false);
 
-    const fetchData = useCallback(async () => {
-        try {
-            if (activeTab === 'requests') {
-                const response = await apiFetch(`${apiConfig.baseUrl}/leaves/pending`);
-                const data = await response.json();
-                if (data.success) {
-                    // Group requests by role for SectionList
-                    const studentRequests = data.data.filter(r => r.applicantRole === 'student');
-                    const teacherRequests = data.data.filter(r => r.applicantRole === 'teacher');
-                    const adminRequests = data.data.filter(r => r.applicantRole === 'admin');
+    // Fetch Requests
+    const { data: requestsData, isLoading: requestsLoading, refetch: refetchRequests } = useApiQuery(
+        ['adminLeaveRequests'],
+        `${apiConfig.baseUrl}/leaves/pending`,
+        { enabled: activeTab === 'requests' }
+    );
 
-                    const sections = [];
-                    if (studentRequests.length > 0) sections.push({ title: 'Student Requests', data: studentRequests });
-                    if (teacherRequests.length > 0) sections.push({ title: 'Teacher Requests', data: teacherRequests });
-                    if (adminRequests.length > 0) sections.push({ title: 'Admin Requests', data: adminRequests });
+    const requests = React.useMemo(() => {
+        if (!requestsData?.data) return [];
+        const data = requestsData.data;
+        const studentRequests = data.filter(r => r.applicantRole === 'student');
+        const teacherRequests = data.filter(r => r.applicantRole === 'teacher');
+        const adminRequests = data.filter(r => r.applicantRole === 'admin');
 
-                    setRequests(sections);
-                } else {
-                    showToast(data.message, 'error');
-                }
-            } else if (activeTab === 'my_leaves') {
-                const leavesRes = await apiFetch(`${apiConfig.baseUrl}/leaves/my-leaves`);
-                const leavesData = await leavesRes.json();
-                if (leavesData.success) setMyLeaves(leavesData.data);
+        const sections = [];
+        if (studentRequests.length > 0) sections.push({ title: 'Student Requests', data: studentRequests });
+        if (teacherRequests.length > 0) sections.push({ title: 'Teacher Requests', data: teacherRequests });
+        if (adminRequests.length > 0) sections.push({ title: 'Admin Requests', data: adminRequests });
+        return sections;
+    }, [requestsData]);
 
-                const balanceRes = await apiFetch(`${apiConfig.baseUrl}/leaves/balance`);
-                const balanceData = await balanceRes.json();
-                if (balanceData.success) setLeaveBalance(balanceData.data);
-            } else if (activeTab === 'daily') {
-                const response = await apiFetch(`${apiConfig.baseUrl}/leaves/daily-stats`);
-                const data = await response.json();
-                if (data.success) setDailyStats(data.data);
-            }
-        } catch (error) {
-            showToast('Error fetching data', 'error');
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    }, [activeTab]);
+    // Fetch My Leaves
+    const { data: myLeavesData, isLoading: myLeavesLoading, refetch: refetchMyLeaves } = useApiQuery(
+        ['myLeaves'],
+        `${apiConfig.baseUrl}/leaves/my-leaves`,
+        { enabled: activeTab === 'my_leaves' }
+    );
+    const myLeaves = myLeavesData?.data || [];
 
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+    // Fetch Leave Balance
+    const { data: balanceData, refetch: refetchBalance } = useApiQuery(
+        ['leaveBalance'],
+        `${apiConfig.baseUrl}/leaves/balance`,
+        { enabled: activeTab === 'my_leaves' }
+    );
+    const leaveBalance = balanceData?.data;
 
-    const onRefresh = () => {
+    // Fetch Daily Stats
+    const { data: dailyStatsData, isLoading: dailyStatsLoading, refetch: refetchDailyStats } = useApiQuery(
+        ['dailyLeaveStats'],
+        `${apiConfig.baseUrl}/leaves/daily-stats`,
+        { enabled: activeTab === 'daily' }
+    );
+    const dailyStats = dailyStatsData?.data || [];
+
+    const loading = (activeTab === 'requests' && requestsLoading) ||
+        (activeTab === 'my_leaves' && myLeavesLoading) ||
+        (activeTab === 'daily' && dailyStatsLoading);
+
+    // Mutations
+    const actionMutation = useApiMutation({
+        mutationFn: (data) => createApiMutationFn(`${apiConfig.baseUrl}/leaves/${data.id}/action`, 'PUT')(data.body),
+        onSuccess: () => {
+            showToast(`Leave ${actionType} successfully`, 'success');
+            setActionModalVisible(false);
+            queryClient.invalidateQueries({ queryKey: ['adminLeaveRequests'] });
+            queryClient.invalidateQueries({ queryKey: ['dailyLeaveStats'] }); // Status change might affect daily stats
+        },
+        onError: (error) => showToast(error.message || 'Error updating status', 'error')
+    });
+
+    const applyLeaveMutation = useApiMutation({
+        mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/leaves/apply`, 'POST'),
+        onSuccess: () => {
+            showToast('Leave applied successfully', 'success');
+            setApplyModalVisible(false);
+            setReason('');
+            setIsHalfDay(false);
+            queryClient.invalidateQueries({ queryKey: ['myLeaves'] });
+            queryClient.invalidateQueries({ queryKey: ['leaveBalance'] });
+            queryClient.invalidateQueries({ queryKey: ['adminLeaveRequests'] }); // If admin applies, it might show up in requests depending on logic, but good to invalidate
+        },
+        onError: (error) => showToast(error.message || 'Error applying leave', 'error')
+    });
+
+
+
+    const onRefresh = async () => {
         setRefreshing(true);
-        fetchData();
+        if (activeTab === 'requests') await refetchRequests();
+        else if (activeTab === 'my_leaves') {
+            await Promise.all([refetchMyLeaves(), refetchBalance()]);
+        } else if (activeTab === 'daily') await refetchDailyStats();
+        setRefreshing(false);
     };
 
     // --- Action Handlers ---
@@ -101,45 +128,26 @@ export default function AdminLeaves() {
         setActionModalVisible(true);
     };
 
-    const handleAction = async () => {
+    const handleAction = () => {
         if (actionType === 'rejected' && (!rejectionReason || !rejectionComments)) {
             showToast('Rejection reason and comments are required', 'error');
             return;
         }
 
-        setSubmittingAction(true);
-        try {
-            const payload = {
+        actionMutation.mutate({
+            id: selectedRequest._id,
+            body: {
                 status: actionType,
                 reason: actionReason,
                 rejectionReason: actionType === 'rejected' ? rejectionReason : undefined,
                 rejectionComments: actionType === 'rejected' ? rejectionComments : undefined
-            };
-
-            const response = await apiFetch(`${apiConfig.baseUrl}/leaves/${selectedRequest._id}/action`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-            });
-            const data = await response.json();
-
-            if (data.success) {
-                showToast(`Leave ${actionType} successfully`, 'success');
-                setActionModalVisible(false);
-                fetchData();
-            } else {
-                showToast(data.message, 'error');
             }
-        } catch (error) {
-            showToast('Error updating status', 'error');
-        } finally {
-            setSubmittingAction(false);
-        }
+        });
     };
 
     // --- Apply Leave Handlers ---
 
-    const handleApplyLeave = async () => {
+    const handleApplyLeave = () => {
         if (!reason.trim()) {
             showToast('Please enter a reason', 'error');
             return;
@@ -153,37 +161,13 @@ export default function AdminLeaves() {
         let finalEndDate = endDate;
         if (isHalfDay) finalEndDate = startDate;
 
-        setSubmittingApplication(true);
-        try {
-            const payload = {
-                startDate: startDate.toISOString().split('T')[0],
-                endDate: finalEndDate.toISOString().split('T')[0],
-                reason,
-                leaveType: isHalfDay ? 'half' : 'full',
-                halfDaySlot: isHalfDay ? halfDaySlot : undefined
-            };
-
-            const response = await apiFetch(`${apiConfig.baseUrl}/leaves/apply`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-            });
-            const data = await response.json();
-
-            if (data.success) {
-                showToast('Leave applied successfully', 'success');
-                setApplyModalVisible(false);
-                setReason('');
-                setIsHalfDay(false);
-                fetchData();
-            } else {
-                showToast(data.message, 'error');
-            }
-        } catch (error) {
-            showToast('Error applying leave', 'error');
-        } finally {
-            setSubmittingApplication(false);
-        }
+        applyLeaveMutation.mutate({
+            startDate: startDate.toISOString().split('T')[0],
+            endDate: finalEndDate.toISOString().split('T')[0],
+            reason,
+            leaveType: isHalfDay ? 'half' : 'full',
+            halfDaySlot: isHalfDay ? halfDaySlot : undefined
+        });
     };
 
     // --- Render Items ---
@@ -434,9 +418,9 @@ export default function AdminLeaves() {
                             <TouchableOpacity
                                 style={[styles.button, actionType === 'approved' ? styles.approveButton : styles.rejectButton]}
                                 onPress={handleAction}
-                                disabled={submittingAction}
+                                disabled={actionMutation.isPending}
                             >
-                                {submittingAction ? (
+                                {actionMutation.isPending ? (
                                     <ActivityIndicator color="#fff" size="small" />
                                 ) : (
                                     <Text style={styles.submitButtonText}>
@@ -565,9 +549,9 @@ export default function AdminLeaves() {
                             <TouchableOpacity
                                 style={styles.submitButton}
                                 onPress={handleApplyLeave}
-                                disabled={submittingApplication}
+                                disabled={applyLeaveMutation.isPending}
                             >
-                                {submittingApplication ? (
+                                {applyLeaveMutation.isPending ? (
                                     <ActivityIndicator color="#fff" />
                                 ) : (
                                     <Text style={styles.submitButtonText}>Submit Application</Text>

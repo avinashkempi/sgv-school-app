@@ -22,30 +22,19 @@ import { useTheme } from "../theme";
 import apiConfig from "../config/apiConfig";
 import apiFetch from "../utils/apiFetch";
 import { useToast } from "../components/ToastProvider";
-import { getCachedData, setCachedData, updateCachedData, CACHE_KEYS, CACHE_EXPIRY } from "../utils/cache";
-import Header from "../components/Header";
-
-// Global cache for users to persist across component re-mounts
-let globalUsers = [];
-let globalUsersLoading = true;
-let globalUsersError = null;
-let usersFetched = false;
+import { useApiQuery, useApiMutation, createApiMutationFn } from "../hooks/useApi";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function AdminScreen() {
   const router = useRouter();
   const { styles, colors } = useTheme();
   const { showToast } = useToast();
-  const [user, setUser] = useState(null);
-  const [users, setUsers] = useState(globalUsers);
-  const [loading, setLoading] = useState(globalUsersLoading);
-  const [error, setError] = useState(globalUsersError);
-  const [refreshing, setRefreshing] = useState(false);
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const pageSize = 20;
   const [showUserModal, setShowUserModal] = useState(false);
   const [modalMode, setModalMode] = useState("add"); // "add" or "edit"
@@ -65,274 +54,70 @@ export default function AdminScreen() {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [showPassword, setShowPassword] = useState(false);
-  const [saving, setSaving] = useState(false);
 
-  // Available roles for dropdown
-  const availableRoles = ["student", "teacher", "staff", "admin", "super admin"];
+  // Check Auth & Admin
+  const { data: userData } = useApiQuery(
+    ['currentUser'],
+    `${apiConfig.baseUrl}/auth/me`
+  );
+  const user = userData;
+  const isAdmin = user?.role === 'admin' || user?.role === 'super admin';
 
-  const validateField = (name, value) => {
-    let error = "";
-    switch (name) {
-      case "name":
-        if (!value.trim()) error = "Name is required";
-        else if (value.trim().length < 3) error = "Name must be at least 3 characters";
-        break;
-      case "phone":
-        if (!value.trim()) error = "Phone number is required";
-        else if (!/^\d{10}$/.test(value.trim())) error = "Phone must be exactly 10 digits";
-        break;
-      case "email":
-        if (value.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
-          error = "Invalid email format";
-        }
-        break;
-      case "password":
-        if (!value) error = "Password is required";
-        else if (value.length < 6) error = "Password must be at least 6 characters";
-        break;
+  // Fetch Users
+  const { data: usersData, isLoading: loading, refetch } = useApiQuery(
+    ['users', currentPage, searchQuery, roleFilter, sortBy, sortOrder],
+    `${apiConfig.baseUrl}/users?page=${currentPage}&limit=${pageSize}&search=${searchQuery}&role=${roleFilter}&sortBy=${sortBy}&order=${sortOrder}`,
+    {
+      enabled: isAdmin,
+      keepPreviousData: true,
     }
-    return error;
+  );
+
+  const users = usersData?.data || [];
+  const totalPages = usersData?.pagination?.pages || 1;
+
+  // Mutations
+  const createUserMutation = useApiMutation({
+    mutationFn: createApiMutationFn(apiConfig.url(apiConfig.endpoints.users.create), 'POST'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      showToast("User created successfully", "success");
+      setUserForm({ name: "", phone: "", email: "", password: "", role: "student" });
+      setShowUserModal(false);
+    },
+    onError: (error) => showToast(error.message || "Failed to create user", "error")
+  });
+
+  const updateUserMutation = useApiMutation({
+    mutationFn: (data) => createApiMutationFn(apiConfig.url(apiConfig.endpoints.users.update(data._id)), 'PUT')(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      showToast("User updated successfully", "success");
+      setShowUserModal(false);
+    },
+    onError: (error) => showToast(error.message || "Failed to update user", "error")
+  });
+
+  const deleteUserMutation = useApiMutation({
+    mutationFn: (id) => createApiMutationFn(apiConfig.url(apiConfig.endpoints.users.delete(id)), 'DELETE')(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      showToast("User deleted successfully", "success");
+    },
+    onError: (error) => showToast(error.message || "Failed to delete user", "error")
+  });
+
+  const updateUserRole = (userId, newRole) => {
+    updateUserMutation.mutate({ _id: userId, role: newRole });
   };
 
-  const handleBlur = (field) => {
-    setTouched(prev => ({ ...prev, [field]: true }));
-    const error = validateField(field, userForm[field]);
-    setErrors(prev => ({ ...prev, [field]: error }));
-  };
-
-  const handleChange = (field, value) => {
-    setUserForm(prev => ({ ...prev, [field]: value }));
-    if (touched[field]) {
-      const error = validateField(field, value);
-      setErrors(prev => ({ ...prev, [field]: error }));
-    }
-  };
-
-  const isFormValid = () => {
-    const nameError = validateField("name", userForm.name);
-    const phoneError = validateField("phone", userForm.phone);
-    const passwordError = validateField("password", userForm.password);
-    const emailError = validateField("email", userForm.email);
-
-    return !nameError && !phoneError && !passwordError && !emailError &&
-      userForm.name && userForm.phone && userForm.password;
-  };
-
-  useEffect(() => {
-    checkAuthAndLoadUsers();
-  }, []);
-
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      loadUsers();
-    }, 500);
-
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchQuery, roleFilter, sortBy, sortOrder, currentPage]);
-
-  const checkAuthAndLoadUsers = async () => {
-    try {
-      const storedUser = await AsyncStorage.getItem("@auth_user");
-      const token = await AsyncStorage.getItem("@auth_token");
-
-      if (!storedUser || !token) {
-        router.replace("/login");
-        return;
-      }
-
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        if (parsedUser.role !== "admin" && parsedUser.role !== "super admin") {
-          Alert.alert("Access Denied", "You don't have permission to access this page.");
-          router.replace("/");
-          return;
-        }
-        setUser(parsedUser);
-      } catch (e) {
-        console.error("Failed to parse stored user:", e);
-        await AsyncStorage.removeItem("@auth_user");
-        router.replace("/login");
-        return;
-      }
-
-      if (usersFetched) {
-        // If already fetched, use cached data
-        setUsers(globalUsers);
-        setLoading(globalUsersLoading);
-        return;
-      }
-
-      await loadUsers();
-    } catch (error) {
-      console.error("Auth check error:", error);
-      router.replace("/login");
-    }
-  };
-
-  const loadUsers = async () => {
-    try {
-      // Try to load from cache first
-      const cachedUsers = await getCachedData(CACHE_KEYS.USERS, CACHE_EXPIRY.USERS);
-      if (cachedUsers) {
-        globalUsers = cachedUsers;
-        setUsers(globalUsers);
-        setLoading(false);
-        globalUsersLoading = false;
-        usersFetched = true;
-        // Fetch fresh data in background
-        fetchFreshUsers();
-        return;
-      }
-
-      // Only show loading if we need to fetch from API
-      setLoading(true);
-      await fetchFreshUsers();
-    } catch (error) {
-      console.error("Load users error:", error);
-      setError(error.message);
-      globalUsersError = error.message;
-      globalUsers = [];
-      setUsers([]);
-      setLoading(false);
-      globalUsersLoading = false;
-      usersFetched = true;
-      showToast("Failed to load users", "error");
-    }
-  };
-
-  const fetchFreshUsers = async () => {
-    try {
-      const token = await AsyncStorage.getItem("@auth_token");
-
-      const queryParams = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: pageSize.toString(),
-        search: searchQuery,
-        role: roleFilter,
-        sortBy,
-        order: sortOrder
-      });
-
-      // Construct URL manually to ensure correct formatting
-      const url = `${apiConfig.url(apiConfig.endpoints.users.list)}?${queryParams.toString()}`;
-
-      const response = await apiFetch(url, {
-        method: "GET",
-        silent: true,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      if (result.success) {
-        globalUsers = result.data;
-        setUsers(result.data);
-        setTotalPages(result.pagination.pages);
-        setLoading(false);
-        globalUsersLoading = false;
-        usersFetched = true;
-        // Only cache if default view
-        if (currentPage === 1 && !searchQuery && roleFilter === 'all') {
-          await setCachedData(CACHE_KEYS.USERS, result.data);
-        }
-      } else {
-        setUsers([]);
-        setTotalPages(1);
-        setLoading(false);
-        globalUsersLoading = false;
-        usersFetched = true;
-        throw new Error("Failed to load users");
-      }
-    } catch (error) {
-      console.error("Fetch fresh users error:", error);
-      setLoading(false);
-      globalUsersLoading = false;
-      setError(error.message);
-      globalUsersError = error.message;
-      showToast("Failed to load users", "error");
-    }
-  };
-
-  const updateUserRole = async (userId, newRole) => {
-    try {
-      setSaving(true);
-      const token = await AsyncStorage.getItem("@auth_token");
-
-      const response = await apiFetch(apiConfig.url(apiConfig.endpoints.users.update(userId)), {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ role: newRole }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      if (result.success) {
-        // Update local state
-        setUsers(prevUsers =>
-          prevUsers.map(u => u._id === userId ? { ...u, role: newRole } : u)
-        );
-        showToast("Role updated successfully", "success");
-        setShowUserModal(false);
-      } else {
-        throw new Error("Failed to update role");
-      }
-    } catch (error) {
-      console.error("Update role error:", error);
-      showToast("Failed to update role", "error");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const deleteUser = async (userId, name) => {
-    try {
-      const token = await AsyncStorage.getItem("@auth_token");
-
-      const response = await apiFetch(apiConfig.url(apiConfig.endpoints.users.delete(userId)), {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      if (result.success) {
-        // Update local state
-        setUsers(prevUsers => prevUsers.filter(u => u._id !== userId));
-        // Update cache
-        await updateCachedData(CACHE_KEYS.USERS, (cachedUsers) =>
-          cachedUsers.filter(u => u._id !== userId)
-        );
-        showToast(`User ${name} deleted successfully`, "success");
-      } else {
-        throw new Error("Failed to delete user");
-      }
-    } catch (error) {
-      console.error("Delete user error:", error);
-      showToast("Failed to delete user", "error");
-    }
+  const deleteUser = (userId, name) => {
+    deleteUserMutation.mutate(userId);
   };
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadUsers();
+    await refetch();
     setRefreshing(false);
   };
 
@@ -360,56 +145,12 @@ export default function AdminScreen() {
     }
   };
 
-  const createUser = async () => {
-    try {
-      if (!userForm.name || !userForm.phone || !userForm.password) {
-        showToast("Please fill in all required fields", "error");
-        return;
-      }
-
-      setSaving(true);
-
-      const userData = { ...userForm }; // Capture form data
-
-      const token = await AsyncStorage.getItem("@auth_token");
-
-      const response = await apiFetch(apiConfig.url(apiConfig.endpoints.users.create), {
-        method: "POST",
-        silent: true,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(userData),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        let errorMessage = result.message || `Failed to create user (Status: ${response.status})`;
-
-        // Check for specific validation errors
-        if (result.errors && Array.isArray(result.errors) && result.errors.length > 0) {
-          errorMessage = result.errors[0].msg || errorMessage;
-        }
-
-        throw new Error(errorMessage);
-      }
-
-      if (result.success) {
-        setUsers(prevUsers => [...prevUsers, result.user]);
-        showToast("User created successfully", "success");
-        setUserForm({ name: "", phone: "", email: "", password: "", role: "student" });
-        setShowUserModal(false);
-      } else {
-        throw new Error(result.message || "Failed to create user");
-      }
-    } catch (error) {
-      console.error("Create user error:", error);
-      showToast(error.message || "Failed to create user", "error");
-    } finally {
-      setSaving(false);
+  const createUser = () => {
+    if (!userForm.name || !userForm.phone || !userForm.password) {
+      showToast("Please fill in all required fields", "error");
+      return;
     }
+    createUserMutation.mutate(userForm);
   };
 
   return (

@@ -12,11 +12,11 @@ import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
-import apiConfig from "../../config/apiConfig";
-import apiFetch from "../../utils/apiFetch";
-import { useToast } from "../../components/ToastProvider";
+import { useApiQuery } from "../../hooks/useApi";
 import Header from "../../components/Header";
 import ModernCalendar from "../../components/ModernCalendar";
+import apiConfig from "../../config/apiConfig";
+import { useToast } from "../../components/ToastProvider";
 
 const { width } = Dimensions.get('window');
 const cellSize = (width - 80) / 7; // 7 days in a week, accounting for padding
@@ -26,73 +26,43 @@ export default function StudentAttendanceScreen() {
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
 
-    const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [user, setUser] = useState(null);
-    const [summary, setSummary] = useState(null);
-    const [attendanceHistory, setAttendanceHistory] = useState([]);
     const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().split('T')[0]);
 
     useEffect(() => {
-        loadData();
+        const loadUser = async () => {
+            const storedUser = await AsyncStorage.getItem("@auth_user");
+            if (storedUser) {
+                setUser(JSON.parse(storedUser));
+            }
+        };
+        loadUser();
     }, []);
 
-    const loadData = async () => {
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const storedUser = await AsyncStorage.getItem("@auth_user");
+    const userId = user?.id || user?._id;
 
-            if (!storedUser) {
-                router.replace("/login");
-                return;
-            }
+    // Fetch Attendance Summary
+    const { data: summary, isLoading: loadingSummary, refetch: refetchSummary } = useApiQuery(
+        ['studentAttendanceSummary', userId],
+        `${apiConfig.baseUrl}/attendance/student/${userId}/summary`,
+        { enabled: !!userId }
+    );
 
-            const parsedUser = JSON.parse(storedUser);
-            setUser(parsedUser);
+    // Fetch Attendance History
+    const { data: historyData, isLoading: loadingHistory, refetch: refetchHistory } = useApiQuery(
+        ['studentAttendanceHistory', userId],
+        `${apiConfig.baseUrl}/attendance/student/${userId}`,
+        { enabled: !!userId }
+    );
 
-            const userId = parsedUser.id || parsedUser._id;
+    const attendanceHistory = historyData?.attendance || [];
+    const loading = loadingSummary || loadingHistory;
 
-            if (!userId) {
-                console.error("User ID missing in stored user object");
-                await AsyncStorage.removeItem("@auth_token");
-                await AsyncStorage.removeItem("@auth_user");
-                router.replace("/login");
-                return;
-            }
-
-            // Load attendance summary
-            const summaryResponse = await apiFetch(
-                `${apiConfig.baseUrl}/attendance/student/${userId}/summary`,
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            if (summaryResponse.ok) {
-                const data = await summaryResponse.json();
-                setSummary(data);
-            }
-
-            // Load attendance history
-            const historyResponse = await apiFetch(
-                `${apiConfig.baseUrl}/attendance/student/${userId}`,
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            if (historyResponse.ok) {
-                const data = await historyResponse.json();
-                setAttendanceHistory(data.attendance || []);
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading attendance", "error");
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    };
-
-    const onRefresh = () => {
+    const onRefresh = async () => {
         setRefreshing(true);
-        loadData();
+        await Promise.all([refetchSummary(), refetchHistory()]);
+        setRefreshing(false);
     };
 
     const getStatusColor = (status) => {

@@ -5,49 +5,43 @@ import { useTheme } from '../theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import apiConfig from "../config/apiConfig";
-import apiFetch from "../utils/apiFetch";
+import { useApiMutation, createApiMutationFn } from "../hooks/useApi";
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function Login() {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const { styles, colors, mode, gradients } = useTheme();
   const router = useRouter();
 
-  const handleLogin = async () => {
-    if (!phone || !password) {
-      alert('Please enter both phone number and password.');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await apiFetch(apiConfig.url(apiConfig.endpoints.auth.login), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ phone, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.token) {
+  const loginMutation = useApiMutation({
+    mutationFn: createApiMutationFn(apiConfig.url(apiConfig.endpoints.auth.login), 'POST'),
+    onSuccess: async (data) => {
+      if (data.token) {
         await AsyncStorage.setItem('@auth_token', data.token);
         await AsyncStorage.setItem('@auth_user', JSON.stringify(data.user));
         router.replace('/');
       } else {
         alert(data.message || 'Login failed');
       }
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error('Login error:', error);
-      alert('Network error. Please try again.');
-    } finally {
-      setLoading(false);
+      alert(error.message || 'Network error. Please try again.');
     }
+  });
+
+  const handleLogin = () => {
+    if (!phone || !password) {
+      alert('Please enter both phone number and password.');
+      return;
+    }
+
+    loginMutation.mutate({ phone, password });
   };
+
+  const loading = loginMutation.isPending;
 
   return (
     <KeyboardAvoidingView

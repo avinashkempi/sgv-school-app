@@ -12,10 +12,10 @@ import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
-import apiConfig from "../../config/apiConfig";
-import apiFetch from "../../utils/apiFetch";
+import { useApiQuery } from "../../hooks/useApi";
 import { useToast } from "../../components/ToastProvider";
 import Header from "../../components/Header";
+import apiConfig from "../../config/apiConfig";
 
 const { width } = Dimensions.get('window');
 
@@ -24,64 +24,32 @@ export default function StudentReportCardScreen() {
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
 
-    const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [user, setUser] = useState(null);
-    const [reportCard, setReportCard] = useState(null);
 
     useEffect(() => {
-        loadData();
+        const loadUser = async () => {
+            const storedUser = await AsyncStorage.getItem("@auth_user");
+            if (storedUser) {
+                setUser(JSON.parse(storedUser));
+            }
+        };
+        loadUser();
     }, []);
 
-    const loadData = async () => {
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const storedUser = await AsyncStorage.getItem("@auth_user");
+    const userId = user?.id || user?._id;
 
-            if (!storedUser) {
-                router.replace("/login");
-                return;
-            }
+    // Fetch Report Card
+    const { data: reportCard, isLoading: loading, refetch } = useApiQuery(
+        ['studentReportCard', userId],
+        `${apiConfig.baseUrl}/marks/student/${userId}/report-card`,
+        { enabled: !!userId }
+    );
 
-            const parsedUser = JSON.parse(storedUser);
-
-            setUser(parsedUser);
-
-            // Get user ID - handle both id and _id for backward compatibility
-            const userId = parsedUser.id || parsedUser._id;
-
-
-            if (!userId) {
-                console.error("[Report Card] No user ID found in stored user data");
-                showToast("Please log in again", "error");
-                router.replace("/login");
-                return;
-            }
-
-            // Load report card
-            const response = await apiFetch(
-                `${apiConfig.baseUrl}/marks/student/${userId}/report-card`,
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            if (response.ok) {
-                const data = await response.json();
-                setReportCard(data);
-            } else {
-                showToast("Failed to load report card", "error");
-            }
-        } catch (error) {
-            console.error("[Report Card] Error:", error);
-            showToast("Error loading report card", "error");
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    };
-
-    const onRefresh = () => {
+    const onRefresh = async () => {
         setRefreshing(true);
-        loadData();
+        await refetch();
+        setRefreshing(false);
     };
 
     const getGradeColor = (grade) => {

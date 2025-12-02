@@ -11,49 +11,29 @@ import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
-import apiConfig from "../../config/apiConfig";
-import apiFetch from "../../utils/apiFetch";
-import { useToast } from "../../components/ToastProvider";
+import { useApiQuery } from "../../hooks/useApi";
 import Header from "../../components/Header";
+import apiConfig from "../../config/apiConfig";
+import { useToast } from "../../components/ToastProvider";
 
 export default function StudentExamScheduleScreen() {
     const router = useRouter();
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
 
-    const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [exams, setExams] = useState([]);
 
-    useEffect(() => {
-        loadExams();
-    }, []);
+    // Fetch Exam Schedule
+    const { data: examsData, isLoading: loading, refetch } = useApiQuery(
+        ['studentExamSchedule'],
+        `${apiConfig.baseUrl}/exams/schedule/student`
+    );
+    const exams = examsData || [];
 
-    const loadExams = async () => {
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const response = await apiFetch(`${apiConfig.baseUrl}/exams/schedule/student`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setExams(data);
-            } else {
-                showToast("Failed to load exam schedule", "error");
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading exams", "error");
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    };
-
-    const onRefresh = () => {
+    const onRefresh = async () => {
         setRefreshing(true);
-        loadExams();
+        await refetch();
+        setRefreshing(false);
     };
 
     const getDaysRemaining = (examDate) => {

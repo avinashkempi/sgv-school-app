@@ -12,9 +12,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
-import apiConfig from "../../config/apiConfig";
-import apiFetch from "../../utils/apiFetch";
-import { useToast } from "../../components/ToastProvider";
+import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/useApi";
 import Header from "../../components/Header";
 
 export default function SendNotificationScreen() {
@@ -22,40 +20,30 @@ export default function SendNotificationScreen() {
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
 
-    const [loading, setLoading] = useState(false);
     const [title, setTitle] = useState("");
     const [message, setMessage] = useState("");
     const [type, setType] = useState("General");
     const [target, setTarget] = useState("all"); // 'all', 'class', 'user'
-
-    // For Class Selection
-    const [classes, setClasses] = useState([]);
     const [selectedClass, setSelectedClass] = useState(null);
 
-    // For User Selection (Simplified - just ID input for now or search later)
-    // In a real app, we'd have a user search modal. 
-    // For MVP, let's stick to 'all' and 'class' as primary targets.
+    // Fetch Classes
+    const { data: classes = [] } = useApiQuery(
+        ['adminClasses'],
+        `${apiConfig.baseUrl}/classes`,
+        { enabled: target === 'class' }
+    );
 
-    useEffect(() => {
-        loadClasses();
-    }, []);
+    // Send Notification Mutation
+    const sendNotificationMutation = useApiMutation({
+        mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/notifications/send`, 'POST'),
+        onSuccess: () => {
+            showToast("Notification sent successfully", "success");
+            router.back();
+        },
+        onError: (error) => showToast(error.message || "Failed to send notification", "error")
+    });
 
-    const loadClasses = async () => {
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const response = await apiFetch(`${apiConfig.baseUrl}/classes`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setClasses(data);
-            }
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
-    const handleSend = async () => {
+    const handleSend = () => {
         if (!title.trim() || !message.trim()) {
             showToast("Please enter title and message", "error");
             return;
@@ -66,39 +54,13 @@ export default function SendNotificationScreen() {
             return;
         }
 
-        setLoading(true);
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const payload = {
-                title,
-                message,
-                type,
-                target,
-                targetId: target === 'class' ? selectedClass : null
-            };
-
-            const response = await apiFetch(`${apiConfig.baseUrl}/notifications/send`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify(payload)
-            });
-
-            if (response.ok) {
-                showToast("Notification sent successfully", "success");
-                router.back();
-            } else {
-                const errorData = await response.json();
-                showToast(errorData.msg || "Failed to send notification", "error");
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error sending notification", "error");
-        } finally {
-            setLoading(false);
-        }
+        sendNotificationMutation.mutate({
+            title,
+            message,
+            type,
+            target,
+            targetId: target === 'class' ? selectedClass : null
+        });
     };
 
     const notificationTypes = ['General', 'Homework', 'Exam', 'Fee', 'Emergency', 'Event'];
@@ -290,14 +252,14 @@ export default function SendNotificationScreen() {
                 {/* Send Button */}
                 <Pressable
                     onPress={handleSend}
-                    disabled={loading}
+                    disabled={sendNotificationMutation.isPending}
                     style={{
                         backgroundColor: colors.primary,
                         padding: 18,
                         borderRadius: 16,
                         alignItems: "center",
                         marginTop: 12,
-                        opacity: loading ? 0.7 : 1,
+                        opacity: sendNotificationMutation.isPending ? 0.7 : 1,
                         shadowColor: colors.primary,
                         shadowOffset: { width: 0, height: 4 },
                         shadowOpacity: 0.2,
@@ -305,7 +267,7 @@ export default function SendNotificationScreen() {
                         elevation: 4
                     }}
                 >
-                    {loading ? (
+                    {sendNotificationMutation.isPending ? (
                         <ActivityIndicator color="#fff" />
                     ) : (
                         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>

@@ -11,10 +11,10 @@ import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
-import apiConfig from "../../config/apiConfig";
-import apiFetch from "../../utils/apiFetch";
-import { useToast } from "../../components/ToastProvider";
+import { useApiQuery } from "../../hooks/useApi";
 import Header from "../../components/Header";
+import apiConfig from "../../config/apiConfig";
+import { useToast } from "../../components/ToastProvider";
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -23,9 +23,7 @@ export default function StudentTimetableScreen() {
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
 
-    const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [schedule, setSchedule] = useState({});
     const [selectedDay, setSelectedDay] = useState('Monday');
     const [currentDay, setCurrentDay] = useState('');
 
@@ -39,48 +37,28 @@ export default function StudentTimetableScreen() {
         } else {
             setSelectedDay('Monday'); // Default to Monday if Sunday
         }
-
-        loadTimetable();
     }, []);
 
-    const loadTimetable = async () => {
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const response = await apiFetch(`${apiConfig.baseUrl}/timetable/my-timetable`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+    // Fetch Timetable
+    const { data: timetableData, isLoading: loading, refetch } = useApiQuery(
+        ['studentTimetable'],
+        `${apiConfig.baseUrl}/timetable/my-timetable`
+    );
 
-            if (response.ok) {
-                const data = await response.json();
+    // Process timetable data
+    const schedule = {};
+    DAYS.forEach(day => schedule[day] = []);
 
-                // Convert array to object map
-                const scheduleMap = {};
-                DAYS.forEach(day => scheduleMap[day] = []);
+    if (timetableData?.schedule) {
+        timetableData.schedule.forEach(daySchedule => {
+            schedule[daySchedule.day] = daySchedule.periods.sort((a, b) => a.periodNumber - b.periodNumber);
+        });
+    }
 
-                if (data.schedule) {
-                    data.schedule.forEach(daySchedule => {
-                        scheduleMap[daySchedule.day] = daySchedule.periods.sort((a, b) => a.periodNumber - b.periodNumber);
-                    });
-                }
-                setSchedule(scheduleMap);
-            } else {
-                // If 404, just show empty schedule, don't error
-                if (response.status !== 404) {
-                    showToast("Failed to load timetable", "error");
-                }
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading timetable", "error");
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    };
-
-    const onRefresh = () => {
+    const onRefresh = async () => {
         setRefreshing(true);
-        loadTimetable();
+        await refetch();
+        setRefreshing(false);
     };
 
     if (loading) {

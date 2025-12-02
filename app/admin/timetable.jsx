@@ -13,11 +13,12 @@ import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
-import apiConfig from "../../config/apiConfig";
-import apiFetch from "../../utils/apiFetch";
-import { useToast } from "../../components/ToastProvider";
+import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/useApi";
+import { useQueryClient } from "@tanstack/react-query";
 import Header from "../../components/Header";
 import ModernTimePicker from "../../components/ModernTimePicker";
+import { useToast } from "../../components/ToastProvider";
+import apiConfig from "../../config/apiConfig";
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -26,16 +27,12 @@ export default function AdminTimetableScreen() {
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
 
-    const [loading, setLoading] = useState(true);
-    const [classes, setClasses] = useState([]);
+    const queryClient = useQueryClient();
     const [selectedClassId, setSelectedClassId] = useState(null);
-    const [subjects, setSubjects] = useState([]);
 
     // Timetable State
     const [schedule, setSchedule] = useState({}); // { Monday: [periods], ... }
     const [selectedDay, setSelectedDay] = useState('Monday');
-    const [timetableLoading, setTimetableLoading] = useState(false);
-    const [saving, setSaving] = useState(false);
 
     // Modal State
     const [modalVisible, setModalVisible] = useState(false);
@@ -45,127 +42,82 @@ export default function AdminTimetableScreen() {
         startTime: new Date(),
         endTime: new Date(),
         subject: "",
-        teacher: "",
-        subject: "",
         teacher: ""
     });
     const [showTimePicker, setShowTimePicker] = useState({ show: false, mode: 'start' }); // mode: 'start' | 'end'
 
+    // Fetch Classes
+    const { data: classesData, isLoading: loadingClasses } = useApiQuery(
+        ['adminClassesInit'],
+        `${apiConfig.baseUrl}/classes/admin/init`
+    );
+    const classes = classesData?.classes || [];
+
+    // Fetch Class Details (Subjects & Teachers)
+    const { data: classDetails } = useApiQuery(
+        ['classDetails', selectedClassId],
+        `${apiConfig.baseUrl}/classes/${selectedClassId}/full-details`,
+        { enabled: !!selectedClassId }
+    );
+    const subjects = classDetails?.subjects || [];
+
+    // Fetch Existing Timetable
+    const { data: timetableData, isLoading: loadingTimetable } = useApiQuery(
+        ['timetable', selectedClassId],
+        `${apiConfig.baseUrl}/timetable/class/${selectedClassId}`,
+        {
+            enabled: !!selectedClassId,
+            // When data is fetched, update local schedule state
+            // Note: React Query's data is immutable, so we should use it directly or copy it to state if we need to edit it locally before saving.
+            // Since we are editing locally and then saving, we'll sync state in useEffect when data changes.
+        }
+    );
+
     useEffect(() => {
-        loadClasses();
-    }, []);
+        if (timetableData) {
+            const scheduleMap = {};
+            DAYS.forEach(day => scheduleMap[day] = []);
 
-    useEffect(() => {
-        if (selectedClassId) {
-            loadClassData(selectedClassId);
-        }
-    }, [selectedClassId]);
-
-    const loadClasses = async () => {
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const response = await apiFetch(`${apiConfig.baseUrl}/classes/admin/init`, {
-                headers: { Authorization: `Bearer ${token}` }
+            timetableData.schedule.forEach(daySchedule => {
+                scheduleMap[daySchedule.day] = daySchedule.periods.map(p => ({
+                    ...p,
+                    subject: p.subject?._id || p.subject, // Handle populated vs unpopulated
+                    teacher: p.teacher?._id || p.teacher
+                }));
             });
-
-            if (response.ok) {
-                const data = await response.json();
-                setClasses(data.classes);
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading classes", "error");
-        } finally {
-            setLoading(false);
+            setSchedule(scheduleMap);
+        } else if (selectedClassId && !loadingTimetable) {
+            // Initialize empty schedule if no data found or just switched class
+            const emptySchedule = {};
+            DAYS.forEach(day => emptySchedule[day] = []);
+            setSchedule(emptySchedule);
         }
-    };
+    }, [timetableData, selectedClassId, loadingTimetable]);
 
-    const loadClassData = async (classId) => {
-        setTimetableLoading(true);
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
+    // Save Timetable Mutation
+    const saveTimetableMutation = useApiMutation({
+        mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/timetable`, 'POST'),
+        onSuccess: () => {
+            showToast("Timetable saved successfully", "success");
+            queryClient.invalidateQueries({ queryKey: ['timetable', selectedClassId] });
+        },
+        onError: (error) => showToast("Failed to save timetable", "error")
+    });
 
-            // 1. Fetch Subjects & Teachers
-            const detailsRes = await apiFetch(`${apiConfig.baseUrl}/classes/${classId}/full-details`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            if (detailsRes.ok) {
-                const data = await detailsRes.json();
-                setSubjects(data.subjects);
-            }
-
-            // 2. Fetch Existing Timetable
-            const timetableRes = await apiFetch(`${apiConfig.baseUrl}/timetable/class/${classId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            if (timetableRes.ok) {
-                const timetableData = await timetableRes.json();
-                // Convert array to object map
-                const scheduleMap = {};
-                DAYS.forEach(day => scheduleMap[day] = []);
-
-                timetableData.schedule.forEach(daySchedule => {
-                    scheduleMap[daySchedule.day] = daySchedule.periods.map(p => ({
-                        ...p,
-                        subject: p.subject?._id || p.subject, // Handle populated vs unpopulated
-                        teacher: p.teacher?._id || p.teacher
-                    }));
-                });
-                setSchedule(scheduleMap);
-            } else {
-                // Initialize empty schedule
-                const emptySchedule = {};
-                DAYS.forEach(day => emptySchedule[day] = []);
-                setSchedule(emptySchedule);
-            }
-
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading timetable", "error");
-        } finally {
-            setTimetableLoading(false);
-        }
-    };
-
-    const handleSaveTimetable = async () => {
+    const handleSaveTimetable = () => {
         if (!selectedClassId) return;
 
-        try {
-            setSaving(true);
-            const token = await AsyncStorage.getItem("@auth_token");
+        // Convert schedule object back to array format
+        const scheduleArray = Object.keys(schedule).map(day => ({
+            day,
+            periods: schedule[day]
+        })).filter(day => day.periods.length > 0);
 
-            // Convert schedule object back to array format
-            const scheduleArray = Object.keys(schedule).map(day => ({
-                day,
-                periods: schedule[day]
-            })).filter(day => day.periods.length > 0);
-
-            const response = await apiFetch(`${apiConfig.baseUrl}/timetable`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    classId: selectedClassId,
-                    schedule: scheduleArray,
-                    breaks: [] // Can add breaks later
-                })
-            });
-
-            if (response.ok) {
-                showToast("Timetable saved successfully", "success");
-            } else {
-                showToast("Failed to save timetable", "error");
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error saving timetable", "error");
-        } finally {
-            setSaving(false);
-        }
+        saveTimetableMutation.mutate({
+            classId: selectedClassId,
+            schedule: scheduleArray,
+            breaks: [] // Can add breaks later
+        });
     };
 
     const openPeriodModal = (period = null) => {
@@ -185,8 +137,6 @@ export default function AdminTimetableScreen() {
                 periodNumber: (schedule[selectedDay]?.length || 0) + 1,
                 startTime: new Date(),
                 endTime: new Date(),
-                subject: "",
-                teacher: "",
                 subject: "",
                 teacher: ""
             });
@@ -322,7 +272,7 @@ export default function AdminTimetableScreen() {
 
                             {/* Schedule Editor */}
                             <View style={{ marginTop: 20 }}>
-                                {timetableLoading ? (
+                                {loadingTimetable ? (
                                     <ActivityIndicator size="large" color={colors.primary} />
                                 ) : (
                                     <View>
@@ -394,17 +344,17 @@ export default function AdminTimetableScreen() {
                             {/* Save Button */}
                             <Pressable
                                 onPress={handleSaveTimetable}
-                                disabled={saving}
+                                disabled={saveTimetableMutation.isPending}
                                 style={{
                                     backgroundColor: colors.primary,
                                     borderRadius: 12,
                                     padding: 16,
                                     marginTop: 32,
                                     alignItems: "center",
-                                    opacity: saving ? 0.7 : 1
+                                    opacity: saveTimetableMutation.isPending ? 0.7 : 1
                                 }}
                             >
-                                {saving ? (
+                                {saveTimetableMutation.isPending ? (
                                     <ActivityIndicator color="#fff" />
                                 ) : (
                                     <Text style={{ color: "#fff", fontFamily: "DMSans-Bold", fontSize: 16 }}>

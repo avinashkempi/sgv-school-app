@@ -15,47 +15,34 @@ import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "../../../theme";
+import { useApiQuery, useApiMutation, createApiMutationFn } from "../../../hooks/useApi";
+import { useQueryClient } from "@tanstack/react-query";
 import apiConfig from "../../../config/apiConfig";
-import apiFetch from "../../../utils/apiFetch";
 import { useToast } from "../../../components/ToastProvider";
-import Header from "../../../components/Header";
-import { formatDate } from "../../../utils/date";
-import { getCachedData, setCachedData } from "../../../utils/cache";
-import { useNetworkStatus } from "../../../components/NetworkStatusProvider";
 
 export default function ClassDetailsScreen() {
     const router = useRouter();
     const { id } = useLocalSearchParams();
+    const queryClient = useQueryClient();
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
-    const { isConnected } = useNetworkStatus();
 
-    const [classData, setClassData] = useState(null);
-    const [subjects, setSubjects] = useState([]);
-    const [students, setStudents] = useState([]);
-    const [availableStudents, setAvailableStudents] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
     // Modals
     const [showAddSubjectModal, setShowAddSubjectModal] = useState(false);
     const [showAddStudentModal, setShowAddStudentModal] = useState(false);
-    const [saving, setSaving] = useState(false);
 
     const [activeTab, setActiveTab] = useState("subjects"); // subjects, students
     const [searchQuery, setSearchQuery] = useState("");
     const [user, setUser] = useState(null);
 
-    const [subjectName, setSubjectName] = useState("");
-    const [globalSubjects, setGlobalSubjects] = useState([]);
     const [selectedGlobalSubjectIds, setSelectedGlobalSubjectIds] = useState([]);
+    const [selectedStudentIds, setSelectedStudentIds] = useState([]);
 
     useEffect(() => {
         loadUserData();
-        loadData();
-    }, [id]);
-
-
+    }, []);
 
     const loadUserData = async () => {
         try {
@@ -69,113 +56,77 @@ export default function ClassDetailsScreen() {
         }
     };
 
-    const loadData = async () => {
-        const cacheKeyClass = `@class_details_${id}`;
-        const cacheKeySubjects = `@class_subjects_${id}`;
-        const cacheKeyStudents = `@class_students_${id}`;
+    // Fetch Class Details
+    const { data, isLoading: loading, refetch } = useApiQuery(
+        ['classDetails', id],
+        `${apiConfig.baseUrl}/classes/${id}/full-details`,
+        { enabled: !!id }
+    );
 
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
+    const classData = data?.classData;
+    const subjects = data?.subjects || [];
+    const students = data?.students || [];
 
-            // 1. Try to load from cache first
-            const [cachedClass, cachedSubjects, cachedStudents] = await Promise.all([
-                getCachedData(cacheKeyClass),
-                getCachedData(cacheKeySubjects),
-                getCachedData(cacheKeyStudents)
-            ]);
+    // Fetch Global Subjects
+    const { data: globalSubjectsData } = useApiQuery(
+        ['globalSubjects'],
+        `${apiConfig.baseUrl}/subjects`
+    );
+    const globalSubjects = globalSubjectsData || [];
 
-            if (cachedClass && cachedSubjects) {
-                setClassData(cachedClass);
-                setSubjects(cachedSubjects);
-                if (cachedStudents) setStudents(cachedStudents);
-                setLoading(false);
+    // Fetch Available Students
+    const { data: availableStudentsData } = useApiQuery(
+        ['availableStudents'],
+        `${apiConfig.baseUrl}/users?role=student&limit=1000`
+    );
+    // Handle both new paginated structure and potential old array structure
+    const availableStudents = Array.isArray(availableStudentsData)
+        ? availableStudentsData.filter(s => !s.currentClass)
+        : (availableStudentsData?.data || []).filter(s => !s.currentClass);
 
-            }
-
-            // 2. Fetch from API (Silent refresh if cache exists)
-            const fetchFromApi = async () => {
-                const response = await apiFetch(`${apiConfig.baseUrl}/classes/${id}/full-details`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                    silent: !!cachedClass
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    const { classData, subjects, students } = data;
-
-                    if (classData) {
-                        setClassData(classData);
-                        setCachedData(cacheKeyClass, classData);
-                    }
-                    setSubjects(subjects);
-                    setCachedData(cacheKeySubjects, subjects);
-
-                    setStudents(students);
-                    setCachedData(cacheKeyStudents, students);
-
-
-                } else {
-                    if (!cachedClass) showToast("Failed to load class data", "error");
-                }
-            };
-
-            if (isConnected) {
-                await fetchFromApi();
-            } else if (!cachedClass) {
-                showToast("No internet connection", "error");
-            }
-
-        } catch (error) {
-            console.error(error);
-            if (!classData) showToast("Error loading data", "error");
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    };
-
-
-
-    const loadAvailableStudents = async () => {
-        // No caching for available students as it changes frequently and is an admin action
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            // Fetch with high limit to get all students for client-side filtering
-            // TODO: Implement server-side search for better performance
-            const response = await apiFetch(`${apiConfig.baseUrl}/users?role=student&limit=1000`, {
-                headers: { Authorization: `Bearer ${token}` },
+    // Mutations
+    const addSubjectMutation = useApiMutation({
+        mutationFn: async (subjectId) => {
+            const subject = globalSubjects.find(s => s._id === subjectId);
+            if (!subject) throw new Error("Subject not found");
+            return createApiMutationFn(`${apiConfig.baseUrl}/classes/${id}/subjects`, 'POST')({
+                name: subject.name,
+                globalSubjectId: subject._id
             });
-
-            if (response.ok) {
-                const result = await response.json();
-                // Handle both new paginated structure and potential old array structure
-                const users = Array.isArray(result) ? result : (result.data || []);
-                const unassigned = users.filter(s => !s.currentClass);
-                setAvailableStudents(unassigned);
-            } else {
-                showToast("Failed to load available students", "error");
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading available students", "error");
         }
-    };
+    });
 
-    const loadGlobalSubjects = async () => {
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const response = await apiFetch(`${apiConfig.baseUrl}/subjects`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+    const removeSubjectMutation = useApiMutation({
+        mutationFn: createApiMutationFn((subjectId) => `${apiConfig.baseUrl}/classes/${id}/subjects/${subjectId}`, 'DELETE'),
+        onSuccess: () => {
+            showToast("Subject removed successfully", "success");
+            queryClient.invalidateQueries({ queryKey: ['classDetails', id] });
+        },
+        onError: (error) => showToast(error.message || "Failed to remove subject", "error")
+    });
 
-            if (response.ok) {
-                const data = await response.json();
-                setGlobalSubjects(data);
-            }
-        } catch (error) {
-            console.error("Failed to load global subjects:", error);
-        }
-    };
+    const addStudentsMutation = useApiMutation({
+        mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/classes/${id}/students`, 'POST'),
+        onSuccess: (data) => {
+            showToast(data.message || "Students added successfully", "success");
+            setShowAddStudentModal(false);
+            setSearchQuery("");
+            setSelectedStudentIds([]);
+            queryClient.invalidateQueries({ queryKey: ['classDetails', id] });
+            queryClient.invalidateQueries({ queryKey: ['availableStudents'] });
+        },
+        onError: (error) => showToast(error.message || "Failed to add students", "error")
+    });
+
+    const removeStudentMutation = useApiMutation({
+        mutationFn: createApiMutationFn((studentId) => `${apiConfig.baseUrl}/classes/${id}/students/${studentId}`, 'DELETE'),
+        onSuccess: () => {
+            showToast("Student removed successfully", "success");
+            queryClient.invalidateQueries({ queryKey: ['classDetails', id] });
+            queryClient.invalidateQueries({ queryKey: ['availableStudents'] });
+        },
+        onError: (error) => showToast(error.message || "Failed to remove student", "error")
+    });
 
     const toggleSubjectSelection = (subjectId) => {
         setSelectedGlobalSubjectIds(prev => {
@@ -194,35 +145,18 @@ export default function ClassDetailsScreen() {
         }
 
         try {
-            setSaving(true);
-            const token = await AsyncStorage.getItem("@auth_token");
-
             // Add subjects one by one
             let successCount = 0;
             let failCount = 0;
 
-            for (const subjectId of selectedGlobalSubjectIds) {
-                const subject = globalSubjects.find(s => s._id === subjectId);
-                if (!subject) continue;
-
-                const response = await apiFetch(`${apiConfig.baseUrl}/classes/${id}/subjects`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({
-                        name: subject.name,
-                        globalSubjectId: subject._id
-                    }),
-                });
-
-                if (response.ok) {
+            await Promise.all(selectedGlobalSubjectIds.map(async (subjectId) => {
+                try {
+                    await addSubjectMutation.mutateAsync(subjectId);
                     successCount++;
-                } else {
+                } catch (error) {
                     failCount++;
                 }
-            }
+            }));
 
             if (successCount > 0) {
                 showToast(`${successCount} subject(s) added successfully`, "success");
@@ -234,12 +168,10 @@ export default function ClassDetailsScreen() {
             setShowAddSubjectModal(false);
             setSelectedGlobalSubjectIds([]);
             setSearchQuery("");
-            loadData(); // Reload subjects
+            queryClient.invalidateQueries({ queryKey: ['classDetails', id] });
         } catch (error) {
             console.error(error);
             showToast("Error adding subjects", "error");
-        } finally {
-            setSaving(false);
         }
     };
 
@@ -252,35 +184,13 @@ export default function ClassDetailsScreen() {
                 {
                     text: "Remove",
                     style: "destructive",
-                    onPress: async () => {
-                        try {
-                            const token = await AsyncStorage.getItem("@auth_token");
-                            const response = await apiFetch(
-                                `${apiConfig.baseUrl}/classes/${id}/subjects/${subjectId}`,
-                                {
-                                    method: "DELETE",
-                                    headers: { Authorization: `Bearer ${token}` },
-                                }
-                            );
-
-                            if (response.ok) {
-                                showToast("Subject removed successfully", "success");
-                                loadData(); // Reload subjects
-                            } else {
-                                const data = await response.json();
-                                showToast(data.msg || "Failed to remove subject", "error");
-                            }
-                        } catch (error) {
-                            console.error(error);
-                            showToast("Error removing subject", "error");
-                        }
-                    },
+                    onPress: () => removeSubjectMutation.mutate(subjectId),
                 },
             ]
         );
     };
 
-    const [selectedStudentIds, setSelectedStudentIds] = useState([]);
+
 
     const toggleStudentSelection = (studentId) => {
         setSelectedStudentIds(prev => {
@@ -292,41 +202,13 @@ export default function ClassDetailsScreen() {
         });
     };
 
-    const handleBulkAddStudents = async () => {
+    const handleBulkAddStudents = () => {
         if (selectedStudentIds.length === 0) {
             showToast("Please select at least one student", "error");
             return;
         }
 
-        try {
-            setSaving(true);
-            const token = await AsyncStorage.getItem("@auth_token");
-            const response = await apiFetch(`${apiConfig.baseUrl}/classes/${id}/students`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ studentIds: selectedStudentIds }),
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                showToast(data.message || "Students added successfully", "success");
-                setShowAddStudentModal(false);
-                setSearchQuery("");
-                setSelectedStudentIds([]);
-                loadData();
-            } else {
-                const data = await response.json();
-                showToast(data.message || "Failed to add students", "error");
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error adding students", "error");
-        } finally {
-            setSaving(false);
-        }
+        addStudentsMutation.mutate({ studentIds: selectedStudentIds });
     };
 
     const handleRemoveStudent = (studentId, studentName) => {
@@ -338,29 +220,7 @@ export default function ClassDetailsScreen() {
                 {
                     text: "Remove",
                     style: "destructive",
-                    onPress: async () => {
-                        try {
-                            const token = await AsyncStorage.getItem("@auth_token");
-                            const response = await apiFetch(
-                                `${apiConfig.baseUrl}/classes/${id}/students/${studentId}`,
-                                {
-                                    method: "DELETE",
-                                    headers: { Authorization: `Bearer ${token}` },
-                                }
-                            );
-
-                            if (response.ok) {
-                                showToast("Student removed successfully", "success");
-                                loadData();
-                            } else {
-                                const data = await response.json();
-                                showToast(data.message || "Failed to remove student", "error");
-                            }
-                        } catch (error) {
-                            console.error(error);
-                            showToast("Error removing student", "error");
-                        }
-                    },
+                    onPress: () => removeStudentMutation.mutate(studentId),
                 },
             ]
         );
@@ -368,12 +228,8 @@ export default function ClassDetailsScreen() {
 
     const onRefresh = async () => {
         setRefreshing(true);
-        try {
-            await loadData();
-            await loadData();
-        } finally {
-            setRefreshing(false);
-        }
+        await refetch();
+        setRefreshing(false);
     };
 
     const isClassTeacher = (() => {
@@ -590,7 +446,6 @@ export default function ClassDetailsScreen() {
                     <Pressable
                         onPress={() => {
                             if (activeTab === "subjects") {
-                                loadGlobalSubjects();
                                 // Pre-select already added subjects
                                 const alreadyAddedIds = subjects
                                     .filter(s => s.globalSubject)
@@ -599,7 +454,6 @@ export default function ClassDetailsScreen() {
                                 setShowAddSubjectModal(true);
                                 setSearchQuery("");
                             } else {
-                                loadAvailableStudents();
                                 setShowAddStudentModal(true);
                                 setSelectedStudentIds([]); // Reset selection
                             }
@@ -735,9 +589,9 @@ export default function ClassDetailsScreen() {
 
                             <Pressable
                                 onPress={handleAddSubject}
-                                disabled={selectedGlobalSubjectIds.length === 0 || saving}
+                                disabled={selectedGlobalSubjectIds.length === 0 || addSubjectMutation.isPending}
                                 style={{
-                                    backgroundColor: (selectedGlobalSubjectIds.length > 0 && !saving) ? colors.primary : colors.disabled,
+                                    backgroundColor: (selectedGlobalSubjectIds.length > 0 && !addSubjectMutation.isPending) ? colors.primary : colors.disabled,
                                     paddingHorizontal: 20,
                                     paddingVertical: 12,
                                     borderRadius: 8,
@@ -746,9 +600,9 @@ export default function ClassDetailsScreen() {
                                     gap: 8
                                 }}
                             >
-                                {saving && <ActivityIndicator size="small" color="#fff" />}
+                                {addSubjectMutation.isPending && <ActivityIndicator size="small" color="#fff" />}
                                 <Text style={{ color: "#fff", fontWeight: "600" }}>
-                                    {saving ? "Adding..." : `Add ${selectedGlobalSubjectIds.length > 0 ? `${selectedGlobalSubjectIds.length} ` : ""}Selected`}
+                                    {addSubjectMutation.isPending ? "Adding..." : `Add ${selectedGlobalSubjectIds.length > 0 ? `${selectedGlobalSubjectIds.length} ` : ""}Selected`}
                                 </Text>
                             </Pressable>
                         </View>

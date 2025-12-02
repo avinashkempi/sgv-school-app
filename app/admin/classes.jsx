@@ -15,27 +15,19 @@ import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
-import apiConfig from "../../config/apiConfig";
-import apiFetch from "../../utils/apiFetch";
-import { useToast } from "../../components/ToastProvider";
-import Header from "../../components/Header";
-import { getCachedData, setCachedData } from "../../utils/cache";
+import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/useApi";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function ClassesScreen() {
     const router = useRouter();
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
-    const [classes, setClasses] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const queryClient = useQueryClient();
     const [refreshing, setRefreshing] = useState(false);
     const [showModal, setShowModal] = useState(false);
-    const [academicYears, setAcademicYears] = useState([]);
-    const [teachers, setTeachers] = useState([]);
-    const [user, setUser] = useState(null);
     const [modalMode, setModalMode] = useState("create"); // "create" or "edit"
     const [editingClassId, setEditingClassId] = useState(null);
     const [deletingId, setDeletingId] = useState(null);
-    const [saving, setSaving] = useState(false);
 
     const [form, setForm] = useState({
         name: "",
@@ -44,125 +36,67 @@ export default function ClassesScreen() {
         classTeacher: ""
     });
 
-    useEffect(() => {
-        checkUserRole();
-        loadData();
-    }, []);
+    // Fetch User
+    const { data: user } = useApiQuery(
+        ['currentUser'],
+        `${apiConfig.baseUrl}/auth/me`
+    );
 
-    const checkUserRole = async () => {
-        try {
-            const userData = await AsyncStorage.getItem("@auth_user");
-            if (userData) {
-                setUser(JSON.parse(userData));
-            }
-        } catch (error) {
-            console.error("Error loading user data:", error);
-        }
-    };
+    // Fetch Data (Classes, Years, Teachers)
+    const { data: initData, isLoading: loading, refetch } = useApiQuery(
+        ['adminClassesInit'],
+        `${apiConfig.baseUrl}/classes/admin/init`
+    );
 
-    const loadData = async () => {
-        const cacheKeyClasses = "@admin_classes";
-        const cacheKeyYears = "@admin_academic_years";
-        const cacheKeyTeachers = "@admin_teachers";
+    const classes = initData?.classes || [];
+    const teachers = initData?.teachers || [];
 
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
+    // Mutations
+    const createClassMutation = useApiMutation({
+        mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/classes`, 'POST'),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['adminClassesInit'] });
+            showToast("Class created", "success");
+            setShowModal(false);
+            setForm({ ...form, name: "", section: "" });
+            setModalMode("create");
+            setEditingClassId(null);
+        },
+        onError: (error) => showToast(error.message || "Failed to create", "error")
+    });
 
-            // 1. Try to load from cache first
-            const [cachedClasses, cachedYears, cachedTeachers] = await Promise.all([
-                getCachedData(cacheKeyClasses),
-                getCachedData(cacheKeyYears),
-                getCachedData(cacheKeyTeachers)
-            ]);
+    const updateClassMutation = useApiMutation({
+        mutationFn: (data) => createApiMutationFn(`${apiConfig.baseUrl}/classes/${data._id}`, 'PUT')(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['adminClassesInit'] });
+            showToast("Class updated", "success");
+            setShowModal(false);
+            setForm({ ...form, name: "", section: "" });
+            setModalMode("create");
+            setEditingClassId(null);
+        },
+        onError: (error) => showToast(error.message || "Failed to update", "error")
+    });
 
-            if (cachedClasses && cachedYears && cachedTeachers) {
-                setClasses(cachedClasses);
-                setAcademicYears(cachedYears);
-                setTeachers(cachedTeachers);
-                setLoading(false);
+    const deleteClassMutation = useApiMutation({
+        mutationFn: (id) => createApiMutationFn(`${apiConfig.baseUrl}/classes/${id}`, 'DELETE')(),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['adminClassesInit'] });
+            showToast("Class deleted", "success");
+        },
+        onError: (error) => showToast(error.message || "Failed to delete", "error")
+    });
 
-            }
-
-            // 2. Fetch from API (Silent refresh if cache exists)
-            const fetchFromApi = async () => {
-                const response = await apiFetch(`${apiConfig.baseUrl}/classes/admin/init`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                    silent: !!cachedClasses
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    const { classes, academicYears, teachers } = data;
-
-                    setClasses(classes);
-                    setAcademicYears(academicYears);
-                    setTeachers(teachers);
-
-                    // Update Cache
-                    await Promise.all([
-                        setCachedData(cacheKeyClasses, classes),
-                        setCachedData(cacheKeyYears, academicYears),
-                        setCachedData(cacheKeyTeachers, teachers)
-                    ]);
-
-
-
-                } else {
-                    if (!cachedClasses) showToast("Failed to load data", "error");
-                }
-            };
-
-            await fetchFromApi();
-
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading data", "error");
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    };
-
-    const handleSubmit = async () => {
+    const handleSubmit = () => {
         if (!form.name) {
             showToast("Name is required", "error");
             return;
         }
 
-        try {
-            setSaving(true);
-            const token = await AsyncStorage.getItem("@auth_token");
-            const url = modalMode === "create"
-                ? `${apiConfig.baseUrl}/classes`
-                : `${apiConfig.baseUrl}/classes/${editingClassId}`;
-
-            const method = modalMode === "create" ? "POST" : "PUT";
-
-            const response = await apiFetch(url, {
-                method: method,
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify(form),
-            });
-
-            if (response.ok) {
-                showToast(modalMode === "create" ? "Class created" : "Class updated", "success");
-                setShowModal(false);
-                setForm({ ...form, name: "", section: "" }); // Reset form but keep year/branch preference
-                setModalMode("create");
-                setEditingClassId(null);
-                loadData();
-            } else {
-                const data = await response.json();
-                showToast(data.msg || "Failed to save", "error");
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error saving class", "error");
-        } finally {
-            setSaving(false);
+        if (modalMode === "create") {
+            createClassMutation.mutate(form);
+        } else {
+            updateClassMutation.mutate({ ...form, _id: editingClassId });
         }
     };
 
@@ -178,7 +112,7 @@ export default function ClassesScreen() {
         setShowModal(true);
     };
 
-    const handleDelete = async (classId, className) => {
+    const handleDelete = (classId, className) => {
         Alert.alert(
             "Delete Class",
             `Are you sure you want to delete ${className}?`,
@@ -187,58 +121,21 @@ export default function ClassesScreen() {
                 {
                     text: "Delete",
                     style: "destructive",
-                    onPress: async () => {
-
+                    onPress: () => {
                         setDeletingId(classId);
-                        try {
-                            const token = await AsyncStorage.getItem("@auth_token");
-                            const response = await apiFetch(`${apiConfig.baseUrl}/classes/${classId}`, {
-                                method: "DELETE",
-                                headers: { Authorization: `Bearer ${token}` },
-                            });
-
-
-
-                            if (response.ok) {
-                                // Optimistic Update
-                                const updatedClasses = classes.filter(c => c._id !== classId);
-                                setClasses(updatedClasses);
-
-                                // Update Cache
-                                await setCachedData("@admin_classes", updatedClasses);
-
-                                showToast("Class deleted", "success");
-                            } else {
-                                let errorMsg = "Failed to delete";
-                                try {
-                                    const text = await response.text();
-
-                                    try {
-                                        const data = JSON.parse(text);
-                                        errorMsg = data.msg || data.message || data.error || JSON.stringify(data);
-                                    } catch {
-                                        errorMsg = text.substring(0, 100); // Limit length if raw text
-                                    }
-                                } catch (e) {
-                                    console.error("[DELETE_CLASS] Error reading response:", e);
-                                }
-                                showToast(errorMsg, "error");
-                            }
-                        } catch (error) {
-                            console.error("[DELETE_CLASS] Error:", error);
-                            showToast("An unexpected error occurred", "error");
-                        } finally {
-                            setDeletingId(null);
-                        }
+                        deleteClassMutation.mutate(classId, {
+                            onSettled: () => setDeletingId(null)
+                        });
                     }
                 }
             ]
         );
     };
 
-    const onRefresh = () => {
+    const onRefresh = async () => {
         setRefreshing(true);
-        loadData();
+        await refetch();
+        setRefreshing(false);
     };
 
     return (
@@ -419,7 +316,7 @@ export default function ClassesScreen() {
                                 onPress={handleSubmit}
                                 disabled={saving}
                                 style={{
-                                    backgroundColor: saving ? colors.disabled : colors.primary,
+                                    backgroundColor: (createClassMutation.isPending || updateClassMutation.isPending) ? colors.disabled : colors.primary,
                                     paddingHorizontal: 20,
                                     paddingVertical: 12,
                                     borderRadius: 8,
@@ -428,9 +325,9 @@ export default function ClassesScreen() {
                                     gap: 8
                                 }}
                             >
-                                {saving && <ActivityIndicator size="small" color="#fff" />}
+                                {(createClassMutation.isPending || updateClassMutation.isPending) && <ActivityIndicator size="small" color="#fff" />}
                                 <Text style={{ color: "#fff", fontWeight: "600" }}>
-                                    {saving ? "Saving..." : (modalMode === "create" ? "Create" : "Update")}
+                                    {(createClassMutation.isPending || updateClassMutation.isPending) ? "Saving..." : (modalMode === "create" ? "Create" : "Update")}
                                 </Text>
                             </Pressable>
                         </View>

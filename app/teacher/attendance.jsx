@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import apiFetch from '../../utils/apiFetch';
+import { useApiQuery } from '../../hooks/useApi';
 import apiConfig from '../../config/apiConfig';
 import { useToast } from '../../components/ToastProvider';
 import AttendanceView from '../../components/AttendanceView';
@@ -10,32 +10,21 @@ export default function TeacherAttendance() {
     const router = useRouter();
     const { showToast } = useToast();
 
-    const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [myAttendance, setMyAttendance] = useState([]);
-    const [mySummary, setMySummary] = useState(null);
 
-    const fetchData = useCallback(async () => {
-        try {
-            const res = await apiFetch(`${apiConfig.baseUrl}/attendance/my-attendance`);
-            const data = await res.json();
-            setMyAttendance(data.attendance);
-            setMySummary(data.summary);
-        } catch (error) {
-            showToast('Error fetching attendance', 'error');
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    }, []);
+    // Fetch Attendance
+    const { data: attendanceData, isLoading: loading, refetch } = useApiQuery(
+        ['teacherAttendance'],
+        `${apiConfig.baseUrl}/attendance/my-attendance`
+    );
 
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+    const myAttendance = attendanceData?.attendance || [];
+    const mySummary = attendanceData?.summary || null;
 
-    const onRefresh = () => {
+    const onRefresh = async () => {
         setRefreshing(true);
-        fetchData();
+        await refetch();
+        setRefreshing(false);
     };
 
     return (

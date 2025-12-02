@@ -11,8 +11,8 @@ import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../theme";
+import { useApiQuery } from "../hooks/useApi";
 import apiConfig from "../config/apiConfig";
-import apiFetch from "../utils/apiFetch";
 import { useToast } from "../components/ToastProvider";
 import Header from "../components/Header";
 import { formatDate } from "../utils/date";
@@ -22,41 +22,17 @@ export default function HistoryScreen() {
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
 
-    const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
-    const [exams, setExams] = useState([]);
+    const { data: exams = [], isLoading: loading, refetch } = useApiQuery(
+        ['exams', 'history'],
+        `${apiConfig.baseUrl}/exams/history`
+    );
 
-    useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = async () => {
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-
-            // Fetch Exams History
-            const examsRes = await apiFetch(`${apiConfig.baseUrl}/exams/history`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            if (examsRes.ok) {
-                const data = await examsRes.json();
-                setExams(data);
-            }
-
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading history", "error");
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    };
-
-    const onRefresh = () => {
+    const onRefresh = async () => {
         setRefreshing(true);
-        loadData();
+        await refetch();
+        setRefreshing(false);
     };
 
 

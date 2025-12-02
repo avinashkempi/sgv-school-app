@@ -6,6 +6,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from "../theme";
 import apiConfig from "../config/apiConfig";
 import apiFetch from "../utils/apiFetch";
+import { useApiQuery } from "../hooks/useApi";
+import { useQuery } from "@tanstack/react-query";
 import { useToast } from "../components/ToastProvider";
 import Header from "../components/Header";
 
@@ -13,90 +15,32 @@ export default function SubjectsScreen() {
     const router = useRouter();
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
-
-    const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [user, setUser] = useState(null);
 
-    // Student state
-    const [studentSubjects, setStudentSubjects] = useState([]);
+    const { data: userData } = useApiQuery(['currentUser'], `${apiConfig.baseUrl}/auth/me`);
+    const user = userData || {};
 
-    // Teacher state
-    const [teacherClasses, setTeacherClasses] = useState([]);
-
-    useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = async () => {
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const storedUser = await AsyncStorage.getItem("@auth_user");
-
-            if (!storedUser) {
-                router.replace("/login");
-                return;
-            }
-
-            const parsedUser = JSON.parse(storedUser);
-            setUser(parsedUser);
-
-            if (parsedUser.role === 'student') {
-                await loadStudentSubjects(parsedUser, token);
-            } else if (parsedUser.role === 'class teacher' || parsedUser.role === 'staff') {
-                await loadTeacherSubjects(token);
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading data", "error");
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
+    // Student Subjects Query
+    const { data: studentSubjectsData, isLoading: loadingStudent, refetch: refetchStudent } = useApiQuery(
+        ['studentSubjects', user?.currentClass?._id || user?.currentClass],
+        `${apiConfig.baseUrl}/classes/${user?.currentClass?._id || user?.currentClass}/full-details`,
+        {
+            enabled: !!(user?.role === 'student' && user?.currentClass),
+            select: (data) => data.subjects || []
         }
-    };
+    );
 
-    const loadStudentSubjects = async (user, token) => {
-        if (!user.currentClass) return;
-
-        let classId = user.currentClass;
-        if (typeof user.currentClass === 'object' && user.currentClass._id) {
-            classId = user.currentClass._id;
-        }
-
-        const response = await apiFetch(`${apiConfig.baseUrl}/classes/${classId}/full-details`, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            setStudentSubjects(data.subjects || []);
-        }
-    };
-
-    const loadTeacherSubjects = async (token) => {
-        // First get all classes
-        const response = await apiFetch(`${apiConfig.baseUrl}/classes/my-classes`, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (response.ok) {
+    // Teacher Subjects Query
+    const { data: teacherClassesData, isLoading: loadingTeacher, refetch: refetchTeacher } = useQuery({
+        queryKey: ['teacherSubjectsFull'],
+        queryFn: async () => {
+            const response = await apiFetch(`${apiConfig.baseUrl}/classes/my-classes`);
+            if (!response.ok) throw new Error('Failed to fetch classes');
             const classes = await response.json();
 
-            // For each class, we could fetch subjects if not already included
-            // Assuming we want to show a list of classes first, then expand to subjects
-            // Or fetch full details for all classes (might be heavy)
-
-            // For now, let's just store classes and we'll fetch subjects on demand or if they are in the list
-            // Checking the previous file, classes/my-classes returns basic info.
-            // We might need to iterate and fetch details if we want to show ALL subjects at once.
-            // But a better UX might be: Class A > Subjects, Class B > Subjects.
-
-            // Let's fetch full details for each class to get subjects
             const classesWithSubjects = await Promise.all(classes.map(async (cls) => {
                 try {
-                    const res = await apiFetch(`${apiConfig.baseUrl}/classes/${cls._id}/full-details`, {
-                        headers: { Authorization: `Bearer ${token}` },
-                    });
+                    const res = await apiFetch(`${apiConfig.baseUrl}/classes/${cls._id}/full-details`);
                     if (res.ok) {
                         const data = await res.json();
                         return { ...cls, subjects: data.subjects || [] };
@@ -106,14 +50,20 @@ export default function SubjectsScreen() {
                     return cls;
                 }
             }));
+            return classesWithSubjects;
+        },
+        enabled: !!(user && (user.role === 'class teacher' || user.role === 'staff' || user.role === 'teacher'))
+    });
 
-            setTeacherClasses(classesWithSubjects);
-        }
-    };
+    const loading = (user?.role === 'student' ? loadingStudent : loadingTeacher);
+    const studentSubjects = studentSubjectsData || [];
+    const teacherClasses = teacherClassesData || [];
 
-    const onRefresh = () => {
+    const onRefresh = async () => {
         setRefreshing(true);
-        loadData();
+        if (user?.role === 'student') await refetchStudent();
+        else await refetchTeacher();
+        setRefreshing(false);
     };
 
     const renderStudentView = () => (

@@ -13,9 +13,8 @@ import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
-import apiConfig from "../../config/apiConfig";
-import apiFetch from "../../utils/apiFetch";
-import { useToast } from "../../components/ToastProvider";
+import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/useApi";
+import { useQueryClient } from "@tanstack/react-query";
 import Header from "../../components/Header";
 import DateTimePicker from '@react-native-community/datetimepicker';
 
@@ -24,10 +23,8 @@ export default function AdminExamScheduleScreen() {
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
 
-    const [loading, setLoading] = useState(true);
-    const [classes, setClasses] = useState([]);
+    const queryClient = useQueryClient();
     const [selectedClassId, setSelectedClassId] = useState(null);
-    const [exams, setExams] = useState([]);
 
     // Edit Date State
     const [editingExam, setEditingExam] = useState(null);
@@ -35,50 +32,39 @@ export default function AdminExamScheduleScreen() {
     const [newDate, setNewDate] = useState(new Date());
     const [newRoom, setNewRoom] = useState("");
 
+    // Fetch Classes
+    const { data: classesData, isLoading: classesLoading } = useApiQuery(
+        ['adminClassesInit'],
+        `${apiConfig.baseUrl}/classes/admin/init`
+    );
+    const classes = classesData?.classes || [];
+
+    // Set initial selected class
     useEffect(() => {
-        loadClasses();
-    }, []);
-
-    const loadClasses = async () => {
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const response = await apiFetch(`${apiConfig.baseUrl}/classes/admin/init`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setClasses(data.classes);
-                if (data.classes.length > 0) {
-                    loadExams(data.classes[0]._id);
-                } else {
-                    setLoading(false);
-                }
-            }
-        } catch (error) {
-            console.error(error);
-            setLoading(false);
+        if (classes.length > 0 && !selectedClassId) {
+            setSelectedClassId(classes[0]._id);
         }
-    };
+    }, [classes, selectedClassId]);
 
-    const loadExams = async (classId) => {
-        setSelectedClassId(classId);
-        setLoading(true);
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const response = await apiFetch(`${apiConfig.baseUrl}/exams/schedule/class/${classId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setExams(data);
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading exams", "error");
-        } finally {
-            setLoading(false);
-        }
-    };
+    // Fetch Exams for Selected Class
+    const { data: exams = [], isLoading: examsLoading } = useApiQuery(
+        ['adminExamSchedule', selectedClassId],
+        `${apiConfig.baseUrl}/exams/schedule/class/${selectedClassId}`,
+        { enabled: !!selectedClassId }
+    );
+
+    const loading = classesLoading || (!!selectedClassId && examsLoading);
+
+    // Update Exam Mutation
+    const updateExamMutation = useApiMutation({
+        mutationFn: (data) => createApiMutationFn(`${apiConfig.baseUrl}/exams/${data.id}`, 'PUT')(data.body),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['adminExamSchedule', selectedClassId] });
+            showToast("Exam date updated", "success");
+            setEditingExam(null);
+        },
+        onError: (error) => showToast(error.message || "Failed to update date", "error")
+    });
 
     const handleDateChange = (event, selectedDate) => {
         setShowDatePicker(Platform.OS === 'ios');
@@ -87,34 +73,16 @@ export default function AdminExamScheduleScreen() {
         }
     };
 
-    const saveNewDate = async () => {
+    const saveNewDate = () => {
         if (!editingExam) return;
 
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const response = await apiFetch(`${apiConfig.baseUrl}/exams/${editingExam._id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    date: newDate,
-                    room: newRoom
-                })
-            });
-
-            if (response.ok) {
-                showToast("Exam date updated", "success");
-                setEditingExam(null);
-                loadExams(selectedClassId); // Refresh list
-            } else {
-                showToast("Failed to update date", "error");
+        updateExamMutation.mutate({
+            id: editingExam._id,
+            body: {
+                date: newDate,
+                room: newRoom
             }
-        } catch (error) {
-            console.error(error);
-            showToast("Error updating exam", "error");
-        }
+        });
     };
 
     if (loading && classes.length === 0) {
@@ -138,7 +106,7 @@ export default function AdminExamScheduleScreen() {
                         {classes.map(cls => (
                             <Pressable
                                 key={cls._id}
-                                onPress={() => loadExams(cls._id)}
+                                onPress={() => setSelectedClassId(cls._id)}
                                 style={{
                                     paddingHorizontal: 16,
                                     paddingVertical: 8,
@@ -302,9 +270,14 @@ export default function AdminExamScheduleScreen() {
                                 </Pressable>
                                 <Pressable
                                     onPress={saveNewDate}
+                                    disabled={updateExamMutation.isPending}
                                     style={{ flex: 1, padding: 12, alignItems: "center", borderRadius: 10, backgroundColor: colors.primary }}
                                 >
-                                    <Text style={{ color: "#fff", fontFamily: "DMSans-Bold" }}>Save</Text>
+                                    {updateExamMutation.isPending ? (
+                                        <ActivityIndicator color="#fff" size="small" />
+                                    ) : (
+                                        <Text style={{ color: "#fff", fontFamily: "DMSans-Bold" }}>Save</Text>
+                                    )}
                                 </Pressable>
                             </View>
                         </View>

@@ -17,7 +17,7 @@ const FONTS = {
 
 // Modern, Premium Color Palette
 const lightColors = {
-  primary: "#2563EB", // Vibrant Blue (Inter-like)
+  primary: "#2F6CD4", // Vibrant Blue (Inter-like)
   secondary: "#F97316", // Modern Orange
   background: "#F8FAFC", // Cool Gray 50
   cardBackground: "#FFFFFF",

@@ -4,7 +4,8 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import apiFetch from '../../utils/apiFetch';
+import { useApiQuery, useApiMutation, createApiMutationFn } from '../../hooks/useApi';
+import { useQueryClient } from '@tanstack/react-query';
 import apiConfig from '../../config/apiConfig';
 import { useToast } from '../../components/ToastProvider';
 import { useTheme } from '../../theme';
@@ -16,118 +17,106 @@ export default function AdminAttendance() {
     // ... (rest of component)
     const { showToast } = useToast();
     const { colors } = useTheme();
+    const queryClient = useQueryClient();
     const [activeTab, setActiveTab] = useState('summary'); // 'summary', 'student', 'staff', 'my_attendance'
-    const [user, setUser] = useState(null);
-
-    // Common State
-    const [loading, setLoading] = useState(false);
-    const [refreshing, setRefreshing] = useState(false);
     const [date, setDate] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
-
-    // Summary State
-    const [schoolSummary, setSchoolSummary] = useState(null);
-
-    // Student Attendance State
-    const [classes, setClasses] = useState([]);
     const [selectedClass, setSelectedClass] = useState(null);
-    const [studentAttendance, setStudentAttendance] = useState([]);
-    const [submittingStudent, setSubmittingStudent] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
 
-    // Staff Attendance State
-    const [staffList, setStaffList] = useState([]);
-    const [submittingStaff, setSubmittingStaff] = useState(false);
+    // Fetch User
+    const { data: user } = useApiQuery(
+        ['currentUser'],
+        `${apiConfig.baseUrl}/auth/me`
+    );
 
-    // My Attendance State
-    const [myAttendance, setMyAttendance] = useState([]);
-    const [mySummary, setMySummary] = useState(null);
+    // Fetch School Summary
+    const { data: schoolSummary, isLoading: summaryLoading, refetch: refetchSummary } = useApiQuery(
+        ['attendanceSummary', date.toISOString().split('T')[0]],
+        `${apiConfig.baseUrl}/attendance/school-summary?date=${date.toISOString().split('T')[0]}`,
+        { enabled: activeTab === 'summary' }
+    );
 
-    useEffect(() => {
-        loadUser();
-    }, []);
+    // Fetch Classes
+    const { data: classesData = [] } = useApiQuery(
+        ['classes'],
+        `${apiConfig.baseUrl}/classes`,
+        { enabled: activeTab === 'student' }
+    );
+    const classes = Array.isArray(classesData) ? classesData : (classesData.data || []);
 
-    const loadUser = async () => {
-        try {
-            const storedUser = await AsyncStorage.getItem('@auth_user');
-            if (storedUser) {
-                setUser(JSON.parse(storedUser));
-            }
-        } catch (e) {
-            console.warn('Failed to load user', e);
-        }
-    };
+    // Fetch Student Attendance
+    const { data: studentAttendance = [], isLoading: studentLoading, refetch: refetchStudent } = useApiQuery(
+        ['studentAttendance', selectedClass?._id, date.toISOString().split('T')[0]],
+        `${apiConfig.baseUrl}/attendance/class/${selectedClass?._id}/date/${date.toISOString().split('T')[0]}`,
+        { enabled: activeTab === 'student' && !!selectedClass }
+    );
 
-    const fetchData = useCallback(async () => {
-        setLoading(true);
-        try {
-            if (activeTab === 'summary') {
-                const dateStr = date.toISOString().split('T')[0];
-                const res = await apiFetch(`${apiConfig.baseUrl}/attendance/school-summary?date=${dateStr}`);
-                const data = await res.json();
-                if (data.success) {
-                    setSchoolSummary(data.data);
-                }
-            } else if (activeTab === 'student') {
-                const res = await apiFetch(`${apiConfig.baseUrl}/classes`);
-                const data = await res.json();
-                let classData = [];
-                if (Array.isArray(data)) {
-                    classData = data;
-                } else if (data.success && data.data) {
-                    classData = data.data;
-                } else {
-                    classData = data;
-                }
-                setClasses(classData);
-                if (selectedClass) {
-                    fetchStudentAttendance(selectedClass._id);
-                }
-            } else if (activeTab === 'staff') {
-                const dateStr = date.toISOString().split('T')[0];
-                const res = await apiFetch(`${apiConfig.baseUrl}/attendance/staff-list?date=${dateStr}`);
-                const data = await res.json();
-                if (data.success) {
-                    setStaffList(data.data);
-                }
-            } else if (activeTab === 'my_attendance') {
-                const res = await apiFetch(`${apiConfig.baseUrl}/attendance/my-attendance`);
-                const data = await res.json();
-                setMyAttendance(data.attendance);
-                setMySummary(data.summary);
-            }
-        } catch (error) {
-            showToast('Error fetching data', 'error');
-            console.error(error);
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    }, [activeTab, date, selectedClass]);
+    // Fetch Staff List
+    const { data: staffListResponse, isLoading: staffLoading, refetch: refetchStaff } = useApiQuery(
+        ['staffList', date.toISOString().split('T')[0]],
+        `${apiConfig.baseUrl}/attendance/staff-list?date=${date.toISOString().split('T')[0]}`,
+        { enabled: activeTab === 'staff' }
+    );
+    const staffList = staffListResponse?.data || [];
 
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+    // Fetch My Attendance
+    const { data: myAttendanceData, isLoading: myAttendanceLoading, refetch: refetchMyAttendance } = useApiQuery(
+        ['myAttendance'],
+        `${apiConfig.baseUrl}/attendance/my-attendance`,
+        { enabled: activeTab === 'my_attendance' }
+    );
+    const myAttendance = myAttendanceData?.attendance || [];
+    const mySummary = myAttendanceData?.summary || null;
 
-    const onRefresh = () => {
+    const loading = summaryLoading || studentLoading || staffLoading || myAttendanceLoading;
+
+    const onRefresh = async () => {
         setRefreshing(true);
-        fetchData();
+        if (activeTab === 'summary') await refetchSummary();
+        if (activeTab === 'student') await refetchStudent();
+        if (activeTab === 'staff') await refetchStaff();
+        if (activeTab === 'my_attendance') await refetchMyAttendance();
+        setRefreshing(false);
     };
 
-    const fetchStudentAttendance = async (classId) => {
-        try {
-            const dateStr = date.toISOString().split('T')[0];
-            const res = await apiFetch(`${apiConfig.baseUrl}/attendance/class/${classId}/date/${dateStr}`);
-            const data = await res.json();
-            setStudentAttendance(data);
-        } catch (error) {
-            console.error(error);
-        }
-    };
+    // Local state for modifications before saving
+    const [localStudentAttendance, setLocalStudentAttendance] = useState([]);
+    const [localStaffList, setLocalStaffList] = useState([]);
+
+    useEffect(() => {
+        if (studentAttendance) setLocalStudentAttendance(studentAttendance);
+    }, [studentAttendance]);
+
+    useEffect(() => {
+        if (staffList) setLocalStaffList(staffList);
+    }, [staffList]);
+
+    // Mutations
+    const saveStudentAttendanceMutation = useApiMutation({
+        mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/attendance/mark`, 'POST'),
+        onSuccess: () => {
+            showToast('Student attendance saved', 'success');
+            queryClient.invalidateQueries({ queryKey: ['studentAttendance'] });
+            queryClient.invalidateQueries({ queryKey: ['attendanceSummary'] });
+        },
+        onError: () => showToast('Failed to save attendance', 'error')
+    });
+
+    const saveStaffAttendanceMutation = useApiMutation({
+        mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/attendance/mark-staff`, 'POST'),
+        onSuccess: () => {
+            showToast('Staff attendance saved', 'success');
+            queryClient.invalidateQueries({ queryKey: ['staffList'] });
+            queryClient.invalidateQueries({ queryKey: ['attendanceSummary'] });
+        },
+        onError: () => showToast('Failed to save attendance', 'error')
+    });
 
     // --- Student Attendance Handlers ---
 
     const toggleStudentStatus = (index) => {
-        const newAttendance = [...studentAttendance];
+        const newAttendance = [...localStudentAttendance];
         const currentStatus = newAttendance[index].status;
         // Cycle: null -> present -> absent -> late -> excused -> null
         // Simplified: present -> absent -> late -> present
@@ -140,69 +129,51 @@ export default function AdminAttendance() {
         if (!currentStatus) nextStatus = 'present';
 
         newAttendance[index].status = nextStatus;
-        setStudentAttendance(newAttendance);
+        setLocalStudentAttendance(newAttendance);
     };
 
     const markAllStudentsPresent = () => {
-        const newAttendance = studentAttendance.map(item => ({
+        const newAttendance = localStudentAttendance.map(item => ({
             ...item,
             status: 'present'
         }));
-        setStudentAttendance(newAttendance);
+        setLocalStudentAttendance(newAttendance);
     };
 
-    const saveStudentAttendance = async () => {
+    const saveStudentAttendance = () => {
         if (!selectedClass) return;
-        setSubmittingStudent(true);
-        try {
-            const records = studentAttendance
-                .filter(item => item.status)
-                .map(item => ({
-                    studentId: item.student._id,
-                    status: item.status,
-                    remarks: item.remarks
-                }));
+        const records = localStudentAttendance
+            .filter(item => item.status)
+            .map(item => ({
+                studentId: item.student._id,
+                status: item.status,
+                remarks: item.remarks
+            }));
 
-            if (records.length === 0) {
-                showToast('No attendance marked to save', 'info');
-                setSubmittingStudent(false);
-                return;
-            }
-
-            const response = await apiFetch(`${apiConfig.baseUrl}/attendance/mark`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    classId: selectedClass._id,
-                    date: date.toISOString().split('T')[0],
-                    attendanceRecords: records
-                })
-            });
-
-            if (response.ok) {
-                showToast('Student attendance saved', 'success');
-            } else {
-                showToast('Failed to save attendance', 'error');
-            }
-        } catch (error) {
-            showToast('Error saving attendance', 'error');
-        } finally {
-            setSubmittingStudent(false);
+        if (records.length === 0) {
+            showToast('No attendance marked to save', 'info');
+            return;
         }
+
+        saveStudentAttendanceMutation.mutate({
+            classId: selectedClass._id,
+            date: date.toISOString().split('T')[0],
+            attendanceRecords: records
+        });
     };
 
     // --- Staff Attendance Handlers ---
 
     const markAllStaffPresent = () => {
-        const newStaffList = staffList.map(item => ({
+        const newStaffList = localStaffList.map(item => ({
             ...item,
             status: 'present'
         }));
-        setStaffList(newStaffList);
+        setLocalStaffList(newStaffList);
     };
 
     const toggleStaffStatus = (index) => {
-        const newStaffList = [...staffList];
+        const newStaffList = [...localStaffList];
         const currentStatus = newStaffList[index].status;
         // Cycle: null -> present -> absent -> late -> null
         let nextStatus = 'present';
@@ -214,45 +185,27 @@ export default function AdminAttendance() {
         if (!currentStatus) nextStatus = 'present';
 
         newStaffList[index].status = nextStatus;
-        setStaffList(newStaffList);
+        setLocalStaffList(newStaffList);
     };
 
-    const saveStaffAttendance = async () => {
-        setSubmittingStaff(true);
-        try {
-            const records = staffList
-                .filter(item => item.status) // Only send marked records
-                .map(item => ({
-                    userId: item.user._id,
-                    status: item.status,
-                    remarks: item.remarks
-                }));
+    const saveStaffAttendance = () => {
+        const records = localStaffList
+            .filter(item => item.status) // Only send marked records
+            .map(item => ({
+                userId: item.user._id,
+                status: item.status,
+                remarks: item.remarks
+            }));
 
-            if (records.length === 0) {
-                showToast('No attendance marked to save', 'info');
-                setSubmittingStaff(false);
-                return;
-            }
-
-            const response = await apiFetch(`${apiConfig.baseUrl}/attendance/mark-staff`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    date: date.toISOString().split('T')[0],
-                    attendanceRecords: records
-                })
-            });
-
-            if (response.ok) {
-                showToast('Staff attendance saved', 'success');
-            } else {
-                showToast('Failed to save attendance', 'error');
-            }
-        } catch (error) {
-            showToast('Error saving attendance', 'error');
-        } finally {
-            setSubmittingStaff(false);
+        if (records.length === 0) {
+            showToast('No attendance marked to save', 'info');
+            return;
         }
+
+        saveStaffAttendanceMutation.mutate({
+            date: date.toISOString().split('T')[0],
+            attendanceRecords: records
+        });
     };
 
     // --- Render Helpers ---
@@ -410,7 +363,7 @@ export default function AdminAttendance() {
                                     </View>
                                     <FlatList
                                         style={{ flex: 1 }}
-                                        data={studentAttendance}
+                                        data={localStudentAttendance}
                                         keyExtractor={(item) => item.student._id}
                                         renderItem={({ item, index }) => (
                                             <TouchableOpacity
@@ -430,9 +383,9 @@ export default function AdminAttendance() {
                                         <TouchableOpacity
                                             style={[styles.saveButton, { backgroundColor: colors.primary }]}
                                             onPress={saveStudentAttendance}
-                                            disabled={submittingStudent}
+                                            disabled={saveStudentAttendanceMutation.isPending}
                                         >
-                                            {submittingStudent ? (
+                                            {saveStudentAttendanceMutation.isPending ? (
                                                 <ActivityIndicator color="#fff" />
                                             ) : (
                                                 <Text style={styles.saveButtonText}>Save Student Attendance</Text>
@@ -453,7 +406,7 @@ export default function AdminAttendance() {
                             </View>
                             <FlatList
                                 style={{ flex: 1 }}
-                                data={staffList}
+                                data={localStaffList}
                                 renderItem={renderStaffItem}
                                 keyExtractor={(item) => item.user._id}
                                 contentContainerStyle={styles.listContent}
@@ -463,9 +416,9 @@ export default function AdminAttendance() {
                                 <TouchableOpacity
                                     style={[styles.saveButton, { backgroundColor: colors.primary }]}
                                     onPress={saveStaffAttendance}
-                                    disabled={submittingStaff}
+                                    disabled={saveStaffAttendanceMutation.isPending}
                                 >
-                                    {submittingStaff ? (
+                                    {saveStaffAttendanceMutation.isPending ? (
                                         <ActivityIndicator color="#fff" />
                                     ) : (
                                         <Text style={styles.saveButtonText}>Save Attendance</Text>

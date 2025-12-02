@@ -15,98 +15,66 @@ import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
-import apiConfig from "../../config/apiConfig";
-import apiFetch from "../../utils/apiFetch";
-import { useToast } from "../../components/ToastProvider";
+import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/useApi";
+import { useQueryClient } from "@tanstack/react-query";
 import Header from "../../components/Header";
+import apiConfig from "../../config/apiConfig";
+import { useToast } from "../../components/ToastProvider";
 
 export default function StudentComplaintsScreen() {
     const router = useRouter();
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
 
-    const [loading, setLoading] = useState(true);
+    const queryClient = useQueryClient();
     const [refreshing, setRefreshing] = useState(false);
-    const [complaints, setComplaints] = useState([]);
 
     // Create Modal State
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [category, setCategory] = useState("Academic");
-    const [submitting, setSubmitting] = useState(false);
 
     const categories = ['Academic', 'Facility', 'Transport', 'Discipline', 'Other'];
 
-    useEffect(() => {
-        loadComplaints();
-    }, []);
+    // Fetch Complaints
+    const { data: complaintsData, isLoading: loading, refetch } = useApiQuery(
+        ['studentComplaints'],
+        `${apiConfig.baseUrl}/complaints/my-complaints`
+    );
+    const complaints = complaintsData || [];
 
-    const loadComplaints = async () => {
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const response = await apiFetch(`${apiConfig.baseUrl}/complaints/my-complaints`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+    // Create Complaint Mutation
+    const createComplaintMutation = useApiMutation({
+        mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/complaints`, 'POST'),
+        onSuccess: () => {
+            showToast("Complaint submitted successfully", "success");
+            setShowCreateModal(false);
+            setTitle("");
+            setDescription("");
+            setCategory("Academic");
+            queryClient.invalidateQueries({ queryKey: ['studentComplaints'] });
+        },
+        onError: (error) => showToast("Failed to submit complaint", "error")
+    });
 
-            if (response.ok) {
-                const data = await response.json();
-                setComplaints(data);
-            } else {
-                showToast("Failed to load complaints", "error");
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading complaints", "error");
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    };
-
-    const handleCreate = async () => {
+    const handleCreate = () => {
         if (!title.trim() || !description.trim()) {
             showToast("Please fill all fields", "error");
             return;
         }
 
-        setSubmitting(true);
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const response = await apiFetch(`${apiConfig.baseUrl}/complaints`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    title,
-                    description,
-                    category
-                })
-            });
-
-            if (response.ok) {
-                showToast("Complaint submitted successfully", "success");
-                setShowCreateModal(false);
-                setTitle("");
-                setDescription("");
-                setCategory("Academic");
-                loadComplaints();
-            } else {
-                showToast("Failed to submit complaint", "error");
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error submitting complaint", "error");
-        } finally {
-            setSubmitting(false);
-        }
+        createComplaintMutation.mutate({
+            title,
+            description,
+            category
+        });
     };
 
-    const onRefresh = () => {
+    const onRefresh = async () => {
         setRefreshing(true);
-        loadComplaints();
+        await refetch();
+        setRefreshing(false);
     };
 
     const getStatusColor = (status) => {
@@ -309,16 +277,16 @@ export default function StudentComplaintsScreen() {
 
                             <Pressable
                                 onPress={handleCreate}
-                                disabled={submitting}
+                                disabled={createComplaintMutation.isPending}
                                 style={{
                                     backgroundColor: colors.primary,
                                     padding: 16,
                                     borderRadius: 16,
                                     alignItems: "center",
-                                    opacity: submitting ? 0.7 : 1
+                                    opacity: createComplaintMutation.isPending ? 0.7 : 1
                                 }}
                             >
-                                {submitting ? (
+                                {createComplaintMutation.isPending ? (
                                     <ActivityIndicator color="#fff" />
                                 ) : (
                                     <Text style={{ color: "#fff", fontSize: 16, fontFamily: "DMSans-Bold" }}>

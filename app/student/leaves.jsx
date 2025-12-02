@@ -3,18 +3,17 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, R
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import apiFetch from '../../utils/apiFetch';
+import { useApiQuery, useApiMutation, createApiMutationFn } from '../../hooks/useApi';
 import apiConfig from '../../config/apiConfig';
 import { useToast } from '../../components/ToastProvider';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function StudentLeaves() {
     const router = useRouter();
+    const queryClient = useQueryClient();
     const { showToast } = useToast();
-    const [leaves, setLeaves] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
-    const [submitting, setSubmitting] = useState(false);
 
     // Form State
     const [startDate, setStartDate] = useState(new Date());
@@ -25,33 +24,33 @@ export default function StudentLeaves() {
     const [isHalfDay, setIsHalfDay] = useState(false);
     const [halfDaySlot, setHalfDaySlot] = useState('morning'); // 'morning' or 'afternoon'
 
-    const fetchLeaves = useCallback(async () => {
-        try {
-            const response = await apiFetch(`${apiConfig.baseUrl}/leaves/my-leaves`);
-            const data = await response.json();
-            if (data.success) {
-                setLeaves(data.data);
-            } else {
-                showToast(data.message || 'Failed to fetch leaves', 'error');
-            }
-        } catch (error) {
-            showToast('An error occurred while fetching leaves', 'error');
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    }, []);
+    // Fetch Leaves
+    const { data: leavesData, isLoading: loading, refetch } = useApiQuery(
+        ['studentLeaves'],
+        `${apiConfig.baseUrl}/leaves/my-leaves`
+    );
+    const leaves = leavesData?.data || [];
 
-    useEffect(() => {
-        fetchLeaves();
-    }, [fetchLeaves]);
+    // Apply Leave Mutation
+    const applyLeaveMutation = useApiMutation({
+        mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/leaves/apply`, 'POST'),
+        onSuccess: () => {
+            showToast('Leave applied successfully', 'success');
+            setModalVisible(false);
+            setReason('');
+            setIsHalfDay(false);
+            queryClient.invalidateQueries({ queryKey: ['studentLeaves'] });
+        },
+        onError: (error) => showToast(error.message || 'Failed to apply leave', 'error')
+    });
 
-    const onRefresh = () => {
+    const onRefresh = async () => {
         setRefreshing(true);
-        fetchLeaves();
+        await refetch();
+        setRefreshing(false);
     };
 
-    const handleApplyLeave = async () => {
+    const handleApplyLeave = () => {
         if (!reason.trim()) {
             showToast('Please enter a reason', 'error');
             return;
@@ -69,39 +68,13 @@ export default function StudentLeaves() {
             finalEndDate = startDate;
         }
 
-        setSubmitting(true);
-        try {
-            const payload = {
-                startDate: startDate.toISOString().split('T')[0],
-                endDate: finalEndDate.toISOString().split('T')[0],
-                reason,
-                leaveType: isHalfDay ? 'half' : 'full',
-                halfDaySlot: isHalfDay ? halfDaySlot : undefined
-            };
-
-            const response = await apiFetch(`${apiConfig.baseUrl}/leaves/apply`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload),
-            });
-            const data = await response.json();
-
-            if (data.success) {
-                showToast('Leave applied successfully', 'success');
-                setModalVisible(false);
-                setReason('');
-                setIsHalfDay(false);
-                fetchLeaves();
-            } else {
-                showToast(data.message || 'Failed to apply leave', 'error');
-            }
-        } catch (error) {
-            showToast('An error occurred', 'error');
-        } finally {
-            setSubmitting(false);
-        }
+        applyLeaveMutation.mutate({
+            startDate: startDate.toISOString().split('T')[0],
+            endDate: finalEndDate.toISOString().split('T')[0],
+            reason,
+            leaveType: isHalfDay ? 'half' : 'full',
+            halfDaySlot: isHalfDay ? halfDaySlot : undefined
+        });
     };
 
     const formatDate = (date) => {
@@ -295,9 +268,9 @@ export default function StudentLeaves() {
                             <TouchableOpacity
                                 style={styles.submitButton}
                                 onPress={handleApplyLeave}
-                                disabled={submitting}
+                                disabled={applyLeaveMutation.isPending}
                             >
-                                {submitting ? (
+                                {applyLeaveMutation.isPending ? (
                                     <ActivityIndicator color="#fff" />
                                 ) : (
                                     <Text style={styles.submitButtonText}>Submit Application</Text>

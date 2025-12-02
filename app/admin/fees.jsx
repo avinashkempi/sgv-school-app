@@ -14,9 +14,8 @@ import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
-import apiConfig from "../../config/apiConfig";
-import apiFetch from "../../utils/apiFetch";
-import { useToast } from "../../components/ToastProvider";
+import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/useApi";
+import { useQueryClient } from "@tanstack/react-query";
 import Header from "../../components/Header";
 
 export default function AdminFeesScreen() {
@@ -25,33 +24,23 @@ export default function AdminFeesScreen() {
     const { showToast } = useToast();
 
     const [activeTab, setActiveTab] = useState("dashboard"); // dashboard, collect, structure, students
-    const [loading, setLoading] = useState(true);
-    const [analytics, setAnalytics] = useState({
-        collectedToday: 0,
-        collectedThisMonth: 0,
-        totalCollected: 0
-    });
+    const queryClient = useQueryClient();
+
 
     // Collect Fees State
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState([]);
     const [selectedStudent, setSelectedStudent] = useState(null);
-    const [feeDetails, setFeeDetails] = useState(null);
     const [paymentAmount, setPaymentAmount] = useState("");
     const [bookNumber, setBookNumber] = useState("");
     const [manualReceiptNumber, setManualReceiptNumber] = useState("");
     const [paymentMethod, setPaymentMethod] = useState("cash");
     const [remarks, setRemarks] = useState("");
-    const [processingPayment, setProcessingPayment] = useState(false);
 
     // Fee Structure State
-    const [classes, setClasses] = useState([]);
     const [selectedClassId, setSelectedClassId] = useState(null);
-    const [academicYears, setAcademicYears] = useState([]);
     const [selectedYearId, setSelectedYearId] = useState(null);
-    const [structureComponents, setStructureComponents] = useState([]);
     const [newComponent, setNewComponent] = useState({ name: "", amount: "" });
-    const [savingStructure, setSavingStructure] = useState(false);
 
     // Specific Student Fee State
     const [structureType, setStructureType] = useState('class_default'); // 'class_default', 'student_specific'
@@ -59,76 +48,85 @@ export default function AdminFeesScreen() {
     const [studentSearchResults, setStudentSearchResults] = useState([]);
     const [selectedStudents, setSelectedStudents] = useState([]);
 
-    const [allStudents, setAllStudents] = useState([]);
-    const [loadingStudents, setLoadingStudents] = useState(false);
+    // Fetch Analytics
+    const { data: analytics = { collectedToday: 0, collectedThisMonth: 0, totalCollected: 0 }, isLoading: analyticsLoading } = useApiQuery(
+        ['feeAnalytics'],
+        `${apiConfig.baseUrl}/fees/analytics`
+    );
+
+    // Fetch Classes and Years
+    const { data: initData, isLoading: initLoading } = useApiQuery(
+        ['adminClassesInit'],
+        `${apiConfig.baseUrl}/classes/admin/init`
+    );
+    const classes = initData?.classes || [];
+    const academicYears = initData?.academicYears || [];
 
     useEffect(() => {
-        loadAnalytics();
-        loadClassesAndYears();
-    }, []);
+        if (academicYears.length > 0 && !selectedYearId) {
+            setSelectedYearId(academicYears[0]._id);
+        }
+    }, [academicYears, selectedYearId]);
+
+    // Fetch All Students
+    const { data: allStudentsResponse, isLoading: studentsLoading } = useApiQuery(
+        ['allStudents'],
+        `${apiConfig.baseUrl}/users?role=student&limit=100`,
+        { enabled: activeTab === 'students' }
+    );
+    const allStudents = allStudentsResponse?.data || [];
+
+    // Fetch Fee Details for Selected Student
+    const { data: feeDetails, refetch: refetchFeeDetails } = useApiQuery(
+        ['feeDetails', selectedStudent?._id],
+        `${apiConfig.baseUrl}/fees/student/${selectedStudent?._id}`,
+        { enabled: !!selectedStudent }
+    );
+
+    // Fetch Fee Structure for Selected Class
+    const { data: structureData } = useApiQuery(
+        ['feeStructure', selectedClassId],
+        `${apiConfig.baseUrl}/fees/structure/class/${selectedClassId}`,
+        { enabled: !!selectedClassId }
+    );
+    const [structureComponents, setStructureComponents] = useState([]);
 
     useEffect(() => {
-        if (activeTab === 'students') {
-            loadAllStudents();
+        if (structureData?.components) {
+            setStructureComponents(structureData.components);
+        } else {
+            setStructureComponents([]);
         }
-    }, [activeTab]);
+    }, [structureData]);
 
-    const loadAnalytics = async () => {
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const response = await apiFetch(`${apiConfig.baseUrl}/fees/analytics`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setAnalytics(data);
-            }
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const loading = analyticsLoading || initLoading;
 
-    const loadClassesAndYears = async () => {
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const response = await apiFetch(`${apiConfig.baseUrl}/classes/admin/init`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setClasses(data.classes);
-                setAcademicYears(data.academicYears);
-                if (data.academicYears.length > 0) {
-                    setSelectedYearId(data.academicYears[0]._id);
-                }
-            }
-        } catch (error) {
-            console.error(error);
-        }
-    };
+    // Mutations
+    const paymentMutation = useApiMutation({
+        mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/fees/payment`, 'POST'),
+        onSuccess: () => {
+            showToast("Payment recorded successfully", "success");
+            setSelectedStudent(null);
+            setPaymentAmount("");
+            setBookNumber("");
+            setManualReceiptNumber("");
+            setRemarks("");
+            queryClient.invalidateQueries({ queryKey: ['feeAnalytics'] });
+            queryClient.invalidateQueries({ queryKey: ['feeDetails'] });
+        },
+        onError: (error) => showToast(error.message || "Payment failed", "error")
+    });
 
-    const loadAllStudents = async () => {
-        setLoadingStudents(true);
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            // Fetch all students (limit 100 for now, or implement pagination)
-            const response = await apiFetch(`${apiConfig.baseUrl}/users?role=student&limit=100`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setAllStudents(data.data || []);
-                // showToast(`Loaded ${data.data?.length || 0} students`, "info"); // Debug
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading students", "error");
-        } finally {
-            setLoadingStudents(false);
-        }
-    };
+    const saveStructureMutation = useApiMutation({
+        mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/fees/structure`, 'POST'),
+        onSuccess: () => {
+            showToast("Fee structure saved", "success");
+            queryClient.invalidateQueries({ queryKey: ['feeStructure'] });
+        },
+        onError: (error) => showToast(error.message || "Failed to save structure", "error")
+    });
+
+
 
     const searchStudent = async (query, setResults, classId = null) => {
         if (!query.trim()) return;
@@ -151,92 +149,29 @@ export default function AdminFeesScreen() {
         }
     };
 
-    const selectStudent = async (student) => {
+    const selectStudent = (student) => {
         setSelectedStudent(student);
         setSearchResults([]);
         setSearchQuery("");
-
-        // Fetch fee details
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const response = await apiFetch(`${apiConfig.baseUrl}/fees/student/${student._id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setFeeDetails(data);
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading fee details", "error");
-        }
     };
 
-    const handlePayment = async () => {
+    const handlePayment = () => {
         if (!paymentAmount || isNaN(paymentAmount) || Number(paymentAmount) <= 0) {
             showToast("Invalid amount", "error");
             return;
         }
 
-        try {
-            setProcessingPayment(true);
-            const token = await AsyncStorage.getItem("@auth_token");
-            const response = await apiFetch(`${apiConfig.baseUrl}/fees/payment`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    studentId: selectedStudent._id,
-                    amount: Number(paymentAmount),
-                    bookNumber,
-                    manualReceiptNumber,
-                    paymentMethod,
-                    remarks
-                })
-            });
-
-            if (response.ok) {
-                showToast("Payment recorded successfully", "success");
-                setSelectedStudent(null);
-                setFeeDetails(null);
-                setFeeDetails(null);
-                setPaymentAmount("");
-                setBookNumber("");
-                setManualReceiptNumber("");
-                setRemarks("");
-                loadAnalytics(); // Refresh stats
-            } else {
-                const errorData = await response.json();
-                showToast(errorData.message || "Payment failed", "error");
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error processing payment", "error");
-        } finally {
-            setProcessingPayment(false);
-        }
+        paymentMutation.mutate({
+            studentId: selectedStudent._id,
+            amount: Number(paymentAmount),
+            bookNumber,
+            manualReceiptNumber,
+            paymentMethod,
+            remarks
+        });
     };
 
-    const loadFeeStructure = async (classId) => {
-        setSelectedClassId(classId);
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const response = await apiFetch(`${apiConfig.baseUrl}/fees/structure/class/${classId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setStructureComponents(data.components || []);
-            } else {
-                setStructureComponents([]);
-            }
-        } catch (error) {
-            console.error(error);
-            setStructureComponents([]);
-        }
-    };
+
 
     const addComponent = () => {
         if (!newComponent.name || !newComponent.amount) {
@@ -253,7 +188,7 @@ export default function AdminFeesScreen() {
         setStructureComponents(updated);
     };
 
-    const saveStructure = async () => {
+    const saveStructure = () => {
         if (!selectedClassId || !selectedYearId) {
             showToast("Select class and academic year", "error");
             return;
@@ -267,36 +202,14 @@ export default function AdminFeesScreen() {
             return;
         }
 
-        try {
-            setSavingStructure(true);
-            const token = await AsyncStorage.getItem("@auth_token");
-            const response = await apiFetch(`${apiConfig.baseUrl}/fees/structure`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    classId: selectedClassId,
-                    academicYearId: selectedYearId,
-                    components: structureComponents,
-                    paymentSchedule: [], // Can be added later
-                    type: structureType,
-                    students: structureType === 'student_specific' ? selectedStudents.map(s => s._id) : []
-                })
-            });
-
-            if (response.ok) {
-                showToast("Fee structure saved", "success");
-            } else {
-                showToast("Failed to save structure", "error");
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error saving structure", "error");
-        } finally {
-            setSavingStructure(false);
-        }
+        saveStructureMutation.mutate({
+            classId: selectedClassId,
+            academicYearId: selectedYearId,
+            components: structureComponents,
+            paymentSchedule: [], // Can be added later
+            type: structureType,
+            students: structureType === 'student_specific' ? selectedStudents.map(s => s._id) : []
+        });
     };
 
     if (loading) {
@@ -664,7 +577,7 @@ export default function AdminFeesScreen() {
 
                                     <Pressable
                                         onPress={handlePayment}
-                                        disabled={processingPayment}
+                                        disabled={paymentMutation.isPending}
                                         style={{
                                             backgroundColor: colors.primary,
                                             padding: 18,
@@ -675,10 +588,10 @@ export default function AdminFeesScreen() {
                                             shadowOpacity: 0.3,
                                             shadowRadius: 8,
                                             elevation: 4,
-                                            opacity: processingPayment ? 0.7 : 1
+                                            opacity: paymentMutation.isPending ? 0.7 : 1
                                         }}
                                     >
-                                        {processingPayment ? (
+                                        {paymentMutation.isPending ? (
                                             <ActivityIndicator color="#fff" />
                                         ) : (
                                             <Text style={{ color: "#fff", fontSize: 18, fontFamily: "DMSans-Bold" }}>
@@ -703,7 +616,7 @@ export default function AdminFeesScreen() {
                                         {classes.map(cls => (
                                             <Pressable
                                                 key={cls._id}
-                                                onPress={() => loadFeeStructure(cls._id)}
+                                                onPress={() => setSelectedClassId(cls._id)}
                                                 style={{
                                                     paddingHorizontal: 16,
                                                     paddingVertical: 8,

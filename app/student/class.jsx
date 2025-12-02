@@ -12,132 +12,43 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
 import apiConfig from "../../config/apiConfig";
-import apiFetch from "../../utils/apiFetch";
 import { useToast } from "../../components/ToastProvider";
 import Header from "../../components/Header";
-
-import { getCachedData, setCachedData } from "../../utils/cache";
-import { useNetworkStatus } from "../../components/NetworkStatusProvider";
+import { useApiQuery } from "../../hooks/useApi";
 
 export default function StudentClassScreen() {
     const router = useRouter();
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
-    const { isConnected } = useNetworkStatus();
-
-    const [classData, setClassData] = useState(null);
-    const [subjects, setSubjects] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [user, setUser] = useState(null);
 
     useEffect(() => {
-        loadData();
+        const loadUser = async () => {
+            const storedUser = await AsyncStorage.getItem("@auth_user");
+            if (storedUser) {
+                setUser(JSON.parse(storedUser));
+            }
+        };
+        loadUser();
     }, []);
 
-    const loadData = async () => {
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const storedUser = await AsyncStorage.getItem("@auth_user");
+    const classId = user?.currentClass?._id || user?.currentClass;
 
-            if (!storedUser) {
-                router.replace("/login");
-                return;
-            }
+    // Fetch Class Details
+    const { data, isLoading: loading, refetch } = useApiQuery(
+        ['studentClassDetails', classId],
+        `${apiConfig.baseUrl}/classes/${classId}/full-details`,
+        { enabled: !!classId }
+    );
 
-            let parsedUser = JSON.parse(storedUser);
+    const classData = data?.classData;
+    const subjects = data?.subjects || [];
 
-            // If currentClass is missing, try to fetch fresh user data
-            if (!parsedUser.currentClass) {
-                try {
-                    const userRes = await apiFetch(`${apiConfig.baseUrl}/users/me`, {
-                        headers: { Authorization: `Bearer ${token}` },
-                    });
-
-                    if (userRes.ok) {
-                        const freshUser = await userRes.json();
-                        // Update local storage
-                        await AsyncStorage.setItem("@auth_user", JSON.stringify(freshUser));
-                        parsedUser = freshUser;
-
-                    }
-                } catch (e) {
-                    console.error("Failed to refresh user data:", e);
-                }
-            }
-
-            if (!parsedUser.currentClass) {
-                setLoading(false);
-                setRefreshing(false);
-                return;
-            }
-
-            // Fetch Class Details
-            let classId = parsedUser.currentClass;
-            if (typeof parsedUser.currentClass === 'object' && parsedUser.currentClass._id) {
-                classId = parsedUser.currentClass._id;
-            }
-
-            const cacheKeyClass = `@class_details_${classId}`;
-            const cacheKeySubjects = `@class_subjects_${classId}`;
-
-            // 1. Try cache
-            const [cachedClass, cachedSubjects] = await Promise.all([
-                getCachedData(cacheKeyClass),
-                getCachedData(cacheKeySubjects)
-            ]);
-
-            if (cachedClass && cachedSubjects) {
-                setClassData(cachedClass);
-                setSubjects(cachedSubjects);
-                setLoading(false);
-
-            }
-
-            // 2. Fetch API
-            const fetchFromApi = async () => {
-
-
-                // Load Full Class Details
-                const response = await apiFetch(`${apiConfig.baseUrl}/classes/${classId}/full-details`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                    silent: !!cachedClass
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    const { classData, subjects } = data;
-
-
-
-                    if (classData) {
-                        setClassData(classData);
-                        setCachedData(cacheKeyClass, classData);
-                    }
-                    setSubjects(subjects);
-                    setCachedData(cacheKeySubjects, subjects);
-                } else {
-                    if (!cachedClass) showToast("Failed to load class data", "error");
-                }
-            };
-
-            if (isConnected) {
-                await fetchFromApi();
-            } else if (!cachedClass) {
-                showToast("No internet connection", "error");
-            }
-
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading data", "error");
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    };
-
-    const onRefresh = () => {
+    const onRefresh = async () => {
         setRefreshing(true);
-        loadData();
+        await refetch();
+        setRefreshing(false);
     };
 
     if (!classData) {

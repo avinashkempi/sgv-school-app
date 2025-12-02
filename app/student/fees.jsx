@@ -10,59 +10,42 @@ import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
-import apiConfig from "../../config/apiConfig";
-import apiFetch from "../../utils/apiFetch";
-import { useToast } from "../../components/ToastProvider";
+import { useApiQuery } from "../../hooks/useApi";
 import Header from "../../components/Header";
+import apiConfig from "../../config/apiConfig";
+import { useToast } from "../../components/ToastProvider";
 
 export default function StudentFeesScreen() {
     const router = useRouter();
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
 
-    const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [feeData, setFeeData] = useState(null);
+    const [user, setUser] = useState(null);
 
     useEffect(() => {
-        loadFees();
+        const loadUser = async () => {
+            const storedUser = await AsyncStorage.getItem("@auth_user");
+            if (storedUser) {
+                setUser(JSON.parse(storedUser));
+            }
+        };
+        loadUser();
     }, []);
 
-    const loadFees = async () => {
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const userStr = await AsyncStorage.getItem("@auth_user");
-            const user = JSON.parse(userStr);
+    const userId = user?.id || user?._id;
 
-            if (!user || !user.id) {
-                console.error("User data missing:", { user, userStr });
-                showToast("User information not found. Please log in again.", "error");
-                setLoading(false);
-                return;
-            }
+    // Fetch Fees Data
+    const { data: feeData, isLoading: loading, refetch } = useApiQuery(
+        ['studentFees', userId],
+        `${apiConfig.baseUrl}/fees/student/${userId}`,
+        { enabled: !!userId }
+    );
 
-            const response = await apiFetch(`${apiConfig.baseUrl}/fees/student/${user.id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setFeeData(data);
-            } else {
-                showToast("Failed to load fees", "error");
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading fees", "error");
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    };
-
-    const onRefresh = () => {
+    const onRefresh = async () => {
         setRefreshing(true);
-        loadFees();
+        await refetch();
+        setRefreshing(false);
     };
 
     if (loading) {

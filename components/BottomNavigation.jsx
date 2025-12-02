@@ -14,10 +14,6 @@ function BottomNavigation() {
   const [activeTab, setActiveTab] = useState(ROUTES.HOME);
   const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    setActiveTab(pathname);
-  }, [pathname]);
-
   // Load user only on mount - no need to reload on every pathname change
   useEffect(() => {
     const loadUser = async () => {
@@ -80,12 +76,22 @@ function BottomNavigation() {
     },
   ], [user]);
 
+  useEffect(() => {
+    const matchingItem = navigationItems
+      .filter(item => item.route === '/' ? pathname === '/' : pathname.startsWith(item.route))
+      .sort((a, b) => b.route.length - a.route.length)[0];
+
+    if (matchingItem) {
+      setActiveTab(matchingItem.route);
+    }
+  }, [pathname, navigationItems]);
+
   // Memoize handleTabPress to prevent creating new function on every render
   const handleTabPress = useCallback((route) => {
     // Haptic feedback for better UX
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
 
-    if (route === activeTab) return;
+    if (pathname === route) return;
 
     // Use requestAnimationFrame to ensure the UI update (ripple effect) happens
     // before the heavy navigation work starts
@@ -94,7 +100,7 @@ function BottomNavigation() {
       // Use replace instead of push to prevent stack buildup and memory leaks
       router.replace(route);
     });
-  }, [activeTab, router]);
+  }, [pathname, router]);
 
   // Glassmorphism background color
   const glassBackground = mode === 'dark'

@@ -14,7 +14,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../theme";
 import apiConfig from "../config/apiConfig";
-import apiFetch from "../utils/apiFetch";
+import { useApiQuery, useApiMutation, createApiMutationFn } from "../hooks/useApi";
+import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "../components/ToastProvider";
 import Header from "../components/Header";
 
@@ -23,99 +24,66 @@ export default function NotificationsScreen() {
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
 
-    const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
-    const [notifications, setNotifications] = useState([]);
     const [showSettings, setShowSettings] = useState(false);
-    const [preferences, setPreferences] = useState({
+    const queryClient = useQueryClient();
+
+    // Fetch Notifications
+    const { data: notificationsData, isLoading: loadingNotifications, refetch: refetchNotifications } = useApiQuery(
+        ['notifications'],
+        `${apiConfig.baseUrl}/notifications`
+    );
+    const notifications = notificationsData?.notifications || [];
+
+    // Fetch Preferences
+    const { data: userData } = useApiQuery(
+        ['currentUser'],
+        `${apiConfig.baseUrl}/auth/me`
+    );
+    const preferences = userData?.notificationPreferences || {
         homework: true,
         exam: true,
         fee: true,
         event: true,
         general: true
+    };
+
+    // Mark as read mutation
+    const markReadMutation = useApiMutation({
+        mutationFn: (id) => createApiMutationFn(`${apiConfig.baseUrl}/notifications/${id}/read`, 'PUT')(),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['notifications'] });
+        }
     });
 
-    useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = async () => {
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-
-            // Fetch Notifications
-            const notifRes = await apiFetch(`${apiConfig.baseUrl}/notifications`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            if (notifRes.ok) {
-                const data = await notifRes.json();
-                setNotifications(data.notifications);
-            }
-
-            // Fetch Preferences (from User profile)
-            const userRes = await apiFetch(`${apiConfig.baseUrl}/users/me`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            if (userRes.ok) {
-                const userData = await userRes.json();
-                if (userData.notificationPreferences) {
-                    setPreferences(userData.notificationPreferences);
-                }
-            }
-
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading notifications", "error");
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    };
-
-    const markAsRead = async (id) => {
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            await apiFetch(`${apiConfig.baseUrl}/notifications/${id}/read`, {
-                method: 'PUT',
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            // Update local state
-            setNotifications(prev => prev.map(n =>
-                n._id === id ? { ...n, read: true } : n
-            ));
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
-    const togglePreference = async (key) => {
-        const newPreferences = { ...preferences, [key]: !preferences[key] };
-        setPreferences(newPreferences); // Optimistic update
-
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            await apiFetch(`${apiConfig.baseUrl}/notifications/preferences`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({ preferences: newPreferences })
-            });
-        } catch (error) {
-            console.error(error);
+    // Update preferences mutation
+    const updatePreferencesMutation = useApiMutation({
+        mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/notifications/preferences`, 'PUT'),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+        },
+        onError: () => {
             showToast("Failed to update settings", "error");
-            setPreferences(preferences); // Revert
         }
+    });
+
+    const markAsRead = (id) => {
+        markReadMutation.mutate(id);
     };
 
-    const onRefresh = () => {
-        setRefreshing(true);
-        loadData();
+    const togglePreference = (key) => {
+        const newPreferences = { ...preferences, [key]: !preferences[key] };
+        updatePreferencesMutation.mutate({ preferences: newPreferences });
     };
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await Promise.all([refetchNotifications(), queryClient.invalidateQueries({ queryKey: ['currentUser'] })]);
+        setRefreshing(false);
+    };
+
+    const loading = loadingNotifications && !notifications.length;
+
+
 
     const getIcon = (type) => {
         switch (type) {

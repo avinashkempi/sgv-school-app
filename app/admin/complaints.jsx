@@ -15,9 +15,8 @@ import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
-import apiConfig from "../../config/apiConfig";
-import apiFetch from "../../utils/apiFetch";
-import { useToast } from "../../components/ToastProvider";
+import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/useApi";
+import { useQueryClient } from "@tanstack/react-query";
 import Header from "../../components/Header";
 
 export default function AdminComplaintsScreen() {
@@ -25,80 +24,49 @@ export default function AdminComplaintsScreen() {
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
 
-    const [loading, setLoading] = useState(true);
+    const queryClient = useQueryClient();
     const [refreshing, setRefreshing] = useState(false);
-    const [complaints, setComplaints] = useState([]);
     const [filter, setFilter] = useState("All");
 
     // Resolve Modal
     const [selectedComplaint, setSelectedComplaint] = useState(null);
     const [response, setResponse] = useState("");
     const [status, setStatus] = useState("Resolved");
-    const [submitting, setSubmitting] = useState(false);
 
-    useEffect(() => {
-        loadComplaints();
-    }, []);
+    // Fetch Complaints
+    const { data: complaints = [], isLoading: loading, refetch } = useApiQuery(
+        ['adminComplaints'],
+        `${apiConfig.baseUrl}/complaints/all`
+    );
 
-    const loadComplaints = async () => {
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const response = await apiFetch(`${apiConfig.baseUrl}/complaints/all`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+    // Update Status Mutation
+    const updateStatusMutation = useApiMutation({
+        mutationFn: (data) => createApiMutationFn(`${apiConfig.baseUrl}/complaints/${data.id}/status`, 'PUT')(data.body),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['adminComplaints'] });
+            showToast("Complaint updated", "success");
+            setSelectedComplaint(null);
+            setResponse("");
+        },
+        onError: (error) => showToast(error.message || "Failed to update status", "error")
+    });
 
-            if (response.ok) {
-                const data = await response.json();
-                setComplaints(data);
-            } else {
-                showToast("Failed to load complaints", "error");
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading complaints", "error");
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    };
-
-    const handleUpdateStatus = async () => {
+    const handleUpdateStatus = () => {
         if (!selectedComplaint) return;
 
-        setSubmitting(true);
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const res = await apiFetch(`${apiConfig.baseUrl}/complaints/${selectedComplaint._id}/status`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    status,
-                    adminResponse: response
-                })
-            });
-
-            if (res.ok) {
-                showToast("Complaint updated", "success");
-                setSelectedComplaint(null);
-                setResponse("");
-                loadComplaints();
-            } else {
-                showToast("Failed to update status", "error");
+        updateStatusMutation.mutate({
+            id: selectedComplaint._id,
+            body: {
+                status,
+                adminResponse: response
             }
-        } catch (error) {
-            console.error(error);
-            showToast("Error updating complaint", "error");
-        } finally {
-            setSubmitting(false);
-        }
+        });
     };
 
-    const onRefresh = () => {
+    const onRefresh = async () => {
         setRefreshing(true);
-        loadComplaints();
+        await refetch();
+        setRefreshing(false);
     };
 
     const getStatusColor = (status) => {
@@ -289,16 +257,16 @@ export default function AdminComplaintsScreen() {
 
                         <Pressable
                             onPress={handleUpdateStatus}
-                            disabled={submitting}
+                            disabled={updateStatusMutation.isPending}
                             style={{
                                 backgroundColor: colors.primary,
                                 padding: 16,
                                 borderRadius: 16,
                                 alignItems: "center",
-                                opacity: submitting ? 0.7 : 1
+                                opacity: updateStatusMutation.isPending ? 0.7 : 1
                             }}
                         >
-                            {submitting ? (
+                            {updateStatusMutation.isPending ? (
                                 <ActivityIndicator color="#fff" />
                             ) : (
                                 <Text style={{ color: "#fff", fontSize: 16, fontFamily: "DMSans-Bold" }}>

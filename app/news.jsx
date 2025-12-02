@@ -9,156 +9,62 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import apiConfig from "../config/apiConfig";
 import apiFetch from "../utils/apiFetch";
 import { useToast } from "../components/ToastProvider";
-import { getCachedData, setCachedData, CACHE_KEYS, CACHE_EXPIRY } from "../utils/cache";
-import { formatDate } from "../utils/date";
-
-// Global cache for news to persist across component re-mounts
-let globalNews = [];
-let globalNewsLoading = false; // Changed from true to false - no initial loader
-let globalNewsError = null;
-let newsFetched = false;
+import { useApiQuery, useApiMutation, createApiMutationFn } from "../hooks/useApi";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function NewsScreen() {
   const navigation = useNavigation();
   const { styles, colors } = useTheme();
   const { showToast } = useToast();
-  const [news, setNews] = useState(globalNews);
-  const [loading, setLoading] = useState(globalNewsLoading);
-  const [error, setError] = useState(globalNewsError);
+  const queryClient = useQueryClient();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingNews, setEditingNews] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [user, setUser] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  const checkAuth = useCallback(async () => {
-    const token = await AsyncStorage.getItem('@auth_token');
-    const storedUser = await AsyncStorage.getItem('@auth_user');
-    setIsAuthenticated(!!token);
-
-    if (token && storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser);
-        const isAdminRole = !!(parsedUser && (parsedUser.role === 'admin' || parsedUser.role === 'super admin'));
-        setIsAdmin(isAdminRole);
-      } catch (e) {
-        console.warn('Failed to parse stored user', e);
-        setIsAdmin(false);
-      }
-    } else {
-      setIsAdmin(false);
-    }
-  }, []);
-
-  const fetchFreshNews = useCallback(async () => {
-    try {
-
-      const response = await apiFetch(apiConfig.url(apiConfig.endpoints.news.list), { silent: true });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-
-
-      if (result.success && result.news) {
-
-
-        // Validate the data structure
-        if (!Array.isArray(result.news)) {
-          throw new Error('Invalid news data structure from API');
-        }
-
-        globalNews = result.news;
-        setNews(globalNews);
-        // Cache the fresh data
-        await setCachedData(CACHE_KEYS.NEWS, result.news);
-        setLoading(false);
-        globalNewsLoading = false;
-        newsFetched = true;
-
-      } else {
-        console.warn('[NEWS] API response missing success flag or news data');
-        globalNews = [];
-        setNews([]);
-        setLoading(false);
-        globalNewsLoading = false;
-        newsFetched = true;
-      }
-    } catch (err) {
-      console.error('[NEWS] Failed to fetch fresh news:', err.message);
-      // Set error even if we have cached data, so user knows fresh fetch failed
-      setError(err.message);
-      globalNewsError = err.message;
-      // Don't set loading to false if we have cached data
-      if (!globalNews.length) {
-        setLoading(false);
-        globalNewsLoading = false;
-        newsFetched = true;
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    if (newsFetched) {
-      // If already fetched, use cached data
-      setNews(globalNews);
-      setLoading(globalNewsLoading);
-      setError(globalNewsError);
-      checkAuth();
-      return;
-    }
-
-    const fetchNews = async () => {
-      try {
-        // setLoading(true);
-        setError(null);
-
-        // Try to get cached data first
-        const cachedNews = await getCachedData(CACHE_KEYS.NEWS, CACHE_EXPIRY.NEWS);
-        if (cachedNews) {
-          globalNews = cachedNews;
-          setNews(globalNews);
-          setLoading(false);
-          globalNewsLoading = false;
-          newsFetched = true;
-          // Fetch fresh data in background
-          fetchFreshNews();
-          checkAuth();
-          return;
-        }
-
-        // No cache, fetch from API
-        await fetchFreshNews();
-        checkAuth();
-      } catch (err) {
-        console.warn('Failed to fetch news:', err.message);
-        setError(err.message);
-        globalNewsError = err.message;
-        globalNews = [];
-        setNews([]);
-        setLoading(false);
-        globalNewsLoading = false;
-        newsFetched = true;
-        checkAuth();
-      }
-    };
-
-    fetchNews();
-  }, [checkAuth, fetchFreshNews]);
-
-  // Background fetch on focus
-  useFocusEffect(
-    useCallback(() => {
-      // If we already have data, fetch fresh data in background silently
-      if (newsFetched || globalNews.length > 0) {
-        fetchFreshNews();
-      }
-    }, [fetchFreshNews])
+  // Fetch News
+  const { data: newsData, refetch } = useApiQuery(
+    ['news'],
+    apiConfig.url(apiConfig.endpoints.news.list)
   );
+  const news = newsData?.news || [];
+
+  // Check Auth & Admin
+  const { data: userData } = useApiQuery(
+    ['currentUser'],
+    `${apiConfig.baseUrl}/auth/me`
+  );
+  const isAdmin = userData?.role === 'admin' || userData?.role === 'super admin';
+
+  // Mutations
+  const createNewsMutation = useApiMutation({
+    mutationFn: createApiMutationFn(apiConfig.url(apiConfig.endpoints.news.create), 'POST'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['news'] });
+      showToast('News created successfully');
+      setIsModalVisible(false);
+    },
+    onError: (error) => showToast(error.message || 'Failed to create news')
+  });
+
+  const updateNewsMutation = useApiMutation({
+    mutationFn: (data) => createApiMutationFn(apiConfig.url(apiConfig.endpoints.news.update(data._id)), 'PUT')(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['news'] });
+      showToast('News updated successfully');
+      setIsModalVisible(false);
+      setEditingNews(null);
+    },
+    onError: (error) => showToast(error.message || 'Failed to update news')
+  });
+
+  const deleteNewsMutation = useApiMutation({
+    mutationFn: (id) => createApiMutationFn(apiConfig.url(apiConfig.endpoints.news.delete(id)), 'DELETE')(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['news'] });
+      showToast('News deleted successfully');
+    },
+    onError: (error) => showToast(error.message || 'Failed to delete news')
+  });
 
   // Memoize renderItem BEFORE early returns to maintain hooks order
   const renderNewsItem = useCallback(({ item }) => (
@@ -246,102 +152,16 @@ export default function NewsScreen() {
   // Removed: if (loading && news.length === 0) return <LoadingView />;
   // Removed: if (error && news.length === 0) return <ErrorView />;
 
-  const handleNewsSubmit = async (newsData) => {
-    // Close modal immediately and show background loader
-    setIsModalVisible(false);
-    setEditingNews(null);
-    showToast('Saving news...', 'info');
-
-    try {
-      const token = await AsyncStorage.getItem('@auth_token');
-      if (!token) {
-        showToast('Please login to manage news');
-        setRefreshing(false);
-        return;
-      }
-
-      const isEditing = !!newsData._id;
-      const endpoint = isEditing
-        ? apiConfig.url(apiConfig.endpoints.news.update(newsData._id))
-        : apiConfig.url(apiConfig.endpoints.news.create);
-
-      const method = isEditing ? 'PUT' : 'POST';
-
-      const response = await apiFetch(endpoint, {
-        method: method,
-        silent: true,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(newsData)
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || `Failed to ${isEditing ? 'update' : 'create'} news`);
-      }
-
-      const newNews = result.news;
-
-      if (isEditing) {
-        // Update existing news
-        globalNews = globalNews.map(item => item._id === newNews._id ? { ...newNews, updatedAt: new Date().toISOString() } : item);
-        setNews(globalNews);
-        showToast('News updated successfully');
-      } else {
-        // Add new news
-        const newItem = {
-          ...newNews,
-          _id: newNews._id || Date.now().toString(), // Fallback ID if missing
-          createdAt: new Date().toISOString()
-        };
-        globalNews = [newItem, ...globalNews];
-        setNews(globalNews);
-        showToast('News created successfully');
-      }
-
-      await setCachedData(CACHE_KEYS.NEWS, globalNews); // Update cache
-
-    } catch (error) {
-      console.error('News submit error:', error);
-      showToast(error.message || 'Failed to save news');
+  const handleNewsSubmit = (newsData) => {
+    if (newsData._id) {
+      updateNewsMutation.mutate(newsData);
+    } else {
+      createNewsMutation.mutate(newsData);
     }
   };
 
-  const handleDeleteNews = async (newsId, newsTitle) => {
-    try {
-      const token = await AsyncStorage.getItem('@auth_token');
-      if (!token) {
-        showToast('Please login to delete news');
-        return;
-      }
-
-      const response = await apiFetch(apiConfig.url(apiConfig.endpoints.news.delete(newsId)), {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete news');
-      }
-
-      const result = await response.json();
-      if (result.success) {
-        globalNews = globalNews.filter(item => item._id !== newsId);
-        setNews(globalNews);
-        await setCachedData(CACHE_KEYS.NEWS, globalNews); // Update cache
-        showToast(`News "${newsTitle}" deleted successfully`);
-      } else {
-        throw new Error(result.message || 'Failed to delete news');
-      }
-    } catch (error) {
-      console.error('Delete news error:', error);
-      showToast(error.message || 'Failed to delete news');
-    }
+  const handleDeleteNews = (newsId, newsTitle) => {
+    deleteNewsMutation.mutate(newsId);
   };
 
   const handleEditNews = (newsItem) => {
@@ -351,27 +171,8 @@ export default function NewsScreen() {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    try {
-
-      const response = await apiFetch(apiConfig.url(apiConfig.endpoints.news.list), { silent: true });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      if (result.success && result.news) {
-        globalNews = result.news;
-        setNews(globalNews);
-        await setCachedData(CACHE_KEYS.NEWS, result.news);
-
-      }
-    } catch (err) {
-      console.error('[NEWS] Refresh failed:', err.message);
-      showToast('Failed to refresh news');
-    } finally {
-      setRefreshing(false);
-    }
+    await refetch();
+    setRefreshing(false);
   };
 
   return (

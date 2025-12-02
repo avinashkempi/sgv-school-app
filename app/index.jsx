@@ -11,7 +11,8 @@ import SchoolPhotoCarousel from "../components/SchoolPhotoCarousel";
 import { useToast } from "../components/ToastProvider";
 
 import apiConfig from "../config/apiConfig";
-import apiFetch from "../utils/apiFetch";
+import { useApiQuery } from "../hooks/useApi";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Global variable to track if welcome/latest notification has been shown in this session
 let hasShownNotification = false;
@@ -34,42 +35,27 @@ export default function HomeScreen() {
     }
   };
 
-  const [user, setUser] = useState(null);
+  const { data: userData } = useApiQuery(
+    ['currentUser'],
+    `${apiConfig.baseUrl}/auth/me`,
+    {
+      enabled: true,
+      staleTime: Infinity, // User data rarely changes
+    }
+  );
+
+  const { data: notificationsData } = useApiQuery(
+    ['notifications', 'latest'],
+    `${apiConfig.baseUrl}/notifications`
+  );
 
   useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const storedUser = await require('@react-native-async-storage/async-storage').default.getItem('@auth_user');
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
-        }
-      } catch (e) {
-        // ignore
-      }
-    };
-    loadUser();
-
-    // Fetch and show latest notification if not already shown
-    const checkNotifications = async () => {
-      if (hasShownNotification) return;
-
-      try {
-        const response = await apiFetch(`${apiConfig.baseUrl}/notifications`);
-        if (response.ok) {
-          const data = await response.json();
-          if (data.notifications && data.notifications.length > 0) {
-            const latest = data.notifications[0];
-            showToast(latest.message || latest.title || "Welcome back!", "info");
-            hasShownNotification = true;
-          }
-        }
-      } catch (error) {
-        console.log("Failed to fetch notifications for homepage toast", error);
-      }
-    };
-
-    checkNotifications();
-  }, [refreshing]);
+    if (notificationsData && !hasShownNotification && notificationsData.notifications && notificationsData.notifications.length > 0) {
+      const latest = notificationsData.notifications[0];
+      showToast(latest.message || latest.title || "Welcome back!", "info");
+      hasShownNotification = true;
+    }
+  }, [notificationsData]);
 
   return (
     <ScrollView
@@ -85,7 +71,7 @@ export default function HomeScreen() {
       />
 
       {/* Minimalist Header */}
-      <Header title={SCHOOL.name} subtitle={user ? `Welcome, ${user.name.split(' ')[0]}` : "Welcome"} variant="welcome" />
+      <Header title={SCHOOL.name} subtitle={userData ? `Welcome, ${userData.name.split(' ')[0]}` : "Welcome"} variant="welcome" />
 
       {/* School Photo Carousel */}
       <SchoolPhotoCarousel photos={SCHOOL.photoUrl} />

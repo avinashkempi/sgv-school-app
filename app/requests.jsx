@@ -6,7 +6,7 @@ import { useRouter } from "expo-router";
 import { useTheme } from "../theme";
 import Header from "../components/Header";
 import apiConfig from "../config/apiConfig";
-import apiFetch from "../utils/apiFetch";
+import { useApiQuery } from "../hooks/useApi";
 
 export default function RequestsScreen() {
     const router = useRouter();
@@ -14,17 +14,13 @@ export default function RequestsScreen() {
     const [user, setUser] = useState(null);
     const [refreshing, setRefreshing] = useState(false);
 
-    const [teacherClasses, setTeacherClasses] = useState([]);
+
 
     useEffect(() => {
         loadUser();
     }, []);
 
-    useEffect(() => {
-        if (user && (user.role === 'teacher' || user.role === 'class teacher')) {
-            loadTeacherClasses();
-        }
-    }, [user]);
+
 
     const loadUser = async () => {
         try {
@@ -40,31 +36,24 @@ export default function RequestsScreen() {
         }
     };
 
-    const loadTeacherClasses = async () => {
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            // Fetch classes assigned to this teacher
-            // Assuming there's an endpoint or we can filter classes
-            // Using the same endpoint as "My Teach" screen
-            const response = await apiFetch(`${apiConfig.baseUrl}/classes/my-classes`, {
-                headers: { Authorization: `Bearer ${token}` },
-                silent: true
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setTeacherClasses(data);
-            }
-        } catch (error) {
-            console.error("Failed to load teacher classes", error);
+    // Fetch Teacher Classes (for teachers/class teachers)
+    const { data: teacherClassesData, refetch: refetchClasses } = useApiQuery(
+        ['teacherClasses'],
+        `${apiConfig.baseUrl}/classes/my-classes`,
+        {
+            enabled: !!(user && (user.role === 'teacher' || user.role === 'class teacher'))
         }
-    };
+    );
+
+    const teacherClasses = teacherClassesData || [];
+
+
 
     const onRefresh = async () => {
         setRefreshing(true);
         await loadUser();
         if (user && (user.role === 'teacher' || user.role === 'class teacher')) {
-            await loadTeacherClasses();
+            await refetchClasses();
         }
         setRefreshing(false);
     };

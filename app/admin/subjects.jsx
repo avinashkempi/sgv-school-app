@@ -16,9 +16,8 @@ import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
-import apiConfig from "../../config/apiConfig";
-import apiFetch from "../../utils/apiFetch";
-import { useToast } from "../../components/ToastProvider";
+import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/useApi";
+import { useQueryClient } from "@tanstack/react-query";
 import Header from "../../components/Header";
 
 export default function ManageSubjectsScreen() {
@@ -26,114 +25,69 @@ export default function ManageSubjectsScreen() {
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
 
-    const [subjects, setSubjects] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
+    const queryClient = useQueryClient();
     const [searchQuery, setSearchQuery] = useState("");
+    const [refreshing, setRefreshing] = useState(false);
 
     // Create/Edit Modal
     const [showModal, setShowModal] = useState(false);
     const [modalMode, setModalMode] = useState("add"); // "add" | "edit"
     const [editingSubject, setEditingSubject] = useState(null);
     const [form, setForm] = useState({ name: "", code: "", type: "Theory" });
-    const [saving, setSaving] = useState(false);
 
     // Details Modal
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [selectedSubject, setSelectedSubject] = useState(null);
-    const [usageDetails, setUsageDetails] = useState([]);
-    const [loadingDetails, setLoadingDetails] = useState(false);
 
-    useEffect(() => {
-        loadSubjects();
-    }, []);
+    // Fetch Subjects
+    const { data: subjects = [], isLoading: loading, refetch: refetchSubjects } = useApiQuery(
+        ['adminSubjects'],
+        `${apiConfig.baseUrl}/subjects`
+    );
 
-    const loadSubjects = async () => {
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const response = await apiFetch(`${apiConfig.baseUrl}/subjects`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+    // Fetch Usage Details
+    const { data: usageDetails = [], isLoading: loadingDetails } = useApiQuery(
+        ['subjectUsage', selectedSubject?._id],
+        `${apiConfig.baseUrl}/subjects/${selectedSubject?._id}/usage`,
+        { enabled: !!selectedSubject && showDetailsModal }
+    );
 
-            if (response.ok) {
-                const data = await response.json();
-                setSubjects(data);
-            } else {
-                showToast("Failed to load subjects", "error");
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading subjects", "error");
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    };
-
-    const loadUsageDetails = async (subjectId) => {
-        setLoadingDetails(true);
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const response = await apiFetch(`${apiConfig.baseUrl}/subjects/${subjectId}/usage`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setUsageDetails(data);
-            } else {
-                showToast("Failed to load usage details", "error");
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading usage details", "error");
-        } finally {
-            setLoadingDetails(false);
-        }
-    };
-
-    const handleSave = async () => {
-        if (!form.name) {
-            showToast("Subject name is required", "error");
-            return;
-        }
-
-        setSaving(true);
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
+    // Mutations
+    const saveSubjectMutation = useApiMutation({
+        mutationFn: (data) => {
             const url = modalMode === "add"
                 ? `${apiConfig.baseUrl}/subjects`
                 : `${apiConfig.baseUrl}/subjects/${editingSubject._id}`;
             const method = modalMode === "add" ? "POST" : "PUT";
+            return createApiMutationFn(url, method)(data);
+        },
+        onSuccess: () => {
+            showToast(`Subject ${modalMode === "add" ? "created" : "updated"}`, "success");
+            setShowModal(false);
+            setForm({ name: "", code: "", type: "Theory" });
+            queryClient.invalidateQueries({ queryKey: ['adminSubjects'] });
+        },
+        onError: (error) => showToast(error.message || "Failed to save", "error")
+    });
 
-            const response = await apiFetch(url, {
-                method,
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify(form),
-            });
+    const deleteSubjectMutation = useApiMutation({
+        mutationFn: (id) => createApiMutationFn(`${apiConfig.baseUrl}/subjects/${id}`, 'DELETE')(),
+        onSuccess: () => {
+            showToast("Subject deleted", "success");
+            queryClient.invalidateQueries({ queryKey: ['adminSubjects'] });
+        },
+        onError: (error) => showToast(error.message || "Failed to delete", "error")
+    });
 
-            const data = await response.json();
-
-            if (response.ok) {
-                showToast(`Subject ${modalMode === "add" ? "created" : "updated"}`, "success");
-                setShowModal(false);
-                setForm({ name: "", code: "", type: "Theory" });
-                loadSubjects();
-            } else {
-                showToast(data.msg || "Failed to save", "error");
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error saving subject", "error");
-        } finally {
-            setSaving(false);
+    const handleSave = () => {
+        if (!form.name) {
+            showToast("Subject name is required", "error");
+            return;
         }
+        saveSubjectMutation.mutate(form);
     };
 
-    const handleDelete = async (id, name) => {
+    const handleDelete = (id, name) => {
         Alert.alert(
             "Delete Subject",
             `Are you sure you want to delete ${name}?`,
@@ -142,34 +96,16 @@ export default function ManageSubjectsScreen() {
                 {
                     text: "Delete",
                     style: "destructive",
-                    onPress: async () => {
-                        try {
-                            const token = await AsyncStorage.getItem("@auth_token");
-                            const response = await apiFetch(`${apiConfig.baseUrl}/subjects/${id}`, {
-                                method: "DELETE",
-                                headers: { Authorization: `Bearer ${token}` }
-                            });
-
-                            if (response.ok) {
-                                showToast("Subject deleted", "success");
-                                loadSubjects();
-                            } else {
-                                const data = await response.json();
-                                showToast(data.msg || "Failed to delete", "error");
-                            }
-                        } catch (error) {
-                            console.error(error);
-                            showToast("Error deleting subject", "error");
-                        }
-                    }
+                    onPress: () => deleteSubjectMutation.mutate(id)
                 }
             ]
         );
     };
 
-    const onRefresh = () => {
+    const onRefresh = async () => {
         setRefreshing(true);
-        loadSubjects();
+        await refetchSubjects();
+        setRefreshing(false);
     };
 
     const filteredSubjects = subjects.filter(s =>
@@ -222,7 +158,6 @@ export default function ManageSubjectsScreen() {
                             key={subject._id}
                             onPress={() => {
                                 setSelectedSubject(subject);
-                                loadUsageDetails(subject._id);
                                 setShowDetailsModal(true);
                             }}
                             style={({ pressed }) => ({
@@ -380,16 +315,16 @@ export default function ManageSubjectsScreen() {
 
                         <Pressable
                             onPress={handleSave}
-                            disabled={saving}
+                            disabled={saveSubjectMutation.isPending}
                             style={{
                                 backgroundColor: colors.primary,
                                 padding: 16,
                                 borderRadius: 16,
                                 alignItems: "center",
-                                opacity: saving ? 0.7 : 1
+                                opacity: saveSubjectMutation.isPending ? 0.7 : 1
                             }}
                         >
-                            {saving ? (
+                            {saveSubjectMutation.isPending ? (
                                 <ActivityIndicator color="#fff" />
                             ) : (
                                 <Text style={{ color: "#fff", fontSize: 16, fontWeight: "600" }}>

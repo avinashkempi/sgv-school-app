@@ -6,58 +6,25 @@ import { useTheme } from "../theme";
 import { useToast } from "../components/ToastProvider";
 import { formatDate } from "../utils/date";
 
+import { useApiQuery } from "../hooks/useApi";
+import apiConfig from "../config/apiConfig";
+
 export default function ProfileScreen() {
   const { styles, colors } = useTheme();
   const { showToast } = useToast();
-  const [user, setUser] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  const loadUser = async () => {
-    try {
-      const storedUser = await AsyncStorage.getItem('@auth_user');
-      const token = await AsyncStorage.getItem('@auth_token');
-
-      if (storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          setUser(parsedUser);
-
-          if (token) {
-            try {
-              const apiConfig = require('../config/apiConfig').default;
-              const apiFetch = require('../utils/apiFetch').default;
-
-              const response = await apiFetch(`${apiConfig.baseUrl}/users/me`, {
-                method: 'GET',
-                headers: { Authorization: `Bearer ${token}` },
-              });
-
-              if (response.ok) {
-                const freshUserData = await response.json();
-                await AsyncStorage.setItem('@auth_user', JSON.stringify(freshUserData));
-                setUser(freshUserData);
-              }
-            } catch (err) {
-
-            }
-          }
-        } catch (parseError) {
-          console.error("Failed to parse stored user:", parseError);
-          await AsyncStorage.removeItem('@auth_user');
-        }
-      }
-    } catch (e) {
-      console.warn('Failed to load user', e);
+  const { data: user, refetch } = useApiQuery(
+    ['currentUser'],
+    `${apiConfig.baseUrl}/auth/me`,
+    {
+      staleTime: Infinity,
     }
-  };
-
-  useEffect(() => {
-    loadUser();
-  }, []);
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadUser();
+    await refetch();
     setRefreshing(false);
   };
 
@@ -65,7 +32,9 @@ export default function ProfileScreen() {
     try {
       await AsyncStorage.removeItem('@auth_token');
       await AsyncStorage.removeItem('@auth_user');
-      setUser(null);
+      // Invalidate queries to clear cache
+      const { queryClient } = require('../utils/queryClient');
+      queryClient.clear();
       const { router } = require('expo-router');
       router.replace('/login');
     } catch (error) {

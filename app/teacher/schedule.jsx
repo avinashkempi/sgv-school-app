@@ -12,7 +12,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
 import apiConfig from "../../config/apiConfig";
-import apiFetch from "../../utils/apiFetch";
+import { useApiQuery } from "../../hooks/useApi";
 import { useToast } from "../../components/ToastProvider";
 import Header from "../../components/Header";
 
@@ -23,9 +23,7 @@ export default function TeacherScheduleScreen() {
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
 
-    const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [schedule, setSchedule] = useState({});
     const [selectedDay, setSelectedDay] = useState('Monday');
     const [currentDay, setCurrentDay] = useState('');
 
@@ -39,49 +37,32 @@ export default function TeacherScheduleScreen() {
         } else {
             setSelectedDay('Monday');
         }
-
-        loadSchedule();
     }, []);
 
-    const loadSchedule = async () => {
-        try {
-            const token = await AsyncStorage.getItem("@auth_token");
-            const response = await apiFetch(`${apiConfig.baseUrl}/timetable/my-schedule`, {
-                headers: { Authorization: `Bearer ${token}` }
+    const { data: scheduleData, isLoading: loading, refetch } = useApiQuery(
+        ['teacherSchedule'],
+        `${apiConfig.baseUrl}/timetable/my-schedule`
+    );
+
+    // Process schedule data
+    const schedule = React.useMemo(() => {
+        if (!scheduleData) return {};
+
+        const scheduleMap = {};
+        DAYS.forEach(day => {
+            scheduleMap[day] = (scheduleData[day] || []).sort((a, b) => {
+                const timeA = a.startTime || "";
+                const timeB = b.startTime || "";
+                return timeA.localeCompare(timeB);
             });
+        });
+        return scheduleMap;
+    }, [scheduleData]);
 
-            if (response.ok) {
-                const data = await response.json();
-
-                // Data is already aggregated by day from backend, but let's ensure sorting
-                const scheduleMap = {};
-                DAYS.forEach(day => {
-                    scheduleMap[day] = (data[day] || []).sort((a, b) => {
-                        // Simple sort by startTime string (e.g. "09:00 AM")
-                        // For robust sorting, would need to parse time. 
-                        // Assuming consistent format "HH:mm AM/PM" or "HH:mm"
-                        const timeA = a.startTime || "";
-                        const timeB = b.startTime || "";
-                        return timeA.localeCompare(timeB);
-                    });
-                });
-
-                setSchedule(scheduleMap);
-            } else {
-                showToast("Failed to load schedule", "error");
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading schedule", "error");
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    };
-
-    const onRefresh = () => {
+    const onRefresh = async () => {
         setRefreshing(true);
-        loadSchedule();
+        await refetch();
+        setRefreshing(false);
     };
 
     if (loading) {
