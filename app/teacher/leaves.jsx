@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState,} from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, RefreshControl, ActivityIndicator, ScrollView, Switch } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -76,7 +76,7 @@ export default function TeacherLeaves() {
         mutationFn: async ({ requestId, payload }) => {
             return createApiMutationFn(`${apiConfig.baseUrl}/leaves/${requestId}/action`, 'PUT')(payload);
         },
-        onSuccess: (data) => {
+        onSuccess: (_data) => {
             showToast(`Leave ${actionType} successfully`, 'success');
             setActionModalVisible(false);
             queryClient.invalidateQueries({ queryKey: ['teacherLeaveRequests'] });
@@ -86,7 +86,7 @@ export default function TeacherLeaves() {
 
     const applyLeaveMutation = useApiMutation({
         mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/leaves/apply`, 'POST'),
-        onSuccess: (data) => {
+        onSuccess: (_data) => {
             showToast('Leave applied successfully', 'success');
             setApplyModalVisible(false);
             setReason('');
@@ -427,7 +427,7 @@ export default function TeacherLeaves() {
                                     style={styles.dateButton}
                                     onPress={() => setShowStartPicker(true)}
                                 >
-                                    <Text style={styles.dateText}>{formatDate(startDate.toISOString())}</Text>
+                                    <Text style={styles.dateLabelText}>{formatDate(startDate.toISOString())}</Text>
                                     <Ionicons name="calendar-outline" size={20} color="#666" />
                                 </TouchableOpacity>
                                 {showStartPicker && (
@@ -454,7 +454,7 @@ export default function TeacherLeaves() {
                                         style={styles.dateButton}
                                         onPress={() => setShowEndPicker(true)}
                                     >
-                                        <Text style={styles.dateText}>{formatDate(endDate.toISOString())}</Text>
+                                        <Text style={styles.dateLabelText}>{formatDate(endDate.toISOString())}</Text>
                                         <Ionicons name="calendar-outline" size={20} color="#666" />
                                     </TouchableOpacity>
                                     {showEndPicker && (
@@ -560,7 +560,7 @@ const styles = StyleSheet.create({
     slotText: { color: '#666', fontWeight: '500' },
     activeSlotText: { color: '#2F6CD4', fontWeight: 'bold' },
     dateButton: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f9f9f9', borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12 },
-    dateText: { fontSize: 16, color: '#333' },
+    dateLabelText: { fontSize: 16, color: '#333' },
     submitButton: { backgroundColor: '#2F6CD4', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 10, marginBottom: 20 },
     rejectionBox: { marginTop: 12, padding: 10, backgroundColor: '#FFEBEE', borderRadius: 8, borderLeftWidth: 3, borderLeftColor: '#F44336' },
     rejectionTitle: { fontSize: 12, fontWeight: 'bold', color: '#D32F2F', marginBottom: 4 },

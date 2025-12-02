@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View,} from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../theme';
@@ -11,6 +11,7 @@ const ModernCalendar = ({
     onMonthChange,
     dayComponent,
     style,
+    markingType,
     theme: customTheme,
 }) => {
     const { colors, styles } = useTheme();
@@ -73,6 +74,7 @@ const ModernCalendar = ({
                 markedDates={markedDates}
                 onMonthChange={onMonthChange}
                 dayComponent={dayComponent}
+                markingType={markingType}
                 theme={{ ...defaultTheme, ...customTheme }}
                 enableSwipeMonths={true}
                 hideExtraDays={false}

@@ -4,7 +4,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useTheme } from "../theme";
 
-const Header = ({ title, subtitle, variant = "default" }) => {
+const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
   const router = useRouter();
   const { colors, styles } = useTheme();
 
@@ -58,6 +58,11 @@ const Header = ({ title, subtitle, variant = "default" }) => {
   // Default variant - minimalist header with optional subtitle
   return (
     <View style={{ marginBottom: 24, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
+      {showBack && (
+        <Pressable onPress={() => router.back()} style={{ marginRight: 12, marginTop: 4 }}>
+          <MaterialIcons name="arrow-back" size={24} color={colors.textPrimary} />
+        </Pressable>
+      )}
       <View style={{ flex: 1, paddingRight: 16 }}>
         <Text style={{
           fontSize: 28,

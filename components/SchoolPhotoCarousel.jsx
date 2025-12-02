@@ -48,6 +48,8 @@ const CarouselItem = React.memo(({ item, width, height }) => {
     );
 });
 
+CarouselItem.displayName = 'CarouselItem';
+
 export default function SchoolPhotoCarousel({ photos }) {
     const { colors } = useTheme();
     const [activeIndex, setActiveIndex] = useState(0);

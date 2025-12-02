@@ -9,20 +9,20 @@ import {
     RefreshControl,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "../../../theme";
 import apiConfig from "../../../config/apiConfig";
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../../../hooks/useApi";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "../../../components/ToastProvider";
-import Header from "../../../components/Header";
+import AppHeader from "../../../components/Header";
 
 export default function EnterMarksScreen() {
-    const router = useRouter();
+    const _router = useRouter();
     const params = useLocalSearchParams();
     const queryClient = useQueryClient();
-    const { styles, colors } = useTheme();
+    const { _styles, colors } = useTheme();
     const { showToast } = useToast();
 
     const { examId } = params;
@@ -53,7 +53,7 @@ export default function EnterMarksScreen() {
     );
 
     // Process existing marks into maps
-    const existingMarks = {};
+    const _existingMarks = {};
     useEffect(() => {
         if (existingMarksData) {
             const marksMap = {};
@@ -180,7 +180,7 @@ export default function EnterMarksScreen() {
                 contentContainerStyle={{ paddingBottom: 100 }}
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
-                    <Header
+                    <AppHeader
                         title="Enter Marks"
                         subtitle={`${exam.name} - ${exam.subject.name}`}
                         showBack

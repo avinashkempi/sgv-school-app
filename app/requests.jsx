@@ -10,7 +10,7 @@ import { useApiQuery } from "../hooks/useApi";
 
 export default function RequestsScreen() {
     const router = useRouter();
-    const { styles, colors } = useTheme();
+    const { _styles, colors } = useTheme();
     const [user, setUser] = useState(null);
     const [refreshing, setRefreshing] = useState(false);
 

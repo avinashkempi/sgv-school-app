@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState,} from "react";
 import {
   View,
   Text,
@@ -8,22 +8,19 @@ import {
   Alert,
   RefreshControl,
   ActivityIndicator,
-  Modal,
-  StyleSheet,
-  Platform,
-
-} from "react-native";
+  Modal } from "react-native";
 
 import { MaterialIcons } from "@expo/vector-icons";
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { useRouter } from "expo-router";
 import { useTheme } from "../theme";
 import apiConfig from "../config/apiConfig";
-import apiFetch from "../utils/apiFetch";
+
 import { useToast } from "../components/ToastProvider";
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../hooks/useApi";
 import { useQueryClient } from "@tanstack/react-query";
+import Header from "../components/Header";
 
 export default function AdminScreen() {
   const router = useRouter();
@@ -31,6 +28,7 @@ export default function AdminScreen() {
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
   const [roleFilter, setRoleFilter] = useState("all");
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
@@ -55,20 +53,22 @@ export default function AdminScreen() {
   const [touched, setTouched] = useState({});
   const [showPassword, setShowPassword] = useState(false);
 
+  const availableRoles = ["student", "teacher", "class teacher", "staff", "admin", "super admin"];
+
   // Check Auth & Admin
-  const { data: userData } = useApiQuery(
+  const { data: userData, isLoading: userLoading, error: userError } = useApiQuery(
     ['currentUser'],
     `${apiConfig.baseUrl}/auth/me`
   );
-  const user = userData;
+  const user = userData?.user;
   const isAdmin = user?.role === 'admin' || user?.role === 'super admin';
 
   // Fetch Users
-  const { data: usersData, isLoading: loading, refetch } = useApiQuery(
+  const { data: usersData, isLoading: loading, error: usersError, refetch } = useApiQuery(
     ['users', currentPage, searchQuery, roleFilter, sortBy, sortOrder],
     `${apiConfig.baseUrl}/users?page=${currentPage}&limit=${pageSize}&search=${searchQuery}&role=${roleFilter}&sortBy=${sortBy}&order=${sortOrder}`,
     {
-      enabled: isAdmin,
+      enabled: !!isAdmin, // Only fetch if admin check passes
       keepPreviousData: true,
     }
   );
@@ -111,7 +111,7 @@ export default function AdminScreen() {
     updateUserMutation.mutate({ _id: userId, role: newRole });
   };
 
-  const deleteUser = (userId, name) => {
+  const deleteUser = (userId, _name) => {
     deleteUserMutation.mutate(userId);
   };
 
@@ -144,6 +144,33 @@ export default function AdminScreen() {
         return colors.textSecondary;
     }
   };
+
+  const handleChange = (field, value) => {
+    setUserForm(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: null }));
+    }
+  };
+
+  const handleBlur = (field) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    validateField(field);
+  };
+
+  const validateField = (field) => {
+    let newErrors = { ...errors };
+    if (field === 'name' && !userForm.name) newErrors.name = "Name is required";
+    if (field === 'phone' && !userForm.phone) newErrors.phone = "Phone is required";
+    if (field === 'password' && !userForm.password) newErrors.password = "Password is required";
+    setErrors(newErrors);
+  };
+
+  const isFormValid = () => {
+    return userForm.name && userForm.phone && userForm.password;
+  };
+
+  const saving = createUserMutation.isPending || updateUserMutation.isPending;
+
 
   const createUser = () => {
     if (!userForm.name || !userForm.phone || !userForm.password) {
@@ -435,6 +462,28 @@ export default function AdminScreen() {
                 <View style={{ padding: 40, alignItems: 'center' }}>
                   <ActivityIndicator size="large" color={colors.primary} />
                   <Text style={{ marginTop: 16, color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>Loading users...</Text>
+                </View>
+              ) : userError ? (
+                <View style={{ padding: 20, alignItems: 'center', backgroundColor: colors.error + '10', borderRadius: 12 }}>
+                  <MaterialIcons name="error-outline" size={40} color={colors.error} />
+                  <Text style={{ marginTop: 8, color: colors.error, fontFamily: "DMSans-Bold" }}>Failed to load user profile</Text>
+                  <Text style={{ marginTop: 4, color: colors.textSecondary, textAlign: 'center' }}>{userError.message}</Text>
+                </View>
+              ) : !isAdmin && !userLoading ? (
+                <View style={{ padding: 20, alignItems: 'center', backgroundColor: colors.warning + '10', borderRadius: 12 }}>
+                  <MaterialIcons name="warning" size={40} color={colors.warning} />
+                  <Text style={{ marginTop: 8, color: colors.warning, fontFamily: "DMSans-Bold" }}>Access Denied</Text>
+                  <Text style={{ marginTop: 4, color: colors.textSecondary, textAlign: 'center' }}>You do not have permission to view this list.</Text>
+                  <Text style={{ marginTop: 4, color: colors.textSecondary, fontSize: 12 }}>Current Role: {user?.role || 'Unknown'}</Text>
+                </View>
+              ) : usersError ? (
+                <View style={{ padding: 20, alignItems: 'center', backgroundColor: colors.error + '10', borderRadius: 12 }}>
+                  <MaterialIcons name="error-outline" size={40} color={colors.error} />
+                  <Text style={{ marginTop: 8, color: colors.error, fontFamily: "DMSans-Bold" }}>Failed to load users</Text>
+                  <Text style={{ marginTop: 4, color: colors.textSecondary, textAlign: 'center' }}>{usersError.message}</Text>
+                  <Pressable onPress={refetch} style={{ marginTop: 12, paddingHorizontal: 16, paddingVertical: 8, backgroundColor: colors.primary, borderRadius: 8 }}>
+                    <Text style={{ color: '#fff', fontFamily: "DMSans-Bold" }}>Retry</Text>
+                  </Pressable>
                 </View>
               ) : (
                 <>

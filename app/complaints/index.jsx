@@ -5,7 +5,6 @@ import {
     FlatList,
     Pressable,
     ActivityIndicator,
-    StyleSheet,
     RefreshControl
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -20,7 +19,7 @@ import { useToast } from "../../components/ToastProvider";
 export default function ComplaintsScreen() {
     const router = useRouter();
     const { styles, colors } = useTheme();
-    const { showToast } = useToast();
+    const { _showToast } = useToast();
 
     const [activeTab, setActiveTab] = useState("my_complaints"); // 'my_complaints', 'inbox'
 

@@ -8,9 +8,7 @@ import {
     RefreshControl,
     ActivityIndicator,
     Modal,
-    Alert,
-    FlatList
-} from "react-native";
+    Alert } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -19,12 +17,14 @@ import { useApiQuery, useApiMutation, createApiMutationFn } from "../../../hooks
 import { useQueryClient } from "@tanstack/react-query";
 import apiConfig from "../../../config/apiConfig";
 import { useToast } from "../../../components/ToastProvider";
+import AppHeader from "../../../components/Header";
+import { formatDate } from "../../../utils/date";
 
 export default function ClassDetailsScreen() {
     const router = useRouter();
     const { id } = useLocalSearchParams();
     const queryClient = useQueryClient();
-    const { styles, colors } = useTheme();
+    const { _styles, colors } = useTheme();
     const { showToast } = useToast();
 
     const [refreshing, setRefreshing] = useState(false);
@@ -264,11 +264,57 @@ export default function ClassDetailsScreen() {
                 contentContainerStyle={{ paddingBottom: 100 }}
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
-                    <Header
+                    <AppHeader
                         title={classData ? `${classData.name} ${classData.section || ''}` : "Class Details"}
                         subtitle="Manage subjects and students"
                         showBack
                     />
+
+                    {/* Quick Actions */}
+                    {isClassTeacher && (
+                        <View style={{ flexDirection: "row", gap: 12, marginTop: 20, marginBottom: 16 }}>
+                            <Pressable
+                                onPress={() => router.push({
+                                    pathname: "/teacher/class/attendance",
+                                    params: { id }
+                                })}
+                                style={({ pressed }) => ({
+                                    flex: 1,
+                                    backgroundColor: colors.cardBackground,
+                                    borderRadius: 12,
+                                    padding: 16,
+                                    alignItems: "center",
+                                    opacity: pressed ? 0.7 : 1,
+                                    elevation: 2
+                                })}
+                            >
+                                <MaterialIcons name="how-to-reg" size={28} color={colors.primary} />
+                                <Text style={{ fontSize: 13, fontFamily: "DMSans-SemiBold", color: colors.textPrimary, marginTop: 8 }}>
+                                    Attendance
+                                </Text>
+                            </Pressable>
+                            <Pressable
+                                onPress={() => router.push({
+                                    pathname: "/teacher/class/performance",
+                                    params: { classId: id }
+                                })}
+                                style={({ pressed }) => ({
+                                    flex: 1,
+                                    backgroundColor: colors.cardBackground,
+                                    borderRadius: 12,
+                                    padding: 16,
+                                    alignItems: "center",
+                                    opacity: pressed ? 0.7 : 1,
+                                    elevation: 2
+                                })}
+                            >
+                                <MaterialIcons name="insights" size={28} color={colors.success} />
+                                <Text style={{ fontSize: 13, fontFamily: "DMSans-SemiBold", color: colors.textPrimary, marginTop: 8 }}>
+                                    Performance
+                                </Text>
+                            </Pressable>
+                        </View>
+                    )}
 
 
 
@@ -704,9 +750,9 @@ export default function ClassDetailsScreen() {
 
                             <Pressable
                                 onPress={handleBulkAddStudents}
-                                disabled={selectedStudentIds.length === 0 || saving}
+                                disabled={selectedStudentIds.length === 0 || addStudentsMutation.isPending}
                                 style={{
-                                    backgroundColor: (selectedStudentIds.length > 0 && !saving) ? colors.primary : colors.disabled,
+                                    backgroundColor: (selectedStudentIds.length > 0 && !addStudentsMutation.isPending) ? colors.primary : colors.disabled,
                                     paddingHorizontal: 20,
                                     paddingVertical: 12,
                                     borderRadius: 8,
@@ -715,9 +761,9 @@ export default function ClassDetailsScreen() {
                                     gap: 8
                                 }}
                             >
-                                {saving && <ActivityIndicator size="small" color="#fff" />}
+                                {addStudentsMutation.isPending && <ActivityIndicator size="small" color="#fff" />}
                                 <Text style={{ color: "#fff", fontWeight: "600" }}>
-                                    {saving ? "Adding..." : `Add ${selectedStudentIds.length > 0 ? `${selectedStudentIds.length} ` : ""}Selected`}
+                                    {addStudentsMutation.isPending ? "Adding..." : `Add ${selectedStudentIds.length > 0 ? `${selectedStudentIds.length} ` : ""}Selected`}
                                 </Text>
                             </Pressable>
                         </View>

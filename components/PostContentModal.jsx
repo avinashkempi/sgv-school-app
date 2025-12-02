@@ -4,14 +4,12 @@ import {
     Text,
     Modal,
     TextInput,
-    Pressable,
-    ScrollView,
-} from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
+    Pressable } from "react-native";
+import {} from "@expo/vector-icons";
 import { useTheme } from "../theme";
 
 export default function PostContentModal({ visible, onClose, onSubmit }) {
-    const { styles, colors } = useTheme();
+    const { _styles, colors } = useTheme();
     const [form, setForm] = useState({
         title: "",
         description: "",

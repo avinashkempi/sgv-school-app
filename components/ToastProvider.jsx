@@ -18,7 +18,7 @@ export function useToast() {
 
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
-  const { colors } = useTheme();
+  const { _colors } = useTheme();
   const insets = useSafeAreaInsets();
 
   const removeToast = useCallback((id) => {
@@ -52,7 +52,7 @@ export function ToastProvider({ children }) {
   );
 }
 
-function ToastItem({ msg, type, onDismiss }) {
+function ToastItem({ msg, type, _onDismiss }) {
   const getToastConfig = () => {
     switch (type) {
       case 'success':

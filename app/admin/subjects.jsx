@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState,} from "react";
 import {
     View,
     Text,
@@ -13,16 +13,18 @@ import {
     Platform
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/useApi";
+import apiConfig from "../../config/apiConfig";
 import { useQueryClient } from "@tanstack/react-query";
-import Header from "../../components/Header";
+import AppHeader from "../../components/Header";
+import { useToast } from "../../components/ToastProvider";
 
 export default function ManageSubjectsScreen() {
-    const router = useRouter();
-    const { styles, colors } = useTheme();
+    const _router = useRouter();
+    const { _styles, colors } = useTheme();
     const { showToast } = useToast();
 
     const queryClient = useQueryClient();
@@ -116,7 +118,7 @@ export default function ManageSubjectsScreen() {
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <View style={{ padding: 16, paddingTop: 24 }}>
-                <Header title="Manage Subjects" subtitle="Master List" showBack />
+                <AppHeader title="Manage Subjects" subtitle="Master List" showBack />
 
                 {/* Search */}
                 <View style={{

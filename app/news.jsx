@@ -1,19 +1,20 @@
 import { View, Text, FlatList, Pressable, Alert, RefreshControl, Linking } from "react-native";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { useNavigation,} from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../theme";
 import Header from "../components/Header";
 import NewsFormModal from "../components/NewsFormModal";
-import { useState, useEffect, useCallback } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useState, useCallback } from "react";
+
 import apiConfig from "../config/apiConfig";
-import apiFetch from "../utils/apiFetch";
+
 import { useToast } from "../components/ToastProvider";
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../hooks/useApi";
 import { useQueryClient } from "@tanstack/react-query";
+import { formatDate } from "../utils/date";
 
 export default function NewsScreen() {
-  const navigation = useNavigation();
+  const _navigation = useNavigation();
   const { styles, colors } = useTheme();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
@@ -160,7 +161,7 @@ export default function NewsScreen() {
     }
   };
 
-  const handleDeleteNews = (newsId, newsTitle) => {
+  const handleDeleteNews = (newsId, _newsTitle) => {
     deleteNewsMutation.mutate(newsId);
   };
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect,} from 'react';
 import apiConfig from '../config/apiConfig';
 import apiFetch from '../utils/apiFetch';
 import { SCHOOL as FALLBACK_SCHOOL } from '../constants/basic-info';

@@ -103,6 +103,7 @@ export default function useEvents() {
       // Suppress network errors as requested
       if (callback) callback(err);
     } finally {
+      clearRefreshLock(cacheKey);
     }
   }, [fetchEventsFromAPI, isConnected]);
 

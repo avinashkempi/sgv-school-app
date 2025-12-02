@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState,} from "react";
 import { View, Text, ScrollView, RefreshControl, Pressable } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";

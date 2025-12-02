@@ -19,7 +19,7 @@ import { useApiQuery } from "../../hooks/useApi";
 export default function StudentClassScreen() {
     const router = useRouter();
     const { styles, colors } = useTheme();
-    const { showToast } = useToast();
+    const { _showToast } = useToast();
     const [refreshing, setRefreshing] = useState(false);
     const [user, setUser] = useState(null);
 

@@ -21,8 +21,8 @@ import { useNetworkStatus } from "../../../../components/NetworkStatusProvider";
 
 export default function StudentSubjectDetailScreen() {
     const { id, subjectId } = useLocalSearchParams(); // classId and subjectId
-    const router = useRouter();
-    const { styles, colors } = useTheme();
+    const _router = useRouter();
+    const { _styles, colors } = useTheme();
     const { showToast } = useToast();
     const { isConnected } = useNetworkStatus();
 

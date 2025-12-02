@@ -6,21 +6,21 @@ import {
     Pressable,
     ActivityIndicator,
     TextInput,
-    Modal,
-    Alert,
-    FlatList,
-} from "react-native";
+    FlatList } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/useApi";
+import apiFetch from "../../utils/apiFetch";
+import apiConfig from "../../config/apiConfig";
 import { useQueryClient } from "@tanstack/react-query";
 import Header from "../../components/Header";
+import { useToast } from "../../components/ToastProvider";
 
 export default function AdminFeesScreen() {
-    const router = useRouter();
-    const { styles, colors } = useTheme();
+    const _router = useRouter();
+    const { _styles, colors } = useTheme();
     const { showToast } = useToast();
 
     const [activeTab, setActiveTab] = useState("dashboard"); // dashboard, collect, structure, students
@@ -870,7 +870,7 @@ export default function AdminFeesScreen() {
                                     {/* 6. Save Action */}
                                     <Pressable
                                         onPress={saveStructure}
-                                        disabled={savingStructure}
+                                        disabled={saveStructureMutation.isPending}
                                         style={{
                                             backgroundColor: colors.primary,
                                             padding: 18,
@@ -881,10 +881,10 @@ export default function AdminFeesScreen() {
                                             shadowOpacity: 0.3,
                                             shadowRadius: 8,
                                             elevation: 4,
-                                            opacity: savingStructure ? 0.7 : 1
+                                            opacity: saveStructureMutation.isPending ? 0.7 : 1
                                         }}
                                     >
-                                        {savingStructure ? (
+                                        {saveStructureMutation.isPending ? (
                                             <ActivityIndicator color="#fff" />
                                         ) : (
                                             <Text style={{ color: "#fff", fontFamily: "DMSans-Bold", fontSize: 18 }}>Save Fee Structure</Text>
@@ -932,7 +932,7 @@ export default function AdminFeesScreen() {
                                 </View>
                             </View>
 
-                            {loadingStudents ? (
+                            {studentsLoading ? (
                                 <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 40 }} />
                             ) : (
                                 <FlatList

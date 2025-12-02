@@ -10,7 +10,7 @@ import {
     Alert,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/useApi";
@@ -23,8 +23,8 @@ import apiConfig from "../../config/apiConfig";
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export default function AdminTimetableScreen() {
-    const router = useRouter();
-    const { styles, colors } = useTheme();
+    const _router = useRouter();
+    const { _styles, colors } = useTheme();
     const { showToast } = useToast();
 
     const queryClient = useQueryClient();
@@ -47,7 +47,7 @@ export default function AdminTimetableScreen() {
     const [showTimePicker, setShowTimePicker] = useState({ show: false, mode: 'start' }); // mode: 'start' | 'end'
 
     // Fetch Classes
-    const { data: classesData, isLoading: loadingClasses } = useApiQuery(
+    const { data: classesData, isLoading: _loadingClasses } = useApiQuery(
         ['adminClassesInit'],
         `${apiConfig.baseUrl}/classes/admin/init`
     );
@@ -101,7 +101,7 @@ export default function AdminTimetableScreen() {
             showToast("Timetable saved successfully", "success");
             queryClient.invalidateQueries({ queryKey: ['timetable', selectedClassId] });
         },
-        onError: (error) => showToast("Failed to save timetable", "error")
+        onError: (_error) => showToast("Failed to save timetable", "_error")
     });
 
     const handleSaveTimetable = () => {
@@ -159,8 +159,6 @@ export default function AdminTimetableScreen() {
             subject: tempPeriod.subject,
             teacher: tempPeriod.teacher,
             startTime: formatTime(tempPeriod.startTime),
-            endTime: formatTime(tempPeriod.endTime),
-            startTime: formatTime(tempPeriod.startTime),
             endTime: formatTime(tempPeriod.endTime)
         };
 
@@ -168,7 +166,7 @@ export default function AdminTimetableScreen() {
 
         if (editingPeriod) {
             // Update existing
-            const index = updatedDaySchedule.findIndex(p => p.periodNumber === editingPeriod.periodNumber); // Identify by period number? Or index?
+            const _index = updatedDaySchedule.findIndex(p => p.periodNumber === editingPeriod.periodNumber); // Identify by period number? Or index?
             // Better to use index from map, but for now let's just push/replace
             // Actually, let's just replace based on periodNumber if unique, or just use array index if passed
             // Simplified: Remove old, add new, sort
@@ -278,7 +276,7 @@ export default function AdminTimetableScreen() {
                                     <View>
                                         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                                             <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
-                                                {selectedDay}'s Schedule
+                                                {selectedDay}&apos;s Schedule
                                             </Text>
                                             <Pressable
                                                 onPress={() => openPeriodModal()}

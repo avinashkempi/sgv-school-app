@@ -16,9 +16,9 @@ import apiConfig from "../../config/apiConfig";
 import { useToast } from "../../components/ToastProvider";
 
 export default function StudentFeesScreen() {
-    const router = useRouter();
-    const { styles, colors } = useTheme();
-    const { showToast } = useToast();
+    const _router = useRouter();
+    const { _styles, colors } = useTheme();
+    const { _showToast } = useToast();
 
     const [refreshing, setRefreshing] = useState(false);
     const [user, setUser] = useState(null);

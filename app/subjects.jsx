@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState,} from "react";
 import { View, Text, ScrollView, RefreshControl, ActivityIndicator, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { useTheme } from "../theme";
 import apiConfig from "../config/apiConfig";
 import apiFetch from "../utils/apiFetch";
@@ -13,8 +13,8 @@ import Header from "../components/Header";
 
 export default function SubjectsScreen() {
     const router = useRouter();
-    const { styles, colors } = useTheme();
-    const { showToast } = useToast();
+    const { _styles, colors } = useTheme();
+    const { _showToast } = useToast();
     const [refreshing, setRefreshing] = useState(false);
 
     const { data: userData } = useApiQuery(['currentUser'], `${apiConfig.baseUrl}/auth/me`);

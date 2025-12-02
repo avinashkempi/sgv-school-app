@@ -5,9 +5,7 @@ import {
     TextInput,
     Pressable,
     ScrollView,
-    ActivityIndicator,
-    Alert
-} from "react-native";
+    ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -19,7 +17,7 @@ import { useToast } from "../../components/ToastProvider";
 
 export default function RaiseComplaintScreen() {
     const router = useRouter();
-    const { styles, colors } = useTheme();
+    const { _styles, colors } = useTheme();
     const { showToast } = useToast();
 
     const [title, setTitle] = useState("");

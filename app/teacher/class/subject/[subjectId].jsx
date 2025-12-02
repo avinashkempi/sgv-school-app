@@ -5,9 +5,7 @@ import {
     ScrollView,
     Pressable,
     RefreshControl,
-    ActivityIndicator,
-    Alert,
-} from "react-native";
+    ActivityIndicator } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -17,12 +15,14 @@ import { useQueryClient } from "@tanstack/react-query";
 import PostContentModal from "../../../../components/PostContentModal";
 import apiConfig from "../../../../config/apiConfig";
 import { useToast } from "../../../../components/ToastProvider";
+import AppHeader from "../../../../components/Header";
+import { formatDate } from "../../../../utils/date";
 
 export default function SubjectDetailScreen() {
     const { id, subjectId } = useLocalSearchParams(); // classId and subjectId
     const router = useRouter();
     const queryClient = useQueryClient();
-    const { styles, colors } = useTheme();
+    const { _styles, colors } = useTheme();
     const { showToast } = useToast();
 
     const [refreshing, setRefreshing] = useState(false);
@@ -106,36 +106,61 @@ export default function SubjectDetailScreen() {
                 contentContainerStyle={{ paddingBottom: 100 }}
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
-                    <Header
+                    <AppHeader
                         title={subjectName || "Subject Details"}
                         subtitle={subjectTeachers.length > 0 ? `Teachers: ${subjectTeachers.map(t => t.name).join(", ")}` : "Class Content"}
                         showBack
                     />
 
                     {/* Quick Actions */}
-                    <Pressable
-                        onPress={() => router.push({
-                            pathname: "/teacher/subject/create-exam",
-                            params: { subjectId, classId: id }
-                        })}
-                        style={({ pressed }) => ({
-                            backgroundColor: colors.primary,
-                            borderRadius: 12,
-                            padding: 16,
-                            marginTop: 20,
-                            flexDirection: "row",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: 8,
-                            opacity: pressed ? 0.9 : 1,
-                            elevation: 3
-                        })}
-                    >
-                        <MaterialIcons name="add-circle" size={20} color="#fff" />
-                        <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: "#fff" }}>
-                            New Exam
-                        </Text>
-                    </Pressable>
+                    <View style={{ flexDirection: "row", gap: 12, marginTop: 20 }}>
+                        <Pressable
+                            onPress={() => router.push({
+                                pathname: "/teacher/subject/create-exam",
+                                params: { subjectId, classId: id }
+                            })}
+                            style={({ pressed }) => ({
+                                flex: 1,
+                                backgroundColor: colors.primary,
+                                borderRadius: 12,
+                                padding: 16,
+                                flexDirection: "row",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: 8,
+                                opacity: pressed ? 0.9 : 1,
+                                elevation: 3
+                            })}
+                        >
+                            <MaterialIcons name="assignment" size={20} color="#fff" />
+                            <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: "#fff" }}>
+                                Manage Exams
+                            </Text>
+                        </Pressable>
+                        <Pressable
+                            onPress={() => router.push({
+                                pathname: "/teacher/subject/performance",
+                                params: { subjectId }
+                            })}
+                            style={({ pressed }) => ({
+                                flex: 1,
+                                backgroundColor: colors.success,
+                                borderRadius: 12,
+                                padding: 16,
+                                flexDirection: "row",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: 8,
+                                opacity: pressed ? 0.9 : 1,
+                                elevation: 3
+                            })}
+                        >
+                            <MaterialIcons name="leaderboard" size={20} color="#fff" />
+                            <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: "#fff" }}>
+                                Performance
+                            </Text>
+                        </Pressable>
+                    </View>
 
                     {loading ? (
                         <View style={{ marginTop: 100, alignItems: "center" }}>

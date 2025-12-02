@@ -96,7 +96,7 @@ export async function registerFCMTokenWithBackend(token) {
       throw new Error(errorData.message || 'Failed to register FCM token');
     }
 
-    const result = await response.json();
+    const _result = await response.json();
 
     return true;
   } catch (error) {

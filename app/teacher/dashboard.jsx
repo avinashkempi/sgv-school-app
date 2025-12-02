@@ -14,15 +14,15 @@ import { useTheme } from "../../theme";
 import apiConfig from "../../config/apiConfig";
 import { useApiQuery } from "../../hooks/useApi";
 import { useToast } from "../../components/ToastProvider";
-import Header from "../../components/Header";
+import AppHeader from "../../components/Header";
 
 export default function TeacherDashboard() {
     const router = useRouter();
-    const { styles, colors } = useTheme();
-    const { showToast } = useToast();
+    const { _styles, colors } = useTheme();
+    const { _showToast } = useToast();
 
     const [refreshing, setRefreshing] = useState(false);
-    const [user, setUser] = useState(null);
+    const [_user, setUser] = useState(null);
     const [activeTab, setActiveTab] = useState('classTeacher'); // 'classTeacher' or 'mySubjects'
 
     useEffect(() => {
@@ -87,7 +87,7 @@ export default function TeacherDashboard() {
                         textAlign: "center",
                         paddingHorizontal: 40
                     }}>
-                        Check "My Subjects" tab to see subjects you teach
+                        Check &ldquo;My Subjects&rdquo; tab to see subjects you teach
                     </Text>
                 </View>
             ) : (
@@ -195,7 +195,7 @@ export default function TeacherDashboard() {
                         textAlign: "center",
                         paddingHorizontal: 40
                     }}>
-                        Check "My Subjects" tab to see subjects you teach
+                        Check &ldquo;My Subjects&rdquo; tab to see subjects you teach
                     </Text>
                 </View>
             ) : (
@@ -271,7 +271,7 @@ export default function TeacherDashboard() {
                 contentContainerStyle={{ paddingBottom: 100 }}
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
-                    <Header title="My Teaching" subtitle="Manage your classes and subjects" />
+                    <AppHeader title="My Teaching" subtitle="Manage your classes and subjects" />
 
                     {/* Quick Action: History */}
                     <Pressable

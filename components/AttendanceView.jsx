@@ -3,18 +3,16 @@ import {
     View,
     Text,
     ScrollView,
-    Pressable,
     ActivityIndicator,
     RefreshControl,
-    Dimensions,
-} from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
+    Dimensions } from "react-native";
+import {} from "@expo/vector-icons";
 import { useTheme } from "../theme";
 import Header from "./Header";
 import ModernCalendar from "./ModernCalendar";
 
 const { width } = Dimensions.get('window');
-const cellSize = (width - 80) / 7; // 7 days in a week, accounting for padding
+const _cellSize = (width - 80) / 7; // 7 days in a week, accounting for padding
 
 export default function AttendanceView({
     attendanceHistory,
@@ -25,7 +23,7 @@ export default function AttendanceView({
     title = "My Attendance",
     subtitle = "Track your attendance record"
 }) {
-    const { styles, colors } = useTheme();
+    const { _styles, colors } = useTheme();
     const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().split('T')[0]);
 
     const getStatusColor = (status) => {

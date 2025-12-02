@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Enhanced wrapper around fetch that:
 // 1. Automatically includes auth token if available
 export default async function apiFetch(input, init = {}) {
-  const { silent = false, ...fetchInit } = init;
+  const { _silent = false, ...fetchInit } = init;
 
   // Get auth token from storage
   const token = await AsyncStorage.getItem('@auth_token');

@@ -1,14 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState,} from "react";
 import {
     View,
     Text,
     ScrollView,
     RefreshControl,
-    ActivityIndicator,
-    Pressable,
-} from "react-native";
+    ActivityIndicator } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
@@ -17,9 +15,9 @@ import apiConfig from "../../config/apiConfig";
 import { useToast } from "../../components/ToastProvider";
 
 export default function StudentExamScheduleScreen() {
-    const router = useRouter();
-    const { styles, colors } = useTheme();
-    const { showToast } = useToast();
+    const _router = useRouter();
+    const { _styles, colors } = useTheme();
+    const { _showToast } = useToast();
 
     const [refreshing, setRefreshing] = useState(false);
 

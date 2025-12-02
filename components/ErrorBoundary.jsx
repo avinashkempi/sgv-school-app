@@ -6,6 +6,7 @@ class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
     this.state = { hasError: false, error: null, errorInfo: null };
+    this.handleTryAgain = this.handleTryAgain.bind(this);
   }
 
   static getDerivedStateFromError(error) {
@@ -19,10 +20,10 @@ class ErrorBoundary extends React.Component {
     this.setState({ errorInfo });
   }
 
-  handleTryAgain = () => {
+  handleTryAgain() {
     // Attempt to recover by resetting state
     this.setState({ hasError: false, error: null, errorInfo: null });
-  };
+  }
 
   render() {
     if (this.state.hasError) {
@@ -33,14 +34,15 @@ class ErrorBoundary extends React.Component {
             <MaterialIcons name="error" size={64} color="#FF6B6B" />
             <Text style={styles.title}>Oops! Something went wrong.</Text>
             <Text style={styles.subtitle}>
-              We're sorry, but an unexpected error occurred. Please try again.
+              We&apos;re sorry, but an unexpected error occurred. Please try again.
             </Text>
-            
+
             <TouchableOpacity style={styles.button} onPress={this.handleTryAgain}>
               <Text style={styles.buttonText}>Try Again</Text>
             </TouchableOpacity>
 
             {/* Optional: Show error details in development */}
+            {/* eslint-disable-next-line no-undef */}
             {__DEV__ && this.state.error && (
               <ScrollView style={styles.debugBox}>
                 <Text style={styles.debugText}>{this.state.error.toString()}</Text>

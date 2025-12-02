@@ -5,8 +5,14 @@
     "node": true,
     "browser": true
   },
-  "extends": ["eslint:recommended", "plugin:react/recommended", "prettier"],
-  "plugins": ["react"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "prettier"
+  ],
+  "plugins": [
+    "react"
+  ],
   "parserOptions": {
     "ecmaFeatures": {
       "jsx": true
@@ -24,7 +30,10 @@
     "react/prop-types": "off",
     "no-unused-vars": [
       "warn",
-      { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_"
+      }
     ]
   }
 }

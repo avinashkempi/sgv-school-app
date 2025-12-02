@@ -1,5 +1,5 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import { View, Text, ScrollView, Animated, StatusBar, RefreshControl, StyleSheet } from "react-native";
+import { View, Text, ScrollView, Animated, StatusBar, RefreshControl,} from "react-native";
 import { useState, useEffect } from "react";
 import useFade from "../hooks/useFade";
 import { useTheme } from "../theme";
@@ -35,14 +35,28 @@ export default function HomeScreen() {
     }
   };
 
-  const { data: userData } = useApiQuery(
+  const { data: userData, isError } = useApiQuery(
     ['currentUser'],
     `${apiConfig.baseUrl}/auth/me`,
     {
       enabled: true,
-      staleTime: Infinity, // User data rarely changes
+      staleTime: Infinity,
+      retry: false,
     }
   );
+
+  useEffect(() => {
+    if (isError) {
+      // If we can't fetch user details (likely 401/403), clear session and redirect
+      const handleLogout = async () => {
+        await AsyncStorage.multiRemove(['@auth_token', '@auth_user']);
+        // Optional: router.replace('/login'); 
+        // For now, we just clear storage so the UI reflects logged out state
+        // or let the user manually log in again.
+      };
+      handleLogout();
+    }
+  }, [isError]);
 
   const { data: notificationsData } = useApiQuery(
     ['notifications', 'latest'],
@@ -71,7 +85,7 @@ export default function HomeScreen() {
       />
 
       {/* Minimalist Header */}
-      <Header title={SCHOOL.name} subtitle={userData ? `Welcome, ${userData.name.split(' ')[0]}` : "Welcome"} variant="welcome" />
+      <Header title={SCHOOL.name} subtitle={userData?.name ? `Welcome, ${userData.name.split(' ')[0]}` : "Welcome"} variant="welcome" />
 
       {/* School Photo Carousel */}
       <SchoolPhotoCarousel photos={SCHOOL.photoUrl} />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState,} from "react";
 import {
     View,
     Text,
@@ -10,7 +10,7 @@ import {
     Modal
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { useRouter } from "expo-router";
 import { useTheme } from "../theme";
 import apiConfig from "../config/apiConfig";
@@ -20,11 +20,12 @@ import { useToast } from "../components/ToastProvider";
 import Header from "../components/Header";
 
 export default function NotificationsScreen() {
-    const router = useRouter();
-    const { styles, colors } = useTheme();
+    const _router = useRouter();
+    const { _styles, colors } = useTheme();
     const { showToast } = useToast();
 
     const [showSettings, setShowSettings] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
     const queryClient = useQueryClient();
 
     // Fetch Notifications

@@ -1,23 +1,23 @@
-import React, { useState, useEffect } from "react";
+import React, { useState,} from "react";
 import {
     View,
     Text,
     ScrollView,
     TextInput,
     Pressable,
-    ActivityIndicator,
-    Alert
-} from "react-native";
+    ActivityIndicator } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/useApi";
+import apiConfig from "../../config/apiConfig";
 import Header from "../../components/Header";
+import { useToast } from "../../components/ToastProvider";
 
 export default function SendNotificationScreen() {
     const router = useRouter();
-    const { styles, colors } = useTheme();
+    const { _styles, colors } = useTheme();
     const { showToast } = useToast();
 
     const [title, setTitle] = useState("");

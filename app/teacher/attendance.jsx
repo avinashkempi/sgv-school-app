@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState,} from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useApiQuery } from '../../hooks/useApi';
@@ -7,8 +7,8 @@ import { useToast } from '../../components/ToastProvider';
 import AttendanceView from '../../components/AttendanceView';
 
 export default function TeacherAttendance() {
-    const router = useRouter();
-    const { showToast } = useToast();
+    const _router = useRouter();
+    const { _showToast } = useToast();
 
     const [refreshing, setRefreshing] = useState(false);
 

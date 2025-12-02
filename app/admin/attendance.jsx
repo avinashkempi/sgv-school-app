@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, ActivityIndicator, ScrollView, RefreshControl } from 'react-native';
+import React, { useState, useEffect,} from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, ScrollView, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useApiQuery, useApiMutation, createApiMutationFn } from '../../hooks/useApi';
 import { useQueryClient } from '@tanstack/react-query';
@@ -306,18 +306,18 @@ export default function AdminAttendance() {
                             {/* Summary Cards */}
                             <View style={{ flexDirection: 'row', gap: 12, marginBottom: 24 }}>
                                 <View style={[styles.summaryCardSmall, { backgroundColor: '#E3F2FD' }]}>
-                                    <Text style={[styles.summaryValue, { color: '#1976D2' }]}>{schoolSummary.students.present}/{schoolSummary.students.total}</Text>
+                                    <Text style={[styles.summaryValue, { color: '#1976D2' }]}>{schoolSummary?.students?.present || 0}/{schoolSummary?.students?.total || 0}</Text>
                                     <Text style={styles.summaryLabel}>Student Attendance</Text>
                                 </View>
                                 <View style={[styles.summaryCardSmall, { backgroundColor: '#E8F5E9' }]}>
-                                    <Text style={[styles.summaryValue, { color: '#388E3C' }]}>{schoolSummary.teachers.present}/{schoolSummary.teachers.total}</Text>
+                                    <Text style={[styles.summaryValue, { color: '#388E3C' }]}>{schoolSummary?.teachers?.present || 0}/{schoolSummary?.teachers?.total || 0}</Text>
                                     <Text style={styles.summaryLabel}>Teacher Attendance</Text>
                                 </View>
                             </View>
 
                             {/* Absent List */}
                             <Text style={styles.sectionTitle}>Absent Today</Text>
-                            {schoolSummary.absentList.length === 0 ? (
+                            {(schoolSummary?.absentList || []).length === 0 ? (
                                 <Text style={styles.emptyText}>No one marked absent yet.</Text>
                             ) : (
                                 schoolSummary.absentList.map((item) => (

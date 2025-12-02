@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, StatusBar, ActivityIndicator, KeyboardAvoidingView, Platform, Image } from 'react-native';
+import { View, Text, TextInput, Pressable, ScrollView, StatusBar, ActivityIndicator, KeyboardAvoidingView, Platform,} from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -12,7 +12,7 @@ export default function Login() {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { styles, colors, mode, gradients } = useTheme();
+  const { styles, colors, _mode, gradients } = useTheme();
   const router = useRouter();
 
   const loginMutation = useApiMutation({

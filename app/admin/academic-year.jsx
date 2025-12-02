@@ -8,22 +8,23 @@ import {
     Alert,
     RefreshControl,
     ActivityIndicator,
-    Modal,
-    StyleSheet,
-    Platform,
-} from "react-native";
+    Modal } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { useRouter } from "expo-router";
 import { Picker } from "@react-native-picker/picker";
 import { useTheme } from "../../theme";
 import apiConfig from "../../config/apiConfig";
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/useApi";
+
 import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "../../components/ToastProvider";
+import Header from "../../components/Header";
+import { formatDate } from "../../utils/date";
 
 export default function AcademicYearScreen() {
-    const router = useRouter();
-    const { styles, colors } = useTheme();
+    const _router = useRouter();
+    const { _styles, colors } = useTheme();
     const { showToast } = useToast();
     const queryClient = useQueryClient();
     const [activeTab, setActiveTab] = useState("years"); // "years" | "reports"
@@ -359,18 +360,18 @@ export default function AcademicYearScreen() {
                             </Pressable>
                             <Pressable
                                 onPress={handleCreate}
-                                disabled={saving}
+                                disabled={createYearMutation.isPending}
                                 style={{
                                     backgroundColor: colors.primary,
                                     paddingHorizontal: 20,
                                     paddingVertical: 12,
                                     borderRadius: 8,
-                                    opacity: saving ? 0.7 : 1,
+                                    opacity: createYearMutation.isPending ? 0.7 : 1,
                                     minWidth: 80,
                                     alignItems: 'center'
                                 }}
                             >
-                                {saving ? (
+                                {createYearMutation.isPending ? (
                                     <ActivityIndicator size="small" color="#fff" />
                                 ) : (
                                     <Text style={{ color: "#fff", fontWeight: "600" }}>Create</Text>

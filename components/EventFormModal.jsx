@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Modal, Pressable, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { useTheme } from '../theme';
 import { useToast } from './ToastProvider';
-import apiConfig from '../config/apiConfig';
-import apiFetch from '../utils/apiFetch';
+
 
 
 // Helper to format dates for display in Indian format (DD-MM-YYYY)
@@ -31,11 +30,11 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [isSchoolEvent, setIsSchoolEvent] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, _setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const { colors, styles: globalStyles } = useTheme();
-  const { showToast } = useToast();
+  const { _showToast } = useToast();
 
   const isEditing = !!editItem;
 

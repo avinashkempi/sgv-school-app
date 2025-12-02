@@ -12,9 +12,7 @@ import ErrorBoundary from "../components/ErrorBoundary";
 import * as Notifications from 'expo-notifications';
 import { getFCMToken, registerFCMTokenWithBackend } from '../utils/fcm';
 import { NavigationProvider } from "../context/NavigationContext";
-import apiConfig from "../config/apiConfig";
-import apiFetch from "../utils/apiFetch";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { queryClient, persister } from '../utils/queryClient';
 
@@ -47,12 +45,12 @@ function Inner() {
         }
 
         // Listen for foreground notifications
-        notificationSubscription = Notifications.addNotificationReceivedListener(notification => {
+        notificationSubscription = Notifications.addNotificationReceivedListener(_notification => {
           // Handle foreground notification
         });
 
         // Listen for notification taps (when user clicks notification)
-        responseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
+        responseSubscription = Notifications.addNotificationResponseReceivedListener(_response => {
           // You can add navigation logic here if needed
           // e.g., navigate to news page when news notification is tapped
         });

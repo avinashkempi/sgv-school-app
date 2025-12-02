@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState,} from "react";
 import {
     View,
     Text,
@@ -10,16 +10,18 @@ import {
     Modal,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/useApi";
+import apiConfig from "../../config/apiConfig";
 import { useQueryClient } from "@tanstack/react-query";
-import Header from "../../components/Header";
+import AppHeader from "../../components/Header";
+import { useToast } from "../../components/ToastProvider";
 
 export default function TeacherSubjectsScreen() {
-    const router = useRouter();
-    const { styles, colors } = useTheme();
+    const _router = useRouter();
+    const { _styles, colors } = useTheme();
     const { showToast } = useToast();
 
     const queryClient = useQueryClient();
@@ -58,7 +60,7 @@ export default function TeacherSubjectsScreen() {
             );
             return Promise.all(promises);
         },
-        onSuccess: (results, variables) => {
+        onSuccess: (results, _variables) => {
             const successCount = results.length; // Assuming all promises resolved if we are here (Promise.all rejects on first error, maybe use allSettled if we want partial success)
             // Actually createApiMutationFn throws on error, so if we get here, all succeeded.
             showToast(`Successfully assigned ${successCount} subject(s) to ${selectedTeacher.name}`, "success");
@@ -66,7 +68,7 @@ export default function TeacherSubjectsScreen() {
             setSelectedSubjects([]);
             setShowModal(false);
         },
-        onError: (error) => showToast("Error assigning subjects", "error")
+        onError: (_error) => showToast("Error assigning subjects", "error")
     });
 
     const removeSubjectMutation = useApiMutation({
@@ -84,7 +86,7 @@ export default function TeacherSubjectsScreen() {
             showToast(`Removed ${teacherName} from ${subjectName}`, "success");
             queryClient.invalidateQueries({ queryKey: ['teacherSubjectMatrix'] });
         },
-        onError: (error) => showToast("Failed to remove teacher from subject", "error")
+        onError: (_error) => showToast("Failed to remove teacher from subject", "_error")
     });
 
     const filteredTeachers = teachers.filter(teacher =>
@@ -125,7 +127,7 @@ export default function TeacherSubjectsScreen() {
                 contentContainerStyle={{ paddingBottom: 100 }}
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
-                    <Header
+                    <AppHeader
                         title="Teacher-Subject Assignments"
                         subtitle="Manage which teachers teach which subjects"
                     />

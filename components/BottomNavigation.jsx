@@ -135,7 +135,7 @@ function BottomNavigation() {
 }
 
 // Separate TabItem component for better performance and animations
-const TabItem = memo(({ item, isActive, onPress, colors, mode }) => {
+const TabItem = memo(({ item, isActive, onPress, colors, _mode }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const iconScaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -234,6 +234,8 @@ const TabItem = memo(({ item, isActive, onPress, colors, mode }) => {
     </Animated.View>
   );
 });
+
+TabItem.displayName = 'TabItem';
 
 // Export memoized component to prevent unnecessary re-renders
 export default memo(BottomNavigation);

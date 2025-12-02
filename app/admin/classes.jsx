@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState,} from "react";
 import {
     View,
     Text,
@@ -8,19 +8,20 @@ import {
     RefreshControl,
     ActivityIndicator,
     Modal,
-    StyleSheet,
-    Alert,
-} from "react-native";
+    Alert } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/useApi";
+import apiConfig from "../../config/apiConfig";
 import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "../../components/ToastProvider";
+import AppHeader from "../../components/Header";
 
 export default function ClassesScreen() {
     const router = useRouter();
-    const { styles, colors } = useTheme();
+    const { _styles, colors } = useTheme();
     const { showToast } = useToast();
     const queryClient = useQueryClient();
     const [refreshing, setRefreshing] = useState(false);
@@ -145,7 +146,7 @@ export default function ClassesScreen() {
                 contentContainerStyle={{ paddingBottom: 100 }}
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
-                    <Header title="Classes" subtitle="Manage classes and sections" showBack />
+                    <AppHeader title="Classes" subtitle="Manage classes and sections" showBack />
 
                     <View style={{ marginTop: 16 }}>
                         {classes.map((cls) => (
@@ -314,9 +315,10 @@ export default function ClassesScreen() {
                             </Pressable>
                             <Pressable
                                 onPress={handleSubmit}
-                                disabled={saving}
+                                disabled={createClassMutation.isPending || updateClassMutation.isPending}
                                 style={{
-                                    backgroundColor: (createClassMutation.isPending || updateClassMutation.isPending) ? colors.disabled : colors.primary,
+                                    backgroundColor: colors.primary,
+                                    opacity: (createClassMutation.isPending || updateClassMutation.isPending) ? 0.5 : 1,
                                     paddingHorizontal: 20,
                                     paddingVertical: 12,
                                     borderRadius: 8,

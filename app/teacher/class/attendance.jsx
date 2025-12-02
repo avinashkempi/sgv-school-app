@@ -14,13 +14,13 @@ import { useTheme } from "../../../theme";
 import apiConfig from "../../../config/apiConfig";
 import apiFetch from "../../../utils/apiFetch";
 import { useToast } from "../../../components/ToastProvider";
-import Header from "../../../components/Header";
+import AppHeader from "../../../components/Header";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
 export default function MarkAttendanceScreen() {
-    const router = useRouter();
+    const _router = useRouter();
     const params = useLocalSearchParams();
-    const { styles, colors } = useTheme();
+    const { _styles, colors } = useTheme();
     const { showToast } = useToast();
 
     const { classId, subjectId } = params;
@@ -196,7 +196,7 @@ export default function MarkAttendanceScreen() {
                 contentContainerStyle={{ paddingBottom: 100 }}
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
-                    <Header
+                    <AppHeader
                         title="Mark Attendance"
                         subtitle={subjectData ? `${subjectData.name} - ${classData?.name}` : classData?.name}
                     />

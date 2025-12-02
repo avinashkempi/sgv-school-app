@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState,} from "react";
 import {
     View,
     Text,
@@ -12,7 +12,7 @@ import {
     Platform
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/useApi";
@@ -22,8 +22,8 @@ import apiConfig from "../../config/apiConfig";
 import { useToast } from "../../components/ToastProvider";
 
 export default function StudentComplaintsScreen() {
-    const router = useRouter();
-    const { styles, colors } = useTheme();
+    const _router = useRouter();
+    const { _styles, colors } = useTheme();
     const { showToast } = useToast();
 
     const queryClient = useQueryClient();
@@ -55,7 +55,7 @@ export default function StudentComplaintsScreen() {
             setCategory("Academic");
             queryClient.invalidateQueries({ queryKey: ['studentComplaints'] });
         },
-        onError: (error) => showToast("Failed to submit complaint", "error")
+        onError: (_error) => showToast("Failed to submit complaint", "_error")
     });
 
     const handleCreate = () => {

@@ -14,15 +14,16 @@ import { useTheme } from "../../theme";
 import apiConfig from "../../config/apiConfig";
 import { useApiQuery } from "../../hooks/useApi";
 import { useToast } from "../../components/ToastProvider";
-import Header from "../../components/Header";
+import AppHeader from "../../components/Header";
 
 export default function TeacherClassesScreen() {
     const router = useRouter();
     const params = useLocalSearchParams();
     const { action } = params;
     const { styles, colors } = useTheme();
-    const { showToast } = useToast();
-    const [user, setUser] = useState(null);
+    const { _showToast } = useToast();
+    const [_user, setUser] = useState(null);
+    const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
         const loadUser = async () => {
@@ -62,7 +63,7 @@ export default function TeacherClassesScreen() {
                 showsVerticalScrollIndicator={false}
             >
                 <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
-                    <Header title="My Classes" subtitle="Manage your assigned classes" />
+                    <AppHeader title="My Classes" subtitle="Manage your assigned classes" />
 
                     {loading ? (
                         <View style={{ flex: 1, justifyContent: "center", alignItems: "center", marginTop: 100 }}>

@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable, Switch, Linking, Image } from 'react-native';
+import { View, Text, ScrollView, Pressable, Switch, Linking,} from 'react-native';
 import { useRouter } from 'expo-router';
-import { MaterialIcons, FontAwesome, Ionicons } from '@expo/vector-icons';
+import { MaterialIcons, FontAwesome,} from '@expo/vector-icons';
 import { useTheme } from '../theme';
 import { useToast } from '../components/ToastProvider';
 import Header from '../components/Header';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SCHOOL } from '../constants/basic-info';
-import { LinearGradient } from 'expo-linear-gradient';
+import {} from 'expo-linear-gradient';
 
 export default function MenuScreen() {
     const router = useRouter();
-    const { styles, colors, mode, toggle, gradients } = useTheme();
-    const { showToast } = useToast();
+    const { styles, colors, mode, toggle, _gradients } = useTheme();
+    const { _showToast } = useToast();
 
     const handleLogout = async () => {
         try {

@@ -1,9 +1,9 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { ScrollView, View, Text, Pressable, Alert, RefreshControl, StyleSheet, ActivityIndicator } from "react-native";
+import React, { useState, useMemo,} from "react";
+import { ScrollView, View, Text, Pressable, Alert, RefreshControl, ActivityIndicator } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 
 import { useTheme } from "../theme";
 import { useToast } from "../components/ToastProvider";
@@ -12,6 +12,7 @@ import EventFormModal from "../components/EventFormModal";
 import ModernCalendar from "../components/ModernCalendar";
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../hooks/useApi";
 import { useQueryClient } from "@tanstack/react-query";
+import apiConfig from "../config/apiConfig";
 
 // Memoized day renderer component for performance
 const DayRenderer = React.memo(({ date, state, marking, onDayPress, colors }) => {
@@ -96,6 +97,8 @@ const DayRenderer = React.memo(({ date, state, marking, onDayPress, colors }) =>
   );
 });
 
+DayRenderer.displayName = 'DayRenderer';
+
 import { formatDate } from "../utils/date";
 
 // ... inside component
@@ -178,8 +181,10 @@ const EventCard = React.memo(({ event, styles, colors, isAdmin, onEdit, onDelete
   );
 });
 
+EventCard.displayName = 'EventCard';
+
 export default function EventsScreen() {
-  const navigation = useNavigation();
+  const _navigation = useNavigation();
   const today = new Date().toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = useState(today);
   const [isEventFormVisible, setIsEventFormVisible] = useState(false);
@@ -230,7 +235,7 @@ export default function EventsScreen() {
     onError: (error) => showToast(error.message || 'Failed to delete event')
   });
 
-  const [refreshFlag, setRefreshFlag] = useState(false);
+  const [refreshFlag, _setRefreshFlag] = useState(false);
 
   const handleDateSelect = (day) => {
     setSelectedDate(day.dateString);
@@ -250,9 +255,13 @@ export default function EventsScreen() {
     setIsEventFormVisible(true);
   };
 
-  const handleDeleteEvent = (eventId, eventTitle) => {
+  const handleDeleteEvent = (eventId, _eventTitle) => {
     deleteEventMutation.mutate(eventId);
   };
+
+  const [refreshing, setRefreshing] = useState(false);
+  const { showToast } = useToast();
+  const { colors, styles } = useTheme();
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -330,7 +339,7 @@ export default function EventsScreen() {
             <ModernCalendar
               current={selectedDate}
               onDayPress={handleDateSelect}
-              onMonthChange={(month) => {
+              onMonthChange={(_month) => {
                 // React Query handles caching automatically, no need to manually fetch range
                 // But if we want to prefetch, we could do it here
               }}

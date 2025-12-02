@@ -5,7 +5,7 @@ import React, {
   useState,
   useEffect,
 } from "react";
-import { StyleSheet, Appearance, Platform } from "react-native";
+import { StyleSheet, Appearance,} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const FONTS = {
