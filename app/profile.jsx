@@ -217,6 +217,7 @@ export default function ProfileScreen() {
             justifyContent: 'center',
             flexDirection: 'row',
             opacity: pressed ? 0.9 : 1,
+            marginBottom: 16,
           })}
         >
           <MaterialIcons

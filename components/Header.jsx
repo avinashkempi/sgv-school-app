@@ -11,26 +11,46 @@ const Header = ({ title, subtitle, variant = "default" }) => {
   // Variant "welcome" is for home page style
   if (variant === "welcome") {
     return (
-      <View style={{ marginTop: 10, marginBottom: 32 }}>
-        <Text style={{
-          fontSize: 16,
-          color: colors.textSecondary,
-          fontFamily: "DMSans-Medium",
-          marginBottom: 8,
-          letterSpacing: 0.5,
-          textTransform: 'uppercase'
-        }}>
-          Welcome to
-        </Text>
-        <Text style={{
-          fontSize: 36,
-          color: colors.textPrimary,
-          fontFamily: "DMSans-Bold",
-          letterSpacing: -1.5,
-          lineHeight: 42
-        }}>
-          {title}
-        </Text>
+      <View style={{ marginTop: 10, marginBottom: 32, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", paddingRight: 4 }}>
+        <View style={{ flex: 1 }}>
+          <Text style={{
+            fontSize: 16,
+            color: colors.textSecondary,
+            fontFamily: "DMSans-Medium",
+            marginBottom: 8,
+            letterSpacing: 0.5,
+            textTransform: 'uppercase'
+          }}>
+            Welcome to
+          </Text>
+          <Text style={{
+            fontSize: 36,
+            color: colors.textPrimary,
+            fontFamily: "DMSans-Bold",
+            letterSpacing: -1.5,
+            lineHeight: 42
+          }}>
+            {title}
+          </Text>
+        </View>
+
+        {/* Notification Bell */}
+        <Pressable
+          onPress={() => router.push("/notifications")}
+          style={({ pressed }) => ({
+            padding: 10,
+            backgroundColor: colors.cardBackground,
+            borderRadius: 14,
+            opacity: pressed ? 0.7 : 1,
+            borderWidth: 1,
+            borderColor: colors.border,
+            marginTop: 8,
+            marginLeft: 16,
+            ...styles.shadow
+          })}
+        >
+          <MaterialIcons name="notifications-none" size={24} color={colors.textPrimary} />
+        </Pressable>
       </View>
     );
   }

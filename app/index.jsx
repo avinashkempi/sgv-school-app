@@ -8,11 +8,20 @@ import Header from "../components/Header";
 
 import SchoolPhotoCarousel from "../components/SchoolPhotoCarousel";
 
+import { useToast } from "../components/ToastProvider";
+
+import apiConfig from "../config/apiConfig";
+import apiFetch from "../utils/apiFetch";
+
+// Global variable to track if welcome/latest notification has been shown in this session
+let hasShownNotification = false;
+
 export default function HomeScreen() {
   const fadeAnim = useFade();
   const { styles, colors, mode } = useTheme();
   const { schoolInfo: SCHOOL, refresh } = useSchoolInfo();
   const [refreshing, setRefreshing] = useState(false);
+  const { showToast } = useToast();
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -39,6 +48,27 @@ export default function HomeScreen() {
       }
     };
     loadUser();
+
+    // Fetch and show latest notification if not already shown
+    const checkNotifications = async () => {
+      if (hasShownNotification) return;
+
+      try {
+        const response = await apiFetch(`${apiConfig.baseUrl}/notifications`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.notifications && data.notifications.length > 0) {
+            const latest = data.notifications[0];
+            showToast(latest.message || latest.title || "Welcome back!", "info");
+            hasShownNotification = true;
+          }
+        }
+      } catch (error) {
+        console.log("Failed to fetch notifications for homepage toast", error);
+      }
+    };
+
+    checkNotifications();
   }, [refreshing]);
 
   return (

@@ -52,7 +52,9 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "extra": {
       "router": {
         "origin": false
@@ -60,6 +62,7 @@
       "eas": {
         "projectId": "4d8aa0f7-ce1f-46c3-83ae-fa188aad9ebe"
       }
-    }
+    },
+    "owner": "avinashkempi"
   }
 }

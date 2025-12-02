@@ -17,7 +17,7 @@ import apiConfig from "../../config/apiConfig";
 import apiFetch from "../../utils/apiFetch";
 import { useToast } from "../../components/ToastProvider";
 import Header from "../../components/Header";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import ModernTimePicker from "../../components/ModernTimePicker";
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -241,9 +241,8 @@ export default function AdminTimetableScreen() {
         setSchedule({ ...schedule, [selectedDay]: updatedDaySchedule });
     };
 
-    const onTimeChange = (event, selectedDate) => {
+    const onTimeConfirm = (selectedDate) => {
         const mode = showTimePicker.mode;
-        setShowTimePicker({ ...showTimePicker, show: false });
 
         if (selectedDate) {
             if (mode === 'start') {
@@ -559,14 +558,13 @@ export default function AdminTimetableScreen() {
                 </Pressable>
             </Modal>
 
-            {showTimePicker.show && (
-                <DateTimePicker
-                    value={showTimePicker.mode === 'start' ? tempPeriod.startTime : tempPeriod.endTime}
-                    mode="time"
-                    display="default"
-                    onChange={onTimeChange}
-                />
-            )}
+            <ModernTimePicker
+                visible={showTimePicker.show}
+                onClose={() => setShowTimePicker({ ...showTimePicker, show: false })}
+                onConfirm={onTimeConfirm}
+                value={showTimePicker.mode === 'start' ? tempPeriod.startTime : tempPeriod.endTime}
+                title={showTimePicker.mode === 'start' ? "Select Start Time" : "Select End Time"}
+            />
         </View>
     );
 }
