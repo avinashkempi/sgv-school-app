@@ -1,4 +1,4 @@
-import React, { useState, useMemo,} from "react";
+import React, { useState, useMemo, } from "react";
 import { ScrollView, View, Text, Pressable, Alert, RefreshControl, ActivityIndicator } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -200,7 +200,8 @@ export default function EventsScreen() {
 
   const { data: userData } = useApiQuery(
     ['currentUser'],
-    `${apiConfig.baseUrl}/auth/me`
+    `${apiConfig.baseUrl}/auth/me`,
+    { select: (data) => data.user }
   );
   const isAuthenticated = userData?.role === 'admin' || userData?.role === 'super admin';
 

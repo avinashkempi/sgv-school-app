@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { useTheme } from "../../../theme";
 import apiConfig from "../../../config/apiConfig";
 import { useToast } from "../../../components/ToastProvider";
@@ -52,6 +52,12 @@ export default function InitializeExamScreen() {
         ['examStatus', classId, subjectId],
         `${apiConfig.baseUrl}/exams/standardized?classId=${classId}&subjectId=${subjectId}`,
         { enabled: !!classId && !!subjectId }
+    );
+
+    useFocusEffect(
+        React.useCallback(() => {
+            refetch();
+        }, [refetch])
     );
 
     const createExamMutation = useApiMutation({

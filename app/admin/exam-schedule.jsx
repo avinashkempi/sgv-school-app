@@ -87,6 +87,46 @@ export default function AdminExamScheduleScreen() {
         });
     };
 
+    const [showInitModal, setShowInitModal] = useState(false);
+    const [initType, setInitType] = useState("FA1");
+    const [initTotalMarks, setInitTotalMarks] = useState("100");
+    const [initDate, setInitDate] = useState(new Date());
+    const [initDuration, setInitDuration] = useState("90");
+    const [initInstructions, setInitInstructions] = useState("");
+    const [showInitDatePicker, setShowInitDatePicker] = useState(false);
+
+    const initMutation = useApiMutation({
+        mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/exams/school-wide/init`, 'POST'),
+        onSuccess: (data) => {
+            showToast(`${data.message}. Created: ${data.created}, Skipped: ${data.skipped}`, "success");
+            setShowInitModal(false);
+            queryClient.invalidateQueries({ queryKey: ['adminExamSchedule'] });
+        },
+        onError: (error) => showToast(error.message || "Failed to initialize exams", "error")
+    });
+
+    const handleInitDateChange = (event, selectedDate) => {
+        setShowInitDatePicker(Platform.OS === 'ios');
+        if (selectedDate) {
+            setInitDate(selectedDate);
+        }
+    };
+
+    const handleInitialize = () => {
+        if (!initTotalMarks || isNaN(initTotalMarks) || parseFloat(initTotalMarks) <= 0) {
+            showToast("Please enter valid total marks", "error");
+            return;
+        }
+
+        initMutation.mutate({
+            type: initType,
+            totalMarks: parseFloat(initTotalMarks),
+            date: initDate.toISOString(),
+            instructions: initInstructions,
+            duration: initDuration ? parseInt(initDuration) : null
+        });
+    };
+
     if (loading && classes.length === 0) {
         return (
             <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: "center", alignItems: "center" }}>
@@ -99,6 +139,25 @@ export default function AdminExamScheduleScreen() {
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <View style={{ padding: 16, paddingTop: 24 }}>
                 <Header title="Exam Schedules" subtitle="Manage Dates" showBack />
+
+                <Pressable
+                    onPress={() => setShowInitModal(true)}
+                    style={{
+                        backgroundColor: colors.primary,
+                        padding: 12,
+                        borderRadius: 12,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        marginTop: 16,
+                        gap: 8
+                    }}
+                >
+                    <MaterialIcons name="playlist-add-check" size={24} color="#fff" />
+                    <Text style={{ color: "#fff", fontFamily: "DMSans-Bold", fontSize: 16 }}>
+                        Initialize School Exams
+                    </Text>
+                </Pressable>
             </View>
 
             <View style={{ paddingHorizontal: 16, marginBottom: 16 }}>
@@ -286,6 +345,197 @@ export default function AdminExamScheduleScreen() {
                     </View>
                 </Modal>
             )}
+
+            {/* School-wide Initialization Modal */}
+            <Modal
+                transparent={true}
+                visible={showInitModal}
+                animationType="slide"
+                onRequestClose={() => setShowInitModal(false)}
+            >
+                <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
+                    <View style={{ backgroundColor: colors.background, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '85%' }}>
+                        <ScrollView showsVerticalScrollIndicator={false}>
+                            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                                <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
+                                    Initialize School Exams
+                                </Text>
+                                <Pressable onPress={() => setShowInitModal(false)}>
+                                    <MaterialIcons name="close" size={24} color={colors.textSecondary} />
+                                </Pressable>
+                            </View>
+
+                            <Text style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 20, fontFamily: "DMSans-Regular" }}>
+                                This will create the selected exam type for ALL classes and ALL subjects where it doesn&apos;t exist yet.
+                            </Text>
+
+                            {/* Exam Type Selection */}
+                            <View style={{ marginBottom: 16 }}>
+                                <Text style={{ fontSize: 14, fontFamily: "DMSans-Medium", color: colors.textSecondary, marginBottom: 8 }}>
+                                    Exam Type *
+                                </Text>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                                    <View style={{ flexDirection: "row", gap: 8 }}>
+                                        {['FA1', 'FA2', 'SA1', 'FA3', 'FA4', 'SA2'].map(type => (
+                                            <Pressable
+                                                key={type}
+                                                onPress={() => setInitType(type)}
+                                                style={{
+                                                    paddingHorizontal: 16,
+                                                    paddingVertical: 10,
+                                                    backgroundColor: initType === type ? colors.primary : colors.cardBackground,
+                                                    borderRadius: 12,
+                                                    borderWidth: 1,
+                                                    borderColor: initType === type ? colors.primary : colors.textSecondary + "20"
+                                                }}
+                                            >
+                                                <Text style={{ color: initType === type ? "#fff" : colors.textPrimary, fontFamily: "DMSans-Medium" }}>
+                                                    {type}
+                                                </Text>
+                                            </Pressable>
+                                        ))}
+                                    </View>
+                                </ScrollView>
+                            </View>
+
+                            {/* Total Marks */}
+                            <View style={{ marginBottom: 16 }}>
+                                <Text style={{ fontSize: 14, fontFamily: "DMSans-Medium", color: colors.textSecondary, marginBottom: 8 }}>
+                                    Total Marks *
+                                </Text>
+                                <TextInput
+                                    value={initTotalMarks}
+                                    onChangeText={setInitTotalMarks}
+                                    keyboardType="numeric"
+                                    placeholder="100"
+                                    placeholderTextColor={colors.textSecondary + "80"}
+                                    style={{
+                                        backgroundColor: colors.cardBackground,
+                                        padding: 14,
+                                        borderRadius: 12,
+                                        color: colors.textPrimary,
+                                        fontSize: 16,
+                                        fontFamily: "DMSans-Regular",
+                                        borderWidth: 1,
+                                        borderColor: colors.textSecondary + "20"
+                                    }}
+                                />
+                            </View>
+
+                            {/* Date */}
+                            <View style={{ marginBottom: 16 }}>
+                                <Text style={{ fontSize: 14, fontFamily: "DMSans-Medium", color: colors.textSecondary, marginBottom: 8 }}>
+                                    Exam Date
+                                </Text>
+                                <Pressable
+                                    onPress={() => setShowInitDatePicker(true)}
+                                    style={{
+                                        backgroundColor: colors.cardBackground,
+                                        padding: 14,
+                                        borderRadius: 12,
+                                        borderWidth: 1,
+                                        borderColor: colors.textSecondary + "20",
+                                        flexDirection: "row",
+                                        alignItems: "center",
+                                        justifyContent: "space-between"
+                                    }}
+                                >
+                                    <Text style={{ fontSize: 16, fontFamily: "DMSans-Regular", color: colors.textPrimary }}>
+                                        {initDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                    </Text>
+                                    <MaterialIcons name="calendar-today" size={20} color={colors.textSecondary} />
+                                </Pressable>
+                                {showInitDatePicker && (
+                                    <DateTimePicker
+                                        value={initDate}
+                                        mode="date"
+                                        display="default"
+                                        onChange={handleInitDateChange}
+                                    />
+                                )}
+                            </View>
+
+                            {/* Duration */}
+                            <View style={{ marginBottom: 16 }}>
+                                <Text style={{ fontSize: 14, fontFamily: "DMSans-Medium", color: colors.textSecondary, marginBottom: 8 }}>
+                                    Duration (minutes)
+                                </Text>
+                                <TextInput
+                                    value={initDuration}
+                                    onChangeText={setInitDuration}
+                                    keyboardType="numeric"
+                                    placeholder="90"
+                                    placeholderTextColor={colors.textSecondary + "80"}
+                                    style={{
+                                        backgroundColor: colors.cardBackground,
+                                        padding: 14,
+                                        borderRadius: 12,
+                                        color: colors.textPrimary,
+                                        fontSize: 16,
+                                        fontFamily: "DMSans-Regular",
+                                        borderWidth: 1,
+                                        borderColor: colors.textSecondary + "20"
+                                    }}
+                                />
+                            </View>
+
+                            {/* Instructions */}
+                            <View style={{ marginBottom: 24 }}>
+                                <Text style={{ fontSize: 14, fontFamily: "DMSans-Medium", color: colors.textSecondary, marginBottom: 8 }}>
+                                    Instructions (Optional)
+                                </Text>
+                                <TextInput
+                                    value={initInstructions}
+                                    onChangeText={setInitInstructions}
+                                    multiline
+                                    numberOfLines={3}
+                                    placeholder="Enter instructions..."
+                                    placeholderTextColor={colors.textSecondary + "80"}
+                                    textAlignVertical="top"
+                                    style={{
+                                        backgroundColor: colors.cardBackground,
+                                        padding: 14,
+                                        borderRadius: 12,
+                                        color: colors.textPrimary,
+                                        fontSize: 16,
+                                        fontFamily: "DMSans-Regular",
+                                        borderWidth: 1,
+                                        borderColor: colors.textSecondary + "20",
+                                        minHeight: 80
+                                    }}
+                                />
+                            </View>
+
+                            {/* Submit Button */}
+                            <Pressable
+                                onPress={handleInitialize}
+                                disabled={initMutation.isPending}
+                                style={({ pressed }) => ({
+                                    backgroundColor: colors.primary,
+                                    borderRadius: 12,
+                                    padding: 16,
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    gap: 8,
+                                    opacity: pressed || initMutation.isPending ? 0.7 : 1
+                                })}
+                            >
+                                {initMutation.isPending ? (
+                                    <ActivityIndicator size="small" color="#fff" />
+                                ) : (
+                                    <>
+                                        <MaterialIcons name="playlist-add-check" size={24} color="#fff" />
+                                        <Text style={{ fontSize: 17, fontFamily: "DMSans-Bold", color: "#fff" }}>
+                                            Initialize for All Classes
+                                        </Text>
+                                    </>
+                                )}
+                            </Pressable>
+                        </ScrollView>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }

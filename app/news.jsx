@@ -1,5 +1,5 @@
 import { View, Text, FlatList, Pressable, Alert, RefreshControl, Linking } from "react-native";
-import { useNavigation,} from "@react-navigation/native";
+import { useNavigation, } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../theme";
 import Header from "../components/Header";
@@ -32,7 +32,8 @@ export default function NewsScreen() {
   // Check Auth & Admin
   const { data: userData } = useApiQuery(
     ['currentUser'],
-    `${apiConfig.baseUrl}/auth/me`
+    `${apiConfig.baseUrl}/auth/me`,
+    { select: (data) => data.user }
   );
   const isAdmin = userData?.role === 'admin' || userData?.role === 'super admin';
 

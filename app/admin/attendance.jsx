@@ -1,4 +1,4 @@
-import React, { useState, useEffect,} from 'react';
+import React, { useState, useEffect, } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, ScrollView, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,7 +27,8 @@ export default function AdminAttendance() {
     // Fetch User
     const { data: user } = useApiQuery(
         ['currentUser'],
-        `${apiConfig.baseUrl}/auth/me`
+        `${apiConfig.baseUrl}/auth/me`,
+        { select: (data) => data.user }
     );
 
     // Fetch School Summary

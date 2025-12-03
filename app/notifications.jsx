@@ -1,4 +1,4 @@
-import React, { useState,} from "react";
+import React, { useState, } from "react";
 import {
     View,
     Text,
@@ -38,7 +38,8 @@ export default function NotificationsScreen() {
     // Fetch Preferences
     const { data: userData } = useApiQuery(
         ['currentUser'],
-        `${apiConfig.baseUrl}/auth/me`
+        `${apiConfig.baseUrl}/auth/me`,
+        { select: (data) => data.user }
     );
     const preferences = userData?.notificationPreferences || {
         homework: true,

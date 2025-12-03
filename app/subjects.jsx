@@ -1,4 +1,4 @@
-import React, { useState,} from "react";
+import React, { useState, } from "react";
 import { View, Text, ScrollView, RefreshControl, ActivityIndicator, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -17,7 +17,11 @@ export default function SubjectsScreen() {
     const { _showToast } = useToast();
     const [refreshing, setRefreshing] = useState(false);
 
-    const { data: userData } = useApiQuery(['currentUser'], `${apiConfig.baseUrl}/auth/me`);
+    const { data: userData, isLoading: loadingUser, refetch } = useApiQuery(
+        ['currentUser'],
+        `${apiConfig.baseUrl}/auth/me`,
+        { select: (data) => data.user }
+    );
     const user = userData || {};
 
     // Student Subjects Query
@@ -55,14 +59,15 @@ export default function SubjectsScreen() {
         enabled: !!(user && (user.role === 'class teacher' || user.role === 'staff' || user.role === 'teacher'))
     });
 
-    const loading = (user?.role === 'student' ? loadingStudent : loadingTeacher);
+    const loading = loadingUser || (user?.role === 'student' ? loadingStudent : loadingTeacher);
     const studentSubjects = studentSubjectsData || [];
     const teacherClasses = teacherClassesData || [];
 
     const onRefresh = async () => {
         setRefreshing(true);
         if (user?.role === 'student') await refetchStudent();
-        else await refetchTeacher();
+        else if (user?.role === 'class teacher' || user?.role === 'staff' || user?.role === 'teacher') await refetchTeacher();
+        else await refetch();
         setRefreshing(false);
     };
 

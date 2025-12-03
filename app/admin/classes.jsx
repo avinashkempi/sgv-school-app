@@ -1,4 +1,4 @@
-import React, { useState,} from "react";
+import React, { useState, } from "react";
 import {
     View,
     Text,
@@ -8,7 +8,8 @@ import {
     RefreshControl,
     ActivityIndicator,
     Modal,
-    Alert } from "react-native";
+    Alert
+} from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
 import { useRouter } from "expo-router";
@@ -40,7 +41,8 @@ export default function ClassesScreen() {
     // Fetch User
     const { data: user } = useApiQuery(
         ['currentUser'],
-        `${apiConfig.baseUrl}/auth/me`
+        `${apiConfig.baseUrl}/auth/me`,
+        { select: (data) => data.user }
     );
 
     // Fetch Data (Classes, Years, Teachers)

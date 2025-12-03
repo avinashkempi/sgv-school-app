@@ -1,5 +1,5 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import { View, Text, ScrollView, Animated, StatusBar, RefreshControl,} from "react-native";
+import { View, Text, ScrollView, Animated, StatusBar, RefreshControl, } from "react-native";
 import { useState, useEffect } from "react";
 import useFade from "../hooks/useFade";
 import { useTheme } from "../theme";
@@ -42,6 +42,7 @@ export default function HomeScreen() {
       enabled: true,
       staleTime: Infinity,
       retry: false,
+      select: (data) => data.user,
     }
   );
 

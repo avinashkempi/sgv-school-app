@@ -59,7 +59,16 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
   return (
     <View style={{ marginBottom: 24, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
       {showBack && (
-        <Pressable onPress={() => router.back()} style={{ marginRight: 12, marginTop: 4 }}>
+        <Pressable
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace("/");
+            }
+          }}
+          style={{ marginRight: 12, marginTop: 4 }}
+        >
           <MaterialIcons name="arrow-back" size={24} color={colors.textPrimary} />
         </Pressable>
       )}

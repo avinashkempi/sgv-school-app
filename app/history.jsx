@@ -1,4 +1,4 @@
-import React, { useState,} from "react";
+import React, { useState, } from "react";
 import {
     View,
     Text,
@@ -27,7 +27,8 @@ export default function HistoryScreen() {
     // Fetch User Role
     const { data: userData } = useApiQuery(
         ['currentUser'],
-        `${apiConfig.baseUrl}/auth/me`
+        `${apiConfig.baseUrl}/auth/me`,
+        { select: (data) => data.user }
     );
     const userRole = userData?.role;
 

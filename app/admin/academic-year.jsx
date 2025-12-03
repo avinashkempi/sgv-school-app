@@ -8,7 +8,8 @@ import {
     Alert,
     RefreshControl,
     ActivityIndicator,
-    Modal } from "react-native";
+    Modal
+} from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
 import { useRouter } from "expo-router";
@@ -41,7 +42,8 @@ export default function AcademicYearScreen() {
     // Fetch User Role
     const { data: userData } = useApiQuery(
         ['currentUser'],
-        `${apiConfig.baseUrl}/auth/me`
+        `${apiConfig.baseUrl}/auth/me`,
+        { select: (data) => data.user }
     );
     const userRole = userData?.role;
 

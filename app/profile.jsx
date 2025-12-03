@@ -1,5 +1,5 @@
-import React, { useState,} from "react";
-import { View, Text, ScrollView, RefreshControl, Pressable } from "react-native";
+import React, { useState, } from "react";
+import { View, Text, ScrollView, RefreshControl, Pressable, ActivityIndicator } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from "../theme";
@@ -14,11 +14,12 @@ export default function ProfileScreen() {
   const { showToast } = useToast();
   const [refreshing, setRefreshing] = useState(false);
 
-  const { data: user, refetch } = useApiQuery(
+  const { data: user, refetch, isLoading } = useApiQuery(
     ['currentUser'],
     `${apiConfig.baseUrl}/auth/me`,
     {
       staleTime: Infinity,
+      select: (data) => data.user
     }
   );
 
@@ -47,6 +48,14 @@ export default function ProfileScreen() {
     const { router } = require('expo-router');
     router.replace('/login');
   };
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <ScrollView
