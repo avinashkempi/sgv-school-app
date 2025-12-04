@@ -263,11 +263,6 @@ export default function MenuScreen() {
                         </Text>
                     </Pressable>
                 )}
-
-                <Text style={{ textAlign: 'center', marginTop: 24, color: colors.textSecondary, fontSize: 12, fontFamily: "DMSans-Regular" }}>
-                    App Version 1.0.0 • Build 2024
-                </Text>
-
             </ScrollView>
         </View>
     );
