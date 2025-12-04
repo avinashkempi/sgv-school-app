@@ -1,6 +1,7 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { View, Text, ScrollView, Animated, StatusBar, RefreshControl, } from "react-native";
 import { useState, useEffect } from "react";
+import { useRouter } from "expo-router";
 import useFade from "../hooks/useFade";
 import { useTheme } from "../theme";
 import useSchoolInfo from "../hooks/useSchoolInfo";
@@ -18,6 +19,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 let hasShownNotification = false;
 
 export default function HomeScreen() {
+  const router = useRouter();
   const fadeAnim = useFade();
   const { styles, colors, mode } = useTheme();
   const { schoolInfo: SCHOOL, refresh } = useSchoolInfo();
@@ -51,9 +53,7 @@ export default function HomeScreen() {
       // If we can't fetch user details (likely 401/403), clear session and redirect
       const handleLogout = async () => {
         await AsyncStorage.multiRemove(['@auth_token', '@auth_user']);
-        // Optional: router.replace('/login'); 
-        // For now, we just clear storage so the UI reflects logged out state
-        // or let the user manually log in again.
+        router.replace('/login');
       };
       handleLogout();
     }

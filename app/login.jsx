@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, StatusBar, ActivityIndicator, KeyboardAvoidingView, Platform,} from 'react-native';
+import { View, Text, TextInput, Pressable, ScrollView, StatusBar, ActivityIndicator, KeyboardAvoidingView, Platform, } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -158,7 +158,29 @@ export default function Login() {
           </View>
 
           <View style={{ marginTop: 24, alignItems: 'center' }}>
-            <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14 }}>
+            <Pressable
+              onPress={async () => {
+                const { DEMO_USER } = require('../constants/demoData');
+                await AsyncStorage.setItem('@auth_token', 'demo-token');
+                await AsyncStorage.setItem('@auth_user', JSON.stringify(DEMO_USER));
+                router.replace('/');
+              }}
+              style={({ pressed }) => ({
+                padding: 12,
+                opacity: pressed ? 0.6 : 1
+              })}
+            >
+              <Text style={{
+                color: 'rgba(255,255,255,0.9)',
+                fontSize: 16,
+                fontFamily: "DMSans-Medium",
+                textDecorationLine: 'underline'
+              }}>
+                View as Guest (Demo Mode)
+              </Text>
+            </Pressable>
+
+            <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, marginTop: 16 }}>
               Protected by School Management System
             </Text>
           </View>

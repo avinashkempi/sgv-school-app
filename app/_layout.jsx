@@ -1,6 +1,6 @@
-import { Stack } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
 import { useFonts } from "expo-font";
-import { Text, Platform } from "react-native";
+import { Text, Platform, View, ActivityIndicator } from "react-native";
 import { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemeProvider, useTheme } from "../theme";
@@ -25,9 +25,38 @@ Notifications.setNotificationHandler({
   }),
 });
 
+import DemoBanner from "../components/DemoBanner";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useState } from "react";
+
 // separate component so we can use useTheme inside ThemeProvider
 function Inner() {
   const { styles } = useTheme();
+  const [isDemo, setIsDemo] = useState(false);
+  const segments = useSegments();
+  const router = useRouter();
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = await AsyncStorage.getItem('@auth_token');
+      setIsDemo(token === 'demo-token');
+
+      const inLoginGroup = segments[0] === 'login';
+
+      if (!token && !inLoginGroup) {
+        // No token and not on login page -> Redirect to login
+        router.replace('/login');
+      } else if (token && inLoginGroup) {
+        // Token exists and on login page -> Redirect to home
+        router.replace('/');
+      }
+
+      setIsReady(true);
+    };
+
+    checkAuth();
+  }, [segments]);
 
   // Setup push notifications
   useEffect(() => {
@@ -68,11 +97,22 @@ function Inner() {
     };
   }, []);
 
+  if (!isReady) {
+    return (
+      <SafeAreaView style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#2F6CD4" />
+      </SafeAreaView>
+    );
+  }
+
+  const isLogin = segments[0] === 'login';
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ToastProvider>
         <NetworkStatusProvider>
           <NavigationProvider>
+            {isDemo && !isLogin && <DemoBanner />}
             <Stack
               screenOptions={{
                 headerShown: false,
@@ -85,7 +125,7 @@ function Inner() {
                 detachInactiveScreens: true,
               }}
             />
-            <BottomNavigation />
+            {!isLogin && <BottomNavigation />}
           </NavigationProvider>
         </NetworkStatusProvider>
       </ToastProvider>
