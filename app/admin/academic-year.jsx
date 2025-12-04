@@ -292,7 +292,7 @@ export default function AcademicYearScreen() {
                     onPress={() => setShowModal(true)}
                     style={{
                         position: "absolute",
-                        bottom: 110,
+                        bottom: 130,
                         right: 24,
                         backgroundColor: colors.primary,
                         width: 56,

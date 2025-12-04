@@ -190,7 +190,7 @@ export default function EventsScreen() {
   const [isEventFormVisible, setIsEventFormVisible] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const queryClient = useQueryClient();
-  const { events: allEvents, isLoading: loading, refetch } = useApiQuery(
+  const { data: allEvents = [], isLoading: loading, refetch } = useApiQuery(
     ['events'],
     apiConfig.url(apiConfig.endpoints.events.list),
     {
@@ -437,7 +437,7 @@ export default function EventsScreen() {
           onPress={() => setIsEventFormVisible(true)}
           style={({ pressed }) => ([
             styles.fab,
-            { opacity: pressed ? 0.9 : 1 }
+            { opacity: pressed ? 0.9 : 1, bottom: 130 }
           ])}
         >
           <MaterialIcons name="add" size={24} color={colors.white} />

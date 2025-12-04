@@ -92,39 +92,39 @@ export default function HomeScreen() {
       <SchoolPhotoCarousel photos={SCHOOL.photoUrl} />
 
       {/* About Us Section */}
-      <Animated.View style={[styles.cardMinimal, { opacity: fadeAnim }]}>
+      <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
           <View style={{
             width: 40,
             height: 40,
-            borderRadius: 12,
-            backgroundColor: colors.primary + '15',
+            borderRadius: 20, // Circle
+            backgroundColor: colors.primaryContainer,
             justifyContent: 'center',
             alignItems: 'center',
             marginRight: 12
           }}>
-            <MaterialIcons name="apartment" size={24} color={colors.primary} />
+            <MaterialIcons name="apartment" size={24} color={colors.onPrimaryContainer} />
           </View>
-          <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>About Us</Text>
+          <Text style={{ fontSize: 18, fontFamily: "DMSans-Medium", color: colors.onSurface }}>About Us</Text>
         </View>
         <Text style={[styles.text, { marginBottom: 0 }]}>{SCHOOL.about}</Text>
       </Animated.View>
 
       {/* Branches Section */}
-      <Animated.View style={[styles.cardMinimal, { opacity: fadeAnim }]}>
+      <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
           <View style={{
             width: 40,
             height: 40,
-            borderRadius: 12,
-            backgroundColor: colors.secondary + '15',
+            borderRadius: 20,
+            backgroundColor: colors.secondaryContainer,
             justifyContent: 'center',
             alignItems: 'center',
             marginRight: 12
           }}>
-            <MaterialIcons name="school" size={24} color={colors.secondary} />
+            <MaterialIcons name="school" size={24} color={colors.onSecondaryContainer} />
           </View>
-          <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>Branches</Text>
+          <Text style={{ fontSize: 18, fontFamily: "DMSans-Medium", color: colors.onSurface }}>Branches</Text>
         </View>
 
         <View style={{ gap: 12 }}>
@@ -138,7 +138,7 @@ export default function HomeScreen() {
               marginRight: 10
             }} />
             <Text style={[styles.text, { flex: 1, marginBottom: 0 }]}>
-              <Text style={{ fontFamily: "DMSans-Bold" }}>Renuka Nagar, Mangasuli</Text>
+              <Text style={{ fontFamily: "DMSans-Medium", color: colors.onSurface }}>Renuka Nagar, Mangasuli</Text>
               {"\n"}Kindergarten to 8th Standard (9th and 10th opening soon).
             </Text>
           </View>
@@ -153,7 +153,7 @@ export default function HomeScreen() {
               marginRight: 10
             }} />
             <Text style={[styles.text, { flex: 1, marginBottom: 0 }]}>
-              <Text style={{ fontFamily: "DMSans-Bold" }}>Ugar Khurd</Text>
+              <Text style={{ fontFamily: "DMSans-Medium", color: colors.onSurface }}>Ugar Khurd</Text>
               {"\n"}Only Kindergarten.
             </Text>
           </View>
@@ -161,20 +161,20 @@ export default function HomeScreen() {
       </Animated.View>
 
       {/* Mission Section */}
-      <Animated.View style={[styles.cardMinimal, { opacity: fadeAnim }]}>
+      <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
           <View style={{
             width: 40,
             height: 40,
-            borderRadius: 12,
-            backgroundColor: '#FFD700' + '20',
+            borderRadius: 20,
+            backgroundColor: colors.tertiaryContainer,
             justifyContent: 'center',
             alignItems: 'center',
             marginRight: 12
           }}>
-            <MaterialIcons name="flag" size={24} color="#F59E0B" />
+            <MaterialIcons name="flag" size={24} color={colors.onTertiaryContainer} />
           </View>
-          <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>Our Mission</Text>
+          <Text style={{ fontSize: 18, fontFamily: "DMSans-Medium", color: colors.onSurface }}>Our Mission</Text>
         </View>
         <Text style={[styles.text, { marginBottom: 0 }]}>{SCHOOL.mission}</Text>
       </Animated.View>

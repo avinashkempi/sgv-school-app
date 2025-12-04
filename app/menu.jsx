@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable, Switch, Linking,} from 'react-native';
+import { View, Text, ScrollView, Pressable, Switch, Linking, } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MaterialIcons, FontAwesome,} from '@expo/vector-icons';
+import { MaterialIcons, FontAwesome, } from '@expo/vector-icons';
 import { useTheme } from '../theme';
 import { useToast } from '../components/ToastProvider';
 import Header from '../components/Header';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SCHOOL } from '../constants/basic-info';
-import {} from 'expo-linear-gradient';
+import { } from 'expo-linear-gradient';
 
 export default function MenuScreen() {
     const router = useRouter();

@@ -119,9 +119,6 @@ export default function NotificationsScreen() {
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <View style={{ padding: 16, paddingTop: 24, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                 <Header title="Notifications" showBack />
-                <Pressable onPress={() => setShowSettings(true)} style={{ padding: 8 }}>
-                    <MaterialIcons name="settings" size={24} color={colors.textPrimary} />
-                </Pressable>
             </View>
 
             <ScrollView

@@ -8,7 +8,8 @@ import {
     RefreshControl,
     ActivityIndicator,
     Modal,
-    Alert } from "react-native";
+    Alert
+} from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -501,12 +502,11 @@ export default function ClassDetailsScreen() {
                                 setSearchQuery("");
                             } else {
                                 setShowAddStudentModal(true);
-                                setSelectedStudentIds([]); // Reset selection
                             }
                         }}
-                        style={{
+                        style={({ pressed }) => ({
                             position: "absolute",
-                            bottom: 90,
+                            bottom: 130,
                             right: 24,
                             backgroundColor: colors.primary,
                             width: 56,
@@ -516,7 +516,8 @@ export default function ClassDetailsScreen() {
                             alignItems: "center",
                             elevation: 6,
                             zIndex: 9999,
-                        }}
+                            opacity: pressed ? 0.9 : 1,
+                        })}
                     >
                         <MaterialIcons name="add" size={28} color="#fff" />
                     </Pressable>

@@ -27,7 +27,31 @@ export default function NewsScreen() {
     ['news'],
     apiConfig.url(apiConfig.endpoints.news.list)
   );
-  const news = newsData?.news || [];
+  const DUMMY_NEWS = [
+    {
+      _id: 'n1',
+      title: 'School Annual Sports Day',
+      description: 'We are excited to announce that the Annual Sports Day will be held on December 20th. All students are requested to register for events by this Friday.',
+      creationDate: new Date().toISOString(),
+      isPrivate: false
+    },
+    {
+      _id: 'n2',
+      title: 'Science Fair Winners',
+      description: 'Congratulations to the winners of the Inter-School Science Fair! Our students secured the 1st place in Robotics.',
+      creationDate: new Date(Date.now() - 86400000 * 3).toISOString(),
+      isPrivate: false
+    },
+    {
+      _id: 'n3',
+      title: 'Holiday Announcement',
+      description: 'The school will remain closed on Monday, December 25th, for Christmas. We wish everyone a Merry Christmas!',
+      creationDate: new Date(Date.now() - 86400000 * 7).toISOString(),
+      isPrivate: false
+    }
+  ];
+
+  const news = (newsData?.news && newsData.news.length > 0) ? newsData.news : DUMMY_NEWS;
 
   // Check Auth & Admin
   const { data: userData } = useApiQuery(
@@ -213,7 +237,7 @@ export default function NewsScreen() {
           onPress={() => setIsModalVisible(true)}
           style={({ pressed }) => ([
             styles.fab,
-            { opacity: pressed ? 0.9 : 1 }
+            { opacity: pressed ? 0.9 : 1, bottom: 130 }
           ])}
         >
           <MaterialIcons name="add" size={24} color={colors.white} />

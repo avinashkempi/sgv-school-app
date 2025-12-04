@@ -1,4 +1,4 @@
-import React, { useState,} from 'react';
+import React, { useState, } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, RefreshControl, ActivityIndicator, ScrollView, Switch } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -527,18 +527,6 @@ const styles = StyleSheet.create({
     reasonLabel: { fontSize: 14, color: '#666', marginTop: 8, marginBottom: 2 },
     reasonText: { fontSize: 14, color: '#333', marginBottom: 12 },
     actionButtons: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8, borderTopWidth: 1, borderTopColor: '#eee', paddingTop: 12 },
-    actionButton: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, marginLeft: 12 },
-    approveButton: { backgroundColor: '#4CAF50' },
-    rejectButton: { backgroundColor: '#F44336' },
-    actionButtonText: { color: '#fff', fontWeight: '600', fontSize: 14 },
-    emptyText: { textAlign: 'center', marginTop: 40, color: '#666', fontSize: 16 },
-    fab: { position: 'absolute', bottom: 100, right: 20, backgroundColor: '#2F6CD4', flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 30, elevation: 4 },
-    fabText: { color: '#fff', fontWeight: 'bold', marginLeft: 8 },
-    balanceCard: { flexDirection: 'row', backgroundColor: '#fff', margin: 16, marginBottom: 0, padding: 16, borderRadius: 12, elevation: 2, justifyContent: 'space-around' },
-    balanceItem: { alignItems: 'center' },
-    balanceLabel: { fontSize: 12, color: '#666', marginBottom: 4 },
-    balanceValue: { fontSize: 20, fontWeight: 'bold', color: '#333' },
-    balanceDivider: { width: 1, backgroundColor: '#eee' },
     modalContainer: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 },
     modalContent: { backgroundColor: '#fff', borderRadius: 16, padding: 20, maxHeight: '90%' },
     modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
@@ -565,4 +553,21 @@ const styles = StyleSheet.create({
     rejectionBox: { marginTop: 12, padding: 10, backgroundColor: '#FFEBEE', borderRadius: 8, borderLeftWidth: 3, borderLeftColor: '#F44336' },
     rejectionTitle: { fontSize: 12, fontWeight: 'bold', color: '#D32F2F', marginBottom: 4 },
     rejectionText: { fontSize: 12, color: '#D32F2F', marginBottom: 2 },
+    fab: {
+        position: 'absolute',
+        bottom: 130,
+        right: 20,
+        backgroundColor: '#2F6CD4',
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderRadius: 30,
+        elevation: 4,
+    },
+    fabText: {
+        color: '#fff',
+        fontWeight: 'bold',
+        marginLeft: 8,
+    },
 });

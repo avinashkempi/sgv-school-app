@@ -6,6 +6,7 @@ import * as Haptics from "expo-haptics";
 import { useTheme } from "../theme";
 import { ROUTES } from "../constants/routes";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function BottomNavigation() {
   const router = useRouter();
@@ -13,6 +14,7 @@ function BottomNavigation() {
   const { colors, mode } = useTheme();
   const [activeTab, setActiveTab] = useState(ROUTES.HOME);
   const [user, setUser] = useState(null);
+  const insets = useSafeAreaInsets();
 
   // Load user only on mount - no need to reload on every pathname change
   useEffect(() => {
@@ -37,18 +39,18 @@ function BottomNavigation() {
     {
       route: ROUTES.HOME,
       label: "Home",
-      icon: "home",
+      icon: "home", // MD3 uses filled/outlined variants usually, but standard icons work
     },
     // Show My Class menu if user is a student
     ...(user && user.role === 'student' ? [{
       route: ROUTES.STUDENT_CLASS,
-      label: "My Class",
+      label: "Class",
       icon: "school",
     }] : []),
     // Show My Teach menu if user is a teacher
     ...(user && (user.role === 'class teacher' || user.role === 'teacher' || user.role === 'staff') ? [{
       route: ROUTES.TEACHER_CLASSES,
-      label: "My Teach",
+      label: "Teach",
       icon: "school",
     }] : []),
     // Admin gets Admin tab first, then Classes tab
@@ -64,7 +66,7 @@ function BottomNavigation() {
     // Requests Tab - for logged-in students and teachers
     ...(user && (user.role === 'student' || user.role === 'class teacher' || user.role === 'teacher' || user.role === 'staff' || user.role === 'admin' || user.role === 'super admin') ? [{
       route: "/requests",
-      label: "Attendance",
+      label: "Requests",
       icon: "assignment",
     }] : []),
 
@@ -102,34 +104,29 @@ function BottomNavigation() {
     });
   }, [pathname, router]);
 
-  // Glassmorphism background color
-  const glassBackground = mode === 'dark'
-    ? 'rgba(30, 41, 59, 0.9)' // Darker slate
-    : 'rgba(255, 255, 255, 0.9)';
-
   return (
-    <View style={styles.wrapper}>
-      <View style={[
-        styles.container,
-        {
-          backgroundColor: glassBackground,
-          borderColor: mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
-        }
-      ]}>
-        {navigationItems.map((item) => {
-          const isActive = activeTab === item.route;
-          return (
-            <TabItem
-              key={item.label}
-              item={item}
-              isActive={isActive}
-              onPress={() => handleTabPress(item.route)}
-              colors={colors}
-              mode={mode}
-            />
-          );
-        })}
-      </View>
+    <View style={[
+      styles.container,
+      {
+        backgroundColor: colors.surfaceContainer, // MD3 standard bottom nav background
+        paddingBottom: insets.bottom,
+        borderTopColor: colors.outlineVariant,
+        borderTopWidth: 0.5, // Subtle separator
+      }
+    ]}>
+      {navigationItems.map((item) => {
+        const isActive = activeTab === item.route;
+        return (
+          <TabItem
+            key={item.label}
+            item={item}
+            isActive={isActive}
+            onPress={() => handleTabPress(item.route)}
+            colors={colors}
+            mode={mode}
+          />
+        );
+      })}
     </View>
   );
 }
@@ -137,15 +134,15 @@ function BottomNavigation() {
 // Separate TabItem component for better performance and animations
 const TabItem = memo(({ item, isActive, onPress, colors, _mode }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
-  const iconScaleAnim = useRef(new Animated.Value(1)).current;
+  const activeAnim = useRef(new Animated.Value(0)).current;
 
   // Animate on press
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
       toValue: 0.9,
       useNativeDriver: true,
-      tension: 300,
-      friction: 10,
+      speed: 50,
+      bounciness: 10,
     }).start();
   };
 
@@ -153,85 +150,69 @@ const TabItem = memo(({ item, isActive, onPress, colors, _mode }) => {
     Animated.spring(scaleAnim, {
       toValue: 1,
       useNativeDriver: true,
-      tension: 300,
-      friction: 10,
+      speed: 50,
+      bounciness: 10,
     }).start();
   };
 
-  // Animate icon when active state changes
+  // Animate active state
   useEffect(() => {
-    Animated.sequence([
-      Animated.spring(iconScaleAnim, {
-        toValue: isActive ? 1.15 : 1,
-        useNativeDriver: true,
-        tension: 300,
-        friction: 8,
-      }),
-      Animated.spring(iconScaleAnim, {
-        toValue: 1,
-        useNativeDriver: true,
-        tension: 300,
-        friction: 8,
-      }),
-    ]).start();
+    Animated.timing(activeAnim, {
+      toValue: isActive ? 1 : 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
   }, [isActive]);
 
-  const activePillBackground = colors.primaryLight;
-
   return (
-    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-      <Pressable
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        style={styles.tabItem}
-        hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
-      >
-        {/* Active Pill Background */}
-        {isActive && (
-          <View style={[
+    <Pressable
+      onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      style={styles.tabItem}
+      hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+    >
+      <Animated.View style={{ alignItems: 'center', transform: [{ scale: scaleAnim }] }}>
+        {/* Icon Container with Pill Background */}
+        <View style={styles.iconContainer}>
+          {/* Active Pill Background */}
+          <Animated.View style={[
+            StyleSheet.absoluteFill,
             styles.activePill,
-            { backgroundColor: activePillBackground }
+            {
+              backgroundColor: colors.secondaryContainer,
+              opacity: activeAnim,
+              transform: [{
+                scaleX: activeAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.5, 1]
+                })
+              }]
+            }
           ]} />
-        )}
 
-        {/* Icon with glow effect */}
-        <Animated.View
-          style={[
-            styles.iconContainer,
-            isActive && {
-              shadowColor: colors.primary,
-              shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: 0.4,
-              shadowRadius: 8,
-              elevation: 4,
-            },
-            { transform: [{ scale: iconScaleAnim }] }
-          ]}
-        >
           <MaterialIcons
             name={item.icon}
             size={24}
-            color={isActive ? colors.primary : colors.textSecondary}
+            color={isActive ? colors.onSecondaryContainer : colors.onSurfaceVariant}
           />
-        </Animated.View>
+        </View>
 
         {/* Label */}
         <Text
           style={[
             styles.label,
             {
-              color: isActive ? colors.primary : colors.textSecondary,
-              fontFamily: isActive ? "DMSans-Bold" : "DMSans-Regular",
-              opacity: isActive ? 1 : 0.7,
+              color: isActive ? colors.onSurface : colors.onSurfaceVariant,
+              fontFamily: isActive ? "DMSans-Bold" : "DMSans-Medium",
             }
           ]}
           numberOfLines={1}
         >
           {item.label}
         </Text>
-      </Pressable>
-    </Animated.View>
+      </Animated.View>
+    </Pressable>
   );
 });
 
@@ -241,56 +222,40 @@ TabItem.displayName = 'TabItem';
 export default memo(BottomNavigation);
 
 const styles = StyleSheet.create({
-  wrapper: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 16,
-    paddingBottom: Platform.OS === 'ios' ? 24 : 20,
-  },
   container: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-around",
-    paddingVertical: 12,
+    paddingTop: 12,
     paddingHorizontal: 8,
-    borderRadius: 24,
-    borderWidth: 1,
-    // Enhanced shadow for floating effect
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 12,
-    // Backdrop blur simulation
-    overflow: 'hidden',
+    elevation: 0, // No shadow for MD3 bottom nav usually, or very subtle
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
   },
   tabItem: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-    position: "relative",
-  },
-  activePill: {
-    position: "absolute",
-    top: 0,
-    left: -4,
-    right: -4,
-    bottom: 0,
-    borderRadius: 16,
-    zIndex: 0,
+    height: 60, // Fixed height for touch target
   },
   iconContainer: {
+    width: 64, // Pill width
+    height: 32, // Pill height
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 4,
-    zIndex: 1,
+    overflow: 'hidden', // Clip the pill background
+    position: 'relative',
+  },
+  activePill: {
+    borderRadius: 16,
   },
   label: {
-    fontSize: 10,
-    letterSpacing: 0.5,
+    fontSize: 12,
+    letterSpacing: 0.4,
     textAlign: 'center',
-    zIndex: 1,
   },
 });

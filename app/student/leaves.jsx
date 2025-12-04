@@ -1,4 +1,4 @@
-import React, { useState,} from 'react';
+import React, { useState, } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, RefreshControl, ActivityIndicator, ScrollView, Switch } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -302,12 +302,9 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#333',
     },
-    backButton: {
-        padding: 4,
-    },
     fab: {
         position: 'absolute',
-        bottom: 100,
+        bottom: 130,
         right: 20,
         backgroundColor: '#2F6CD4',
         flexDirection: 'row',

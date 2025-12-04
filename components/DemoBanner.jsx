@@ -4,7 +4,7 @@ import { View, Text, StyleSheet } from 'react-native';
 export default function DemoBanner() {
     return (
         <View style={styles.container}>
-            <Text style={styles.text}>Demo Mode - Data is for illustration only</Text>
+            <Text style={styles.text}>Demo Mode • Log in for full access</Text>
         </View>
     );
 }

@@ -8,7 +8,7 @@ import {
     TouchableOpacity,
     ActivityIndicator
 } from "react-native";
-import {} from "@expo/vector-icons";
+import { } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
@@ -47,7 +47,7 @@ export default function StudentReportCardScreen() {
     );
 
     // Fetch Insights
-    const { data: insights, isLoading: loadingInsights } = useApiQuery(
+    const { data: insights, isLoading: loadingInsights, refetch: refetchInsights } = useApiQuery(
         ['studentInsights', userId],
         `${apiConfig.baseUrl}/reports/insights/${userId}`,
         { enabled: !!userId && activeTab === 'insights' }
@@ -55,7 +55,7 @@ export default function StudentReportCardScreen() {
 
     const onRefresh = async () => {
         setRefreshing(true);
-        await refetch();
+        await Promise.all([refetch(), refetchInsights()]);
         setRefreshing(false);
     };
 

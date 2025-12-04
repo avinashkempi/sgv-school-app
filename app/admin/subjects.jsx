@@ -1,4 +1,4 @@
-import React, { useState,} from "react";
+import React, { useState, } from "react";
 import {
     View,
     Text,
@@ -231,7 +231,7 @@ export default function ManageSubjectsScreen() {
                 }}
                 style={{
                     position: "absolute",
-                    bottom: 110,
+                    bottom: 130,
                     right: 24,
                     backgroundColor: colors.primary,
                     width: 56,

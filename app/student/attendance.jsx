@@ -5,8 +5,9 @@ import {
     ScrollView,
     ActivityIndicator,
     RefreshControl,
-    Dimensions } from "react-native";
-import {} from "@expo/vector-icons";
+    Dimensions
+} from "react-native";
+import { } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
@@ -55,6 +56,30 @@ export default function StudentAttendanceScreen() {
     );
 
     const attendanceHistory = historyData?.attendance || [];
+
+    // Calculate attendance stats from history as fallback
+    const calculatedStats = useMemo(() => {
+        if (!attendanceHistory || attendanceHistory.length === 0) return { present: 0, total: 0, percentage: 0 };
+
+        const total = attendanceHistory.length;
+        const present = attendanceHistory.filter(r => r.status === 'present').length;
+        const percentage = total > 0 ? ((present / total) * 100).toFixed(1) : 0;
+
+        return { present, total, percentage };
+    }, [attendanceHistory]);
+
+    // Use summary if available and non-zero, otherwise use calculated stats
+    const displayStats = useMemo(() => {
+        if (summary?.overall?.total > 0) {
+            return {
+                present: summary.overall.present,
+                total: summary.overall.total,
+                percentage: summary.overall.percentage
+            };
+        }
+        return calculatedStats;
+    }, [summary, calculatedStats]);
+
     const loading = loadingSummary || loadingHistory;
 
     const onRefresh = async () => {
@@ -129,12 +154,12 @@ export default function StudentAttendanceScreen() {
                             Overall Attendance
                         </Text>
                         <Text style={{ fontSize: 64, fontFamily: "DMSans-Bold", color: "#fff", marginTop: 8 }}>
-                            {summary?.overall?.percentage || 0}%
+                            {displayStats.percentage}%
                         </Text>
                         <View style={{ flexDirection: "row", gap: 24, marginTop: 16 }}>
                             <View style={{ alignItems: "center" }}>
                                 <Text style={{ fontSize: 28, fontFamily: "DMSans-Bold", color: "#fff" }}>
-                                    {summary?.overall?.present || 0}
+                                    {displayStats.present}
                                 </Text>
                                 <Text style={{ fontSize: 12, color: "#fff", opacity: 0.8, fontFamily: "DMSans-Regular" }}>
                                     Present
@@ -142,7 +167,7 @@ export default function StudentAttendanceScreen() {
                             </View>
                             <View style={{ alignItems: "center" }}>
                                 <Text style={{ fontSize: 28, fontFamily: "DMSans-Bold", color: "#fff" }}>
-                                    {summary?.overall?.total || 0}
+                                    {displayStats.total}
                                 </Text>
                                 <Text style={{ fontSize: 12, color: "#fff", opacity: 0.8, fontFamily: "DMSans-Regular" }}>
                                     Total Days

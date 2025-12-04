@@ -109,6 +109,7 @@ export default function RequestsScreen() {
 
                     <View style={{ marginTop: 24 }}>
                         {/* My Attendance Card - For All */}
+                        {/* My Attendance Card - For All */}
                         <Pressable
                             onPress={navigateToMyAttendance}
                             style={({ pressed }) => ({

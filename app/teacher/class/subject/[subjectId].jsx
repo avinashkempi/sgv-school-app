@@ -5,7 +5,8 @@ import {
     ScrollView,
     Pressable,
     RefreshControl,
-    ActivityIndicator } from "react-native";
+    ActivityIndicator
+} from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -234,7 +235,7 @@ export default function SubjectDetailScreen() {
                 onPress={() => setShowPostModal(true)}
                 style={({ pressed }) => ({
                     position: "absolute",
-                    bottom: 110,
+                    bottom: 130,
                     right: 24,
                     backgroundColor: colors.primary,
                     width: 56,
@@ -259,6 +260,6 @@ export default function SubjectDetailScreen() {
                 onClose={() => setShowPostModal(false)}
                 onSubmit={handlePostContent}
             />
-        </View>
+        </View >
     );
 }

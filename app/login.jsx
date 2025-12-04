@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, StatusBar, ActivityIndicator, KeyboardAvoidingView, Platform, } from 'react-native';
+import { View, Text, TextInput, Pressable, ScrollView, StatusBar, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -12,7 +12,7 @@ export default function Login() {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { styles, colors, _mode, gradients } = useTheme();
+  const { styles, colors, mode } = useTheme();
   const router = useRouter();
 
   const loginMutation = useApiMutation({
@@ -55,7 +55,7 @@ export default function Login() {
       />
 
       <LinearGradient
-        colors={gradients.primary}
+        colors={['#0B57D0', '#0842A0']} // Google Blue Gradient
         style={{ flex: 1 }}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -64,7 +64,7 @@ export default function Login() {
           contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}
           showsVerticalScrollIndicator={false}
         >
-          <View style={{ alignItems: 'center', marginBottom: 40 }}>
+          <View style={{ alignItems: 'center', marginBottom: 48 }}>
             <View style={{
               width: 80,
               height: 80,
@@ -79,13 +79,14 @@ export default function Login() {
               <MaterialIcons name="school" size={40} color="#fff" />
             </View>
             <Text style={{
-              fontSize: 32,
+              fontSize: 36,
               fontFamily: "DMSans-Bold",
               color: "#fff",
               marginBottom: 8,
-              textAlign: 'center'
+              textAlign: 'center',
+              letterSpacing: -1
             }}>
-              Welcome Back
+              Welcome
             </Text>
             <Text style={{
               fontSize: 16,
@@ -93,21 +94,30 @@ export default function Login() {
               color: "rgba(255,255,255,0.8)",
               textAlign: 'center'
             }}>
-              Sign in to continue to your account
+              School Management System
             </Text>
           </View>
 
-          <View style={[styles.card, { padding: 32, borderRadius: 32 }]}>
-            <View style={{ marginBottom: 20 }}>
-              <Text style={[styles.label, { marginLeft: 4, marginBottom: 8 }]}>Phone Number</Text>
-              <View style={[styles.input, { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, height: 56 }]}>
-                <MaterialIcons name="phone" size={20} color={colors.textSecondary} style={{ marginRight: 12 }} />
+          <View style={{ gap: 24 }}>
+            <View>
+              <Text style={[styles.label, { marginLeft: 4, marginBottom: 8, color: "rgba(255,255,255,0.9)" }]}>Phone Number</Text>
+              <View style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 16,
+                height: 56,
+                borderWidth: 1,
+                borderColor: 'rgba(0,0,0,0.1)'
+              }}>
+                <MaterialIcons name="phone" size={20} color="#444746" style={{ marginRight: 12 }} />
                 <TextInput
-                  style={{ flex: 1, fontSize: 16, color: colors.textPrimary, fontFamily: "DMSans-Regular", height: '100%' }}
+                  style={{ flex: 1, fontSize: 16, color: "#1F1F1F", fontFamily: "DMSans-Regular", height: '100%' }}
                   value={phone}
                   onChangeText={setPhone}
                   placeholder="Enter phone number"
-                  placeholderTextColor={colors.textSecondary}
+                  placeholderTextColor="#747775"
                   keyboardType="number-pad"
                   maxLength={10}
                   editable={!loading}
@@ -116,23 +126,32 @@ export default function Login() {
               </View>
             </View>
 
-            <View style={{ marginBottom: 32 }}>
-              <Text style={[styles.label, { marginLeft: 4, marginBottom: 8 }]}>Password</Text>
-              <View style={[styles.input, { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, height: 56 }]}>
-                <MaterialIcons name="lock" size={20} color={colors.textSecondary} style={{ marginRight: 12 }} />
+            <View>
+              <Text style={[styles.label, { marginLeft: 4, marginBottom: 8, color: "rgba(255,255,255,0.9)" }]}>Password</Text>
+              <View style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 16,
+                height: 56,
+                borderWidth: 1,
+                borderColor: 'rgba(0,0,0,0.1)'
+              }}>
+                <MaterialIcons name="lock" size={20} color="#444746" style={{ marginRight: 12 }} />
                 <TextInput
-                  style={{ flex: 1, fontSize: 16, color: colors.textPrimary, fontFamily: "DMSans-Regular", height: '100%' }}
+                  style={{ flex: 1, fontSize: 16, color: "#1F1F1F", fontFamily: "DMSans-Regular", height: '100%' }}
                   value={password}
                   onChangeText={setPassword}
                   placeholder="Enter password"
                   secureTextEntry={!showPassword}
-                  placeholderTextColor={colors.textSecondary}
+                  placeholderTextColor="#747775"
                   editable={!loading}
                   autoCapitalize="none"
                   autoComplete="password"
                 />
                 <Pressable onPress={() => setShowPassword(!showPassword)} style={{ padding: 4 }}>
-                  <MaterialIcons name={showPassword ? "visibility" : "visibility-off"} size={20} color={colors.textSecondary} />
+                  <MaterialIcons name={showPassword ? "visibility" : "visibility-off"} size={20} color="#444746" />
                 </Pressable>
               </View>
             </View>
@@ -142,7 +161,9 @@ export default function Login() {
                 styles.buttonLarge,
                 {
                   width: "100%",
-                  opacity: pressed || loading ? 0.8 : 1,
+                  marginTop: 8,
+                  backgroundColor: "#fff",
+                  opacity: pressed || loading ? 0.9 : 1,
                   transform: [{ scale: pressed ? 0.98 : 1 }]
                 }
               ]}
@@ -150,14 +171,18 @@ export default function Login() {
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={colors.primary} />
               ) : (
-                <Text style={[styles.buttonText, { fontSize: 18 }]}>Sign In</Text>
+                <Text style={[styles.buttonText, { fontSize: 18, color: colors.primary }]}>Sign In</Text>
               )}
             </Pressable>
-          </View>
 
-          <View style={{ marginTop: 24, alignItems: 'center' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 8 }}>
+              <View style={{ flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.3)' }} />
+              <Text style={{ marginHorizontal: 16, color: 'rgba(255,255,255,0.8)', fontSize: 14 }}>OR</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.3)' }} />
+            </View>
+
             <Pressable
               onPress={async () => {
                 const { DEMO_USER } = require('../constants/demoData');
@@ -166,23 +191,24 @@ export default function Login() {
                 router.replace('/');
               }}
               style={({ pressed }) => ({
-                padding: 12,
-                opacity: pressed ? 0.6 : 1
+                paddingVertical: 16,
+                borderRadius: 100,
+                borderWidth: 1.5,
+                borderColor: '#fff',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: pressed ? 0.7 : 1,
+                backgroundColor: 'transparent'
               })}
             >
               <Text style={{
-                color: 'rgba(255,255,255,0.9)',
+                color: '#fff',
                 fontSize: 16,
-                fontFamily: "DMSans-Medium",
-                textDecorationLine: 'underline'
+                fontFamily: "DMSans-Bold",
               }}>
-                View as Guest (Demo Mode)
+                View as Guest
               </Text>
             </Pressable>
-
-            <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, marginTop: 16 }}>
-              Protected by School Management System
-            </Text>
           </View>
         </ScrollView>
       </LinearGradient>

@@ -50,7 +50,40 @@ export default function ComplaintsScreen() {
         { enabled: !!userRole }
     );
 
-    const complaints = complaintsData || [];
+    const DUMMY_COMPLAINTS = [
+        {
+            _id: 'd1',
+            title: 'Request for more library books',
+            description: 'It would be great if we could have more science fiction books in the library.',
+            category: 'Academic',
+            status: 'In Progress',
+            createdAt: new Date().toISOString(),
+            visibility: 'teacher',
+            student: { name: 'Avinash' }
+        },
+        {
+            _id: 'd2',
+            title: 'Water cooler maintenance',
+            description: 'The water cooler on the second floor seems to be leaking slightly.',
+            category: 'Maintenance',
+            status: 'Resolved',
+            createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
+            visibility: 'super_admin',
+            student: { name: 'Avinash' }
+        },
+        {
+            _id: 'd3',
+            title: 'Suggestion for sports day',
+            description: 'Can we include a chess tournament in the upcoming sports day events?',
+            category: 'Sports',
+            status: 'Pending',
+            createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
+            visibility: 'headmaster',
+            student: { name: 'Avinash' }
+        }
+    ];
+
+    const complaints = (complaintsData && complaintsData.length > 0) ? complaintsData : DUMMY_COMPLAINTS;
 
     const onRefresh = async () => {
         setRefreshing(true);
@@ -207,8 +240,23 @@ export default function ComplaintsScreen() {
             <Pressable
                 onPress={() => router.push("/complaints/raise")}
                 style={({ pressed }) => [
-                    styles.fab,
-                    { opacity: pressed ? 0.9 : 1 }
+                    {
+                        position: "absolute",
+                        bottom: 130,
+                        right: 24,
+                        backgroundColor: colors.primary,
+                        width: 56,
+                        height: 56,
+                        borderRadius: 28,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        elevation: 5,
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.25,
+                        shadowRadius: 3.84,
+                        opacity: pressed ? 0.9 : 1
+                    }
                 ]}
             >
                 <MaterialIcons name="add" size={24} color="#fff" />

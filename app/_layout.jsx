@@ -108,7 +108,7 @@ function Inner() {
   const isLogin = segments[0] === 'login';
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <ToastProvider>
         <NetworkStatusProvider>
           <NavigationProvider>

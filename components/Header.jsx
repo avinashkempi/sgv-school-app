@@ -11,11 +11,18 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
   // Variant "welcome" is for home page style
   if (variant === "welcome") {
     return (
-      <View style={{ marginTop: 10, marginBottom: 32, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", paddingRight: 4 }}>
+      <View style={{
+        marginTop: 10,
+        marginBottom: 32,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        paddingRight: 4
+      }}>
         <View style={{ flex: 1 }}>
           <Text style={{
             fontSize: 16,
-            color: colors.textSecondary,
+            color: colors.onSurfaceVariant,
             fontFamily: "DMSans-Medium",
             marginBottom: 8,
             letterSpacing: 0.5,
@@ -25,7 +32,7 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
           </Text>
           <Text style={{
             fontSize: 36,
-            color: colors.textPrimary,
+            color: colors.onBackground,
             fontFamily: "DMSans-Bold",
             letterSpacing: -1.5,
             lineHeight: 42
@@ -38,18 +45,13 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
         <Pressable
           onPress={() => router.push("/notifications")}
           style={({ pressed }) => ({
-            padding: 10,
-            backgroundColor: colors.cardBackground,
-            borderRadius: 14,
-            opacity: pressed ? 0.7 : 1,
-            borderWidth: 1,
-            borderColor: colors.border,
+            padding: 12,
             marginTop: 8,
-            marginLeft: 16,
-            ...styles.shadow
+            marginLeft: 8,
+            opacity: pressed ? 0.7 : 1,
           })}
         >
-          <MaterialIcons name="notifications-none" size={24} color={colors.textPrimary} />
+          <MaterialIcons name="notifications-none" size={26} color={colors.onSurfaceVariant} />
         </Pressable>
       </View>
     );
@@ -67,16 +69,22 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
               router.replace("/");
             }
           }}
-          style={{ marginRight: 12, marginTop: 4 }}
+          style={({ pressed }) => ({
+            marginRight: 12,
+            marginTop: 4,
+            padding: 8,
+            marginLeft: -8,
+            opacity: pressed ? 0.7 : 1,
+          })}
         >
-          <MaterialIcons name="arrow-back" size={24} color={colors.textPrimary} />
+          <MaterialIcons name="arrow-back" size={24} color={colors.onSurface} />
         </Pressable>
       )}
       <View style={{ flex: 1, paddingRight: 16 }}>
         <Text style={{
           fontSize: 28,
           fontFamily: "DMSans-Bold",
-          color: colors.textPrimary,
+          color: colors.onBackground,
           letterSpacing: -1
         }}>
           {title}
@@ -84,7 +92,7 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
         {subtitle && (
           <Text style={{
             fontSize: 16,
-            color: colors.textSecondary,
+            color: colors.onSurfaceVariant,
             marginTop: 4,
             fontFamily: "DMSans-Regular"
           }}>
@@ -97,16 +105,11 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
       <Pressable
         onPress={() => router.push("/notifications")}
         style={({ pressed }) => ({
-          padding: 10,
-          backgroundColor: colors.cardBackground,
-          borderRadius: 14,
+          padding: 12,
           opacity: pressed ? 0.7 : 1,
-          borderWidth: 1,
-          borderColor: colors.border,
-          ...styles.shadow
         })}
       >
-        <MaterialIcons name="notifications-none" size={24} color={colors.textPrimary} />
+        <MaterialIcons name="notifications-none" size={26} color={colors.onSurfaceVariant} />
       </Pressable>
     </View>
   );

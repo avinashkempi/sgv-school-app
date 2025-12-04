@@ -54,6 +54,12 @@ export default async function apiFetch(input, init = {}) {
       // This might be needed for subject list in subject detail page
       const { DEMO_CLASS_DETAILS } = require('../constants/demoData');
       data = DEMO_CLASS_DETAILS.subjects;
+    } else if (url.includes('/events')) {
+      const { DEMO_EVENTS } = require('../constants/demoData');
+      data = DEMO_EVENTS;
+    } else if (url.includes('/notifications')) {
+      const { DEMO_NOTIFICATIONS } = require('../constants/demoData');
+      data = DEMO_NOTIFICATIONS;
     } else {
       // Default empty response for other endpoints in demo mode to prevent errors
       data = {};

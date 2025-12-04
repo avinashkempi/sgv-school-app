@@ -45,13 +45,30 @@ export default function StudentTimetableScreen() {
         `${apiConfig.baseUrl}/timetable/my-timetable`
     );
 
+    // Helper to parse time string to minutes for sorting
+    const parseTime = (timeStr) => {
+        if (!timeStr) return 0;
+        const [time, modifier] = timeStr.split(' ');
+        let [hours, minutes] = time.split(':');
+
+        hours = parseInt(hours, 10);
+        minutes = parseInt(minutes, 10);
+
+        if (modifier === 'PM' && hours < 12) hours += 12;
+        if (modifier === 'AM' && hours === 12) hours = 0;
+
+        return hours * 60 + minutes;
+    };
+
     // Process timetable data
     const schedule = {};
     DAYS.forEach(day => schedule[day] = []);
 
     if (timetableData?.schedule) {
         timetableData.schedule.forEach(daySchedule => {
-            schedule[daySchedule.day] = daySchedule.periods.sort((a, b) => a.periodNumber - b.periodNumber);
+            schedule[daySchedule.day] = daySchedule.periods.sort((a, b) => {
+                return parseTime(a.startTime) - parseTime(b.startTime);
+            });
         });
     }
 

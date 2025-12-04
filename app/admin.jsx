@@ -1,4 +1,4 @@
-import React, { useState,} from "react";
+import React, { useState, } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,8 @@ import {
   Alert,
   RefreshControl,
   ActivityIndicator,
-  Modal } from "react-native";
+  Modal
+} from "react-native";
 
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -921,21 +922,23 @@ const MenuCard = ({ title, icon, color, onPress }) => {
         padding: 20,
         borderRadius: 24,
         alignItems: "center",
-        opacity: pressed ? 0.9 : 1,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.05,
         shadowRadius: 12,
         elevation: 3,
         borderWidth: 1,
-        borderColor: colors.border
+        borderColor: colors.border,
+        opacity: pressed ? 0.9 : 1
       })}
     >
       <View style={{
         backgroundColor: color + "15",
         padding: 16,
         borderRadius: 20,
-        marginBottom: 12
+        marginBottom: 12,
+        alignItems: 'center',
+        justifyContent: 'center'
       }}>
         <MaterialIcons name={icon} size={28} color={color} />
       </View>

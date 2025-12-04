@@ -1,4 +1,4 @@
-import React, { useState,} from "react";
+import React, { useState, } from "react";
 import {
     View,
     Text,
@@ -243,18 +243,6 @@ export default function AdminComplaintsScreen() {
                             placeholder="Add a response..."
                             placeholderTextColor={colors.textSecondary + "80"}
                             multiline
-                            style={{
-                                borderWidth: 1,
-                                borderColor: colors.textSecondary + "40",
-                                borderRadius: 12,
-                                padding: 12,
-                                color: colors.textPrimary,
-                                fontSize: 16,
-                                marginBottom: 24,
-                                backgroundColor: colors.background,
-                                minHeight: 80,
-                                textAlignVertical: "top"
-                            }}
                         />
 
                         <Pressable

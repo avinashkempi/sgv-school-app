@@ -1,4 +1,4 @@
-import React, { useState,} from "react";
+import React, { useState, } from "react";
 import {
     View,
     Text,
@@ -165,13 +165,11 @@ export default function StudentComplaintsScreen() {
                     )}
                 </View>
             </ScrollView>
-
-            {/* FAB */}
             <Pressable
                 onPress={() => setShowCreateModal(true)}
                 style={{
                     position: "absolute",
-                    bottom: 110,
+                    bottom: 130,
                     right: 24,
                     backgroundColor: colors.primary,
                     width: 56,
@@ -298,6 +296,6 @@ export default function StudentComplaintsScreen() {
                     </View>
                 </KeyboardAvoidingView>
             </Modal>
-        </View>
+        </View >
     );
 }

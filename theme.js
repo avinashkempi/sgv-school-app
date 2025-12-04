@@ -5,7 +5,7 @@ import React, {
   useState,
   useEffect,
 } from "react";
-import { StyleSheet, Appearance,} from "react-native";
+import { StyleSheet, Appearance, Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const FONTS = {
@@ -15,53 +15,120 @@ const FONTS = {
   regular: "DMSans-Regular",
 };
 
-// Modern, Premium Color Palette
+// Google Material Design 3 Color Palette
 const lightColors = {
-  primary: "#2F6CD4", // Vibrant Blue (Inter-like)
-  secondary: "#F97316", // Modern Orange
-  background: "#F8FAFC", // Cool Gray 50
-  cardBackground: "#FFFFFF",
-  textPrimary: "#0F172A", // Slate 900
-  textSecondary: "#64748B", // Slate 500
-  border: "#E2E8F0", // Slate 200
-  shadow: "#64748B",
-  error: "#EF4444", // Red 500
+  primary: "#0B57D0", // Google Blue
+  onPrimary: "#FFFFFF",
+  primaryContainer: "#D3E3FD",
+  onPrimaryContainer: "#041E49",
+
+  secondary: "#00639B",
+  onSecondary: "#FFFFFF",
+  secondaryContainer: "#C2E7FF",
+  onSecondaryContainer: "#001D35",
+
+  tertiary: "#146C2E", // Google Greenish
+  onTertiary: "#FFFFFF",
+  tertiaryContainer: "#C4EED0",
+  onTertiaryContainer: "#072711",
+
+  error: "#B3261E",
+  onError: "#FFFFFF",
+  errorContainer: "#F9DEDC",
+  onErrorContainer: "#410E0B",
+
+  background: "#FFFFFF", // Pure white for light mode
+  onBackground: "#1F1F1F",
+
+  surface: "#F9F9F9", // Slightly off-white
+  onSurface: "#1F1F1F",
+
+  surfaceVariant: "#E1E3E1",
+  onSurfaceVariant: "#444746",
+
+  outline: "#747775",
+  outlineVariant: "#C4C7C5",
+
+  // Surface Containers for Cards/Modals (Tonal Elevation)
+  surfaceContainerLowest: "#FFFFFF",
+  surfaceContainerLow: "#F7F9FC",
+  surfaceContainer: "#F3F6FC",
+  surfaceContainerHigh: "#ECEFF1",
+  surfaceContainerHighest: "#E1E3E1",
+
+  // Role Colors (kept for logic but updated to match MD3 tones)
+  roleSuperAdmin: "#B3261E",
+  roleAdmin: "#146C2E",
+  roleStaff: "#00639B",
+  roleClassTeacher: "#6E56CF",
+  roleStudent: "#E27200",
+
+  success: "#146C2E",
+
+  // Legacy support
   white: "#FFFFFF",
-  roleSuperAdmin: "#F43F5E", // Rose 500
-  roleAdmin: "#10B981", // Emerald 500
-  roleStaff: "#0EA5E9", // Sky 500
-  roleClassTeacher: "#8B5CF6", // Violet 500
-  roleStudent: "#F59E0B", // Amber 500
-  success: "#22C55E", // Green 500
-  // Surface variants for pills/backgrounds
-  primaryLight: "#EFF6FF", // Blue 50
-  successLight: "#F0FDF4", // Green 50
-  errorLight: "#FEF2F2", // Red 50
-  warningLight: "#FFFBEB", // Amber 50
+  textPrimary: "#1F1F1F",
+  textSecondary: "#444746",
+  border: "#E1E3E1",
+  cardBackground: "#F3F6FC", // surfaceContainer
+  shadow: "#000000",
 };
 
 const darkColors = {
-  primary: "#3B82F6", // Blue 500
-  secondary: "#FB923C", // Orange 400
-  background: "#0F172A", // Slate 900
-  cardBackground: "#1E293B", // Slate 800
-  textPrimary: "#F1F5F9", // Slate 100
-  textSecondary: "#94A3B8", // Slate 400
-  border: "#334155", // Slate 700
-  shadow: "#000000",
-  error: "#F87171", // Red 400
+  primary: "#A8C7FA", // Lighter blue for dark mode
+  onPrimary: "#041E49",
+  primaryContainer: "#0842A0",
+  onPrimaryContainer: "#D3E3FD",
+
+  secondary: "#7FCFFF",
+  onSecondary: "#003355",
+  secondaryContainer: "#004A77",
+  onSecondaryContainer: "#C2E7FF",
+
+  tertiary: "#6DD58C",
+  onTertiary: "#072711",
+  tertiaryContainer: "#0F5223",
+  onTertiaryContainer: "#C4EED0",
+
+  error: "#F2B8B5",
+  onError: "#601410",
+  errorContainer: "#8C1D18",
+  onErrorContainer: "#F9DEDC",
+
+  background: "#121212", // True dark
+  onBackground: "#E3E3E3",
+
+  surface: "#121212",
+  onSurface: "#E3E3E3",
+
+  surfaceVariant: "#444746",
+  onSurfaceVariant: "#C4C7C5",
+
+  outline: "#8E918F",
+  outlineVariant: "#444746",
+
+  // Surface Containers (Tonal Elevation)
+  surfaceContainerLowest: "#0F0F0F",
+  surfaceContainerLow: "#1D1B20",
+  surfaceContainer: "#212121",
+  surfaceContainerHigh: "#2B2930",
+  surfaceContainerHighest: "#36343B",
+
+  roleSuperAdmin: "#F2B8B5",
+  roleAdmin: "#6DD58C",
+  roleStaff: "#7FCFFF",
+  roleClassTeacher: "#D0BCFF",
+  roleStudent: "#FFB74D",
+
+  success: "#6DD58C",
+
+  // Legacy support
   white: "#FFFFFF",
-  roleSuperAdmin: "#FB7185", // Rose 400
-  roleAdmin: "#34D399", // Emerald 400
-  roleStaff: "#38BDF8", // Sky 400
-  roleClassTeacher: "#A78BFA", // Violet 400
-  roleStudent: "#FBBF24", // Amber 400
-  success: "#4ADE80", // Green 400
-  // Surface variants
-  primaryLight: "rgba(59, 130, 246, 0.15)",
-  successLight: "rgba(74, 222, 128, 0.15)",
-  errorLight: "rgba(248, 113, 113, 0.15)",
-  warningLight: "rgba(251, 191, 36, 0.15)",
+  textPrimary: "#E3E3E3",
+  textSecondary: "#C4C7C5",
+  border: "#444746",
+  cardBackground: "#1D1B20", // surfaceContainerLow
+  shadow: "#000000",
 };
 
 function createGlobalStyles(COLORS, mode) {
@@ -69,70 +136,69 @@ function createGlobalStyles(COLORS, mode) {
     container: {
       flex: 1,
       backgroundColor: COLORS.background,
-      paddingHorizontal: 20, // Increased padding
-      paddingTop: 24,
+      paddingHorizontal: 20,
+      paddingTop: 16,
       paddingBottom: 32,
     },
     title: {
-      fontSize: 32, // Larger title
-      fontFamily: FONTS.bold,
-      color: COLORS.textPrimary, // Use textPrimary instead of primary for cleaner look
+      fontSize: 32,
+      fontFamily: FONTS.regular, // Google uses simpler weights often
+      color: COLORS.onBackground,
       marginBottom: 24,
-      textAlign: "left", // Left align for modern feel
-      letterSpacing: -1,
+      textAlign: "left",
+      letterSpacing: 0,
     },
     headerTitle: {
-      fontSize: 24,
-      fontFamily: FONTS.bold,
-      color: COLORS.textPrimary,
-      letterSpacing: -0.5,
+      fontSize: 22,
+      fontFamily: FONTS.regular,
+      color: COLORS.onBackground,
       marginBottom: 4,
     },
     subHeader: {
       fontSize: 16,
       fontFamily: FONTS.regular,
-      color: COLORS.textSecondary,
-      marginBottom: 32,
+      color: COLORS.onSurfaceVariant,
+      marginBottom: 24,
       lineHeight: 24,
     },
     label: {
-      fontSize: 13,
-      fontFamily: FONTS.semiBold,
-      color: COLORS.textSecondary,
-      textTransform: "uppercase",
+      fontSize: 12,
+      fontFamily: FONTS.medium,
+      color: COLORS.onSurfaceVariant,
       letterSpacing: 0.5,
       marginBottom: 8,
     },
     text: {
       fontSize: 16,
       fontFamily: FONTS.regular,
-      color: COLORS.textSecondary,
-      lineHeight: 26,
+      color: COLORS.onSurfaceVariant,
+      lineHeight: 24,
       marginBottom: 12,
     },
     link: {
       fontSize: 16,
-      fontFamily: FONTS.semiBold,
+      fontFamily: FONTS.medium,
       color: COLORS.primary,
     },
     iconLabel: {
-      marginTop: 6,
-      fontSize: 13,
+      marginTop: 4,
+      fontSize: 12,
       fontFamily: FONTS.medium,
-      color: COLORS.textSecondary,
+      color: COLORS.onSurfaceVariant,
     },
     buttonText: {
-      fontSize: 16,
-      fontFamily: FONTS.semiBold,
-      color: COLORS.white,
+      fontSize: 14,
+      fontFamily: FONTS.medium,
+      color: COLORS.onPrimary,
       textAlign: "center",
-      letterSpacing: 0.3,
+      letterSpacing: 0.1,
     },
     errorText: {
       fontSize: 14,
-      fontFamily: FONTS.medium,
+      fontFamily: FONTS.regular,
       color: COLORS.error,
-      marginTop: 8,
+      marginTop: 4,
+      marginLeft: 4,
     },
     row: {
       flexDirection: "row",
@@ -143,142 +209,182 @@ function createGlobalStyles(COLORS, mode) {
     },
     divider: {
       height: 1,
-      backgroundColor: COLORS.border,
-      marginVertical: 24,
+      backgroundColor: COLORS.outlineVariant,
+      marginVertical: 16,
     },
-    // Premium Card Style
+    // MD3 Card Style - Filled
     card: {
-      backgroundColor: COLORS.cardBackground,
-      borderRadius: 24, // More rounded
-      padding: 24,
-      marginBottom: 20,
-      shadowColor: COLORS.shadow,
-      shadowOffset: { width: 0, height: 8 }, // Deeper shadow
-      shadowOpacity: mode === 'dark' ? 0.4 : 0.08,
-      shadowRadius: 16,
-      elevation: 6,
-      borderWidth: 1,
-      borderColor: mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
+      backgroundColor: COLORS.surfaceContainer, // Tonal surface
+      borderRadius: 16, // Standard MD3 corner radius
+      padding: 16,
+      marginBottom: 16,
+      // No shadow by default in MD3 filled cards, just tonal difference
+      // But we can add very subtle shadow for depth if needed
+      elevation: 0,
+      borderWidth: 0,
     },
-    // Legacy support for cardMinimal (aliased to card for consistency)
-    cardMinimal: {
-      backgroundColor: COLORS.cardBackground,
-      borderRadius: 20,
-      padding: 20,
+    // MD3 Card Style - Outlined
+    cardOutlined: {
+      backgroundColor: COLORS.surface,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: COLORS.outlineVariant,
+      elevation: 0,
+    },
+    // MD3 Card Style - Elevated
+    cardElevated: {
+      backgroundColor: COLORS.surfaceContainerLow,
+      borderRadius: 16,
+      padding: 16,
       marginBottom: 16,
       shadowColor: COLORS.shadow,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: mode === 'dark' ? 0.3 : 0.05,
-      shadowRadius: 12,
-      elevation: 3,
-      borderWidth: 1,
-      borderColor: mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 4,
+      elevation: 2,
     },
-    // Glassmorphism Utility
+    // Legacy support
+    cardMinimal: {
+      backgroundColor: COLORS.surfaceContainer,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 12,
+      borderWidth: 0,
+    },
     glass: {
-      backgroundColor: mode === 'dark' ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.7)',
-      borderColor: mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.5)',
-      borderWidth: 1,
+      backgroundColor: mode === 'dark' ? 'rgba(33, 33, 33, 0.8)' : 'rgba(243, 246, 252, 0.8)',
+      borderColor: 'transparent',
+      borderWidth: 0,
     },
+    // MD3 Input Field (Outlined)
     input: {
       borderWidth: 1,
-      borderColor: COLORS.border,
-      borderRadius: 16, // More rounded
-      paddingVertical: 16,
-      paddingHorizontal: 20,
+      borderColor: COLORS.outline,
+      borderRadius: 4, // MD3 text fields have smaller radius usually, but 8-12 is fine for modern feel
+      paddingVertical: 14,
+      paddingHorizontal: 16,
       fontSize: 16,
       fontFamily: FONTS.regular,
-      color: COLORS.textPrimary,
-      backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.03)' : '#FFFFFF',
+      color: COLORS.onSurface,
+      backgroundColor: 'transparent',
+    },
+    // MD3 Input Field (Filled)
+    inputFilled: {
+      backgroundColor: COLORS.surfaceContainerHighest,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.onSurfaceVariant,
+      borderTopLeftRadius: 4,
+      borderTopRightRadius: 4,
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+      fontSize: 16,
+      fontFamily: FONTS.regular,
+      color: COLORS.onSurface,
     },
     inputMinimal: {
-      backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#F1F5F9',
-      borderRadius: 16,
+      backgroundColor: COLORS.surfaceContainerHigh,
+      borderRadius: 24, // Pill shape for search bars etc
       paddingHorizontal: 20,
-      paddingVertical: 16,
+      paddingVertical: 12,
       fontSize: 16,
-      color: COLORS.textPrimary,
+      color: COLORS.onSurface,
       borderWidth: 0,
     },
     inputFocused: {
-      borderWidth: 2,
       borderColor: COLORS.primary,
-      backgroundColor: COLORS.cardBackground,
+      borderWidth: 2,
     },
     inputError: {
-      borderWidth: 2,
       borderColor: COLORS.error,
     },
+    // MD3 Filled Button
     button: {
       backgroundColor: COLORS.primary,
-      paddingVertical: 16,
+      paddingVertical: 12,
       paddingHorizontal: 24,
-      borderRadius: 16,
+      borderRadius: 100, // Pill shape
       alignItems: "center",
       justifyContent: "center",
-      shadowColor: COLORS.primary,
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.25,
-      shadowRadius: 16,
-      elevation: 6,
+      elevation: 0, // Flat by default
+    },
+    // MD3 Tonal Button
+    buttonTonal: {
+      backgroundColor: COLORS.secondaryContainer,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      borderRadius: 100,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    buttonTonalText: {
+      fontSize: 14,
+      fontFamily: FONTS.medium,
+      color: COLORS.onSecondaryContainer,
+      textAlign: "center",
+      letterSpacing: 0.1,
     },
     buttonSmall: {
       backgroundColor: COLORS.primary,
-      paddingVertical: 10,
+      paddingVertical: 8,
       paddingHorizontal: 16,
-      borderRadius: 12,
+      borderRadius: 100,
       alignItems: "center",
       justifyContent: "center",
-      minHeight: 40,
+      minHeight: 36,
     },
     buttonIcon: {
       padding: 12,
-      borderRadius: 16,
+      borderRadius: 16, // Squircle or Circle
       alignItems: "center",
       justifyContent: "center",
       minWidth: 48,
       minHeight: 48,
-      backgroundColor: COLORS.primaryLight,
+      backgroundColor: COLORS.surfaceContainerHigh,
     },
     buttonLarge: {
       backgroundColor: COLORS.primary,
-      paddingVertical: 18,
+      paddingVertical: 16,
       paddingHorizontal: 32,
-      borderRadius: 20,
+      borderRadius: 100,
       alignItems: "center",
       justifyContent: "center",
-      minHeight: 60,
-      shadowColor: COLORS.primary,
-      shadowOffset: { width: 0, height: 10 },
-      shadowOpacity: 0.3,
-      shadowRadius: 20,
-      elevation: 10,
+      minHeight: 56,
+      elevation: 2,
     },
     buttonSecondary: {
       backgroundColor: 'transparent',
-      borderWidth: 2,
-      borderColor: COLORS.border,
-      paddingVertical: 14,
-      paddingHorizontal: 20,
-      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: COLORS.outline,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      borderRadius: 100,
       alignItems: "center",
       justifyContent: "center",
     },
+    buttonSecondaryText: {
+      fontSize: 14,
+      fontFamily: FONTS.medium,
+      color: COLORS.primary,
+      textAlign: "center",
+      letterSpacing: 0.1,
+    },
     fab: {
       position: "absolute",
-      bottom: 100,
-      right: 24,
-      backgroundColor: COLORS.primary,
-      width: 64, // Slightly larger
-      height: 64,
-      borderRadius: 32,
+      bottom: 88, // Adjusted for bottom nav
+      right: 16,
+      backgroundColor: COLORS.primaryContainer,
+      width: 56,
+      height: 56,
+      borderRadius: 16, // MD3 FAB is slightly squarish
       justifyContent: "center",
       alignItems: "center",
-      shadowColor: COLORS.primary,
-      shadowOffset: { width: 0, height: 10 },
-      shadowOpacity: 0.35,
-      shadowRadius: 20,
-      elevation: 10,
+      elevation: 3,
+      shadowColor: COLORS.shadow,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
     },
     backButton: {
       flexDirection: "row",
@@ -293,21 +399,20 @@ function createGlobalStyles(COLORS, mode) {
       gap: 12,
     },
     heading: {
-      fontSize: 24,
-      fontFamily: FONTS.bold,
-      color: COLORS.primary,
+      fontSize: 22,
+      fontFamily: FONTS.regular,
+      color: COLORS.onBackground,
       textAlign: "left",
       marginBottom: 16,
-      letterSpacing: -0.5,
     },
     cardText: {
-      fontSize: 16,
+      fontSize: 14,
       fontFamily: FONTS.regular,
-      color: COLORS.textPrimary,
-      lineHeight: 26,
+      color: COLORS.onSurfaceVariant,
+      lineHeight: 20,
     },
     cardGroup: {
-      marginBottom: 32,
+      marginBottom: 24,
     },
     safeArea: {
       flex: 1,
@@ -317,21 +422,20 @@ function createGlobalStyles(COLORS, mode) {
       marginLeft: 8,
     },
     contentPaddingBottom: {
-      paddingBottom: 120,
+      paddingBottom: 100,
     },
     sectionTitle: {
-      fontSize: 20,
-      color: COLORS.textPrimary,
-      fontFamily: FONTS.bold,
-      marginBottom: 20,
-      letterSpacing: -0.5,
+      fontSize: 18,
+      color: COLORS.onSurface,
+      fontFamily: FONTS.medium,
+      marginBottom: 16,
     },
     empty: {
       fontSize: 16,
-      color: COLORS.textSecondary,
+      color: COLORS.onSurfaceVariant,
       marginTop: 32,
       textAlign: "center",
-      fontFamily: FONTS.medium,
+      fontFamily: FONTS.regular,
     },
   });
 }
@@ -400,16 +504,16 @@ export function ThemeProvider({ children }) {
   // Pass mode to createGlobalStyles to handle conditional styles
   const styles = useMemo(() => createGlobalStyles(colors, mode), [colors, mode]);
 
-  // Gradient Constants
+  // Gradient Constants - Updated for MD3 feel (subtler)
   const gradients = useMemo(() => ({
     primary: mode === 'dark'
-      ? [colors.primary, '#60A5FA'] // Lighter blue for dark mode
-      : [colors.primary, '#1D4ED8'], // Darker blue for light mode
+      ? [colors.primary, '#7Cacf8']
+      : [colors.primary, '#0842A0'],
     card: mode === 'dark'
-      ? [colors.cardBackground, '#1E293B']
-      : [colors.cardBackground, '#F8FAFC'],
-    success: ['#22C55E', '#16A34A'],
-    error: ['#EF4444', '#DC2626'],
+      ? [colors.surfaceContainer, colors.surfaceContainerHigh]
+      : [colors.surfaceContainer, colors.surfaceContainerLow],
+    success: ['#146C2E', '#0F5223'],
+    error: ['#B3261E', '#8C1D18'],
   }), [colors, mode]);
 
   const setAndPersist = (newMode) => {

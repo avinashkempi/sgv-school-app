@@ -10,7 +10,7 @@ import {
     KeyboardAvoidingView,
     Platform
 } from "react-native";
-import {} from "@expo/vector-icons";
+import { } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTheme } from "../../theme";
 import { useApiQuery, useApiMutation } from "../../hooks/useApi";
@@ -221,12 +221,10 @@ const localStyles = StyleSheet.create({
         borderWidth: 1,
         borderRadius: 8,
         textAlign: "center",
-        fontSize: 16,
-        fontFamily: "DMSans-Bold"
     },
     footer: {
         position: "absolute",
-        bottom: 0,
+        bottom: 130,
         left: 0,
         right: 0,
         padding: 16,
