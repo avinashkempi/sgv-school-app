@@ -1,17 +1,20 @@
-import React, { useState, } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, RefreshControl, ActivityIndicator, ScrollView, Switch } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, RefreshControl, ActivityIndicator, ScrollView, Switch, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useApiQuery, useApiMutation, createApiMutationFn } from '../../hooks/useApi';
 import { useQueryClient } from '@tanstack/react-query';
 import apiConfig from '../../config/apiConfig';
 import { useToast } from '../../components/ToastProvider';
+import { useTheme } from '../../theme';
+import Header from '../../components/Header';
 
 export default function TeacherLeaves() {
     const router = useRouter();
     const queryClient = useQueryClient();
     const { showToast } = useToast();
+    const { colors, styles } = useTheme();
     const [activeTab, setActiveTab] = useState('requests'); // 'requests' or 'my_leaves'
 
     // Data State
@@ -160,141 +163,243 @@ export default function TeacherLeaves() {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'approved': return '#4CAF50';
-            case 'rejected': return '#F44336';
+            case 'approved': return colors.success;
+            case 'rejected': return colors.error;
             default: return '#FF9800';
         }
     };
 
     const renderRequestItem = ({ item }) => (
-        <View style={styles.card}>
-            <View style={styles.cardHeader}>
+        <View style={{
+            backgroundColor: colors.surfaceContainer,
+            borderRadius: 16,
+            padding: 16,
+            marginBottom: 12,
+        }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
                 <View>
-                    <Text style={styles.studentName}>{item.applicant?.name || 'Unknown'}</Text>
-                    <Text style={styles.classInfo}>
+                    <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
+                        {item.applicant?.name || 'Unknown'}
+                    </Text>
+                    <Text style={{ fontSize: 13, color: colors.onSurfaceVariant, fontFamily: "DMSans-Medium" }}>
                         {item.applicantRole === 'student' ? `Class: ${item.class?.name || ''} ${item.class?.section || ''}` : 'Teacher'}
                     </Text>
                 </View>
-                <View style={styles.dateContainer}>
-                    <Text style={styles.dateText}>
-                        {formatDate(item.startDate)}
-                        {item.leaveType === 'full' && item.startDate !== item.endDate && ` - ${formatDate(item.endDate)}`}
-                    </Text>
-                    <Text style={styles.leaveTypeBadge}>
+                <View style={{ alignItems: 'flex-end' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <MaterialIcons name="date-range" size={14} color={colors.primary} style={{ marginRight: 4 }} />
+                        <Text style={{ fontSize: 14, color: colors.onSurface, fontFamily: "DMSans-Medium" }}>
+                            {formatDate(item.startDate)}
+                            {item.leaveType === 'full' && item.startDate !== item.endDate && ` - ${formatDate(item.endDate)}`}
+                        </Text>
+                    </View>
+                    <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginTop: 2, fontStyle: 'italic' }}>
                         {item.leaveType === 'half' ? `Half Day (${item.halfDaySlot})` : 'Full Day'}
                     </Text>
                 </View>
             </View>
 
-            <Text style={styles.reasonLabel}>Reason:</Text>
-            <Text style={styles.reasonText}>{item.reason}</Text>
+            <View style={{ backgroundColor: colors.surface, padding: 12, borderRadius: 8, marginBottom: 12 }}>
+                <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4, fontFamily: "DMSans-Medium" }}>Reason</Text>
+                <Text style={{ fontSize: 14, color: colors.onSurface, fontFamily: "DMSans-Regular", lineHeight: 20 }}>{item.reason}</Text>
+            </View>
 
-            <View style={styles.actionButtons}>
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 12, paddingTop: 4 }}>
                 <TouchableOpacity
-                    style={[styles.actionButton, styles.rejectButton]}
+                    style={{
+                        paddingVertical: 8,
+                        paddingHorizontal: 16,
+                        borderRadius: 8,
+                        backgroundColor: colors.errorContainer,
+                        borderWidth: 1,
+                        borderColor: colors.error
+                    }}
                     onPress={() => openActionModal(item, 'rejected')}
                 >
-                    <Text style={styles.actionButtonText}>Reject</Text>
+                    <Text style={{ color: colors.error, fontFamily: "DMSans-Bold", fontSize: 14 }}>Reject</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.actionButton, styles.approveButton]}
+                    style={{
+                        paddingVertical: 8,
+                        paddingHorizontal: 16,
+                        borderRadius: 8,
+                        backgroundColor: colors.primary,
+                        elevation: 1
+                    }}
                     onPress={() => openActionModal(item, 'approved')}
                 >
-                    <Text style={styles.actionButtonText}>Approve</Text>
+                    <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 14 }}>Approve</Text>
                 </TouchableOpacity>
             </View>
         </View>
     );
 
-    const renderMyLeaveItem = ({ item }) => (
-        <View style={styles.card}>
-            <View style={styles.cardHeader}>
-                <View>
-                    <Text style={styles.dateText}>
-                        {formatDate(item.startDate)}
-                        {item.leaveType === 'full' && item.startDate !== item.endDate && ` - ${formatDate(item.endDate)}`}
-                    </Text>
-                    <Text style={styles.leaveTypeBadge}>
-                        {item.leaveType === 'half' ? `Half Day (${item.halfDaySlot})` : 'Full Day'}
-                    </Text>
+    const renderMyLeaveItem = ({ item }) => {
+        const isRejected = item.status === 'rejected';
+        const start = new Date(item.startDate);
+        const end = new Date(item.endDate);
+
+        return (
+            <View style={{
+                backgroundColor: colors.surfaceContainer,
+                borderRadius: 16,
+                padding: 16,
+                marginBottom: 12,
+            }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                    <View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                            <MaterialIcons name="date-range" size={16} color={colors.primary} style={{ marginRight: 6 }} />
+                            <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
+                                {formatDate(item.startDate)}
+                                {item.leaveType === 'full' && item.startDate !== item.endDate && ` - ${formatDate(item.endDate)}`}
+                            </Text>
+                        </View>
+                        <Text style={{ fontSize: 13, color: colors.onSurfaceVariant, fontFamily: "DMSans-Medium" }}>
+                            {item.leaveType === 'half' ? `Half Day (${item.halfDaySlot})` : 'Full Day'}
+                        </Text>
+                    </View>
+                    <View style={{
+                        paddingHorizontal: 10,
+                        paddingVertical: 5,
+                        borderRadius: 8,
+                        backgroundColor: getStatusColor(item.status) + '15',
+                        borderWidth: 1,
+                        borderColor: getStatusColor(item.status) + '30'
+                    }}>
+                        <Text style={{ color: getStatusColor(item.status), fontSize: 12, fontFamily: "DMSans-Bold", textTransform: 'uppercase' }}>
+                            {(item.status || 'pending')}
+                        </Text>
+                    </View>
                 </View>
-                <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-                    <Text style={styles.statusText}>{(item.status || 'pending').toUpperCase()}</Text>
+
+                <View style={{ backgroundColor: colors.surface, padding: 12, borderRadius: 8, marginBottom: isRejected ? 12 : 0 }}>
+                    <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4, fontFamily: "DMSans-Medium" }}>Reason</Text>
+                    <Text style={{ fontSize: 14, color: colors.onSurface, fontFamily: "DMSans-Regular", lineHeight: 20 }}>{item.reason}</Text>
                 </View>
+
+                {isRejected && (
+                    <View style={{
+                        marginTop: 0,
+                        padding: 12,
+                        backgroundColor: colors.errorContainer + '40',
+                        borderRadius: 8,
+                        borderLeftWidth: 3,
+                        borderLeftColor: colors.error
+                    }}>
+                        <Text style={{ fontSize: 13, fontFamily: "DMSans-Bold", color: colors.error, marginBottom: 4 }}>Rejection Details</Text>
+                        <Text style={{ fontSize: 13, color: colors.onSurface, marginBottom: 2, fontFamily: "DMSans-Regular" }}>
+                            <Text style={{ fontFamily: "DMSans-Bold" }}>Reason: </Text>{item.rejectionReason}
+                        </Text>
+                        <Text style={{ fontSize: 13, color: colors.onSurface, fontFamily: "DMSans-Regular" }}>
+                            <Text style={{ fontFamily: "DMSans-Bold" }}>Note: </Text>{item.rejectionComments}
+                        </Text>
+                    </View>
+                )}
             </View>
-            <Text style={styles.reasonLabel}>Reason:</Text>
-            <Text style={styles.reasonText}>{item.reason}</Text>
-            {item.status === 'rejected' && (
-                <View style={styles.rejectionBox}>
-                    <Text style={styles.rejectionTitle}>Rejection Details:</Text>
-                    <Text style={styles.rejectionText}><Text style={{ fontWeight: 'bold' }}>Reason:</Text> {item.rejectionReason}</Text>
-                    <Text style={styles.rejectionText}><Text style={{ fontWeight: 'bold' }}>Comments:</Text> {item.rejectionComments}</Text>
-                </View>
-            )}
-        </View>
-    );
+        );
+    };
 
     return (
-        <View style={styles.container}>
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color="#333" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Leave Management</Text>
-                <View style={{ width: 24 }} />
+        <View style={{ flex: 1, backgroundColor: colors.background }}>
+            <View style={{ padding: 16, paddingBottom: 0 }}>
+                <Header title="Leave Management" showBack={true} />
             </View>
 
-            <View style={styles.tabContainer}>
+            <View style={{ flexDirection: 'row', marginHorizontal: 16, marginBottom: 16, backgroundColor: colors.surfaceContainer, borderRadius: 12, padding: 4 }}>
                 <TouchableOpacity
-                    style={[styles.tab, activeTab === 'requests' && styles.activeTab]}
+                    style={{
+                        flex: 1,
+                        paddingVertical: 10,
+                        alignItems: 'center',
+                        borderRadius: 8,
+                        backgroundColor: activeTab === 'requests' ? colors.background : 'transparent',
+                        elevation: activeTab === 'requests' ? 2 : 0,
+                        shadowColor: "#000",
+                        shadowOpacity: activeTab === 'requests' ? 0.05 : 0,
+                    }}
                     onPress={() => setActiveTab('requests')}
                 >
-                    <Text style={[styles.tabText, activeTab === 'requests' && styles.activeTabText]}>Requests</Text>
+                    <Text style={{
+                        fontFamily: activeTab === 'requests' ? "DMSans-Bold" : "DMSans-Medium",
+                        color: activeTab === 'requests' ? colors.primary : colors.onSurfaceVariant
+                    }}>Requests</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.tab, activeTab === 'my_leaves' && styles.activeTab]}
+                    style={{
+                        flex: 1,
+                        paddingVertical: 10,
+                        alignItems: 'center',
+                        borderRadius: 8,
+                        backgroundColor: activeTab === 'my_leaves' ? colors.background : 'transparent',
+                        elevation: activeTab === 'my_leaves' ? 2 : 0,
+                        shadowColor: "#000",
+                        shadowOpacity: activeTab === 'my_leaves' ? 0.05 : 0,
+                    }}
                     onPress={() => setActiveTab('my_leaves')}
                 >
-                    <Text style={[styles.tabText, activeTab === 'my_leaves' && styles.activeTabText]}>My Leaves</Text>
+                    <Text style={{
+                        fontFamily: activeTab === 'my_leaves' ? "DMSans-Bold" : "DMSans-Medium",
+                        color: activeTab === 'my_leaves' ? colors.primary : colors.onSurfaceVariant
+                    }}>My Leaves</Text>
                 </TouchableOpacity>
             </View>
 
             {activeTab === 'my_leaves' && leaveBalance && (
-                <View style={styles.balanceCard}>
-                    <View style={styles.balanceItem}>
-                        <Text style={styles.balanceLabel}>Total</Text>
-                        <Text style={styles.balanceValue}>{leaveBalance.total}</Text>
+                <View style={{
+                    marginHorizontal: 16,
+                    marginBottom: 16,
+                    backgroundColor: colors.primaryContainer,
+                    borderRadius: 16,
+                    padding: 16,
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                }}>
+                    <View style={{ alignItems: 'center', flex: 1 }}>
+                        <Text style={{ fontSize: 12, color: colors.onPrimaryContainer, fontFamily: "DMSans-Medium", marginBottom: 4 }}>Total</Text>
+                        <Text style={{ fontSize: 20, color: colors.onPrimaryContainer, fontFamily: "DMSans-Bold" }}>{leaveBalance.total}</Text>
                     </View>
-                    <View style={styles.balanceDivider} />
-                    <View style={styles.balanceItem}>
-                        <Text style={styles.balanceLabel}>Used</Text>
-                        <Text style={styles.balanceValue}>{leaveBalance.used}</Text>
+                    <View style={{ width: 1, height: 24, backgroundColor: colors.onPrimaryContainer, opacity: 0.2 }} />
+                    <View style={{ alignItems: 'center', flex: 1 }}>
+                        <Text style={{ fontSize: 12, color: colors.onPrimaryContainer, fontFamily: "DMSans-Medium", marginBottom: 4 }}>Used</Text>
+                        <Text style={{ fontSize: 20, color: colors.onPrimaryContainer, fontFamily: "DMSans-Bold" }}>{leaveBalance.used}</Text>
                     </View>
-                    <View style={styles.balanceDivider} />
-                    <View style={styles.balanceItem}>
-                        <Text style={styles.balanceLabel}>Remaining</Text>
-                        <Text style={[styles.balanceValue, { color: '#4CAF50' }]}>{leaveBalance.remaining}</Text>
+                    <View style={{ width: 1, height: 24, backgroundColor: colors.onPrimaryContainer, opacity: 0.2 }} />
+                    <View style={{ alignItems: 'center', flex: 1 }}>
+                        <Text style={{ fontSize: 12, color: colors.onPrimaryContainer, fontFamily: "DMSans-Medium", marginBottom: 4 }}>Remaining</Text>
+                        <Text style={{ fontSize: 20, color: colors.primary, fontFamily: "DMSans-Bold" }}>{leaveBalance.remaining}</Text>
                     </View>
                 </View>
             )}
 
             {loading ? (
-                <ActivityIndicator size="large" color="#2F6CD4" style={styles.loader} />
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <ActivityIndicator size="large" color={colors.primary} />
+                </View>
             ) : (
                 <FlatList
                     data={activeTab === 'requests' ? requests : myLeaves}
                     renderItem={activeTab === 'requests' ? renderRequestItem : renderMyLeaveItem}
                     keyExtractor={(item) => item._id}
-                    contentContainerStyle={styles.listContent}
-                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-                    ListEmptyComponent={<Text style={styles.emptyText}>No records found.</Text>}
+                    contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
+                    ListEmptyComponent={
+                        <View style={{ alignItems: 'center', marginTop: 40, opacity: 0.6 }}>
+                            <MaterialIcons name="event-busy" size={64} color={colors.onSurfaceVariant} />
+                            <Text style={{ marginTop: 16, fontSize: 16, color: colors.onSurfaceVariant, fontFamily: "DMSans-Medium" }}>No records found.</Text>
+                        </View>
+                    }
                 />
             )}
 
             {activeTab === 'my_leaves' && (
-                <TouchableOpacity style={styles.fab} onPress={() => setApplyModalVisible(true)}>
-                    <Ionicons name="add" size={24} color="#fff" />
-                    <Text style={styles.fabText}>Apply Leave</Text>
+                <TouchableOpacity
+                    style={styles.fab}
+                    onPress={() => setApplyModalVisible(true)}
+                    activeOpacity={0.8}
+                >
+                    <Ionicons name="add" size={28} color={colors.onPrimaryContainer} />
                 </TouchableOpacity>
             )}
 
@@ -305,9 +410,9 @@ export default function TeacherLeaves() {
                 transparent={true}
                 onRequestClose={() => setActionModalVisible(false)}
             >
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>
+                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 }}>
+                    <View style={{ backgroundColor: colors.surface, borderRadius: 24, padding: 24, elevation: 5 }}>
+                        <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 20 }}>
                             {actionType === 'approved' ? 'Approve Leave' : 'Reject Leave'}
                         </Text>
 
@@ -315,15 +420,23 @@ export default function TeacherLeaves() {
                             <>
                                 <Text style={styles.label}>Rejection Reason *</Text>
                                 <TextInput
-                                    style={styles.input}
+                                    style={{
+                                        borderWidth: 1, borderColor: colors.outline, borderRadius: 8, padding: 12,
+                                        color: colors.onSurface, fontFamily: "DMSans-Regular", marginBottom: 16
+                                    }}
                                     placeholder="e.g., Exam Period, Staff Shortage"
+                                    placeholderTextColor={colors.onSurfaceVariant}
                                     value={rejectionReason}
                                     onChangeText={setRejectionReason}
                                 />
                                 <Text style={styles.label}>Comments *</Text>
                                 <TextInput
-                                    style={[styles.input, styles.textArea]}
+                                    style={{
+                                        borderWidth: 1, borderColor: colors.outline, borderRadius: 8, padding: 12,
+                                        color: colors.onSurface, fontFamily: "DMSans-Regular", minHeight: 80, textAlignVertical: 'top'
+                                    }}
                                     placeholder="Add detailed comments..."
+                                    placeholderTextColor={colors.onSurfaceVariant}
                                     value={rejectionComments}
                                     onChangeText={setRejectionComments}
                                     multiline
@@ -336,8 +449,12 @@ export default function TeacherLeaves() {
                             <>
                                 <Text style={styles.label}>Note (Optional)</Text>
                                 <TextInput
-                                    style={[styles.input, styles.textArea]}
+                                    style={{
+                                        borderWidth: 1, borderColor: colors.outline, borderRadius: 8, padding: 12,
+                                        color: colors.onSurface, fontFamily: "DMSans-Regular", minHeight: 80, textAlignVertical: 'top'
+                                    }}
                                     placeholder="Add a note..."
+                                    placeholderTextColor={colors.onSurfaceVariant}
                                     value={actionReason}
                                     onChangeText={setActionReason}
                                     multiline
@@ -346,22 +463,25 @@ export default function TeacherLeaves() {
                             </>
                         )}
 
-                        <View style={styles.modalButtons}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 24 }}>
                             <TouchableOpacity
-                                style={[styles.button, styles.cancelButton]}
+                                style={{ paddingVertical: 10, paddingHorizontal: 20 }}
                                 onPress={() => setActionModalVisible(false)}
                             >
-                                <Text style={styles.cancelButtonText}>Cancel</Text>
+                                <Text style={{ color: colors.onSurfaceVariant, fontFamily: "DMSans-Bold", fontSize: 16 }}>Cancel</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={[styles.button, actionType === 'approved' ? styles.approveButton : styles.rejectButton]}
+                                style={{
+                                    backgroundColor: actionType === 'approved' ? colors.primary : colors.error,
+                                    paddingVertical: 10, paddingHorizontal: 24, borderRadius: 100
+                                }}
                                 onPress={handleAction}
                                 disabled={actionMutation.isPending}
                             >
                                 {actionMutation.isPending ? (
-                                    <ActivityIndicator color="#fff" size="small" />
+                                    <ActivityIndicator color={colors.onPrimary} size="small" />
                                 ) : (
-                                    <Text style={styles.submitButtonText}>
+                                    <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 16 }}>
                                         {actionType === 'approved' ? 'Approve' : 'Reject'}
                                     </Text>
                                 )}
@@ -378,105 +498,134 @@ export default function TeacherLeaves() {
                 transparent={true}
                 onRequestClose={() => setApplyModalVisible(false)}
             >
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>Apply for Leave</Text>
+                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
+                    <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, maxHeight: '90%' }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                            <Text style={{ fontSize: 24, fontFamily: "DMSans-Bold", color: colors.onSurface }}>Apply for Leave</Text>
                             <TouchableOpacity onPress={() => setApplyModalVisible(false)}>
-                                <Ionicons name="close" size={24} color="#333" />
+                                <Ionicons name="close" size={24} color={colors.onSurfaceVariant} />
                             </TouchableOpacity>
                         </View>
 
-                        <ScrollView>
-                            <View style={styles.inputGroup}>
-                                <Text style={styles.label}>Leave Type</Text>
-                                <View style={styles.row}>
-                                    <Text style={styles.valueText}>{isHalfDay ? 'Half Day' : 'Full Day'}</Text>
-                                    <Switch
-                                        value={isHalfDay}
-                                        onValueChange={setIsHalfDay}
-                                        trackColor={{ false: "#767577", true: "#81b0ff" }}
-                                        thumbColor={isHalfDay ? "#2F6CD4" : "#f4f3f4"}
-                                    />
+                        <ScrollView showsVerticalScrollIndicator={false}>
+                            <View style={{ marginBottom: 24 }}>
+                                <Text style={styles.label}>LEAVE TYPE</Text>
+                                <View style={{ flexDirection: 'row', backgroundColor: colors.surfaceContainer, borderRadius: 12, padding: 4 }}>
+                                    <Pressable
+                                        style={{
+                                            flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 8,
+                                            backgroundColor: !isHalfDay ? colors.background : 'transparent',
+                                            elevation: !isHalfDay ? 1 : 0, shadowColor: "#000", shadowOpacity: !isHalfDay ? 0.05 : 0
+                                        }}
+                                        onPress={() => setIsHalfDay(false)}
+                                    >
+                                        <Text style={{ fontFamily: !isHalfDay ? "DMSans-Bold" : "DMSans-Medium", color: !isHalfDay ? colors.primary : colors.onSurfaceVariant }}>Full Day</Text>
+                                    </Pressable>
+                                    <Pressable
+                                        style={{
+                                            flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 8,
+                                            backgroundColor: isHalfDay ? colors.background : 'transparent',
+                                            elevation: isHalfDay ? 1 : 0, shadowColor: "#000", shadowOpacity: isHalfDay ? 0.05 : 0
+                                        }}
+                                        onPress={() => setIsHalfDay(true)}
+                                    >
+                                        <Text style={{ fontFamily: isHalfDay ? "DMSans-Bold" : "DMSans-Medium", color: isHalfDay ? colors.primary : colors.onSurfaceVariant }}>Half Day</Text>
+                                    </Pressable>
                                 </View>
                             </View>
 
                             {isHalfDay && (
-                                <View style={styles.inputGroup}>
-                                    <Text style={styles.label}>Slot</Text>
-                                    <View style={styles.slotContainer}>
-                                        <TouchableOpacity
-                                            style={[styles.slotButton, halfDaySlot === 'morning' && styles.activeSlot]}
+                                <View style={{ marginBottom: 24 }}>
+                                    <Text style={styles.label}>SLOT</Text>
+                                    <View style={{ flexDirection: 'row', gap: 12 }}>
+                                        <Pressable
+                                            style={{
+                                                flex: 1, paddingVertical: 12, borderRadius: 12, borderWidth: 1,
+                                                borderColor: halfDaySlot === 'morning' ? colors.primary : colors.outlineVariant,
+                                                backgroundColor: halfDaySlot === 'morning' ? colors.secondaryContainer : 'transparent',
+                                                alignItems: 'center'
+                                            }}
                                             onPress={() => setHalfDaySlot('morning')}
                                         >
-                                            <Text style={[styles.slotText, halfDaySlot === 'morning' && styles.activeSlotText]}>Morning</Text>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity
-                                            style={[styles.slotButton, halfDaySlot === 'afternoon' && styles.activeSlot]}
+                                            <Text style={{ fontFamily: "DMSans-Medium", color: halfDaySlot === 'morning' ? colors.onSecondaryContainer : colors.onSurfaceVariant }}>Morning</Text>
+                                        </Pressable>
+                                        <Pressable
+                                            style={{
+                                                flex: 1, paddingVertical: 12, borderRadius: 12, borderWidth: 1,
+                                                borderColor: halfDaySlot === 'afternoon' ? colors.primary : colors.outlineVariant,
+                                                backgroundColor: halfDaySlot === 'afternoon' ? colors.secondaryContainer : 'transparent',
+                                                alignItems: 'center'
+                                            }}
                                             onPress={() => setHalfDaySlot('afternoon')}
                                         >
-                                            <Text style={[styles.slotText, halfDaySlot === 'afternoon' && styles.activeSlotText]}>Afternoon</Text>
-                                        </TouchableOpacity>
+                                            <Text style={{ fontFamily: "DMSans-Medium", color: halfDaySlot === 'afternoon' ? colors.onSecondaryContainer : colors.onSurfaceVariant }}>Afternoon</Text>
+                                        </Pressable>
                                     </View>
                                 </View>
                             )}
 
-                            <View style={styles.inputGroup}>
-                                <Text style={styles.label}>Start Date</Text>
-                                <TouchableOpacity
-                                    style={styles.dateButton}
-                                    onPress={() => setShowStartPicker(true)}
-                                >
-                                    <Text style={styles.dateLabelText}>{formatDate(startDate.toISOString())}</Text>
-                                    <Ionicons name="calendar-outline" size={20} color="#666" />
-                                </TouchableOpacity>
-                                {showStartPicker && (
-                                    <DateTimePicker
-                                        value={startDate}
-                                        mode="date"
-                                        display="default"
-                                        minimumDate={new Date()}
-                                        onChange={(event, selectedDate) => {
-                                            setShowStartPicker(false);
-                                            if (selectedDate) {
-                                                setStartDate(selectedDate);
-                                                if (selectedDate > endDate) setEndDate(selectedDate);
-                                            }
-                                        }}
-                                    />
-                                )}
-                            </View>
-
-                            {!isHalfDay && (
-                                <View style={styles.inputGroup}>
-                                    <Text style={styles.label}>End Date</Text>
+                            <View style={{ flexDirection: 'row', gap: 16 }}>
+                                <View style={{ flex: 1, marginBottom: 24 }}>
+                                    <Text style={styles.label}>START DATE</Text>
                                     <TouchableOpacity
-                                        style={styles.dateButton}
-                                        onPress={() => setShowEndPicker(true)}
+                                        style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.surfaceContainer, borderRadius: 12, padding: 14 }}
+                                        onPress={() => setShowStartPicker(true)}
                                     >
-                                        <Text style={styles.dateLabelText}>{formatDate(endDate.toISOString())}</Text>
-                                        <Ionicons name="calendar-outline" size={20} color="#666" />
+                                        <Text style={{ fontSize: 16, color: colors.onSurface, fontFamily: "DMSans-Regular" }}>{formatDate(startDate.toISOString())}</Text>
+                                        <Ionicons name="calendar-outline" size={20} color={colors.primary} />
                                     </TouchableOpacity>
-                                    {showEndPicker && (
+                                    {showStartPicker && (
                                         <DateTimePicker
-                                            value={endDate}
+                                            value={startDate}
                                             mode="date"
                                             display="default"
-                                            minimumDate={startDate}
+                                            minimumDate={new Date()}
                                             onChange={(event, selectedDate) => {
-                                                setShowEndPicker(false);
-                                                if (selectedDate) setEndDate(selectedDate);
+                                                setShowStartPicker(false);
+                                                if (selectedDate) {
+                                                    setStartDate(selectedDate);
+                                                    if (selectedDate > endDate) setEndDate(selectedDate);
+                                                }
                                             }}
                                         />
                                     )}
                                 </View>
-                            )}
 
-                            <View style={styles.inputGroup}>
-                                <Text style={styles.label}>Reason</Text>
+                                {!isHalfDay && (
+                                    <View style={{ flex: 1, marginBottom: 24 }}>
+                                        <Text style={styles.label}>END DATE</Text>
+                                        <TouchableOpacity
+                                            style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.surfaceContainer, borderRadius: 12, padding: 14 }}
+                                            onPress={() => setShowEndPicker(true)}
+                                        >
+                                            <Text style={{ fontSize: 16, color: colors.onSurface, fontFamily: "DMSans-Regular" }}>{formatDate(endDate.toISOString())}</Text>
+                                            <Ionicons name="calendar-outline" size={20} color={colors.primary} />
+                                        </TouchableOpacity>
+                                        {showEndPicker && (
+                                            <DateTimePicker
+                                                value={endDate}
+                                                mode="date"
+                                                display="default"
+                                                minimumDate={startDate}
+                                                onChange={(event, selectedDate) => {
+                                                    setShowEndPicker(false);
+                                                    if (selectedDate) setEndDate(selectedDate);
+                                                }}
+                                            />
+                                        )}
+                                    </View>
+                                )}
+                            </View>
+
+                            <View style={{ marginBottom: 32 }}>
+                                <Text style={styles.label}>REASON</Text>
                                 <TextInput
-                                    style={[styles.input, styles.textArea]}
+                                    style={{
+                                        backgroundColor: colors.surfaceContainer, borderRadius: 12, padding: 14, fontSize: 16,
+                                        color: colors.onSurface, fontFamily: "DMSans-Regular", minHeight: 120, textAlignVertical: 'top'
+                                    }}
                                     placeholder="Enter reason for leave..."
+                                    placeholderTextColor={colors.onSurfaceVariant}
                                     value={reason}
                                     onChangeText={setReason}
                                     multiline
@@ -485,14 +634,17 @@ export default function TeacherLeaves() {
                             </View>
 
                             <TouchableOpacity
-                                style={styles.submitButton}
+                                style={{
+                                    backgroundColor: colors.primary, paddingVertical: 16, borderRadius: 100, alignItems: 'center',
+                                    marginBottom: 32, elevation: 2, shadowColor: colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8
+                                }}
                                 onPress={handleApplyLeave}
                                 disabled={applyLeaveMutation.isPending}
                             >
                                 {applyLeaveMutation.isPending ? (
-                                    <ActivityIndicator color="#fff" />
+                                    <ActivityIndicator color={colors.onPrimary} />
                                 ) : (
-                                    <Text style={styles.submitButtonText}>Submit Application</Text>
+                                    <Text style={{ color: colors.onPrimary, fontSize: 16, fontFamily: "DMSans-Bold", letterSpacing: 0.5 }}>Submit Application</Text>
                                 )}
                             </TouchableOpacity>
                         </ScrollView>
@@ -503,71 +655,25 @@ export default function TeacherLeaves() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f5f5f5' },
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, backgroundColor: '#fff', elevation: 2 },
-    headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#333' },
-    backButton: { padding: 4 },
-    tabContainer: { flexDirection: 'row', backgroundColor: '#fff', paddingHorizontal: 16, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: '#eee' },
-    tab: { flex: 1, paddingVertical: 10, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
-    activeTab: { borderBottomColor: '#2F6CD4' },
-    tabText: { fontSize: 16, color: '#666', fontWeight: '500' },
-    activeTabText: { color: '#2F6CD4', fontWeight: 'bold' },
-    loader: { marginTop: 20 },
-    listContent: { padding: 16, paddingBottom: 80 },
-    card: { backgroundColor: '#fff', borderRadius: 12, padding: 16, marginBottom: 12, elevation: 2 },
-    cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
-    studentName: { fontSize: 16, fontWeight: 'bold', color: '#333' },
-    classInfo: { fontSize: 14, color: '#666' },
-    dateContainer: { alignItems: 'flex-end' },
-    dateText: { fontSize: 14, color: '#333', fontWeight: '500' },
-    leaveTypeBadge: { fontSize: 12, color: '#666', marginTop: 2, fontStyle: 'italic' },
-    statusBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 },
-    statusText: { color: '#fff', fontSize: 12, fontWeight: 'bold' },
-    reasonLabel: { fontSize: 14, color: '#666', marginTop: 8, marginBottom: 2 },
-    reasonText: { fontSize: 14, color: '#333', marginBottom: 12 },
-    actionButtons: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8, borderTopWidth: 1, borderTopColor: '#eee', paddingTop: 12 },
-    modalContainer: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 },
-    modalContent: { backgroundColor: '#fff', borderRadius: 16, padding: 20, maxHeight: '90%' },
-    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-    modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#333', marginBottom: 10 },
-    label: { fontSize: 14, color: '#666', marginBottom: 6, fontWeight: '500', marginTop: 10 },
-    input: { backgroundColor: '#f9f9f9', borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, fontSize: 16 },
-    textArea: { height: 80, textAlignVertical: 'top' },
-    modalButtons: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 },
-    button: { flex: 1, padding: 14, borderRadius: 8, alignItems: 'center' },
-    cancelButton: { backgroundColor: '#f5f5f5', marginRight: 10 },
-    cancelButtonText: { color: '#666', fontWeight: '600', fontSize: 16 },
-    submitButtonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
-    inputGroup: { marginBottom: 20 },
-    row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#f9f9f9', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#ddd' },
-    valueText: { fontSize: 16, color: '#333' },
-    slotContainer: { flexDirection: 'row', gap: 12 },
-    slotButton: { flex: 1, padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#ddd', alignItems: 'center', backgroundColor: '#f9f9f9' },
-    activeSlot: { borderColor: '#2F6CD4', backgroundColor: '#EDE7F6' },
-    slotText: { color: '#666', fontWeight: '500' },
-    activeSlotText: { color: '#2F6CD4', fontWeight: 'bold' },
-    dateButton: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f9f9f9', borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12 },
-    dateLabelText: { fontSize: 16, color: '#333' },
-    submitButton: { backgroundColor: '#2F6CD4', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 10, marginBottom: 20 },
-    rejectionBox: { marginTop: 12, padding: 10, backgroundColor: '#FFEBEE', borderRadius: 8, borderLeftWidth: 3, borderLeftColor: '#F44336' },
-    rejectionTitle: { fontSize: 12, fontWeight: 'bold', color: '#D32F2F', marginBottom: 4 },
-    rejectionText: { fontSize: 12, color: '#D32F2F', marginBottom: 2 },
+const styles_internal = StyleSheet.create({
+    // Kept for backward compatibility if needed
+    label: {
+        fontSize: 12,
+        color: '#666',
+        marginBottom: 8,
+        fontWeight: 'bold',
+        letterSpacing: 0.5
+    },
     fab: {
         position: 'absolute',
         bottom: 130,
         right: 20,
-        backgroundColor: '#2F6CD4',
+        backgroundColor: '#2F6CD4', // Will be overridden by inline styles
         flexDirection: 'row',
         alignItems: 'center',
         paddingVertical: 12,
         paddingHorizontal: 20,
         borderRadius: 30,
         elevation: 4,
-    },
-    fabText: {
-        color: '#fff',
-        fontWeight: 'bold',
-        marginLeft: 8,
     },
 });

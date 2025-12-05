@@ -1,5 +1,6 @@
 import * as Notifications from 'expo-notifications';
-import { Platform } from 'react-native';
+import { Platform, Alert } from 'react-native';
+import Constants from 'expo-constants';
 
 /**
  * Get the FCM (Firebase Cloud Messaging) registration token using Expo Notifications
@@ -19,15 +20,35 @@ export async function getFCMToken() {
     }
 
     if (finalStatus !== 'granted') {
-      throw new Error('Permission to access notifications was denied');
+      console.log('Permission denied');
+      return null;
     }
 
     // Get the device-specific push token (FCM on Android, APNs on iOS)
-    const devicePushToken = await Notifications.getDevicePushTokenAsync();
+    let tokenData;
+    try {
+      tokenData = await Notifications.getDevicePushTokenAsync();
+    } catch (e) {
+      console.warn('Failed to get device push token, trying Expo token:', e);
+      // Fallback for Expo Go (will not work for backend FCM, but good for debugging)
+      tokenData = await Notifications.getExpoPushTokenAsync({
+        projectId: Constants.expoConfig?.extra?.eas?.projectId,
+      });
+    }
 
-    return devicePushToken.data; // This is the actual FCM token on Android
+    const token = tokenData.data;
+    console.log('Push Token:', token);
+
+    // Warn if using Expo Go with Native FCM backend
+    if (token.startsWith('ExponentPushToken')) {
+      console.warn('⚠️ You are using an Expo Push Token. Native Firebase FCM will NOT work with this token.');
+      console.warn('⚠️ Please use a Development Build or APK to test Firebase Push Notifications.');
+    }
+
+    return token;
   } catch (error) {
     console.error('[FCM] Failed to get token:', error);
+    Alert.alert('Push Notification Error', 'Failed to get push token: ' + error.message);
     throw error;
   }
 }
@@ -75,8 +96,6 @@ export async function registerFCMTokenWithBackend(token) {
       }
     }
 
-
-
     const response = await apiFetch(apiConfig.url(apiConfig.endpoints.fcm.register), {
       method: 'POST',
       silent: true,
@@ -94,15 +113,17 @@ export async function registerFCMTokenWithBackend(token) {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      console.error('[FCM] Backend registration failed:', errorData);
       throw new Error(errorData.message || 'Failed to register FCM token');
     }
 
     const _result = await response.json();
+    console.log('[FCM] Token registered with backend successfully');
 
     return true;
   } catch (error) {
     console.error('[FCM] Failed to register token with backend:', error);
-    // Don't throw - failing to register token shouldn't break the app
+    // Silent fail to avoid annoying user, but logged to console
     return false;
   }
 }

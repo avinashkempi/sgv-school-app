@@ -1,10 +1,11 @@
-import React, { useState,} from "react";
+import React, { useState, } from "react";
 import {
     View,
     Text,
     ScrollView,
     RefreshControl,
-    ActivityIndicator } from "react-native";
+    ActivityIndicator
+} from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
 import { useRouter } from "expo-router";
@@ -81,14 +82,14 @@ export default function StudentExamScheduleScreen() {
                                         backgroundColor: colors.cardBackground,
                                         borderRadius: 16,
                                         padding: 16,
-                                        marginBottom: 16,
-                                        borderLeftWidth: 4,
-                                        borderLeftColor: colors.primary,
+                                        marginBottom: 12,
+                                        flexDirection: "column",
+                                        gap: 12,
                                         shadowColor: "#000",
-                                        shadowOffset: { width: 0, height: 2 },
+                                        shadowOffset: { width: 0, height: 1 },
                                         shadowOpacity: 0.05,
                                         shadowRadius: 4,
-                                        elevation: 2,
+                                        elevation: 1,
                                     }}
                                 >
                                     <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>

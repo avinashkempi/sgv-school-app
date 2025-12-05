@@ -85,7 +85,7 @@ export const DEMO_ATTENDANCE_HISTORY = {
 
 // 5. Report Card
 export const DEMO_REPORT_CARD = {
-    overall: { percentage: 72.5, grade: "B+" },
+    overall: { percentage: 72.5, grade: "B+", rank: 5, classRank: 3 },
     student: { class: { name: "3rd Standard", section: "A" } },
     exams: [
         {

@@ -16,6 +16,7 @@ import { useApiQuery } from "../../hooks/useApi";
 import Header from "../../components/Header";
 import apiConfig from "../../config/apiConfig";
 import { LineChart } from "react-native-chart-kit";
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
@@ -70,27 +71,50 @@ export default function StudentReportCardScreen() {
     const renderOverview = () => (
         <View>
             {/* Overall Stats */}
-            <View style={{
-                backgroundColor: colors.primary,
-                borderRadius: 20,
-                padding: 24,
-                marginTop: 20,
-                elevation: 4
-            }}>
-                <Text style={{ fontSize: 16, color: "#fff", opacity: 0.9, fontFamily: "DMSans-Medium", textAlign: "center" }}>
-                    Overall Percentage
+            <LinearGradient
+                colors={[colors.primary, '#3b5998']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                    borderRadius: 24,
+                    padding: 24,
+                    marginTop: 20,
+                    elevation: 8,
+                    shadowColor: colors.primary,
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 8,
+                    alignItems: 'center'
+                }}
+            >
+                <Text style={{ fontSize: 16, color: "rgba(255,255,255,0.8)", fontFamily: "DMSans-Medium", marginBottom: 4 }}>
+                    Overall Performance
                 </Text>
-                <Text style={{ fontSize: 64, fontFamily: "DMSans-Bold", color: "#fff", marginTop: 8, textAlign: "center" }}>
-                    {reportCard?.overall?.percentage}%
-                </Text>
-                <Text style={{ fontSize: 24, fontFamily: "DMSans-Bold", color: "#fff", marginTop: 4, textAlign: "center", opacity: 0.9 }}>
-                    Grade {reportCard?.overall?.grade}
-                </Text>
-            </View>
+
+                <View style={{ flexDirection: 'row', alignItems: 'flex-end', marginVertical: 8 }}>
+                    <Text style={{ fontSize: 64, fontFamily: "DMSans-Bold", color: "#fff", lineHeight: 70 }}>
+                        {reportCard?.overall?.percentage}
+                    </Text>
+                    <Text style={{ fontSize: 24, fontFamily: "DMSans-Bold", color: "rgba(255,255,255,0.8)", marginBottom: 12, marginLeft: 4 }}>
+                        %
+                    </Text>
+                </View>
+
+                <View style={{ flexDirection: 'row', gap: 16, marginTop: 8 }}>
+                    <View style={{ backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12 }}>
+                        <Text style={{ color: '#fff', fontFamily: "DMSans-Bold" }}>Grade {reportCard?.overall?.grade}</Text>
+                    </View>
+                    {reportCard?.overall?.classRank && (
+                        <View style={{ backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12 }}>
+                            <Text style={{ color: '#fff', fontFamily: "DMSans-Bold" }}>Rank {reportCard.overall.classRank}</Text>
+                        </View>
+                    )}
+                </View>
+            </LinearGradient>
 
             {/* Exam Wise Summary */}
-            <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginTop: 32, marginBottom: 16 }}>
-                Exam Summary
+            <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginTop: 32, marginBottom: 16, paddingHorizontal: 4 }}>
+                Exam Results
             </Text>
 
             {reportCard?.exams?.map((exam, _index) => (
@@ -98,50 +122,67 @@ export default function StudentReportCardScreen() {
                     key={exam.examType}
                     style={{
                         backgroundColor: colors.cardBackground,
-                        borderRadius: 16,
-                        padding: 18,
-                        marginBottom: 14,
-                        elevation: 2,
-                        opacity: exam.isCompleted ? 1 : 0.7
+                        borderRadius: 20,
+                        padding: 16,
+                        marginBottom: 16,
+                        elevation: 0,
+                        borderWidth: 1,
+                        borderColor: colors.borderColor,
+                        opacity: exam.isCompleted ? 1 : 0.8
                     }}
                 >
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                         <View>
                             <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
                                 {exam.examType}
                             </Text>
-                            <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: "DMSans-Regular" }}>
-                                {exam.isCompleted ? "Completed" : "In Progress / Pending"}
+                            <Text style={{ fontSize: 13, color: colors.textSecondary, fontFamily: "DMSans-Medium", marginTop: 2 }}>
+                                {exam.isCompleted ? "Completed" : "Scheduled"}
                             </Text>
                         </View>
                         {exam.isCompleted && (
                             <View style={{ alignItems: "flex-end" }}>
-                                <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: getGradeColor(exam.grade) }}>
-                                    {exam.percentage}%
-                                </Text>
-                                <Text style={{ fontSize: 12, fontFamily: "DMSans-Bold", color: getGradeColor(exam.grade) }}>
-                                    Grade {exam.grade}
-                                </Text>
+                                <View style={{ backgroundColor: getGradeColor(exam.grade) + '15', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
+                                    <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: getGradeColor(exam.grade) }}>
+                                        {exam.percentage}%
+                                    </Text>
+                                </View>
                             </View>
                         )}
                     </View>
 
                     {/* Subjects List for this Exam */}
                     {exam.isCompleted && (
-                        <View style={{ marginTop: 8, paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.borderColor }}>
-                            {exam.subjects.map((sub, idx) => (
-                                <View key={idx} style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 6 }}>
-                                    <Text style={{ fontSize: 14, color: colors.textPrimary, fontFamily: "DMSans-Medium", flex: 1 }}>
-                                        {sub.subject}
-                                    </Text>
-                                    <Text style={{ fontSize: 14, color: colors.textPrimary, fontFamily: "DMSans-Regular" }}>
-                                        {sub.obtainedMarks !== null ? `${sub.obtainedMarks}/${sub.maxMarks}` : "-"}
-                                    </Text>
-                                    <Text style={{ fontSize: 14, color: getGradeColor(sub.grade), fontFamily: "DMSans-Bold", width: 30, textAlign: "right" }}>
-                                        {sub.grade}
-                                    </Text>
-                                </View>
-                            ))}
+                        <View style={{ gap: 16 }}>
+                            {exam.subjects.map((sub, idx) => {
+                                const percentage = sub.maxMarks > 0 ? (sub.obtainedMarks / sub.maxMarks) * 100 : 0;
+                                return (
+                                    <View key={idx}>
+                                        <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 6 }}>
+                                            <Text style={{ fontSize: 14, color: colors.textPrimary, fontFamily: "DMSans-Medium" }}>
+                                                {sub.subject}
+                                            </Text>
+                                            <View style={{ flexDirection: 'row', gap: 8 }}>
+                                                <Text style={{ fontSize: 14, color: colors.textSecondary, fontFamily: "DMSans-Regular" }}>
+                                                    {sub.obtainedMarks}/{sub.maxMarks}
+                                                </Text>
+                                                <Text style={{ fontSize: 14, color: getGradeColor(sub.grade), fontFamily: "DMSans-Bold", width: 24, textAlign: 'right' }}>
+                                                    {sub.grade}
+                                                </Text>
+                                            </View>
+                                        </View>
+                                        {/* Progress Bar */}
+                                        <View style={{ height: 6, backgroundColor: colors.surfaceVariant, borderRadius: 3, overflow: 'hidden' }}>
+                                            <View style={{
+                                                height: '100%',
+                                                width: `${percentage}%`,
+                                                backgroundColor: getGradeColor(sub.grade),
+                                                borderRadius: 3
+                                            }} />
+                                        </View>
+                                    </View>
+                                );
+                            })}
                         </View>
                     )}
                 </View>
