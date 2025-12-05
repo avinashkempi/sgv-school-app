@@ -54,12 +54,13 @@ export async function logFCMToken() {
  */
 export async function registerFCMTokenWithBackend(token) {
   try {
-    const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+    // const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+    const storage = (await import('./storage')).default;
     const apiFetch = (await import('./apiFetch')).default;
     const apiConfig = (await import('../config/apiConfig')).default;
 
-    const authToken = await AsyncStorage.getItem('@auth_token');
-    const storedUser = await AsyncStorage.getItem('@auth_user');
+    const authToken = await storage.getItem('@auth_token');
+    const storedUser = await storage.getItem('@auth_user');
 
     let userId = 'guest';
     let isAuthenticated = false;

@@ -19,7 +19,7 @@ const CarouselItem = React.memo(({ item, width, height }) => {
 
     return (
         <View style={[styles.itemContainer, { width, height }]}>
-            <View style={[styles.imageContainer, { backgroundColor: colors.cardBackground }]}>
+            <View style={[styles.imageContainer, { backgroundColor: colors.background }]}>
                 {loading && (
                     <View style={styles.loadingContainer}>
                         <ActivityIndicator size="small" color={colors.primary} />
@@ -97,11 +97,11 @@ export default function SchoolPhotoCarousel({ photos }) {
 
     // Calculate item width based on container padding
     const ITEM_WIDTH = SCREEN_WIDTH - 32; // 16px padding on each side
-    const ITEM_HEIGHT = 220; // Fixed height for a sleek look
+    const ITEM_HEIGHT = 300; // Increased height for better visibility
 
     return (
         <View style={styles.container}>
-            <View style={[styles.carouselWrapper, { height: ITEM_HEIGHT, width: ITEM_WIDTH }]}>
+            <View style={[styles.carouselWrapper, { height: ITEM_HEIGHT, width: ITEM_WIDTH, backgroundColor: colors.background }]}>
                 <FlatList
                     ref={flatListRef}
                     data={photos}
@@ -131,7 +131,7 @@ export default function SchoolPhotoCarousel({ photos }) {
 
                 {/* Gradient Overlay for Text/Dots Visibility */}
                 <LinearGradient
-                    colors={['transparent', 'rgba(0,0,0,0.6)']}
+                    colors={['transparent', 'rgba(0,0,0,0.2)']}
                     style={styles.gradientOverlay}
                     pointerEvents="none"
                 />
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.15,
         shadowRadius: 12,
         elevation: 8,
-        backgroundColor: '#f0f0f0', // Placeholder bg
+        // backgroundColor: '#f0f0f0', // Placeholder bg - Removed to use dynamic color inline
         position: 'relative',
     },
     itemContainer: {
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
-        height: 80,
+        height: 30,
     },
     pagination: {
         position: 'absolute',

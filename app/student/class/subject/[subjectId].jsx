@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import storage from "../../../../utils/storage";
 import { useTheme } from "../../../../theme";
 import apiConfig from "../../../../config/apiConfig";
 import apiFetch from "../../../../utils/apiFetch";
@@ -38,7 +38,7 @@ export default function StudentSubjectDetailScreen() {
     const loadData = async () => {
         const cacheKeyContent = `@subject_content_${subjectId}`;
         try {
-            const token = await AsyncStorage.getItem("@auth_token");
+            const token = await storage.getItem("@auth_token");
 
             // 1. Try cache
             const cachedContent = await getCachedData(cacheKeyContent);

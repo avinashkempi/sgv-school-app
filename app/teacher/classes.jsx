@@ -8,7 +8,7 @@ import {
     ActivityIndicator,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import storage from "../../utils/storage";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "../../theme";
 import apiConfig from "../../config/apiConfig";
@@ -27,7 +27,7 @@ export default function TeacherClassesScreen() {
 
     useEffect(() => {
         const loadUser = async () => {
-            const storedUser = await AsyncStorage.getItem("@auth_user");
+            const storedUser = await storage.getItem("@auth_user");
             if (!storedUser) {
                 router.replace("/login");
                 return;
@@ -36,7 +36,7 @@ export default function TeacherClassesScreen() {
                 setUser(JSON.parse(storedUser));
             } catch (e) {
                 console.error("Failed to parse stored user:", e);
-                await AsyncStorage.removeItem("@auth_user");
+                await storage.removeItem("@auth_user");
                 router.replace("/login");
             }
         };

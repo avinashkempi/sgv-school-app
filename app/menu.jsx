@@ -5,7 +5,7 @@ import { MaterialIcons, FontAwesome, } from '@expo/vector-icons';
 import { useTheme } from '../theme';
 import { useToast } from '../components/ToastProvider';
 import Header from '../components/Header';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import storage from '../utils/storage';
 import { SCHOOL } from '../constants/basic-info';
 import { } from 'expo-linear-gradient';
 
@@ -16,8 +16,8 @@ export default function MenuScreen() {
 
     const handleLogout = async () => {
         try {
-            await AsyncStorage.removeItem('@auth_token');
-            await AsyncStorage.removeItem('@auth_user');
+            await storage.removeItem('@auth_token');
+            await storage.removeItem('@auth_user');
             router.replace('/login');
         } catch (error) {
             console.error('Logout failed:', error);
@@ -45,7 +45,7 @@ export default function MenuScreen() {
 
     const loadUser = async () => {
         try {
-            const storedUser = await AsyncStorage.getItem('@auth_user');
+            const storedUser = await storage.getItem('@auth_user');
             if (storedUser) {
                 setUser(JSON.parse(storedUser));
             }

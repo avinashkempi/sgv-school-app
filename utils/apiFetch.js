@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import storage from './storage';
 import { DEMO_USER, DEMO_ATTENDANCE_SUMMARY, DEMO_ATTENDANCE_HISTORY } from '../constants/demoData';
 
 // Enhanced wrapper around fetch that:
@@ -8,7 +8,7 @@ export default async function apiFetch(input, init = {}) {
   const { _silent = false, ...fetchInit } = init;
 
   // Get auth token from storage
-  const token = await AsyncStorage.getItem('@auth_token');
+  const token = await storage.getItem('@auth_token');
 
   // Check for Demo Mode
   if (token === 'demo-token') {

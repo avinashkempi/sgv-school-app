@@ -8,7 +8,7 @@ import {
     RefreshControl,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import storage from "../../../utils/storage";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "../../../theme";
 import apiConfig from "../../../config/apiConfig";
@@ -40,7 +40,7 @@ export default function MarkAttendanceScreen() {
 
     const loadData = async () => {
         try {
-            const token = await AsyncStorage.getItem("@auth_token");
+            const token = await storage.getItem("@auth_token");
 
             // Load class/subject info
             if (classId) {
@@ -65,6 +65,13 @@ export default function MarkAttendanceScreen() {
 
             // Load attendance for selected date
             const dateStr = selectedDate.toISOString().split('T')[0];
+
+            if (!classId && !subjectId) {
+                // If neither classId nor subjectId is present, we can't fetch specific attendance
+                setLoading(false);
+                return;
+            }
+
             const endpoint = subjectId
                 ? `/attendance/subject/${subjectId}/date/${dateStr}`
                 : `/attendance/class/${classId}/date/${dateStr}`;
@@ -114,7 +121,7 @@ export default function MarkAttendanceScreen() {
     const handleSaveAttendance = async () => {
         try {
             setSaving(true);
-            const token = await AsyncStorage.getItem("@auth_token");
+            const token = await storage.getItem("@auth_token");
 
             // Prepare attendance records
             const attendanceRecords = students

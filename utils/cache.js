@@ -1,5 +1,5 @@
 // Centralized cache management utility
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import storage from './storage';
 
 // Cache keys
 export const CACHE_KEYS = {
@@ -61,7 +61,7 @@ const validateCachedData = (key, data) => {
 // Get cached data without expiry check (for stale-while-revalidate)
 export const getCachedDataRaw = async (key) => {
   try {
-    const cached = await AsyncStorage.getItem(key);
+    const cached = await storage.getItem(key);
     if (!cached) return null;
 
     const parsed = JSON.parse(cached);
@@ -83,7 +83,7 @@ export const getCachedData = async (key, expiryTime = 0) => {
     const now = Date.now();
     if (expiryTime > 0 && (now - cached.timestamp) > expiryTime) {
       // Cache expired, remove it
-      await AsyncStorage.removeItem(key);
+      await storage.removeItem(key);
       return null;
     }
 
@@ -147,7 +147,7 @@ export const setCachedData = async (key, data) => {
     }
 
     const cacheEntry = createCacheEntry(data);
-    await AsyncStorage.setItem(key, JSON.stringify(cacheEntry));
+    await storage.setItem(key, JSON.stringify(cacheEntry));
   } catch (error) {
     console.warn(`[CACHE] Failed to set cached data for ${key}:`, error);
   }
@@ -156,7 +156,7 @@ export const setCachedData = async (key, data) => {
 // Clear specific cache
 export const clearCache = async (key) => {
   try {
-    await AsyncStorage.removeItem(key);
+    await storage.removeItem(key);
   } catch (error) {
     console.warn(`Failed to clear cache for ${key}:`, error);
   }
@@ -166,7 +166,7 @@ export const clearCache = async (key) => {
 export const clearAllCaches = async () => {
   try {
     const keys = Object.values(CACHE_KEYS);
-    await AsyncStorage.multiRemove(keys);
+    await storage.multiRemove(keys);
   } catch (error) {
     console.warn('Failed to clear all caches:', error);
   }

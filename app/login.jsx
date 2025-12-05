@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Pressable, ScrollView, StatusBar, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../theme';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import storage from '../utils/storage';
 import { useRouter } from 'expo-router';
 import apiConfig from "../config/apiConfig";
 import { useApiMutation, createApiMutationFn } from "../hooks/useApi";
@@ -19,8 +19,8 @@ export default function Login() {
     mutationFn: createApiMutationFn(apiConfig.url(apiConfig.endpoints.auth.login), 'POST'),
     onSuccess: async (data) => {
       if (data.token) {
-        await AsyncStorage.setItem('@auth_token', data.token);
-        await AsyncStorage.setItem('@auth_user', JSON.stringify(data.user));
+        await storage.setItem('@auth_token', data.token);
+        await storage.setItem('@auth_user', JSON.stringify(data.user));
         router.replace('/');
       } else {
         alert(data.message || 'Login failed');
@@ -186,8 +186,8 @@ export default function Login() {
             <Pressable
               onPress={async () => {
                 const { DEMO_USER } = require('../constants/demoData');
-                await AsyncStorage.setItem('@auth_token', 'demo-token');
-                await AsyncStorage.setItem('@auth_user', JSON.stringify(DEMO_USER));
+                await storage.setItem('@auth_token', 'demo-token');
+                await storage.setItem('@auth_user', JSON.stringify(DEMO_USER));
                 router.replace('/');
               }}
               style={({ pressed }) => ({

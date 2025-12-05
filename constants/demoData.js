@@ -263,30 +263,30 @@ export const DEMO_INSIGHTS = {
 // Pack up/Diary: 04:10-04:30
 
 const periodsMonFri = [
-    { periodNumber: 1, startTime: "09:30", endTime: "10:10", type: "class" },
-    { periodNumber: 0, startTime: "10:10", endTime: "10:20", type: "break", name: "Short Break" },
-    { periodNumber: 2, startTime: "10:20", endTime: "11:00", type: "class" },
-    { periodNumber: 0, startTime: "11:00", endTime: "11:10", type: "break", name: "Short Break" },
-    { periodNumber: 3, startTime: "11:10", endTime: "11:50", type: "class" },
-    { periodNumber: 0, startTime: "11:50", endTime: "12:00", type: "break", name: "Short Break" },
-    { periodNumber: 4, startTime: "12:00", endTime: "12:40", type: "class" },
-    { periodNumber: 0, startTime: "12:40", endTime: "01:20", type: "break", name: "Lunch Break" },
-    { periodNumber: 5, startTime: "01:20", endTime: "02:00", type: "class" },
-    { periodNumber: 0, startTime: "02:00", endTime: "02:10", type: "break", name: "Short Break" },
-    { periodNumber: 6, startTime: "02:10", endTime: "02:50", type: "class" },
-    { periodNumber: 7, startTime: "02:50", endTime: "03:30", type: "class" },
-    { periodNumber: 8, startTime: "03:30", endTime: "04:10", type: "class" },
-    { periodNumber: 0, startTime: "04:10", endTime: "04:30", type: "break", name: "Diary/Pack-up" },
+    { periodNumber: 1, startTime: "09:30 AM", endTime: "10:10 AM", type: "class" },
+    { periodNumber: 2, startTime: "10:10 AM", endTime: "10:20 AM", type: "break", name: "Short Break" },
+    { periodNumber: 3, startTime: "10:20 AM", endTime: "11:00 AM", type: "class" },
+    { periodNumber: 4, startTime: "11:00 AM", endTime: "11:10 AM", type: "break", name: "Short Break" },
+    { periodNumber: 5, startTime: "11:10 AM", endTime: "11:50 AM", type: "class" },
+    { periodNumber: 6, startTime: "11:50 AM", endTime: "12:00 PM", type: "break", name: "Short Break" },
+    { periodNumber: 7, startTime: "12:00 PM", endTime: "12:40 PM", type: "class" },
+    { periodNumber: 8, startTime: "12:40 PM", endTime: "01:20 PM", type: "break", name: "Lunch Break" },
+    { periodNumber: 9, startTime: "01:20 PM", endTime: "02:00 PM", type: "class" },
+    { periodNumber: 10, startTime: "02:00 PM", endTime: "02:10 PM", type: "break", name: "Short Break" },
+    { periodNumber: 11, startTime: "02:10 PM", endTime: "02:50 PM", type: "class" },
+    { periodNumber: 12, startTime: "02:50 PM", endTime: "03:30 PM", type: "class" },
+    { periodNumber: 13, startTime: "03:30 PM", endTime: "04:10 PM", type: "class" },
+    { periodNumber: 14, startTime: "04:10 PM", endTime: "04:30 PM", type: "break", name: "Diary/Pack-up" },
 ];
 
 const periodsSat = [
-    { periodNumber: 1, startTime: "09:30", endTime: "10:10", type: "class" },
-    { periodNumber: 0, startTime: "10:10", endTime: "10:20", type: "break", name: "Short Break" },
-    { periodNumber: 2, startTime: "10:20", endTime: "11:00", type: "class" },
-    { periodNumber: 0, startTime: "11:00", endTime: "11:10", type: "break", name: "Short Break" },
-    { periodNumber: 3, startTime: "11:10", endTime: "11:50", type: "class" },
-    { periodNumber: 4, startTime: "11:50", endTime: "12:30", type: "class" },
-    { periodNumber: 0, startTime: "12:30", endTime: "01:00", type: "break", name: "Dispersal" },
+    { periodNumber: 1, startTime: "09:30 AM", endTime: "10:10 AM", type: "class" },
+    { periodNumber: 2, startTime: "10:10 AM", endTime: "10:20 AM", type: "break", name: "Short Break" },
+    { periodNumber: 3, startTime: "10:20 AM", endTime: "11:00 AM", type: "class" },
+    { periodNumber: 4, startTime: "11:00 AM", endTime: "11:10 AM", type: "break", name: "Short Break" },
+    { periodNumber: 5, startTime: "11:10 AM", endTime: "11:50 AM", type: "class" },
+    { periodNumber: 6, startTime: "11:50 AM", endTime: "12:30 PM", type: "class" },
+    { periodNumber: 7, startTime: "12:30 PM", endTime: "01:00 PM", type: "break", name: "Dispersal" },
 ];
 
 export const DEMO_TIMETABLE = {

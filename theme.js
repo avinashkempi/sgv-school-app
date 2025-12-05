@@ -6,7 +6,7 @@ import React, {
   useEffect,
 } from "react";
 import { StyleSheet, Appearance, Platform } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import storage from "./utils/storage";
 
 const FONTS = {
   bold: "DMSans-Bold",
@@ -451,7 +451,7 @@ export function ThemeProvider({ children }) {
     let mounted = true;
     async function load() {
       try {
-        const stored = await AsyncStorage.getItem("@theme_mode");
+        const stored = await storage.getItem("@theme_mode");
         if (mounted) {
           if (stored === "light" || stored === "dark") {
             setMode(stored);
@@ -477,7 +477,7 @@ export function ThemeProvider({ children }) {
 
     const sub = Appearance.addChangeListener(({ colorScheme }) => {
       // If user hasn't chosen yet (no stored pref) or has chosen "system", update with system changes
-      AsyncStorage.getItem("@theme_mode").then((stored) => {
+      storage.getItem("@theme_mode").then((stored) => {
         if (!stored || stored === "system") {
           setMode(colorScheme === "dark" ? "dark" : "light");
         }
@@ -522,11 +522,11 @@ export function ThemeProvider({ children }) {
 
     // Persist to storage in the background
     if (newMode === "system") {
-      AsyncStorage.removeItem("@theme_mode").catch(() => {
+      storage.removeItem("@theme_mode").catch(() => {
         // ignore persistence error
       });
     } else {
-      AsyncStorage.setItem("@theme_mode", newMode).catch(() => {
+      storage.setItem("@theme_mode", newMode).catch(() => {
         // ignore persistence error
       });
     }

@@ -1,6 +1,6 @@
 import { QueryClient } from '@tanstack/react-query';
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import storage from './storage';
 import { onlineManager } from '@tanstack/react-query';
 import NetInfo from '@react-native-community/netinfo';
 
@@ -24,6 +24,6 @@ export const queryClient = new QueryClient({
 
 // Create a persister
 export const persister = createAsyncStoragePersister({
-    storage: AsyncStorage,
+    storage: storage,
     throttleTime: 3000, // Throttle saves to once every 3 seconds
 });

@@ -6,9 +6,10 @@ import {
     Pressable,
     ActivityIndicator,
     TextInput,
-    FlatList } from "react-native";
+    FlatList
+} from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import storage from "../../utils/storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/useApi";
@@ -131,7 +132,7 @@ export default function AdminFeesScreen() {
     const searchStudent = async (query, setResults, classId = null) => {
         if (!query.trim()) return;
         try {
-            const token = await AsyncStorage.getItem("@auth_token");
+            const token = await storage.getItem("@auth_token");
             let url = `${apiConfig.baseUrl}/users/search?query=${query}&role=student`;
             if (classId) {
                 url += `&classId=${classId}`;

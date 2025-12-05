@@ -11,7 +11,7 @@ import {
     Alert
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import storage from "../../../utils/storage";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "../../../theme";
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../../../hooks/useApi";
@@ -47,7 +47,7 @@ export default function ClassDetailsScreen() {
 
     const loadUserData = async () => {
         try {
-            const storedUser = await AsyncStorage.getItem("@auth_user");
+            const storedUser = await storage.getItem("@auth_user");
             if (storedUser) {
                 const parsedUser = JSON.parse(storedUser);
                 setUser(parsedUser);
@@ -73,7 +73,9 @@ export default function ClassDetailsScreen() {
         ['globalSubjects'],
         `${apiConfig.baseUrl}/subjects`
     );
-    const globalSubjects = globalSubjectsData || [];
+    const globalSubjects = Array.isArray(globalSubjectsData)
+        ? globalSubjectsData
+        : (Array.isArray(globalSubjectsData?.data) ? globalSubjectsData.data : []);
 
     // Fetch Available Students
     const { data: availableStudentsData } = useApiQuery(
@@ -277,7 +279,7 @@ export default function ClassDetailsScreen() {
                             <Pressable
                                 onPress={() => router.push({
                                     pathname: "/teacher/class/attendance",
-                                    params: { id }
+                                    params: { classId: id }
                                 })}
                                 style={({ pressed }) => ({
                                     flex: 1,

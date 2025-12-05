@@ -26,7 +26,7 @@ Notifications.setNotificationHandler({
 });
 
 import DemoBanner from "../components/DemoBanner";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import storage from "../utils/storage";
 import { useState } from "react";
 
 // separate component so we can use useTheme inside ThemeProvider
@@ -39,7 +39,7 @@ function Inner() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = await AsyncStorage.getItem('@auth_token');
+      const token = await storage.getItem('@auth_token');
       setIsDemo(token === 'demo-token');
 
       const inLoginGroup = segments[0] === 'login';

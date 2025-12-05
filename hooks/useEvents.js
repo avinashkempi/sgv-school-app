@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import storage from '../utils/storage';
 import apiConfig from '../config/apiConfig';
 import {
   getCachedData,
@@ -28,7 +28,7 @@ export default function useEvents() {
 
   // Fetch events from API  
   const fetchEventsFromAPI = useCallback(async (startDate, endDate, silent = false) => {
-    const token = await AsyncStorage.getItem('@auth_token');
+    const token = await storage.getItem('@auth_token');
     const fetchOptions = { silent }; // Pass silent flag
     if (token) {
       fetchOptions.headers = { Authorization: `Bearer ${token}` };

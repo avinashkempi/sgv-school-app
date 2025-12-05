@@ -5,7 +5,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "../theme";
 import { ROUTES } from "../constants/routes";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import storage from '../utils/storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function BottomNavigation() {
@@ -20,7 +20,7 @@ function BottomNavigation() {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const storedUser = await AsyncStorage.getItem('@auth_user');
+        const storedUser = await storage.getItem('@auth_user');
         if (storedUser) {
           setUser(JSON.parse(storedUser));
         } else {

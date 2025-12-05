@@ -15,7 +15,7 @@ import { useApiQuery, useApiMutation } from "../../hooks/useApi";
 import { useToast } from "../../components/ToastProvider";
 import AppHeader from "../../components/Header";
 import apiConfig from "../../config/apiConfig";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import storage from "../../utils/storage";
 
 export default function AssessmentDashboard() {
     const router = useRouter();
@@ -28,7 +28,7 @@ export default function AssessmentDashboard() {
 
     useEffect(() => {
         const loadUser = async () => {
-            const storedUser = await AsyncStorage.getItem("@auth_user");
+            const storedUser = await storage.getItem("@auth_user");
             if (storedUser) {
                 setUser(JSON.parse(storedUser));
             }

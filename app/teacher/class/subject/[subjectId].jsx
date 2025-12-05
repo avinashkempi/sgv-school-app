@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import storage from "../../../../utils/storage";
 import { useTheme } from "../../../../theme";
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../../../../hooks/useApi";
 import { useQueryClient } from "@tanstack/react-query";
@@ -36,7 +36,7 @@ export default function SubjectDetailScreen() {
 
     const loadUserData = async () => {
         try {
-            const storedUser = await AsyncStorage.getItem("@auth_user");
+            const storedUser = await storage.getItem("@auth_user");
             if (storedUser) setUser(JSON.parse(storedUser));
         } catch (error) {
             console.error("Failed to load user:", error);

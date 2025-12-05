@@ -5,9 +5,10 @@ import {
     TextInput,
     Pressable,
     ScrollView,
-    ActivityIndicator } from "react-native";
+    ActivityIndicator
+} from "react-native";
 import { useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import storage from "../../utils/storage";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../../theme";
 import apiConfig from "../../config/apiConfig";
@@ -33,7 +34,7 @@ export default function RaiseComplaintScreen() {
     }, []);
 
     const checkUserRole = async () => {
-        const role = await AsyncStorage.getItem("userRole");
+        const role = await storage.getItem("userRole");
         setUserRole(role);
         if (role === 'teacher') {
             setCategory("Management"); // Default for teachers

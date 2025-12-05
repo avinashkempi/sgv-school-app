@@ -1,7 +1,7 @@
 import React, { useState, } from "react";
 import { View, Text, ScrollView, RefreshControl, Pressable, ActivityIndicator } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import storage from "../utils/storage";
 import { useTheme } from "../theme";
 import { useToast } from "../components/ToastProvider";
 import { formatDate } from "../utils/date";
@@ -31,8 +31,8 @@ export default function ProfileScreen() {
 
   const handleLogout = async () => {
     try {
-      await AsyncStorage.removeItem('@auth_token');
-      await AsyncStorage.removeItem('@auth_user');
+      await storage.removeItem('@auth_token');
+      await storage.removeItem('@auth_user');
       const { queryClient } = require('../utils/queryClient');
       queryClient.clear();
       const { router } = require('expo-router');

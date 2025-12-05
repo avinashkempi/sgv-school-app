@@ -13,10 +13,9 @@ import { useToast } from "../components/ToastProvider";
 
 import apiConfig from "../config/apiConfig";
 import { useApiQuery } from "../hooks/useApi";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import storage from "../utils/storage";
 
-// Global variable to track if welcome/latest notification has been shown in this session
-let hasShownNotification = false;
+
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -26,18 +25,7 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const { showToast } = useToast();
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    try {
-      await refresh(true);
-    } catch (err) {
-      // Suppress error
-    } finally {
-      setRefreshing(false);
-    }
-  };
-
-  const { data: userData, isError } = useApiQuery(
+  const { data: userData, isError, refetch: refetchUser } = useApiQuery(
     ['currentUser'],
     `${apiConfig.baseUrl}/auth/me`,
     {
@@ -48,29 +36,32 @@ export default function HomeScreen() {
     }
   );
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        refresh(true),
+        refetchUser()
+      ]);
+    } catch (err) {
+      // Suppress error
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   useEffect(() => {
     if (isError) {
       // If we can't fetch user details (likely 401/403), clear session and redirect
       const handleLogout = async () => {
-        await AsyncStorage.multiRemove(['@auth_token', '@auth_user']);
+        await storage.multiRemove(['@auth_token', '@auth_user']);
         router.replace('/login');
       };
       handleLogout();
     }
   }, [isError]);
 
-  const { data: notificationsData } = useApiQuery(
-    ['notifications', 'latest'],
-    `${apiConfig.baseUrl}/notifications`
-  );
 
-  useEffect(() => {
-    if (notificationsData && !hasShownNotification && notificationsData.notifications && notificationsData.notifications.length > 0) {
-      const latest = notificationsData.notifications[0];
-      showToast(latest.message || latest.title || "Welcome back!", "info");
-      hasShownNotification = true;
-    }
-  }, [notificationsData]);
 
   return (
     <ScrollView

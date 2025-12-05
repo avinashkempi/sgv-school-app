@@ -9,7 +9,7 @@ import {
     ActivityIndicator
 } from "react-native";
 import { } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import storage from "../../utils/storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
@@ -29,7 +29,7 @@ export default function StudentReportCardScreen() {
 
     useEffect(() => {
         const loadUser = async () => {
-            const storedUser = await AsyncStorage.getItem("@auth_user");
+            const storedUser = await storage.getItem("@auth_user");
             if (storedUser) {
                 setUser(JSON.parse(storedUser));
             }

@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import storage from "../../utils/storage";
 import { useTheme } from "../../theme";
 import apiConfig from "../../config/apiConfig";
 import { useApiQuery } from "../../hooks/useApi";
@@ -33,7 +33,7 @@ export default function ComplaintsScreen() {
 
 
     const checkUserRole = async () => {
-        const role = await AsyncStorage.getItem("userRole");
+        const role = await storage.getItem("userRole");
         setUserRole(role);
         // If student, force 'my_complaints'
         if (role === 'student') {
