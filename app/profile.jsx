@@ -33,7 +33,6 @@ export default function ProfileScreen() {
     try {
       await AsyncStorage.removeItem('@auth_token');
       await AsyncStorage.removeItem('@auth_user');
-      // Invalidate queries to clear cache
       const { queryClient } = require('../utils/queryClient');
       queryClient.clear();
       const { router } = require('expo-router');
