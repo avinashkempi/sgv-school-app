@@ -18,6 +18,8 @@ export default function AdminLeaves() {
     const [activeTab, setActiveTab] = useState('requests'); // 'requests', 'my_leaves', 'daily'
     const [refreshing, setRefreshing] = useState(false);
 
+    const [statusFilter, setStatusFilter] = useState('pending'); // 'pending', 'history'
+
     // Action Modal State
     const [actionModalVisible, setActionModalVisible] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState(null);
@@ -37,15 +39,35 @@ export default function AdminLeaves() {
     const [halfDaySlot, setHalfDaySlot] = useState('morning');
 
     // Fetch Requests
+    // If statusFilter is 'history', we might want to fetch all non-pending, or specifically approved/rejected.
+    // The backend supports ?status=... or no status for all.
+    // Let's use ?status=pending for pending, and no status (or separate calls) for history.
+    // Actually, for history let's just fetch everything and filter client side or ask backend for 'approved,rejected' (if supported)
+    // My backend change: if status is undefined, it returns all.
+    // Let's pass status only if 'pending'. If 'history', pass nothing (get all) and filter or just show all?
+    // Better: If history, maybe we want to see approved and rejected. 
+    // Backend Implementation: `if (status) query.status = status;`
+    // So if I don't pass status, I get all.
+    // I will fetch based on filter.
+    const queryUrl = statusFilter === 'pending'
+        ? `${apiConfig.baseUrl}/leaves/requests?status=pending`
+        : `${apiConfig.baseUrl}/leaves/requests`; // Gets all, we can filter processed ones
+
     const { data: requestsData, isLoading: requestsLoading, refetch: refetchRequests } = useApiQuery(
-        ['adminLeaveRequests'],
-        `${apiConfig.baseUrl}/leaves/pending`,
+        ['adminLeaveRequests', statusFilter],
+        queryUrl,
         { enabled: activeTab === 'requests' }
     );
 
     const requests = React.useMemo(() => {
         if (!requestsData?.data) return [];
-        const data = requestsData.data;
+        let data = requestsData.data;
+
+        // If filter is history, exclude pending
+        if (statusFilter === 'history') {
+            data = data.filter(r => r.status !== 'pending');
+        }
+
         const studentRequests = data.filter(r => r.applicantRole === 'student');
         const teacherRequests = data.filter(r => r.applicantRole === 'teacher');
         const adminRequests = data.filter(r => r.applicantRole === 'admin');
@@ -55,7 +77,7 @@ export default function AdminLeaves() {
         if (teacherRequests.length > 0) sections.push({ title: 'Teacher Requests', data: teacherRequests });
         if (adminRequests.length > 0) sections.push({ title: 'Admin Requests', data: adminRequests });
         return sections;
-    }, [requestsData]);
+    }, [requestsData, statusFilter]);
 
     // Fetch My Leaves
     const { data: myLeavesData, isLoading: myLeavesLoading, refetch: refetchMyLeaves } = useApiQuery(
@@ -89,7 +111,7 @@ export default function AdminLeaves() {
     const actionMutation = useApiMutation({
         mutationFn: (data) => createApiMutationFn(`${apiConfig.baseUrl}/leaves/${data.id}/action`, 'PUT')(data.body),
         onSuccess: () => {
-            showToast(`Leave ${actionType} successfully`, 'success');
+            showToast(`Leave updated successfully`, 'success');
             setActionModalVisible(false);
             queryClient.invalidateQueries({ queryKey: ['adminLeaveRequests'] });
             queryClient.invalidateQueries({ queryKey: ['dailyLeaveStats'] });
@@ -125,9 +147,33 @@ export default function AdminLeaves() {
     const openActionModal = (request, type) => {
         setSelectedRequest(request);
         setActionType(type);
-        setActionReason('');
-        setRejectionReason('');
-        setRejectionComments('');
+
+        // Pre-fill if editing existing approval/rejection
+        if (request.status !== 'pending') {
+            // If we are editing, 'type' passed in might be the target type we clicked, OR we just toggle.
+            // But UI has separate Approve/Reject buttons.
+            // If I click Edit, I should probably show select? 
+            // Simplification: In history view, show "Edit" button. Clicking it opens a choice or pre-fills current state.
+            // Let's say "Edit" opens the modal with current state.
+            // But the modal is designed for "Approve" OR "Reject".
+            // We can pass the request's current status (or the new desired status if user clicked a specific button).
+
+            // If user clicks "Edit", let's open modal in the state matching current request status.
+            setActionType(request.status);
+            if (request.status === 'approved') {
+                setActionReason(request.actionReason || '');
+                setRejectionReason('');
+                setRejectionComments('');
+            } else {
+                setRejectionReason(request.rejectionReason || '');
+                setRejectionComments(request.rejectionComments || '');
+                setActionReason('');
+            }
+        } else {
+            setActionReason('');
+            setRejectionReason('');
+            setRejectionComments('');
+        }
         setActionModalVisible(true);
     };
 
@@ -217,6 +263,21 @@ export default function AdminLeaves() {
                     <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginTop: 2, fontStyle: 'italic' }}>
                         {item.leaveType === 'half' ? `Half Day (${item.halfDaySlot})` : 'Full Day'}
                     </Text>
+                    {item.status !== 'pending' && (
+                        <View style={{
+                            marginTop: 4,
+                            paddingHorizontal: 8,
+                            paddingVertical: 2,
+                            borderRadius: 4,
+                            backgroundColor: getStatusColor(item.status) + '15',
+                            borderWidth: 1,
+                            borderColor: getStatusColor(item.status) + '30'
+                        }}>
+                            <Text style={{ color: getStatusColor(item.status), fontSize: 10, fontFamily: "DMSans-Bold", textTransform: 'uppercase' }}>
+                                {item.status}
+                            </Text>
+                        </View>
+                    )}
                 </View>
             </View>
 
@@ -225,32 +286,65 @@ export default function AdminLeaves() {
                 <Text style={{ fontSize: 14, color: colors.onSurface, fontFamily: "DMSans-Regular", lineHeight: 20 }}>{item.reason}</Text>
             </View>
 
+            {item.status !== 'pending' && item.status === 'rejected' && (
+                <View style={{ backgroundColor: colors.errorContainer + '20', padding: 12, borderRadius: 8, marginBottom: 12 }}>
+                    <Text style={{ fontSize: 12, color: colors.error, marginBottom: 4, fontFamily: "DMSans-Medium" }}>Rejection Reason</Text>
+                    <Text style={{ fontSize: 14, color: colors.onSurface, fontFamily: "DMSans-Regular" }}>{item.rejectionReason}</Text>
+                    {item.rejectionComments && <Text style={{ fontSize: 13, color: colors.onSurfaceVariant, marginTop: 4 }}>Note: {item.rejectionComments}</Text>}
+                </View>
+            )}
+
+            {item.status !== 'pending' && item.status === 'approved' && item.actionReason && (
+                <View style={{ backgroundColor: colors.primaryContainer + '20', padding: 12, borderRadius: 8, marginBottom: 12 }}>
+                    <Text style={{ fontSize: 12, color: colors.primary, marginBottom: 4, fontFamily: "DMSans-Medium" }}>Approval Note</Text>
+                    <Text style={{ fontSize: 14, color: colors.onSurface, fontFamily: "DMSans-Regular" }}>{item.actionReason}</Text>
+                </View>
+            )}
+
             <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 12, paddingTop: 4 }}>
-                <TouchableOpacity
-                    style={{
-                        paddingVertical: 8,
-                        paddingHorizontal: 16,
-                        borderRadius: 8,
-                        backgroundColor: colors.errorContainer,
-                        borderWidth: 1,
-                        borderColor: colors.error
-                    }}
-                    onPress={() => openActionModal(item, 'rejected')}
-                >
-                    <Text style={{ color: colors.error, fontFamily: "DMSans-Bold", fontSize: 14 }}>Reject</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={{
-                        paddingVertical: 8,
-                        paddingHorizontal: 16,
-                        borderRadius: 8,
-                        backgroundColor: colors.primary,
-                        elevation: 1
-                    }}
-                    onPress={() => openActionModal(item, 'approved')}
-                >
-                    <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 14 }}>Approve</Text>
-                </TouchableOpacity>
+                {item.status === 'pending' ? (
+                    <>
+                        <TouchableOpacity
+                            style={{
+                                paddingVertical: 8,
+                                paddingHorizontal: 16,
+                                borderRadius: 8,
+                                backgroundColor: colors.errorContainer,
+                                borderWidth: 1,
+                                borderColor: colors.error
+                            }}
+                            onPress={() => openActionModal(item, 'rejected')}
+                        >
+                            <Text style={{ color: colors.error, fontFamily: "DMSans-Bold", fontSize: 14 }}>Reject</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={{
+                                paddingVertical: 8,
+                                paddingHorizontal: 16,
+                                borderRadius: 8,
+                                backgroundColor: colors.primary,
+                                elevation: 1
+                            }}
+                            onPress={() => openActionModal(item, 'approved')}
+                        >
+                            <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 14 }}>Approve</Text>
+                        </TouchableOpacity>
+                    </>
+                ) : (
+                    <TouchableOpacity
+                        style={{
+                            paddingVertical: 8,
+                            paddingHorizontal: 16,
+                            borderRadius: 8,
+                            backgroundColor: colors.surfaceVariant,
+                            borderWidth: 1,
+                            borderColor: colors.outline
+                        }}
+                        onPress={() => openActionModal(item, item.status)}
+                    >
+                        <Text style={{ color: colors.onSurface, fontFamily: "DMSans-Bold", fontSize: 14 }}>Edit Decision</Text>
+                    </TouchableOpacity>
+                )}
             </View>
         </View>
     );
@@ -430,31 +524,74 @@ export default function AdminLeaves() {
             ) : (
                 <>
                     {activeTab === 'requests' ? (
-                        <SectionList
-                            sections={requests}
-                            renderItem={renderRequestItem}
-                            renderSectionHeader={({ section: { title } }) => (
-                                <Text style={{
-                                    fontSize: 14,
-                                    fontFamily: "DMSans-Bold",
-                                    color: colors.onSurfaceVariant,
-                                    backgroundColor: colors.background,
-                                    paddingVertical: 8,
-                                    paddingHorizontal: 4,
-                                    marginTop: 10,
-                                    textTransform: 'uppercase'
-                                }}>{title}</Text>
-                            )}
-                            keyExtractor={(item) => item._id}
-                            contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
-                            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
-                            ListEmptyComponent={
-                                <View style={{ alignItems: 'center', marginTop: 40, opacity: 0.6 }}>
-                                    <MaterialIcons name="done-all" size={64} color={colors.onSurfaceVariant} />
-                                    <Text style={{ marginTop: 16, fontSize: 16, color: colors.onSurfaceVariant, fontFamily: "DMSans-Medium" }}>No pending requests.</Text>
-                                </View>
-                            }
-                        />
+                        <View style={{ flex: 1 }}>
+                            {/* Filter Toggles */}
+                            <View style={{ flexDirection: 'row', paddingHorizontal: 16, marginBottom: 12, gap: 12 }}>
+                                <TouchableOpacity
+                                    onPress={() => setStatusFilter('pending')}
+                                    style={{
+                                        paddingHorizontal: 16,
+                                        paddingVertical: 8,
+                                        borderRadius: 20,
+                                        backgroundColor: statusFilter === 'pending' ? colors.primary : colors.surfaceContainer,
+                                        borderWidth: 1,
+                                        borderColor: statusFilter === 'pending' ? colors.primary : colors.outlineVariant
+                                    }}
+                                >
+                                    <Text style={{
+                                        color: statusFilter === 'pending' ? colors.onPrimary : colors.onSurfaceVariant,
+                                        fontFamily: "DMSans-Medium",
+                                        fontSize: 13
+                                    }}>Pending</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    onPress={() => setStatusFilter('history')}
+                                    style={{
+                                        paddingHorizontal: 16,
+                                        paddingVertical: 8,
+                                        borderRadius: 20,
+                                        backgroundColor: statusFilter === 'history' ? colors.primary : colors.surfaceContainer,
+                                        borderWidth: 1,
+                                        borderColor: statusFilter === 'history' ? colors.primary : colors.outlineVariant
+                                    }}
+                                >
+                                    <Text style={{
+                                        color: statusFilter === 'history' ? colors.onPrimary : colors.onSurfaceVariant,
+                                        fontFamily: "DMSans-Medium",
+                                        fontSize: 13
+                                    }}>History</Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            <SectionList
+
+                                sections={requests}
+                                renderItem={renderRequestItem}
+                                renderSectionHeader={({ section: { title } }) => (
+                                    <Text style={{
+                                        fontSize: 14,
+                                        fontFamily: "DMSans-Bold",
+                                        color: colors.onSurfaceVariant,
+                                        backgroundColor: colors.background,
+                                        paddingVertical: 8,
+                                        paddingHorizontal: 4,
+                                        marginTop: 10,
+                                        textTransform: 'uppercase'
+                                    }}>{title}</Text>
+                                )}
+                                keyExtractor={(item) => item._id}
+                                contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+                                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
+                                ListEmptyComponent={
+                                    <View style={{ alignItems: 'center', marginTop: 40, opacity: 0.6 }}>
+                                        <MaterialIcons name="done-all" size={64} color={colors.onSurfaceVariant} />
+                                        <Text style={{ marginTop: 16, fontSize: 16, color: colors.onSurfaceVariant, fontFamily: "DMSans-Medium" }}>
+                                            {statusFilter === 'pending' ? 'No pending requests.' : 'No history found.'}
+                                        </Text>
+                                    </View>
+                                }
+                            />
+                        </View>
                     ) : (
                         <FlatList
                             data={activeTab === 'my_leaves' ? myLeaves : dailyStats}

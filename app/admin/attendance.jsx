@@ -1,7 +1,7 @@
 import React, { useState, useEffect, } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, ScrollView, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useApiQuery, useApiMutation, createApiMutationFn } from '../../hooks/useApi';
@@ -116,20 +116,9 @@ export default function AdminAttendance() {
 
     // --- Student Attendance Handlers ---
 
-    const toggleStudentStatus = (index) => {
+    const handleStudentStatusChange = (index, newStatus) => {
         const newAttendance = [...localStudentAttendance];
-        const currentStatus = newAttendance[index].status;
-        // Cycle: null -> present -> absent -> late -> excused -> null
-        // Simplified: present -> absent -> late -> present
-        let nextStatus = 'present';
-        if (currentStatus === 'present') nextStatus = 'absent';
-        else if (currentStatus === 'absent') nextStatus = 'late';
-        else if (currentStatus === 'late') nextStatus = 'excused';
-        else if (currentStatus === 'excused') nextStatus = 'present';
-
-        if (!currentStatus) nextStatus = 'present';
-
-        newAttendance[index].status = nextStatus;
+        newAttendance[index].status = newStatus;
         setLocalStudentAttendance(newAttendance);
     };
 
@@ -173,19 +162,9 @@ export default function AdminAttendance() {
         setLocalStaffList(newStaffList);
     };
 
-    const toggleStaffStatus = (index) => {
+    const handleStaffStatusChange = (index, newStatus) => {
         const newStaffList = [...localStaffList];
-        const currentStatus = newStaffList[index].status;
-        // Cycle: null -> present -> absent -> late -> null
-        let nextStatus = 'present';
-        if (currentStatus === 'present') nextStatus = 'absent';
-        else if (currentStatus === 'absent') nextStatus = 'late';
-        else if (currentStatus === 'late') nextStatus = 'present';
-
-        // If it was null, start with present
-        if (!currentStatus) nextStatus = 'present';
-
-        newStaffList[index].status = nextStatus;
+        newStaffList[index].status = newStatus;
         setLocalStaffList(newStaffList);
     };
 
@@ -213,27 +192,85 @@ export default function AdminAttendance() {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'present': return '#4CAF50';
-            case 'absent': return '#F44336';
+            case 'present': return colors.success;
+            case 'absent': return colors.error;
             case 'late': return '#FF9800';
             case 'excused': return '#2196F3';
-            default: return '#e0e0e0';
+            default: return colors.textSecondary;
+        }
+    };
+
+    const getStatusIcon = (status) => {
+        switch (status) {
+            case 'present': return 'check-circle';
+            case 'absent': return 'cancel';
+            case 'late': return 'schedule';
+            case 'excused': return 'verified';
+            default: return 'radio-button-unchecked';
         }
     };
 
     const renderStaffItem = ({ item, index }) => (
-        <TouchableOpacity
-            style={styles.staffCard}
-            onPress={() => toggleStaffStatus(index)}
-        >
-            <View style={styles.staffInfo}>
-                <Text style={styles.staffName}>{item.user.name}</Text>
-                <Text style={styles.staffRole}>Class Teacher</Text>
+        <View style={{
+            backgroundColor: colors.cardBackground,
+            borderRadius: 12,
+            padding: 14,
+            marginBottom: 10,
+            elevation: 1
+        }}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 16, fontFamily: "DMSans-SemiBold", color: colors.textPrimary }}>
+                        {item.user.name}
+                    </Text>
+                    <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2, fontFamily: "DMSans-Regular" }}>
+                        Class Teacher
+                    </Text>
+                </View>
+                {item.status && (
+                    <MaterialIcons
+                        name={getStatusIcon(item.status)}
+                        size={24}
+                        color={getStatusColor(item.status)}
+                    />
+                )}
             </View>
-            <View style={[styles.statusIndicator, { backgroundColor: getStatusColor(item.status) }]}>
-                <Text style={styles.statusText}>{item.status ? item.status.toUpperCase() : 'MARK'}</Text>
+
+            {/* Status Buttons */}
+            <View style={{ flexDirection: "row", gap: 8 }}>
+                {['present', 'absent', 'late', 'excused'].map((status) => (
+                    <TouchableOpacity
+                        key={status}
+                        onPress={() => handleStaffStatusChange(index, status)}
+                        activeOpacity={0.7}
+                        style={{
+                            flex: 1,
+                            backgroundColor: item.status === status
+                                ? getStatusColor(status) + "20"
+                                : colors.background,
+                            borderWidth: item.status === status ? 2 : 1,
+                            borderColor: item.status === status
+                                ? getStatusColor(status)
+                                : colors.textSecondary + "30",
+                            borderRadius: 8,
+                            paddingVertical: 10,
+                            alignItems: "center",
+                        }}
+                    >
+                        <Text style={{
+                            fontSize: 11,
+                            fontFamily: "DMSans-Bold",
+                            color: item.status === status
+                                ? getStatusColor(status)
+                                : colors.textSecondary,
+                            textTransform: "uppercase"
+                        }}>
+                            {status === 'present' ? 'P' : status === 'absent' ? 'A' : status === 'late' ? 'L' : 'E'}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
             </View>
-        </TouchableOpacity>
+        </View>
     );
 
 
@@ -367,15 +404,65 @@ export default function AdminAttendance() {
                                         data={localStudentAttendance}
                                         keyExtractor={(item) => item.student._id}
                                         renderItem={({ item, index }) => (
-                                            <TouchableOpacity
-                                                style={styles.studentRow}
-                                                onPress={() => toggleStudentStatus(index)}
+                                            <View
+                                                style={{
+                                                    backgroundColor: colors.cardBackground,
+                                                    borderRadius: 12,
+                                                    padding: 14,
+                                                    marginBottom: 10,
+                                                    elevation: 1
+                                                }}
                                             >
-                                                <Text style={styles.studentName}>{item.student.name}</Text>
-                                                <View style={[styles.miniStatus, { backgroundColor: getStatusColor(item.status) }]}>
-                                                    <Text style={styles.miniStatusText}>{item.status ? item.status.toUpperCase() : 'MARK'}</Text>
+                                                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                                                    <View style={{ flex: 1 }}>
+                                                        <Text style={{ fontSize: 16, fontFamily: "DMSans-SemiBold", color: colors.textPrimary }}>
+                                                            {item.student.name}
+                                                        </Text>
+                                                    </View>
+                                                    {item.status && (
+                                                        <MaterialIcons
+                                                            name={getStatusIcon(item.status)}
+                                                            size={24}
+                                                            color={getStatusColor(item.status)}
+                                                        />
+                                                    )}
                                                 </View>
-                                            </TouchableOpacity>
+
+                                                {/* Status Buttons */}
+                                                <View style={{ flexDirection: "row", gap: 8 }}>
+                                                    {['present', 'absent', 'late', 'excused'].map((status) => (
+                                                        <TouchableOpacity
+                                                            key={status}
+                                                            onPress={() => handleStudentStatusChange(index, status)}
+                                                            activeOpacity={0.7}
+                                                            style={{
+                                                                flex: 1,
+                                                                backgroundColor: item.status === status
+                                                                    ? getStatusColor(status) + "20"
+                                                                    : colors.background,
+                                                                borderWidth: item.status === status ? 2 : 1,
+                                                                borderColor: item.status === status
+                                                                    ? getStatusColor(status)
+                                                                    : colors.textSecondary + "30",
+                                                                borderRadius: 8,
+                                                                paddingVertical: 10,
+                                                                alignItems: "center",
+                                                            }}
+                                                        >
+                                                            <Text style={{
+                                                                fontSize: 11,
+                                                                fontFamily: "DMSans-Bold",
+                                                                color: item.status === status
+                                                                    ? getStatusColor(status)
+                                                                    : colors.textSecondary,
+                                                                textTransform: "uppercase"
+                                                            }}>
+                                                                {status === 'present' ? 'P' : status === 'absent' ? 'A' : status === 'late' ? 'L' : 'E'}
+                                                            </Text>
+                                                        </TouchableOpacity>
+                                                    ))}
+                                                </View>
+                                            </View>
                                         )}
                                         ListEmptyComponent={<Text style={styles.emptyText}>No students found.</Text>}
                                         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}

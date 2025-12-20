@@ -94,6 +94,9 @@ export default function AdminExamScheduleScreen() {
     const [initDuration, setInitDuration] = useState("90");
     const [initInstructions, setInitInstructions] = useState("");
     const [showInitDatePicker, setShowInitDatePicker] = useState(false);
+    // New state for scope
+    const [initScope, setInitScope] = useState("all"); // "all" or "selected"
+    const [initSelectedClassIds, setInitSelectedClassIds] = useState([]);
 
     const initMutation = useApiMutation({
         mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/exams/school-wide/init`, 'POST'),
@@ -118,12 +121,18 @@ export default function AdminExamScheduleScreen() {
             return;
         }
 
+        if (initScope === "selected" && initSelectedClassIds.length === 0) {
+            showToast("Please select at least one class", "error");
+            return;
+        }
+
         initMutation.mutate({
             type: initType,
             totalMarks: parseFloat(initTotalMarks),
             date: initDate.toISOString(),
             instructions: initInstructions,
-            duration: initDuration ? parseInt(initDuration) : null
+            duration: initDuration ? parseInt(initDuration) : null,
+            classIds: initScope === "selected" ? initSelectedClassIds : null
         });
     };
 
@@ -354,11 +363,11 @@ export default function AdminExamScheduleScreen() {
                 onRequestClose={() => setShowInitModal(false)}
             >
                 <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
-                    <View style={{ backgroundColor: colors.background, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '85%' }}>
+                    <View style={{ backgroundColor: colors.background, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '90%' }}>
                         <ScrollView showsVerticalScrollIndicator={false}>
                             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
                                 <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
-                                    Initialize School Exams
+                                    Initialize Exams
                                 </Text>
                                 <Pressable onPress={() => setShowInitModal(false)}>
                                     <MaterialIcons name="close" size={24} color={colors.textSecondary} />
@@ -366,8 +375,94 @@ export default function AdminExamScheduleScreen() {
                             </View>
 
                             <Text style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 20, fontFamily: "DMSans-Regular" }}>
-                                This will create the selected exam type for ALL classes and ALL subjects where it doesn&apos;t exist yet.
+                                This will create the selected exam type for the selected scope where it doesn't exist yet.
                             </Text>
+
+                            {/* Scope Selection */}
+                            <View style={{ marginBottom: 16 }}>
+                                <Text style={{ fontSize: 14, fontFamily: "DMSans-Medium", color: colors.textSecondary, marginBottom: 8 }}>
+                                    Scope *
+                                </Text>
+                                <View style={{ flexDirection: "row", gap: 8 }}>
+                                    <Pressable
+                                        onPress={() => setInitScope("all")}
+                                        style={{
+                                            flex: 1,
+                                            paddingVertical: 10,
+                                            backgroundColor: initScope === "all" ? colors.primary : colors.cardBackground,
+                                            borderRadius: 12,
+                                            borderWidth: 1,
+                                            borderColor: initScope === "all" ? colors.primary : colors.textSecondary + "20",
+                                            alignItems: "center"
+                                        }}
+                                    >
+                                        <Text style={{ color: initScope === "all" ? "#fff" : colors.textPrimary, fontFamily: "DMSans-Medium" }}>
+                                            All Classes
+                                        </Text>
+                                    </Pressable>
+                                    <Pressable
+                                        onPress={() => setInitScope("selected")}
+                                        style={{
+                                            flex: 1,
+                                            paddingVertical: 10,
+                                            backgroundColor: initScope === "selected" ? colors.primary : colors.cardBackground,
+                                            borderRadius: 12,
+                                            borderWidth: 1,
+                                            borderColor: initScope === "selected" ? colors.primary : colors.textSecondary + "20",
+                                            alignItems: "center"
+                                        }}
+                                    >
+                                        <Text style={{ color: initScope === "selected" ? "#fff" : colors.textPrimary, fontFamily: "DMSans-Medium" }}>
+                                            Specific Classes
+                                        </Text>
+                                    </Pressable>
+                                </View>
+                            </View>
+
+                            {/* Class Selection (Multi-select) */}
+                            {initScope === "selected" && (
+                                <View style={{ marginBottom: 16 }}>
+                                    <Text style={{ fontSize: 14, fontFamily: "DMSans-Medium", color: colors.textSecondary, marginBottom: 8 }}>
+                                        Select Classes *
+                                    </Text>
+                                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ maxHeight: 50 }}>
+                                        <View style={{ flexDirection: "row", gap: 8 }}>
+                                            {classes.map(cls => {
+                                                const isSelected = initSelectedClassIds.includes(cls._id);
+                                                return (
+                                                    <Pressable
+                                                        key={cls._id}
+                                                        onPress={() => {
+                                                            if (isSelected) {
+                                                                setInitSelectedClassIds(prev => prev.filter(id => id !== cls._id));
+                                                            } else {
+                                                                setInitSelectedClassIds(prev => [...prev, cls._id]);
+                                                            }
+                                                        }}
+                                                        style={{
+                                                            paddingHorizontal: 16,
+                                                            paddingVertical: 8,
+                                                            backgroundColor: isSelected ? colors.primary : colors.cardBackground,
+                                                            borderRadius: 20,
+                                                            borderWidth: 1,
+                                                            borderColor: isSelected ? colors.primary : colors.textSecondary + "20"
+                                                        }}
+                                                    >
+                                                        <Text style={{ color: isSelected ? "#fff" : colors.textPrimary }}>
+                                                            {cls.name} {cls.section}
+                                                        </Text>
+                                                    </Pressable>
+                                                );
+                                            })}
+                                        </View>
+                                    </ScrollView>
+                                    {initSelectedClassIds.length === 0 && (
+                                        <Text style={{ color: "red", fontSize: 12, marginTop: 4 }}>
+                                            Please select at least one class
+                                        </Text>
+                                    )}
+                                </View>
+                            )}
 
                             {/* Exam Type Selection */}
                             <View style={{ marginBottom: 16 }}>
@@ -527,7 +622,7 @@ export default function AdminExamScheduleScreen() {
                                     <>
                                         <MaterialIcons name="playlist-add-check" size={24} color="#fff" />
                                         <Text style={{ fontSize: 17, fontFamily: "DMSans-Bold", color: "#fff" }}>
-                                            Initialize for All Classes
+                                            Initialize Exams
                                         </Text>
                                     </>
                                 )}
@@ -539,3 +634,4 @@ export default function AdminExamScheduleScreen() {
         </View>
     );
 }
+
