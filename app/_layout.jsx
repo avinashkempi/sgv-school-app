@@ -12,6 +12,7 @@ import ErrorBoundary from "../components/ErrorBoundary";
 import * as Notifications from 'expo-notifications';
 import { getFCMToken, registerFCMTokenWithBackend } from '../utils/fcm';
 import { NavigationProvider } from "../context/NavigationContext";
+import { NotificationProvider } from "../context/NotificationContext";
 
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { queryClient, persister } from '../utils/queryClient';
@@ -31,7 +32,7 @@ import { useState } from "react";
 
 // separate component so we can use useTheme inside ThemeProvider
 function Inner() {
-  const { styles } = useTheme();
+  const { styles, colors } = useTheme();
   const [isDemo, setIsDemo] = useState(false);
   const segments = useSegments();
   const router = useRouter();
@@ -99,7 +100,7 @@ function Inner() {
 
   if (!isReady) {
     return (
-      <SafeAreaView style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center' }]}>
+      <SafeAreaView style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color="#2F6CD4" />
       </SafeAreaView>
     );
@@ -108,24 +109,26 @@ function Inner() {
   const isLogin = segments[0] === 'login';
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
       <ToastProvider>
         <NetworkStatusProvider>
           <NavigationProvider>
-            {isDemo && !isLogin && <DemoBanner />}
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                animationEnabled: false, // Disable animations
-                animation: 'none', // Ensure no animation
-                // Enable gesture navigation
-                gestureEnabled: true,
-                gestureDirection: 'horizontal',
-                // Detach inactive screens for better memory usage
-                detachInactiveScreens: true,
-              }}
-            />
-            {!isLogin && <BottomNavigation />}
+            <NotificationProvider>
+              {isDemo && !isLogin && <DemoBanner />}
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  animationEnabled: false, // Disable animations
+                  animation: 'none', // Ensure no animation
+                  // Enable gesture navigation
+                  gestureEnabled: true,
+                  gestureDirection: 'horizontal',
+                  // Detach inactive screens for better memory usage
+                  detachInactiveScreens: true,
+                }}
+              />
+              {!isLogin && <BottomNavigation />}
+            </NotificationProvider>
           </NavigationProvider>
         </NetworkStatusProvider>
       </ToastProvider>

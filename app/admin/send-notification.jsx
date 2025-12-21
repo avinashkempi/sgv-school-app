@@ -1,11 +1,12 @@
-import React, { useState,} from "react";
+import React, { useState, } from "react";
 import {
     View,
     Text,
     ScrollView,
     TextInput,
     Pressable,
-    ActivityIndicator } from "react-native";
+    ActivityIndicator
+} from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
 import { useRouter } from "expo-router";
@@ -68,7 +69,7 @@ export default function SendNotificationScreen() {
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <View style={{ padding: 16, paddingTop: 24 }}>
-                <Header title="Send Notification" subtitle="Broadcast updates" showBack />
+                <Header title="Broadcast Announcement" subtitle="Send alerts to users" showBack />
             </View>
 
             <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
@@ -273,7 +274,7 @@ export default function SendNotificationScreen() {
                         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                             <MaterialIcons name="send" size={20} color="#fff" />
                             <Text style={{ color: "#fff", fontSize: 18, fontFamily: "DMSans-Bold" }}>
-                                Send Notification
+                                Send Broadcast
                             </Text>
                         </View>
                     )}

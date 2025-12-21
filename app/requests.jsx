@@ -1,26 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, RefreshControl, Pressable } from "react-native";
+import { View, Text, ScrollView, RefreshControl } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import storage from "../utils/storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../theme";
 import Header from "../components/Header";
+import Card from "../components/Card";
 import apiConfig from "../config/apiConfig";
 import { useApiQuery } from "../hooks/useApi";
 
 export default function RequestsScreen() {
     const router = useRouter();
-    const { _styles, colors } = useTheme();
+    const { styles, colors } = useTheme();
     const [user, setUser] = useState(null);
     const [refreshing, setRefreshing] = useState(false);
-
-
 
     useEffect(() => {
         loadUser();
     }, []);
-
-
 
     const loadUser = async () => {
         try {
@@ -46,8 +43,6 @@ export default function RequestsScreen() {
     );
 
     const teacherClasses = teacherClassesData || [];
-
-
 
     const onRefresh = async () => {
         setRefreshing(true);
@@ -95,170 +90,89 @@ export default function RequestsScreen() {
         }
     };
 
+    const renderActionItem = ({ title, subtitle, icon, color, onPress }) => (
+        <Card
+            variant="elevated"
+            onPress={onPress}
+            contentStyle={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20 }}
+            style={{ marginBottom: 16 }}
+        >
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 16, flex: 1 }}>
+                <View style={{
+                    backgroundColor: color + "15", // 15% opacity
+                    padding: 12,
+                    borderRadius: 12,
+                    width: 52,
+                    height: 52,
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}>
+                    <MaterialIcons name={icon} size={26} color={color} />
+                </View>
+                <View style={{ flex: 1 }}>
+                    <Text style={{
+                        fontSize: 17,
+                        fontFamily: "DMSans-Bold",
+                        color: colors.onSurface,
+                        marginBottom: 4
+                    }}>
+                        {title}
+                    </Text>
+                    <Text style={{
+                        fontSize: 13,
+                        color: colors.onSurfaceVariant,
+                        fontFamily: "DMSans-Regular"
+                    }}>
+                        {subtitle}
+                    </Text>
+                </View>
+            </View>
+            <MaterialIcons name="chevron-right" size={24} color={colors.onSurfaceVariant} />
+        </Card>
+    );
+
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <ScrollView
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={[styles.contentPaddingBottom, { padding: 16 }]}
             >
-                <View style={{ padding: 16, paddingTop: 24 }}>
-                    <Header
-                        title="Attendance"
-                        subtitle="Manage attendance and requests"
-                    />
+                <Header
+                    title="Attendance"
+                    subtitle="Manage attendance and requests"
+                />
 
-                    <View style={{ marginTop: 24 }}>
-                        {/* My Attendance Card - For All */}
-                        {/* My Attendance Card - For All */}
-                        <Pressable
-                            onPress={navigateToMyAttendance}
-                            style={({ pressed }) => ({
-                                backgroundColor: colors.cardBackground,
-                                borderRadius: 16,
-                                padding: 20,
-                                marginBottom: 16,
-                                shadowColor: "#000",
-                                shadowOffset: { width: 0, height: 2 },
-                                shadowOpacity: 0.05,
-                                shadowRadius: 8,
-                                elevation: 2,
-                                opacity: pressed ? 0.9 : 1,
-                                flexDirection: "row",
-                                justifyContent: "space-between",
-                                alignItems: "center"
-                            })}
-                        >
-                            <View style={{ flexDirection: "row", alignItems: "center", gap: 16, flex: 1 }}>
-                                <View style={{
-                                    backgroundColor: "#4CAF50" + "20",
-                                    padding: 14,
-                                    borderRadius: 12
-                                }}>
-                                    <MaterialIcons name="person" size={28} color="#4CAF50" />
-                                </View>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={{
-                                        fontSize: 17,
-                                        fontFamily: "DMSans-Bold",
-                                        color: colors.textPrimary,
-                                        marginBottom: 4
-                                    }}>
-                                        My Attendance
-                                    </Text>
-                                    <Text style={{
-                                        fontSize: 13,
-                                        color: colors.textSecondary,
-                                        fontFamily: "DMSans-Regular"
-                                    }}>
-                                        View your attendance history
-                                    </Text>
-                                </View>
-                            </View>
-                            <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
-                        </Pressable>
+                <View style={{ marginTop: 8 }}>
+                    {/* My Attendance Card - For All */}
+                    {renderActionItem({
+                        title: "My Attendance",
+                        subtitle: "View your attendance history",
+                        icon: "person",
+                        color: "#4CAF50",
+                        onPress: navigateToMyAttendance
+                    })}
 
-                        {/* Mark Attendance Card - For Teachers & Admins */}
-                        {['teacher', 'class teacher', 'admin', 'super admin'].includes(user?.role) && (
-                            <Pressable
-                                onPress={navigateToMarkAttendance}
-                                style={({ pressed }) => ({
-                                    backgroundColor: colors.cardBackground,
-                                    borderRadius: 16,
-                                    padding: 20,
-                                    marginBottom: 16,
-                                    shadowColor: "#000",
-                                    shadowOffset: { width: 0, height: 2 },
-                                    shadowOpacity: 0.05,
-                                    shadowRadius: 8,
-                                    elevation: 2,
-                                    opacity: pressed ? 0.9 : 1,
-                                    flexDirection: "row",
-                                    justifyContent: "space-between",
-                                    alignItems: "center"
-                                })}
-                            >
-                                <View style={{ flexDirection: "row", alignItems: "center", gap: 16, flex: 1 }}>
-                                    <View style={{
-                                        backgroundColor: "#2196F3" + "20",
-                                        padding: 14,
-                                        borderRadius: 12
-                                    }}>
-                                        <MaterialIcons name="edit-calendar" size={28} color="#2196F3" />
-                                    </View>
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={{
-                                            fontSize: 17,
-                                            fontFamily: "DMSans-Bold",
-                                            color: colors.textPrimary,
-                                            marginBottom: 4
-                                        }}>
-                                            Mark Attendance
-                                        </Text>
-                                        <Text style={{
-                                            fontSize: 13,
-                                            color: colors.textSecondary,
-                                            fontFamily: "DMSans-Regular"
-                                        }}>
-                                            {user?.role === 'admin' || user?.role === 'super admin'
-                                                ? 'Mark staff and student attendance'
-                                                : 'Mark student attendance'}
-                                        </Text>
-                                    </View>
-                                </View>
-                                <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
-                            </Pressable>
-                        )}
+                    {/* Mark Attendance Card - For Teachers & Admins */}
+                    {['teacher', 'class teacher', 'admin', 'super admin'].includes(user?.role) && renderActionItem({
+                        title: "Mark Attendance",
+                        subtitle: user?.role === 'admin' || user?.role === 'super admin'
+                            ? 'Mark staff and student attendance'
+                            : 'Mark student attendance',
+                        icon: "edit-calendar",
+                        color: "#2196F3",
+                        onPress: navigateToMarkAttendance
+                    })}
 
-                        {/* Leave Requests Card */}
-                        <Pressable
-                            onPress={navigateToLeaves}
-                            style={({ pressed }) => ({
-                                backgroundColor: colors.cardBackground,
-                                borderRadius: 16,
-                                padding: 20,
-                                marginBottom: 16,
-                                shadowColor: "#000",
-                                shadowOffset: { width: 0, height: 2 },
-                                shadowOpacity: 0.05,
-                                shadowRadius: 8,
-                                elevation: 2,
-                                opacity: pressed ? 0.9 : 1,
-                                flexDirection: "row",
-                                justifyContent: "space-between",
-                                alignItems: "center"
-                            })}
-                        >
-                            <View style={{ flexDirection: "row", alignItems: "center", gap: 16, flex: 1 }}>
-                                <View style={{
-                                    backgroundColor: "#FF9800" + "20",
-                                    padding: 14,
-                                    borderRadius: 12
-                                }}>
-                                    <MaterialIcons name="event-note" size={28} color="#FF9800" />
-                                </View>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={{
-                                        fontSize: 17,
-                                        fontFamily: "DMSans-Bold",
-                                        color: colors.textPrimary,
-                                        marginBottom: 4
-                                    }}>
-                                        Leave Requests
-                                    </Text>
-                                    <Text style={{
-                                        fontSize: 13,
-                                        color: colors.textSecondary,
-                                        fontFamily: "DMSans-Regular"
-                                    }}>
-                                        {user?.role === 'student'
-                                            ? 'Apply for leave and track status'
-                                            : 'Approve or reject leave requests'}
-                                    </Text>
-                                </View>
-                            </View>
-                            <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
-                        </Pressable>
-                    </View>
+                    {/* Leave Requests Card */}
+                    {renderActionItem({
+                        title: "Leave Requests",
+                        subtitle: user?.role === 'student'
+                            ? 'Apply for leave and track status'
+                            : 'Approve or reject leave requests',
+                        icon: "event-note",
+                        color: "#FF9800",
+                        onPress: navigateToLeaves
+                    })}
                 </View>
             </ScrollView>
         </View>

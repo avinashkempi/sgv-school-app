@@ -3,6 +3,7 @@ import { useNavigation, } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../theme";
 import Header from "../components/Header";
+import Card from "../components/Card";
 import NewsFormModal from "../components/NewsFormModal";
 import { useState, useCallback } from "react";
 
@@ -94,7 +95,7 @@ export default function NewsScreen() {
 
   // Memoize renderItem BEFORE early returns to maintain hooks order
   const renderNewsItem = useCallback(({ item }) => (
-    <View style={styles.cardMinimal}>
+    <Card variant="elevated" style={{ marginBottom: 16 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
         <View style={{ flex: 1, marginRight: 12 }}>
           {item.url ? (
@@ -104,24 +105,24 @@ export default function NewsScreen() {
               </Text>
             </Pressable>
           ) : (
-            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 8 }} numberOfLines={2}>
+            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 8 }} numberOfLines={2}>
               {item.title}
             </Text>
           )}
-          <Text style={{ fontSize: 13, fontFamily: "DMSans-Medium", color: colors.textSecondary }}>
+          <Text style={{ fontSize: 13, fontFamily: "DMSans-Medium", color: colors.onSurfaceVariant }}>
             {formatDate(item.creationDate)}
           </Text>
         </View>
         {item.isPrivate && (
-          <View style={{ backgroundColor: colors.background, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 }}>
-            <Text style={{ fontSize: 10, fontFamily: "DMSans-Bold", color: colors.textSecondary, textTransform: "uppercase" }}>
+          <View style={{ backgroundColor: colors.surfaceContainerHighest, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 }}>
+            <Text style={{ fontSize: 10, fontFamily: "DMSans-Bold", color: colors.onSurfaceVariant, textTransform: "uppercase" }}>
               Private
             </Text>
           </View>
         )}
       </View>
 
-      <Text style={{ fontSize: 15, fontFamily: "DMSans-Regular", color: colors.textSecondary, lineHeight: 22 }} numberOfLines={3}>
+      <Text style={{ fontSize: 15, fontFamily: "DMSans-Regular", color: colors.onSurfaceVariant, lineHeight: 22 }} numberOfLines={3}>
         {item.description}
       </Text>
 
@@ -137,17 +138,17 @@ export default function NewsScreen() {
       )}
 
       {isAdmin && (
-        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 12, gap: 8, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 12 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 12, gap: 8, borderTopWidth: 1, borderTopColor: colors.outlineVariant, paddingTop: 12 }}>
           <Pressable
             onPress={() => handleEditNews(item)}
             style={({ pressed }) => ({
               padding: 8,
-              backgroundColor: colors.background,
+              backgroundColor: colors.surfaceContainerHighest,
               borderRadius: 8,
               opacity: pressed ? 0.7 : 1,
             })}
           >
-            <MaterialIcons name="edit" size={18} color={colors.textSecondary} />
+            <MaterialIcons name="edit" size={18} color={colors.onSurfaceVariant} />
           </Pressable>
           <Pressable
             onPress={() => {
@@ -162,21 +163,17 @@ export default function NewsScreen() {
             }}
             style={({ pressed }) => ({
               padding: 8,
-              backgroundColor: colors.error + '15',
+              backgroundColor: colors.errorContainer,
               borderRadius: 8,
               opacity: pressed ? 0.7 : 1,
             })}
           >
-            <MaterialIcons name="delete-outline" size={18} color={colors.error} />
+            <MaterialIcons name="delete-outline" size={18} color={colors.onErrorContainer} />
           </Pressable>
         </View>
       )}
-    </View>
-  ), [styles.cardMinimal, colors, isAdmin, showToast]); // Removed handleEditNews, handleDeleteNews from deps
-
-  // NO LOADING STATE - just show empty state if no data
-  // Removed: if (loading && news.length === 0) return <LoadingView />;
-  // Removed: if (error && news.length === 0) return <ErrorView />;
+    </Card>
+  ), [colors, isAdmin, showToast]);
 
   const handleNewsSubmit = (newsData) => {
     if (newsData._id) {
@@ -215,8 +212,8 @@ export default function NewsScreen() {
         }
         ListEmptyComponent={
           <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
-            <MaterialIcons name="article" size={48} color={colors.textSecondary} />
-            <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16, fontFamily: "DMSans-Medium" }}>
+            <MaterialIcons name="article" size={48} color={colors.onSurfaceVariant} />
+            <Text style={{ color: colors.onSurfaceVariant, marginTop: 16, fontSize: 16, fontFamily: "DMSans-Medium" }}>
               No news available right now
             </Text>
           </View>
@@ -224,7 +221,6 @@ export default function NewsScreen() {
         renderItem={renderNewsItem}
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
-        // Performance optimizations
         removeClippedSubviews={true}
         maxToRenderPerBatch={10}
         updateCellsBatchingPeriod={50}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, memo, useRef } from "react";
-import { View, Text, Pressable, StyleSheet, Animated, Platform } from "react-native";
+import { View, Text, Pressable, StyleSheet, Animated } from "react-native";
 import { useRouter, usePathname } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
@@ -11,12 +11,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 function BottomNavigation() {
   const router = useRouter();
   const pathname = usePathname();
-  const { colors, mode } = useTheme();
+  const { colors } = useTheme();
   const [activeTab, setActiveTab] = useState(ROUTES.HOME);
   const [user, setUser] = useState(null);
   const insets = useSafeAreaInsets();
 
-  // Load user only on mount - no need to reload on every pathname change
   useEffect(() => {
     const loadUser = async () => {
       try {
@@ -32,49 +31,49 @@ function BottomNavigation() {
       }
     };
     loadUser();
-  }, [pathname]); // Reload user when route changes (e.g. login/logout)
+  }, [pathname]);
 
-  // Memoize navigation items to prevent recalculation on every render
   const navigationItems = useMemo(() => [
     {
       route: ROUTES.HOME,
       label: "Home",
-      icon: "home", // MD3 uses filled/outlined variants usually, but standard icons work
+      icon: "home-filled", // M3 uses filled icons for active state usually, but consistent icons are fine
+      inactiveIcon: "home",
     },
-    // Show My Class menu if user is a student
     ...(user && user.role === 'student' ? [{
       route: ROUTES.STUDENT_CLASS,
       label: "Class",
       icon: "school",
+      inactiveIcon: "school", // outlined version if available
     }] : []),
-    // Show My Teach menu if user is a teacher
     ...(user && (user.role === 'class teacher' || user.role === 'teacher' || user.role === 'staff') ? [{
       route: ROUTES.TEACHER_CLASSES,
       label: "Teach",
       icon: "school",
+      inactiveIcon: "school",
     }] : []),
-    // Admin gets Admin tab first, then Classes tab
     ...(user && (user.role === 'admin' || user.role === 'super admin') ? [{
       route: ROUTES.ADMIN,
       label: "Admin",
       icon: "admin-panel-settings",
+      inactiveIcon: "admin-panel-settings",
     }, {
       route: "/admin/classes",
       label: "Classes",
       icon: "class",
+      inactiveIcon: "class",
     }] : []),
-    // Requests Tab - for logged-in students and teachers
     ...(user && (user.role === 'student' || user.role === 'class teacher' || user.role === 'teacher' || user.role === 'staff' || user.role === 'admin' || user.role === 'super admin') ? [{
       route: "/requests",
       label: "Requests",
       icon: "assignment",
+      inactiveIcon: "assignment",
     }] : []),
-
-    // Menu Tab
     {
       route: "/menu",
       label: "Menu",
       icon: "grid-view",
+      inactiveIcon: "grid-view",
     },
   ], [user]);
 
@@ -88,18 +87,12 @@ function BottomNavigation() {
     }
   }, [pathname, navigationItems]);
 
-  // Memoize handleTabPress to prevent creating new function on every render
   const handleTabPress = useCallback((route) => {
-    // Haptic feedback for better UX
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
-
     if (pathname === route) return;
 
-    // Use requestAnimationFrame to ensure the UI update (ripple effect) happens
-    // before the heavy navigation work starts
     requestAnimationFrame(() => {
       setActiveTab(route);
-      // Use replace instead of push to prevent stack buildup and memory leaks
       router.replace(route);
     });
   }, [pathname, router]);
@@ -108,10 +101,15 @@ function BottomNavigation() {
     <View style={[
       styles.container,
       {
-        backgroundColor: colors.surfaceContainer, // MD3 standard bottom nav background
+        backgroundColor: colors.surfaceContainer,
         paddingBottom: insets.bottom,
         borderTopColor: colors.outlineVariant,
-        borderTopWidth: 0.5, // Subtle separator
+        borderTopWidth: 0, // M3 usually doesn't have a border if elevation/surface diff is sufficient, but can keep for separation
+        elevation: 8, // Subtle shadow for lifting nav bar
+        shadowColor: colors.shadow,
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        shadowOffset: { width: 0, height: -2 }
       }
     ]}>
       {navigationItems.map((item) => {
@@ -123,7 +121,6 @@ function BottomNavigation() {
             isActive={isActive}
             onPress={() => handleTabPress(item.route)}
             colors={colors}
-            mode={mode}
           />
         );
       })}
@@ -131,12 +128,18 @@ function BottomNavigation() {
   );
 }
 
-// Separate TabItem component for better performance and animations
-const TabItem = memo(({ item, isActive, onPress, colors, _mode }) => {
+const TabItem = memo(({ item, isActive, onPress, colors }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const activeAnim = useRef(new Animated.Value(0)).current;
 
-  // Animate on press
+  useEffect(() => {
+    Animated.timing(activeAnim, {
+      toValue: isActive ? 1 : 0,
+      duration: 250, // Slightly slower for more "expressive" feel
+      useNativeDriver: true,
+    }).start();
+  }, [isActive]);
+
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
       toValue: 0.9,
@@ -155,15 +158,6 @@ const TabItem = memo(({ item, isActive, onPress, colors, _mode }) => {
     }).start();
   };
 
-  // Animate active state
-  useEffect(() => {
-    Animated.timing(activeAnim, {
-      toValue: isActive ? 1 : 0,
-      duration: 200,
-      useNativeDriver: true,
-    }).start();
-  }, [isActive]);
-
   return (
     <Pressable
       onPress={onPress}
@@ -173,9 +167,8 @@ const TabItem = memo(({ item, isActive, onPress, colors, _mode }) => {
       hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
     >
       <Animated.View style={{ alignItems: 'center', transform: [{ scale: scaleAnim }] }}>
-        {/* Icon Container with Pill Background */}
         <View style={styles.iconContainer}>
-          {/* Active Pill Background */}
+          {/* Active Pill */}
           <Animated.View style={[
             StyleSheet.absoluteFill,
             styles.activePill,
@@ -185,20 +178,24 @@ const TabItem = memo(({ item, isActive, onPress, colors, _mode }) => {
               transform: [{
                 scaleX: activeAnim.interpolate({
                   inputRange: [0, 1],
-                  outputRange: [0.5, 1]
+                  outputRange: [0.4, 1] // Start narrower
+                })
+              }, {
+                scaleY: activeAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.8, 1]
                 })
               }]
             }
           ]} />
 
           <MaterialIcons
-            name={item.icon}
+            name={isActive ? item.icon : (item.inactiveIcon || item.icon)}
             size={24}
             color={isActive ? colors.onSecondaryContainer : colors.onSurfaceVariant}
           />
         </View>
 
-        {/* Label */}
         <Text
           style={[
             styles.label,
@@ -217,8 +214,6 @@ const TabItem = memo(({ item, isActive, onPress, colors, _mode }) => {
 });
 
 TabItem.displayName = 'TabItem';
-
-// Export memoized component to prevent unnecessary re-renders
 export default memo(BottomNavigation);
 
 const styles = StyleSheet.create({
@@ -226,9 +221,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-around",
-    paddingTop: 12,
+    paddingTop: 12, // Increased top padding for floating feel
     paddingHorizontal: 8,
-    elevation: 0, // No shadow for MD3 bottom nav usually, or very subtle
     position: 'absolute',
     bottom: 0,
     left: 0,
@@ -238,17 +232,17 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    height: 60, // Fixed height for touch target
+    height: 64,
   },
   iconContainer: {
-    width: 64, // Pill width
-    height: 32, // Pill height
+    width: 64, // Standard M3 Pill Width
+    height: 32, // Standard M3 Pill Height
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
-    overflow: 'hidden', // Clip the pill background
     position: 'relative',
+    overflow: 'hidden', // Contain the pill background
   },
   activePill: {
     borderRadius: 16,
@@ -257,5 +251,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     letterSpacing: 0.4,
     textAlign: 'center',
+    marginTop: 4,
   },
 });

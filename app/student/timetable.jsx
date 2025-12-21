@@ -13,6 +13,7 @@ import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
 import AppHeader from "../../components/Header";
+import Card from "../../components/Card";
 import apiConfig from "../../config/apiConfig";
 import { useToast } from "../../components/ToastProvider";
 
@@ -146,29 +147,23 @@ export default function StudentTimetableScreen() {
                             </View>
                         ) : (
                             schedule[selectedDay].map((period, index) => (
-                                <View
+                                <Card
                                     key={index}
-                                    style={{
-                                        backgroundColor: colors.cardBackground,
-                                        borderRadius: 16,
-                                        padding: 16,
-                                        marginBottom: 12,
+                                    variant="elevated"
+                                    style={{ marginBottom: 12 }}
+                                    contentStyle={{
                                         flexDirection: "row",
                                         gap: 16,
-                                        shadowColor: "#000",
-                                        shadowOffset: { width: 0, height: 1 },
-                                        shadowOpacity: 0.05,
-                                        shadowRadius: 4,
-                                        elevation: 1,
+                                        padding: 16
                                     }}
                                 >
                                     {/* Time Column */}
                                     <View style={{ alignItems: "center", justifyContent: "center", width: 60 }}>
-                                        <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
+                                        <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
                                             {period.startTime}
                                         </Text>
-                                        <View style={{ width: 1, height: 10, backgroundColor: colors.textSecondary + "40", marginVertical: 2 }} />
-                                        <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                                        <View style={{ width: 1, height: 10, backgroundColor: colors.outlineVariant, marginVertical: 2 }} />
+                                        <Text style={{ fontSize: 12, color: colors.onSurfaceVariant }}>
                                             {period.endTime}
                                         </Text>
                                     </View>
@@ -178,27 +173,27 @@ export default function StudentTimetableScreen() {
 
                                     {/* Details Column */}
                                     <View style={{ flex: 1, justifyContent: "center" }}>
-                                        <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 4 }}>
+                                        <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 4 }}>
                                             {period.subject?.name || "Subject"}
                                         </Text>
                                         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
                                             <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                                                <MaterialIcons name="person" size={14} color={colors.textSecondary} />
-                                                <Text style={{ fontSize: 13, color: colors.textSecondary }}>
+                                                <MaterialIcons name="person" size={14} color={colors.onSurfaceVariant} />
+                                                <Text style={{ fontSize: 13, color: colors.onSurfaceVariant }}>
                                                     {period.teacher?.name || "Teacher"}
                                                 </Text>
                                             </View>
                                             {period.roomNumber && (
                                                 <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                                                    <MaterialIcons name="room" size={14} color={colors.textSecondary} />
-                                                    <Text style={{ fontSize: 13, color: colors.textSecondary }}>
+                                                    <MaterialIcons name="room" size={14} color={colors.onSurfaceVariant} />
+                                                    <Text style={{ fontSize: 13, color: colors.onSurfaceVariant }}>
                                                         Room {period.roomNumber}
                                                     </Text>
                                                 </View>
                                             )}
                                         </View>
                                     </View>
-                                </View>
+                                </Card>
                             ))
                         )}
                     </View>

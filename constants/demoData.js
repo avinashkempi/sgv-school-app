@@ -685,3 +685,18 @@ export const DEMO_SUBJECT_CONTENT = [
         author: { name: "Mr. Suresh Meti" }
     }
 ];
+// 11. Dashboard Data
+export const DEMO_STUDENT_DASHBOARD = {
+    overview: {
+        attendancePercentage: "92.5",
+        dueAmount: 1500,
+        nextExamDate: "2025-01-15"
+    },
+    charts: {
+        performanceTrend: [
+            { exam: 'Unit 1', subject: 'Math', marks: 85 },
+            { exam: 'Unit 1', subject: 'Science', marks: 78 },
+            { exam: 'Unit 1', subject: 'English', marks: 92 }
+        ]
+    }
+};

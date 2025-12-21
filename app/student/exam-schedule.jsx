@@ -12,6 +12,7 @@ import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
 import Header from "../../components/Header";
+import Card from "../../components/Card";
 import apiConfig from "../../config/apiConfig";
 import { useToast } from "../../components/ToastProvider";
 
@@ -76,28 +77,18 @@ export default function StudentExamScheduleScreen() {
                     ) : (
                         <View style={{ marginTop: 16 }}>
                             {exams.map((exam) => (
-                                <View
+                                <Card
                                     key={exam._id}
-                                    style={{
-                                        backgroundColor: colors.cardBackground,
-                                        borderRadius: 16,
-                                        padding: 16,
-                                        marginBottom: 12,
-                                        flexDirection: "column",
-                                        gap: 12,
-                                        shadowColor: "#000",
-                                        shadowOffset: { width: 0, height: 1 },
-                                        shadowOpacity: 0.05,
-                                        shadowRadius: 4,
-                                        elevation: 1,
-                                    }}
+                                    variant="elevated"
+                                    style={{ marginBottom: 16 }}
+                                    contentStyle={{ padding: 16 }}
                                 >
                                     <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
                                         <View style={{ flex: 1 }}>
-                                            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 4 }}>
+                                            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 4 }}>
                                                 {exam.subject?.name}
                                             </Text>
-                                            <Text style={{ fontSize: 14, color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>
+                                            <Text style={{ fontSize: 14, color: colors.onSurfaceVariant, fontFamily: "DMSans-Medium" }}>
                                                 {exam.name} • {exam.type}
                                             </Text>
                                         </View>
@@ -108,27 +99,27 @@ export default function StudentExamScheduleScreen() {
                                         </View>
                                     </View>
 
-                                    <View style={{ height: 1, backgroundColor: colors.textSecondary + "20", marginVertical: 12 }} />
+                                    <View style={{ height: 1, backgroundColor: colors.outlineVariant, marginVertical: 12 }} />
 
                                     <View style={{ flexDirection: "row", gap: 24 }}>
                                         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                                            <MaterialIcons name="calendar-today" size={18} color={colors.textSecondary} />
-                                            <Text style={{ color: colors.textPrimary, fontFamily: "DMSans-Medium" }}>
+                                            <MaterialIcons name="calendar-today" size={18} color={colors.onSurfaceVariant} />
+                                            <Text style={{ color: colors.onSurface, fontFamily: "DMSans-Medium" }}>
                                                 {new Date(exam.date).toLocaleDateString()}
                                             </Text>
                                         </View>
                                         {exam.duration && (
                                             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                                                <MaterialIcons name="schedule" size={18} color={colors.textSecondary} />
-                                                <Text style={{ color: colors.textPrimary, fontFamily: "DMSans-Medium" }}>
+                                                <MaterialIcons name="schedule" size={18} color={colors.onSurfaceVariant} />
+                                                <Text style={{ color: colors.onSurface, fontFamily: "DMSans-Medium" }}>
                                                     {exam.duration} mins
                                                 </Text>
                                             </View>
                                         )}
                                         {exam.room && (
                                             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                                                <MaterialIcons name="meeting-room" size={18} color={colors.textSecondary} />
-                                                <Text style={{ color: colors.textPrimary, fontFamily: "DMSans-Medium" }}>
+                                                <MaterialIcons name="meeting-room" size={18} color={colors.onSurfaceVariant} />
+                                                <Text style={{ color: colors.onSurface, fontFamily: "DMSans-Medium" }}>
                                                     {exam.room}
                                                 </Text>
                                             </View>
@@ -136,13 +127,13 @@ export default function StudentExamScheduleScreen() {
                                     </View>
 
                                     {exam.instructions && (
-                                        <View style={{ marginTop: 12, backgroundColor: colors.background, padding: 10, borderRadius: 8 }}>
-                                            <Text style={{ color: colors.textSecondary, fontSize: 12, fontFamily: "DMSans-Regular" }}>
+                                        <View style={{ marginTop: 12, backgroundColor: colors.surfaceContainerHighest, padding: 10, borderRadius: 8 }}>
+                                            <Text style={{ color: colors.onSurfaceVariant, fontSize: 12, fontFamily: "DMSans-Regular" }}>
                                                 {exam.instructions}
                                             </Text>
                                         </View>
                                     )}
-                                </View>
+                                </Card>
                             ))}
                         </View>
                     )}

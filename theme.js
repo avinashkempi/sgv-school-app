@@ -5,130 +5,156 @@ import React, {
   useState,
   useEffect,
 } from "react";
-import { StyleSheet, Appearance, Platform } from "react-native";
+import { StyleSheet, Appearance } from "react-native";
 import storage from "./utils/storage";
 
 const FONTS = {
+  displayLarge: "DMSans-Bold",
+  displayMedium: "DMSans-Bold",
+  displaySmall: "DMSans-Bold",
+
+  headlineLarge: "DMSans-Bold",
+  headlineMedium: "DMSans-Bold",
+  headlineSmall: "DMSans-Bold",
+
+  titleLarge: "DMSans-Bold",
+  titleMedium: "DMSans-Medium",
+  titleSmall: "DMSans-Medium",
+
+  labelLarge: "DMSans-Medium",
+  labelMedium: "DMSans-Medium",
+  labelSmall: "DMSans-Medium",
+
+  bodyLarge: "DMSans-Regular",
+  bodyMedium: "DMSans-Regular",
+  bodySmall: "DMSans-Regular",
+
+  // Legacy aliases
   bold: "DMSans-Bold",
   semiBold: "DMSans-SemiBold",
   medium: "DMSans-Medium",
   regular: "DMSans-Regular",
 };
 
-// Google Material Design 3 Color Palette
+// Material 3 Expressive Color Palette (Vibrant Blue/Indigo Base)
+// Generated or approximated closest M3 values
 const lightColors = {
-  primary: "#0B57D0", // Google Blue
+  primary: "#4F378B", // Deep distinct purple/indigo
   onPrimary: "#FFFFFF",
-  primaryContainer: "#D3E3FD",
-  onPrimaryContainer: "#041E49",
+  primaryContainer: "#EADDFF",
+  onPrimaryContainer: "#21005D",
 
-  secondary: "#00639B",
+  secondary: "#625B71",
   onSecondary: "#FFFFFF",
-  secondaryContainer: "#C2E7FF",
-  onSecondaryContainer: "#001D35",
+  secondaryContainer: "#E8DEF8",
+  onSecondaryContainer: "#1D192B",
 
-  tertiary: "#146C2E", // Google Greenish
+  tertiary: "#7D5260", // Expressive pinkish tone
   onTertiary: "#FFFFFF",
-  tertiaryContainer: "#C4EED0",
-  onTertiaryContainer: "#072711",
+  tertiaryContainer: "#FFD8E4",
+  onTertiaryContainer: "#31111D",
 
   error: "#B3261E",
   onError: "#FFFFFF",
   errorContainer: "#F9DEDC",
   onErrorContainer: "#410E0B",
 
-  background: "#FFFFFF", // Pure white for light mode
-  onBackground: "#1F1F1F",
+  background: "#FEF7FF", // Very subtle tint
+  onBackground: "#1D1B20",
 
-  surface: "#F9F9F9", // Slightly off-white
-  onSurface: "#1F1F1F",
+  surface: "#FEF7FF",
+  onSurface: "#1D1B20",
 
-  surfaceVariant: "#E1E3E1",
-  onSurfaceVariant: "#444746",
+  surfaceVariant: "#E7E0EC",
+  onSurfaceVariant: "#49454F",
 
-  outline: "#747775",
-  outlineVariant: "#C4C7C5",
+  outline: "#79747E",
+  outlineVariant: "#CAC4D0",
 
-  // Surface Containers for Cards/Modals (Tonal Elevation)
+  // Surface Tones (Simulated elevation)
   surfaceContainerLowest: "#FFFFFF",
-  surfaceContainerLow: "#F7F9FC",
-  surfaceContainer: "#F3F6FC",
-  surfaceContainerHigh: "#ECEFF1",
-  surfaceContainerHighest: "#E1E3E1",
+  surfaceContainerLow: "#F7F2FA",
+  surfaceContainer: "#F3EDF7",
+  surfaceContainerHigh: "#ECE6F0",
+  surfaceContainerHighest: "#E6E0E9",
 
-  // Role Colors (kept for logic but updated to match MD3 tones)
+  shadow: "#000000",
+  scrim: "#000000",
+
+  // Role Colors
   roleSuperAdmin: "#B3261E",
-  roleAdmin: "#146C2E",
-  roleStaff: "#00639B",
-  roleClassTeacher: "#6E56CF",
-  roleStudent: "#E27200",
+  roleAdmin: "#146C2E",       // Green
+  roleStaff: "#4F378B",       // Primary
+  roleClassTeacher: "#7D5260",// Tertiary
+  roleStudent: "#E27200",     // Orange
 
   success: "#146C2E",
 
   // Legacy support
   white: "#FFFFFF",
-  textPrimary: "#1F1F1F",
-  textSecondary: "#444746",
-  border: "#E1E3E1",
-  cardBackground: "#F3F6FC", // surfaceContainer
-  shadow: "#000000",
+  textPrimary: "#1D1B20",
+  textSecondary: "#49454F",
+  border: "#CAC4D0",
+  cardBackground: "#F3EDF7",
 };
 
 const darkColors = {
-  primary: "#A8C7FA", // Lighter blue for dark mode
-  onPrimary: "#041E49",
-  primaryContainer: "#0842A0",
-  onPrimaryContainer: "#D3E3FD",
+  primary: "#D0BCFF",
+  onPrimary: "#381E72",
+  primaryContainer: "#4F378B",
+  onPrimaryContainer: "#EADDFF",
 
-  secondary: "#7FCFFF",
-  onSecondary: "#003355",
-  secondaryContainer: "#004A77",
-  onSecondaryContainer: "#C2E7FF",
+  secondary: "#CCC2DC",
+  onSecondary: "#332D41",
+  secondaryContainer: "#4A4458",
+  onSecondaryContainer: "#E8DEF8",
 
-  tertiary: "#6DD58C",
-  onTertiary: "#072711",
-  tertiaryContainer: "#0F5223",
-  onTertiaryContainer: "#C4EED0",
+  tertiary: "#EFB8C8",
+  onTertiary: "#492532",
+  tertiaryContainer: "#633B48",
+  onTertiaryContainer: "#FFD8E4",
 
   error: "#F2B8B5",
   onError: "#601410",
   errorContainer: "#8C1D18",
   onErrorContainer: "#F9DEDC",
 
-  background: "#121212", // True dark
-  onBackground: "#E3E3E3",
+  background: "#141218",
+  onBackground: "#E6E1E5",
 
-  surface: "#121212",
-  onSurface: "#E3E3E3",
+  surface: "#141218",
+  onSurface: "#E6E1E5",
 
-  surfaceVariant: "#444746",
-  onSurfaceVariant: "#C4C7C5",
+  surfaceVariant: "#49454F",
+  onSurfaceVariant: "#CAC4D0",
 
-  outline: "#8E918F",
-  outlineVariant: "#444746",
+  outline: "#938F99",
+  outlineVariant: "#49454F",
 
-  // Surface Containers (Tonal Elevation)
-  surfaceContainerLowest: "#0F0F0F",
+  surfaceContainerLowest: "#0F0D13",
   surfaceContainerLow: "#1D1B20",
-  surfaceContainer: "#212121",
+  surfaceContainer: "#211F26",
   surfaceContainerHigh: "#2B2930",
   surfaceContainerHighest: "#36343B",
 
+  shadow: "#000000",
+  scrim: "#000000",
+
+  // Role Colors
   roleSuperAdmin: "#F2B8B5",
   roleAdmin: "#6DD58C",
-  roleStaff: "#7FCFFF",
-  roleClassTeacher: "#D0BCFF",
+  roleStaff: "#D0BCFF",
+  roleClassTeacher: "#EFB8C8",
   roleStudent: "#FFB74D",
 
   success: "#6DD58C",
 
   // Legacy support
   white: "#FFFFFF",
-  textPrimary: "#E3E3E3",
-  textSecondary: "#C4C7C5",
-  border: "#444746",
-  cardBackground: "#1D1B20", // surfaceContainerLow
-  shadow: "#000000",
+  textPrimary: "#E6E1E5",
+  textSecondary: "#CAC4D0",
+  border: "#49454F",
+  cardBackground: "#1D1B20",
 };
 
 function createGlobalStyles(COLORS, mode) {
@@ -140,66 +166,165 @@ function createGlobalStyles(COLORS, mode) {
       paddingTop: 16,
       paddingBottom: 32,
     },
-    title: {
+    // Typography System
+    displayLarge: {
+      fontFamily: FONTS.displayLarge,
+      fontSize: 57,
+      lineHeight: 64,
+      letterSpacing: -0.25,
+      color: COLORS.onBackground,
+    },
+    displayMedium: {
+      fontFamily: FONTS.displayMedium,
+      fontSize: 45,
+      lineHeight: 52,
+      letterSpacing: 0,
+      color: COLORS.onBackground,
+    },
+    displaySmall: {
+      fontFamily: FONTS.displaySmall,
+      fontSize: 36,
+      lineHeight: 44,
+      letterSpacing: 0,
+      color: COLORS.onBackground,
+    },
+    headlineLarge: {
+      fontFamily: FONTS.headlineLarge,
       fontSize: 32,
-      fontFamily: FONTS.regular, // Google uses simpler weights often
+      lineHeight: 40,
+      letterSpacing: 0,
+      color: COLORS.onBackground,
+    },
+    headlineMedium: {
+      fontFamily: FONTS.headlineMedium,
+      fontSize: 28,
+      lineHeight: 36,
+      letterSpacing: 0,
+      color: COLORS.onBackground,
+    },
+    headlineSmall: {
+      fontFamily: FONTS.headlineSmall,
+      fontSize: 24,
+      lineHeight: 32,
+      letterSpacing: 0,
+      color: COLORS.onBackground,
+    },
+    titleLarge: {
+      fontFamily: FONTS.titleLarge,
+      fontSize: 22,
+      lineHeight: 28,
+      letterSpacing: 0,
+      color: COLORS.onBackground,
+    },
+    titleMedium: {
+      fontFamily: FONTS.titleMedium,
+      fontSize: 16,
+      lineHeight: 24,
+      letterSpacing: 0.15,
+      color: COLORS.onSurface,
+    },
+    titleSmall: {
+      fontFamily: FONTS.titleSmall,
+      fontSize: 14,
+      lineHeight: 20,
+      letterSpacing: 0.1,
+      color: COLORS.onSurface,
+    },
+    bodyLarge: {
+      fontFamily: FONTS.bodyLarge,
+      fontSize: 16,
+      lineHeight: 24,
+      letterSpacing: 0.5,
+      color: COLORS.onSurfaceVariant,
+    },
+    bodyMedium: {
+      fontFamily: FONTS.bodyMedium,
+      fontSize: 14,
+      lineHeight: 20,
+      letterSpacing: 0.25,
+      color: COLORS.onSurfaceVariant,
+    },
+    bodySmall: {
+      fontFamily: FONTS.bodySmall,
+      fontSize: 12,
+      lineHeight: 16,
+      letterSpacing: 0.4,
+      color: COLORS.onSurfaceVariant,
+    },
+    labelLarge: {
+      fontFamily: FONTS.labelLarge,
+      fontSize: 14,
+      lineHeight: 20,
+      letterSpacing: 0.1,
+      color: COLORS.onSurface,
+    },
+    labelMedium: {
+      fontFamily: FONTS.labelMedium,
+      fontSize: 12,
+      lineHeight: 16,
+      letterSpacing: 0.5,
+      color: COLORS.onSurface,
+    },
+    labelSmall: {
+      fontFamily: FONTS.labelSmall,
+      fontSize: 11,
+      lineHeight: 16,
+      letterSpacing: 0.5,
+      color: COLORS.onSurface,
+    },
+
+    // Legacy style support used in current files
+    title: {
+      fontFamily: FONTS.headlineMedium,
+      fontSize: 28,
       color: COLORS.onBackground,
       marginBottom: 24,
       textAlign: "left",
-      letterSpacing: 0,
     },
     headerTitle: {
+      fontFamily: FONTS.titleLarge,
       fontSize: 22,
-      fontFamily: FONTS.regular,
       color: COLORS.onBackground,
       marginBottom: 4,
     },
     subHeader: {
+      fontFamily: FONTS.bodyLarge,
       fontSize: 16,
-      fontFamily: FONTS.regular,
       color: COLORS.onSurfaceVariant,
       marginBottom: 24,
-      lineHeight: 24,
     },
     label: {
+      fontFamily: FONTS.labelMedium,
       fontSize: 12,
-      fontFamily: FONTS.medium,
       color: COLORS.onSurfaceVariant,
-      letterSpacing: 0.5,
       marginBottom: 8,
     },
     text: {
+      fontFamily: FONTS.bodyLarge,
       fontSize: 16,
-      fontFamily: FONTS.regular,
       color: COLORS.onSurfaceVariant,
       lineHeight: 24,
       marginBottom: 12,
     },
     link: {
+      fontFamily: FONTS.labelLarge, // Links should look like interactive labels
       fontSize: 16,
-      fontFamily: FONTS.medium,
       color: COLORS.primary,
     },
-    iconLabel: {
-      marginTop: 4,
-      fontSize: 12,
-      fontFamily: FONTS.medium,
-      color: COLORS.onSurfaceVariant,
-    },
     buttonText: {
+      fontFamily: FONTS.labelLarge,
       fontSize: 14,
-      fontFamily: FONTS.medium,
       color: COLORS.onPrimary,
       textAlign: "center",
-      letterSpacing: 0.1,
     },
     errorText: {
-      fontSize: 14,
-      fontFamily: FONTS.regular,
+      fontFamily: FONTS.bodySmall,
       color: COLORS.error,
       marginTop: 4,
       marginLeft: 4,
     },
+
+    // Layout Utils
     row: {
       flexDirection: "row",
       alignItems: "center",
@@ -212,217 +337,45 @@ function createGlobalStyles(COLORS, mode) {
       backgroundColor: COLORS.outlineVariant,
       marginVertical: 16,
     },
-    // MD3 Card Style - Filled
+    glass: {
+      backgroundColor: mode === 'dark' ? 'rgba(33, 33, 33, 0.8)' : 'rgba(243, 246, 252, 0.8)',
+    },
+
+    // Components (Legacy definitions for backwards compatibility until refactor is complete)
     card: {
-      backgroundColor: COLORS.surfaceContainer, // Tonal surface
-      borderRadius: 16, // Standard MD3 corner radius
-      padding: 16,
-      marginBottom: 16,
-      // No shadow by default in MD3 filled cards, just tonal difference
-      // But we can add very subtle shadow for depth if needed
-      elevation: 0,
-      borderWidth: 0,
-    },
-    // MD3 Card Style - Outlined
-    cardOutlined: {
-      backgroundColor: COLORS.surface,
-      borderRadius: 16,
-      padding: 16,
-      marginBottom: 16,
-      borderWidth: 1,
-      borderColor: COLORS.outlineVariant,
-      elevation: 0,
-    },
-    // MD3 Card Style - Elevated
-    cardElevated: {
-      backgroundColor: COLORS.surfaceContainerLow,
-      borderRadius: 16,
-      padding: 16,
-      marginBottom: 16,
-      shadowColor: COLORS.shadow,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.15,
-      shadowRadius: 4,
-      elevation: 2,
-    },
-    // Legacy support
-    cardMinimal: {
       backgroundColor: COLORS.surfaceContainer,
       borderRadius: 16,
       padding: 16,
-      marginBottom: 12,
-      borderWidth: 0,
+      marginBottom: 16,
     },
-    glass: {
-      backgroundColor: mode === 'dark' ? 'rgba(33, 33, 33, 0.8)' : 'rgba(243, 246, 252, 0.8)',
-      borderColor: 'transparent',
-      borderWidth: 0,
-    },
-    // MD3 Input Field (Outlined)
     input: {
       borderWidth: 1,
       borderColor: COLORS.outline,
-      borderRadius: 4, // MD3 text fields have smaller radius usually, but 8-12 is fine for modern feel
+      borderRadius: 4,
       paddingVertical: 14,
       paddingHorizontal: 16,
       fontSize: 16,
-      fontFamily: FONTS.regular,
+      fontFamily: FONTS.bodyLarge,
       color: COLORS.onSurface,
       backgroundColor: 'transparent',
     },
-    // MD3 Input Field (Filled)
-    inputFilled: {
-      backgroundColor: COLORS.surfaceContainerHighest,
-      borderBottomWidth: 1,
-      borderBottomColor: COLORS.onSurfaceVariant,
-      borderTopLeftRadius: 4,
-      borderTopRightRadius: 4,
-      paddingVertical: 14,
-      paddingHorizontal: 16,
-      fontSize: 16,
-      fontFamily: FONTS.regular,
-      color: COLORS.onSurface,
-    },
-    inputMinimal: {
-      backgroundColor: COLORS.surfaceContainerHigh,
-      borderRadius: 24, // Pill shape for search bars etc
-      paddingHorizontal: 20,
-      paddingVertical: 12,
-      fontSize: 16,
-      color: COLORS.onSurface,
-      borderWidth: 0,
-    },
-    inputFocused: {
-      borderColor: COLORS.primary,
-      borderWidth: 2,
-    },
-    inputError: {
-      borderColor: COLORS.error,
-    },
-    // MD3 Filled Button
     button: {
       backgroundColor: COLORS.primary,
       paddingVertical: 12,
       paddingHorizontal: 24,
-      borderRadius: 100, // Pill shape
-      alignItems: "center",
-      justifyContent: "center",
-      elevation: 0, // Flat by default
-    },
-    // MD3 Tonal Button
-    buttonTonal: {
-      backgroundColor: COLORS.secondaryContainer,
-      paddingVertical: 12,
-      paddingHorizontal: 24,
       borderRadius: 100,
       alignItems: "center",
       justifyContent: "center",
-    },
-    buttonTonalText: {
-      fontSize: 14,
-      fontFamily: FONTS.medium,
-      color: COLORS.onSecondaryContainer,
-      textAlign: "center",
-      letterSpacing: 0.1,
-    },
-    buttonSmall: {
-      backgroundColor: COLORS.primary,
-      paddingVertical: 8,
-      paddingHorizontal: 16,
-      borderRadius: 100,
-      alignItems: "center",
-      justifyContent: "center",
-      minHeight: 36,
-    },
-    buttonIcon: {
-      padding: 12,
-      borderRadius: 16, // Squircle or Circle
-      alignItems: "center",
-      justifyContent: "center",
-      minWidth: 48,
-      minHeight: 48,
-      backgroundColor: COLORS.surfaceContainerHigh,
-    },
-    buttonLarge: {
-      backgroundColor: COLORS.primary,
-      paddingVertical: 16,
-      paddingHorizontal: 32,
-      borderRadius: 100,
-      alignItems: "center",
-      justifyContent: "center",
-      minHeight: 56,
-      elevation: 2,
-    },
-    buttonSecondary: {
-      backgroundColor: 'transparent',
-      borderWidth: 1,
-      borderColor: COLORS.outline,
-      paddingVertical: 12,
-      paddingHorizontal: 24,
-      borderRadius: 100,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    buttonSecondaryText: {
-      fontSize: 14,
-      fontFamily: FONTS.medium,
-      color: COLORS.primary,
-      textAlign: "center",
-      letterSpacing: 0.1,
-    },
-    fab: {
-      position: "absolute",
-      bottom: 88, // Adjusted for bottom nav
-      right: 16,
-      backgroundColor: COLORS.primaryContainer,
-      width: 56,
-      height: 56,
-      borderRadius: 16, // MD3 FAB is slightly squarish
-      justifyContent: "center",
-      alignItems: "center",
-      elevation: 3,
-      shadowColor: COLORS.shadow,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 8,
-    },
-    backButton: {
-      flexDirection: "row",
-      alignItems: 'center',
-      padding: 8,
-      marginLeft: -8,
-    },
-    iconRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginBottom: 12,
-      gap: 12,
-    },
-    heading: {
-      fontSize: 22,
-      fontFamily: FONTS.regular,
-      color: COLORS.onBackground,
-      textAlign: "left",
-      marginBottom: 16,
-    },
-    cardText: {
-      fontSize: 14,
-      fontFamily: FONTS.regular,
-      color: COLORS.onSurfaceVariant,
-      lineHeight: 20,
-    },
-    cardGroup: {
-      marginBottom: 24,
     },
     safeArea: {
       flex: 1,
       backgroundColor: COLORS.background,
     },
-    smallLeftMargin: {
-      marginLeft: 8,
-    },
     contentPaddingBottom: {
       paddingBottom: 100,
+    },
+    smallLeftMargin: {
+      marginLeft: 8,
     },
     sectionTitle: {
       fontSize: 18,
@@ -430,23 +383,15 @@ function createGlobalStyles(COLORS, mode) {
       fontFamily: FONTS.medium,
       marginBottom: 16,
     },
-    empty: {
-      fontSize: 16,
-      color: COLORS.onSurfaceVariant,
-      marginTop: 32,
-      textAlign: "center",
-      fontFamily: FONTS.regular,
-    },
   });
 }
 
 const ThemeContext = createContext(null);
 
 export function ThemeProvider({ children }) {
-  const [mode, setMode] = useState(null); // null = not yet loaded
+  const [mode, setMode] = useState(null);
   const [isHydrated, setIsHydrated] = useState(false);
 
-  // Load saved preference or system preference on mount
   useEffect(() => {
     let mounted = true;
     async function load() {
@@ -455,12 +400,8 @@ export function ThemeProvider({ children }) {
         if (mounted) {
           if (stored === "light" || stored === "dark") {
             setMode(stored);
-          } else if (stored === "system") {
-            // Use system preference
-            const sys = Appearance.getColorScheme();
-            setMode(sys === "dark" ? "dark" : "light");
           } else {
-            // No stored preference, use system and set to "system" mode
+            // System default
             const sys = Appearance.getColorScheme();
             setMode(sys === "dark" ? "dark" : "light");
           }
@@ -472,11 +413,9 @@ export function ThemeProvider({ children }) {
         if (mounted) setIsHydrated(true);
       }
     }
-
     load();
 
     const sub = Appearance.addChangeListener(({ colorScheme }) => {
-      // If user hasn't chosen yet (no stored pref) or has chosen "system", update with system changes
       storage.getItem("@theme_mode").then((stored) => {
         if (!stored || stored === "system") {
           setMode(colorScheme === "dark" ? "dark" : "light");
@@ -486,60 +425,26 @@ export function ThemeProvider({ children }) {
 
     return () => {
       mounted = false;
-      try {
-        sub && sub.remove && sub.remove();
-      } catch (e) {
-        // ignore remove errors during unmount, but log in dev
-        if (typeof console !== "undefined")
-          console.warn("Appearance listener remove failed", e);
-      }
+      try { sub && sub.remove && sub.remove(); } catch (e) { }
     };
   }, []);
 
-  const colors = useMemo(
-    () => (mode === "dark" ? darkColors : lightColors),
-    [mode]
-  );
-
-  // Pass mode to createGlobalStyles to handle conditional styles
+  const colors = useMemo(() => (mode === "dark" ? darkColors : lightColors), [mode]);
   const styles = useMemo(() => createGlobalStyles(colors, mode), [colors, mode]);
 
-  // Gradient Constants - Updated for MD3 feel (subtler)
   const gradients = useMemo(() => ({
-    primary: mode === 'dark'
-      ? [colors.primary, '#7Cacf8']
-      : [colors.primary, '#0842A0'],
-    card: mode === 'dark'
-      ? [colors.surfaceContainer, colors.surfaceContainerHigh]
-      : [colors.surfaceContainer, colors.surfaceContainerLow],
-    success: ['#146C2E', '#0F5223'],
-    error: ['#B3261E', '#8C1D18'],
+    primary: mode === 'dark' ? [colors.primary, '#9A82DB'] : [colors.primary, '#6750A4'],
+    card: mode === 'dark' ? [colors.surfaceContainer, colors.surfaceContainerHigh] : [colors.surfaceContainer, colors.surfaceContainerLow],
   }), [colors, mode]);
 
-  const setAndPersist = (newMode) => {
-    // Update state immediately for instant UI feedback
+  const toggle = () => {
+    const newMode = mode === "dark" ? "light" : "dark";
     setMode(newMode);
-
-    // Persist to storage in the background
-    if (newMode === "system") {
-      storage.removeItem("@theme_mode").catch(() => {
-        // ignore persistence error
-      });
-    } else {
-      storage.setItem("@theme_mode", newMode).catch(() => {
-        // ignore persistence error
-      });
-    }
+    storage.setItem("@theme_mode", newMode).catch(() => { });
   };
 
-  const toggle = () => setAndPersist(mode === "dark" ? "light" : "dark");
-
-  // While hydrating, render nothing to avoid flicker. Child components may expect useTheme to exist, so
-  // keep provider but return null for children until hydrated.
   return (
-    <ThemeContext.Provider
-      value={{ mode: mode || "light", toggle, colors, styles, gradients }}
-    >
+    <ThemeContext.Provider value={{ mode: mode || "light", toggle, colors, styles, gradients }}>
       {isHydrated ? children : null}
     </ThemeContext.Provider>
   );

@@ -97,7 +97,8 @@ export default function GiveFeedbackScreen() {
         mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/feedback`, 'POST'),
         onSuccess: () => {
             showToast("Feedback sent successfully", "success");
-            queryClient.invalidateQueries(['feedback']); // Assuming we'll use this key for lists
+            queryClient.invalidateQueries(['data', 'sent_feedback']);
+            queryClient.invalidateQueries(['data', 'feedback_logs']);
             router.back();
         },
         onError: (error) => showToast(error.message || "Failed to send feedback", "error")

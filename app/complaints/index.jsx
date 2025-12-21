@@ -45,6 +45,14 @@ export default function ComplaintsScreen() {
     // FAB State
     const [showFabOptions, setShowFabOptions] = useState(false);
 
+    // Filter state for Admin Inbox
+    const [adminFilter, setAdminFilter] = useState("All");
+
+    // Admin Status Update State
+    const [selectedComplaint, setSelectedComplaint] = useState(null);
+    const [response, setResponse] = useState("");
+    const [status, setStatus] = useState("Resolved");
+
     useEffect(() => {
         checkUserRole();
     }, []);
@@ -59,9 +67,12 @@ export default function ComplaintsScreen() {
 
         setUserRole(role);
 
+        // Normalize role for comparisons
+        const normalizedRole = role === 'super admin' ? 'super admin' : role;
+
         // Set default tab based on role
-        if (role === 'student') setActiveTab('my_complaints');
-        else if (role === 'teacher') setActiveTab('my_complaints');
+        if (normalizedRole === 'student') setActiveTab('my_complaints');
+        else if (normalizedRole === 'teacher') setActiveTab('my_complaints');
         else setActiveTab('inbox');
     };
 
@@ -141,6 +152,30 @@ export default function ComplaintsScreen() {
         });
     };
 
+    // --- Status Update for Admin ---
+    const updateStatusMutation = useApiMutation({
+        mutationFn: (data) => createApiMutationFn(`${apiConfig.baseUrl}/complaints/${data.id}/status`, 'PUT')(data.body),
+        onSuccess: () => {
+            queryClient.invalidateQueries(queryKey);
+            showToast("Complaint updated", "success");
+            setSelectedComplaint(null);
+            setResponse("");
+            refetch();
+        },
+        onError: (error) => showToast(error.message || "Failed to update status", "error")
+    });
+
+    const handleUpdateStatus = () => {
+        if (!selectedComplaint) return;
+        updateStatusMutation.mutate({
+            id: selectedComplaint._id,
+            body: {
+                status,
+                adminResponse: response
+            }
+        });
+    };
+
 
     // --- Render Items ---
 
@@ -171,11 +206,33 @@ export default function ComplaintsScreen() {
                 {item.description}
             </Text>
 
-            {activeTab === 'inbox' && item.raisedBy && (
+            {activeTab === 'inbox' && (
                 <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.border }}>
-                    <Text style={{ color: colors.textSecondary, fontSize: 12, fontFamily: "DMSans-Regular" }}>
-                        Raised by: <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary }}>{item.raisedBy.name}</Text>
-                    </Text>
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                        <Text style={{ color: colors.textSecondary, fontSize: 12, fontFamily: "DMSans-Regular" }}>
+                            From: <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
+                                {item.raisedBy?.name || 'Unknown'}
+                                {item.raisedBy?.role ? ` (${item.raisedBy.role})` : ''}
+                            </Text>
+                        </Text>
+                        <Pressable
+                            onPress={() => {
+                                setSelectedComplaint(item);
+                                setStatus(item.status === 'Pending' ? 'In Progress' : item.status);
+                                setResponse(item.adminResponse || "");
+                            }}
+                            style={{ paddingHorizontal: 12, paddingVertical: 6, backgroundColor: colors.primary + "10", borderRadius: 8 }}
+                        >
+                            <Text style={{ color: colors.primary, fontSize: 12, fontFamily: "DMSans-Bold" }}>Update</Text>
+                        </Pressable>
+                    </View>
+                </View>
+            )}
+
+            {item.adminResponse && activeTab === 'my_complaints' && (
+                <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.background + "50", borderRadius: 8, padding: 8 }}>
+                    <Text style={{ color: colors.primary, fontSize: 11, fontFamily: "DMSans-Bold", marginBottom: 2 }}>ADMIN RESPONSE</Text>
+                    <Text style={{ color: colors.textSecondary, fontSize: 13, fontFamily: "DMSans-Regular" }}>{item.adminResponse}</Text>
                 </View>
             )}
         </Pressable>
@@ -294,18 +351,54 @@ export default function ComplaintsScreen() {
                     )}
                     {(userRole === 'admin' || userRole === 'super admin') && (
                         <>
-                            <TabButton id="inbox" label="Complaints" />
-                            <TabButton id="feedback_logs" label="Feedback Logs" />
+                            <TabButton id="inbox" label="Inbox" />
+                            <TabButton id="feedback_logs" label="Logs" />
                         </>
                     )}
                 </View>
             </View>
 
+            {/* Admin Filter Options */}
+            {activeTab === 'inbox' && (userRole === 'admin' || userRole === 'super admin') && (
+                <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                        <View style={{ flexDirection: "row", gap: 8 }}>
+                            {['All', 'Pending', 'In Progress', 'Resolved'].map(f => (
+                                <Pressable
+                                    key={f}
+                                    onPress={() => setAdminFilter(f)}
+                                    style={{
+                                        paddingHorizontal: 14,
+                                        paddingVertical: 6,
+                                        backgroundColor: adminFilter === f ? colors.primary + "20" : colors.cardBackground,
+                                        borderRadius: 20,
+                                        borderWidth: 1,
+                                        borderColor: adminFilter === f ? colors.primary : colors.border
+                                    }}
+                                >
+                                    <Text style={{
+                                        color: adminFilter === f ? colors.primary : colors.textSecondary,
+                                        fontFamily: "DMSans-Bold",
+                                        fontSize: 12
+                                    }}>
+                                        {f}
+                                    </Text>
+                                </Pressable>
+                            ))}
+                        </View>
+                    </ScrollView>
+                </View>
+            )}
+
             {loading ? (
                 <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 40 }} />
             ) : (
                 <FlatList
-                    data={listData || []}
+                    data={listData ? (
+                        activeTab === 'inbox' && adminFilter !== 'All'
+                            ? listData.filter(c => c.status === adminFilter)
+                            : listData
+                    ) : []}
                     renderItem={({ item }) => {
                         if (activeTab.includes('feedback')) return renderFeedbackItem(item);
                         return renderComplaintItem(item);
@@ -414,6 +507,88 @@ export default function ComplaintsScreen() {
                                 )}
                             </Pressable>
                         </View>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Admin Status Update Modal */}
+            <Modal visible={!!selectedComplaint} transparent animationType="slide">
+                <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
+                    <View style={{ backgroundColor: colors.cardBackground, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24 }}>
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                            <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>Update Status</Text>
+                            <Pressable onPress={() => setSelectedComplaint(null)}>
+                                <MaterialIcons name="close" size={24} color={colors.textSecondary} />
+                            </Pressable>
+                        </View>
+
+                        <View style={{ marginBottom: 20 }}>
+                            <Text style={{ color: colors.textSecondary, fontSize: 13 }}>Complaint:</Text>
+                            <Text style={{ fontSize: 16, color: colors.textPrimary, fontFamily: "DMSans-Bold", marginTop: 4 }}>
+                                {selectedComplaint?.title}
+                            </Text>
+                        </View>
+
+                        <Text style={{ color: colors.textSecondary, marginBottom: 12, fontFamily: "DMSans-Medium" }}>Set Status</Text>
+                        <View style={{ flexDirection: "row", gap: 10, marginBottom: 24 }}>
+                            {['In Progress', 'Resolved', 'Rejected'].map(s => (
+                                <Pressable
+                                    key={s}
+                                    onPress={() => setStatus(s)}
+                                    style={{
+                                        flex: 1,
+                                        padding: 12,
+                                        backgroundColor: status === s ? colors.primary : colors.background,
+                                        borderRadius: 12,
+                                        alignItems: "center",
+                                        borderWidth: 1,
+                                        borderColor: status === s ? colors.primary : colors.border
+                                    }}
+                                >
+                                    <Text style={{ color: status === s ? "#fff" : colors.textPrimary, fontSize: 13, fontFamily: "DMSans-Bold" }}>{s}</Text>
+                                </Pressable>
+                            ))}
+                        </View>
+
+                        <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>Admin Response</Text>
+                        <TextInput
+                            value={response}
+                            onChangeText={setResponse}
+                            placeholder="Write a response to the user..."
+                            placeholderTextColor={colors.textSecondary}
+                            multiline
+                            numberOfLines={4}
+                            style={{
+                                backgroundColor: colors.background,
+                                borderRadius: 12,
+                                padding: 12,
+                                color: colors.textPrimary,
+                                fontFamily: "DMSans-Medium",
+                                minHeight: 100,
+                                textAlignVertical: "top",
+                                marginBottom: 24,
+                                borderWidth: 1,
+                                borderColor: colors.border
+                            }}
+                        />
+
+                        <Pressable
+                            onPress={handleUpdateStatus}
+                            disabled={updateStatusMutation.isPending}
+                            style={{
+                                backgroundColor: colors.primary,
+                                padding: 18,
+                                borderRadius: 16,
+                                alignItems: "center",
+                                opacity: updateStatusMutation.isPending ? 0.7 : 1
+                            }}
+                        >
+                            {updateStatusMutation.isPending ? (
+                                <ActivityIndicator size="small" color="#fff" />
+                            ) : (
+                                <Text style={{ color: "#fff", fontFamily: "DMSans-Bold", fontSize: 16 }}>Update Complaint</Text>
+                            )}
+                        </Pressable>
                     </View>
                 </View>
             </Modal>

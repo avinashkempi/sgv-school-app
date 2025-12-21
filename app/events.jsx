@@ -107,22 +107,24 @@ const formatIndianDate = (dateInput) => {
   return formatDate(dateInput);
 };
 
+import Card from "../components/Card";
+
 // Memoized EventCard component with custom comparison for optimal performance
-const EventCard = React.memo(({ event, styles, colors, isAdmin, onEdit, onDelete }) => {
+const EventCard = React.memo(({ event, colors, isAdmin, onEdit, onDelete }) => {
   // Sanitize event data to prevent rendering issues
   const title = event.title?.trim() || 'Untitled Event';
   const description = event.description?.trim();
   const hasValidDescription = description && description.length > 1;
 
   return (
-    <View style={styles.cardMinimal}>
+    <Card variant="elevated" style={{ marginBottom: 4 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <View style={{ flex: 1, marginRight: 12 }}>
-          <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 8 }} numberOfLines={2}>
+          <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 8 }} numberOfLines={2}>
             {title}
           </Text>
           {hasValidDescription && (
-            <Text style={{ fontSize: 14, fontFamily: "DMSans-Regular", color: colors.textSecondary, lineHeight: 20, marginBottom: 12 }} numberOfLines={2}>
+            <Text style={{ fontSize: 14, fontFamily: "DMSans-Regular", color: colors.onSurfaceVariant, lineHeight: 20, marginBottom: 12 }} numberOfLines={2}>
               {description}
             </Text>
           )}
@@ -147,28 +149,28 @@ const EventCard = React.memo(({ event, styles, colors, isAdmin, onEdit, onDelete
               onPress={onEdit}
               style={({ pressed }) => ({
                 padding: 8,
-                backgroundColor: colors.background,
+                backgroundColor: colors.surfaceContainerHighest,
                 borderRadius: 8,
                 opacity: pressed ? 0.7 : 1,
               })}
             >
-              <MaterialIcons name="edit" size={18} color={colors.textSecondary} />
+              <MaterialIcons name="edit" size={18} color={colors.onSurfaceVariant} />
             </Pressable>
             <Pressable
               onPress={onDelete}
               style={({ pressed }) => ({
                 padding: 8,
-                backgroundColor: colors.error + '15',
+                backgroundColor: colors.errorContainer,
                 borderRadius: 8,
                 opacity: pressed ? 0.7 : 1,
               })}
             >
-              <MaterialIcons name="delete-outline" size={18} color={colors.error} />
+              <MaterialIcons name="delete-outline" size={18} color={colors.onErrorContainer} />
             </Pressable>
           </View>
         )}
       </View>
-    </View>
+    </Card>
   );
 }, (prevProps, nextProps) => {
   // Custom comparison - only re-render if these props change

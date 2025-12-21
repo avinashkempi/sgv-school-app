@@ -9,6 +9,7 @@ import { useToast } from '../../components/ToastProvider';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../theme';
 import Header from '../../components/Header';
+import Card from '../../components/Card';
 
 export default function StudentLeaves() {
     const router = useRouter();
@@ -99,12 +100,11 @@ export default function StudentLeaves() {
         const isRejected = item.status === 'rejected';
 
         return (
-            <View style={{
-                backgroundColor: colors.surfaceContainer,
-                borderRadius: 16,
-                padding: 16,
-                marginBottom: 12,
-            }}>
+            <Card
+                style={{ marginBottom: 12 }}
+                variant="elevated"
+                contentStyle={{ padding: 16 }}
+            >
                 <View style={{
                     flexDirection: 'row',
                     justifyContent: 'space-between',
@@ -149,7 +149,7 @@ export default function StudentLeaves() {
                 </View>
 
                 <View style={{
-                    backgroundColor: colors.surface,
+                    backgroundColor: colors.surfaceContainerHighest,
                     padding: 12,
                     borderRadius: 8,
                     marginBottom: isRejected ? 12 : 0
@@ -172,7 +172,7 @@ export default function StudentLeaves() {
                     <View style={{
                         marginTop: 0,
                         padding: 12,
-                        backgroundColor: colors.errorContainer + '40', // Light error background
+                        backgroundColor: colors.errorContainer,
                         borderRadius: 8,
                         borderLeftWidth: 3,
                         borderLeftColor: colors.error
@@ -185,18 +185,18 @@ export default function StudentLeaves() {
                         }}>Rejection Details</Text>
 
                         {item.rejectionReason && (
-                            <Text style={{ fontSize: 13, color: colors.onSurface, marginBottom: 2, fontFamily: "DMSans-Regular" }}>
+                            <Text style={{ fontSize: 13, color: colors.onErrorContainer, marginBottom: 2, fontFamily: "DMSans-Regular" }}>
                                 <Text style={{ fontFamily: "DMSans-Bold" }}>Reason: </Text>{item.rejectionReason}
                             </Text>
                         )}
                         {item.rejectionComments && (
-                            <Text style={{ fontSize: 13, color: colors.onSurface, fontFamily: "DMSans-Regular" }}>
+                            <Text style={{ fontSize: 13, color: colors.onErrorContainer, fontFamily: "DMSans-Regular" }}>
                                 <Text style={{ fontFamily: "DMSans-Bold" }}>Note: </Text>{item.rejectionComments}
                             </Text>
                         )}
                     </View>
                 )}
-            </View>
+            </Card>
         );
     };
 

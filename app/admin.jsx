@@ -281,7 +281,7 @@ export default function AdminScreen() {
                   title="Complaints"
                   icon="feedback"
                   color="#607D8B"
-                  onPress={() => router.push("/admin/complaints")}
+                  onPress={() => router.push("/complaints")}
                 />
                 <MenuCard
                   title="Broadcast"

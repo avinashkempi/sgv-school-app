@@ -6,16 +6,15 @@ import useFade from "../hooks/useFade";
 import { useTheme } from "../theme";
 import useSchoolInfo from "../hooks/useSchoolInfo";
 import Header from "../components/Header";
-
+import Card from "../components/Card";
 import SchoolPhotoCarousel from "../components/SchoolPhotoCarousel";
-
 import { useToast } from "../components/ToastProvider";
-
 import apiConfig from "../config/apiConfig";
 import { useApiQuery } from "../hooks/useApi";
 import storage from "../utils/storage";
-
-
+import AdminDashboard from "../components/dashboard/AdminDashboard";
+import TeacherDashboard from "../components/dashboard/TeacherDashboard";
+import StudentDashboard from "../components/dashboard/StudentDashboard";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -52,7 +51,6 @@ export default function HomeScreen() {
 
   useEffect(() => {
     if (isError) {
-      // If we can't fetch user details (likely 401/403), clear session and redirect
       const handleLogout = async () => {
         await storage.multiRemove(['@auth_token', '@auth_user']);
         router.replace('/login');
@@ -61,12 +59,10 @@ export default function HomeScreen() {
     }
   }, [isError]);
 
-
-
   return (
     <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.contentPaddingBottom}
+      style={{ flex: 1, backgroundColor: colors.background }}
+      contentContainerStyle={[styles.contentPaddingBottom, { paddingHorizontal: 16, paddingTop: 16 }]}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
       }
@@ -76,98 +72,137 @@ export default function HomeScreen() {
         backgroundColor={colors.background}
       />
 
-      {/* Minimalist Header */}
-      <Header title={SCHOOL.name} subtitle={userData?.name ? `Welcome, ${userData.name.split(' ')[0]}` : "Welcome"} variant="welcome" />
+      {/* Large M3 Header */}
+      <Header
+        title={SCHOOL.name}
+        subtitle={userData?.name ? `Welcome, ${userData.name.split(' ')[0]}` : "Welcome"}
+        variant="welcome"
+      />
 
-      {/* School Photo Carousel */}
+      {/* School Photo Carousel - Keep as is, looks good */}
       <SchoolPhotoCarousel photos={SCHOOL.photoUrl} />
 
+      {/* Role Based Dashboard */}
+      <View style={{ marginBottom: 16 }}>
+        {userData?.role === 'admin' || userData?.role === 'super admin' ? (
+          <AdminDashboard />
+        ) : userData?.role === 'teacher' || userData?.role === 'class teacher' ? (
+          <TeacherDashboard />
+        ) : userData?.role === 'student' ? (
+          <StudentDashboard />
+        ) : null}
+      </View>
+
       {/* About Us Section */}
-      <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
-          <View style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20, // Circle
-            backgroundColor: colors.primaryContainer,
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginRight: 12
-          }}>
-            <MaterialIcons name="apartment" size={24} color={colors.onPrimaryContainer} />
+      <Animated.View style={{ opacity: fadeAnim }}>
+        <Card variant="filled">
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+            <View style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: colors.primaryContainer,
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginRight: 12
+            }}>
+              <MaterialIcons name="apartment" size={24} color={colors.onPrimaryContainer} />
+            </View>
+            <Text style={{
+              fontSize: 18,
+              fontFamily: "DMSans-Medium",
+              color: colors.onSurface
+            }}>
+              About Us
+            </Text>
           </View>
-          <Text style={{ fontSize: 18, fontFamily: "DMSans-Medium", color: colors.onSurface }}>About Us</Text>
-        </View>
-        <Text style={[styles.text, { marginBottom: 0 }]}>{SCHOOL.about}</Text>
+          <Text style={[styles.text, { marginBottom: 0 }]}>{SCHOOL.about}</Text>
+        </Card>
       </Animated.View>
 
       {/* Branches Section */}
-      <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
-          <View style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            backgroundColor: colors.secondaryContainer,
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginRight: 12
-          }}>
-            <MaterialIcons name="school" size={24} color={colors.onSecondaryContainer} />
-          </View>
-          <Text style={{ fontSize: 18, fontFamily: "DMSans-Medium", color: colors.onSurface }}>Branches</Text>
-        </View>
-
-        <View style={{ gap: 12 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+      <Animated.View style={{ opacity: fadeAnim }}>
+        <Card variant="filled">
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
             <View style={{
-              width: 6,
-              height: 6,
-              borderRadius: 3,
-              backgroundColor: colors.secondary,
-              marginTop: 8,
-              marginRight: 10
-            }} />
-            <Text style={[styles.text, { flex: 1, marginBottom: 0 }]}>
-              <Text style={{ fontFamily: "DMSans-Medium", color: colors.onSurface }}>Renuka Nagar, Mangasuli</Text>
-              {"\n"}Kindergarten to 8th Standard (9th and 10th opening soon).
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: colors.secondaryContainer,
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginRight: 12
+            }}>
+              <MaterialIcons name="school" size={24} color={colors.onSecondaryContainer} />
+            </View>
+            <Text style={{
+              fontSize: 18,
+              fontFamily: "DMSans-Medium",
+              color: colors.onSurface
+            }}>
+              Branches
             </Text>
           </View>
 
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-            <View style={{
-              width: 6,
-              height: 6,
-              borderRadius: 3,
-              backgroundColor: colors.secondary,
-              marginTop: 8,
-              marginRight: 10
-            }} />
-            <Text style={[styles.text, { flex: 1, marginBottom: 0 }]}>
-              <Text style={{ fontFamily: "DMSans-Medium", color: colors.onSurface }}>Ugar Khurd</Text>
-              {"\n"}Only Kindergarten.
-            </Text>
+          <View style={{ gap: 12 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+              <View style={{
+                width: 6,
+                height: 6,
+                borderRadius: 3,
+                backgroundColor: colors.secondary,
+                marginTop: 8,
+                marginRight: 10
+              }} />
+              <Text style={[styles.text, { flex: 1, marginBottom: 0 }]}>
+                <Text style={{ fontFamily: "DMSans-Medium", color: colors.onSurface }}>Renuka Nagar, Mangasuli</Text>
+                {"\n"}Kindergarten to 8th Standard (9th and 10th opening soon).
+              </Text>
+            </View>
+
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+              <View style={{
+                width: 6,
+                height: 6,
+                borderRadius: 3,
+                backgroundColor: colors.secondary,
+                marginTop: 8,
+                marginRight: 10
+              }} />
+              <Text style={[styles.text, { flex: 1, marginBottom: 0 }]}>
+                <Text style={{ fontFamily: "DMSans-Medium", color: colors.onSurface }}>Ugar Khurd</Text>
+                {"\n"}Only Kindergarten.
+              </Text>
+            </View>
           </View>
-        </View>
+        </Card>
       </Animated.View>
 
       {/* Mission Section */}
-      <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
-          <View style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            backgroundColor: colors.tertiaryContainer,
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginRight: 12
-          }}>
-            <MaterialIcons name="flag" size={24} color={colors.onTertiaryContainer} />
+      <Animated.View style={{ opacity: fadeAnim }}>
+        <Card variant="filled">
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+            <View style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: colors.tertiaryContainer,
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginRight: 12
+            }}>
+              <MaterialIcons name="flag" size={24} color={colors.onTertiaryContainer} />
+            </View>
+            <Text style={{
+              fontSize: 18,
+              fontFamily: "DMSans-Medium",
+              color: colors.onSurface
+            }}>
+              Our Mission
+            </Text>
           </View>
-          <Text style={{ fontSize: 18, fontFamily: "DMSans-Medium", color: colors.onSurface }}>Our Mission</Text>
-        </View>
-        <Text style={[styles.text, { marginBottom: 0 }]}>{SCHOOL.mission}</Text>
+          <Text style={[styles.text, { marginBottom: 0 }]}>{SCHOOL.mission}</Text>
+        </Card>
       </Animated.View>
     </ScrollView>
   );

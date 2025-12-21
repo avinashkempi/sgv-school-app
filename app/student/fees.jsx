@@ -12,6 +12,7 @@ import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
 import Header from "../../components/Header";
+import Card from "../../components/Card";
 import apiConfig from "../../config/apiConfig";
 import { useToast } from "../../components/ToastProvider";
 
@@ -60,31 +61,31 @@ export default function StudentFeesScreen() {
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <ScrollView
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
             >
-                <View style={{ padding: 16, paddingTop: 24 }}>
+                <View>
                     <Header title="My Fees" subtitle="Payment Status & History" showBack />
 
                     {/* Summary Cards */}
                     <View style={{ flexDirection: "row", gap: 12, marginTop: 24 }}>
-                        <View style={{ flex: 1, backgroundColor: colors.cardBackground, padding: 16, borderRadius: 16, alignItems: "center" }}>
-                            <Text style={{ color: colors.textSecondary, fontSize: 12, marginBottom: 4 }}>Total Fees</Text>
-                            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
+                        <Card style={{ flex: 1 }} contentStyle={{ alignItems: "center", padding: 16 }}>
+                            <Text style={{ color: colors.onSurfaceVariant, fontSize: 12, marginBottom: 4 }}>Total Fees</Text>
+                            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
                                 ₹{feeData?.totalFees?.toLocaleString() || 0}
                             </Text>
-                        </View>
-                        <View style={{ flex: 1, backgroundColor: colors.cardBackground, padding: 16, borderRadius: 16, alignItems: "center" }}>
-                            <Text style={{ color: colors.textSecondary, fontSize: 12, marginBottom: 4 }}>Paid</Text>
+                        </Card>
+                        <Card style={{ flex: 1 }} contentStyle={{ alignItems: "center", padding: 16 }}>
+                            <Text style={{ color: colors.onSurfaceVariant, fontSize: 12, marginBottom: 4 }}>Paid</Text>
                             <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.success }}>
                                 ₹{feeData?.paidAmount?.toLocaleString() || 0}
                             </Text>
-                        </View>
-                        <View style={{ flex: 1, backgroundColor: colors.cardBackground, padding: 16, borderRadius: 16, alignItems: "center" }}>
-                            <Text style={{ color: colors.textSecondary, fontSize: 12, marginBottom: 4 }}>Pending</Text>
+                        </Card>
+                        <Card style={{ flex: 1 }} contentStyle={{ alignItems: "center", padding: 16 }}>
+                            <Text style={{ color: colors.onSurfaceVariant, fontSize: 12, marginBottom: 4 }}>Pending</Text>
                             <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.error }}>
                                 ₹{feeData?.pendingAmount?.toLocaleString() || 0}
                             </Text>
-                        </View>
+                        </Card>
                     </View>
 
                     {/* Fee Breakdown */}
@@ -119,30 +120,29 @@ export default function StudentFeesScreen() {
                             </View>
                         ) : (
                             feeData.payments.map((payment) => (
-                                <View
+                                <Card
                                     key={payment._id}
-                                    style={{
-                                        backgroundColor: colors.cardBackground,
-                                        borderRadius: 16,
-                                        padding: 16,
-                                        marginBottom: 12,
+                                    style={{ marginBottom: 12 }}
+                                    variant="elevated"
+                                    contentStyle={{
                                         flexDirection: "row",
                                         justifyContent: "space-between",
-                                        alignItems: "center"
+                                        alignItems: "center",
+                                        padding: 16
                                     }}
                                 >
                                     <View>
-                                        <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary, fontSize: 16 }}>
+                                        <Text style={{ fontFamily: "DMSans-Bold", color: colors.onSurface, fontSize: 16 }}>
                                             ₹{payment.amount}
                                         </Text>
-                                        <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 4 }}>
+                                        <Text style={{ color: colors.onSurfaceVariant, fontSize: 12, marginTop: 4 }}>
                                             {new Date(payment.paymentDate).toLocaleDateString()} • {payment.paymentMethod}
                                         </Text>
-                                        <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
+                                        <Text style={{ color: colors.onSurfaceVariant, fontSize: 12 }}>
                                             Receipt: {payment.receiptNumber}
                                         </Text>
                                         {(payment.bookNumber || payment.manualReceiptNumber) && (
-                                            <Text style={{ fontSize: 12, color: '#666', marginTop: 2 }}>
+                                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginTop: 2 }}>
                                                 {payment.bookNumber ? `Book: ${payment.bookNumber}` : ''}
                                                 {payment.bookNumber && payment.manualReceiptNumber ? ' | ' : ''}
                                                 {payment.manualReceiptNumber ? `Receipt: ${payment.manualReceiptNumber}` : ''}
@@ -156,7 +156,7 @@ export default function StudentFeesScreen() {
                                             </Text>
                                         </View>
                                     </View>
-                                </View>
+                                </Card>
                             ))
                         )}
                     </View>

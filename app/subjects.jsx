@@ -10,6 +10,7 @@ import { useApiQuery } from "../hooks/useApi";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "../components/ToastProvider";
 import Header from "../components/Header";
+import Card from "../components/Card";
 
 export default function SubjectsScreen() {
     const router = useRouter();
@@ -75,50 +76,43 @@ export default function SubjectsScreen() {
         <View>
             {studentSubjects.length === 0 ? (
                 <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
-                    <MaterialIcons name="library-books" size={48} color={colors.textSecondary} />
-                    <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16 }}>
+                    <MaterialIcons name="library-books" size={48} color={colors.onSurfaceVariant} />
+                    <Text style={{ color: colors.onSurfaceVariant, marginTop: 16, fontSize: 16 }}>
                         No subjects assigned.
                     </Text>
                 </View>
             ) : (
                 studentSubjects.map((subject) => (
-                    <Pressable
+                    <Card
                         key={subject._id}
+                        variant="elevated"
                         onPress={() => router.push({
                             pathname: "/student/class/subject/[subjectId]",
                             params: { id: user.currentClass._id || user.currentClass, subjectId: subject._id }
                         })}
-                        style={({ pressed }) => ({
-                            backgroundColor: colors.cardBackground,
-                            borderRadius: 16,
-                            padding: 16,
-                            marginBottom: 12,
-                            shadowColor: "#000",
-                            shadowOffset: { width: 0, height: 1 },
-                            shadowOpacity: 0.05,
-                            shadowRadius: 4,
-                            elevation: 1,
-                            opacity: pressed ? 0.9 : 1,
+                        style={{ marginBottom: 12 }}
+                        contentStyle={{
                             flexDirection: "row",
                             justifyContent: "space-between",
-                            alignItems: "center"
-                        })}
+                            alignItems: "center",
+                            padding: 16
+                        }}
                     >
                         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                            <View style={{ backgroundColor: colors.primary + "20", padding: 10, borderRadius: 10 }}>
+                            <View style={{ backgroundColor: colors.primaryContainer, padding: 10, borderRadius: 10 }}>
                                 <MaterialIcons name="book" size={24} color={colors.primary} />
                             </View>
                             <View>
-                                <Text style={{ fontSize: 16, fontWeight: "700", color: colors.textPrimary }}>
+                                <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
                                     {subject.name}
                                 </Text>
-                                <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
+                                <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginTop: 2 }}>
                                     Tap to view content
                                 </Text>
                             </View>
                         </View>
-                        <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
-                    </Pressable>
+                        <MaterialIcons name="chevron-right" size={24} color={colors.onSurfaceVariant} />
+                    </Card>
                 ))
             )}
         </View>
@@ -128,46 +122,44 @@ export default function SubjectsScreen() {
         <View>
             {teacherClasses.length === 0 ? (
                 <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
-                    <MaterialIcons name="class" size={48} color={colors.textSecondary} />
-                    <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16 }}>
+                    <MaterialIcons name="class" size={48} color={colors.onSurfaceVariant} />
+                    <Text style={{ color: colors.onSurfaceVariant, marginTop: 16, fontSize: 16 }}>
                         No classes assigned.
                     </Text>
                 </View>
             ) : (
                 teacherClasses.map((cls) => (
                     <View key={cls._id} style={{ marginBottom: 24 }}>
-                        <Text style={{ fontSize: 16, fontWeight: "700", color: colors.textSecondary, marginBottom: 12, marginLeft: 4 }}>
+                        <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 12, marginLeft: 4 }}>
                             {cls.name} {cls.section ? `- ${cls.section}` : ""}
                         </Text>
 
                         {(!cls.subjects || cls.subjects.length === 0) ? (
-                            <Text style={{ color: colors.textSecondary, fontStyle: 'italic', marginLeft: 16 }}>No subjects found</Text>
+                            <Text style={{ color: colors.onSurfaceVariant, fontStyle: 'italic', marginLeft: 16 }}>No subjects found</Text>
                         ) : (
                             cls.subjects.map((subject) => (
-                                <Pressable
+                                <Card
                                     key={subject._id}
+                                    variant="filled"
                                     onPress={() => router.push({
                                         pathname: "/teacher/class/subject/[subjectId]",
                                         params: { id: cls._id, subjectId: subject._id }
                                     })}
-                                    style={({ pressed }) => ({
-                                        backgroundColor: colors.cardBackground,
-                                        borderRadius: 12,
-                                        padding: 14,
-                                        marginBottom: 8,
-                                        opacity: pressed ? 0.9 : 1,
+                                    style={{ marginBottom: 8 }}
+                                    contentStyle={{
                                         flexDirection: "row",
                                         justifyContent: "space-between",
                                         alignItems: "center",
+                                        padding: 14,
                                         borderLeftWidth: 4,
                                         borderLeftColor: colors.primary
-                                    })}
+                                    }}
                                 >
-                                    <Text style={{ fontSize: 15, fontWeight: "600", color: colors.textPrimary }}>
+                                    <Text style={{ fontSize: 15, fontFamily: "DMSans-SemiBold", color: colors.onSurface }}>
                                         {subject.name}
                                     </Text>
-                                    <MaterialIcons name="chevron-right" size={20} color={colors.textSecondary} />
-                                </Pressable>
+                                    <MaterialIcons name="chevron-right" size={20} color={colors.onSurfaceVariant} />
+                                </Card>
                             ))
                         )}
                     </View>

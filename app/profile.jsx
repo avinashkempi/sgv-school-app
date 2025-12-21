@@ -1,5 +1,5 @@
 import React, { useState, } from "react";
-import { View, Text, ScrollView, RefreshControl, Pressable, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, RefreshControl, ActivityIndicator } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import storage from "../utils/storage";
 import { useTheme } from "../theme";
@@ -8,6 +8,9 @@ import { formatDate } from "../utils/date";
 
 import { useApiQuery } from "../hooks/useApi";
 import apiConfig from "../config/apiConfig";
+
+import Card from "../components/Card";
+import Button from "../components/Button";
 
 export default function ProfileScreen() {
   const { styles, colors } = useTheme();
@@ -58,8 +61,8 @@ export default function ProfileScreen() {
 
   return (
     <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.contentPaddingBottom}
+      style={{ flex: 1, backgroundColor: colors.background }}
+      contentContainerStyle={[styles.contentPaddingBottom, { paddingHorizontal: 16, paddingTop: 16 }]}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
       }
@@ -69,83 +72,83 @@ export default function ProfileScreen() {
           width: 100,
           height: 100,
           borderRadius: 50,
-          backgroundColor: colors.cardBackground,
+          backgroundColor: colors.surfaceContainerHigh,
           alignItems: "center",
           justifyContent: "center",
           marginBottom: 16,
+          elevation: 5,
           shadowColor: colors.shadow,
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.1,
           shadowRadius: 12,
-          elevation: 5,
         }}>
           <MaterialIcons name="person" size={50} color={colors.primary} />
         </View>
 
         {user ? (
           <>
-            <Text style={{ fontSize: 24, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 8 }}>
+            <Text style={{ fontSize: 24, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 8 }}>
               {user.name}
             </Text>
 
             {user.role && (
               <View style={{
-                backgroundColor: colors.primary + '15',
+                backgroundColor: colors.primaryContainer,
                 paddingVertical: 6,
                 paddingHorizontal: 16,
                 borderRadius: 20,
                 marginTop: 4,
-                marginBottom: 16
+                marginBottom: 24
               }}>
-                <Text style={{ color: colors.primary, fontFamily: "DMSans-Bold", fontSize: 12, textTransform: 'uppercase' }}>
+                <Text style={{ color: colors.onPrimaryContainer, fontFamily: "DMSans-Bold", fontSize: 12, textTransform: 'uppercase' }}>
                   {user.role}
                 </Text>
               </View>
             )}
 
-            <View style={{ width: '100%', paddingHorizontal: 20 }}>
-              <View style={{ backgroundColor: colors.cardBackground, borderRadius: 16, padding: 16, marginBottom: 16 }}>
-                <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.textSecondary, marginBottom: 12 }}>CONTACT INFO</Text>
+            <View style={{ width: '100%', paddingHorizontal: 4 }}>
+              <Card variant="filled" style={{ marginBottom: 16 }}>
+                <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.onSurfaceVariant, marginBottom: 16 }}>CONTACT INFO</Text>
 
                 {user.phone && (
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
                     <View style={{ width: 32, alignItems: 'center' }}><MaterialIcons name="phone" size={20} color={colors.primary} /></View>
-                    <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.textPrimary, marginLeft: 8 }}>{user.phone}</Text>
+                    <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface, marginLeft: 8 }}>{user.phone}</Text>
                   </View>
                 )}
 
                 {user.email && (
                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <View style={{ width: 32, alignItems: 'center' }}><MaterialIcons name="email" size={20} color={colors.primary} /></View>
-                    <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.textPrimary, marginLeft: 8 }}>{user.email}</Text>
+                    <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface, marginLeft: 8 }}>{user.email}</Text>
                   </View>
                 )}
-              </View>
+              </Card>
 
               {(user.role === 'student' || user.role === 'class teacher' || user.role === 'staff') && (
-                <View style={{ backgroundColor: colors.cardBackground, borderRadius: 16, padding: 16, marginBottom: 16 }}>
-                  <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.textSecondary, marginBottom: 12 }}>
+                <Card variant="filled" style={{ marginBottom: 16 }}>
+                  <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.onSurfaceVariant, marginBottom: 16 }}>
                     {user.role === 'student' ? 'STUDENT DETAILS' : 'STAFF DETAILS'}
                   </Text>
 
                   {user.role === 'student' && (
                     <>
                       {user.guardianName && (
-                        <View style={{ marginBottom: 12 }}>
-                          <Text style={{ fontSize: 12, color: colors.textSecondary }}>Guardian Name</Text>
-                          <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.textPrimary }}>{user.guardianName}</Text>
+                        <View style={{ marginBottom: 16 }}>
+                          <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Guardian Name</Text>
+                          <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.guardianName}</Text>
                         </View>
                       )}
                       {user.guardianPhone && (
-                        <View style={{ marginBottom: 12 }}>
-                          <Text style={{ fontSize: 12, color: colors.textSecondary }}>Guardian Phone</Text>
-                          <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.textPrimary }}>{user.guardianPhone}</Text>
+                        <View style={{ marginBottom: 16 }}>
+                          <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Guardian Phone</Text>
+                          <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.guardianPhone}</Text>
                         </View>
                       )}
                       {user.admissionDate && (
                         <View>
-                          <Text style={{ fontSize: 12, color: colors.textSecondary }}>Admission Date</Text>
-                          <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.textPrimary }}>{formatDate(user.admissionDate)}</Text>
+                          <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Admission Date</Text>
+                          <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{formatDate(user.admissionDate)}</Text>
                         </View>
                       )}
                     </>
@@ -154,63 +157,55 @@ export default function ProfileScreen() {
                   {(user.role === 'class teacher' || user.role === 'staff') && (
                     <>
                       {user.designation && (
-                        <View style={{ marginBottom: 12 }}>
-                          <Text style={{ fontSize: 12, color: colors.textSecondary }}>Designation</Text>
-                          <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.textPrimary }}>{user.designation}</Text>
+                        <View style={{ marginBottom: 16 }}>
+                          <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Designation</Text>
+                          <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.designation}</Text>
                         </View>
                       )}
                       {user.joiningDate && (
                         <View>
-                          <Text style={{ fontSize: 12, color: colors.textSecondary }}>Joining Date</Text>
-                          <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.textPrimary }}>{formatDate(user.joiningDate)}</Text>
+                          <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Joining Date</Text>
+                          <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{formatDate(user.joiningDate)}</Text>
                         </View>
                       )}
                     </>
                   )}
-                </View>
+                </Card>
               )}
             </View>
           </>
         ) : (
           <>
-            <Text style={{ fontSize: 24, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 4 }}>
+            <Text style={{ fontSize: 24, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 4 }}>
               Guest User
             </Text>
-            <Text style={{ fontSize: 14, fontFamily: "DMSans-Regular", color: colors.textSecondary }}>
+            <Text style={{ fontSize: 14, fontFamily: "DMSans-Regular", color: colors.onSurfaceVariant }}>
               Login to access all features
             </Text>
           </>
         )}
       </View>
 
-      <View style={{ paddingHorizontal: 20 }}>
-        <Pressable
-          onPress={user ? handleLogout : handleLogin}
-          style={({ pressed }) => ({
-            backgroundColor: user ? colors.error + '15' : colors.primary,
-            borderRadius: 16,
-            paddingVertical: 16,
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexDirection: 'row',
-            opacity: pressed ? 0.9 : 1,
-            marginBottom: 16,
-          })}
-        >
-          <MaterialIcons
-            name={user ? "logout" : "login"}
-            size={20}
-            color={user ? colors.error : colors.white}
-            style={{ marginRight: 8 }}
-          />
-          <Text style={{
-            fontSize: 16,
-            fontFamily: "DMSans-Bold",
-            color: user ? colors.error : colors.white
-          }}>
-            {user ? "Log Out" : "Log In"}
-          </Text>
-        </Pressable>
+      <View>
+        {user ? (
+          <Button
+            variant="filled"
+            onPress={handleLogout}
+            style={{ backgroundColor: colors.errorContainer }}
+            textStyle={{ color: colors.onErrorContainer }}
+            icon="logout"
+          >
+            Log Out
+          </Button>
+        ) : (
+          <Button
+            variant="filled"
+            onPress={handleLogin}
+            icon="login"
+          >
+            Log In
+          </Button>
+        )}
       </View>
     </ScrollView>
   );
