@@ -1,15 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { useTheme } from '../../theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-const StatCard = ({ title, value, icon, trend, trendValue, color }) => {
+const StatCard = ({ title, value, icon, trend, trendValue, color, onPress, loading = false }) => {
     const { colors, styles } = useTheme();
 
     const isPositive = trendValue >= 0;
     const trendColor = isPositive ? colors.success : colors.error;
 
-    return (
+    const CardContent = () => (
         <View style={[
             styles.card,
             {
@@ -21,28 +21,53 @@ const StatCard = ({ title, value, icon, trend, trendValue, color }) => {
                 margin: 6
             }
         ]}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                <View style={{
-                    backgroundColor: color + '20', // 20% opacity 
-                    padding: 10,
-                    borderRadius: 14
-                }}>
-                    <MaterialCommunityIcons name={icon} size={24} color={color} />
+            {loading ? (
+                <View style={{ alignItems: 'center', justifyContent: 'center', height: 100 }}>
+                    <MaterialCommunityIcons name="loading" size={32} color={colors.onSurfaceVariant} />
+                    <Text style={[styles.bodySmall, { marginTop: 8, color: colors.onSurfaceVariant }]}>Loading...</Text>
                 </View>
-                {trend && (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: trendColor + '15', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 100 }}>
-                        <MaterialCommunityIcons name={isPositive ? "arrow-up" : "arrow-down"} size={14} color={trendColor} />
-                        <Text style={{ fontSize: 12, color: trendColor, fontFamily: styles.labelMedium.fontFamily, marginLeft: 2 }}>
-                            {Math.abs(trendValue)}%
-                        </Text>
+            ) : (
+                <>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                        <View style={{
+                            backgroundColor: color + '20',
+                            padding: 10,
+                            borderRadius: 14
+                        }}>
+                            <MaterialCommunityIcons name={icon} size={24} color={color} />
+                        </View>
+                        {trend && trendValue !== undefined && (
+                            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: trendColor + '15', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 100 }}>
+                                <MaterialCommunityIcons name={isPositive ? "arrow-up" : "arrow-down"} size={14} color={trendColor} />
+                                <Text style={{ fontSize: 12, color: trendColor, fontFamily: styles.labelMedium.fontFamily, marginLeft: 2 }}>
+                                    {Math.abs(trendValue)}%
+                                </Text>
+                            </View>
+                        )}
                     </View>
-                )}
-            </View>
 
-            <Text style={[styles.titleSmall, { opacity: 0.7, marginBottom: 4 }]}>{title}</Text>
-            <Text style={[styles.headlineMedium, { color: colors.onSurface }]}>{value}</Text>
+                    <Text style={[styles.titleSmall, { opacity: 0.7, marginBottom: 4 }]}>{title}</Text>
+                    <Text style={[styles.headlineMedium, { color: colors.onSurface }]}>{value}</Text>
+                </>
+            )}
         </View>
     );
+
+    if (onPress) {
+        return (
+            <Pressable
+                onPress={onPress}
+                style={({ pressed }) => ({
+                    opacity: pressed ? 0.8 : 1,
+                    transform: [{ scale: pressed ? 0.98 : 1 }]
+                })}
+            >
+                <CardContent />
+            </Pressable>
+        );
+    }
+
+    return <CardContent />;
 };
 
 export default StatCard;

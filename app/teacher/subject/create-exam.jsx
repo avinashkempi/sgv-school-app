@@ -1,174 +1,403 @@
-import React, { useState, } from "react";
+import React, { useState } from 'react';
 import {
     View,
     Text,
     ScrollView,
     Pressable,
-    TextInput,
     ActivityIndicator,
-    Modal,
-} from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
+    TextInput
+} from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useTheme } from '../../../theme';
+import apiConfig from '../../../config/apiConfig';
+import { useApiQuery, useApiMutation, createApiMutationFn } from '../../../hooks/useApi';
+import { useQueryClient } from '@tanstack/react-query';
+import { useToast } from '../../../components/ToastProvider';
+import Header from '../../../components/Header';
 
-import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
-import { useTheme } from "../../../theme";
-import apiConfig from "../../../config/apiConfig";
-import { useToast } from "../../../components/ToastProvider";
-import { useApiMutation, createApiMutationFn, useApiQuery } from "../../../hooks/useApi";
-import { useQueryClient } from "@tanstack/react-query";
-import AppHeader from "../../../components/Header";
-import DateTimePicker from "@react-native-community/datetimepicker";
-
-const EXAM_TYPES = [
-    { type: 'FA1', label: 'Formative Assessment 1', color: '#4CAF50', icon: 'assignment' },
-    { type: 'FA2', label: 'Formative Assessment 2', color: '#2196F3', icon: 'assignment' },
-    { type: 'SA1', label: 'Summative Assessment 1', color: '#FF9800', icon: 'assessment' },
-    { type: 'FA3', label: 'Formative Assessment 3', color: '#9C27B0', icon: 'assignment' },
-    { type: 'FA4', label: 'Formative Assessment 4', color: '#E91E63', icon: 'assignment' },
-    { type: 'SA2', label: 'Summative Assessment 2', color: '#F44336', icon: 'assessment' },
-];
-
-export default function InitializeExamScreen() {
+/**
+ * Quick Exam Initialization Wizard
+ * Multi-step wizard for quickly creating all 6 exam types at once
+ */
+export default function QuickExamWizard() {
     const router = useRouter();
     const params = useLocalSearchParams();
-    const { _styles, colors } = useTheme();
+    const { colors } = useTheme();
     const { showToast } = useToast();
     const queryClient = useQueryClient();
 
-    const { subjectId, classId } = params;
-
-    const [showInitModal, setShowInitModal] = useState(false);
-    const [selectedType, setSelectedType] = useState(null);
-    const [totalMarks, setTotalMarks] = useState("");
-    const [date, setDate] = useState(new Date());
-    const [showDatePicker, setShowDatePicker] = useState(false);
-    const [instructions, setInstructions] = useState("");
-    const [duration, setDuration] = useState("");
-
-    const [showBulkInitModal, setShowBulkInitModal] = useState(false);
-
-    // Fetch exam status
-    const { data: examStatus, isLoading, refetch } = useApiQuery(
-        ['examStatus', classId, subjectId],
-        `${apiConfig.baseUrl}/exams/standardized?classId=${classId}&subjectId=${subjectId}`,
-        { enabled: !!classId && !!subjectId }
-    );
-
-    useFocusEffect(
-        React.useCallback(() => {
-            refetch();
-        }, [refetch])
-    );
-
-    const createExamMutation = useApiMutation({
-        mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/exams/standardized`, 'POST'),
-        onSuccess: (exam) => {
-            showToast(`${selectedType} initialized successfully`, "success");
-            setShowInitModal(false);
-            resetForm();
-            refetch();
-            queryClient.invalidateQueries({ queryKey: ['classExams', classId] });
-            // Navigate to marks entry screen
-            router.push({
-                pathname: "/teacher/exam/enter-marks",
-                params: { examId: exam._id }
-            });
-        },
-        onError: (error) => showToast(error.message || "Failed to initialize exam", "error")
+    const [currentStep, setCurrentStep] = useState(1);
+    const [selectedClass, setSelectedClass] = useState(params.classId || null);
+    const [selectedSubject, setSelectedSubject] = useState(params.subjectId || null);
+    const [examConfig, setExamConfig] = useState({
+        totalMarks: '100',
+        duration: '60',
+        instructions: '',
+        FA1: { date: '', totalMarks: '', startTime: '09:00 AM', endTime: '11:00 AM' },
+        FA2: { date: '', totalMarks: '', startTime: '09:00 AM', endTime: '11:00 AM' },
+        SA1: { date: '', totalMarks: '', startTime: '09:00 AM', endTime: '12:00 PM' },
+        FA3: { date: '', totalMarks: '', startTime: '09:00 AM', endTime: '11:00 AM' },
+        FA4: { date: '', totalMarks: '', startTime: '09:00 AM', endTime: '11:00 AM' },
+        SA2: { date: '', totalMarks: '', startTime: '09:00 AM', endTime: '12:00 PM' }
     });
 
-    const bulkCreateMutation = useApiMutation({
-        mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/exams/standardized/bulk`, 'POST'),
-        onSuccess: (results) => {
-            const createdCount = results.filter(r => r.status === 'created').length;
-            showToast(`Successfully initialized ${createdCount} exams`, "success");
-            setShowBulkInitModal(false);
-            resetForm();
-            refetch();
-            queryClient.invalidateQueries({ queryKey: ['classExams', classId] });
+    // Fetch teacher's subjects
+    const { data: subjectsData, isLoading: subjectsLoading } = useApiQuery(
+        ['teacherSubjects'],
+        `${apiConfig.baseUrl}/subjects/my-subjects`
+    );
+    const subjects = subjectsData || [];
+
+    // Quick init mutation
+    const quickInitMutation = useApiMutation({
+        mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/exams/quick-init`, 'POST'),
+        onSuccess: (result) => {
+            const created = result.results.filter(r => r.status === 'created').length;
+            const existing = result.results.filter(r => r.status === 'exists').length;
+
+            showToast(`Created ${created} exams${existing > 0 ? `, ${existing} already existed` : ''}`, 'success');
+            queryClient.invalidateQueries({ queryKey: ['teacherExamDashboard'] });
+            router.back();
         },
-        onError: (error) => showToast(error.message || "Failed to bulk initialize", "error")
+        onError: (error) => showToast(error.message || 'Failed to create exams', 'error')
     });
 
-    const resetForm = () => {
-        setSelectedType(null);
-        setTotalMarks("");
-        setDate(new Date());
-        setInstructions("");
-        setDuration("");
-    };
-
-    const handleInitializeExam = () => {
-        if (!totalMarks || isNaN(totalMarks) || parseFloat(totalMarks) <= 0) {
-            showToast("Please enter valid total marks", "error");
+    const handleNext = () => {
+        if (currentStep === 1 && (!selectedClass || !selectedSubject)) {
+            showToast('Please select class and subject', 'warning');
             return;
         }
-
-        createExamMutation.mutate({
-            type: selectedType,
-            classId,
-            subjectId,
-            totalMarks: parseFloat(totalMarks),
-            date: date.toISOString(),
-            instructions,
-            duration: duration ? parseInt(duration) : null
-        });
+        if (currentStep < 3) setCurrentStep(currentStep + 1);
     };
 
-    const handleBulkInitialize = () => {
-        if (!totalMarks || isNaN(totalMarks) || parseFloat(totalMarks) <= 0) {
-            showToast("Please enter valid total marks", "error");
-            return;
-        }
-
-        bulkCreateMutation.mutate({
-            classId,
-            subjectId,
-            totalMarks: parseFloat(totalMarks),
-            date: date.toISOString(),
-            instructions,
-            duration: duration ? parseInt(duration) : null
-        });
+    const handleBack = () => {
+        if (currentStep > 1) setCurrentStep(currentStep - 1);
     };
 
-    const openInitModal = (type) => {
-        setSelectedType(type);
-        setShowInitModal(true);
-    };
-
-    const onDateChange = (event, selectedDate) => {
-        setShowDatePicker(false);
-        if (selectedDate) {
-            setDate(selectedDate);
-        }
-    };
-
-    const getExamCardStatus = (type) => {
-        const status = examStatus?.find(e => e.type === type);
-        if (!status) return { initialized: false, marksEntered: false };
-        return {
-            initialized: status.exists,
-            marksEntered: status.marksEntered,
-            marksCount: status.marksCount || 0,
-            exam: status.exam
+    const handleSubmit = () => {
+        const examsConfig = {
+            totalMarks: parseInt(examConfig.totalMarks) || 100,
+            duration: parseInt(examConfig.duration) || 60,
+            instructions: examConfig.instructions,
+            FA1: { ...examConfig.FA1, totalMarks: examConfig.FA1.totalMarks || examConfig.totalMarks },
+            FA2: { ...examConfig.FA2, totalMarks: examConfig.FA2.totalMarks || examConfig.totalMarks },
+            SA1: { ...examConfig.SA1, totalMarks: examConfig.SA1.totalMarks || examConfig.totalMarks },
+            FA3: { ...examConfig.FA3, totalMarks: examConfig.FA3.totalMarks || examConfig.totalMarks },
+            FA4: { ...examConfig.FA4, totalMarks: examConfig.FA4.totalMarks || examConfig.totalMarks },
+            SA2: { ...examConfig.SA2, totalMarks: examConfig.SA2.totalMarks || examConfig.totalMarks }
         };
+
+        quickInitMutation.mutate({
+            classId: selectedClass,
+            subjectId: selectedSubject,
+            examsConfig
+        });
     };
 
-    const handleExamCardPress = (type) => {
-        const status = getExamCardStatus(type);
-        if (status.initialized && status.exam) {
-            // Navigate to marks entry
-            router.push({
-                pathname: "/teacher/exam/enter-marks",
-                params: { examId: status.exam._id }
-            });
-        } else {
-            // Open initialization modal
-            openInitModal(type);
-        }
+    const renderStep1 = () => {
+        // Group subjects by class
+        const subjectsByClass = {};
+        subjects.forEach(subject => {
+            const classKey = subject.class._id;
+            if (!subjectsByClass[classKey]) {
+                subjectsByClass[classKey] = {
+                    class: subject.class,
+                    subjects: []
+                };
+            }
+            subjectsByClass[classKey].subjects.push(subject);
+        });
+
+        return (
+            <View>
+                <Text style={{ fontSize: 18, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginBottom: 16 }}>
+                    Select Class & Subject
+                </Text>
+
+                {Object.values(subjectsByClass).map(group => (
+                    <View key={group.class._id} style={{ marginBottom: 20 }}>
+                        <Text style={{
+                            fontSize: 16,
+                            fontFamily: 'DMSans-SemiBold',
+                            color: colors.onSurface,
+                            marginBottom: 12
+                        }}>
+                            {group.class.name} {group.class.section}
+                        </Text>
+
+                        {group.subjects.map(subject => (
+                            <Pressable
+                                key={subject._id}
+                                onPress={() => {
+                                    setSelectedClass(subject.class._id);
+                                    setSelectedSubject(subject._id);
+                                }}
+                                style={({ pressed }) => ({
+                                    backgroundColor: selectedSubject === subject._id
+                                        ? colors.primaryContainer
+                                        : (pressed ? colors.surfaceContainerHigh : colors.surfaceContainerHighest),
+                                    borderRadius: 12,
+                                    padding: 16,
+                                    marginBottom: 8,
+                                    borderWidth: 2,
+                                    borderColor: selectedSubject === subject._id ? colors.primary : 'transparent'
+                                })}
+                            >
+                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={{
+                                            fontSize: 15,
+                                            fontFamily: 'DMSans-Bold',
+                                            color: colors.onSurface
+                                        }}>
+                                            {subject.name}
+                                        </Text>
+                                    </View>
+                                    {selectedSubject === subject._id && (
+                                        <MaterialIcons name="check-circle" size={24} color={colors.primary} />
+                                    )}
+                                </View>
+                            </Pressable>
+                        ))}
+                    </View>
+                ))}
+            </View>
+        );
     };
 
-    if (isLoading) {
+    const renderStep2 = () => {
+        const examTypes = ['FA1', 'FA2', 'SA1', 'FA3', 'FA4', 'SA2'];
+
+        return (
+            <View>
+                <Text style={{ fontSize: 18, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginBottom: 8 }}>
+                    Configure Exams
+                </Text>
+                <Text style={{ fontSize: 13, fontFamily: 'DMSans-Regular', color: colors.onSurfaceVariant, marginBottom: 20 }}>
+                    Set common defaults and customize individual exams
+                </Text>
+
+                {/* Common Configuration */}
+                <View style={{
+                    backgroundColor: colors.primaryContainer,
+                    borderRadius: 12,
+                    padding: 16,
+                    marginBottom: 20
+                }}>
+                    <Text style={{ fontSize: 15, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginBottom: 12 }}>
+                        Common Defaults
+                    </Text>
+
+                    <View style={{ marginBottom: 12 }}>
+                        <Text style={{ fontSize: 12, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant, marginBottom: 6 }}>
+                            Total Marks
+                        </Text>
+                        <TextInput
+                            value={examConfig.totalMarks}
+                            onChangeText={(value) => setExamConfig({ ...examConfig, totalMarks: value })}
+                            keyboardType="numeric"
+                            style={{
+                                backgroundColor: colors.surface,
+                                padding: 12,
+                                borderRadius: 8,
+                                fontSize: 14,
+                                fontFamily: 'DMSans-Medium',
+                                color: colors.onSurface,
+                                borderWidth: 1,
+                                borderColor: colors.outline
+                            }}
+                        />
+                    </View>
+
+                    <View>
+                        <Text style={{ fontSize: 12, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant, marginBottom: 6 }}>
+                            Duration (minutes)
+                        </Text>
+                        <TextInput
+                            value={examConfig.duration}
+                            onChangeText={(value) => setExamConfig({ ...examConfig, duration: value })}
+                            keyboardType="numeric"
+                            style={{
+                                backgroundColor: colors.surface,
+                                padding: 12,
+                                borderRadius: 8,
+                                fontSize: 14,
+                                fontFamily: 'DMSans-Medium',
+                                color: colors.onSurface,
+                                borderWidth: 1,
+                                borderColor: colors.outline
+                            }}
+                        />
+                    </View>
+                </View>
+
+                {/* Individual Exam Configuration */}
+                <Text style={{ fontSize: 15, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginBottom: 12 }}>
+                    Individual Exam Dates
+                </Text>
+
+                {examTypes.map(type => (
+                    <View
+                        key={type}
+                        style={{
+                            backgroundColor: colors.surfaceContainerLow,
+                            borderRadius: 12,
+                            padding: 14,
+                            marginBottom: 10,
+                            borderLeftWidth: 3,
+                            borderLeftColor: type.startsWith('SA') ? '#9C27B0' : '#2196F3'
+                        }}
+                    >
+                        <Text style={{ fontSize: 14, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginBottom: 8 }}>
+                            {type}
+                        </Text>
+                        <TextInput
+                            placeholder="YYYY-MM-DD (e.g., 2026-02-15)"
+                            placeholderTextColor={colors.onSurfaceVariant + '60'}
+                            value={examConfig[type].date}
+                            onChangeText={(value) => setExamConfig({
+                                ...examConfig,
+                                [type]: { ...examConfig[type], date: value }
+                            })}
+                            style={{
+                                backgroundColor: colors.surface,
+                                padding: 10,
+                                borderRadius: 8,
+                                fontSize: 13,
+                                fontFamily: 'DMSans-Medium',
+                                color: colors.onSurface,
+                                borderWidth: 1,
+                                borderColor: colors.outline
+                            }}
+                        />
+                    </View>
+                ))}
+            </View>
+        );
+    };
+
+    const renderStep3 = () => {
+        const selectedSubjectObj = subjects.find(s => s._id === selectedSubject);
+
+        return (
+            <View>
+                <Text style={{ fontSize: 18, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginBottom: 20 }}>
+                    Review & Confirm
+                </Text>
+
+                <View style={{
+                    backgroundColor: colors.surfaceContainerLow,
+                    borderRadius: 12,
+                    padding: 16,
+                    marginBottom: 20
+                }}>
+                    <View style={{ marginBottom: 12 }}>
+                        <Text style={{ fontSize: 12, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant }}>
+                            Class
+                        </Text>
+                        <Text style={{ fontSize: 16, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginTop: 4 }}>
+                            {selectedSubjectObj?.class.name} {selectedSubjectObj?.class.section}
+                        </Text>
+                    </View>
+
+                    <View style={{ marginBottom: 12 }}>
+                        <Text style={{ fontSize: 12, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant }}>
+                            Subject
+                        </Text>
+                        <Text style={{ fontSize: 16, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginTop: 4 }}>
+                            {selectedSubjectObj?.name}
+                        </Text>
+                    </View>
+
+                    <View style={{ marginBottom: 12 }}>
+                        <Text style={{ fontSize: 12, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant }}>
+                            Total Marks (Default)
+                        </Text>
+                        <Text style={{ fontSize: 16, fontFamily: 'DMSans-Bold', color: colors.primary, marginTop: 4 }}>
+                            {examConfig.totalMarks}
+                        </Text>
+                    </View>
+
+                    <View>
+                        <Text style={{ fontSize: 12, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant }}>
+                            Duration
+                        </Text>
+                        <Text style={{ fontSize: 16, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginTop: 4 }}>
+                            {examConfig.duration} minutes
+                        </Text>
+                    </View>
+                </View>
+
+                <Text style={{ fontSize: 15, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginBottom: 12 }}>
+                    6 Exams Will Be Created
+                </Text>
+
+                {['FA1', 'FA2', 'SA1', 'FA3', 'FA4', 'SA2'].map(type => (
+                    <View
+                        key={type}
+                        style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            backgroundColor: colors.surfaceContainerHighest,
+                            padding: 12,
+                            borderRadius: 8,
+                            marginBottom: 8
+                        }}
+                    >
+                        <MaterialIcons name="check-circle" size={20} color={colors.success} />
+                        <Text style={{ fontSize: 14, fontFamily: 'DMSans-Medium', color: colors.onSurface, marginLeft: 10, flex: 1 }}>
+                            {type}
+                        </Text>
+                        {examConfig[type].date && (
+                            <Text style={{ fontSize: 12, fontFamily: 'DMSans-Regular', color: colors.onSurfaceVariant }}>
+                                {examConfig[type].date}
+                            </Text>
+                        )}
+                    </View>
+                ))}
+            </View>
+        );
+    };
+
+    const renderStepIndicator = () => (
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 28 }}>
+            {[1, 2, 3].map(step => (
+                <React.Fragment key={step}>
+                    <View style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 16,
+                        backgroundColor: currentStep >= step ? colors.primary : colors.surfaceContainerHigh,
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
+                        {currentStep > step ? (
+                            <MaterialIcons name="check" size={18} color="#FFFFFF" />
+                        ) : (
+                            <Text style={{
+                                fontSize: 14,
+                                fontFamily: 'DMSans-Bold',
+                                color: currentStep >= step ? '#FFFFFF' : colors.onSurfaceVariant
+                            }}>
+                                {step}
+                            </Text>
+                        )}
+                    </View>
+                    {step < 3 && (
+                        <View style={{
+                            flex: 1,
+                            height: 2,
+                            backgroundColor: currentStep > step ? colors.primary : colors.surfaceContainerHigh,
+                            marginHorizontal: 8
+                        }} />
+                    )}
+                </React.Fragment>
+            ))}
+        </View>
+    );
+
+    if (subjectsLoading) {
         return (
             <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }}>
                 <ActivityIndicator size="large" color={colors.primary} />
@@ -180,503 +409,77 @@ export default function InitializeExamScreen() {
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
                 <View style={{ padding: 16, paddingTop: 24 }}>
-                    <AppHeader
-                        title="Manage Assessments"
-                        subtitle="Initialize and manage the 6 fixed assessments"
+                    <Header
+                        title="Quick Exam Setup"
+                        subtitle="Create all 6 exams at once"
                         showBack
                     />
 
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 20, marginBottom: 16 }}>
-                        <Text style={{
-                            fontSize: 14,
-                            color: colors.textSecondary,
-                            fontFamily: "DMSans-Regular",
-                            flex: 1
-                        }}>
-                            Tap on an assessment to initialize or enter marks
-                        </Text>
+                    {renderStepIndicator()}
 
-                        <Pressable
-                            onPress={() => {
-                                resetForm();
-                                setShowBulkInitModal(true);
-                            }}
-                            style={{
-                                backgroundColor: colors.primary + '15',
-                                paddingHorizontal: 12,
-                                paddingVertical: 6,
-                                borderRadius: 8,
-                                borderWidth: 1,
-                                borderColor: colors.primary + '30'
-                            }}
-                        >
-                            <Text style={{
-                                fontSize: 13,
-                                fontFamily: "DMSans-Medium",
-                                color: colors.primary
-                            }}>
-                                Initialize All
-                            </Text>
-                        </Pressable>
-                    </View>
-
-                    {/* Exam Cards */}
-                    <View style={{ gap: 12 }}>
-                        {EXAM_TYPES.map((examType) => {
-                            const status = getExamCardStatus(examType.type);
-                            return (
-                                <Pressable
-                                    key={examType.type}
-                                    onPress={() => handleExamCardPress(examType.type)}
-                                    style={({ pressed }) => ({
-                                        backgroundColor: colors.cardBackground,
-                                        borderRadius: 16,
-                                        padding: 18,
-                                        borderWidth: 2,
-                                        borderColor: status.initialized ? examType.color + '40' : colors.textSecondary + '20',
-                                        opacity: pressed ? 0.7 : 1,
-                                        elevation: status.initialized ? 3 : 1
-                                    })}
-                                >
-                                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                                        <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
-                                            <View style={{
-                                                width: 48,
-                                                height: 48,
-                                                borderRadius: 12,
-                                                backgroundColor: examType.color + '20',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                marginRight: 12
-                                            }}>
-                                                <MaterialIcons name={examType.icon} size={24} color={examType.color} />
-                                            </View>
-                                            <View style={{ flex: 1 }}>
-                                                <Text style={{
-                                                    fontSize: 18,
-                                                    fontFamily: "DMSans-Bold",
-                                                    color: colors.textPrimary
-                                                }}>
-                                                    {examType.type}
-                                                </Text>
-                                                <Text style={{
-                                                    fontSize: 13,
-                                                    color: colors.textSecondary,
-                                                    fontFamily: "DMSans-Regular"
-                                                }}>
-                                                    {examType.label}
-                                                </Text>
-                                                {status.initialized && (
-                                                    <Text style={{
-                                                        fontSize: 12,
-                                                        color: examType.color,
-                                                        fontFamily: "DMSans-Medium",
-                                                        marginTop: 4
-                                                    }}>
-                                                        {status.marksEntered
-                                                            ? `✓ ${status.marksCount} marks entered`
-                                                            : "Tap to enter marks"}
-                                                    </Text>
-                                                )}
-                                            </View>
-                                        </View>
-
-                                        {status.initialized ? (
-                                            <MaterialIcons
-                                                name={status.marksEntered ? "check-circle" : "edit"}
-                                                size={28}
-                                                color={status.marksEntered ? colors.success : examType.color}
-                                            />
-                                        ) : (
-                                            <MaterialIcons name="add-circle-outline" size={28} color={colors.textSecondary} />
-                                        )}
-                                    </View>
-                                </Pressable>
-                            );
-                        })}
-                    </View>
-
-                    {/* Legend */}
-                    <View style={{
-                        backgroundColor: colors.cardBackground,
-                        borderRadius: 12,
-                        padding: 16,
-                        marginTop: 24
-                    }}>
-                        <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 12 }}>
-                            Legend
-                        </Text>
-                        <View style={{ gap: 8 }}>
-                            <View style={{ flexDirection: "row", alignItems: "center" }}>
-                                <MaterialIcons name="add-circle-outline" size={20} color={colors.textSecondary} />
-                                <Text style={{ fontSize: 13, color: colors.textSecondary, marginLeft: 8, fontFamily: "DMSans-Regular" }}>
-                                    Not initialized - Tap to set up
-                                </Text>
-                            </View>
-                            <View style={{ flexDirection: "row", alignItems: "center" }}>
-                                <MaterialIcons name="edit" size={20} color={colors.primary} />
-                                <Text style={{ fontSize: 13, color: colors.textSecondary, marginLeft: 8, fontFamily: "DMSans-Regular" }}>
-                                    Initialized - Tap to enter marks
-                                </Text>
-                            </View>
-                            <View style={{ flexDirection: "row", alignItems: "center" }}>
-                                <MaterialIcons name="check-circle" size={20} color={colors.success} />
-                                <Text style={{ fontSize: 13, color: colors.textSecondary, marginLeft: 8, fontFamily: "DMSans-Regular" }}>
-                                    Marks entered - Tap to edit
-                                </Text>
-                            </View>
-                        </View>
-                    </View>
+                    {currentStep === 1 && renderStep1()}
+                    {currentStep === 2 && renderStep2()}
+                    {currentStep === 3 && renderStep3()}
                 </View>
             </ScrollView>
 
-            {/* Initialize Exam Modal */}
-            <Modal
-                visible={showInitModal}
-                transparent={true}
-                animationType="slide"
-                onRequestClose={() => {
-                    setShowInitModal(false);
-                    resetForm();
-                }}
-            >
-                <View style={{
-                    flex: 1,
-                    backgroundColor: 'rgba(0,0,0,0.5)',
-                    justifyContent: 'flex-end'
-                }}>
-                    <View style={{
-                        backgroundColor: colors.background,
-                        borderTopLeftRadius: 24,
-                        borderTopRightRadius: 24,
-                        padding: 24,
-                        maxHeight: '80%'
-                    }}>
-                        <ScrollView showsVerticalScrollIndicator={false}>
-                            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                                <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
-                                    Initialize {selectedType}
-                                </Text>
-                                <Pressable onPress={() => { setShowInitModal(false); resetForm(); }}>
-                                    <MaterialIcons name="close" size={24} color={colors.textSecondary} />
-                                </Pressable>
-                            </View>
+            {/* Navigation Buttons */}
+            <View style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                backgroundColor: colors.surface,
+                padding: 16,
+                borderTopWidth: 1,
+                borderTopColor: colors.outlineVariant,
+                flexDirection: 'row',
+                gap: 12
+            }}>
+                {currentStep > 1 && (
+                    <Pressable
+                        onPress={handleBack}
+                        style={({ pressed }) => ({
+                            flex: 1,
+                            backgroundColor: pressed ? colors.surfaceContainerHigh : colors.surfaceContainerHighest,
+                            paddingVertical: 14,
+                            borderRadius: 12,
+                            alignItems: 'center'
+                        })}
+                    >
+                        <Text style={{ fontFamily: 'DMSans-Bold', fontSize: 15, color: colors.onSurface }}>
+                            Back
+                        </Text>
+                    </Pressable>
+                )}
 
-                            {/* Total Marks */}
-                            <View style={{ marginBottom: 16 }}>
-                                <Text style={{ fontSize: 14, fontFamily: "DMSans-Medium", color: colors.textSecondary, marginBottom: 8 }}>
-                                    Total Marks *
-                                </Text>
-                                <TextInput
-                                    placeholder="100"
-                                    placeholderTextColor={colors.textSecondary}
-                                    keyboardType="numeric"
-                                    style={{
-                                        backgroundColor: colors.cardBackground,
-                                        padding: 14,
-                                        borderRadius: 12,
-                                        color: colors.textPrimary,
-                                        fontSize: 16,
-                                        fontFamily: "DMSans-Regular",
-                                        borderWidth: 1,
-                                        borderColor: colors.textSecondary + "20"
-                                    }}
-                                    value={totalMarks}
-                                    onChangeText={setTotalMarks}
-                                />
-                            </View>
-
-                            {/* Date */}
-                            <View style={{ marginBottom: 16 }}>
-                                <Text style={{ fontSize: 14, fontFamily: "DMSans-Medium", color: colors.textSecondary, marginBottom: 8 }}>
-                                    Exam Date
-                                </Text>
-                                <Pressable
-                                    onPress={() => setShowDatePicker(true)}
-                                    style={{
-                                        backgroundColor: colors.cardBackground,
-                                        padding: 14,
-                                        borderRadius: 12,
-                                        borderWidth: 1,
-                                        borderColor: colors.textSecondary + "20",
-                                        flexDirection: "row",
-                                        alignItems: "center",
-                                        justifyContent: "space-between"
-                                    }}
-                                >
-                                    <Text style={{ fontSize: 16, fontFamily: "DMSans-Regular", color: colors.textPrimary }}>
-                                        {date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                    </Text>
-                                    <MaterialIcons name="calendar-today" size={20} color={colors.textSecondary} />
-                                </Pressable>
-
-                                {showDatePicker && (
-                                    <DateTimePicker
-                                        value={date}
-                                        mode="date"
-                                        display="default"
-                                        onChange={onDateChange}
-                                    />
-                                )}
-                            </View>
-
-                            {/* Duration */}
-                            <View style={{ marginBottom: 16 }}>
-                                <Text style={{ fontSize: 14, fontFamily: "DMSans-Medium", color: colors.textSecondary, marginBottom: 8 }}>
-                                    Duration (minutes)
-                                </Text>
-                                <TextInput
-                                    placeholder="90"
-                                    placeholderTextColor={colors.textSecondary}
-                                    keyboardType="numeric"
-                                    style={{
-                                        backgroundColor: colors.cardBackground,
-                                        padding: 14,
-                                        borderRadius: 12,
-                                        color: colors.textPrimary,
-                                        fontSize: 16,
-                                        fontFamily: "DMSans-Regular",
-                                        borderWidth: 1,
-                                        borderColor: colors.textSecondary + "20"
-                                    }}
-                                    value={duration}
-                                    onChangeText={setDuration}
-                                />
-                            </View>
-
-                            {/* Instructions */}
-                            <View style={{ marginBottom: 24 }}>
-                                <Text style={{ fontSize: 14, fontFamily: "DMSans-Medium", color: colors.textSecondary, marginBottom: 8 }}>
-                                    Instructions (Optional)
-                                </Text>
-                                <TextInput
-                                    placeholder="Enter exam instructions..."
-                                    placeholderTextColor={colors.textSecondary}
-                                    multiline
-                                    numberOfLines={3}
-                                    textAlignVertical="top"
-                                    style={{
-                                        backgroundColor: colors.cardBackground,
-                                        padding: 14,
-                                        borderRadius: 12,
-                                        color: colors.textPrimary,
-                                        fontSize: 16,
-                                        fontFamily: "DMSans-Regular",
-                                        borderWidth: 1,
-                                        borderColor: colors.textSecondary + "20",
-                                        minHeight: 80
-                                    }}
-                                    value={instructions}
-                                    onChangeText={setInstructions}
-                                />
-                            </View>
-
-                            {/* Initialize Button */}
-                            <Pressable
-                                onPress={handleInitializeExam}
-                                disabled={createExamMutation.isPending}
-                                style={({ pressed }) => ({
-                                    backgroundColor: colors.primary,
-                                    borderRadius: 12,
-                                    padding: 16,
-                                    flexDirection: "row",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    gap: 8,
-                                    opacity: pressed || createExamMutation.isPending ? 0.7 : 1
-                                })}
-                            >
-                                {createExamMutation.isPending ? (
-                                    <ActivityIndicator size="small" color="#fff" />
-                                ) : (
-                                    <>
-                                        <MaterialIcons name="check-circle" size={24} color="#fff" />
-                                        <Text style={{ fontSize: 17, fontFamily: "DMSans-Bold", color: "#fff" }}>
-                                            Initialize & Enter Marks
-                                        </Text>
-                                    </>
-                                )}
-                            </Pressable>
-                        </ScrollView>
-                    </View>
-                </View>
-            </Modal>
-
-            {/* Bulk Initialize Modal */}
-            <Modal
-                visible={showBulkInitModal}
-                transparent={true}
-                animationType="slide"
-                onRequestClose={() => {
-                    setShowBulkInitModal(false);
-                    resetForm();
-                }}
-            >
-                <View style={{
-                    flex: 1,
-                    backgroundColor: 'rgba(0,0,0,0.5)',
-                    justifyContent: 'flex-end'
-                }}>
-                    <View style={{
-                        backgroundColor: colors.background,
-                        borderTopLeftRadius: 24,
-                        borderTopRightRadius: 24,
-                        padding: 24,
-                        maxHeight: '80%'
-                    }}>
-                        <ScrollView showsVerticalScrollIndicator={false}>
-                            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                                <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
-                                    Initialize All Exams
-                                </Text>
-                                <Pressable onPress={() => { setShowBulkInitModal(false); resetForm(); }}>
-                                    <MaterialIcons name="close" size={24} color={colors.textSecondary} />
-                                </Pressable>
-                            </View>
-
-                            <Text style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 20, fontFamily: "DMSans-Regular" }}>
-                                This will create all 6 standardized exams (FA1-SA2) that don&apos;t exist yet. Existing exams will be skipped.
+                <Pressable
+                    onPress={currentStep === 3 ? handleSubmit : handleNext}
+                    disabled={quickInitMutation.isPending}
+                    style={({ pressed }) => ({
+                        flex: 2,
+                        backgroundColor: pressed ? colors.primary + 'DD' : colors.primary,
+                        paddingVertical: 14,
+                        borderRadius: 12,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 8,
+                        opacity: quickInitMutation.isPending ? 0.7 : 1
+                    })}
+                >
+                    {quickInitMutation.isPending ? (
+                        <ActivityIndicator size="small" color="#FFFFFF" />
+                    ) : (
+                        <>
+                            <Text style={{ fontFamily: 'DMSans-Bold', fontSize: 15, color: '#FFFFFF' }}>
+                                {currentStep === 3 ? 'Create All Exams' : 'Next'}
                             </Text>
-
-                            {/* Total Marks */}
-                            <View style={{ marginBottom: 16 }}>
-                                <Text style={{ fontSize: 14, fontFamily: "DMSans-Medium", color: colors.textSecondary, marginBottom: 8 }}>
-                                    Total Marks (Default) *
-                                </Text>
-                                <TextInput
-                                    placeholder="100"
-                                    placeholderTextColor={colors.textSecondary}
-                                    keyboardType="numeric"
-                                    style={{
-                                        backgroundColor: colors.cardBackground,
-                                        padding: 14,
-                                        borderRadius: 12,
-                                        color: colors.textPrimary,
-                                        fontSize: 16,
-                                        fontFamily: "DMSans-Regular",
-                                        borderWidth: 1,
-                                        borderColor: colors.textSecondary + "20"
-                                    }}
-                                    value={totalMarks}
-                                    onChangeText={setTotalMarks}
-                                />
-                            </View>
-
-                            {/* Date */}
-                            <View style={{ marginBottom: 16 }}>
-                                <Text style={{ fontSize: 14, fontFamily: "DMSans-Medium", color: colors.textSecondary, marginBottom: 8 }}>
-                                    Default Exam Date
-                                </Text>
-                                <Pressable
-                                    onPress={() => setShowDatePicker(true)}
-                                    style={{
-                                        backgroundColor: colors.cardBackground,
-                                        padding: 14,
-                                        borderRadius: 12,
-                                        borderWidth: 1,
-                                        borderColor: colors.textSecondary + "20",
-                                        flexDirection: "row",
-                                        alignItems: "center",
-                                        justifyContent: "space-between"
-                                    }}
-                                >
-                                    <Text style={{ fontSize: 16, fontFamily: "DMSans-Regular", color: colors.textPrimary }}>
-                                        {date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                    </Text>
-                                    <MaterialIcons name="calendar-today" size={20} color={colors.textSecondary} />
-                                </Pressable>
-
-                                {showDatePicker && (
-                                    <DateTimePicker
-                                        value={date}
-                                        mode="date"
-                                        display="default"
-                                        onChange={onDateChange}
-                                    />
-                                )}
-                            </View>
-
-                            {/* Duration */}
-                            <View style={{ marginBottom: 16 }}>
-                                <Text style={{ fontSize: 14, fontFamily: "DMSans-Medium", color: colors.textSecondary, marginBottom: 8 }}>
-                                    Duration (minutes)
-                                </Text>
-                                <TextInput
-                                    placeholder="90"
-                                    placeholderTextColor={colors.textSecondary}
-                                    keyboardType="numeric"
-                                    style={{
-                                        backgroundColor: colors.cardBackground,
-                                        padding: 14,
-                                        borderRadius: 12,
-                                        color: colors.textPrimary,
-                                        fontSize: 16,
-                                        fontFamily: "DMSans-Regular",
-                                        borderWidth: 1,
-                                        borderColor: colors.textSecondary + "20"
-                                    }}
-                                    value={duration}
-                                    onChangeText={setDuration}
-                                />
-                            </View>
-
-                            {/* Instructions */}
-                            <View style={{ marginBottom: 24 }}>
-                                <Text style={{ fontSize: 14, fontFamily: "DMSans-Medium", color: colors.textSecondary, marginBottom: 8 }}>
-                                    Instructions (Optional)
-                                </Text>
-                                <TextInput
-                                    placeholder="Enter default instructions..."
-                                    placeholderTextColor={colors.textSecondary}
-                                    multiline
-                                    numberOfLines={3}
-                                    textAlignVertical="top"
-                                    style={{
-                                        backgroundColor: colors.cardBackground,
-                                        padding: 14,
-                                        borderRadius: 12,
-                                        color: colors.textPrimary,
-                                        fontSize: 16,
-                                        fontFamily: "DMSans-Regular",
-                                        borderWidth: 1,
-                                        borderColor: colors.textSecondary + "20",
-                                        minHeight: 80
-                                    }}
-                                    value={instructions}
-                                    onChangeText={setInstructions}
-                                />
-                            </View>
-
-                            {/* Initialize Button */}
-                            <Pressable
-                                onPress={handleBulkInitialize}
-                                disabled={bulkCreateMutation.isPending}
-                                style={({ pressed }) => ({
-                                    backgroundColor: colors.primary,
-                                    borderRadius: 12,
-                                    padding: 16,
-                                    flexDirection: "row",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    gap: 8,
-                                    opacity: pressed || bulkCreateMutation.isPending ? 0.7 : 1
-                                })}
-                            >
-                                {bulkCreateMutation.isPending ? (
-                                    <ActivityIndicator size="small" color="#fff" />
-                                ) : (
-                                    <>
-                                        <MaterialIcons name="playlist-add-check" size={24} color="#fff" />
-                                        <Text style={{ fontSize: 17, fontFamily: "DMSans-Bold", color: "#fff" }}>
-                                            Initialize All Exams
-                                        </Text>
-                                    </>
-                                )}
-                            </Pressable>
-                        </ScrollView>
-                    </View>
-                </View>
-            </Modal>
+                            <MaterialIcons name={currentStep === 3 ? 'check' : 'arrow-forward'} size={20} color="#FFFFFF" />
+                        </>
+                    )}
+                </Pressable>
+            </View>
         </View>
     );
 }
