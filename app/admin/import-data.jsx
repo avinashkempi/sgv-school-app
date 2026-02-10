@@ -15,7 +15,8 @@ export default function ImportDataScreen() {
     const { colors, styles } = useTheme();
     const { showToast } = useToast();
 
-    const [uploading, setUploading] = useState(false);
+    const [uploadingStudent, setUploadingStudent] = useState(false);
+    const [uploadingStaff, setUploadingStaff] = useState(false);
     const [wipeData, setWipeData] = useState(false);
     const [result, setResult] = useState(null);
 
@@ -42,7 +43,7 @@ export default function ImportDataScreen() {
 
     const processLocalSync = async () => {
         console.log('--- Starting Local Sync ---');
-        setUploading(true);
+        setUploadingStudent(true);
         setResult(null);
 
         try {
@@ -70,8 +71,42 @@ export default function ImportDataScreen() {
             console.error('CRITICAL SYNC ERROR:', error);
             showToast('Network error during sync', 'error');
         } finally {
-            setUploading(false);
+            setUploadingStudent(false);
             console.log('--- Sync Finished ---');
+        }
+    };
+
+    const handleStaffImport = async () => {
+        console.log('--- Starting Staff Sync ---');
+        setUploadingStaff(true);
+        setResult(null);
+
+        try {
+            const response = await apiFetch(`${apiConfig.baseUrl}/import/staff/local`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const json = await response.json();
+            console.log('Staff Sync Response:', json);
+
+            if (response.ok) {
+                setResult(json.data);
+                showToast('Staff import completed successfully', 'success');
+            } else {
+                showToast(json.message || 'Staff Sync failed', 'error');
+                const errMsg = json.message || "Failed to sync local staff data";
+                if (Platform.OS === 'web') window.alert("Error: " + errMsg);
+                else Alert.alert("Sync Error", errMsg);
+            }
+        } catch (error) {
+            console.error('CRITICAL STAFF SYNC ERROR:', error);
+            showToast('Network error during staff sync', 'error');
+        } finally {
+            setUploadingStaff(false);
+            console.log('--- Staff Sync Finished ---');
         }
     };
 
@@ -127,9 +162,9 @@ export default function ImportDataScreen() {
                 {/* 3. Action Button */}
                 <TouchableOpacity
                     onPress={handleImport}
-                    disabled={uploading}
+                    disabled={uploadingStudent || uploadingStaff}
                     style={{
-                        backgroundColor: uploading ? colors.surfaceVariant : (wipeData ? colors.error : colors.primary),
+                        backgroundColor: uploadingStudent ? colors.surfaceVariant : (wipeData ? colors.error : colors.primary),
                         padding: 18,
                         borderRadius: 12,
                         alignItems: 'center',
@@ -140,7 +175,7 @@ export default function ImportDataScreen() {
                         shadowOpacity: 0.2
                     }}
                 >
-                    {uploading ? (
+                    {uploadingStudent ? (
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                             <ActivityIndicator color={colors.onSurface} style={{ marginRight: 10 }} />
                             <Text style={{ color: colors.onSurface, fontFamily: 'DMSans-Bold' }}>SYNCING DATA...</Text>
@@ -176,9 +211,9 @@ export default function ImportDataScreen() {
 
                     <TouchableOpacity
                         onPress={handleStaffImport}
-                        disabled={uploading}
+                        disabled={uploadingStudent || uploadingStaff}
                         style={{
-                            backgroundColor: uploading ? colors.surfaceVariant : colors.secondary,
+                            backgroundColor: uploadingStaff ? colors.surfaceVariant : colors.secondary,
                             padding: 14,
                             borderRadius: 12,
                             alignItems: 'center',
@@ -186,7 +221,7 @@ export default function ImportDataScreen() {
                             elevation: 2
                         }}
                     >
-                        {uploading ? (
+                        {uploadingStaff ? (
                             <ActivityIndicator color={colors.onSurface} />
                         ) : (
                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -283,6 +318,46 @@ export default function ImportDataScreen() {
                             </TouchableOpacity>
                         )}
 
+                        {/* Created Staff List Button */}
+                        {result.created > 0 && result.createdStaff && (
+                            <TouchableOpacity
+                                onPress={() => setResult({ ...result, showCreatedStaffModal: true })}
+                                style={{
+                                    backgroundColor: colors.success + '20',
+                                    padding: 12,
+                                    borderRadius: 8,
+                                    marginBottom: 16,
+                                    alignItems: 'center',
+                                    borderWidth: 1,
+                                    borderColor: colors.success
+                                }}
+                            >
+                                <Text style={{ color: colors.success, fontFamily: 'DMSans-Bold' }}>
+                                    View {result.created} Created Staff
+                                </Text>
+                            </TouchableOpacity>
+                        )}
+
+                        {/* Updated Staff List Button */}
+                        {result.updated > 0 && result.updatedStaff && (
+                            <TouchableOpacity
+                                onPress={() => setResult({ ...result, showUpdatedStaffModal: true })}
+                                style={{
+                                    backgroundColor: colors.secondary + '20',
+                                    padding: 12,
+                                    borderRadius: 8,
+                                    marginBottom: 16,
+                                    alignItems: 'center',
+                                    borderWidth: 1,
+                                    borderColor: colors.secondary
+                                }}
+                            >
+                                <Text style={{ color: colors.secondary, fontFamily: 'DMSans-Bold' }}>
+                                    View {result.updated} Updated Staff
+                                </Text>
+                            </TouchableOpacity>
+                        )}
+
                         {/* Errors */}
                         {result.errors.length > 0 && (
                             <Card variant="outlined" style={{ borderColor: colors.error }}>
@@ -340,6 +415,90 @@ export default function ImportDataScreen() {
                                             <Text style={{ padding: 20, textAlign: 'center', color: colors.onSurfaceVariant }}>
                                                 No updated student details available.
                                             </Text>
+                                        )}
+                                    </ScrollView>
+                                </View>
+                            </View>
+                        </Modal>
+
+                        {/* Created Staff Modal */}
+                        <Modal
+                            visible={result.showCreatedStaffModal === true}
+                            animationType="slide"
+                            transparent={true}
+                            onRequestClose={() => setResult({ ...result, showCreatedStaffModal: false })}
+                        >
+                            <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 }}>
+                                <View style={{ backgroundColor: colors.background, borderRadius: 12, maxHeight: '80%', padding: 20 }}>
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                                        <Text style={styles.titleMedium}>Created Staff ({result.created})</Text>
+                                        <TouchableOpacity onPress={() => setResult({ ...result, showCreatedStaffModal: false })}>
+                                            <MaterialIcons name="close" size={24} color={colors.onSurface} />
+                                        </TouchableOpacity>
+                                    </View>
+                                    <ScrollView>
+                                        {result.createdStaff && result.createdStaff.length > 0 ? (
+                                            result.createdStaff.map((staff, idx) => (
+                                                <View key={idx} style={{
+                                                    padding: 12,
+                                                    borderBottomWidth: 1,
+                                                    borderBottomColor: colors.outlineVariant,
+                                                    flexDirection: 'row',
+                                                    justifyContent: 'space-between'
+                                                }}>
+                                                    <View>
+                                                        <Text style={{ fontFamily: 'DMSans-Bold', fontSize: 14 }}>{staff.name}</Text>
+                                                        <Text style={{ fontSize: 12, color: colors.onSurfaceVariant }}>{staff.designation}</Text>
+                                                    </View>
+                                                    <Text style={{ fontFamily: 'DMSans-Mono', fontSize: 14, color: colors.primary }}>
+                                                        {staff.phone}
+                                                    </Text>
+                                                </View>
+                                            ))
+                                        ) : (
+                                            <Text style={{ textAlign: 'center', marginTop: 20, color: colors.onSurfaceVariant }}>No details available</Text>
+                                        )}
+                                    </ScrollView>
+                                </View>
+                            </View>
+                        </Modal>
+
+                        {/* Updated Staff Modal */}
+                        <Modal
+                            visible={result.showUpdatedStaffModal === true}
+                            animationType="slide"
+                            transparent={true}
+                            onRequestClose={() => setResult({ ...result, showUpdatedStaffModal: false })}
+                        >
+                            <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 }}>
+                                <View style={{ backgroundColor: colors.background, borderRadius: 12, maxHeight: '80%', padding: 20 }}>
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                                        <Text style={styles.titleMedium}>Updated Staff ({result.updated})</Text>
+                                        <TouchableOpacity onPress={() => setResult({ ...result, showUpdatedStaffModal: false })}>
+                                            <MaterialIcons name="close" size={24} color={colors.onSurface} />
+                                        </TouchableOpacity>
+                                    </View>
+                                    <ScrollView>
+                                        {result.updatedStaff && result.updatedStaff.length > 0 ? (
+                                            result.updatedStaff.map((staff, idx) => (
+                                                <View key={idx} style={{
+                                                    padding: 12,
+                                                    borderBottomWidth: 1,
+                                                    borderBottomColor: colors.outlineVariant,
+                                                    flexDirection: 'row',
+                                                    justifyContent: 'space-between'
+                                                }}>
+                                                    <View>
+                                                        <Text style={{ fontFamily: 'DMSans-Bold', fontSize: 14 }}>{staff.name}</Text>
+                                                        <Text style={{ fontSize: 12, color: colors.onSurfaceVariant }}>{staff.designation}</Text>
+                                                    </View>
+                                                    <Text style={{ fontFamily: 'DMSans-Mono', fontSize: 14, color: colors.primary }}>
+                                                        {staff.phone}
+                                                    </Text>
+                                                </View>
+                                            ))
+                                        ) : (
+                                            <Text style={{ textAlign: 'center', marginTop: 20, color: colors.onSurfaceVariant }}>No details available</Text>
                                         )}
                                     </ScrollView>
                                 </View>

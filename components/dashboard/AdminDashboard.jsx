@@ -155,7 +155,7 @@ const AdminDashboard = () => {
                 <StatCard
                     title="Total Teachers"
                     value={data.overview?.totalTeachers || 0}
-                    icon="human-lecture"
+                    icon="teach"
                     color={colors.secondary}
                     onPress={() => router.push('/admin')}
                     loading={refreshing}
