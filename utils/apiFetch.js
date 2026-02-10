@@ -5,6 +5,8 @@ import * as demoData from '../constants/demoData';
 // 1. Automatically includes auth token if available
 // 2. Intercepts requests for Demo Mode
 export default async function apiFetch(input, init = {}) {
+  const url = typeof input === 'string' ? input : input.url;
+  console.log(`[apiFetch] Calling: ${url}`, { method: init.method || 'GET' });
   const { _silent = false, ...fetchInit } = init;
 
   // Get auth token from storage

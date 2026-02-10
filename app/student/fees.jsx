@@ -67,22 +67,31 @@ export default function StudentFeesScreen() {
                     <Header title="My Fees" subtitle="Payment Status & History" showBack />
 
                     {/* Summary Cards */}
-                    <View style={{ flexDirection: "row", gap: 12, marginTop: 24 }}>
-                        <Card style={{ flex: 1 }} contentStyle={{ alignItems: "center", padding: 16 }}>
+                    <View style={{ flexDirection: "row", gap: 8, marginTop: 24, flexWrap: 'wrap' }}>
+                        <Card style={{ flex: 1, minWidth: '45%' }} contentStyle={{ alignItems: "center", padding: 16 }}>
                             <Text style={{ color: colors.onSurfaceVariant, fontSize: 12, marginBottom: 4 }}>Total Fees</Text>
-                            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
+                            <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
                                 ₹{feeData?.totalFees?.toLocaleString() || 0}
                             </Text>
                         </Card>
-                        <Card style={{ flex: 1 }} contentStyle={{ alignItems: "center", padding: 16 }}>
+                        {/* Concession Card - Only if > 0 */}
+                        {feeData?.concession > 0 && (
+                            <Card style={{ flex: 1, minWidth: '45%' }} contentStyle={{ alignItems: "center", padding: 16 }}>
+                                <Text style={{ color: colors.onSurfaceVariant, fontSize: 12, marginBottom: 4 }}>Concession</Text>
+                                <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: "#FF9800" }}>
+                                    ₹{feeData.concession.toLocaleString()}
+                                </Text>
+                            </Card>
+                        )}
+                        <Card style={{ flex: 1, minWidth: '45%' }} contentStyle={{ alignItems: "center", padding: 16 }}>
                             <Text style={{ color: colors.onSurfaceVariant, fontSize: 12, marginBottom: 4 }}>Paid</Text>
-                            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.success }}>
+                            <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.success }}>
                                 ₹{feeData?.paidAmount?.toLocaleString() || 0}
                             </Text>
                         </Card>
-                        <Card style={{ flex: 1 }} contentStyle={{ alignItems: "center", padding: 16 }}>
+                        <Card style={{ flex: 1, minWidth: '45%' }} contentStyle={{ alignItems: "center", padding: 16 }}>
                             <Text style={{ color: colors.onSurfaceVariant, fontSize: 12, marginBottom: 4 }}>Pending</Text>
-                            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.error }}>
+                            <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.error }}>
                                 ₹{feeData?.pendingAmount?.toLocaleString() || 0}
                             </Text>
                         </Card>
@@ -100,10 +109,18 @@ export default function StudentFeesScreen() {
                                     <Text style={{ color: colors.textPrimary, fontFamily: "DMSans-Bold" }}>₹{comp.amount}</Text>
                                 </View>
                             ))}
+                            {feeData?.concession > 0 && (
+                                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 12 }}>
+                                    <Text style={{ color: colors.textPrimary, fontFamily: "DMSans-Medium" }}>Less: Concession</Text>
+                                    <Text style={{ color: "#FF9800", fontFamily: "DMSans-Bold" }}>-₹{feeData.concession}</Text>
+                                </View>
+                            )}
                             <View style={{ height: 1, backgroundColor: colors.textSecondary + "20", marginVertical: 8 }} />
                             <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                                <Text style={{ color: colors.textPrimary, fontFamily: "DMSans-Bold" }}>Total</Text>
-                                <Text style={{ color: colors.primary, fontFamily: "DMSans-Bold" }}>₹{feeData?.totalFees}</Text>
+                                <Text style={{ color: colors.textPrimary, fontFamily: "DMSans-Bold" }}>Net Payable</Text>
+                                <Text style={{ color: colors.primary, fontFamily: "DMSans-Bold" }}>
+                                    ₹{(feeData?.totalFees - (feeData?.concession || 0))}
+                                </Text>
                             </View>
                         </View>
                     </View>
@@ -133,13 +150,19 @@ export default function StudentFeesScreen() {
                                 >
                                     <View>
                                         <Text style={{ fontFamily: "DMSans-Bold", color: colors.onSurface, fontSize: 16 }}>
-                                            ₹{payment.amount}
+                                            ₹{payment.amount.toLocaleString()}
                                         </Text>
                                         <Text style={{ color: colors.onSurfaceVariant, fontSize: 12, marginTop: 4 }}>
                                             {new Date(payment.paymentDate).toLocaleDateString()} • {payment.paymentMethod}
                                         </Text>
-                                        <Text style={{ color: colors.onSurfaceVariant, fontSize: 12 }}>
-                                            Receipt: {payment.receiptNumber}
+                                        {/* Display Installment Number if available */}
+                                        {payment.installmentNumber && (
+                                            <Text style={{ color: colors.primary, fontSize: 12, marginTop: 2, fontWeight: '600' }}>
+                                                Installment {payment.installmentNumber}
+                                            </Text>
+                                        )}
+                                        <Text style={{ color: colors.onSurfaceVariant, fontSize: 12, marginTop: 2 }}>
+                                            {payment.receiptNumber ? `Invoice: ${payment.receiptNumber}` : `Receipt: ${payment._id.toString().substr(-6).toUpperCase()}`}
                                         </Text>
                                         {(payment.bookNumber || payment.manualReceiptNumber) && (
                                             <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginTop: 2 }}>

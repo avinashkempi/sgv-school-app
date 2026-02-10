@@ -117,6 +117,31 @@ const AdminDashboard = () => {
                 </Pressable>
             </View>
 
+            {/* Quick Actions */}
+            <View style={{ marginBottom: 24 }}>
+                <Text style={[styles.titleMedium, { marginBottom: 12 }]}>Quick Actions</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+                    <QuickActionButton
+                        title="Import Data"
+                        icon="cloud-upload"
+                        color={colors.primary}
+                        onPress={() => router.push('/admin/import-data')}
+                    />
+                    <QuickActionButton
+                        title="Add Student"
+                        icon="person-add"
+                        color={colors.secondary}
+                        onPress={() => router.push('/admin/students/add')}
+                    />
+                    <QuickActionButton
+                        title="Add Teacher"
+                        icon="school"
+                        color={colors.tertiary}
+                        onPress={() => router.push('/admin/teachers/add')}
+                    />
+                </ScrollView>
+            </View>
+
             {/* Stat Cards */}
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -6 }}>
                 <StatCard
@@ -159,38 +184,42 @@ const AdminDashboard = () => {
 
             <Text style={[styles.titleLarge, { marginBottom: 16, marginTop: 24 }]}>Trends</Text>
 
-            {data.charts?.feeTrend && data.charts.feeTrend.length > 0 ? (
-                <ChartCard
-                    title="Fee Collection (Academic Year)"
-                    chartType="line"
-                    labels={data.charts.feeTrend.map(d => `${d.month}`)}
-                    data={data.charts.feeTrend.map(d => d.amount)}
-                />
-            ) : (
-                <EmptyState
-                    icon="bar-chart"
-                    title="No Fee Data"
-                    message="Fee collection data is not available for the selected period"
-                />
-            )}
+            {
+                data.charts?.feeTrend && data.charts.feeTrend.length > 0 ? (
+                    <ChartCard
+                        title="Fee Collection (Academic Year)"
+                        chartType="line"
+                        labels={data.charts.feeTrend.map(d => `${d.month}`)}
+                        data={data.charts.feeTrend.map(d => d.amount)}
+                    />
+                ) : (
+                    <EmptyState
+                        icon="bar-chart"
+                        title="No Fee Data"
+                        message="Fee collection data is not available for the selected period"
+                    />
+                )
+            }
 
-            {data.charts?.attendance && (data.charts.attendance.present > 0 || data.charts.attendance.absent > 0) ? (
-                <ChartCard
-                    title="Today's Attendance"
-                    chartType="pie"
-                    data={[
-                        { name: 'Present', value: data.charts.attendance.present || 0 },
-                        { name: 'Absent', value: data.charts.attendance.absent || 0 }
-                    ]}
-                    height={200}
-                />
-            ) : (
-                <EmptyState
-                    icon="pie-chart"
-                    title="No Attendance Data"
-                    message="Attendance data is not available for today"
-                />
-            )}
+            {
+                data.charts?.attendance && (data.charts.attendance.present > 0 || data.charts.attendance.absent > 0) ? (
+                    <ChartCard
+                        title="Today's Attendance"
+                        chartType="pie"
+                        data={[
+                            { name: 'Present', value: data.charts.attendance.present || 0 },
+                            { name: 'Absent', value: data.charts.attendance.absent || 0 }
+                        ]}
+                        height={200}
+                    />
+                ) : (
+                    <EmptyState
+                        icon="pie-chart"
+                        title="No Attendance Data"
+                        message="Attendance data is not available for today"
+                    />
+                )
+            }
 
             {/* Date Range Picker Modal */}
             <DateRangePicker
@@ -199,7 +228,43 @@ const AdminDashboard = () => {
                 onRangeSelect={handleDateRangeChange}
                 onClose={() => setShowDatePicker(false)}
             />
-        </ScrollView>
+        </ScrollView >
+    );
+};
+
+const QuickActionButton = ({ title, icon, color, onPress }) => {
+    const { colors } = useTheme();
+    return (
+        <Pressable
+            onPress={onPress}
+            style={({ pressed }) => ({
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: colors.surface,
+                padding: 12,
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: colors.outlineVariant,
+                opacity: pressed ? 0.7 : 1,
+                minWidth: 140
+            })}
+        >
+            <View style={{
+                padding: 8,
+                borderRadius: 8,
+                backgroundColor: color + '15', // 15 hex = ~8% opacity
+                marginRight: 12
+            }}>
+                <MaterialIcons name={icon} size={20} color={color} />
+            </View>
+            <Text style={{
+                fontFamily: 'DMSans-Medium',
+                color: colors.onSurface,
+                fontSize: 14
+            }}>
+                {title}
+            </Text>
+        </Pressable>
     );
 };
 

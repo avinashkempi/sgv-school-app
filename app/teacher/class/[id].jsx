@@ -345,7 +345,9 @@ export default function ClassDetailsScreen() {
                                 borderRadius: 8
                             }}
                         >
-                            <Text style={{ fontWeight: "600", color: activeTab === "students" ? "#fff" : colors.textSecondary }}>Students</Text>
+                            <Text style={{ fontWeight: "600", color: activeTab === "students" ? "#fff" : colors.textSecondary }}>
+                                Students ({students.length})
+                            </Text>
                         </Pressable>
                     </View>
 

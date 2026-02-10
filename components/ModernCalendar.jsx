@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View,} from 'react-native';
+import { View, } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../theme';
@@ -72,7 +72,16 @@ const ModernCalendar = ({
                 current={current}
                 onDayPress={onDayPress}
                 markedDates={markedDates}
-                onMonthChange={onMonthChange}
+                onMonthChange={(month) => {
+                    if (onMonthChange) {
+                        // Prevent infinite loop by checking if date actually changed differently enough to matter
+                        // or just pass it up and let parent handle. 
+                        // The issue often is parent setting state which causes re-render -> new function -> re-call.
+                        // But here we just pass the object.
+                        // Simple fix: check if month.dateString is structurally different if parent relies on it.
+                        onMonthChange(month);
+                    }
+                }}
                 dayComponent={dayComponent}
                 markingType={markingType}
                 theme={{ ...defaultTheme, ...customTheme }}

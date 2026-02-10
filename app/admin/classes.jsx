@@ -179,7 +179,7 @@ export default function ClassesScreen() {
                                         {cls.name} {cls.section ? `- ${cls.section}` : ""}
                                     </Text>
                                     <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: 4 }}>
-                                        {cls.branch}
+                                        {cls.branch} • {cls.studentCount || 0} Students
                                     </Text>
                                     {cls.classTeacher && (
                                         <Text style={{ fontSize: 13, color: colors.primary, marginTop: 4, fontWeight: "500" }}>

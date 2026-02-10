@@ -238,7 +238,11 @@ export default function StudentAttendanceScreen() {
                         <ModernCalendar
                             current={selectedMonth}
                             markedDates={markedDates}
-                            onMonthChange={(month) => setSelectedMonth(month.dateString)}
+                            onMonthChange={(month) => {
+                                if (month.dateString !== selectedMonth) {
+                                    setSelectedMonth(month.dateString);
+                                }
+                            }}
                             markingType={'custom'}
                             theme={{
                                 calendarBackground: 'transparent',
