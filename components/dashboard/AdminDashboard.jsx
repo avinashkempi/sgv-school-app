@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, ScrollView, RefreshControl, Pressable } from 'react-native';
+import { View, Text, ScrollView, RefreshControl, Pressable, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
@@ -127,39 +127,13 @@ const AdminDashboard = () => {
                         color={colors.primary}
                         onPress={() => router.push('/admin/import-data')}
                     />
-                    <QuickActionButton
-                        title="Add Student"
-                        icon="person-add"
-                        color={colors.secondary}
-                        onPress={() => router.push('/admin/students/add')}
-                    />
-                    <QuickActionButton
-                        title="Add Teacher"
-                        icon="school"
-                        color={colors.tertiary}
-                        onPress={() => router.push('/admin/teachers/add')}
-                    />
+
                 </ScrollView>
             </View>
 
             {/* Stat Cards */}
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -6 }}>
-                <StatCard
-                    title="Total Students"
-                    value={data.overview?.totalStudents || 0}
-                    icon="account-group"
-                    color={colors.primary}
-                    onPress={() => router.push('/admin')}
-                    loading={refreshing}
-                />
-                <StatCard
-                    title="Total Teachers"
-                    value={data.overview?.totalTeachers || 0}
-                    icon="teach"
-                    color={colors.secondary}
-                    onPress={() => router.push('/admin')}
-                    loading={refreshing}
-                />
+
                 <StatCard
                     title="Attendance"
                     value={`${data.overview?.attendancePercentage || 0}%`}
@@ -186,12 +160,64 @@ const AdminDashboard = () => {
 
             {
                 data.charts?.feeTrend && data.charts.feeTrend.length > 0 ? (
-                    <ChartCard
-                        title="Fee Collection (Academic Year)"
-                        chartType="line"
-                        labels={data.charts.feeTrend.map(d => `${d.month}`)}
-                        data={data.charts.feeTrend.map(d => d.amount)}
-                    />
+                    <Pressable
+                        onPress={() => router.push('/admin/fees')}
+                        style={({ pressed }) => ({
+                            backgroundColor: colors.surfaceContainer,
+                            borderRadius: 24,
+                            padding: 20,
+                            marginBottom: 16,
+                            opacity: pressed ? 0.85 : 1
+                        })}
+                    >
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                            <Text style={styles.titleMedium}>Fee Collection (Academic Year)</Text>
+                            <MaterialIcons name="chevron-right" size={22} color={colors.onSurfaceVariant} />
+                        </View>
+                        <View style={{ flexDirection: 'row', alignItems: 'flex-end', height: 160, paddingTop: 20 }}>
+                            {(() => {
+                                const maxAmount = Math.max(...data.charts.feeTrend.map(d => d.amount), 1);
+                                return data.charts.feeTrend.map((d, i) => {
+                                    const barHeight = Math.max((d.amount / maxAmount) * 110, 4);
+                                    const hasValue = d.amount > 0;
+                                    return (
+                                        <View key={i} style={{ flex: 1, alignItems: 'center' }}>
+                                            {hasValue && (
+                                                <Text style={{
+                                                    fontSize: 7,
+                                                    fontFamily: 'DMSans-Bold',
+                                                    color: colors.onSurfaceVariant,
+                                                    marginBottom: 3
+                                                }}>
+                                                    {d.amount >= 100000
+                                                        ? `${(d.amount / 100000).toFixed(1)}L`
+                                                        : d.amount >= 1000
+                                                            ? `${(d.amount / 1000).toFixed(0)}K`
+                                                            : d.amount}
+                                                </Text>
+                                            )}
+                                            <View style={{
+                                                width: '60%',
+                                                maxWidth: 22,
+                                                height: barHeight,
+                                                borderRadius: 5,
+                                                backgroundColor: hasValue ? colors.primary : colors.outlineVariant,
+                                                opacity: hasValue ? 1 : 0.3
+                                            }} />
+                                            <Text style={{
+                                                fontSize: 9,
+                                                fontFamily: 'DMSans-Medium',
+                                                color: colors.onSurfaceVariant,
+                                                marginTop: 5
+                                            }}>
+                                                {d.month.substring(0, 3)}
+                                            </Text>
+                                        </View>
+                                    );
+                                });
+                            })()}
+                        </View>
+                    </Pressable>
                 ) : (
                     <EmptyState
                         icon="bar-chart"

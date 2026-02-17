@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     View,
     Text,
     ScrollView,
     RefreshControl,
     ActivityIndicator,
-    Pressable
+    Pressable,
+    Animated
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../theme';
 import { useApiQuery } from '../../hooks/useApi';
 import apiConfig from '../../config/apiConfig';
@@ -16,14 +18,25 @@ import Header from '../../components/Header';
 import ExamTimeline from '../../components/ExamTimeline';
 
 /**
- * Student Exam Schedule Screen - Enhanced
- * Shows upcoming exams in timeline view with countdown and status
+ * Student Exam Schedule Screen — Enhanced
+ * Shows upcoming exams with hero countdown + timeline
  */
 export default function StudentExamScheduleScreen() {
     const router = useRouter();
     const { colors } = useTheme();
     const [refreshing, setRefreshing] = useState(false);
     const [filterSubject, setFilterSubject] = useState(null);
+
+    // Entrance animations
+    const heroAnim = useRef(new Animated.Value(0)).current;
+    const filterAnim = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        Animated.stagger(150, [
+            Animated.spring(heroAnim, { toValue: 1, useNativeDriver: true, tension: 60, friction: 8 }),
+            Animated.spring(filterAnim, { toValue: 1, useNativeDriver: true, tension: 60, friction: 8 }),
+        ]).start();
+    }, []);
 
     // Fetch exam schedule
     const { data: examsData, isLoading, refetch } = useApiQuery(
@@ -43,18 +56,13 @@ export default function StudentExamScheduleScreen() {
     const examsBySubject = exams.reduce((acc, exam) => {
         const subjectId = exam.subject?._id;
         if (!subjectId) return acc;
-
         if (!acc[subjectId]) {
-            acc[subjectId] = {
-                subject: exam.subject,
-                exams: []
-            };
+            acc[subjectId] = { subject: exam.subject, exams: [] };
         }
         acc[subjectId].exams.push(exam);
         return acc;
     }, {});
 
-    // Get unique subjects for filter
     const subjects = Object.values(examsBySubject).map(group => group.subject);
 
     // Filter exams
@@ -72,15 +80,20 @@ export default function StudentExamScheduleScreen() {
     const upcomingExams = sortedExams.filter(e => new Date(e.date) >= today);
     const pastExams = sortedExams.filter(e => new Date(e.date) < today);
 
-    const getExamStats = () => {
-        const total = exams.length;
-        const upcoming = upcomingExams.length;
-        const completed = pastExams.length;
+    // Next exam for hero card
+    const nextExam = upcomingExams[0] || null;
+    const getCountdown = (date) => {
+        const now = new Date();
+        const examDate = new Date(date);
+        const diffMs = examDate - now;
+        const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 
-        return { total, upcoming, completed };
+        if (days === 0 && hours <= 0) return { text: 'Today!', urgent: true };
+        if (days === 0) return { text: `${hours}h left`, urgent: true };
+        if (days === 1) return { text: 'Tomorrow', urgent: true };
+        return { text: `${days} days`, urgent: days <= 3 };
     };
-
-    const stats = getExamStats();
 
     if (isLoading) {
         return (
@@ -105,59 +118,171 @@ export default function StudentExamScheduleScreen() {
                 <View style={{ padding: 16, paddingTop: 24 }}>
                     <Header
                         title="Exam Schedule"
-                        subtitle="View your upcoming exams"
+                        subtitle="Stay on top of your exams"
                         showBack
                     />
 
-                    {/* Stats Cards */}
-                    <View style={{ flexDirection: 'row', gap: 12, marginTop: 20, marginBottom: 20 }}>
-                        <View style={{
-                            flex: 1,
-                            backgroundColor: colors.primaryContainer,
-                            borderRadius: 12,
-                            padding: 14,
-                            alignItems: 'center'
+                    {/* Hero Countdown Card */}
+                    {nextExam && (
+                        <Animated.View style={{
+                            opacity: heroAnim,
+                            transform: [{
+                                translateY: heroAnim.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: [20, 0]
+                                })
+                            }],
+                            marginTop: 20,
+                            borderRadius: 20,
+                            overflow: 'hidden',
                         }}>
-                            <Text style={{ fontSize: 24, fontFamily: 'DMSans-Bold', color: colors.primary }}>
-                                {stats.total}
-                            </Text>
-                            <Text style={{ fontSize: 11, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant, marginTop: 4 }}>
-                                Total Exams
-                            </Text>
-                        </View>
-                        <View style={{
-                            flex: 1,
-                            backgroundColor: colors.secondaryContainer,
-                            borderRadius: 12,
-                            padding: 14,
-                            alignItems: 'center'
-                        }}>
-                            <Text style={{ fontSize: 24, fontFamily: 'DMSans-Bold', color: '#FF9800' }}>
-                                {stats.upcoming}
-                            </Text>
-                            <Text style={{ fontSize: 11, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant, marginTop: 4 }}>
-                                Upcoming
-                            </Text>
-                        </View>
-                        <View style={{
-                            flex: 1,
-                            backgroundColor: colors.tertiaryContainer,
-                            borderRadius: 12,
-                            padding: 14,
-                            alignItems: 'center'
-                        }}>
-                            <Text style={{ fontSize: 24, fontFamily: 'DMSans-Bold', color: colors.success }}>
-                                {stats.completed}
-                            </Text>
-                            <Text style={{ fontSize: 11, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant, marginTop: 4 }}>
-                                Completed
-                            </Text>
-                        </View>
+                            <LinearGradient
+                                colors={[colors.primary, colors.onPrimaryContainer]}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 1 }}
+                                style={{ padding: 24 }}
+                            >
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={{
+                                            fontSize: 11,
+                                            fontFamily: 'DMSans-Bold',
+                                            color: colors.onPrimary,
+                                            opacity: 0.7,
+                                            textTransform: 'uppercase',
+                                            letterSpacing: 1.5,
+                                            marginBottom: 8
+                                        }}>
+                                            Next Exam
+                                        </Text>
+                                        <Text style={{
+                                            fontSize: 22,
+                                            fontFamily: 'DMSans-Bold',
+                                            color: colors.onPrimary,
+                                            marginBottom: 4
+                                        }}>
+                                            {nextExam.subject?.name || nextExam.name}
+                                        </Text>
+                                        <Text style={{
+                                            fontSize: 13,
+                                            fontFamily: 'DMSans-Medium',
+                                            color: colors.onPrimary,
+                                            opacity: 0.8,
+                                        }}>
+                                            {new Date(nextExam.date).toLocaleDateString('en-IN', {
+                                                weekday: 'long',
+                                                day: 'numeric',
+                                                month: 'long'
+                                            })}
+                                        </Text>
+                                    </View>
+                                    <View style={{
+                                        backgroundColor: 'rgba(255,255,255,0.2)',
+                                        borderRadius: 16,
+                                        padding: 16,
+                                        alignItems: 'center',
+                                        minWidth: 80,
+                                    }}>
+                                        <Text style={{
+                                            fontSize: 28,
+                                            fontFamily: 'DMSans-Bold',
+                                            color: colors.onPrimary,
+                                            lineHeight: 32,
+                                        }}>
+                                            {getCountdown(nextExam.date).text.split(' ')[0]}
+                                        </Text>
+                                        <Text style={{
+                                            fontSize: 11,
+                                            fontFamily: 'DMSans-Medium',
+                                            color: colors.onPrimary,
+                                            opacity: 0.8,
+                                            marginTop: 2,
+                                        }}>
+                                            {getCountdown(nextExam.date).text.split(' ').slice(1).join(' ') || 'Exam'}
+                                        </Text>
+                                    </View>
+                                </View>
+
+                                {/* Meta items */}
+                                <View style={{
+                                    flexDirection: 'row',
+                                    gap: 16,
+                                    marginTop: 16,
+                                    paddingTop: 16,
+                                    borderTopWidth: 1,
+                                    borderTopColor: 'rgba(255,255,255,0.15)'
+                                }}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                        <MaterialIcons name="assignment" size={16} color={colors.onPrimary} style={{ opacity: 0.8 }} />
+                                        <Text style={{ fontSize: 13, fontFamily: 'DMSans-Medium', color: colors.onPrimary, opacity: 0.9 }}>
+                                            {nextExam.totalMarks} marks
+                                        </Text>
+                                    </View>
+                                    {nextExam.duration && (
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                            <MaterialIcons name="schedule" size={16} color={colors.onPrimary} style={{ opacity: 0.8 }} />
+                                            <Text style={{ fontSize: 13, fontFamily: 'DMSans-Medium', color: colors.onPrimary, opacity: 0.9 }}>
+                                                {nextExam.duration} min
+                                            </Text>
+                                        </View>
+                                    )}
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                        <MaterialIcons name="label" size={16} color={colors.onPrimary} style={{ opacity: 0.8 }} />
+                                        <Text style={{ fontSize: 13, fontFamily: 'DMSans-Medium', color: colors.onPrimary, opacity: 0.9 }}>
+                                            {nextExam.standardizedType}
+                                        </Text>
+                                    </View>
+                                </View>
+                            </LinearGradient>
+                        </Animated.View>
+                    )}
+
+                    {/* Stats Row */}
+                    <View style={{ flexDirection: 'row', gap: 10, marginTop: 20, marginBottom: 20 }}>
+                        {[
+                            { label: 'Total', value: exams.length, color: colors.primary, bg: colors.primaryContainer },
+                            { label: 'Upcoming', value: upcomingExams.length, color: '#FF9800', bg: '#FF980012' },
+                            { label: 'Done', value: pastExams.length, color: colors.success, bg: colors.success + '12' },
+                        ].map((stat, i) => (
+                            <View key={i} style={{
+                                flex: 1,
+                                backgroundColor: stat.bg,
+                                borderRadius: 14,
+                                padding: 14,
+                                alignItems: 'center',
+                            }}>
+                                <Text style={{
+                                    fontSize: 24,
+                                    fontFamily: 'DMSans-Bold',
+                                    color: stat.color,
+                                    lineHeight: 28,
+                                }}>
+                                    {stat.value}
+                                </Text>
+                                <Text style={{
+                                    fontSize: 11,
+                                    fontFamily: 'DMSans-Medium',
+                                    color: colors.onSurfaceVariant,
+                                    marginTop: 4
+                                }}>
+                                    {stat.label}
+                                </Text>
+                            </View>
+                        ))}
                     </View>
 
                     {/* Subject Filter */}
                     {subjects.length > 1 && (
-                        <View style={{ marginBottom: 20 }}>
+                        <Animated.View style={{
+                            marginBottom: 20,
+                            opacity: filterAnim,
+                            transform: [{
+                                translateY: filterAnim.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: [10, 0]
+                                })
+                            }],
+                        }}>
                             <Text style={{
                                 fontSize: 13,
                                 fontFamily: 'DMSans-Medium',
@@ -212,7 +337,7 @@ export default function StudentExamScheduleScreen() {
                                     ))}
                                 </View>
                             </ScrollView>
-                        </View>
+                        </Animated.View>
                     )}
 
                     {/* Upcoming Exams */}
@@ -227,12 +352,26 @@ export default function StudentExamScheduleScreen() {
                                 }}>
                                     Upcoming Exams
                                 </Text>
+                                <View style={{
+                                    backgroundColor: colors.primaryContainer,
+                                    paddingHorizontal: 8,
+                                    paddingVertical: 2,
+                                    borderRadius: 10,
+                                    marginLeft: 4,
+                                }}>
+                                    <Text style={{
+                                        fontSize: 11,
+                                        fontFamily: 'DMSans-Bold',
+                                        color: colors.primary
+                                    }}>
+                                        {upcomingExams.length}
+                                    </Text>
+                                </View>
                             </View>
 
                             <ExamTimeline
                                 exams={upcomingExams}
                                 onExamPress={(exam) => {
-                                    // Navigate to exam details or marks if published
                                     if (exam.marksPublished) {
                                         router.push('/student/report-card');
                                     }
@@ -253,6 +392,21 @@ export default function StudentExamScheduleScreen() {
                                 }}>
                                     Past Exams
                                 </Text>
+                                <View style={{
+                                    backgroundColor: colors.surfaceContainerHigh,
+                                    paddingHorizontal: 8,
+                                    paddingVertical: 2,
+                                    borderRadius: 10,
+                                    marginLeft: 4,
+                                }}>
+                                    <Text style={{
+                                        fontSize: 11,
+                                        fontFamily: 'DMSans-Bold',
+                                        color: colors.onSurfaceVariant
+                                    }}>
+                                        {pastExams.length}
+                                    </Text>
+                                </View>
                             </View>
 
                             <ExamTimeline
@@ -272,18 +426,35 @@ export default function StudentExamScheduleScreen() {
                             alignItems: 'center',
                             paddingVertical: 60,
                             backgroundColor: colors.surfaceContainerHighest,
-                            borderRadius: 16,
-                            marginTop: 20
+                            borderRadius: 20,
+                            marginTop: 20,
+                            gap: 12,
                         }}>
-                            <MaterialIcons name="event-available" size={64} color={colors.onSurfaceVariant} style={{ opacity: 0.5 }} />
-                            <Text style={{
-                                fontSize: 16,
-                                fontFamily: 'DMSans-Medium',
-                                color: colors.onSurfaceVariant,
-                                marginTop: 16,
-                                textAlign: 'center'
+                            <View style={{
+                                width: 80,
+                                height: 80,
+                                borderRadius: 40,
+                                backgroundColor: colors.primaryContainer,
+                                alignItems: 'center',
+                                justifyContent: 'center',
                             }}>
-                                No exams scheduled yet
+                                <MaterialIcons name="event-available" size={40} color={colors.primary} />
+                            </View>
+                            <Text style={{
+                                fontSize: 18,
+                                fontFamily: 'DMSans-Bold',
+                                color: colors.onSurface,
+                            }}>
+                                No exams yet
+                            </Text>
+                            <Text style={{
+                                fontSize: 14,
+                                fontFamily: 'DMSans-Regular',
+                                color: colors.onSurfaceVariant,
+                                textAlign: 'center',
+                                paddingHorizontal: 40,
+                            }}>
+                                Your exam schedule will appear here once your school sets up exams
                             </Text>
                         </View>
                     )}

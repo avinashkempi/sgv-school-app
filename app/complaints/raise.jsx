@@ -34,11 +34,15 @@ export default function RaiseComplaintScreen() {
     }, []);
 
     const checkUserRole = async () => {
-        const role = await storage.getItem("userRole");
-        setUserRole(role);
-        if (role === 'teacher') {
-            setCategory("Management"); // Default for teachers
-            setVisibility("super_admin");
+        const userStr = await storage.getItem("@auth_user");
+        if (userStr) {
+            const user = JSON.parse(userStr);
+            const role = user.role;
+            setUserRole(role);
+            if (role === 'teacher') {
+                setCategory("Management");
+                setVisibility("super_admin");
+            }
         }
     };
 

@@ -125,7 +125,7 @@ export default function ProfileScreen() {
                 )}
               </Card>
 
-              {(user.role === 'student' || user.role === 'class teacher' || user.role === 'staff') && (
+              {(user.role === 'student' || user.role === 'teacher' || user.role === 'staff') && (
                 <Card variant="filled" style={{ marginBottom: 16 }}>
                   <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.onSurfaceVariant, marginBottom: 16 }}>
                     {user.role === 'student' ? 'STUDENT DETAILS' : 'STAFF DETAILS'}
@@ -145,6 +145,73 @@ export default function ProfileScreen() {
                           <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.guardianPhone}</Text>
                         </View>
                       )}
+
+                      {/* Personal Details */}
+                      <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.onSurfaceVariant, marginBottom: 12, marginTop: 8 }}>PERSONAL DETAILS</Text>
+
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 8 }}>
+                        {user.gender && (
+                          <View style={{ width: '50%', marginBottom: 16 }}>
+                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Gender</Text>
+                            <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.gender}</Text>
+                          </View>
+                        )}
+                        {user.bloodGroup && (
+                          <View style={{ width: '50%', marginBottom: 16 }}>
+                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Blood Group</Text>
+                            <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.bloodGroup}</Text>
+                          </View>
+                        )}
+                        {user.dateOfBirth && (
+                          <View style={{ width: '50%', marginBottom: 16 }}>
+                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Date of Birth</Text>
+                            <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.dateOfBirth}</Text>
+                          </View>
+                        )}
+                        {user.phone2 && (
+                          <View style={{ width: '50%', marginBottom: 16 }}>
+                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Alt Phone</Text>
+                            <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.phone2}</Text>
+                          </View>
+                        )}
+                      </View>
+
+                      {user.address && (
+                        <View style={{ marginBottom: 16 }}>
+                          <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Address</Text>
+                          <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.address}</Text>
+                        </View>
+                      )}
+
+                      {/* Academic Identifiers */}
+                      <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.onSurfaceVariant, marginBottom: 12, marginTop: 8 }}>ACADEMIC IDs</Text>
+
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                        {user.regNo && (
+                          <View style={{ width: '50%', marginBottom: 16 }}>
+                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Reg No</Text>
+                            <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.regNo}</Text>
+                          </View>
+                        )}
+                        {user.satsNumber && (
+                          <View style={{ width: '50%', marginBottom: 16 }}>
+                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>SATS No</Text>
+                            <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.satsNumber}</Text>
+                          </View>
+                        )}
+                        {user.penNumber && (
+                          <View style={{ width: '50%', marginBottom: 16 }}>
+                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>PEN No</Text>
+                            <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.penNumber}</Text>
+                          </View>
+                        )}
+                        {user.apaarId && (
+                          <View style={{ width: '50%', marginBottom: 16 }}>
+                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>APAAR ID</Text>
+                            <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.apaarId}</Text>
+                          </View>
+                        )}
+                      </View>
                       {user.admissionDate && (
                         <View>
                           <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Admission Date</Text>
@@ -154,7 +221,7 @@ export default function ProfileScreen() {
                     </>
                   )}
 
-                  {(user.role === 'class teacher' || user.role === 'staff') && (
+                  {(user.role === 'teacher' || user.role === 'staff') && (
                     <>
                       {user.designation && (
                         <View style={{ marginBottom: 16 }}>

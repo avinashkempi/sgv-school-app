@@ -1,4 +1,4 @@
-import React, { useState,} from "react";
+import React, { useState, } from "react";
 import {
     View,
     Text,
@@ -212,7 +212,7 @@ export default function TeacherSubjectsScreen() {
                                                     fontFamily: "DMSans-Bold",
                                                     color: colors.textPrimary
                                                 }}>
-                                                    {teacher.name}
+                                                    {teacher?.name || "Unknown Teacher"}
                                                 </Text>
                                                 {teacher.email && (
                                                     <Text style={{
@@ -279,7 +279,7 @@ export default function TeacherSubjectsScreen() {
                                                 }}>
                                                     Assigned Subjects ({teacher.subjects.length})
                                                 </Text>
-                                                {teacher.subjects.map((subject) => (
+                                                {teacher.subjects.filter(s => s && s.class).map((subject) => (
                                                     <View
                                                         key={subject._id}
                                                         style={{
@@ -306,7 +306,7 @@ export default function TeacherSubjectsScreen() {
                                                                 fontFamily: "DMSans-Regular",
                                                                 marginTop: 2
                                                             }}>
-                                                                {subject.class.name} {subject.class.section ? `- ${subject.class.section}` : ""}
+                                                                {subject.class?.name || "Unknown Class"} {subject.class?.section ? `- ${subject.class.section}` : ""}
                                                             </Text>
                                                         </View>
                                                         <Pressable
@@ -438,7 +438,7 @@ export default function TeacherSubjectsScreen() {
                                                     fontFamily: "DMSans-Regular",
                                                     marginTop: 2
                                                 }}>
-                                                    {subject.class.name} {subject.class.section ? `- ${subject.class.section}` : ""}
+                                                    {subject.class?.name || "Unknown Class"} {subject.class?.section ? `- ${subject.class.section}` : ""}
                                                 </Text>
                                             </View>
                                             {isAssigned ? (

@@ -69,13 +69,17 @@ export default function AdminFeesScreen() {
         }
     }, [academicYears, selectedYearId]);
 
-    // Fetch All Students
-    const { data: allStudentsResponse, isLoading: studentsLoading } = useApiQuery(
-        ['allStudents'],
-        `${apiConfig.baseUrl}/users?role=student&limit=100`,
+    // State for sorting
+    const [sortBy, setSortBy] = useState('className');
+    const [sortOrder, setSortOrder] = useState('asc');
+
+    // Fetch All Students with Fee Summary
+    const { data: studentsData, isLoading: studentsLoading } = useApiQuery(
+        ['studentsFeeSummary', selectedYearId],
+        `${apiConfig.baseUrl}/fees/summary?academicYearId=${selectedYearId || ''}`,
         { enabled: activeTab === 'students' }
     );
-    const allStudents = allStudentsResponse?.data || [];
+    const allStudents = studentsData || [];
 
     // Fetch Fee Details for Selected Student
     const { data: feeDetails, refetch: refetchFeeDetails } = useApiQuery(
@@ -235,10 +239,13 @@ export default function AdminFeesScreen() {
                     borderRadius: 16,
                     padding: 4
                 }}>
-                    {['dashboard', 'collect', 'structure', 'students'].map(tab => (
+                    {['dashboard', 'structure', 'students'].map(tab => (
                         <Pressable
                             key={tab}
-                            onPress={() => setActiveTab(tab)}
+                            onPress={() => {
+                                setActiveTab(tab);
+                                setSelectedStudent(null); // Reset selection when changing tabs
+                            }}
                             style={{
                                 flex: 1,
                                 paddingVertical: 10,
@@ -334,277 +341,101 @@ export default function AdminFeesScreen() {
                     </View>
                 )}
 
-                {activeTab === 'collect' && (
-                    <View style={{ padding: 16 }}>
-                        {!selectedStudent ? (
-                            <View style={{ marginTop: 20 }}>
-                                <View style={{ alignItems: "center", marginBottom: 32 }}>
-                                    <View style={{ width: 64, height: 64, backgroundColor: colors.primary + "15", borderRadius: 32, justifyContent: "center", alignItems: "center", marginBottom: 16 }}>
-                                        <MaterialIcons name="person-search" size={32} color={colors.primary} />
+                <View style={{ padding: 16 }}>
+                    {!selectedStudent ? (
+                        <View style={{ alignItems: "center", marginTop: 40 }}>
+                            <Text style={{ color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>Select a student to view details</Text>
+                        </View>
+                    ) : (
+                        <View>
+                            <Pressable
+                                onPress={() => setSelectedStudent(null)}
+                                style={{ flexDirection: "row", alignItems: "center", marginBottom: 20, alignSelf: "flex-start" }}
+                            >
+                                <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: colors.cardBackground, justifyContent: "center", alignItems: "center", marginRight: 8 }}>
+                                    <MaterialIcons name="arrow-back" size={20} color={colors.textPrimary} />
+                                </View>
+                                <Text style={{ color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>Back to List</Text>
+                            </Pressable>
+
+                            {/* Student Profile Card */}
+                            <View style={{
+                                backgroundColor: colors.cardBackground,
+                                padding: 24,
+                                borderRadius: 24,
+                                marginBottom: 24,
+                                alignItems: "center"
+                            }}>
+                                <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: colors.primary + "15", justifyContent: "center", alignItems: "center", marginBottom: 16 }}>
+                                    <Text style={{ fontSize: 32, fontFamily: "DMSans-Bold", color: colors.primary }}>{selectedStudent.name.charAt(0)}</Text>
+                                </View>
+                                <Text style={{ fontSize: 22, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 4 }}>{selectedStudent.name}</Text>
+                                <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 24 }}>
+                                    <View style={{ paddingHorizontal: 10, paddingVertical: 4, backgroundColor: colors.background, borderRadius: 8, marginRight: 8 }}>
+                                        <Text style={{ color: colors.textSecondary, fontSize: 13, fontFamily: "DMSans-Medium" }}>
+                                            {feeDetails?.feeStructure ? "Fee Structure Assigned" : "No Structure"}
+                                        </Text>
                                     </View>
-                                    <Text style={{ fontSize: 24, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 8 }}>Find Student</Text>
-                                    <Text style={{ color: colors.textSecondary, textAlign: "center", maxWidth: "80%" }}>
-                                        Search by name or phone number to collect fees
-                                    </Text>
+                                    <Text style={{ color: colors.textSecondary }}>• {selectedStudent.phone}</Text>
                                 </View>
 
-                                <View style={{ flexDirection: "row", gap: 12, marginBottom: 24 }}>
-                                    <TextInput
-                                        value={searchQuery}
-                                        onChangeText={setSearchQuery}
-                                        placeholder="Enter student name..."
-                                        placeholderTextColor={colors.textSecondary}
-                                        style={{
-                                            flex: 1,
-                                            backgroundColor: colors.cardBackground,
+                                <View style={{ flexDirection: "row", width: "100%", gap: 12 }}>
+                                    <View style={{ flex: 1, backgroundColor: colors.background, padding: 16, borderRadius: 16, alignItems: "center" }}>
+                                        <Text style={{ color: colors.textSecondary, fontSize: 12, marginBottom: 4 }}>Total Fees</Text>
+                                        <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary, fontSize: 18 }}>₹{feeDetails?.totalFees || 0}</Text>
+                                    </View>
+                                    <View style={{ flex: 1, backgroundColor: colors.success + "10", padding: 16, borderRadius: 16, alignItems: "center" }}>
+                                        <Text style={{ color: colors.success, fontSize: 12, marginBottom: 4 }}>Paid</Text>
+                                        <Text style={{ fontFamily: "DMSans-Bold", color: colors.success, fontSize: 18 }}>₹{feeDetails?.paidAmount || 0}</Text>
+                                    </View>
+                                    <View style={{ flex: 1, backgroundColor: colors.error + "10", padding: 16, borderRadius: 16, alignItems: "center" }}>
+                                        <Text style={{ color: colors.error, fontSize: 12, marginBottom: 4 }}>Pending</Text>
+                                        <Text style={{ fontFamily: "DMSans-Bold", color: colors.error, fontSize: 18 }}>₹{feeDetails?.pendingAmount || 0}</Text>
+                                    </View>
+                                </View>
+                            </View>
+
+                            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 16 }}>Payment History</Text>
+
+                            {feeDetails?.payments && feeDetails.payments.length > 0 ? (
+                                <View style={{ backgroundColor: colors.cardBackground, borderRadius: 24, padding: 8 }}>
+                                    {feeDetails.payments.map((payment, index) => (
+                                        <View key={payment._id || index} style={{
                                             padding: 16,
-                                            borderRadius: 16,
-                                            color: colors.textPrimary,
-                                            fontSize: 16,
-                                            fontFamily: "DMSans-Medium",
-                                            shadowColor: "#000",
-                                            shadowOffset: { width: 0, height: 2 },
-                                            shadowOpacity: 0.05,
-                                            shadowRadius: 8,
-                                            elevation: 2
-                                        }}
-                                    />
-                                    <Pressable
-                                        onPress={() => searchStudent(searchQuery, setSearchResults)}
-                                        style={{
-                                            backgroundColor: colors.primary,
-                                            width: 56,
-                                            borderRadius: 16,
-                                            justifyContent: "center",
-                                            alignItems: "center",
-                                            shadowColor: colors.primary,
-                                            shadowOffset: { width: 0, height: 4 },
-                                            shadowOpacity: 0.3,
-                                            shadowRadius: 8,
-                                            elevation: 4
-                                        }}
-                                    >
-                                        <MaterialIcons name="search" size={28} color="#fff" />
-                                    </Pressable>
-                                </View>
-
-                                {searchResults.length > 0 && (
-                                    <View style={{ backgroundColor: colors.cardBackground, borderRadius: 20, padding: 8 }}>
-                                        {searchResults.map((student, index) => (
-                                            <Pressable
-                                                key={student._id}
-                                                onPress={() => selectStudent(student)}
-                                                style={{
-                                                    padding: 16,
-                                                    borderRadius: 12,
-                                                    marginBottom: index === searchResults.length - 1 ? 0 : 8,
-                                                    flexDirection: "row",
-                                                    alignItems: "center",
-                                                    justifyContent: "space-between",
-                                                    backgroundColor: colors.background
-                                                }}
-                                            >
-                                                <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                                                    <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary + "10", justifyContent: "center", alignItems: "center" }}>
-                                                        <Text style={{ fontFamily: "DMSans-Bold", color: colors.primary, fontSize: 16 }}>
-                                                            {student.name.charAt(0)}
-                                                        </Text>
-                                                    </View>
-                                                    <View>
-                                                        <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary, fontSize: 16 }}>{student.name}</Text>
-                                                        <Text style={{ color: colors.textSecondary, fontSize: 13 }}>{student.phone}</Text>
-                                                    </View>
-                                                </View>
-                                                <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
-                                            </Pressable>
-                                        ))}
-                                    </View>
-                                )}
-                            </View>
-                        ) : (
-                            <View>
-                                <Pressable
-                                    onPress={() => setSelectedStudent(null)}
-                                    style={{ flexDirection: "row", alignItems: "center", marginBottom: 20, alignSelf: "flex-start" }}
-                                >
-                                    <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: colors.cardBackground, justifyContent: "center", alignItems: "center", marginRight: 8 }}>
-                                        <MaterialIcons name="arrow-back" size={20} color={colors.textPrimary} />
-                                    </View>
-                                    <Text style={{ color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>Back to Search</Text>
-                                </Pressable>
-
-                                {/* Student Profile Card */}
-                                <View style={{
-                                    backgroundColor: colors.cardBackground,
-                                    padding: 24,
-                                    borderRadius: 24,
-                                    marginBottom: 24,
-                                    alignItems: "center"
-                                }}>
-                                    <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: colors.primary + "15", justifyContent: "center", alignItems: "center", marginBottom: 16 }}>
-                                        <Text style={{ fontSize: 32, fontFamily: "DMSans-Bold", color: colors.primary }}>{selectedStudent.name.charAt(0)}</Text>
-                                    </View>
-                                    <Text style={{ fontSize: 22, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 4 }}>{selectedStudent.name}</Text>
-                                    <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 24 }}>
-                                        <View style={{ paddingHorizontal: 10, paddingVertical: 4, backgroundColor: colors.background, borderRadius: 8, marginRight: 8 }}>
-                                            <Text style={{ color: colors.textSecondary, fontSize: 13, fontFamily: "DMSans-Medium" }}>
-                                                {feeDetails?.feeStructure ? "Fee Structure Assigned" : "No Structure"}
-                                            </Text>
-                                        </View>
-                                        <Text style={{ color: colors.textSecondary }}>• {selectedStudent.phone}</Text>
-                                    </View>
-
-                                    <View style={{ flexDirection: "row", width: "100%", gap: 12 }}>
-                                        <View style={{ flex: 1, backgroundColor: colors.background, padding: 16, borderRadius: 16, alignItems: "center" }}>
-                                            <Text style={{ color: colors.textSecondary, fontSize: 12, marginBottom: 4 }}>Total Fees</Text>
-                                            <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary, fontSize: 18 }}>₹{feeDetails?.totalFees || 0}</Text>
-                                        </View>
-                                        <View style={{ flex: 1, backgroundColor: colors.success + "10", padding: 16, borderRadius: 16, alignItems: "center" }}>
-                                            <Text style={{ color: colors.success, fontSize: 12, marginBottom: 4 }}>Paid</Text>
-                                            <Text style={{ fontFamily: "DMSans-Bold", color: colors.success, fontSize: 18 }}>₹{feeDetails?.paidAmount || 0}</Text>
-                                        </View>
-                                        <View style={{ flex: 1, backgroundColor: colors.error + "10", padding: 16, borderRadius: 16, alignItems: "center" }}>
-                                            <Text style={{ color: colors.error, fontSize: 12, marginBottom: 4 }}>Pending</Text>
-                                            <Text style={{ fontFamily: "DMSans-Bold", color: colors.error, fontSize: 18 }}>₹{feeDetails?.pendingAmount || 0}</Text>
-                                        </View>
-                                    </View>
-                                </View>
-
-                                <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 16 }}>Record New Payment</Text>
-
-                                <View style={{ backgroundColor: colors.cardBackground, padding: 20, borderRadius: 24 }}>
-                                    <View style={{ marginBottom: 20 }}>
-                                        <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>Amount</Text>
-                                        <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: colors.background, borderRadius: 16, paddingHorizontal: 16 }}>
-                                            <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginRight: 8 }}>₹</Text>
-                                            <TextInput
-                                                value={paymentAmount}
-                                                onChangeText={setPaymentAmount}
-                                                keyboardType="numeric"
-                                                placeholder="0"
-                                                placeholderTextColor={colors.textSecondary}
-                                                style={{
-                                                    flex: 1,
-                                                    paddingVertical: 16,
-                                                    fontSize: 20,
-                                                    fontFamily: "DMSans-Bold",
-                                                    color: colors.textPrimary
-                                                }}
-                                            />
-                                        </View>
-                                    </View>
-
-                                    <View style={{ flexDirection: "row", gap: 12, marginBottom: 20 }}>
-                                        <View style={{ flex: 1 }}>
-                                            <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>Receipt No.</Text>
-                                            <TextInput
-                                                value={manualReceiptNumber}
-                                                onChangeText={setManualReceiptNumber}
-                                                placeholder="Optional"
-                                                placeholderTextColor={colors.textSecondary}
-                                                style={{
-                                                    backgroundColor: colors.background,
-                                                    padding: 14,
-                                                    borderRadius: 12,
-                                                    color: colors.textPrimary,
-                                                    fontFamily: "DMSans-Medium"
-                                                }}
-                                            />
-                                        </View>
-                                        <View style={{ flex: 1 }}>
-                                            <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>Book No.</Text>
-                                            <TextInput
-                                                value={bookNumber}
-                                                onChangeText={setBookNumber}
-                                                placeholder="Optional"
-                                                placeholderTextColor={colors.textSecondary}
-                                                style={{
-                                                    backgroundColor: colors.background,
-                                                    padding: 14,
-                                                    borderRadius: 12,
-                                                    color: colors.textPrimary,
-                                                    fontFamily: "DMSans-Medium"
-                                                }}
-                                            />
-                                        </View>
-                                    </View>
-
-                                    <View style={{ marginBottom: 24 }}>
-                                        <Text style={{ color: colors.textSecondary, marginBottom: 12, fontFamily: "DMSans-Medium" }}>Payment Method</Text>
-                                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                                            <View style={{ flexDirection: "row", gap: 10 }}>
-                                                {['cash', 'online', 'cheque', 'card'].map(method => (
-                                                    <Pressable
-                                                        key={method}
-                                                        onPress={() => setPaymentMethod(method)}
-                                                        style={{
-                                                            paddingHorizontal: 16,
-                                                            paddingVertical: 10,
-                                                            backgroundColor: paymentMethod === method ? colors.primary : colors.background,
-                                                            borderRadius: 12,
-                                                            borderWidth: 1,
-                                                            borderColor: paymentMethod === method ? colors.primary : colors.textSecondary + "10"
-                                                        }}
-                                                    >
-                                                        <Text style={{
-                                                            color: paymentMethod === method ? "#fff" : colors.textPrimary,
-                                                            textTransform: "capitalize",
-                                                            fontFamily: "DMSans-Medium"
-                                                        }}>
-                                                            {method}
-                                                        </Text>
-                                                    </Pressable>
-                                                ))}
+                                            borderBottomWidth: index === feeDetails.payments.length - 1 ? 0 : 1,
+                                            borderBottomColor: colors.textSecondary + "10",
+                                            flexDirection: "row",
+                                            justifyContent: "space-between",
+                                            alignItems: "center"
+                                        }}>
+                                            <View>
+                                                <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary, fontSize: 16 }}>₹{payment.amount}</Text>
+                                                <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 4 }}>
+                                                    {new Date(payment.paymentDate).toLocaleDateString()} • {payment.paymentMethod}
+                                                </Text>
+                                                {payment.receiptNumber && (
+                                                    <Text style={{ color: colors.textSecondary, fontSize: 12, fontFamily: "DMSans-Mono", marginTop: 2 }}>
+                                                        #{payment.receiptNumber}
+                                                    </Text>
+                                                )}
                                             </View>
-                                        </ScrollView>
-                                    </View>
-
-                                    <View style={{ marginBottom: 32 }}>
-                                        <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>Remarks</Text>
-                                        <TextInput
-                                            value={remarks}
-                                            onChangeText={setRemarks}
-                                            placeholder="Add a note (optional)"
-                                            placeholderTextColor={colors.textSecondary}
-                                            style={{
-                                                backgroundColor: colors.background,
-                                                padding: 14,
-                                                borderRadius: 12,
-                                                color: colors.textPrimary,
-                                                fontFamily: "DMSans-Medium"
-                                            }}
-                                        />
-                                    </View>
-
-                                    <Pressable
-                                        onPress={handlePayment}
-                                        disabled={paymentMutation.isPending}
-                                        style={{
-                                            backgroundColor: colors.primary,
-                                            padding: 18,
-                                            borderRadius: 16,
-                                            alignItems: "center",
-                                            shadowColor: colors.primary,
-                                            shadowOffset: { width: 0, height: 4 },
-                                            shadowOpacity: 0.3,
-                                            shadowRadius: 8,
-                                            elevation: 4,
-                                            opacity: paymentMutation.isPending ? 0.7 : 1
-                                        }}
-                                    >
-                                        {paymentMutation.isPending ? (
-                                            <ActivityIndicator color="#fff" />
-                                        ) : (
-                                            <Text style={{ color: "#fff", fontSize: 18, fontFamily: "DMSans-Bold" }}>
-                                                Pay ₹{paymentAmount || "0"}
-                                            </Text>
-                                        )}
-                                    </Pressable>
+                                            <View style={{ backgroundColor: colors.success + "15", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
+                                                <Text style={{ color: colors.success, fontSize: 12, fontFamily: "DMSans-Bold", textTransform: "capitalize" }}>
+                                                    {payment.status || "Success"}
+                                                </Text>
+                                            </View>
+                                        </View>
+                                    ))}
                                 </View>
-                            </View>
-                        )}
-                    </View>
-                )}
+                            ) : (
+                                <View style={{ alignItems: "center", padding: 40, backgroundColor: colors.cardBackground, borderRadius: 24 }}>
+                                    <MaterialIcons name="receipt-long" size={48} color={colors.textSecondary + "40"} />
+                                    <Text style={{ color: colors.textSecondary, marginTop: 16, fontFamily: "DMSans-Medium" }}>No payment history found</Text>
+                                </View>
+                            )}
+                        </View>
+                    )}
+                </View>
 
                 {
                     activeTab === 'structure' && (
@@ -905,12 +736,12 @@ export default function AdminFeesScreen() {
                 {
                     activeTab === 'students' && (
                         <View style={{ padding: 16 }}>
-                            {/* Search Header */}
+                            {/* Search and Sort Header */}
                             <View style={{ flexDirection: "row", gap: 12, marginBottom: 16 }}>
                                 <TextInput
                                     value={studentSearchQuery}
                                     onChangeText={setStudentSearchQuery}
-                                    placeholder="Search students..."
+                                    placeholder="Search by name, class..."
                                     placeholderTextColor={colors.textSecondary}
                                     style={{
                                         flex: 1,
@@ -921,23 +752,53 @@ export default function AdminFeesScreen() {
                                         fontFamily: "DMSans-Medium"
                                     }}
                                 />
-                                <View style={{
-                                    backgroundColor: colors.primary,
-                                    width: 48,
-                                    height: 48,
-                                    borderRadius: 12,
-                                    justifyContent: "center",
-                                    alignItems: "center"
-                                }}>
-                                    <MaterialIcons name="search" size={24} color="#fff" />
-                                </View>
+                                <Pressable
+                                    onPress={() => {
+                                        setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+                                        if (sortBy !== 'className') setSortBy('className');
+                                    }}
+                                    style={{
+                                        backgroundColor: sortBy === 'className' ? colors.primary + "20" : colors.cardBackground,
+                                        paddingHorizontal: 16,
+                                        borderRadius: 12,
+                                        justifyContent: "center",
+                                        alignItems: "center",
+                                        flexDirection: "row",
+                                        gap: 4
+                                    }}
+                                >
+                                    <Text style={{ fontFamily: "DMSans-Medium", color: sortBy === 'className' ? colors.primary : colors.textSecondary }}>Class</Text>
+                                    {sortBy === 'className' && (
+                                        <MaterialIcons name={sortOrder === 'asc' ? "arrow-drop-up" : "arrow-drop-down"} size={20} color={colors.primary} />
+                                    )}
+                                </Pressable>
+                            </View>
+
+                            {/* Table Header */}
+                            <View style={{ flexDirection: "row", paddingVertical: 12, paddingHorizontal: 16, backgroundColor: colors.primary + "10", borderRadius: 12, marginBottom: 8 }}>
+                                <Text style={{ flex: 2, fontFamily: "DMSans-Bold", color: colors.primary, fontSize: 13 }}>Student</Text>
+                                <Text style={{ flex: 1.5, fontFamily: "DMSans-Bold", color: colors.primary, fontSize: 13, textAlign: "center" }}>Class</Text>
+                                <Text style={{ flex: 1.5, fontFamily: "DMSans-Bold", color: colors.primary, fontSize: 13, textAlign: "right" }}>Pending</Text>
                             </View>
 
                             {studentsLoading ? (
                                 <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 40 }} />
                             ) : (
                                 <FlatList
-                                    data={allStudents.filter(s => s.name.toLowerCase().includes(studentSearchQuery.toLowerCase()))}
+                                    data={allStudents
+                                        .filter(s =>
+                                            s.name.toLowerCase().includes(studentSearchQuery.toLowerCase()) ||
+                                            (s.className && s.className.toLowerCase().includes(studentSearchQuery.toLowerCase()))
+                                        )
+                                        .sort((a, b) => {
+                                            if (sortBy === 'className') {
+                                                const classA = a.className || '';
+                                                const classB = b.className || '';
+                                                return sortOrder === 'asc' ? classA.localeCompare(classB) : classB.localeCompare(classA);
+                                            }
+                                            return 0; // Default sort order (usually by name from backend or fetch order)
+                                        })
+                                    }
                                     scrollEnabled={false}
                                     keyExtractor={(item) => item._id}
                                     contentContainerStyle={{ paddingBottom: 20 }}
@@ -945,35 +806,44 @@ export default function AdminFeesScreen() {
                                         <Pressable
                                             onPress={() => {
                                                 setSelectedStudent(item);
-                                                setActiveTab('collect');
+                                                // We might need to fetch full details here if summary is not enough, 
+                                                // but for now relying on the same logic as before which calls useApiQuery when selectedStudent is set.
                                             }}
                                             style={{
                                                 backgroundColor: colors.cardBackground,
-                                                padding: 16,
-                                                borderRadius: 16,
-                                                marginBottom: 12,
+                                                paddingVertical: 14,
+                                                paddingHorizontal: 16,
+                                                borderRadius: 12,
+                                                marginBottom: 8,
                                                 flexDirection: "row",
                                                 alignItems: "center",
-                                                justifyContent: "space-between",
-                                                shadowColor: "#000",
-                                                shadowOffset: { width: 0, height: 2 },
-                                                shadowOpacity: 0.05,
-                                                shadowRadius: 8,
-                                                elevation: 2
+                                                borderWidth: 1,
+                                                borderColor: colors.textSecondary + "10"
                                             }}
                                         >
-                                            <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                                                <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: colors.primary + "10", justifyContent: "center", alignItems: "center" }}>
-                                                    <Text style={{ fontFamily: "DMSans-Bold", color: colors.primary, fontSize: 18 }}>
-                                                        {item.name.charAt(0)}
+                                            <View style={{ flex: 2 }}>
+                                                <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary, fontSize: 14 }}>{item.name}</Text>
+                                                <Text style={{ color: colors.textSecondary, fontSize: 11 }}>{item.rollNo ? `Roll: ${item.rollNo}` : ''}</Text>
+                                            </View>
+                                            <View style={{ flex: 1.5, alignItems: "center" }}>
+                                                <View style={{ backgroundColor: colors.background, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 }}>
+                                                    <Text style={{ fontFamily: "DMSans-Medium", color: colors.textSecondary, fontSize: 12 }}>
+                                                        {item.className} {item.section ? `- ${item.section}` : ''}
                                                     </Text>
                                                 </View>
-                                                <View>
-                                                    <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary, fontSize: 16 }}>{item.name}</Text>
-                                                    <Text style={{ color: colors.textSecondary, fontSize: 13 }}>{item.phone}</Text>
-                                                </View>
                                             </View>
-                                            <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
+                                            <View style={{ flex: 1.5, alignItems: "flex-end" }}>
+                                                <Text style={{
+                                                    fontFamily: "DMSans-Bold",
+                                                    fontSize: 14,
+                                                    color: item.pendingAmount > 0 ? colors.error : colors.success
+                                                }}>
+                                                    ₹{item.pendingAmount || 0}
+                                                </Text>
+                                                {item.pendingAmount > 0 && (
+                                                    <Text style={{ color: colors.error, fontSize: 10 }}>Due</Text>
+                                                )}
+                                            </View>
                                         </Pressable>
                                     )}
                                     ListEmptyComponent={() => (

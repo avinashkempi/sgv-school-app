@@ -86,7 +86,7 @@ export default function HomeScreen() {
       <View style={{ marginBottom: 16 }}>
         {userData?.role === 'admin' || userData?.role === 'super admin' ? (
           <AdminDashboard />
-        ) : userData?.role === 'teacher' || userData?.role === 'class teacher' ? (
+        ) : userData?.role === 'teacher' ? (
           <TeacherDashboard />
         ) : userData?.role === 'student' ? (
           <StudentDashboard />

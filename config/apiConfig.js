@@ -18,13 +18,6 @@ const endpoints = {
     update: (id) => `/events/${id}`,
     delete: (id) => `/events/${id}`,
   },
-  news: {
-    list: '/news',
-    create: '/news',
-    getById: (id) => `/news/${id}`,
-    update: (id) => `/news/${id}`,
-    delete: (id) => `/news/${id}`,
-  },
   schoolInfo: {
     get: '/school-info',
   },

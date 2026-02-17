@@ -29,6 +29,7 @@ export default function GiveFeedbackScreen() {
     const [selectedClass, setSelectedClass] = useState(null);
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [selectedSubject, setSelectedSubject] = useState(null);
+    const [userRole, setUserRole] = useState(null);
 
     // Filtered data states
     const [availableSubjects, setAvailableSubjects] = useState([]);
@@ -40,17 +41,41 @@ export default function GiveFeedbackScreen() {
     const [classSearch, setClassSearch] = useState("");
     const [studentSearch, setStudentSearch] = useState("");
 
-    // Fetch Teacher's Classes and Subjects
-    const { data: teacherData, isLoading: loadingClasses } = useApiQuery(
+    useEffect(() => {
+        const loadRole = async () => {
+            const userStr = await storage.getItem("@auth_user");
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                setUserRole(user.role);
+            }
+        };
+        loadRole();
+    }, []);
+
+    const isAdmin = userRole === 'admin' || userRole === 'super admin';
+
+    // Fetch Teacher's Classes and Subjects (for teachers)
+    const { data: teacherData, isLoading: loadingTeacherClasses } = useApiQuery(
         ['myClassesAndSubjects'],
-        `${apiConfig.baseUrl}/teachers/my-classes-and-subjects`
+        `${apiConfig.baseUrl}/teachers/my-classes-and-subjects`,
+        { enabled: userRole === 'teacher' }
     );
 
-    // Initial Processing of Teacher Data
-    const classes = teacherData ? [
-        ...(teacherData.asClassTeacher || []).map(c => ({ ...c, role: 'class_teacher' })),
-        ...(teacherData.asSubjectTeacher || []).map(c => ({ ...c, role: 'subject_teacher' }))
-    ] : [];
+    // Fetch All Classes (for admins)
+    const { data: allClassesData, isLoading: loadingAllClasses } = useApiQuery(
+        ['allClassesForFeedback'],
+        `${apiConfig.baseUrl}/classes`,
+        { enabled: isAdmin }
+    );
+
+    const loadingClasses = loadingTeacherClasses || loadingAllClasses;
+
+    // Build classes list based on role
+    const classes = isAdmin
+        ? (allClassesData || []).map(c => ({ ...c, role: 'admin' }))
+        : teacherData ? [
+            ...(teacherData.asClassTeacher || []).map(c => ({ ...c, role: 'class_teacher' })),
+        ] : [];
 
     // Fetch Students when Class is Selected
     const { data: studentsData, isFetching: loadingStudents } = useApiQuery(
@@ -71,24 +96,15 @@ export default function GiveFeedbackScreen() {
         setSelectedSubject(null);
         setAvailableStudents([]);
 
-        // Determine available subjects based on role
-        if (cls.role === 'class_teacher') {
-            // Class teachers can give general feedback (null subject) OR specific subject feedback if they teach it
-            // We can populate 'mySubjects' from the payload if existed or fetch. 
-            // The API response structure for asClassTeacher has `mySubjects: ['Math']` (names only).
-            // We need IDs. We can look at `allMySubjects` from the API response
-            const mySubjectsInThisClass = teacherData.allMySubjects.filter(
+        // Admins can give general feedback to any class
+        if (isAdmin) {
+            setAvailableSubjects([]);
+        } else if (cls.role === 'class_teacher') {
+            // Class teachers can give general feedback OR specific subject feedback
+            const mySubjectsInThisClass = teacherData.allMySubjects?.filter(
                 s => s.class._id === cls._id
-            );
+            ) || [];
             setAvailableSubjects(mySubjectsInThisClass);
-        } else {
-            // Subject teacher MUST select a subject they teach in this class
-            // teacherData.asSubjectTeacher has `subjects` array with { _id, name }
-            setAvailableSubjects(cls.subjects || []);
-            // Auto-select if only one subject
-            if (cls.subjects && cls.subjects.length === 1) {
-                setSelectedSubject(cls.subjects[0]);
-            }
         }
         setShowClassModal(false);
     };
@@ -116,11 +132,13 @@ export default function GiveFeedbackScreen() {
             return;
         }
 
-        submitMutation.mutate({
+        const payload = {
             studentId: selectedStudent._id,
             message,
-            subjectId: selectedSubject?._id
-        });
+        };
+        if (selectedSubject) payload.subjectId = selectedSubject._id;
+
+        submitMutation.mutate(payload);
     };
 
     const filteredClasses = classes.filter(c =>
@@ -160,7 +178,9 @@ export default function GiveFeedbackScreen() {
                             fontFamily: selectedClass ? "DMSans-SemiBold" : "DMSans-Regular",
                             fontSize: 16
                         }}>
-                            {selectedClass ? `${selectedClass.name} ${selectedClass.section || ""} (${selectedClass.role === 'class_teacher' ? 'Class Teacher' : 'Subject Teacher'})` : "Select Class"}
+                            {selectedClass
+                                ? `${selectedClass.name} ${selectedClass.section || ""}${selectedClass.role === 'admin' ? '' : ' (Class Teacher)'}`
+                                : "Select Class"}
                         </Text>
                         <MaterialIcons name="arrow-drop-down" size={24} color={colors.textSecondary} />
                     </Pressable>
@@ -349,7 +369,7 @@ export default function GiveFeedbackScreen() {
                                                 {cls.name} {cls.section}
                                             </Text>
                                             <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 4 }}>
-                                                {cls.role === 'class_teacher' ? 'Class Teacher' : 'Subject Teacher'}
+                                                {cls.role === 'admin' ? `${cls.students?.length || ''} students` : 'Class Teacher'}
                                             </Text>
                                         </View>
                                         {selectedClass?._id === cls._id && selectedClass?.role === cls.role && (

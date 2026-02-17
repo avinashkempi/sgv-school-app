@@ -10,7 +10,8 @@ import {
     TextInput,
     Alert,
     ActionSheetIOS,
-    Platform
+    Platform,
+    ScrollView
 } from "react-native";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -21,6 +22,7 @@ import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/us
 import { useQueryClient } from "@tanstack/react-query";
 import Header from "../../components/Header";
 import { useToast } from "../../components/ToastProvider";
+
 
 export default function ComplaintsScreen() {
     const router = useRouter();
@@ -37,6 +39,7 @@ export default function ComplaintsScreen() {
     const [refreshing, setRefreshing] = useState(false);
     const [userRole, setUserRole] = useState(null);
     const [userId, setUserId] = useState(null); // Need userId for permission checks locally if needed
+    const [isClassTeacher, setIsClassTeacher] = useState(false);
 
     // Edit State
     const [editingFeedback, setEditingFeedback] = useState(null);
@@ -58,23 +61,33 @@ export default function ComplaintsScreen() {
     }, []);
 
     const checkUserRole = async () => {
-        const role = await storage.getItem("userRole");
         const userStr = await storage.getItem("@auth_user");
         if (userStr) {
             const user = JSON.parse(userStr);
             setUserId(user._id || user.id);
+            const role = user.role;
+            setUserRole(role);
+
+            // Set default tab based on role
+            const normalizedRole = role === 'super admin' ? 'super admin' : role;
+            if (normalizedRole === 'student') setActiveTab('my_complaints');
+            else if (normalizedRole === 'teacher') setActiveTab('my_complaints');
+            else setActiveTab('inbox');
         }
-
-        setUserRole(role);
-
-        // Normalize role for comparisons
-        const normalizedRole = role === 'super admin' ? 'super admin' : role;
-
-        // Set default tab based on role
-        if (normalizedRole === 'student') setActiveTab('my_complaints');
-        else if (normalizedRole === 'teacher') setActiveTab('my_complaints');
-        else setActiveTab('inbox');
     };
+
+    // Check if teacher is a class teacher (for FAB visibility)
+    const { data: teacherClassData } = useApiQuery(
+        ['myClassesForFeedback'],
+        `${apiConfig.baseUrl}/teachers/my-classes-and-subjects`,
+        { enabled: userRole === 'teacher' }
+    );
+
+    useEffect(() => {
+        if (teacherClassData?.asClassTeacher?.length > 0) {
+            setIsClassTeacher(true);
+        }
+    }, [teacherClassData]);
 
     // Determine API Endpoint based on Tab
     const getApiEndpoint = () => {
@@ -330,12 +343,12 @@ export default function ComplaintsScreen() {
 
     return (
         <View style={styles.container}>
-            <View style={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 10 }}>
+            <View style={{ paddingTop: 4, paddingBottom: 10 }}>
                 <Header title="Complaints & Feedback" subtitle="Issues & Performance" showBack />
             </View>
 
             {/* Role-Based Tabs */}
-            <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+            <View style={{ marginBottom: 16 }}>
                 <View style={{ flexDirection: "row", backgroundColor: colors.cardBackground, borderRadius: 12, padding: 4 }}>
                     {userRole === 'student' && (
                         <>
@@ -360,7 +373,7 @@ export default function ComplaintsScreen() {
 
             {/* Admin Filter Options */}
             {activeTab === 'inbox' && (userRole === 'admin' || userRole === 'super admin') && (
-                <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+                <View style={{ marginBottom: 16 }}>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                         <View style={{ flexDirection: "row", gap: 8 }}>
                             {['All', 'Pending', 'In Progress', 'Resolved'].map(f => (
@@ -404,13 +417,30 @@ export default function ComplaintsScreen() {
                         return renderComplaintItem(item);
                     }}
                     keyExtractor={item => item._id}
-                    contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}
+                    contentContainerStyle={{ paddingBottom: 100 }}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
                     ListEmptyComponent={() => (
-                        <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
+                        <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6, paddingHorizontal: 20 }}>
                             <MaterialIcons name={activeTab.includes('feedback') ? "rate-review" : "inbox"} size={48} color={colors.textSecondary} />
-                            <Text style={{ color: colors.textSecondary, marginTop: 16, fontFamily: "DMSans-Medium", fontSize: 16 }}>
-                                No items found
+                            <Text style={{ color: colors.textSecondary, marginTop: 16, fontFamily: "DMSans-Bold", fontSize: 16 }}>
+                                {activeTab === 'my_complaints' ? "No Complaints Raised"
+                                    : activeTab === 'teacher_feedback' ? "No Feedback Yet"
+                                        : activeTab === 'sent_feedback' ? "No Feedback Sent"
+                                            : activeTab === 'inbox' ? "Inbox Empty"
+                                                : "No Items Found"}
+                            </Text>
+                            <Text style={{ color: colors.textSecondary, marginTop: 8, fontFamily: "DMSans-Regular", fontSize: 13, textAlign: "center" }}>
+                                {activeTab === 'my_complaints' && userRole === 'student'
+                                    ? "You haven't raised any complaints. Tap the + button to raise one."
+                                    : activeTab === 'teacher_feedback'
+                                        ? "Your teachers haven't given you any feedback yet."
+                                        : activeTab === 'my_complaints' && userRole === 'teacher'
+                                            ? "You haven't raised any complaints. Tap the + button to raise one."
+                                            : activeTab === 'sent_feedback'
+                                                ? "You haven't given feedback to any students yet."
+                                                : activeTab === 'inbox'
+                                                    ? "No complaints have been received."
+                                                    : ""}
                             </Text>
                         </View>
                     )}
@@ -431,15 +461,17 @@ export default function ComplaintsScreen() {
                 <>
                     {showFabOptions && (
                         <View style={{ position: "absolute", bottom: 140, right: 24, alignItems: "flex-end", gap: 12, zIndex: 10 }}>
-                            <Pressable
-                                onPress={() => { setShowFabOptions(false); router.push("/complaints/give-feedback"); }}
-                                style={secondaryFabStyle(colors)}
-                            >
-                                <Text style={{ fontFamily: "DMSans-Bold", color: "#fff", marginRight: 8 }}>Give Feedback</Text>
-                                <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" }}>
-                                    <MaterialIcons name="rate-review" size={20} color={colors.primary} />
-                                </View>
-                            </Pressable>
+                            {isClassTeacher && (
+                                <Pressable
+                                    onPress={() => { setShowFabOptions(false); router.push("/complaints/give-feedback"); }}
+                                    style={secondaryFabStyle(colors)}
+                                >
+                                    <Text style={{ fontFamily: "DMSans-Bold", color: "#fff", marginRight: 8 }}>Give Feedback</Text>
+                                    <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" }}>
+                                        <MaterialIcons name="rate-review" size={20} color={colors.primary} />
+                                    </View>
+                                </Pressable>
+                            )}
                             <Pressable
                                 onPress={() => { setShowFabOptions(false); router.push("/complaints/raise"); }}
                                 style={secondaryFabStyle(colors)}
@@ -452,12 +484,27 @@ export default function ComplaintsScreen() {
                         </View>
                     )}
                     <Pressable
-                        onPress={() => setShowFabOptions(!showFabOptions)}
+                        onPress={() => {
+                            if (isClassTeacher) {
+                                setShowFabOptions(!showFabOptions);
+                            } else {
+                                router.push("/complaints/raise");
+                            }
+                        }}
                         style={fabStyle(colors)}
                     >
                         <MaterialIcons name={showFabOptions ? "close" : "add"} size={24} color="#fff" />
                     </Pressable>
                 </>
+            )}
+
+            {(userRole === 'admin' || userRole === 'super admin') && (
+                <Pressable
+                    onPress={() => router.push("/complaints/give-feedback")}
+                    style={fabStyle(colors)}
+                >
+                    <MaterialIcons name="rate-review" size={24} color="#fff" />
+                </Pressable>
             )}
 
             {/* Overlay for FAB Options */}

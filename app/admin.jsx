@@ -54,7 +54,7 @@ export default function AdminScreen() {
   const [touched, setTouched] = useState({});
   const [showPassword, setShowPassword] = useState(false);
 
-  const availableRoles = ["student", "teacher", "class teacher", "staff", "admin", "super admin"];
+  const availableRoles = ["student", "teacher", "staff", "admin", "super admin"];
 
   // Check Auth & Admin
   const { data: userData, isLoading: userLoading, error: userError } = useApiQuery(
@@ -136,7 +136,6 @@ export default function AdminScreen() {
         return colors.roleAdmin;
       case "staff":
         return colors.roleStaff;
-      case "class teacher":
       case "teacher":
         return colors.roleClassTeacher;
       case "student":
@@ -147,7 +146,14 @@ export default function AdminScreen() {
   };
 
   const handleChange = (field, value) => {
-    setUserForm(prev => ({ ...prev, [field]: value }));
+    setUserForm(prev => {
+      const updates = { [field]: value };
+      if (field === 'phone' && modalMode === 'add') {
+        // Auto-set password to phone@123
+        updates.password = `${value}@123`;
+      }
+      return { ...prev, ...updates };
+    });
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: null }));
     }
@@ -253,6 +259,12 @@ export default function AdminScreen() {
                   color="#E91E63"
                   onPress={() => router.push("/admin/exam-schedule")}
                 />
+                <MenuCard
+                  title="Exam Analytics"
+                  icon="analytics"
+                  color="#9C27B0"
+                  onPress={() => router.push("/admin/exam-analytics")}
+                />
               </View>
             </View>
 
@@ -292,20 +304,7 @@ export default function AdminScreen() {
               </View>
             </View>
 
-            {/* Reports Section */}
-            <View>
-              <Text style={styles.sectionTitle}>
-                Reports
-              </Text>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
-                <MenuCard
-                  title="History"
-                  icon="history"
-                  color="#795548"
-                  onPress={() => router.push("/history")}
-                />
-              </View>
-            </View>
+
           </View>
 
           {/* User Management Section */}
@@ -495,8 +494,8 @@ export default function AdminScreen() {
                     >
                       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                         <View style={{ flex: 1, marginRight: 12 }}>
-                          <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
-                            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginRight: 8 }}>
+                          <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6, flexWrap: "wrap", gap: 8 }}>
+                            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
                               {userItem.name}
                             </Text>
                             <View
@@ -545,7 +544,30 @@ export default function AdminScreen() {
                             onPress={() => {
                               setModalMode("edit");
                               setEditingUser(userItem);
-                              setUserForm({ name: userItem.name, phone: userItem.phone, email: userItem.email, password: "", role: userItem.role });
+                              setUserForm({
+                                name: userItem.name,
+                                phone: userItem.phone,
+                                email: userItem.email || "",
+                                password: "",
+                                role: userItem.role,
+                                // Student
+                                gender: userItem.gender || "",
+                                bloodGroup: userItem.bloodGroup || "",
+                                dateOfBirth: userItem.dateOfBirth ? userItem.dateOfBirth.split('T')[0] : "",
+                                address: userItem.address || "",
+                                guardianName: userItem.guardianName || "",
+                                guardianPhone: userItem.guardianPhone || "",
+                                phone2: userItem.phone2 || "",
+                                regNo: userItem.regNo || "",
+                                satsNumber: userItem.satsNumber || "",
+                                penNumber: userItem.penNumber || "",
+                                apaarId: userItem.apaarId || "",
+                                admissionDate: userItem.admissionDate ? userItem.admissionDate.split('T')[0] : "",
+                                isAdmitted: userItem.isAdmitted !== undefined ? userItem.isAdmitted : true,
+                                // Teacher
+                                designation: userItem.designation || "",
+                                joiningDate: userItem.joiningDate ? userItem.joiningDate.split('T')[0] : ""
+                              });
                               setShowUserModal(true);
                             }}
                             style={({ pressed }) => ({
@@ -686,7 +708,7 @@ export default function AdminScreen() {
                   <View style={{ marginBottom: 20 }}>
                     <Text style={[styles.label, { marginBottom: 8 }]}>PHONE</Text>
                     <TextInput
-                      style={styles.input}
+                      style={[styles.input, modalMode === 'edit' && { backgroundColor: colors.surfaceVariant, opacity: 0.7 }]}
                       placeholder="Enter phone number"
                       placeholderTextColor={colors.textSecondary}
                       value={userForm.phone}
@@ -694,9 +716,15 @@ export default function AdminScreen() {
                       onBlur={() => handleBlur("phone")}
                       keyboardType="phone-pad"
                       maxLength={10}
+                      editable={modalMode === 'add'}
                     />
                     {errors.phone && touched.phone && (
                       <Text style={styles.errorText}>{errors.phone}</Text>
+                    )}
+                    {modalMode === 'edit' && (
+                      <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 4 }}>
+                        Phone number cannot be changed.
+                      </Text>
                     )}
                   </View>
 
@@ -781,8 +809,72 @@ export default function AdminScreen() {
                   </View>
 
                   {/* Student Specific Fields */}
+                  {/* Student Specific Fields */}
                   {userForm.role === "student" && (
                     <>
+                      <Text style={[styles.sectionTitle, { fontSize: 16, marginBottom: 16, marginTop: 8 }]}>Personal Details</Text>
+
+                      {/* Gender & Blood Group Row */}
+                      <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={[styles.label, { marginBottom: 8 }]}>GENDER</Text>
+                          <View style={{ flexDirection: 'row', gap: 8 }}>
+                            {['Boy', 'Girl', 'Other'].map(g => (
+                              <Pressable
+                                key={g}
+                                onPress={() => handleChange('gender', g)}
+                                style={{
+                                  paddingHorizontal: 12,
+                                  paddingVertical: 8,
+                                  backgroundColor: userForm.gender === g ? colors.primary : colors.background,
+                                  borderRadius: 8,
+                                  borderWidth: 1,
+                                  borderColor: userForm.gender === g ? colors.primary : colors.border
+                                }}
+                              >
+                                <Text style={{ color: userForm.gender === g ? '#fff' : colors.textPrimary, fontSize: 12 }}>{g}</Text>
+                              </Pressable>
+                            ))}
+                          </View>
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={[styles.label, { marginBottom: 8 }]}>BLOOD GROUP</Text>
+                          <TextInput
+                            style={styles.input}
+                            placeholder="e.g. O+"
+                            placeholderTextColor={colors.textSecondary}
+                            value={userForm.bloodGroup}
+                            onChangeText={(text) => handleChange("bloodGroup", text)}
+                          />
+                        </View>
+                      </View>
+
+                      <View style={{ marginBottom: 20 }}>
+                        <Text style={[styles.label, { marginBottom: 8 }]}>DATE OF BIRTH (YYYY-MM-DD)</Text>
+                        <TextInput
+                          style={styles.input}
+                          placeholder="YYYY-MM-DD"
+                          placeholderTextColor={colors.textSecondary}
+                          value={userForm.dateOfBirth}
+                          onChangeText={(text) => handleChange("dateOfBirth", text)}
+                        />
+                      </View>
+
+                      <View style={{ marginBottom: 20 }}>
+                        <Text style={[styles.label, { marginBottom: 8 }]}>ADDRESS</Text>
+                        <TextInput
+                          style={[styles.input, { height: 80, textAlignVertical: 'top', paddingTop: 12 }]}
+                          placeholder="Full address"
+                          placeholderTextColor={colors.textSecondary}
+                          value={userForm.address}
+                          onChangeText={(text) => handleChange("address", text)}
+                          multiline
+                          numberOfLines={3}
+                        />
+                      </View>
+
+                      <Text style={[styles.sectionTitle, { fontSize: 16, marginBottom: 16, marginTop: 8 }]}>Guardian & Contact</Text>
+
                       <View style={{ marginBottom: 20 }}>
                         <Text style={[styles.label, { marginBottom: 8 }]}>GUARDIAN NAME</Text>
                         <TextInput
@@ -805,11 +897,89 @@ export default function AdminScreen() {
                           maxLength={10}
                         />
                       </View>
+                      <View style={{ marginBottom: 20 }}>
+                        <Text style={[styles.label, { marginBottom: 8 }]}>SECONDARY PHONE</Text>
+                        <TextInput
+                          style={styles.input}
+                          placeholder="Alt phone (optional)"
+                          placeholderTextColor={colors.textSecondary}
+                          value={userForm.phone2}
+                          onChangeText={(text) => handleChange("phone2", text)}
+                          keyboardType="phone-pad"
+                          maxLength={10}
+                        />
+                      </View>
+
+                      <Text style={[styles.sectionTitle, { fontSize: 16, marginBottom: 16, marginTop: 8 }]}>Academic & IDs</Text>
+
+                      <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={[styles.label, { marginBottom: 8 }]}>REG NO</Text>
+                          <TextInput
+                            style={styles.input}
+                            value={userForm.regNo}
+                            onChangeText={(text) => handleChange("regNo", text)}
+                          />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={[styles.label, { marginBottom: 8 }]}>SATS NO</Text>
+                          <TextInput
+                            style={styles.input}
+                            value={userForm.satsNumber}
+                            onChangeText={(text) => handleChange("satsNumber", text)}
+                          />
+                        </View>
+                      </View>
+
+                      <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={[styles.label, { marginBottom: 8 }]}>PEN NO</Text>
+                          <TextInput
+                            style={styles.input}
+                            value={userForm.penNumber}
+                            onChangeText={(text) => handleChange("penNumber", text)}
+                          />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={[styles.label, { marginBottom: 8 }]}>APAAR ID</Text>
+                          <TextInput
+                            style={styles.input}
+                            value={userForm.apaarId}
+                            onChangeText={(text) => handleChange("apaarId", text)}
+                          />
+                        </View>
+                      </View>
+
+                      <View style={{ marginBottom: 20 }}>
+                        <Text style={[styles.label, { marginBottom: 8 }]}>ADMISSION DATE</Text>
+                        <TextInput
+                          style={styles.input}
+                          placeholder="YYYY-MM-DD"
+                          placeholderTextColor={colors.textSecondary}
+                          value={userForm.admissionDate}
+                          onChangeText={(text) => handleChange("admissionDate", text)}
+                        />
+                      </View>
+
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20, justifyContent: 'space-between' }}>
+                        <Text style={styles.label}>IS ADMITTED (ACTIVE)</Text>
+                        <Pressable
+                          onPress={() => handleChange('isAdmitted', !userForm.isAdmitted)}
+                          style={{
+                            width: 50, height: 30, borderRadius: 15,
+                            backgroundColor: userForm.isAdmitted !== false ? colors.success : colors.textSecondary + '40',
+                            justifyContent: 'center', alignItems: userForm.isAdmitted !== false ? 'flex-end' : 'flex-start',
+                            paddingHorizontal: 4
+                          }}
+                        >
+                          <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#fff' }} />
+                        </Pressable>
+                      </View>
                     </>
                   )}
 
                   {/* Teacher Specific Fields */}
-                  {(userForm.role === "class teacher" || userForm.role === "staff") && (
+                  {(userForm.role === "teacher" || userForm.role === "staff") && (
                     <>
                       <View style={{ marginBottom: 20 }}>
                         <Text style={[styles.label, { marginBottom: 8 }]}>DESIGNATION</Text>

@@ -33,12 +33,12 @@ export default function RequestsScreen() {
         }
     };
 
-    // Fetch Teacher Classes (for teachers/class teachers)
+    // Fetch Teacher Classes (for teachers)
     const { data: teacherClassesData, refetch: refetchClasses } = useApiQuery(
         ['teacherClasses'],
         `${apiConfig.baseUrl}/classes/my-classes`,
         {
-            enabled: !!(user && (user.role === 'teacher' || user.role === 'class teacher'))
+            enabled: !!(user && user.role === 'teacher')
         }
     );
 
@@ -47,7 +47,7 @@ export default function RequestsScreen() {
     const onRefresh = async () => {
         setRefreshing(true);
         await loadUser();
-        if (user && (user.role === 'teacher' || user.role === 'class teacher')) {
+        if (user && user.role === 'teacher') {
             await refetchClasses();
         }
         setRefreshing(false);
@@ -56,7 +56,7 @@ export default function RequestsScreen() {
     const navigateToLeaves = () => {
         if (user?.role === 'student') {
             router.push('/student/leaves');
-        } else if (user?.role === 'class teacher' || user?.role === 'staff' || user?.role === 'teacher') {
+        } else if (user?.role === 'staff' || user?.role === 'teacher') {
             router.push('/teacher/leaves');
         } else if (user?.role === 'admin' || user?.role === 'super admin') {
             router.push('/admin/leaves');
@@ -66,7 +66,7 @@ export default function RequestsScreen() {
     const navigateToMyAttendance = () => {
         if (user?.role === 'student') {
             router.push(`/student/attendance`);
-        } else if (user?.role === 'teacher' || user?.role === 'class teacher' || user?.role === 'staff') {
+        } else if (user?.role === 'teacher' || user?.role === 'staff') {
             router.push('/teacher/attendance');
         } else if (user?.role === 'admin' || user?.role === 'super admin') {
             router.push('/admin/attendance?tab=my_attendance');
@@ -74,7 +74,7 @@ export default function RequestsScreen() {
     };
 
     const navigateToMarkAttendance = () => {
-        if (user?.role === 'teacher' || user?.role === 'class teacher') {
+        if (user?.role === 'teacher') {
             if (teacherClasses.length === 1) {
                 // If only one class, go directly to attendance marking
                 router.push({
@@ -153,7 +153,7 @@ export default function RequestsScreen() {
                     })}
 
                     {/* Mark Attendance Card - For Teachers & Admins */}
-                    {['teacher', 'class teacher', 'admin', 'super admin'].includes(user?.role) && renderActionItem({
+                    {['teacher', 'admin', 'super admin'].includes(user?.role) && renderActionItem({
                         title: "Mark Attendance",
                         subtitle: user?.role === 'admin' || user?.role === 'super admin'
                             ? 'Mark staff and student attendance'

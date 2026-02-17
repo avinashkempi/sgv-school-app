@@ -46,7 +46,7 @@ function BottomNavigation() {
       icon: "school",
       inactiveIcon: "school", // outlined version if available
     }] : []),
-    ...(user && (user.role === 'class teacher' || user.role === 'teacher' || user.role === 'staff') ? [{
+    ...(user && (user.role === 'teacher' || user.role === 'staff') ? [{
       route: ROUTES.TEACHER_CLASSES,
       label: "Teach",
       icon: "school",
@@ -63,7 +63,7 @@ function BottomNavigation() {
       icon: "class",
       inactiveIcon: "class",
     }] : []),
-    ...(user && (user.role === 'student' || user.role === 'class teacher' || user.role === 'teacher' || user.role === 'staff' || user.role === 'admin' || user.role === 'super admin') ? [{
+    ...(user && (user.role === 'student' || user.role === 'teacher' || user.role === 'staff' || user.role === 'admin' || user.role === 'super admin') ? [{
       route: "/requests",
       label: "Requests",
       icon: "assignment",

@@ -57,7 +57,7 @@ export default function SubjectsScreen() {
             }));
             return classesWithSubjects;
         },
-        enabled: !!(user && (user.role === 'class teacher' || user.role === 'staff' || user.role === 'teacher'))
+        enabled: !!(user && (user.role === 'staff' || user.role === 'teacher'))
     });
 
     const loading = loadingUser || (user?.role === 'student' ? loadingStudent : loadingTeacher);
@@ -67,7 +67,7 @@ export default function SubjectsScreen() {
     const onRefresh = async () => {
         setRefreshing(true);
         if (user?.role === 'student') await refetchStudent();
-        else if (user?.role === 'class teacher' || user?.role === 'staff' || user?.role === 'teacher') await refetchTeacher();
+        else if (user?.role === 'staff' || user?.role === 'teacher') await refetchTeacher();
         else await refetch();
         setRefreshing(false);
     };

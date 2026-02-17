@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
     View,
     Text,
@@ -6,7 +6,8 @@ import {
     RefreshControl,
     Dimensions,
     TouchableOpacity,
-    ActivityIndicator
+    ActivityIndicator,
+    Animated
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import storage from "../../utils/storage";
@@ -21,13 +22,53 @@ import Card from "../../components/Card";
 
 const { width } = Dimensions.get('window');
 
+// Animated counter component
+function AnimatedPercentage({ value, color, fontSize = 64 }) {
+    const animValue = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        Animated.timing(animValue, {
+            toValue: parseFloat(value) || 0,
+            duration: 1200,
+            useNativeDriver: false,
+        }).start();
+    }, [value]);
+
+    const [displayValue, setDisplayValue] = useState('0');
+
+    useEffect(() => {
+        const listener = animValue.addListener(({ value: v }) => {
+            setDisplayValue(v.toFixed(1));
+        });
+        return () => animValue.removeListener(listener);
+    }, []);
+
+    return (
+        <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
+            <Text style={{ fontSize, fontFamily: "DMSans-Bold", color, lineHeight: fontSize + 6 }}>
+                {displayValue}
+            </Text>
+            <Text style={{ fontSize: fontSize * 0.37, fontFamily: "DMSans-Bold", color, marginBottom: fontSize * 0.18, marginLeft: 4, opacity: 0.8 }}>
+                %
+            </Text>
+        </View>
+    );
+}
+
 export default function StudentReportCardScreen() {
     const _router = useRouter();
     const { _styles, colors } = useTheme();
 
     const [refreshing, setRefreshing] = useState(false);
     const [user, setUser] = useState(null);
-    const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'insights'
+    const [activeTab, setActiveTab] = useState('overview');
+
+    // Entrance animation
+    const heroAnim = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        Animated.spring(heroAnim, { toValue: 1, useNativeDriver: true, tension: 50, friction: 8 }).start();
+    }, []);
 
     useEffect(() => {
         const loadUser = async () => {
@@ -41,7 +82,7 @@ export default function StudentReportCardScreen() {
 
     const userId = user?.id || user?._id;
 
-    // Fetch Standardized Report Card
+    // Fetch Standardized Report Card (now includes classRank + totalInClass)
     const { data: reportCard, isLoading: _loading, refetch } = useApiQuery(
         ['studentReportCard', userId],
         `${apiConfig.baseUrl}/reports/student/${userId}`,
@@ -72,38 +113,86 @@ export default function StudentReportCardScreen() {
     const renderOverview = () => (
         <View>
             {/* Overall Stats Hero Card */}
-            <Card variant="elevated" style={{ marginTop: 20, padding: 0, overflow: 'hidden', borderBottomWidth: 0 }}>
-                <LinearGradient
-                    colors={[colors.onPrimaryContainer, colors.primary]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={{ padding: 24, alignItems: 'center' }}
-                >
-                    <Text style={{ fontSize: 13, color: colors.onPrimary, fontFamily: "DMSans-Medium", opacity: 0.8, textTransform: 'uppercase', letterSpacing: 1 }}>
-                        Overall Performance
-                    </Text>
-
-                    <View style={{ flexDirection: 'row', alignItems: 'flex-end', marginVertical: 8 }}>
-                        <Text style={{ fontSize: 64, fontFamily: "DMSans-Bold", color: colors.onPrimary, lineHeight: 70 }}>
-                            {reportCard?.overall?.percentage}
+            <Animated.View style={{
+                marginTop: 20,
+                borderRadius: 20,
+                overflow: 'hidden',
+                opacity: heroAnim,
+                transform: [{
+                    scale: heroAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0.95, 1]
+                    })
+                }]
+            }}>
+                <Card variant="elevated" style={{ padding: 0, overflow: 'hidden', borderBottomWidth: 0 }}>
+                    <LinearGradient
+                        colors={[colors.onPrimaryContainer, colors.primary]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={{ padding: 24, alignItems: 'center' }}
+                    >
+                        <Text style={{
+                            fontSize: 12,
+                            color: colors.onPrimary,
+                            fontFamily: "DMSans-Bold",
+                            opacity: 0.7,
+                            textTransform: 'uppercase',
+                            letterSpacing: 1.5,
+                            marginBottom: 4
+                        }}>
+                            Overall Performance
                         </Text>
-                        <Text style={{ fontSize: 24, fontFamily: "DMSans-Bold", color: colors.onPrimary, marginBottom: 12, marginLeft: 4, opacity: 0.8 }}>
-                            %
-                        </Text>
-                    </View>
 
-                    <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
-                        <View style={{ backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 100 }}>
-                            <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 14 }}>Grade {reportCard?.overall?.grade}</Text>
-                        </View>
-                        {reportCard?.overall?.classRank && (
-                            <View style={{ backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 100 }}>
-                                <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 14 }}>Rank {reportCard.overall.classRank}</Text>
+                        <AnimatedPercentage
+                            value={reportCard?.overall?.percentage}
+                            color={colors.onPrimary}
+                            fontSize={60}
+                        />
+
+                        <View style={{ flexDirection: 'row', gap: 10, marginTop: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+                            {/* Grade Badge */}
+                            <View style={{
+                                backgroundColor: 'rgba(255,255,255,0.2)',
+                                paddingHorizontal: 16,
+                                paddingVertical: 8,
+                                borderRadius: 100,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: 6
+                            }}>
+                                <MaterialIcons name="grade" size={16} color={colors.onPrimary} />
+                                <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 14 }}>
+                                    Grade {reportCard?.overall?.grade}
+                                </Text>
                             </View>
-                        )}
-                    </View>
-                </LinearGradient>
-            </Card>
+
+                            {/* Class Rank Badge */}
+                            {reportCard?.overall?.classRank && (
+                                <View style={{
+                                    backgroundColor: 'rgba(255,255,255,0.2)',
+                                    paddingHorizontal: 16,
+                                    paddingVertical: 8,
+                                    borderRadius: 100,
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    gap: 6
+                                }}>
+                                    <MaterialIcons name="emoji-events" size={16} color={colors.onPrimary} />
+                                    <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 14 }}>
+                                        Rank {reportCard.overall.classRank}
+                                        {reportCard.overall.totalInClass && (
+                                            <Text style={{ opacity: 0.7, fontFamily: "DMSans-Medium" }}>
+                                                {' '}/ {reportCard.overall.totalInClass}
+                                            </Text>
+                                        )}
+                                    </Text>
+                                </View>
+                            )}
+                        </View>
+                    </LinearGradient>
+                </Card>
+            </Animated.View>
 
             {/* Exam Wise Summary */}
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 32, marginBottom: 16, paddingHorizontal: 4 }}>
@@ -121,9 +210,7 @@ export default function StudentReportCardScreen() {
                 <Card
                     key={exam.examType}
                     variant={exam.isCompleted ? "elevated" : "filled"}
-                    style={{
-                        marginBottom: 16,
-                    }}
+                    style={{ marginBottom: 16 }}
                     contentStyle={{ padding: 20 }}
                 >
                     <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
@@ -139,7 +226,7 @@ export default function StudentReportCardScreen() {
                             </View>
                         </View>
                         {exam.isCompleted && (
-                            <View style={{ backgroundColor: getGradeColor(exam.grade) + '15', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 }}>
+                            <View style={{ backgroundColor: getGradeColor(exam.grade) + '15', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12 }}>
                                 <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: getGradeColor(exam.grade) }}>
                                     {exam.percentage}%
                                 </Text>
@@ -162,8 +249,8 @@ export default function StudentReportCardScreen() {
                                                 <Text style={{ fontSize: 14, color: colors.onSurfaceVariant, fontFamily: "DMSans-Regular" }}>
                                                     {sub.obtainedMarks}<Text style={{ opacity: 0.5 }}>/{sub.maxMarks}</Text>
                                                 </Text>
-                                                <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: getGradeColor(sub.grade) + '10', alignItems: 'center', justifyContent: 'center' }}>
-                                                    <Text style={{ fontSize: 13, color: getGradeColor(sub.grade), fontFamily: "DMSans-Bold" }}>
+                                                <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: getGradeColor(sub.grade) + '12', alignItems: 'center', justifyContent: 'center' }}>
+                                                    <Text style={{ fontSize: 12, color: getGradeColor(sub.grade), fontFamily: "DMSans-Bold" }}>
                                                         {sub.grade}
                                                     </Text>
                                                 </View>
@@ -190,9 +277,11 @@ export default function StudentReportCardScreen() {
     const renderInsights = () => {
         if (loadingInsights) {
             return (
-                <View style={{ marginTop: 60, alignItems: 'center' }}>
+                <View style={{ marginTop: 60, alignItems: 'center', gap: 16 }}>
                     <ActivityIndicator size="large" color={colors.primary} />
-                    <Text style={{ marginTop: 16, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Medium' }}>GATHERING INSIGHTS...</Text>
+                    <Text style={{ color: colors.onSurfaceVariant, fontFamily: 'DMSans-Medium', letterSpacing: 1 }}>
+                        GATHERING INSIGHTS...
+                    </Text>
                 </View>
             );
         }
@@ -201,6 +290,10 @@ export default function StudentReportCardScreen() {
 
         const examLabels = insights.examTrends.map(e => e.exam);
         const examData = insights.examTrends.map(e => parseFloat(e.percentage));
+
+        // Ensure we have valid data for the chart
+        const validExamData = examData.some(d => d > 0) ? examData : [0];
+        const validExamLabels = examData.some(d => d > 0) ? examLabels : ['No data'];
 
         return (
             <View>
@@ -211,10 +304,10 @@ export default function StudentReportCardScreen() {
                 <Card variant="filled" style={{ padding: 16 }}>
                     <LineChart
                         data={{
-                            labels: examLabels,
-                            datasets: [{ data: examData }]
+                            labels: validExamLabels,
+                            datasets: [{ data: validExamData }]
                         }}
-                        width={width - 64} // from react-native
+                        width={width - 64}
                         height={220}
                         yAxisSuffix="%"
                         chartConfig={{
@@ -262,7 +355,7 @@ export default function StudentReportCardScreen() {
                                                 backgroundColor: getGradeColor(getGrade(t.percentage)),
                                                 width: "100%",
                                                 borderRadius: 18,
-                                                minHeight: 36, // Ensure it's never too small for text
+                                                minHeight: 36,
                                                 alignItems: 'center',
                                                 justifyContent: 'center'
                                             }}>
@@ -299,7 +392,7 @@ export default function StudentReportCardScreen() {
             >
                 <Header
                     title="My Report Card"
-                    subtitle={reportCard?.student?.class?.name ? `${reportCard.student.class.name} ${reportCard.student.class.section || ''}` : "Academic Performance"}
+                    subtitle={reportCard?.student?.class ? reportCard.student.class : "Academic Performance"}
                     showBack
                 />
 
