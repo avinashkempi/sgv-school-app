@@ -22,6 +22,16 @@ export default function Login() {
     mutationFn: createApiMutationFn(apiConfig.url(apiConfig.endpoints.auth.login), 'POST'),
     onSuccess: async (data) => {
       if (data.token) {
+        // Check if a different user is logging in — if so, clear the stale cache
+        const prevUserStr = await storage.getItem('@auth_user');
+        if (prevUserStr) {
+          const prevUser = JSON.parse(prevUserStr);
+          if (prevUser.phone !== data.user.phone) {
+            const { queryClient } = require('../utils/queryClient');
+            queryClient.clear();
+          }
+        }
+
         await storage.setItem('@auth_token', data.token);
         await storage.setItem('@auth_user', JSON.stringify(data.user));
         router.replace('/');

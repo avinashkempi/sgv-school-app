@@ -21,7 +21,7 @@ export default function ProfileScreen() {
     ['currentUser'],
     `${apiConfig.baseUrl}/auth/me`,
     {
-      staleTime: Infinity,
+      staleTime: 0,
       select: (data) => data.user
     }
   );
@@ -125,7 +125,7 @@ export default function ProfileScreen() {
                 )}
               </Card>
 
-              {(user.role === 'student' || user.role === 'teacher' || user.role === 'staff') && (
+              {(user.role === 'student' || user.role === 'teacher' || user.role === 'staff' || user.role === 'admin' || user.role === 'super admin' || user.role === 'support_staff') && (
                 <Card variant="filled" style={{ marginBottom: 16 }}>
                   <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.onSurfaceVariant, marginBottom: 16 }}>
                     {user.role === 'student' ? 'STUDENT DETAILS' : 'STAFF DETAILS'}
@@ -133,6 +133,24 @@ export default function ProfileScreen() {
 
                   {user.role === 'student' && (
                     <>
+                      {/* Class & Branch */}
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 8 }}>
+                        {user.currentClass && (
+                          <View style={{ width: '50%', marginBottom: 16 }}>
+                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Class</Text>
+                            <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>
+                              {user.currentClass?.name || user.currentClass}
+                            </Text>
+                          </View>
+                        )}
+                        {user.currentClass?.branch && (
+                          <View style={{ width: '50%', marginBottom: 16 }}>
+                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Branch</Text>
+                            <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.currentClass.branch}</Text>
+                          </View>
+                        )}
+                      </View>
+
                       {user.guardianName && (
                         <View style={{ marginBottom: 16 }}>
                           <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Guardian Name</Text>
@@ -165,7 +183,7 @@ export default function ProfileScreen() {
                         {user.dateOfBirth && (
                           <View style={{ width: '50%', marginBottom: 16 }}>
                             <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Date of Birth</Text>
-                            <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.dateOfBirth}</Text>
+                            <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{formatDate(user.dateOfBirth)}</Text>
                           </View>
                         )}
                         {user.phone2 && (
@@ -221,7 +239,7 @@ export default function ProfileScreen() {
                     </>
                   )}
 
-                  {(user.role === 'teacher' || user.role === 'staff') && (
+                  {(user.role === 'teacher' || user.role === 'staff' || user.role === 'admin' || user.role === 'super admin' || user.role === 'support_staff') && (
                     <>
                       {user.designation && (
                         <View style={{ marginBottom: 16 }}>
@@ -229,6 +247,29 @@ export default function ProfileScreen() {
                           <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.designation}</Text>
                         </View>
                       )}
+
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 8 }}>
+                        {user.dateOfBirth && (
+                          <View style={{ width: '50%', marginBottom: 16 }}>
+                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Date of Birth</Text>
+                            <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{formatDate(user.dateOfBirth)}</Text>
+                          </View>
+                        )}
+                        {user.bloodGroup && (
+                          <View style={{ width: '50%', marginBottom: 16 }}>
+                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Blood Group</Text>
+                            <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.bloodGroup}</Text>
+                          </View>
+                        )}
+                      </View>
+
+                      {user.address && (
+                        <View style={{ marginBottom: 16 }}>
+                          <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Address</Text>
+                          <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.address}</Text>
+                        </View>
+                      )}
+
                       {user.joiningDate && (
                         <View>
                           <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Joining Date</Text>

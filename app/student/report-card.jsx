@@ -151,21 +151,23 @@ export default function StudentReportCardScreen() {
                         />
 
                         <View style={{ flexDirection: 'row', gap: 10, marginTop: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
-                            {/* Grade Badge */}
-                            <View style={{
-                                backgroundColor: 'rgba(255,255,255,0.2)',
-                                paddingHorizontal: 16,
-                                paddingVertical: 8,
-                                borderRadius: 100,
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                gap: 6
-                            }}>
-                                <MaterialIcons name="grade" size={16} color={colors.onPrimary} />
-                                <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 14 }}>
-                                    Grade {reportCard?.overall?.grade}
-                                </Text>
-                            </View>
+                            {/* Grade Badge - only show when there's real data */}
+                            {reportCard?.overall?.percentage > 0 && (
+                                <View style={{
+                                    backgroundColor: 'rgba(255,255,255,0.2)',
+                                    paddingHorizontal: 16,
+                                    paddingVertical: 8,
+                                    borderRadius: 100,
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    gap: 6
+                                }}>
+                                    <MaterialIcons name="grade" size={16} color={colors.onPrimary} />
+                                    <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 14 }}>
+                                        Grade {reportCard?.overall?.grade}
+                                    </Text>
+                                </View>
+                            )}
 
                             {/* Class Rank Badge */}
                             {reportCard?.overall?.classRank && (
@@ -392,7 +394,7 @@ export default function StudentReportCardScreen() {
             >
                 <Header
                     title="My Report Card"
-                    subtitle={reportCard?.student?.class ? reportCard.student.class : "Academic Performance"}
+                    subtitle="Academic Performance"
                     showBack
                 />
 

@@ -88,9 +88,7 @@ export default function StudentClassScreen() {
                     ) : (
                         <View style={{ gap: 24 }}>
                             <View>
-                                <Text style={styles.sectionTitle}>
-                                    Quick Actions
-                                </Text>
+
 
                                 <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
                                     <MenuCard
@@ -121,9 +119,7 @@ export default function StudentClassScreen() {
                             </View>
 
                             <View>
-                                <Text style={styles.sectionTitle}>
-                                    Subjects
-                                </Text>
+
 
                                 {subjects.length === 0 ? (
                                     <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>

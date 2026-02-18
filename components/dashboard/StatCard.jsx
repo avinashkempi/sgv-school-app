@@ -3,7 +3,7 @@ import { View, Text, Pressable } from 'react-native';
 import { useTheme } from '../../theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-const StatCard = ({ title, value, icon, trend, trendValue, color, onPress, loading = false }) => {
+const StatCard = ({ title, value, subtitle, icon, trend, trendValue, color, onPress, loading = false }) => {
     const { colors, styles } = useTheme();
 
     const isPositive = trendValue >= 0;
@@ -48,6 +48,9 @@ const StatCard = ({ title, value, icon, trend, trendValue, color, onPress, loadi
 
                     <Text style={[styles.titleSmall, { opacity: 0.7, marginBottom: 4 }]}>{title}</Text>
                     <Text style={[styles.headlineMedium, { color: colors.onSurface }]}>{value}</Text>
+                    {subtitle && (
+                        <Text style={{ fontSize: 11, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Medium', marginTop: 2 }} numberOfLines={1}>{subtitle}</Text>
+                    )}
                 </>
             )}
         </View>
