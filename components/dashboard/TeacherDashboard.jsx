@@ -117,19 +117,21 @@ const TeacherDashboard = () => {
                     onPress={() => router.push('/teacher/classes')}
                     loading={refreshing}
                 />
-                <StatCard
-                    title="Pending Homework"
-                    value={data.overview?.pendingHomework || 0}
-                    icon="book-open-variant"
-                    color={colors.secondary}
-                    loading={refreshing}
-                />
+
                 <StatCard
                     title="Low Attendance"
                     value={data.overview?.lowAttendanceCount || 0}
                     icon="account-alert"
                     color={colors.error}
                     onPress={() => router.push('/teacher/attendance')}
+                    loading={refreshing}
+                />
+                <StatCard
+                    title="School Timetable"
+                    value="View"
+                    icon="calendar-today"
+                    color={colors.tertiary}
+                    onPress={() => router.push('/teacher/timetable')}
                     loading={refreshing}
                 />
             </View>

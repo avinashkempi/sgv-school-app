@@ -238,7 +238,7 @@ export default function TeacherSubjectsScreen() {
                                                         fontFamily: "DMSans-Bold",
                                                         textTransform: "uppercase"
                                                     }}>
-                                                        {teacher.role}
+                                                        {teacher.role !== 'student' && teacher.designation ? teacher.designation : teacher.role === 'support_staff' ? 'Support Staff' : teacher.role}
                                                     </Text>
                                                 </View>
                                             </View>

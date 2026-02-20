@@ -183,7 +183,7 @@ export default function ClassesScreen() {
                                     </Text>
                                     {cls.classTeacher && (
                                         <Text style={{ fontSize: 13, color: colors.primary, marginTop: 4, fontWeight: "500" }}>
-                                            Teacher: {cls.classTeacher.name}
+                                            Class Teacher: {cls.classTeacher.name}
                                         </Text>
                                     )}
                                 </View>

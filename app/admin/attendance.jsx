@@ -1,4 +1,4 @@
-import React, { useState, useEffect, } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, ScrollView, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
@@ -24,6 +24,8 @@ export default function AdminAttendance() {
     const [selectedClass, setSelectedClass] = useState(null);
     const [refreshing, setRefreshing] = useState(false);
 
+    const styles = useMemo(() => createStyles(colors), [colors]);
+
     // Fetch User
     const { data: user } = useApiQuery(
         ['currentUser'],
@@ -47,7 +49,7 @@ export default function AdminAttendance() {
     const classes = Array.isArray(classesData) ? classesData : (classesData.data || []);
 
     // Fetch Student Attendance
-    const { data: studentAttendance = [], isLoading: studentLoading, refetch: refetchStudent } = useApiQuery(
+    const { data: studentAttendance, isLoading: studentLoading, refetch: refetchStudent } = useApiQuery(
         ['studentAttendance', selectedClass?._id, date.toISOString().split('T')[0]],
         `${apiConfig.baseUrl}/attendance/class/${selectedClass?._id}/date/${date.toISOString().split('T')[0]}`,
         { enabled: activeTab === 'student' && !!selectedClass }
@@ -59,7 +61,7 @@ export default function AdminAttendance() {
         `${apiConfig.baseUrl}/attendance/staff-list?date=${date.toISOString().split('T')[0]}`,
         { enabled: activeTab === 'staff' }
     );
-    const staffList = staffListResponse?.data || [];
+    const staffList = staffListResponse?.data;
 
     // Fetch My Attendance
     const { data: myAttendanceData, isLoading: myAttendanceLoading, refetch: refetchMyAttendance } = useApiQuery(
@@ -223,8 +225,8 @@ export default function AdminAttendance() {
                     <Text style={{ fontSize: 16, fontFamily: "DMSans-SemiBold", color: colors.textPrimary }}>
                         {item.user.name}
                     </Text>
-                    <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2, fontFamily: "DMSans-Regular" }}>
-                        Class Teacher
+                    <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2, fontFamily: "DMSans-Regular", textTransform: "capitalize" }}>
+                        {item.user.designation ? item.user.designation : item.user.role === 'support_staff' ? 'Support Staff' : item.user.role}
                     </Text>
                 </View>
                 {item.status && (
@@ -279,7 +281,7 @@ export default function AdminAttendance() {
         <View style={styles.container}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color="#333" />
+                    <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Attendance Management</Text>
                 <View style={{ width: 24 }} />
@@ -343,12 +345,12 @@ export default function AdminAttendance() {
                         <ScrollView style={{ flex: 1, padding: 16 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
                             {/* Summary Cards */}
                             <View style={{ flexDirection: 'row', gap: 12, marginBottom: 24 }}>
-                                <View style={[styles.summaryCardSmall, { backgroundColor: '#E3F2FD' }]}>
-                                    <Text style={[styles.summaryValue, { color: '#1976D2' }]}>{schoolSummary?.students?.present || 0}/{schoolSummary?.students?.total || 0}</Text>
+                                <View style={[styles.summaryCardSmall, { backgroundColor: colors.primary + '15' }]}>
+                                    <Text style={[styles.summaryValue, { color: colors.primary }]}>{schoolSummary?.students?.present || 0}/{schoolSummary?.students?.total || 0}</Text>
                                     <Text style={styles.summaryLabel}>Student Attendance</Text>
                                 </View>
-                                <View style={[styles.summaryCardSmall, { backgroundColor: '#E8F5E9' }]}>
-                                    <Text style={[styles.summaryValue, { color: '#388E3C' }]}>{schoolSummary?.teachers?.present || 0}/{schoolSummary?.teachers?.total || 0}</Text>
+                                <View style={[styles.summaryCardSmall, { backgroundColor: colors.success + '15' }]}>
+                                    <Text style={[styles.summaryValue, { color: colors.success }]}>{schoolSummary?.teachers?.present || 0}/{schoolSummary?.teachers?.total || 0}</Text>
                                     <Text style={styles.summaryLabel}>Teacher Attendance</Text>
                                 </View>
                             </View>
@@ -362,7 +364,7 @@ export default function AdminAttendance() {
                                     <View key={item._id} style={styles.absentRow}>
                                         <View>
                                             <Text style={styles.absentName}>{item.name}</Text>
-                                            <Text style={styles.absentRole}>{item.role} • {item.className}</Text>
+                                            <Text style={styles.absentRole}>{item.designation ? item.designation : item.role === 'support_staff' ? 'Support Staff' : item.role} {item.className ? `• ${item.className}` : ''}</Text>
                                         </View>
                                         <View style={styles.absentTag}>
                                             <Text style={styles.absentTagText}>Absent</Text>
@@ -533,55 +535,55 @@ export default function AdminAttendance() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f5f5f5' },
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, backgroundColor: '#fff', elevation: 2 },
-    headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#333' },
+const createStyles = (colors) => StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, backgroundColor: colors.cardBackground, elevation: 2 },
+    headerTitle: { fontSize: 18, fontWeight: 'bold', color: colors.textPrimary },
     backButton: { padding: 4 },
-    tabContainer: { flexDirection: 'row', backgroundColor: '#fff', paddingHorizontal: 16, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: '#eee' },
+    tabContainer: { flexDirection: 'row', backgroundColor: colors.cardBackground, paddingHorizontal: 16, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: colors.border },
     tab: { flex: 1, paddingVertical: 10, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
-    tabText: { fontSize: 16, color: '#666', fontWeight: '500' },
-    dateBar: { flexDirection: 'row', justifyContent: 'center', padding: 12, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eee' },
+    tabText: { fontSize: 16, color: colors.textSecondary, fontWeight: '500' },
+    dateBar: { flexDirection: 'row', justifyContent: 'center', padding: 12, backgroundColor: colors.cardBackground, borderBottomWidth: 1, borderBottomColor: colors.border },
     dateSelector: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
     dateText: { marginLeft: 8, fontWeight: '600' },
     loader: { marginTop: 20 },
     listContent: { padding: 16, paddingBottom: 100 },
-    staffCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', padding: 16, borderRadius: 12, marginBottom: 12, elevation: 1 },
+    staffCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.cardBackground, padding: 16, borderRadius: 12, marginBottom: 12, elevation: 1 },
     staffInfo: { flex: 1 },
-    staffName: { fontSize: 16, fontWeight: 'bold', color: '#333' },
-    staffRole: { fontSize: 12, color: '#666' },
+    staffName: { fontSize: 16, fontWeight: 'bold', color: colors.textPrimary },
+    staffRole: { fontSize: 12, color: colors.textSecondary },
     statusIndicator: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, minWidth: 80, alignItems: 'center' },
     statusText: { color: '#fff', fontWeight: 'bold', fontSize: 12 },
-    footer: { padding: 16, paddingBottom: 110, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#eee' },
+    footer: { padding: 16, paddingBottom: 110, backgroundColor: colors.cardBackground, borderTopWidth: 1, borderTopColor: colors.border },
     saveButton: { padding: 16, borderRadius: 12, alignItems: 'center' },
     saveButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-    summaryCard: { flexDirection: 'row', justifyContent: 'space-around', backgroundColor: '#fff', margin: 16, padding: 16, borderRadius: 12, elevation: 2 },
+    summaryCard: { flexDirection: 'row', justifyContent: 'space-around', backgroundColor: colors.cardBackground, margin: 16, padding: 16, borderRadius: 12, elevation: 2 },
     summaryItem: { alignItems: 'center' },
-    summaryValue: { fontSize: 20, fontWeight: 'bold', color: '#333' },
-    summaryLabel: { fontSize: 12, color: '#666' },
-    historyCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 16, borderRadius: 12, marginBottom: 12, elevation: 1 },
+    summaryValue: { fontSize: 20, fontWeight: 'bold', color: colors.textPrimary },
+    summaryLabel: { fontSize: 12, color: colors.textSecondary },
+    historyCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardBackground, padding: 16, borderRadius: 12, marginBottom: 12, elevation: 1 },
     historyStatus: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginRight: 16 },
     historyStatusText: { color: '#fff', fontWeight: 'bold', fontSize: 18 },
     historyInfo: { flex: 1 },
-    historyDate: { fontSize: 16, fontWeight: '600', color: '#333' },
-    historyTime: { fontSize: 12, color: '#666' },
-    historyRemarks: { fontSize: 12, color: '#666', fontStyle: 'italic' },
-    sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 12 },
+    historyDate: { fontSize: 16, fontWeight: '600', color: colors.textPrimary },
+    historyTime: { fontSize: 12, color: colors.textSecondary },
+    historyRemarks: { fontSize: 12, color: colors.textSecondary, fontStyle: 'italic' },
+    sectionTitle: { fontSize: 16, fontWeight: 'bold', color: colors.textPrimary, marginBottom: 12 },
     classScroll: { maxHeight: 50, marginBottom: 16 },
-    classChip: { paddingHorizontal: 16, paddingVertical: 8, backgroundColor: '#fff', borderRadius: 20, marginRight: 8, borderWidth: 1, borderColor: '#ddd' },
-    classChipText: { color: '#666' },
+    classChip: { paddingHorizontal: 16, paddingVertical: 8, backgroundColor: colors.cardBackground, borderRadius: 20, marginRight: 8, borderWidth: 1, borderColor: colors.border },
+    classChipText: { color: colors.textSecondary },
     activeClassChipText: { color: '#fff', fontWeight: 'bold' },
-    studentRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#eee' },
-    studentName: { fontSize: 16, color: '#333' },
+    studentRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.border },
+    studentName: { fontSize: 16, color: colors.textPrimary },
     miniStatus: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
     miniStatusText: { color: '#fff', fontSize: 10, fontWeight: 'bold' },
-    emptyText: { textAlign: 'center', marginTop: 20, color: '#666' },
+    emptyText: { textAlign: 'center', marginTop: 20, color: colors.textSecondary },
     summaryCardSmall: { flex: 1, padding: 16, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-    absentRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#eee' },
-    absentName: { fontSize: 16, fontWeight: 'bold', color: '#333' },
-    absentRole: { fontSize: 12, color: '#666' },
-    absentTag: { backgroundColor: '#FFEBEE', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 },
-    absentTagText: { color: '#D32F2F', fontSize: 10, fontWeight: 'bold' },
+    absentRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.border },
+    absentName: { fontSize: 16, fontWeight: 'bold', color: colors.textPrimary },
+    absentRole: { fontSize: 12, color: colors.textSecondary },
+    absentTag: { backgroundColor: colors.error + '20', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 },
+    absentTagText: { color: colors.error, fontSize: 10, fontWeight: 'bold' },
     actionHeader: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 16, paddingBottom: 8 },
     textButton: { padding: 8 },
     textButtonText: { fontWeight: 'bold' },

@@ -46,11 +46,11 @@ function BottomNavigation() {
       icon: "school",
       inactiveIcon: "school", // outlined version if available
     }] : []),
-    ...(user && (user.role === 'teacher' || user.role === 'staff') ? [{
+    ...(user && (user.role === 'teacher' || user.role === 'staff' || user.role === 'support_staff') ? [{
       route: ROUTES.TEACHER_CLASSES,
-      label: "Teach",
-      icon: "school",
-      inactiveIcon: "school",
+      label: "Dashboard",
+      icon: "dashboard",
+      inactiveIcon: "dashboard",
     }] : []),
     ...(user && (user.role === 'admin' || user.role === 'super admin') ? [{
       route: ROUTES.ADMIN,

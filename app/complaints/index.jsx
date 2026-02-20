@@ -225,7 +225,7 @@ export default function ComplaintsScreen() {
                         <Text style={{ color: colors.textSecondary, fontSize: 12, fontFamily: "DMSans-Regular" }}>
                             From: <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
                                 {item.raisedBy?.name || 'Unknown'}
-                                {item.raisedBy?.role ? ` (${item.raisedBy.role})` : ''}
+                                {item.raisedBy?.role ? ` (${item.raisedBy.role !== 'student' && item.raisedBy.designation ? item.raisedBy.designation : item.raisedBy.role === 'support_staff' ? 'Support Staff' : item.raisedBy.role})` : ''}
                             </Text>
                         </Text>
                         <Pressable

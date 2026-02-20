@@ -8,27 +8,22 @@ import {
     RefreshControl,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-
-import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
-import apiConfig from "../../config/apiConfig";
 import { useApiQuery } from "../../hooks/useApi";
-import { useToast } from "../../components/ToastProvider";
 import AppHeader from "../../components/Header";
+import apiConfig from "../../config/apiConfig";
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-export default function TeacherScheduleScreen() {
-    const _router = useRouter();
-    const { _styles, colors } = useTheme();
-    const { _showToast } = useToast();
+export default function SchoolTimetableScreen() {
+    const { colors } = useTheme();
 
     const [refreshing, setRefreshing] = useState(false);
+    const [selectedClassId, setSelectedClassId] = useState(null);
     const [selectedDay, setSelectedDay] = useState('Monday');
     const [currentDay, setCurrentDay] = useState('');
 
     useEffect(() => {
-        // Set current day
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const today = days[new Date().getDay()];
         if (DAYS.includes(today)) {
@@ -39,31 +34,51 @@ export default function TeacherScheduleScreen() {
         }
     }, []);
 
-    const { data: scheduleData, isLoading: loading, refetch } = useApiQuery(
-        ['teacherSchedule'],
-        `${apiConfig.baseUrl}/timetable/my-schedule`
+    // Fetch all timetables
+    const { data: timetables, isLoading: loading, refetch } = useApiQuery(
+        ['schoolTimetable'],
+        `${apiConfig.baseUrl}/timetable/all`
     );
 
-    // Process schedule data
-    const schedule = React.useMemo(() => {
-        if (!scheduleData) return {};
-
-        const scheduleMap = {};
-        DAYS.forEach(day => {
-            scheduleMap[day] = (scheduleData[day] || []).sort((a, b) => {
-                const timeA = a.startTime || "";
-                const timeB = b.startTime || "";
-                return timeA.localeCompare(timeB);
-            });
-        });
-        return scheduleMap;
-    }, [scheduleData]);
+    // Auto-select first class
+    useEffect(() => {
+        if (!selectedClassId && timetables && timetables.length > 0) {
+            setSelectedClassId(timetables[0].class?._id || timetables[0].class);
+        }
+    }, [timetables, selectedClassId]);
 
     const onRefresh = async () => {
         setRefreshing(true);
         await refetch();
         setRefreshing(false);
     };
+
+    // Helper to parse time string to minutes for sorting
+    const parseTime = (timeStr) => {
+        if (!timeStr) return 0;
+        const [time, modifier] = timeStr.split(' ');
+        let [hours, minutes] = time.split(':');
+        hours = parseInt(hours, 10);
+        minutes = parseInt(minutes, 10);
+        if (modifier === 'PM' && hours < 12) hours += 12;
+        if (modifier === 'AM' && hours === 12) hours = 0;
+        return hours * 60 + minutes;
+    };
+
+    // Build schedule for selected class & day
+    const getSchedule = () => {
+        if (!timetables || !selectedClassId) return [];
+        const classTimetable = timetables.find(t => {
+            const cid = t.class?._id || t.class;
+            return String(cid) === String(selectedClassId);
+        });
+        if (!classTimetable) return [];
+        const daySchedule = classTimetable.schedule?.find(s => s.day === selectedDay);
+        if (!daySchedule) return [];
+        return [...daySchedule.periods].sort((a, b) => parseTime(a.startTime) - parseTime(b.startTime));
+    };
+
+    const dayPeriods = getSchedule();
 
     if (loading) {
         return (
@@ -73,6 +88,8 @@ export default function TeacherScheduleScreen() {
         );
     }
 
+    const classes = (timetables || []).map(t => t.class).filter(Boolean);
+
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <ScrollView
@@ -80,47 +97,48 @@ export default function TeacherScheduleScreen() {
                 contentContainerStyle={{ paddingBottom: 100 }}
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
-                    <View style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: 10
-                    }}>
-                        <View style={{ flex: 1 }}>
-                            <AppHeader title="My Schedule" subtitle="Teaching Timetable" showBack />
-                        </View>
-                        <Pressable
-                            onPress={() => _router.push('/teacher/timetable')}
-                            style={({ pressed }) => ({
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                backgroundColor: colors.primaryContainer,
-                                paddingHorizontal: 12,
-                                paddingVertical: 8,
-                                borderRadius: 12,
-                                gap: 6,
-                                elevation: 2,
-                                shadowColor: "#000",
-                                shadowOffset: { width: 0, height: 1 },
-                                shadowOpacity: 0.1,
-                                shadowRadius: 2,
-                                opacity: pressed ? 0.9 : 1,
-                                marginLeft: 8
-                            })}
-                        >
-                            <MaterialIcons name="grid-view" size={18} color={colors.onPrimaryContainer} />
-                            <Text style={{
-                                color: colors.onPrimaryContainer,
-                                fontFamily: 'DMSans-Bold',
-                                fontSize: 13
-                            }}>
-                                All Classes
-                            </Text>
-                        </Pressable>
+                    <AppHeader title="School Timetable" subtitle="All classes schedule" showBack />
+
+                    {/* Class Selector */}
+                    <View style={{ marginTop: 20 }}>
+                        <Text style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>
+                            Select Class
+                        </Text>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                            <View style={{ flexDirection: "row", gap: 8 }}>
+                                {classes.map((cls) => {
+                                    const cid = cls._id || cls;
+                                    const isSelected = String(cid) === String(selectedClassId);
+                                    return (
+                                        <Pressable
+                                            key={String(cid)}
+                                            onPress={() => setSelectedClassId(cid)}
+                                            style={{
+                                                paddingHorizontal: 18,
+                                                paddingVertical: 9,
+                                                backgroundColor: isSelected ? colors.primary : colors.cardBackground,
+                                                borderRadius: 20,
+                                                borderWidth: 1,
+                                                borderColor: isSelected ? colors.primary : colors.textSecondary + "20",
+                                                elevation: isSelected ? 3 : 0,
+                                            }}
+                                        >
+                                            <Text style={{
+                                                color: isSelected ? "#fff" : colors.textPrimary,
+                                                fontFamily: isSelected ? "DMSans-Bold" : "DMSans-Medium",
+                                                fontSize: 14
+                                            }}>
+                                                {cls.name} {cls.section || ""}
+                                            </Text>
+                                        </Pressable>
+                                    );
+                                })}
+                            </View>
+                        </ScrollView>
                     </View>
 
                     {/* Day Tabs */}
-                    <View style={{ marginTop: 24 }}>
+                    <View style={{ marginTop: 20 }}>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                             <View style={{ flexDirection: "row", gap: 8 }}>
                                 {DAYS.map((day) => (
@@ -130,10 +148,10 @@ export default function TeacherScheduleScreen() {
                                         style={{
                                             paddingHorizontal: 16,
                                             paddingVertical: 8,
-                                            backgroundColor: selectedDay === day ? colors.primary : colors.cardBackground,
+                                            backgroundColor: selectedDay === day ? colors.secondary : colors.cardBackground,
                                             borderRadius: 12,
                                             borderWidth: 1,
-                                            borderColor: selectedDay === day ? colors.primary : colors.textSecondary + "20"
+                                            borderColor: selectedDay === day ? colors.secondary : colors.textSecondary + "20"
                                         }}
                                     >
                                         <Text style={{
@@ -161,15 +179,15 @@ export default function TeacherScheduleScreen() {
                             )}
                         </View>
 
-                        {(!schedule[selectedDay] || schedule[selectedDay].length === 0) ? (
+                        {dayPeriods.length === 0 ? (
                             <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
-                                <MaterialIcons name="free-breakfast" size={48} color={colors.textSecondary} />
+                                <MaterialIcons name="event-busy" size={48} color={colors.textSecondary} />
                                 <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16 }}>
                                     No classes scheduled
                                 </Text>
                             </View>
                         ) : (
-                            schedule[selectedDay].map((period, index) => (
+                            dayPeriods.map((period, index) => (
                                 <View
                                     key={index}
                                     style={{
@@ -179,13 +197,9 @@ export default function TeacherScheduleScreen() {
                                         marginBottom: 12,
                                         flexDirection: "row",
                                         gap: 16,
-                                        shadowColor: "#000",
-                                        shadowOffset: { width: 0, height: 1 },
-                                        shadowOpacity: 0.05,
-                                        shadowRadius: 4,
                                         elevation: 1,
                                         borderLeftWidth: 4,
-                                        borderLeftColor: colors.secondary
+                                        borderLeftColor: colors.primary,
                                     }}
                                 >
                                     {/* Time Column */}
@@ -202,23 +216,39 @@ export default function TeacherScheduleScreen() {
                                     {/* Divider */}
                                     <View style={{ width: 1, backgroundColor: colors.textSecondary + "20" }} />
 
-                                    {/* Details Column */}
+                                    {/* Details */}
                                     <View style={{ flex: 1, justifyContent: "center" }}>
                                         <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 4 }}>
-                                            {period.className}
-                                        </Text>
-                                        <Text style={{ fontSize: 14, color: colors.primary, fontFamily: "DMSans-Medium", marginBottom: 4 }}>
                                             {period.subject?.name || "Subject"}
                                         </Text>
-
+                                        <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                                            <MaterialIcons name="person" size={14} color={colors.textSecondary} />
+                                            <Text style={{ fontSize: 13, color: colors.textSecondary }}>
+                                                {period.teacher?.name || "Teacher"}
+                                            </Text>
+                                        </View>
                                         {period.roomNumber && (
-                                            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                                            <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
                                                 <MaterialIcons name="room" size={14} color={colors.textSecondary} />
                                                 <Text style={{ fontSize: 13, color: colors.textSecondary }}>
                                                     Room {period.roomNumber}
                                                 </Text>
                                             </View>
                                         )}
+                                    </View>
+
+                                    {/* Period badge */}
+                                    <View style={{
+                                        width: 32, height: 32,
+                                        borderRadius: 10,
+                                        backgroundColor: colors.primary + "15",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        alignSelf: "center"
+                                    }}>
+                                        <Text style={{ fontFamily: "DMSans-Bold", color: colors.primary, fontSize: 14 }}>
+                                            {period.periodNumber}
+                                        </Text>
                                     </View>
                                 </View>
                             ))

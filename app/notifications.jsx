@@ -20,6 +20,7 @@ import { useToast } from "../components/ToastProvider";
 import Header from "../components/Header";
 import Card from "../components/Card";
 import { useNotifications } from "../hooks/useNotifications";
+import { EmptyState } from "../components/StateComponents";
 
 export default function NotificationsScreen() {
     const { colors } = useTheme();
@@ -133,38 +134,21 @@ export default function NotificationsScreen() {
                 contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
             >
                 {notifications.length === 0 ? (
-                    <View style={{ alignItems: "center", marginTop: 100, opacity: 0.6 }}>
-                        <View style={{
-                            padding: 24,
-                            backgroundColor: colors.surfaceVariant,
-                            borderRadius: 100,
-                            marginBottom: 24
-                        }}>
-                            <MaterialIcons name="notifications-none" size={80} color={colors.onSurfaceVariant} />
-                        </View>
-                        <Text style={{
-                            color: colors.onSurface,
-                            fontSize: 20,
-                            fontFamily: "DMSans-Bold",
-                            marginBottom: 8
-                        }}>
-                            All caught up!
-                        </Text>
-                        <Text style={{ color: colors.onSurfaceVariant, textAlign: 'center', fontSize: 15 }}>
-                            No notifications to show at the moment.
-                        </Text>
+                    <View style={{ marginTop: 60 }}>
+                        <EmptyState
+                            icon="notifications-none"
+                            title="All caught up!"
+                            message="No notifications to show at the moment."
+                        />
                     </View>
                 ) : (
                     notifications.map((notif) => (
                         <Card
                             key={notif._id}
-                            variant={notif.read ? "filled" : "elevated"}
+                            variant={notif.read ? "outlined" : "filled"}
                             onPress={() => !notif.read && markAsRead(notif._id)}
                             style={{
                                 marginBottom: 12,
-                                opacity: notif.read ? 0.7 : 1,
-                                borderLeftWidth: notif.read ? 0 : 4,
-                                borderLeftColor: getColor(notif.type),
                             }}
                             contentStyle={{
                                 flexDirection: "row",
@@ -173,7 +157,7 @@ export default function NotificationsScreen() {
                             }}
                         >
                             <View style={{
-                                backgroundColor: getColor(notif.type) + "15",
+                                backgroundColor: notif.read ? colors.surfaceContainerHighest : getColor(notif.type) + "20",
                                 padding: 10,
                                 borderRadius: 12,
                                 height: 48,
@@ -181,23 +165,23 @@ export default function NotificationsScreen() {
                                 justifyContent: "center",
                                 alignItems: "center"
                             }}>
-                                <MaterialIcons name={getIcon(notif.type)} size={26} color={getColor(notif.type)} />
+                                <MaterialIcons name={getIcon(notif.type)} size={26} color={notif.read ? colors.onSurfaceVariant : getColor(notif.type)} />
                             </View>
                             <View style={{ flex: 1 }}>
                                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 4, alignItems: 'center' }}>
-                                    <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.onSurface, flex: 1 }}>
+                                    <Text style={{ fontSize: 16, fontFamily: notif.read ? "DMSans-Medium" : "DMSans-Bold", color: colors.onSurface, flex: 1 }}>
                                         {notif.title || "Notification"}
                                     </Text>
                                     {!notif.read && (
                                         <View style={{ height: 10, width: 10, borderRadius: 5, backgroundColor: colors.primary }} />
                                     )}
                                 </View>
-                                <Text style={{ color: colors.onSurfaceVariant, fontSize: 14, marginBottom: 8, lineHeight: 20 }}>
+                                <Text style={{ color: colors.onSurfaceVariant, fontFamily: "DMSans-Regular", fontSize: 14, marginBottom: 8, lineHeight: 20 }}>
                                     {notif.message}
                                 </Text>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                                     <MaterialIcons name="access-time" size={12} color={colors.outline} />
-                                    <Text style={{ fontSize: 12, color: colors.outline }}>
+                                    <Text style={{ fontSize: 12, fontFamily: "DMSans-Regular", color: colors.outline }}>
                                         {new Date(notif.createdAt).toLocaleDateString()} • {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </Text>
                                 </View>

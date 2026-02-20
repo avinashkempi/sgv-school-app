@@ -1,14 +1,16 @@
-import React, { useState,} from 'react';
+import React, { useState, } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useApiQuery } from '../../hooks/useApi';
 import apiConfig from '../../config/apiConfig';
 import { useToast } from '../../components/ToastProvider';
+import { useTheme } from '../../theme';
 import AttendanceView from '../../components/AttendanceView';
 
 export default function TeacherAttendance() {
     const _router = useRouter();
     const { _showToast } = useToast();
+    const { colors } = useTheme();
 
     const [refreshing, setRefreshing] = useState(false);
 
@@ -28,7 +30,7 @@ export default function TeacherAttendance() {
     };
 
     return (
-        <View style={styles.container}>
+        <View style={{ flex: 1, backgroundColor: colors.background }}>
             <AttendanceView
                 attendanceHistory={myAttendance}
                 summary={mySummary}
@@ -41,7 +43,3 @@ export default function TeacherAttendance() {
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f5f5f5' },
-});

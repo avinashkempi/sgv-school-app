@@ -101,7 +101,7 @@ export default function ProfileScreen() {
                 marginBottom: 24
               }}>
                 <Text style={{ color: colors.onPrimaryContainer, fontFamily: "DMSans-Bold", fontSize: 12, textTransform: 'uppercase' }}>
-                  {user.role}
+                  {user.role !== 'student' && user.designation ? user.designation : user.role === 'support_staff' ? 'Support Staff' : user.role}
                 </Text>
               </View>
             )}

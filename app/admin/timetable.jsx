@@ -45,6 +45,10 @@ export default function AdminTimetableScreen() {
         teacher: ""
     });
     const [showTimePicker, setShowTimePicker] = useState({ show: false, mode: 'start' }); // mode: 'start' | 'end'
+    const [cloneModalVisible, setCloneModalVisible] = useState(false);
+    const [cloneTargetClasses, setCloneTargetClasses] = useState([]);
+    const [cloneTargetDays, setCloneTargetDays] = useState([]);
+    const [isCloning, setIsCloning] = useState(false);
 
     // --- Data Pre-loading ---
     const { data: initData, isLoading } = useApiQuery(
@@ -164,10 +168,36 @@ export default function AdminTimetableScreen() {
             });
         } else {
             setEditingPeriod(null);
+
+            let defaultStartTime = new Date();
+            defaultStartTime.setHours(8, 0, 0, 0); // 8:00 AM default
+
+            const currentDayPeriods = schedule[selectedDay] || [];
+            if (currentDayPeriods.length > 0) {
+                const parseTime = (timeStr) => {
+                    const [time, modifier] = timeStr.split(' ');
+                    let [hours, minutes] = time.split(':');
+                    if (hours === '12') hours = '00';
+                    if (modifier === 'PM') hours = parseInt(hours, 10) + 12;
+                    const d = new Date();
+                    d.setHours(Number(hours), Number(minutes));
+                    return d;
+                };
+                let maxDate = new Date(); maxDate.setHours(0, 0, 0, 0);
+                for (let p of currentDayPeriods) {
+                    let d = parseTime(p.endTime);
+                    if (d > maxDate) maxDate = d;
+                }
+                if (maxDate.getHours() !== 0) defaultStartTime = maxDate;
+            }
+
+            let defaultEndTime = new Date(defaultStartTime);
+            defaultEndTime.setMinutes(defaultEndTime.getMinutes() + 40);
+
             setTempPeriod({
                 periodNumber: (schedule[selectedDay]?.length || 0) + 1,
-                startTime: new Date(),
-                endTime: new Date(),
+                startTime: defaultStartTime,
+                endTime: defaultEndTime,
                 subject: "",
                 teacher: ""
             });
@@ -222,10 +252,77 @@ export default function AdminTimetableScreen() {
     const onTimeConfirm = (selectedDate) => {
         if (selectedDate) {
             if (showTimePicker.mode === 'start') {
-                setTempPeriod({ ...tempPeriod, startTime: selectedDate });
+                const diff = tempPeriod.endTime.getTime() - tempPeriod.startTime.getTime();
+                const newEndTime = new Date(selectedDate.getTime() + diff);
+                setTempPeriod({ ...tempPeriod, startTime: selectedDate, endTime: newEndTime });
             } else {
                 setTempPeriod({ ...tempPeriod, endTime: selectedDate });
             }
+        }
+    };
+
+    const handleCloneTimings = async () => {
+        if (cloneTargetClasses.length === 0 || cloneTargetDays.length === 0) {
+            Alert.alert("Error", "Please select at least one class and one day.");
+            return;
+        }
+
+        const sourcePeriods = schedule[selectedDay] || [];
+        if (sourcePeriods.length === 0) return;
+
+        setIsCloning(true);
+
+        try {
+            const updates = [];
+            for (const targetClassId of cloneTargetClasses) {
+                const classTimetable = allTimetables?.find(t => t.class === targetClassId);
+                const classScheduleMap = {};
+                DAYS.forEach(day => classScheduleMap[day] = []);
+
+                if (classTimetable && classTimetable.schedule) {
+                    classTimetable.schedule.forEach(daySchedule => {
+                        classScheduleMap[daySchedule.day] = daySchedule.periods.map(p => ({
+                            periodNumber: p.periodNumber,
+                            startTime: p.startTime,
+                            endTime: p.endTime,
+                            subject: p.subject._id || p.subject,
+                            teacher: p.teacher._id || p.teacher
+                        }));
+                    });
+                }
+
+                for (const targetDay of cloneTargetDays) {
+                    classScheduleMap[targetDay] = sourcePeriods.map(p => ({
+                        periodNumber: p.periodNumber,
+                        startTime: p.startTime,
+                        endTime: p.endTime,
+                        subject: null,
+                        teacher: null
+                    }));
+                }
+
+                const finalScheduleArray = Object.keys(classScheduleMap).map(day => ({
+                    day,
+                    periods: classScheduleMap[day]
+                })).filter(day => day.periods.length > 0);
+
+                const savePromise = createApiMutationFn(`${apiConfig.baseUrl}/timetable`, 'POST')({
+                    classId: targetClassId,
+                    schedule: finalScheduleArray,
+                    breaks: classTimetable?.breaks || []
+                });
+                updates.push(savePromise);
+            }
+
+            await Promise.all(updates);
+            showToast("Timings cloned successfully", "success");
+            setCloneModalVisible(false);
+            queryClient.invalidateQueries({ queryKey: ['adminClassesInit'] });
+        } catch (error) {
+            console.error("Clone error:", error);
+            showToast("Failed to clone timings", "error");
+        } finally {
+            setIsCloning(false);
         }
     };
 
@@ -317,13 +414,26 @@ export default function AdminTimetableScreen() {
                                 <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
                                     {selectedDay}&apos;s Schedule
                                 </Text>
-                                <Pressable
-                                    onPress={() => openPeriodModal()}
-                                    style={{ flexDirection: "row", alignItems: "center", gap: 4, padding: 8, backgroundColor: colors.primary + "10", borderRadius: 8 }}
-                                >
-                                    <MaterialIcons name="add" size={20} color={colors.primary} />
-                                    <Text style={{ color: colors.primary, fontFamily: "DMSans-Bold" }}>Add</Text>
-                                </Pressable>
+                                <View style={{ flexDirection: "row", gap: 8 }}>
+                                    <Pressable
+                                        onPress={() => {
+                                            setCloneTargetClasses([]);
+                                            setCloneTargetDays([]);
+                                            setCloneModalVisible(true);
+                                        }}
+                                        style={{ flexDirection: "row", alignItems: "center", gap: 4, padding: 8, backgroundColor: colors.secondary + "10", borderRadius: 8 }}
+                                    >
+                                        <MaterialIcons name="content-copy" size={20} color={colors.secondary} />
+                                        <Text style={{ color: colors.secondary, fontFamily: "DMSans-Bold" }}>Clone</Text>
+                                    </Pressable>
+                                    <Pressable
+                                        onPress={() => openPeriodModal()}
+                                        style={{ flexDirection: "row", alignItems: "center", gap: 4, padding: 8, backgroundColor: colors.primary + "10", borderRadius: 8 }}
+                                    >
+                                        <MaterialIcons name="add" size={20} color={colors.primary} />
+                                        <Text style={{ color: colors.primary, fontFamily: "DMSans-Bold" }}>Add</Text>
+                                    </Pressable>
+                                </View>
                             </View>
 
                             {(!schedule[selectedDay] || schedule[selectedDay].length === 0) ? (
@@ -589,6 +699,101 @@ export default function AdminTimetableScreen() {
                                 <Text style={{ color: "#fff", fontFamily: "DMSans-Bold", fontSize: 16 }}>
                                     {editingPeriod ? "Update Period" : "Add Period"}
                                 </Text>
+                            </Pressable>
+                        </ScrollView>
+                    </Pressable>
+                </Pressable>
+            </Modal>
+
+            {/* Clone Timings Modal */}
+            <Modal
+                visible={cloneModalVisible}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => setCloneModalVisible(false)}
+            >
+                <Pressable
+                    style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}
+                    onPress={() => setCloneModalVisible(false)}
+                >
+                    <Pressable
+                        style={{ backgroundColor: colors.cardBackground, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: "85%" }}
+                        onPress={(e) => e.stopPropagation()}
+                    >
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+                            <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
+                                Clone Timings
+                            </Text>
+                            <Pressable onPress={() => setCloneModalVisible(false)} hitSlop={10} style={{ padding: 4, backgroundColor: colors.background, borderRadius: 20 }}>
+                                <MaterialIcons name="close" size={20} color={colors.textSecondary} />
+                            </Pressable>
+                        </View>
+
+                        <ScrollView showsVerticalScrollIndicator={false}>
+                            <Text style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 16, fontFamily: "DMSans-Regular" }}>
+                                Copy the timing structure from <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary }}>{classes?.find(c => c._id === selectedClassId)?.name} {classes?.find(c => c._id === selectedClassId)?.section} - {selectedDay}</Text> to the selected classes and days below. Subjects and teachers will NOT be copied.
+                            </Text>
+
+                            <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>Select Target Days</Text>
+                            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
+                                {DAYS.map(day => (
+                                    <Pressable
+                                        key={day}
+                                        onPress={() => {
+                                            if (cloneTargetDays.includes(day)) setCloneTargetDays(cloneTargetDays.filter(d => d !== day));
+                                            else setCloneTargetDays([...cloneTargetDays, day]);
+                                        }}
+                                        style={{
+                                            paddingHorizontal: 12, paddingVertical: 8,
+                                            borderRadius: 8, borderWidth: 1,
+                                            backgroundColor: cloneTargetDays.includes(day) ? colors.primary : colors.background,
+                                            borderColor: cloneTargetDays.includes(day) ? colors.primary : colors.outlineVariant
+                                        }}
+                                    >
+                                        <Text style={{ color: cloneTargetDays.includes(day) ? "#fff" : colors.textPrimary, fontFamily: "DMSans-Medium" }}>{day.slice(0, 3)}</Text>
+                                    </Pressable>
+                                ))}
+                            </View>
+
+                            <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>Select Target Classes</Text>
+                            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
+                                {(classes || []).map(cls => (
+                                    <Pressable
+                                        key={cls._id}
+                                        onPress={() => {
+                                            if (cloneTargetClasses.includes(cls._id)) setCloneTargetClasses(cloneTargetClasses.filter(c => c !== cls._id));
+                                            else setCloneTargetClasses([...cloneTargetClasses, cls._id]);
+                                        }}
+                                        style={{
+                                            paddingHorizontal: 12, paddingVertical: 8,
+                                            borderRadius: 8, borderWidth: 1,
+                                            backgroundColor: cloneTargetClasses.includes(cls._id) ? colors.primary : colors.background,
+                                            borderColor: cloneTargetClasses.includes(cls._id) ? colors.primary : colors.outlineVariant
+                                        }}
+                                    >
+                                        <Text style={{ color: cloneTargetClasses.includes(cls._id) ? "#fff" : colors.textPrimary, fontFamily: "DMSans-Medium" }}>{cls.name} {cls.section}</Text>
+                                    </Pressable>
+                                ))}
+                            </View>
+
+                            <Pressable
+                                onPress={handleCloneTimings}
+                                disabled={isCloning || !schedule[selectedDay] || schedule[selectedDay].length === 0}
+                                style={({ pressed }) => ({
+                                    backgroundColor: colors.primary,
+                                    padding: 18,
+                                    borderRadius: 14,
+                                    alignItems: "center",
+                                    marginBottom: 20,
+                                    opacity: pressed || isCloning || !schedule[selectedDay] || schedule[selectedDay].length === 0 ? 0.8 : 1,
+                                    elevation: 2
+                                })}
+                            >
+                                {isCloning ? <ActivityIndicator color="#fff" /> : (
+                                    <Text style={{ color: "#fff", fontFamily: "DMSans-Bold", fontSize: 16 }}>
+                                        {(!schedule[selectedDay] || schedule[selectedDay].length === 0) ? "No periods to clone" : "Clone Timings"}
+                                    </Text>
+                                )}
                             </Pressable>
                         </ScrollView>
                     </Pressable>

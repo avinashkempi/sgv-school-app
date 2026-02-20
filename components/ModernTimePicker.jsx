@@ -1,17 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Modal, Pressable, StyleSheet, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTheme } from '../theme';
 
 /**
  * ModernTimePicker
- * A consistent, minimalist time picker that uses a modal with a spinner style on both platforms.
- * 
- * @param {boolean} visible - Whether the picker is visible
- * @param {Function} onClose - Callback when closed/cancelled
- * @param {Function} onConfirm - Callback when time is selected (returns Date object)
- * @param {Date} value - Current/Initial time value
- * @param {string} title - Optional title for the header
+ * Uses native time picker approaches for maximum reliability across iOS and Android.
  */
 export default function ModernTimePicker({ visible, onClose, onConfirm, value, title = "Select Time" }) {
     const { colors } = useTheme();
@@ -23,118 +17,99 @@ export default function ModernTimePicker({ visible, onClose, onConfirm, value, t
         }
     }, [visible, value]);
 
-    const handleChange = (event, selectedDate) => {
-        if (selectedDate) {
-            setTempDate(selectedDate);
-        }
-    };
-
-    const handleConfirm = () => {
-        onConfirm(tempDate);
-        onClose();
-    };
-
     if (!visible) return null;
 
+    if (Platform.OS === 'android') {
+        return (
+            <DateTimePicker
+                value={tempDate}
+                mode="time"
+                display="default"
+                onChange={(event, selectedDate) => {
+                    // Always close picker first
+                    onClose();
+
+                    // IF the user pressed OK, the type will be 'set'
+                    if (event.type === 'set' && selectedDate) {
+                        onConfirm(selectedDate);
+                    }
+                }}
+            />
+        );
+    }
+
+    // iOS Implementation uses standard Bottom Sheet UI for Time Pickers
     return (
         <Modal
-            animationType="fade"
+            animationType="slide"
             transparent={true}
             visible={visible}
             onRequestClose={onClose}
         >
-            <Pressable style={styles.overlay} onPress={onClose}>
-                <Pressable style={[styles.container, { backgroundColor: colors.cardBackground }]} onPress={e => e.stopPropagation()}>
-                    {/* Header */}
-                    <View style={[styles.header, { borderBottomColor: colors.border }]}>
-                        <Text style={[styles.title, { color: colors.textPrimary }]}>{title}</Text>
-                    </View>
-
-                    {/* Picker */}
-                    <View style={styles.pickerContainer}>
-                        <DateTimePicker
-                            value={tempDate}
-                            mode="time"
-                            display="spinner"
-                            onChange={handleChange}
-                            textColor={colors.textPrimary}
-                            themeVariant={colors.dark ? "dark" : "light"}
-                            style={styles.picker}
-                        />
-                    </View>
-
-                    {/* Footer Actions */}
-                    <View style={[styles.footer, { borderTopColor: colors.border }]}>
-                        <Pressable onPress={onClose} style={[styles.button, styles.cancelButton]}>
-                            <Text style={[styles.buttonText, { color: colors.textSecondary }]}>Cancel</Text>
+            <View style={styles.iosOverlay}>
+                <Pressable style={styles.iosBackdrop} onPress={onClose} />
+                <View style={[styles.iosContainer, { backgroundColor: colors.cardBackground }]}>
+                    <View style={[styles.iosHeader, { borderBottomColor: colors.border }]}>
+                        <Pressable onPress={onClose} hitSlop={10}>
+                            <Text style={[styles.iosButtonText, { color: colors.textSecondary }]}>Cancel</Text>
                         </Pressable>
-                        <Pressable onPress={handleConfirm} style={[styles.button, { backgroundColor: colors.primary }]}>
-                            <Text style={[styles.buttonText, { color: '#fff' }]}>Confirm</Text>
+                        <Text style={[styles.iosTitle, { color: colors.textPrimary }]}>{title}</Text>
+                        <Pressable
+                            hitSlop={10}
+                            onPress={() => {
+                                onConfirm(tempDate);
+                                onClose();
+                            }}
+                        >
+                            <Text style={[styles.iosButtonText, { color: colors.primary, fontFamily: 'DMSans-Bold' }]}>Done</Text>
                         </Pressable>
                     </View>
-                </Pressable>
-            </Pressable>
+                    <DateTimePicker
+                        value={tempDate}
+                        mode="time"
+                        display="spinner"
+                        onChange={(e, date) => setTempDate(date || tempDate)}
+                        textColor={colors.textPrimary}
+                        themeVariant={colors.dark ? "dark" : "light"}
+                        style={{ height: 216, width: '100%' }}
+                    />
+                </View>
+            </View>
         </Modal>
     );
 }
 
 const styles = StyleSheet.create({
-    overlay: {
+    iosOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
+        justifyContent: 'flex-end',
     },
-    container: {
-        width: '90%',
-        maxWidth: 340,
-        borderRadius: 20,
-        overflow: 'hidden',
+    iosBackdrop: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    iosContainer: {
+        paddingBottom: 30, // Safe area padding
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
         shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
+        shadowOffset: { width: 0, height: -2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
         elevation: 5,
     },
-    header: {
-        padding: 16,
-        alignItems: 'center',
-        borderBottomWidth: 1,
-    },
-    title: {
-        fontSize: 18,
-        fontFamily: 'DMSans-Bold',
-    },
-    pickerContainer: {
-        paddingVertical: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    picker: {
-        height: 180,
-        width: '100%',
-    },
-    footer: {
+    iosHeader: {
         flexDirection: 'row',
-        padding: 16,
-        gap: 12,
-        borderTopWidth: 1,
-    },
-    button: {
-        flex: 1,
-        paddingVertical: 12,
-        borderRadius: 12,
+        justifyContent: 'space-between',
         alignItems: 'center',
-        justifyContent: 'center',
+        padding: 16,
+        borderBottomWidth: StyleSheet.hairlineWidth,
     },
-    cancelButton: {
-        backgroundColor: 'transparent',
+    iosButtonText: {
+        fontSize: 16,
+        fontFamily: 'DMSans-Medium',
     },
-    buttonText: {
+    iosTitle: {
         fontSize: 16,
         fontFamily: 'DMSans-Bold',
     }

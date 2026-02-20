@@ -54,7 +54,7 @@ export default function AdminScreen() {
   const [touched, setTouched] = useState({});
   const [showPassword, setShowPassword] = useState(false);
 
-  const availableRoles = ["student", "teacher", "staff", "admin", "super admin"];
+  const availableRoles = ["student", "teacher", "staff", "admin", "super admin", "support_staff"];
 
   // Check Auth & Admin
   const { data: userData, isLoading: userLoading, error: userError } = useApiQuery(
@@ -131,18 +131,26 @@ export default function AdminScreen() {
   const getRoleColor = (role) => {
     switch (role) {
       case "super admin":
-        return colors.roleSuperAdmin;
+        return colors.roleSuperAdmin || "#D32F2F";
       case "admin":
-        return colors.roleAdmin;
+        return colors.roleAdmin || "#1976D2";
       case "staff":
-        return colors.roleStaff;
+      case "support_staff":
+        return colors.roleStaff || "#F57C00";
       case "teacher":
-        return colors.roleClassTeacher;
+        return colors.roleClassTeacher || "#388E3C";
       case "student":
-        return colors.roleStudent;
+        return colors.roleStudent || "#7B1FA2";
       default:
         return colors.textSecondary;
     }
+  };
+
+  const getRoleDisplay = (user) => {
+    if (user.role !== 'student' && user.designation) {
+      return user.designation;
+    }
+    return user.role === 'support_staff' ? 'Support Staff' : user.role;
   };
 
   const handleChange = (field, value) => {
@@ -358,7 +366,7 @@ export default function AdminScreen() {
                     fontSize: 16,
                     color: colors.textPrimary,
                     fontFamily: "DMSans-Regular",
-                    height: "100%",
+                    paddingVertical: 0
                   }}
                   placeholder="Search users..."
                   placeholderTextColor={colors.textSecondary}
@@ -380,7 +388,7 @@ export default function AdminScreen() {
             <View style={{ marginBottom: 20 }}>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingRight: 20 }}>
                 {/* Role Filter */}
-                {["all", "student", "teacher", "admin", "staff"].map((role) => (
+                {["all", "student", "teacher", "admin", "staff", "support_staff", "super admin"].map((role) => (
                   <Pressable
                     key={role}
                     onPress={() => {
@@ -407,7 +415,7 @@ export default function AdminScreen() {
                       textTransform: "capitalize",
                       fontSize: 14
                     }}>
-                      {role === "all" ? "All Roles" : role}
+                      {role === "all" ? "All Roles" : role === "support_staff" ? "Support Staff" : role}
                     </Text>
                   </Pressable>
                 ))}
@@ -514,7 +522,7 @@ export default function AdminScreen() {
                                   textTransform: "uppercase",
                                 }}
                               >
-                                {userItem.role}
+                                {getRoleDisplay(userItem)}
                               </Text>
                             </View>
                           </View>

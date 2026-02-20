@@ -154,6 +154,14 @@ const AdminDashboard = () => {
                     onPress={() => router.push('/admin/fees')}
                     loading={refreshing}
                 />
+                <StatCard
+                    title="School Timetable"
+                    value="View"
+                    icon="calendar-today"
+                    color={colors.tertiary}
+                    onPress={() => router.push('/teacher/timetable')}
+                    loading={refreshing}
+                />
             </View>
 
             <Text style={[styles.titleLarge, { marginBottom: 16, marginTop: 24 }]}>Trends</Text>
