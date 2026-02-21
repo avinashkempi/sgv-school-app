@@ -108,6 +108,15 @@ export default function AdminScreen() {
     onError: (error) => showToast(error.message || "Failed to delete user", "error")
   });
 
+  const revertPromotionMutation = useApiMutation({
+    mutationFn: (id) => createApiMutationFn(`${apiConfig.baseUrl}/users/${id}/revert-promotion`, 'PUT')(),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      showToast(data.message || "Promotion reverted successfully", "success");
+    },
+    onError: (error) => showToast(error.message || "Failed to revert promotion", "error")
+  });
+
   const updateUserRole = (userId, newRole) => {
     updateUserMutation.mutate({ _id: userId, role: newRole });
   };
@@ -141,6 +150,8 @@ export default function AdminScreen() {
         return colors.roleClassTeacher || "#388E3C";
       case "student":
         return colors.roleStudent || "#7B1FA2";
+      case "alumni":
+        return "#607D8B";
       default:
         return colors.textSecondary;
     }
@@ -388,7 +399,7 @@ export default function AdminScreen() {
             <View style={{ marginBottom: 20 }}>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingRight: 20 }}>
                 {/* Role Filter */}
-                {["all", "student", "teacher", "admin", "staff", "support_staff", "super admin"].map((role) => (
+                {["all", "student", "teacher", "admin", "staff", "support_staff", "alumni", "super admin"].map((role) => (
                   <Pressable
                     key={role}
                     onPress={() => {
@@ -589,6 +600,29 @@ export default function AdminScreen() {
                           >
                             <MaterialIcons name="edit" size={20} color={colors.textSecondary} />
                           </Pressable>
+
+                          {userItem.role === 'student' && user?.role === 'super admin' && (
+                            <Pressable
+                              onPress={() => {
+                                Alert.alert(
+                                  "Revert Promotion",
+                                  `Are you sure you want to rollback ${userItem.name} to their previous class?\n\nThis will look up their last archived academic year and move them back immediately.`,
+                                  [
+                                    { text: "Cancel", style: "cancel" },
+                                    { text: "Revert Student", style: "destructive", onPress: () => revertPromotionMutation.mutate(userItem._id) },
+                                  ]
+                                );
+                              }}
+                              style={({ pressed }) => ({
+                                padding: 10,
+                                backgroundColor: colors.warning + "15",
+                                borderRadius: 12,
+                                opacity: pressed ? 0.7 : 1,
+                              })}
+                            >
+                              <MaterialIcons name="undo" size={20} color={colors.warning} />
+                            </Pressable>
+                          )}
 
                           <Pressable
                             onPress={() => {

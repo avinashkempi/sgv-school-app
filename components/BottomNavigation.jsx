@@ -3,6 +3,7 @@ import { View, Text, Pressable, StyleSheet, Animated } from "react-native";
 import { useRouter, usePathname } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { BlurView } from "expo-blur";
 import { useTheme } from "../theme";
 import { ROUTES } from "../constants/routes";
 import storage from '../utils/storage';
@@ -11,7 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 function BottomNavigation() {
   const router = useRouter();
   const pathname = usePathname();
-  const { colors } = useTheme();
+  const { colors, mode } = useTheme();
   const [activeTab, setActiveTab] = useState(ROUTES.HOME);
   const [user, setUser] = useState(null);
   const insets = useSafeAreaInsets();
@@ -98,18 +99,18 @@ function BottomNavigation() {
   }, [pathname, router]);
 
   return (
-    <View style={[
+    <BlurView intensity={80} tint={mode === 'dark' ? 'dark' : 'light'} style={[
       styles.container,
       {
-        backgroundColor: colors.surfaceContainer,
+        backgroundColor: colors.surfaceContainer + 'CC', // 80% opacity for frosted glass effect
         paddingBottom: insets.bottom,
         borderTopColor: colors.outlineVariant,
-        borderTopWidth: 0, // M3 usually doesn't have a border if elevation/surface diff is sufficient, but can keep for separation
-        elevation: 8, // Subtle shadow for lifting nav bar
+        borderTopWidth: StyleSheet.hairlineWidth, // Crisp glass edge
+        elevation: 0, // Elevation on Android breaks BlurView transparency
         shadowColor: colors.shadow,
         shadowOpacity: 0.1,
-        shadowRadius: 4,
-        shadowOffset: { width: 0, height: -2 }
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: -4 }
       }
     ]}>
       {navigationItems.map((item) => {
@@ -124,7 +125,7 @@ function BottomNavigation() {
           />
         );
       })}
-    </View>
+    </BlurView>
   );
 }
 

@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import { useTheme } from '../../theme';
+import { useApiQuery } from '../../hooks/useApi';
 import Header from '../../components/Header';
 import Card from '../../components/Card';
 import apiFetch from '../../utils/apiFetch';
@@ -18,7 +19,16 @@ export default function ImportDataScreen() {
     const [uploadingStudent, setUploadingStudent] = useState(false);
     const [uploadingStaff, setUploadingStaff] = useState(false);
     const [wipeData, setWipeData] = useState(false);
+    const [feesOnly, setFeesOnly] = useState(false);
     const [result, setResult] = useState(null);
+    const [selectedYearId, setSelectedYearId] = useState(null); // null = active year
+
+    // Fetch all academic years for the dropdown
+    const { data: yearsData } = useApiQuery(
+        ['academicYears'],
+        `${apiConfig.baseUrl}/academic-year`
+    );
+    const years = Array.isArray(yearsData) ? yearsData : (yearsData?.years || []);
 
     const handleImport = async () => {
         if (wipeData) {
@@ -49,7 +59,7 @@ export default function ImportDataScreen() {
         try {
             const response = await apiFetch(`${apiConfig.baseUrl}/import/students/local`, {
                 method: 'POST',
-                body: JSON.stringify({ wipe: wipeData.toString() }),
+                body: JSON.stringify({ wipe: wipeData.toString(), academicYearId: selectedYearId, feesOnly }),
                 headers: {
                     'Content-Type': 'application/json'
                 }
@@ -157,6 +167,82 @@ export default function ImportDataScreen() {
                             </Text>
                         </View>
                     </TouchableOpacity>
+
+                    <TouchableOpacity
+                        onPress={() => {
+                            setFeesOnly(!feesOnly);
+                            if (!feesOnly) setWipeData(false); // Can't wipe + feesOnly
+                        }}
+                        style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}
+                    >
+                        <MaterialIcons
+                            name={feesOnly ? "check-box" : "check-box-outline-blank"}
+                            size={24}
+                            color={feesOnly ? colors.secondary : colors.onSurfaceVariant}
+                        />
+                        <View style={{ marginLeft: 12, flex: 1 }}>
+                            <Text style={{
+                                fontFamily: 'DMSans-Bold',
+                                color: feesOnly ? colors.secondary : colors.onSurface
+                            }}>
+                                Fees Only Mode
+                            </Text>
+                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant }}>
+                                Only update fee records. Student profiles, classes, and other data remain untouched.
+                            </Text>
+                        </View>
+                    </TouchableOpacity>
+                </Card>
+
+                {/* 2b. Target Academic Year */}
+                <Card variant="elevated" style={{ marginBottom: 16 }}>
+                    <Text style={styles.titleMedium}>Target Academic Year</Text>
+                    <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginTop: 4, marginBottom: 12 }}>
+                        Choose which academic year this CSV data should be imported into.
+                    </Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                        <TouchableOpacity
+                            onPress={() => setSelectedYearId(null)}
+                            style={{
+                                paddingHorizontal: 16,
+                                paddingVertical: 10,
+                                backgroundColor: selectedYearId === null ? colors.primary : colors.surfaceVariant,
+                                borderRadius: 12,
+                                borderWidth: 1,
+                                borderColor: selectedYearId === null ? colors.primary : colors.outline
+                            }}
+                        >
+                            <Text style={{
+                                fontFamily: 'DMSans-Bold',
+                                fontSize: 13,
+                                color: selectedYearId === null ? '#fff' : colors.onSurface
+                            }}>
+                                Active Year (Default)
+                            </Text>
+                        </TouchableOpacity>
+                        {years.map((yr) => (
+                            <TouchableOpacity
+                                key={yr._id}
+                                onPress={() => setSelectedYearId(yr._id)}
+                                style={{
+                                    paddingHorizontal: 16,
+                                    paddingVertical: 10,
+                                    backgroundColor: selectedYearId === yr._id ? colors.primary : colors.surfaceVariant,
+                                    borderRadius: 12,
+                                    borderWidth: 1,
+                                    borderColor: selectedYearId === yr._id ? colors.primary : colors.outline
+                                }}
+                            >
+                                <Text style={{
+                                    fontFamily: 'DMSans-Bold',
+                                    fontSize: 13,
+                                    color: selectedYearId === yr._id ? '#fff' : colors.onSurface
+                                }}>
+                                    {yr.name} {yr.status === 'current' ? '●' : ''}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </ScrollView>
                 </Card>
 
                 {/* 3. Action Button */}

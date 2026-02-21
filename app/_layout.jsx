@@ -13,6 +13,7 @@ import * as Notifications from 'expo-notifications';
 import { getFCMToken, registerFCMTokenWithBackend } from '../utils/fcm';
 import { NavigationProvider } from "../context/NavigationContext";
 import { NotificationProvider } from "../context/NotificationContext";
+import { AcademicYearProvider } from "../contexts/AcademicYearContext";
 
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { queryClient, persister } from '../utils/queryClient';
@@ -164,7 +165,9 @@ export default function RootLayout() {
     >
       <ThemeProvider>
         <ErrorBoundary>
-          <Inner />
+          <AcademicYearProvider>
+            <Inner />
+          </AcademicYearProvider>
         </ErrorBoundary>
       </ThemeProvider>
     </PersistQueryClientProvider>

@@ -72,6 +72,19 @@ export default async function apiFetch(input, init = {}) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
+  // Inject Time-Travel Context Header for Super Admins
+  try {
+    const storedYearStr = await storage.getItem('selectedAcademicYear');
+    if (storedYearStr) {
+      const storedYear = JSON.parse(storedYearStr);
+      if (storedYear && storedYear._id) {
+        headers['x-academic-year'] = storedYear._id;
+      }
+    }
+  } catch (err) {
+    console.warn('apiFetch: Could not attach x-academic-year context', err);
+  }
+
   const response = await fetch(input, {
     ...fetchInit,
     headers,

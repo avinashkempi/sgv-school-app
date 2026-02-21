@@ -11,7 +11,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '../../theme';
-import { useApiMutation, createApiMutationFn } from '../../hooks/useApi';
+import { useApiMutation, createApiMutationFn, useApiQuery } from '../../hooks/useApi';
 import { useToast } from '../../components/ToastProvider';
 import apiConfig from '../../config/apiConfig';
 import Header from '../../components/Header';
@@ -38,6 +38,13 @@ export default function TransitionWizardScreen() {
 
     const currentYearId = params.currentId;
     const nextYearId = params.nextId;
+
+    // Fetch validations on load
+    const { data: validationData, isLoading: isValidating } = useApiQuery(
+        ['transitionValidation', currentYearId],
+        `${apiConfig.baseUrl}/academic-year/${currentYearId}/transition/validate`,
+        { enabled: !!currentYearId }
+    );
 
     // Preview mutation
     const previewMutation = useApiMutation({
@@ -186,7 +193,7 @@ export default function TransitionWizardScreen() {
                     </Text>
                 </View>
             ) : (
-                <View style={{ alignItems: 'center', paddingVertical: 60 }}>
+                <View style={{ alignItems: 'center', paddingVertical: 40 }}>
                     <MaterialIcons name="preview" size={64} color={colors.primary} style={{ opacity: 0.5 }} />
                     <Text style={{ fontSize: 16, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginTop: 16 }}>
                         Ready to Preview
@@ -212,6 +219,56 @@ export default function TransitionWizardScreen() {
                             Start Preview
                         </Text>
                     </Pressable>
+                </View>
+            )}
+
+            {/* Validation Checklist UI added below Start Preview */}
+            {!previewMutation.isPending && (
+                <View style={{ marginTop: 24 }}>
+                    <Text style={{ fontSize: 16, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginBottom: 12 }}>
+                        Pre-Flight Diagnostic
+                    </Text>
+
+                    {isValidating ? (
+                        <View style={{ padding: 20, alignItems: 'center', backgroundColor: colors.surfaceContainer, borderRadius: 12 }}>
+                            <ActivityIndicator size="small" color={colors.primary} />
+                            <Text style={{ marginTop: 8, fontSize: 13, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Medium' }}>Scanning current year data...</Text>
+                        </View>
+                    ) : (
+                        validationData?.warnings?.length > 0 ? (
+                            <View style={{ backgroundColor: colors.errorContainer, borderRadius: 12, padding: 16 }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                                    <MaterialIcons name="warning" size={20} color={colors.error} />
+                                    <Text style={{ fontSize: 15, fontFamily: 'DMSans-Bold', color: colors.error }}>
+                                        {validationData.warnings.length} Warnings Found
+                                    </Text>
+                                </View>
+                                {validationData.warnings.map((w, idx) => (
+                                    <View key={idx} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: idx === validationData.warnings.length - 1 ? 0 : 10 }}>
+                                        <MaterialIcons name="error-outline" size={16} color={colors.error} style={{ marginTop: 2 }} />
+                                        <Text style={{ fontSize: 13, fontFamily: 'DMSans-Regular', color: colors.onErrorContainer, flex: 1 }}>
+                                            {w.message}
+                                        </Text>
+                                    </View>
+                                ))}
+                                <Text style={{ fontSize: 12, fontFamily: 'DMSans-Medium', color: colors.error, marginTop: 16, opacity: 0.8 }}>
+                                    It is recommended to resolve these issues before executing the transition.
+                                </Text>
+                            </View>
+                        ) : (
+                            <View style={{ backgroundColor: colors.success + '15', borderRadius: 12, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                <MaterialIcons name="check-circle" size={24} color={colors.success} />
+                                <View style={{ flex: 1 }}>
+                                    <Text style={{ fontSize: 15, fontFamily: 'DMSans-Bold', color: colors.success }}>
+                                        All Clear
+                                    </Text>
+                                    <Text style={{ fontSize: 13, fontFamily: 'DMSans-Regular', color: colors.onSurfaceVariant, marginTop: 2 }}>
+                                        No critical anomalies detected in the current academic year.
+                                    </Text>
+                                </View>
+                            </View>
+                        )
+                    )}
                 </View>
             )}
         </View>

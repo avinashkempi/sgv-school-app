@@ -5,14 +5,17 @@ import {
     ScrollView,
     Pressable,
     RefreshControl,
-    ActivityIndicator
+    ActivityIndicator,
+    Alert
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../theme';
 import { useApiQuery } from '../../hooks/useApi';
 import apiConfig from '../../config/apiConfig';
+import apiFetch from '../../utils/apiFetch';
 import Header from '../../components/Header';
+import { useToast } from '../../components/ToastProvider';
 import { LinearGradient } from 'expo-linear-gradient';
 
 /**
@@ -22,7 +25,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 export default function AcademicYearsScreen() {
     const router = useRouter();
     const { colors } = useTheme();
+    const { showToast } = useToast();
     const [refreshing, setRefreshing] = useState(false);
+    const [activating, setActivating] = useState(false);
 
     // Fetch dashboard data
     const { data: dashboardData, isLoading, refetch } = useApiQuery(
@@ -48,9 +53,41 @@ export default function AcademicYearsScreen() {
         router.push(`/super-admin/year-details?yearId=${yearId}`);
     };
 
+    const handleActivateYear = async (yearId, yearName) => {
+        const doActivate = async () => {
+            setActivating(true);
+            try {
+                const response = await apiFetch(`${apiConfig.baseUrl}/academic-year/${yearId}/activate`, {
+                    method: 'PUT'
+                });
+                const json = await response.json();
+                if (response.ok) {
+                    showToast(json.message || `${yearName} activated!`, 'success');
+                    refetch();
+                } else {
+                    showToast(json.message || 'Activation failed', 'error');
+                }
+            } catch (err) {
+                console.error('Activate error:', err);
+                showToast('Network error during activation', 'error');
+            } finally {
+                setActivating(false);
+            }
+        };
+
+        Alert.alert(
+            'Activate Year',
+            `Set "${yearName}" as the current academic year? Any currently active year will be archived.`,
+            [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Activate', style: 'default', onPress: doActivate }
+            ]
+        );
+    };
+
     const handleStartTransition = (yearId) => {
         if (!currentYear) {
-            // No current year, just activate
+            // No current year — shouldn't reach here, but safety
             return;
         }
         router.push(`/super-admin/transition-wizard?currentId=${currentYear._id}&nextId=${yearId}`);
@@ -212,7 +249,33 @@ export default function AcademicYearsScreen() {
 
                     {/* Action Buttons */}
                     <View style={{ flexDirection: 'row', gap: 8 }}>
-                        {isUpcoming && (
+                        {isUpcoming && !currentYear && (
+                            <Pressable
+                                onPress={() => handleActivateYear(year._id, year.name)}
+                                disabled={activating}
+                                style={({ pressed }) => ({
+                                    flex: 1,
+                                    backgroundColor: pressed ? colors.success + 'DD' : colors.success,
+                                    paddingVertical: 12,
+                                    borderRadius: 10,
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: 6,
+                                    opacity: activating ? 0.6 : 1
+                                })}
+                            >
+                                {activating ? (
+                                    <ActivityIndicator size="small" color="#FFF" />
+                                ) : (
+                                    <MaterialIcons name="play-arrow" size={18} color="#FFF" />
+                                )}
+                                <Text style={{ fontSize: 14, fontFamily: 'DMSans-Bold', color: '#FFF' }}>
+                                    {activating ? 'Activating...' : 'Activate'}
+                                </Text>
+                            </Pressable>
+                        )}
+                        {isUpcoming && currentYear && (
                             <Pressable
                                 onPress={() => handleStartTransition(year._id)}
                                 style={({ pressed }) => ({
@@ -228,7 +291,7 @@ export default function AcademicYearsScreen() {
                             >
                                 <MaterialIcons name="sync" size={18} color="#FFF" />
                                 <Text style={{ fontSize: 14, fontFamily: 'DMSans-Bold', color: '#FFF' }}>
-                                    Activate & Transition
+                                    Promote & Transition
                                 </Text>
                             </Pressable>
                         )}

@@ -365,6 +365,7 @@ export default function ComplaintsScreen() {
                     {(userRole === 'admin' || userRole === 'super admin') && (
                         <>
                             <TabButton id="inbox" label="Inbox" />
+                            <TabButton id="sent_feedback" label="Sent" />
                             <TabButton id="feedback_logs" label="Logs" />
                         </>
                     )}
@@ -447,70 +448,84 @@ export default function ComplaintsScreen() {
                 />
             )}
 
-            {/* FAB & Action Handling */}
+            {/* ── FAB & Action Handling ── */}
+
+            {/* Student: Single FAB for raising complaint */}
             {userRole === 'student' && (
                 <Pressable
                     onPress={() => router.push("/complaints/raise")}
-                    style={fabStyle(colors)}
+                    style={({ pressed }) => [fabStyle(colors), { transform: [{ scale: pressed ? 0.92 : 1 }] }]}
                 >
-                    <MaterialIcons name="add" size={24} color="#fff" />
+                    <MaterialIcons name="add" size={26} color="#fff" />
                 </Pressable>
             )}
 
+            {/* Teacher: Expandable FAB with feedback + complaint options */}
             {userRole === 'teacher' && (
                 <>
                     {showFabOptions && (
-                        <View style={{ position: "absolute", bottom: 140, right: 24, alignItems: "flex-end", gap: 12, zIndex: 10 }}>
-                            {isClassTeacher && (
-                                <Pressable
-                                    onPress={() => { setShowFabOptions(false); router.push("/complaints/give-feedback"); }}
-                                    style={secondaryFabStyle(colors)}
-                                >
-                                    <Text style={{ fontFamily: "DMSans-Bold", color: "#fff", marginRight: 8 }}>Give Feedback</Text>
-                                    <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" }}>
-                                        <MaterialIcons name="rate-review" size={20} color={colors.primary} />
-                                    </View>
-                                </Pressable>
-                            )}
+                        <View style={{ position: "absolute", bottom: 200, right: 20, alignItems: "flex-end", gap: 14, zIndex: 10 }}>
+                            <Pressable
+                                onPress={() => { setShowFabOptions(false); router.push("/complaints/give-feedback"); }}
+                                style={({ pressed }) => [secondaryFabPill(colors), { opacity: pressed ? 0.85 : 1 }]}
+                            >
+                                <View style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: colors.secondary, alignItems: "center", justifyContent: "center" }}>
+                                    <MaterialIcons name="rate-review" size={20} color="#fff" />
+                                </View>
+                                <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary, fontSize: 14, marginLeft: 12 }}>Give Feedback</Text>
+                                <MaterialIcons name="chevron-right" size={20} color={colors.textSecondary} style={{ marginLeft: "auto" }} />
+                            </Pressable>
                             <Pressable
                                 onPress={() => { setShowFabOptions(false); router.push("/complaints/raise"); }}
-                                style={secondaryFabStyle(colors)}
+                                style={({ pressed }) => [secondaryFabPill(colors), { opacity: pressed ? 0.85 : 1 }]}
                             >
-                                <Text style={{ fontFamily: "DMSans-Bold", color: "#fff", marginRight: 8 }}>Raise Complaint</Text>
-                                <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" }}>
-                                    <MaterialIcons name="error-outline" size={20} color={colors.primary} />
+                                <View style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: colors.warning || colors.error, alignItems: "center", justifyContent: "center" }}>
+                                    <MaterialIcons name="report-problem" size={20} color="#fff" />
                                 </View>
+                                <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary, fontSize: 14, marginLeft: 12 }}>Raise Complaint</Text>
+                                <MaterialIcons name="chevron-right" size={20} color={colors.textSecondary} style={{ marginLeft: "auto" }} />
                             </Pressable>
                         </View>
                     )}
                     <Pressable
-                        onPress={() => {
-                            if (isClassTeacher) {
-                                setShowFabOptions(!showFabOptions);
-                            } else {
-                                router.push("/complaints/raise");
-                            }
-                        }}
-                        style={fabStyle(colors)}
+                        onPress={() => setShowFabOptions(!showFabOptions)}
+                        style={({ pressed }) => [fabStyle(colors), { transform: [{ scale: pressed ? 0.92 : 1 }, { rotate: showFabOptions ? '45deg' : '0deg' }] }]}
                     >
-                        <MaterialIcons name={showFabOptions ? "close" : "add"} size={24} color="#fff" />
+                        <MaterialIcons name="add" size={26} color="#fff" />
                     </Pressable>
                 </>
             )}
 
+            {/* Admin / Super Admin: Expandable FAB with feedback option */}
             {(userRole === 'admin' || userRole === 'super admin') && (
-                <Pressable
-                    onPress={() => router.push("/complaints/give-feedback")}
-                    style={fabStyle(colors)}
-                >
-                    <MaterialIcons name="rate-review" size={24} color="#fff" />
-                </Pressable>
+                <>
+                    {showFabOptions && (
+                        <View style={{ position: "absolute", bottom: 200, right: 20, alignItems: "flex-end", gap: 14, zIndex: 10 }}>
+                            <Pressable
+                                onPress={() => { setShowFabOptions(false); router.push("/complaints/give-feedback"); }}
+                                style={({ pressed }) => [secondaryFabPill(colors), { opacity: pressed ? 0.85 : 1 }]}
+                            >
+                                <View style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: colors.secondary, alignItems: "center", justifyContent: "center" }}>
+                                    <MaterialIcons name="rate-review" size={20} color="#fff" />
+                                </View>
+                                <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary, fontSize: 14, marginLeft: 12 }}>Give Feedback</Text>
+                                <MaterialIcons name="chevron-right" size={20} color={colors.textSecondary} style={{ marginLeft: "auto" }} />
+                            </Pressable>
+                        </View>
+                    )}
+                    <Pressable
+                        onPress={() => setShowFabOptions(!showFabOptions)}
+                        style={({ pressed }) => [fabStyle(colors), { transform: [{ scale: pressed ? 0.92 : 1 }, { rotate: showFabOptions ? '45deg' : '0deg' }] }]}
+                    >
+                        <MaterialIcons name={showFabOptions ? "add" : "rate-review"} size={26} color="#fff" />
+                    </Pressable>
+                </>
             )}
 
             {/* Overlay for FAB Options */}
             {showFabOptions && (
                 <Pressable
-                    style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.3)", zIndex: 9 }}
+                    style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.4)", zIndex: 9 }}
                     onPress={() => setShowFabOptions(false)}
                 />
             )}
@@ -518,8 +533,8 @@ export default function ComplaintsScreen() {
             {/* Edit Feedback Modal */}
             <Modal visible={!!editingFeedback} transparent animationType="fade">
                 <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 20 }}>
-                    <View style={{ backgroundColor: colors.cardBackground, borderRadius: 16, padding: 20 }}>
-                        <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 16 }}>Edit Feedback</Text>
+                    <View style={{ backgroundColor: colors.cardBackground, borderRadius: 24, padding: 24 }}>
+                        <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 20 }}>Edit Feedback</Text>
 
                         <TextInput
                             value={editMessage}
@@ -528,23 +543,39 @@ export default function ComplaintsScreen() {
                             numberOfLines={4}
                             style={{
                                 backgroundColor: colors.background,
-                                borderRadius: 12,
-                                padding: 12,
+                                borderRadius: 16,
+                                padding: 16,
                                 color: colors.textPrimary,
                                 fontFamily: "DMSans-Medium",
-                                minHeight: 100,
+                                fontSize: 15,
+                                minHeight: 120,
                                 textAlignVertical: "top",
-                                marginBottom: 20
+                                marginBottom: 24,
+                                borderWidth: 1,
+                                borderColor: colors.border
                             }}
                         />
 
                         <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: 12 }}>
-                            <Pressable onPress={() => setEditingFeedback(null)} style={{ padding: 10 }}>
+                            <Pressable
+                                onPress={() => setEditingFeedback(null)}
+                                style={{ paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12, backgroundColor: colors.background }}
+                            >
                                 <Text style={{ color: colors.textSecondary, fontFamily: "DMSans-Bold" }}>Cancel</Text>
                             </Pressable>
                             <Pressable
                                 onPress={submitEdit}
-                                style={{ backgroundColor: colors.primary, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 }}
+                                style={{
+                                    backgroundColor: colors.primary,
+                                    paddingHorizontal: 24,
+                                    paddingVertical: 12,
+                                    borderRadius: 12,
+                                    shadowColor: colors.primary,
+                                    shadowOffset: { width: 0, height: 4 },
+                                    shadowOpacity: 0.3,
+                                    shadowRadius: 8,
+                                    elevation: 4
+                                }}
                                 disabled={updateFeedbackMutation.isPending}
                             >
                                 {updateFeedbackMutation.isPending ? (
@@ -564,8 +595,11 @@ export default function ComplaintsScreen() {
                     <View style={{ backgroundColor: colors.cardBackground, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24 }}>
                         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
                             <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>Update Status</Text>
-                            <Pressable onPress={() => setSelectedComplaint(null)}>
-                                <MaterialIcons name="close" size={24} color={colors.textSecondary} />
+                            <Pressable
+                                onPress={() => setSelectedComplaint(null)}
+                                style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors.background, justifyContent: "center", alignItems: "center" }}
+                            >
+                                <MaterialIcons name="close" size={20} color={colors.textSecondary} />
                             </Pressable>
                         </View>
 
@@ -607,8 +641,8 @@ export default function ComplaintsScreen() {
                             numberOfLines={4}
                             style={{
                                 backgroundColor: colors.background,
-                                borderRadius: 12,
-                                padding: 12,
+                                borderRadius: 16,
+                                padding: 16,
                                 color: colors.textPrimary,
                                 fontFamily: "DMSans-Medium",
                                 minHeight: 100,
@@ -627,7 +661,12 @@ export default function ComplaintsScreen() {
                                 padding: 18,
                                 borderRadius: 16,
                                 alignItems: "center",
-                                opacity: updateStatusMutation.isPending ? 0.7 : 1
+                                opacity: updateStatusMutation.isPending ? 0.7 : 1,
+                                shadowColor: colors.primary,
+                                shadowOffset: { width: 0, height: 4 },
+                                shadowOpacity: 0.3,
+                                shadowRadius: 8,
+                                elevation: 4
                             }}
                         >
                             {updateStatusMutation.isPending ? (
@@ -646,23 +685,34 @@ export default function ComplaintsScreen() {
 
 const fabStyle = (colors) => ({
     position: "absolute",
-    bottom: 130, // Above bottom tab bar if exists
-    right: 24,
+    bottom: 130,
+    right: 20,
     backgroundColor: colors.primary,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     justifyContent: "center",
     alignItems: "center",
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    elevation: 8,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
     zIndex: 11
 });
 
-const secondaryFabStyle = (colors) => ({
+const secondaryFabPill = (colors) => ({
     flexDirection: "row",
     alignItems: "center",
+    backgroundColor: colors.cardBackground,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    paddingRight: 16,
+    borderRadius: 28,
+    minWidth: 200,
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
 });

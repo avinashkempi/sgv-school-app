@@ -75,6 +75,7 @@ export default function GiveFeedbackScreen() {
         ? (allClassesData || []).map(c => ({ ...c, role: 'admin' }))
         : teacherData ? [
             ...(teacherData.asClassTeacher || []).map(c => ({ ...c, role: 'class_teacher' })),
+            ...(teacherData.asSubjectTeacher || []).map(c => ({ ...c, role: 'subject_teacher' })),
         ] : [];
 
     // Fetch Students when Class is Selected
@@ -105,6 +106,9 @@ export default function GiveFeedbackScreen() {
                 s => s.class._id === cls._id
             ) || [];
             setAvailableSubjects(mySubjectsInThisClass);
+        } else if (cls.role === 'subject_teacher') {
+            // Subject teachers see the subjects they teach in this class
+            setAvailableSubjects(cls.subjects?.map(s => ({ ...s, class: cls })) || []);
         }
         setShowClassModal(false);
     };
@@ -179,7 +183,7 @@ export default function GiveFeedbackScreen() {
                             fontSize: 16
                         }}>
                             {selectedClass
-                                ? `${selectedClass.name} ${selectedClass.section || ""}${selectedClass.role === 'admin' ? '' : ' (Class Teacher)'}`
+                                ? `${selectedClass.name} ${selectedClass.section || ""}${selectedClass.role === 'admin' ? '' : selectedClass.role === 'class_teacher' ? ' (Class Teacher)' : ' (Subject Teacher)'}`
                                 : "Select Class"}
                         </Text>
                         <MaterialIcons name="arrow-drop-down" size={24} color={colors.textSecondary} />

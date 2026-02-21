@@ -4,11 +4,26 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useTheme } from "../theme";
 import { useNotifications } from "../hooks/useNotifications";
+import YearSelector from "./academic-year/YearSelector";
+import { useApiQuery } from "../hooks/useApi";
+import apiConfig from "../config/apiConfig";
 
 const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
   const router = useRouter();
   const { colors, styles } = useTheme();
   const { unreadCount } = useNotifications();
+
+  // Fetch user to check if Super Admin for Time Travel UI
+  const { data: userData } = useApiQuery(
+    ['currentUser'],
+    `${apiConfig.baseUrl}/auth/me`,
+    {
+      staleTime: Infinity,
+      select: (data) => data?.user,
+    }
+  );
+
+  const isSuperAdmin = userData?.role === 'super admin';
 
   // "welcome" is effectively a Large Top App Bar
   if (variant === "welcome") {
@@ -22,6 +37,11 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
         alignItems: "flex-start",
       }}>
         <View style={{ flex: 1 }}>
+          {isSuperAdmin && (
+            <View style={{ marginBottom: 12 }}>
+              <YearSelector />
+            </View>
+          )}
           <Text style={{
             fontSize: 14,
             color: colors.onSurfaceVariant,
@@ -105,6 +125,11 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
       )}
 
       <View style={{ flex: 1, paddingRight: 16 }}>
+        {isSuperAdmin && (
+          <View style={{ marginBottom: 4 }}>
+            <YearSelector />
+          </View>
+        )}
         <Text style={{
           fontSize: 22,
           fontFamily: "DMSans-Bold", // Title Large

@@ -5,6 +5,7 @@ import { useTheme } from '../theme';
 import { getGoogleDriveEmbedUrl } from '../utils/googleDrive';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import SkeletonLoader from './SkeletonLoader';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -22,7 +23,7 @@ const CarouselItem = React.memo(({ item, width, height }) => {
             <View style={[styles.imageContainer, { backgroundColor: colors.background }]}>
                 {loading && (
                     <View style={styles.loadingContainer}>
-                        <ActivityIndicator size="small" color={colors.primary} />
+                        <SkeletonLoader width={width} height={height} borderRadius={0} />
                     </View>
                 )}
                 {error ? (

@@ -5,12 +5,15 @@ import {
     ScrollView,
     Pressable,
     RefreshControl,
-    ActivityIndicator
+    ActivityIndicator,
+    Linking
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../../theme';
 import { useApiQuery } from '../../hooks/useApi';
+import { useToast } from '../../components/ToastProvider';
 import apiConfig from '../../config/apiConfig';
 import Header from '../../components/Header';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -23,6 +26,7 @@ export default function YearDetailsScreen() {
     const router = useRouter();
     const params = useLocalSearchParams();
     const { colors } = useTheme();
+    const { showToast } = useToast();
     const [refreshing, setRefreshing] = useState(false);
     const [selectedTab, setSelectedTab] = useState('overview'); // overview, students, exams, reports
 
@@ -309,8 +313,20 @@ export default function YearDetailsScreen() {
 
             {/* Action FAB */}
             <Pressable
-                onPress={() => {
-                    // Export functionality
+                onPress={async () => {
+                    try {
+                        const token = await AsyncStorage.getItem('token');
+                        if (!token) {
+                            showToast("Authentication required", "error");
+                            return;
+                        }
+                        const url = `${apiConfig.baseUrl}/fee-enhancements/export-arrears/${yearId}?token=${token}`;
+                        await Linking.openURL(url);
+                        showToast("Export started", "success");
+                    } catch (error) {
+                        console.error('Download error:', error);
+                        showToast("Failed to start download", "error");
+                    }
                 }}
                 style={({ pressed }) => ({
                     position: 'absolute',

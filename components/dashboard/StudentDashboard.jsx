@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, RefreshControl, Pressable } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../theme';
 import StatCard from './StatCard';
@@ -58,6 +59,18 @@ const StudentDashboard = () => {
         >
             <Text style={[styles.titleLarge, { marginBottom: 16, marginTop: 8 }]}>My Progress</Text>
 
+            {/* Quick Actions */}
+            <View style={{ marginBottom: 24 }}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+                    <QuickActionButton
+                        title="Past Reports"
+                        icon="history"
+                        color={colors.primary}
+                        onPress={() => router.push('/student/history')}
+                    />
+                </ScrollView>
+            </View>
+
             {/* Stat Cards */}
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -6 }}>
                 <StatCard
@@ -107,6 +120,44 @@ const StudentDashboard = () => {
                 />
             )}
         </ScrollView>
+    );
+};
+
+const QuickActionButton = ({ title, icon, color, onPress }) => {
+    const { colors } = useTheme();
+    return (
+        <React.Fragment>
+            <Pressable
+                onPress={onPress}
+                style={({ pressed }) => ({
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: colors.surface,
+                    padding: 12,
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    borderColor: colors.outlineVariant,
+                    opacity: pressed ? 0.7 : 1,
+                    minWidth: 140
+                })}
+            >
+                <View style={{
+                    padding: 8,
+                    borderRadius: 8,
+                    backgroundColor: color + '15',
+                    marginRight: 12
+                }}>
+                    <MaterialIcons name={icon} size={20} color={color} />
+                </View>
+                <Text style={{
+                    fontFamily: 'DMSans-Medium',
+                    color: colors.onSurface,
+                    fontSize: 14
+                }}>
+                    {title}
+                </Text>
+            </Pressable>
+        </React.Fragment>
     );
 };
 
