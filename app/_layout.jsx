@@ -118,8 +118,6 @@ function Inner() {
               <Stack
                 screenOptions={{
                   headerShown: false,
-                  animationEnabled: false, // Disable animations
-                  animation: 'none', // Ensure no animation
                   // Enable gesture navigation
                   gestureEnabled: true,
                   gestureDirection: 'horizontal',

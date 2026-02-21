@@ -12,6 +12,8 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 
 import { useRouter } from "expo-router";
+import * as Haptics from 'expo-haptics';
+import SkeletonLoader from "../../components/SkeletonLoader";
 import { useTheme } from "../../theme";
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/useApi";
 import { useQueryClient } from "@tanstack/react-query";
@@ -55,7 +57,7 @@ export default function AdminTimetableScreen() {
         ['adminClassesInit'],
         `${apiConfig.baseUrl}/classes/admin/init`,
         {
-            staleTime: 0, // Always check for new data
+            staleTime: 5 * 60 * 1000, // 5 minutes stale time to prevent heavy overfetching
             cacheTime: Infinity, // Keep data in memory forever (throughout session)
             gcTime: Infinity, // For React Query v5+ support
         }
@@ -111,15 +113,20 @@ export default function AdminTimetableScreen() {
     const saveTimetableMutation = useApiMutation({
         mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/timetable`, 'POST'),
         onSuccess: () => {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             showToast("Timetable saved successfully", "success");
             // Invalidate to re-fetch if needed, or we could optimistically update 'allTimetables' in cache
             // For now, simpler to invalidate.
             queryClient.invalidateQueries({ queryKey: ['adminClassesInit'] });
         },
-        onError: (_error) => showToast("Failed to save timetable", "error")
+        onError: (_error) => {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+            showToast("Failed to save timetable", "error");
+        }
     });
 
     const handleSaveTimetable = () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         if (!selectedClassId) return;
 
         // Convert schedule object back to array format
@@ -143,6 +150,7 @@ export default function AdminTimetableScreen() {
     };
 
     const openPeriodModal = (period = null) => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         if (period) {
             setEditingPeriod(period);
             const _now = new Date(); // Helper to set time parts
@@ -206,6 +214,7 @@ export default function AdminTimetableScreen() {
     };
 
     const savePeriod = () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         if (!tempPeriod.subject || !tempPeriod.teacher) {
             Alert.alert("Error", "Please select a subject and teacher");
             return;
@@ -285,8 +294,8 @@ export default function AdminTimetableScreen() {
                             periodNumber: p.periodNumber,
                             startTime: p.startTime,
                             endTime: p.endTime,
-                            subject: p.subject._id || p.subject,
-                            teacher: p.teacher._id || p.teacher
+                            subject: p.subject ? (p.subject._id || p.subject) : null,
+                            teacher: p.teacher ? (p.teacher._id || p.teacher) : null
                         }));
                     });
                 }
@@ -315,11 +324,13 @@ export default function AdminTimetableScreen() {
             }
 
             await Promise.all(updates);
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             showToast("Timings cloned successfully", "success");
             setCloneModalVisible(false);
             queryClient.invalidateQueries({ queryKey: ['adminClassesInit'] });
         } catch (error) {
             console.error("Clone error:", error);
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
             showToast("Failed to clone timings", "error");
         } finally {
             setIsCloning(false);
@@ -334,9 +345,25 @@ export default function AdminTimetableScreen() {
 
     if (isLoading) {
         return (
-            <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: colors.background }}>
-                <ActivityIndicator size="large" color={colors.primary} />
-                <Text style={{ marginTop: 16, color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>Loading data...</Text>
+            <View style={{ flex: 1, backgroundColor: colors.background, padding: 16 }}>
+                <View style={{ paddingTop: 24, paddingBottom: 16 }}>
+                    <SkeletonLoader width={250} height={32} borderRadius={8} style={{ marginBottom: 8 }} />
+                    <SkeletonLoader width={180} height={20} borderRadius={8} style={{ opacity: 0.6 }} />
+                </View>
+                <View style={{ marginBottom: 24 }}>
+                    <SkeletonLoader width={100} height={20} borderRadius={8} style={{ marginBottom: 12 }} />
+                    <View style={{ flexDirection: 'row', gap: 10 }}>
+                        <SkeletonLoader width={110} height={40} borderRadius={20} />
+                        <SkeletonLoader width={110} height={40} borderRadius={20} />
+                        <SkeletonLoader width={110} height={40} borderRadius={20} />
+                    </View>
+                </View>
+                <View style={{ marginBottom: 24, flexDirection: 'row', gap: 8 }}>
+                    {[1, 2, 3, 4, 5].map(i => <SkeletonLoader key={i} width={70} height={36} borderRadius={12} />)}
+                </View>
+                <SkeletonLoader width="100%" height={90} borderRadius={16} style={{ marginBottom: 12 }} />
+                <SkeletonLoader width="100%" height={90} borderRadius={16} style={{ marginBottom: 12 }} />
+                <SkeletonLoader width="100%" height={90} borderRadius={16} />
             </View>
         );
     }
@@ -496,12 +523,13 @@ export default function AdminTimetableScreen() {
                             <Pressable
                                 onPress={handleSaveTimetable}
                                 disabled={saveTimetableMutation.isPending}
+                                android_ripple={{ color: 'rgba(255, 255, 255, 0.2)' }}
                                 style={({ pressed }) => ({
                                     backgroundColor: colors.primary,
                                     borderRadius: 14,
                                     padding: 18,
                                     alignItems: "center",
-                                    opacity: pressed || saveTimetableMutation.isPending ? 0.8 : 1,
+                                    opacity: saveTimetableMutation.isPending ? 0.8 : 1, // Removed pressed opacity in favor of ripple
                                     elevation: 4,
                                     flexDirection: 'row',
                                     justifyContent: 'center',
@@ -686,13 +714,14 @@ export default function AdminTimetableScreen() {
 
                             <Pressable
                                 onPress={savePeriod}
+                                android_ripple={{ color: 'rgba(255, 255, 255, 0.2)' }}
                                 style={({ pressed }) => ({
                                     backgroundColor: colors.primary,
                                     padding: 18,
                                     borderRadius: 14,
                                     alignItems: "center",
                                     marginBottom: 20,
-                                    opacity: pressed ? 0.9 : 1,
+                                    opacity: 1, // Removed pressed opacity for ink ripple
                                     elevation: 2
                                 })}
                             >
@@ -779,13 +808,14 @@ export default function AdminTimetableScreen() {
                             <Pressable
                                 onPress={handleCloneTimings}
                                 disabled={isCloning || !schedule[selectedDay] || schedule[selectedDay].length === 0}
+                                android_ripple={{ color: 'rgba(255, 255, 255, 0.2)' }}
                                 style={({ pressed }) => ({
                                     backgroundColor: colors.primary,
                                     padding: 18,
                                     borderRadius: 14,
                                     alignItems: "center",
                                     marginBottom: 20,
-                                    opacity: pressed || isCloning || !schedule[selectedDay] || schedule[selectedDay].length === 0 ? 0.8 : 1,
+                                    opacity: isCloning || !schedule[selectedDay] || schedule[selectedDay].length === 0 ? 0.8 : 1,
                                     elevation: 2
                                 })}
                             >

@@ -4,6 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../theme';
 import storage from '../utils/storage';
 import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import apiConfig from "../config/apiConfig";
 import { useApiMutation, createApiMutationFn } from "../hooks/useApi";
 
@@ -22,6 +23,7 @@ export default function Login() {
     mutationFn: createApiMutationFn(apiConfig.url(apiConfig.endpoints.auth.login), 'POST'),
     onSuccess: async (data) => {
       if (data.token) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         // Check if a different user is logging in — if so, clear the stale cache
         const prevUserStr = await storage.getItem('@auth_user');
         if (prevUserStr) {
@@ -36,17 +38,21 @@ export default function Login() {
         await storage.setItem('@auth_user', JSON.stringify(data.user));
         router.replace('/');
       } else {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         alert(data.message || 'Login failed');
       }
     },
     onError: (error) => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       console.error('Login error:', error);
       alert(error.message || 'Network error. Please try again.');
     }
   });
 
   const handleLogin = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (!phone || !password) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       alert('Please enter both phone number and password.');
       return;
     }
@@ -149,9 +155,11 @@ export default function Login() {
             <Button
               variant="outlined"
               onPress={async () => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                 const { DEMO_USER } = require('../constants/demoData');
                 await storage.setItem('@auth_token', 'demo-token');
                 await storage.setItem('@auth_user', JSON.stringify(DEMO_USER));
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                 router.replace('/');
               }}
             >
