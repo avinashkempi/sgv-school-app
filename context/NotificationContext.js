@@ -16,8 +16,8 @@ export const NotificationProvider = ({ children }) => {
             if (response.ok) {
                 const data = await response.json();
                 setNotifications(data.notifications || []);
-                const count = (data.notifications || []).filter(n => n.recipient && !n.read).length;
-                setUnreadCount(count);
+                // Use the server-supplied unreadCount; fall back to local count if absent
+                setUnreadCount(data.unreadCount ?? (data.notifications || []).filter(n => !n.isRead).length);
             }
         } catch (error) {
             console.error('[NotificationContext] Fetch Error:', error);
@@ -59,7 +59,7 @@ export const NotificationProvider = ({ children }) => {
                 method: 'PUT'
             });
             if (response.ok) {
-                setNotifications(prev => prev.map(n => n._id === id ? { ...n, read: true } : n));
+                setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
                 setUnreadCount(prev => Math.max(0, prev - 1));
                 return true;
             }
@@ -75,7 +75,7 @@ export const NotificationProvider = ({ children }) => {
                 method: 'PUT'
             });
             if (response.ok) {
-                setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+                setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
                 setUnreadCount(0);
                 return true;
             }

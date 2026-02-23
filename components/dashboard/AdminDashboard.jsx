@@ -159,7 +159,7 @@ const AdminDashboard = () => {
                     value="View"
                     icon="calendar-today"
                     color={colors.tertiary}
-                    onPress={() => router.push('/teacher/timetable')}
+                    onPress={() => router.push('/admin/timetable')}
                     loading={refreshing}
                 />
             </View>

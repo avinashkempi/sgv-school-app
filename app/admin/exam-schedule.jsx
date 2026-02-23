@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, memo } from "react";
 import {
     View,
     Text,
@@ -19,6 +19,73 @@ import { useQueryClient } from "@tanstack/react-query";
 import Header from "../../components/Header";
 import { useToast } from "../../components/ToastProvider";
 import DateTimePicker from '@react-native-community/datetimepicker';
+
+// ---------- Memoised row — only re-renders when its own props change ----------
+const SubjectMarkRow = memo(function SubjectMarkRow({ subject, isExcluded, marks, defaultMarks, onToggle, onChangeMark, colors }) {
+    return (
+        <View style={{
+            flexDirection: "row",
+            alignItems: "flex-start",   // let text block set height; checkbox/input self-center
+            paddingVertical: 9,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.textSecondary + "15",
+            gap: 10,
+        }}>
+            {/* Checkbox — alignSelf center so it floats in the middle of the row */}
+            <Pressable onPress={onToggle} hitSlop={10} style={{ alignSelf: "center" }}>
+                <View style={{
+                    width: 22, height: 22, borderRadius: 6,
+                    borderWidth: 2,
+                    borderColor: isExcluded ? colors.textSecondary + "50" : colors.primary,
+                    backgroundColor: isExcluded ? "transparent" : colors.primary + "18",
+                    justifyContent: "center", alignItems: "center",
+                }}>
+                    {!isExcluded && (
+                        <MaterialIcons name="check" size={13} color={colors.primary} />
+                    )}
+                </View>
+            </Pressable>
+
+            {/* Subject name + class — flex:1, anchors the row height */}
+            <View style={{ flex: 1, minWidth: 0 }}>
+                <Text
+                    style={{ fontSize: 13, fontFamily: "DMSans-SemiBold", color: isExcluded ? colors.textSecondary : colors.textPrimary, lineHeight: 18 }}
+                    numberOfLines={1}
+                >
+                    {subject.name}
+                </Text>
+                <Text style={{ fontSize: 11, color: colors.textSecondary, fontFamily: "DMSans-Regular", lineHeight: 15 }} numberOfLines={1}>
+                    {subject.class?.name}{subject.class?.section ? ` ${subject.class.section}` : ""}
+                </Text>
+            </View>
+
+            {/* Marks input — alignSelf center so it floats in the middle of the row */}
+            <TextInput
+                value={marks ?? defaultMarks}
+                onChangeText={onChangeMark}
+                keyboardType="numeric"
+                editable={!isExcluded}
+                maxLength={4}
+                style={{
+                    alignSelf: "center",
+                    width: 60,
+                    borderWidth: 1.5,
+                    borderColor: isExcluded
+                        ? colors.textSecondary + "20"
+                        : (marks && marks !== defaultMarks ? colors.primary : colors.textSecondary + "40"),
+                    borderRadius: 8,
+                    paddingVertical: 5,
+                    textAlign: "center",
+                    color: isExcluded ? colors.textSecondary + "60" : colors.textPrimary,
+                    fontSize: 14,
+                    fontFamily: "DMSans-SemiBold",
+                    backgroundColor: isExcluded ? colors.textSecondary + "08" : colors.cardBackground,
+                }}
+            />
+        </View>
+    );
+});
+// ---------------------------------------------------------------------------
 
 export default function AdminExamScheduleScreen() {
     const _router = useRouter();
@@ -94,15 +161,33 @@ export default function AdminExamScheduleScreen() {
     const [initDuration, setInitDuration] = useState("90");
     const [initInstructions, setInitInstructions] = useState("");
     const [showInitDatePicker, setShowInitDatePicker] = useState(false);
-    // New state for scope
     const [initScope, setInitScope] = useState("all"); // "all" or "selected"
     const [initSelectedClassIds, setInitSelectedClassIds] = useState([]);
+    // Per-subject marks
+    const [showPerSubjectMarks, setShowPerSubjectMarks] = useState(false);
+    const [subjectMarksMap, setSubjectMarksMap] = useState({}); // { subjectId: marksString }
+    const [excludedSubjectMap, setExcludedSubjectMap] = useState({}); // { subjectId: true } if excluded
+
+    // Stable callbacks — prevent re-creating on every parent render
+    const handleToggleSubject = useCallback((subjectId) => {
+        setExcludedSubjectMap(prev => ({
+            ...prev,
+            [subjectId]: !prev[subjectId]
+        }));
+    }, []);
+
+    const handleChangeSubjectMark = useCallback((subjectId, value) => {
+        setSubjectMarksMap(prev => ({ ...prev, [subjectId]: value }));
+    }, []);
 
     const initMutation = useApiMutation({
         mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/exams/school-wide/init`, 'POST'),
         onSuccess: (data) => {
             showToast(`${data.message}. Created: ${data.created}, Skipped: ${data.skipped}`, "success");
             setShowInitModal(false);
+            setShowPerSubjectMarks(false);
+            setSubjectMarksMap({});
+            setExcludedSubjectMap({});
             queryClient.invalidateQueries({ queryKey: ['adminExamSchedule'] });
         },
         onError: (error) => showToast(error.message || "Failed to initialize exams", "error")
@@ -126,15 +211,64 @@ export default function AdminExamScheduleScreen() {
             return;
         }
 
+        // Build subjectMarks — only include entries with values, coerce to Number
+        const subjectMarks = showPerSubjectMarks
+            ? Object.fromEntries(
+                Object.entries(subjectMarksMap)
+                    .filter(([_, v]) => v && !isNaN(v) && parseFloat(v) > 0)
+                    .map(([k, v]) => [k, parseFloat(v)])
+            )
+            : null;
+
         initMutation.mutate({
             type: initType,
             totalMarks: parseFloat(initTotalMarks),
             date: initDate.toISOString(),
             instructions: initInstructions,
             duration: initDuration ? parseInt(initDuration) : null,
-            classIds: initScope === "selected" ? initSelectedClassIds : null
+            classIds: initScope === "selected" ? initSelectedClassIds : null,
+            subjectMarks,
+            excludedSubjectIds: showPerSubjectMarks
+                ? Object.keys(excludedSubjectMap).filter(k => excludedSubjectMap[k])
+                : null
         });
     };
+
+    // Fetch all subjects (for the per-subject marks UI)
+    const { data: allSubjectsData } = useApiQuery(
+        ['allSubjectsForExamInit'],
+        `${apiConfig.baseUrl}/subjects`,
+        { enabled: showInitModal && showPerSubjectMarks }
+    );
+    const allSubjects = Array.isArray(allSubjectsData) ? allSubjectsData
+        : (Array.isArray(allSubjectsData?.data) ? allSubjectsData.data : []);
+
+    // When global marks change, update all per-subject marks that haven't been individually customised
+    const applyGlobalMarksToSubjects = useCallback((newGlobalMarks) => {
+        setSubjectMarksMap(prev => {
+            const updated = {};
+            allSubjects.forEach(s => {
+                // overwrite if empty OR still matches old global (hasn't been manually changed)
+                updated[s._id] = (!prev[s._id] || prev[s._id] === initTotalMarks)
+                    ? newGlobalMarks
+                    : prev[s._id];
+            });
+            return updated;
+        });
+    }, [allSubjects, initTotalMarks]);
+
+    // When subjects load or per-subject toggle turns on, pre-fill marks from global default
+    useEffect(() => {
+        if (showPerSubjectMarks && allSubjects.length > 0) {
+            setSubjectMarksMap(prev => {
+                const updated = { ...prev };
+                allSubjects.forEach(s => {
+                    if (!updated[s._id]) updated[s._id] = initTotalMarks;
+                });
+                return updated;
+            });
+        }
+    }, [showPerSubjectMarks, allSubjects.length]);
 
     if (loading && classes.length === 0) {
         return (
@@ -496,11 +630,14 @@ export default function AdminExamScheduleScreen() {
                             {/* Total Marks */}
                             <View style={{ marginBottom: 16 }}>
                                 <Text style={{ fontSize: 14, fontFamily: "DMSans-Medium", color: colors.textSecondary, marginBottom: 8 }}>
-                                    Total Marks *
+                                    Default Total Marks *
                                 </Text>
                                 <TextInput
                                     value={initTotalMarks}
-                                    onChangeText={setInitTotalMarks}
+                                    onChangeText={(v) => {
+                                        setInitTotalMarks(v);
+                                        if (showPerSubjectMarks) applyGlobalMarksToSubjects(v);
+                                    }}
                                     keyboardType="numeric"
                                     placeholder="100"
                                     placeholderTextColor={colors.textSecondary + "80"}
@@ -516,6 +653,76 @@ export default function AdminExamScheduleScreen() {
                                     }}
                                 />
                             </View>
+
+                            {/* Per-Subject Marks Toggle */}
+                            <Pressable
+                                onPress={() => setShowPerSubjectMarks(v => !v)}
+                                style={{
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    marginBottom: 12,
+                                    gap: 10
+                                }}
+                            >
+                                <View style={{
+                                    width: 22, height: 22, borderRadius: 6,
+                                    borderWidth: 2,
+                                    borderColor: showPerSubjectMarks ? colors.primary : colors.textSecondary + "60",
+                                    backgroundColor: showPerSubjectMarks ? colors.primary : "transparent",
+                                    justifyContent: "center", alignItems: "center"
+                                }}>
+                                    {showPerSubjectMarks && (
+                                        <MaterialIcons name="check" size={14} color="#fff" />
+                                    )}
+                                </View>
+                                <Text style={{ fontSize: 14, fontFamily: "DMSans-Medium", color: colors.textPrimary }}>
+                                    Set different marks per subject
+                                </Text>
+                            </Pressable>
+
+                            {/* Per-Subject Marks List */}
+                            {showPerSubjectMarks && (
+                                <View style={{
+                                    backgroundColor: colors.background,
+                                    borderRadius: 12,
+                                    padding: 12,
+                                    marginBottom: 16,
+                                    borderWidth: 1,
+                                    borderColor: colors.textSecondary + "20"
+                                }}>
+                                    {allSubjects.length === 0 ? (
+                                        <ActivityIndicator color={colors.primary} />
+                                    ) : (
+                                        allSubjects
+                                            .filter(s => {
+                                                if (initScope === "selected" && initSelectedClassIds.length > 0) {
+                                                    return initSelectedClassIds.includes(
+                                                        s.class?._id || s.class?.toString()
+                                                    );
+                                                }
+                                                return true;
+                                            })
+                                            .sort((a, b) => {
+                                                const ca = (a.class?.name || "").toLowerCase();
+                                                const cb = (b.class?.name || "").toLowerCase();
+                                                if (ca !== cb) return ca.localeCompare(cb);
+                                                return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+                                            })
+                                            .map(subject => (
+                                                <SubjectMarkRow
+                                                    key={subject._id}
+                                                    subject={subject}
+                                                    isExcluded={!!excludedSubjectMap[subject._id]}
+                                                    marks={subjectMarksMap[subject._id]}
+                                                    defaultMarks={initTotalMarks}
+                                                    onToggle={() => handleToggleSubject(subject._id)}
+                                                    onChangeMark={(v) => handleChangeSubjectMark(subject._id, v)}
+                                                    colors={colors}
+                                                />
+                                            ))
+                                    )}
+                                </View>
+                            )}
 
                             {/* Date */}
                             <View style={{ marginBottom: 16 }}>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, memo } from 'react';
 import {
     View,
     Text,
@@ -16,6 +16,106 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '../../../components/ToastProvider';
 import Header from '../../../components/Header';
 
+// ---------- Memoised exam-type card — only re-renders when its own props change ----------
+const ExamTypeCard = memo(function ExamTypeCard({
+    type, isEnabled, examConfig, defaultMarks,
+    onToggle, onChangeDate, onChangeMark, colors
+}) {
+    const accentColor = type.startsWith('SA') ? '#9C27B0' : '#2196F3';
+    return (
+        <View style={{
+            backgroundColor: isEnabled ? colors.surfaceContainerLow : colors.surfaceContainerHigh,
+            borderRadius: 12,
+            padding: 14,
+            marginBottom: 10,
+            borderLeftWidth: 3,
+            borderLeftColor: isEnabled ? accentColor : colors.textSecondary + '30',
+            opacity: isEnabled ? 1 : 0.6,
+        }}>
+            {/* Header row: checkbox + label */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: isEnabled ? 12 : 0 }}>
+                <Pressable onPress={onToggle} hitSlop={8} style={{ marginRight: 10 }}>
+                    <View style={{
+                        width: 22, height: 22, borderRadius: 6,
+                        borderWidth: 2,
+                        borderColor: isEnabled ? accentColor : colors.textSecondary + '60',
+                        backgroundColor: isEnabled ? accentColor : 'transparent',
+                        justifyContent: 'center', alignItems: 'center',
+                    }}>
+                        {isEnabled && <MaterialIcons name="check" size={14} color="#fff" />}
+                    </View>
+                </Pressable>
+                <Text style={{
+                    fontSize: 14,
+                    fontFamily: 'DMSans-Bold',
+                    color: isEnabled ? colors.onSurface : colors.onSurfaceVariant,
+                    flex: 1,
+                }}>
+                    {type}
+                </Text>
+                {!isEnabled && (
+                    <Text style={{ fontSize: 11, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant }}>
+                        Skipped
+                    </Text>
+                )}
+            </View>
+
+            {isEnabled && (
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                    {/* Date */}
+                    <View style={{ flex: 2 }}>
+                        <Text style={{ fontSize: 11, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant, marginBottom: 4 }}>
+                            Date
+                        </Text>
+                        <TextInput
+                            placeholder="YYYY-MM-DD"
+                            placeholderTextColor={colors.onSurfaceVariant + '60'}
+                            value={examConfig.date}
+                            onChangeText={onChangeDate}
+                            style={{
+                                backgroundColor: colors.surface,
+                                padding: 10,
+                                borderRadius: 8,
+                                fontSize: 13,
+                                fontFamily: 'DMSans-Medium',
+                                color: colors.onSurface,
+                                borderWidth: 1,
+                                borderColor: colors.outline,
+                            }}
+                        />
+                    </View>
+                    {/* Marks */}
+                    <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 11, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant, marginBottom: 4 }}>
+                            Total Marks
+                        </Text>
+                        <TextInput
+                            placeholder={defaultMarks || '100'}
+                            placeholderTextColor={colors.onSurfaceVariant + '80'}
+                            value={examConfig.totalMarks}
+                            onChangeText={onChangeMark}
+                            keyboardType="numeric"
+                            style={{
+                                backgroundColor: colors.surface,
+                                padding: 10,
+                                borderRadius: 8,
+                                fontSize: 13,
+                                fontFamily: 'DMSans-Medium',
+                                color: colors.onSurface,
+                                borderWidth: 1,
+                                borderColor: examConfig.totalMarks && examConfig.totalMarks !== defaultMarks
+                                    ? accentColor
+                                    : colors.outline,
+                            }}
+                        />
+                    </View>
+                </View>
+            )}
+        </View>
+    );
+});
+// ----------------------------------------------------------------------------------
+
 /**
  * Quick Exam Initialization Wizard
  * Multi-step wizard for quickly creating all 6 exam types at once
@@ -30,6 +130,10 @@ export default function QuickExamWizard() {
     const [currentStep, setCurrentStep] = useState(1);
     const [selectedClass, setSelectedClass] = useState(params.classId || null);
     const [selectedSubject, setSelectedSubject] = useState(params.subjectId || null);
+    // { FA1: true, FA2: true, ... } — false/absent = skipped
+    const [enabledMap, setEnabledMap] = useState({
+        FA1: true, FA2: true, SA1: true, FA3: true, FA4: true, SA2: true
+    });
     const [examConfig, setExamConfig] = useState({
         totalMarks: '100',
         duration: '60',
@@ -76,6 +180,12 @@ export default function QuickExamWizard() {
     };
 
     const handleSubmit = () => {
+        const activeTypes = Object.keys(enabledMap).filter(t => enabledMap[t]);
+        if (activeTypes.length === 0) {
+            showToast('Please enable at least one exam type', 'warning');
+            return;
+        }
+
         const examsConfig = {
             totalMarks: parseInt(examConfig.totalMarks) || 100,
             duration: parseInt(examConfig.duration) || 60,
@@ -91,9 +201,23 @@ export default function QuickExamWizard() {
         quickInitMutation.mutate({
             classId: selectedClass,
             subjectId: selectedSubject,
-            examsConfig
+            examsConfig,
+            types: activeTypes  // only create enabled types
         });
     };
+
+    // Stable callback handlers for ExamTypeCard
+    const handleToggleType = useCallback((type) => {
+        setEnabledMap(prev => ({ ...prev, [type]: !prev[type] }));
+    }, []);
+
+    const handleChangeDate = useCallback((type, value) => {
+        setExamConfig(prev => ({ ...prev, [type]: { ...prev[type], date: value } }));
+    }, []);
+
+    const handleChangeMark = useCallback((type, value) => {
+        setExamConfig(prev => ({ ...prev, [type]: { ...prev[type], totalMarks: value } }));
+    }, []);
 
     const renderStep1 = () => {
         // Group subjects by class
@@ -169,13 +293,24 @@ export default function QuickExamWizard() {
     const renderStep2 = () => {
         const examTypes = ['FA1', 'FA2', 'SA1', 'FA3', 'FA4', 'SA2'];
 
+        const applyDefaultMarks = (value) => {
+            const updated = { ...examConfig, totalMarks: value };
+            examTypes.forEach(type => {
+                // Only overwrite if the individual hasn't been manually customized
+                if (!examConfig[type].totalMarks || examConfig[type].totalMarks === examConfig.totalMarks) {
+                    updated[type] = { ...updated[type], totalMarks: value };
+                }
+            });
+            setExamConfig(updated);
+        };
+
         return (
             <View>
                 <Text style={{ fontSize: 18, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginBottom: 8 }}>
                     Configure Exams
                 </Text>
                 <Text style={{ fontSize: 13, fontFamily: 'DMSans-Regular', color: colors.onSurfaceVariant, marginBottom: 20 }}>
-                    Set common defaults and customize individual exams
+                    Set a default then customize marks per exam type
                 </Text>
 
                 {/* Common Configuration */}
@@ -189,93 +324,73 @@ export default function QuickExamWizard() {
                         Common Defaults
                     </Text>
 
-                    <View style={{ marginBottom: 12 }}>
-                        <Text style={{ fontSize: 12, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant, marginBottom: 6 }}>
-                            Total Marks
-                        </Text>
-                        <TextInput
-                            value={examConfig.totalMarks}
-                            onChangeText={(value) => setExamConfig({ ...examConfig, totalMarks: value })}
-                            keyboardType="numeric"
-                            style={{
-                                backgroundColor: colors.surface,
-                                padding: 12,
-                                borderRadius: 8,
-                                fontSize: 14,
-                                fontFamily: 'DMSans-Medium',
-                                color: colors.onSurface,
-                                borderWidth: 1,
-                                borderColor: colors.outline
-                            }}
-                        />
-                    </View>
+                    <View style={{ flexDirection: 'row', gap: 12 }}>
+                        <View style={{ flex: 1 }}>
+                            <Text style={{ fontSize: 12, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant, marginBottom: 6 }}>
+                                Default Total Marks
+                            </Text>
+                            <TextInput
+                                value={examConfig.totalMarks}
+                                onChangeText={applyDefaultMarks}
+                                keyboardType="numeric"
+                                style={{
+                                    backgroundColor: colors.surface,
+                                    padding: 12,
+                                    borderRadius: 8,
+                                    fontSize: 14,
+                                    fontFamily: 'DMSans-Medium',
+                                    color: colors.onSurface,
+                                    borderWidth: 1,
+                                    borderColor: colors.outline
+                                }}
+                            />
+                        </View>
 
-                    <View>
-                        <Text style={{ fontSize: 12, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant, marginBottom: 6 }}>
-                            Duration (minutes)
-                        </Text>
-                        <TextInput
-                            value={examConfig.duration}
-                            onChangeText={(value) => setExamConfig({ ...examConfig, duration: value })}
-                            keyboardType="numeric"
-                            style={{
-                                backgroundColor: colors.surface,
-                                padding: 12,
-                                borderRadius: 8,
-                                fontSize: 14,
-                                fontFamily: 'DMSans-Medium',
-                                color: colors.onSurface,
-                                borderWidth: 1,
-                                borderColor: colors.outline
-                            }}
-                        />
+                        <View style={{ flex: 1 }}>
+                            <Text style={{ fontSize: 12, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant, marginBottom: 6 }}>
+                                Duration (minutes)
+                            </Text>
+                            <TextInput
+                                value={examConfig.duration}
+                                onChangeText={(value) => setExamConfig({ ...examConfig, duration: value })}
+                                keyboardType="numeric"
+                                style={{
+                                    backgroundColor: colors.surface,
+                                    padding: 12,
+                                    borderRadius: 8,
+                                    fontSize: 14,
+                                    fontFamily: 'DMSans-Medium',
+                                    color: colors.onSurface,
+                                    borderWidth: 1,
+                                    borderColor: colors.outline
+                                }}
+                            />
+                        </View>
                     </View>
                 </View>
 
                 {/* Individual Exam Configuration */}
                 <Text style={{ fontSize: 15, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginBottom: 12 }}>
-                    Individual Exam Dates
+                    Individual Exam Settings
                 </Text>
 
                 {examTypes.map(type => (
-                    <View
+                    <ExamTypeCard
                         key={type}
-                        style={{
-                            backgroundColor: colors.surfaceContainerLow,
-                            borderRadius: 12,
-                            padding: 14,
-                            marginBottom: 10,
-                            borderLeftWidth: 3,
-                            borderLeftColor: type.startsWith('SA') ? '#9C27B0' : '#2196F3'
-                        }}
-                    >
-                        <Text style={{ fontSize: 14, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginBottom: 8 }}>
-                            {type}
-                        </Text>
-                        <TextInput
-                            placeholder="YYYY-MM-DD (e.g., 2026-02-15)"
-                            placeholderTextColor={colors.onSurfaceVariant + '60'}
-                            value={examConfig[type].date}
-                            onChangeText={(value) => setExamConfig({
-                                ...examConfig,
-                                [type]: { ...examConfig[type], date: value }
-                            })}
-                            style={{
-                                backgroundColor: colors.surface,
-                                padding: 10,
-                                borderRadius: 8,
-                                fontSize: 13,
-                                fontFamily: 'DMSans-Medium',
-                                color: colors.onSurface,
-                                borderWidth: 1,
-                                borderColor: colors.outline
-                            }}
-                        />
-                    </View>
+                        type={type}
+                        isEnabled={!!enabledMap[type]}
+                        examConfig={examConfig[type]}
+                        defaultMarks={examConfig.totalMarks}
+                        onToggle={() => handleToggleType(type)}
+                        onChangeDate={(v) => handleChangeDate(type, v)}
+                        onChangeMark={(v) => handleChangeMark(type, v)}
+                        colors={colors}
+                    />
                 ))}
             </View>
         );
     };
+
 
     const renderStep3 = () => {
         const selectedSubjectObj = subjects.find(s => s._id === selectedSubject);
@@ -330,32 +445,52 @@ export default function QuickExamWizard() {
                 </View>
 
                 <Text style={{ fontSize: 15, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginBottom: 12 }}>
-                    6 Exams Will Be Created
+                    {Object.values(enabledMap).filter(Boolean).length} Exam{Object.values(enabledMap).filter(Boolean).length !== 1 ? 's' : ''} Will Be Created
                 </Text>
 
-                {['FA1', 'FA2', 'SA1', 'FA3', 'FA4', 'SA2'].map(type => (
-                    <View
-                        key={type}
-                        style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            backgroundColor: colors.surfaceContainerHighest,
-                            padding: 12,
-                            borderRadius: 8,
-                            marginBottom: 8
-                        }}
-                    >
-                        <MaterialIcons name="check-circle" size={20} color={colors.success} />
-                        <Text style={{ fontSize: 14, fontFamily: 'DMSans-Medium', color: colors.onSurface, marginLeft: 10, flex: 1 }}>
-                            {type}
-                        </Text>
-                        {examConfig[type].date && (
-                            <Text style={{ fontSize: 12, fontFamily: 'DMSans-Regular', color: colors.onSurfaceVariant }}>
-                                {examConfig[type].date}
+                {['FA1', 'FA2', 'SA1', 'FA3', 'FA4', 'SA2'].map(type => {
+                    const isEnabled = !!enabledMap[type];
+                    return (
+                        <View
+                            key={type}
+                            style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                backgroundColor: isEnabled ? colors.surfaceContainerHighest : colors.surfaceContainerHigh,
+                                padding: 12,
+                                borderRadius: 8,
+                                marginBottom: 8,
+                                opacity: isEnabled ? 1 : 0.5
+                            }}
+                        >
+                            <MaterialIcons
+                                name={isEnabled ? 'check-circle' : 'remove-circle'}
+                                size={20}
+                                color={isEnabled ? colors.success : colors.onSurfaceVariant}
+                            />
+                            <Text style={{ fontSize: 14, fontFamily: 'DMSans-Medium', color: isEnabled ? colors.onSurface : colors.onSurfaceVariant, marginLeft: 10, flex: 1 }}>
+                                {type}
                             </Text>
-                        )}
-                    </View>
-                ))}
+                            {isEnabled ? (
+                                <View style={{ alignItems: 'flex-end' }}>
+                                    <Text style={{ fontSize: 13, fontFamily: 'DMSans-SemiBold', color: colors.primary }}>
+                                        {examConfig[type].totalMarks || examConfig.totalMarks || '100'} marks
+                                    </Text>
+                                    {examConfig[type].date ? (
+                                        <Text style={{ fontSize: 11, fontFamily: 'DMSans-Regular', color: colors.onSurfaceVariant, marginTop: 2 }}>
+                                            {examConfig[type].date}
+                                        </Text>
+                                    ) : null}
+                                </View>
+                            ) : (
+                                <Text style={{ fontSize: 12, fontFamily: 'DMSans-Regular', color: colors.onSurfaceVariant }}>
+                                    Skipped
+                                </Text>
+                            )}
+                        </View>
+                    );
+                })}
+
             </View>
         );
     };

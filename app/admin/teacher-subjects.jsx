@@ -8,6 +8,9 @@ import {
     RefreshControl,
     ActivityIndicator,
     Modal,
+    LayoutAnimation,
+    Platform,
+    UIManager
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -24,12 +27,19 @@ export default function TeacherSubjectsScreen() {
     const { _styles, colors } = useTheme();
     const { showToast } = useToast();
 
+    // Enable LayoutAnimation for Android
+    if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+        UIManager.setLayoutAnimationEnabledExperimental(true);
+    }
+
     const queryClient = useQueryClient();
     const [refreshing, setRefreshing] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedTeacher, setSelectedTeacher] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [selectedSubjects, setSelectedSubjects] = useState([]);
+    const [modalSearchQuery, setModalSearchQuery] = useState("");
+    const [expandedTeacherId, setExpandedTeacherId] = useState(null);
 
     // Auth check is handled by _layout.jsx generally, but we can keep role check if needed or rely on backend
     // For now assuming auth is fine as per other refactors
@@ -108,6 +118,11 @@ export default function TeacherSubjectsScreen() {
 
     const handleRemoveSubject = (subjectId, teacherId) => {
         removeSubjectMutation.mutate({ subjectId, teacherId });
+    };
+
+    const toggleExpand = (id) => {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setExpandedTeacherId(expandedTeacherId === id ? null : id);
     };
 
     const toggleSubjectSelection = (subjectId) => {
@@ -195,17 +210,26 @@ export default function TeacherSubjectsScreen() {
                                         style={{
                                             backgroundColor: colors.cardBackground,
                                             borderRadius: 16,
-                                            padding: 16,
                                             marginBottom: 16,
                                             shadowColor: "#000",
                                             shadowOffset: { width: 0, height: 2 },
                                             shadowOpacity: 0.05,
                                             shadowRadius: 6,
                                             elevation: 2,
+                                            overflow: "hidden"
                                         }}
                                     >
-                                        {/* Teacher Header */}
-                                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+                                        {/* Teacher Header - Collapsible Trigger */}
+                                        <Pressable
+                                            onPress={() => toggleExpand(teacher._id)}
+                                            style={({ pressed }) => ({
+                                                flexDirection: "row",
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                padding: 16,
+                                                backgroundColor: pressed ? colors.textSecondary + "05" : "transparent"
+                                            })}
+                                        >
                                             <View style={{ flex: 1 }}>
                                                 <Text style={{
                                                     fontSize: 18,
@@ -214,124 +238,143 @@ export default function TeacherSubjectsScreen() {
                                                 }}>
                                                     {teacher?.name || "Unknown Teacher"}
                                                 </Text>
-                                                {teacher.email && (
+                                                <View style={{ flexDirection: "row", alignItems: "center", marginTop: 4 }}>
+                                                    <View style={{
+                                                        backgroundColor: colors.primary + "15",
+                                                        paddingHorizontal: 8,
+                                                        paddingVertical: 2,
+                                                        borderRadius: 4,
+                                                    }}>
+                                                        <Text style={{
+                                                            fontSize: 11,
+                                                            color: colors.primary,
+                                                            fontFamily: "DMSans-Bold",
+                                                            textTransform: "uppercase"
+                                                        }}>
+                                                            {teacher.role !== 'student' && teacher.designation ? teacher.designation : teacher.role === 'support_staff' ? 'Support Staff' : teacher.role}
+                                                        </Text>
+                                                    </View>
                                                     <Text style={{
-                                                        fontSize: 13,
+                                                        fontSize: 12,
                                                         color: colors.textSecondary,
-                                                        fontFamily: "DMSans-Regular",
-                                                        marginTop: 2
+                                                        marginLeft: 8,
+                                                        fontFamily: "DMSans-Medium"
                                                     }}>
-                                                        {teacher.email}
-                                                    </Text>
-                                                )}
-                                                <View style={{
-                                                    backgroundColor: colors.primary + "15",
-                                                    alignSelf: "flex-start",
-                                                    paddingHorizontal: 8,
-                                                    paddingVertical: 2,
-                                                    borderRadius: 4,
-                                                    marginTop: 6
-                                                }}>
-                                                    <Text style={{
-                                                        fontSize: 11,
-                                                        color: colors.primary,
-                                                        fontFamily: "DMSans-Bold",
-                                                        textTransform: "uppercase"
-                                                    }}>
-                                                        {teacher.role !== 'student' && teacher.designation ? teacher.designation : teacher.role === 'support_staff' ? 'Support Staff' : teacher.role}
+                                                        {teacher.subjects?.length || 0} Subject{(teacher.subjects?.length !== 1) ? 's' : ''}
                                                     </Text>
                                                 </View>
                                             </View>
 
-                                            <Pressable
-                                                onPress={() => {
-                                                    setSelectedTeacher(teacher);
-                                                    setSelectedSubjects([]);
-                                                    setShowModal(true);
-                                                }}
-                                                style={({ pressed }) => ({
-                                                    backgroundColor: colors.primary,
-                                                    paddingHorizontal: 14,
-                                                    paddingVertical: 8,
-                                                    borderRadius: 8,
-                                                    opacity: pressed ? 0.8 : 1
-                                                })}
-                                            >
-                                                <Text style={{
-                                                    color: "#fff",
-                                                    fontSize: 13,
-                                                    fontFamily: "DMSans-Bold"
-                                                }}>
-                                                    Assign
-                                                </Text>
-                                            </Pressable>
-                                        </View>
+                                            <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                                                <Pressable
+                                                    onPress={(e) => {
+                                                        e.stopPropagation();
+                                                        setSelectedTeacher(teacher);
+                                                        setSelectedSubjects([]);
+                                                        setShowModal(true);
+                                                    }}
+                                                    style={({ pressed }) => ({
+                                                        backgroundColor: colors.primary,
+                                                        paddingHorizontal: 12,
+                                                        paddingVertical: 6,
+                                                        borderRadius: 8,
+                                                        opacity: pressed ? 0.8 : 1
+                                                    })}
+                                                >
+                                                    <Text style={{
+                                                        color: "#fff",
+                                                        fontSize: 12,
+                                                        fontFamily: "DMSans-Bold"
+                                                    }}>
+                                                        Assign
+                                                    </Text>
+                                                </Pressable>
+                                                <MaterialIcons
+                                                    name={expandedTeacherId === teacher._id ? "expand-less" : "expand-more"}
+                                                    size={24}
+                                                    color={colors.textSecondary}
+                                                />
+                                            </View>
+                                        </Pressable>
 
-                                        {/* Assigned Subjects */}
-                                        {teacher.subjects && teacher.subjects.length > 0 ? (
-                                            <>
-                                                <Text style={{
-                                                    fontSize: 12,
-                                                    fontFamily: "DMSans-Bold",
-                                                    color: colors.textSecondary,
-                                                    marginBottom: 8,
-                                                    textTransform: "uppercase"
-                                                }}>
-                                                    Assigned Subjects ({teacher.subjects.length})
-                                                </Text>
-                                                {teacher.subjects.filter(s => s && s.class).map((subject) => (
-                                                    <View
-                                                        key={subject._id}
-                                                        style={{
-                                                            flexDirection: "row",
-                                                            justifyContent: "space-between",
-                                                            alignItems: "center",
-                                                            backgroundColor: colors.background,
-                                                            borderRadius: 8,
-                                                            padding: 10,
-                                                            marginBottom: 6
-                                                        }}
-                                                    >
-                                                        <View style={{ flex: 1 }}>
-                                                            <Text style={{
-                                                                fontSize: 15,
-                                                                fontFamily: "DMSans-SemiBold",
-                                                                color: colors.textPrimary
-                                                            }}>
-                                                                {subject.name}
-                                                            </Text>
-                                                            <Text style={{
-                                                                fontSize: 12,
-                                                                color: colors.textSecondary,
-                                                                fontFamily: "DMSans-Regular",
-                                                                marginTop: 2
-                                                            }}>
-                                                                {subject.class?.name || "Unknown Class"} {subject.class?.section ? `- ${subject.class.section}` : ""}
-                                                            </Text>
-                                                        </View>
-                                                        <Pressable
-                                                            onPress={() => handleRemoveSubject(subject._id, teacher._id)}
-                                                            style={({ pressed }) => ({
-                                                                padding: 6,
-                                                                backgroundColor: colors.error + "15",
-                                                                borderRadius: 6,
-                                                                opacity: pressed ? 0.7 : 1
-                                                            })}
-                                                        >
-                                                            <MaterialIcons name="close" size={18} color={colors.error} />
-                                                        </Pressable>
-                                                    </View>
-                                                ))}
-                                            </>
-                                        ) : (
-                                            <Text style={{
-                                                fontSize: 13,
-                                                color: colors.textSecondary,
-                                                fontStyle: "italic",
-                                                fontFamily: "DMSans-Regular"
+                                        {/* Assigned Subjects - Collapsible Content */}
+                                        {expandedTeacherId === teacher._id && (
+                                            <View style={{
+                                                padding: 16,
+                                                paddingTop: 0,
+                                                borderTopWidth: 1,
+                                                borderTopColor: colors.textSecondary + "10",
+                                                marginTop: 4
                                             }}>
-                                                No subjects assigned yet
-                                            </Text>
+                                                <View style={{ height: 16 }} />
+                                                {teacher.subjects && teacher.subjects.length > 0 ? (
+                                                    <>
+                                                        <Text style={{
+                                                            fontSize: 12,
+                                                            fontFamily: "DMSans-Bold",
+                                                            color: colors.textSecondary,
+                                                            marginBottom: 8,
+                                                            textTransform: "uppercase"
+                                                        }}>
+                                                            Assigned Subjects
+                                                        </Text>
+                                                        {teacher.subjects.filter(s => s && s.class).map((subject) => (
+                                                            <View
+                                                                key={subject._id}
+                                                                style={{
+                                                                    flexDirection: "row",
+                                                                    justifyContent: "space-between",
+                                                                    alignItems: "center",
+                                                                    backgroundColor: colors.background,
+                                                                    borderRadius: 8,
+                                                                    padding: 10,
+                                                                    marginBottom: 6
+                                                                }}
+                                                            >
+                                                                <View style={{ flex: 1 }}>
+                                                                    <Text style={{
+                                                                        fontSize: 15,
+                                                                        fontFamily: "DMSans-SemiBold",
+                                                                        color: colors.textPrimary
+                                                                    }}>
+                                                                        {subject.name}
+                                                                    </Text>
+                                                                    <Text style={{
+                                                                        fontSize: 12,
+                                                                        color: colors.textSecondary,
+                                                                        fontFamily: "DMSans-Regular",
+                                                                        marginTop: 2
+                                                                    }}>
+                                                                        {subject.class?.name || "Unknown Class"} {subject.class?.section ? `- ${subject.class.section}` : ""}
+                                                                    </Text>
+                                                                </View>
+                                                                <Pressable
+                                                                    onPress={() => handleRemoveSubject(subject._id, teacher._id)}
+                                                                    style={({ pressed }) => ({
+                                                                        padding: 6,
+                                                                        backgroundColor: colors.error + "15",
+                                                                        borderRadius: 6,
+                                                                        opacity: pressed ? 0.7 : 1
+                                                                    })}
+                                                                >
+                                                                    <MaterialIcons name="close" size={18} color={colors.error} />
+                                                                </Pressable>
+                                                            </View>
+                                                        ))}
+                                                    </>
+                                                ) : (
+                                                    <View style={{ paddingVertical: 10, alignItems: "center" }}>
+                                                        <Text style={{
+                                                            fontSize: 13,
+                                                            color: colors.textSecondary,
+                                                            fontStyle: "italic",
+                                                            fontFamily: "DMSans-Regular"
+                                                        }}>
+                                                            No subjects assigned yet
+                                                        </Text>
+                                                    </View>
+                                                )}
+                                            </View>
                                         )}
                                     </View>
                                 ))
@@ -349,6 +392,7 @@ export default function TeacherSubjectsScreen() {
                 onRequestClose={() => {
                     setShowModal(false);
                     setSelectedSubjects([]);
+                    setModalSearchQuery("");
                 }}
             >
                 <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.6)" }}>
@@ -372,9 +416,43 @@ export default function TeacherSubjectsScreen() {
                             <Pressable onPress={() => {
                                 setShowModal(false);
                                 setSelectedSubjects([]);
+                                setModalSearchQuery("");
                             }}>
                                 <MaterialIcons name="close" size={24} color={colors.textSecondary} />
                             </Pressable>
+                        </View>
+
+                        {/* Subject Search */}
+                        <View style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            backgroundColor: colors.background,
+                            borderRadius: 10,
+                            paddingHorizontal: 12,
+                            height: 44,
+                            marginBottom: 12,
+                            borderWidth: 1,
+                            borderColor: colors.border,
+                        }}>
+                            <MaterialIcons name="search" size={20} color={colors.textSecondary} />
+                            <TextInput
+                                style={{
+                                    flex: 1,
+                                    marginLeft: 8,
+                                    fontSize: 15,
+                                    color: colors.textPrimary,
+                                    height: "100%",
+                                }}
+                                placeholder="Search subjects..."
+                                placeholderTextColor={colors.textSecondary}
+                                value={modalSearchQuery}
+                                onChangeText={setModalSearchQuery}
+                            />
+                            {modalSearchQuery.length > 0 && (
+                                <Pressable onPress={() => setModalSearchQuery("")}>
+                                    <MaterialIcons name="close" size={18} color={colors.textSecondary} />
+                                </Pressable>
+                            )}
                         </View>
 
                         {/* Selection Counter */}
@@ -400,7 +478,15 @@ export default function TeacherSubjectsScreen() {
                         )}
 
                         <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: "70%" }}>
-                            {subjects.map((subject) => {
+                            {subjects.filter(subject =>
+                                subject.name.toLowerCase().includes(modalSearchQuery.toLowerCase()) ||
+                                (subject.class?.name || "").toLowerCase().includes(modalSearchQuery.toLowerCase())
+                            ).sort((a, b) => {
+                                const classA = (a.class?.name || "").toLowerCase();
+                                const classB = (b.class?.name || "").toLowerCase();
+                                if (classA !== classB) return classA.localeCompare(classB);
+                                return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+                            }).map((subject) => {
                                 const isAssigned = subject.teachers.some(t => t._id === selectedTeacher?._id);
                                 const isSelected = selectedSubjects.includes(subject._id);
 

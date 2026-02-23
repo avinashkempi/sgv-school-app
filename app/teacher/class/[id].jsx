@@ -20,6 +20,7 @@ import apiConfig from "../../../config/apiConfig";
 import { useToast } from "../../../components/ToastProvider";
 import AppHeader from "../../../components/Header";
 import { formatDate } from "../../../utils/date";
+import UserDetailModal from "../../../components/UserDetailModal";
 
 export default function ClassDetailsScreen() {
     const router = useRouter();
@@ -33,6 +34,8 @@ export default function ClassDetailsScreen() {
     // Modals
     const [showAddSubjectModal, setShowAddSubjectModal] = useState(false);
     const [showAddStudentModal, setShowAddStudentModal] = useState(false);
+    const [showDetailModal, setShowDetailModal] = useState(false);
+    const [selectedDetailUser, setSelectedDetailUser] = useState(null);
 
     const [activeTab, setActiveTab] = useState("subjects"); // subjects, students
     const [searchQuery, setSearchQuery] = useState("");
@@ -73,9 +76,18 @@ export default function ClassDetailsScreen() {
         ['globalSubjects'],
         `${apiConfig.baseUrl}/subjects`
     );
-    const globalSubjects = Array.isArray(globalSubjectsData)
-        ? globalSubjectsData
-        : (Array.isArray(globalSubjectsData?.data) ? globalSubjectsData.data : []);
+    const globalSubjects = (() => {
+        const raw = Array.isArray(globalSubjectsData)
+            ? globalSubjectsData
+            : (Array.isArray(globalSubjectsData?.data) ? globalSubjectsData.data : []);
+        // Deduplicate by _id to prevent React duplicate key warnings
+        const seen = new Set();
+        return raw.filter(s => {
+            if (seen.has(s._id)) return false;
+            seen.add(s._id);
+            return true;
+        });
+    })();
 
     // Fetch Available Students
     const { data: availableStudentsData } = useApiQuery(
@@ -100,7 +112,7 @@ export default function ClassDetailsScreen() {
     });
 
     const removeSubjectMutation = useApiMutation({
-        mutationFn: createApiMutationFn((subjectId) => `${apiConfig.baseUrl}/classes/${id}/subjects/${subjectId}`, 'DELETE'),
+        mutationFn: (subjectId) => createApiMutationFn(`${apiConfig.baseUrl}/classes/${id}/subjects/${subjectId}`, 'DELETE')(),
         onSuccess: () => {
             showToast("Subject removed successfully", "success");
             queryClient.invalidateQueries({ queryKey: ['classDetails', id] });
@@ -122,7 +134,7 @@ export default function ClassDetailsScreen() {
     });
 
     const removeStudentMutation = useApiMutation({
-        mutationFn: createApiMutationFn((studentId) => `${apiConfig.baseUrl}/classes/${id}/students/${studentId}`, 'DELETE'),
+        mutationFn: (studentId) => createApiMutationFn(`${apiConfig.baseUrl}/classes/${id}/students/${studentId}`, 'DELETE')(),
         onSuccess: () => {
             showToast("Student removed successfully", "success");
             queryClient.invalidateQueries({ queryKey: ['classDetails', id] });
@@ -449,9 +461,23 @@ export default function ClassDetailsScreen() {
                                     >
                                         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
                                             <View style={{ flex: 1 }}>
-                                                <Text style={{ fontSize: 16, fontWeight: "700", color: colors.textPrimary }}>
-                                                    {student.name}
-                                                </Text>
+                                                {canManageClass ? (
+                                                    <Pressable
+                                                        onPress={() => {
+                                                            setSelectedDetailUser(student);
+                                                            setShowDetailModal(true);
+                                                        }}
+                                                        style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+                                                    >
+                                                        <Text style={{ fontSize: 16, fontWeight: "700", color: colors.primary, textDecorationLine: 'underline' }}>
+                                                            {student.name}
+                                                        </Text>
+                                                    </Pressable>
+                                                ) : (
+                                                    <Text style={{ fontSize: 16, fontWeight: "700", color: colors.textPrimary }}>
+                                                        {student.name}
+                                                    </Text>
+                                                )}
                                                 <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: 4 }}>
                                                     {student.phone}
                                                 </Text>
@@ -497,11 +523,8 @@ export default function ClassDetailsScreen() {
                     <Pressable
                         onPress={() => {
                             if (activeTab === "subjects") {
-                                // Pre-select already added subjects
-                                const alreadyAddedIds = subjects
-                                    .filter(s => s.globalSubject)
-                                    .map(s => typeof s.globalSubject === 'object' ? s.globalSubject._id : s.globalSubject);
-                                setSelectedGlobalSubjectIds(alreadyAddedIds);
+                                // Open modal with empty selection — already-added subjects are shown greyed out in the list
+                                setSelectedGlobalSubjectIds([]);
                                 setShowAddSubjectModal(true);
                                 setSearchQuery("");
                             } else {
@@ -775,6 +798,12 @@ export default function ClassDetailsScreen() {
                     </View>
                 </View>
             </Modal>
+
+            <UserDetailModal
+                visible={showDetailModal}
+                onClose={() => setShowDetailModal(false)}
+                user={selectedDetailUser}
+            />
         </View >
     );
 }

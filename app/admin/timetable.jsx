@@ -25,12 +25,24 @@ import apiConfig from "../../config/apiConfig";
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export default function AdminTimetableScreen() {
-    const _router = useRouter();
+    const router = useRouter();
     const { colors } = useTheme();
     const { showToast } = useToast();
 
     const queryClient = useQueryClient();
     const [selectedClassId, setSelectedClassId] = useState(null);
+
+    // Role guard — only admin and super admin may edit the timetable
+    const { data: currentUser } = useApiQuery(
+        ['currentUser'],
+        `${apiConfig.baseUrl}/auth/me`,
+        { select: (d) => d.user, staleTime: Infinity }
+    );
+    useEffect(() => {
+        if (currentUser && currentUser.role !== 'admin' && currentUser.role !== 'super admin') {
+            router.replace('/teacher/timetable');
+        }
+    }, [currentUser]);
 
     // Filtered State for UI
     const [schedule, setSchedule] = useState({}); // { Monday: [periods], ... }
