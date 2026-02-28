@@ -12,8 +12,9 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "../../../theme";
 import { useApiQuery } from "../../../hooks/useApi";
 import AppHeader from "../../../components/Header";
+import Card from "../../../components/Card";
 import apiConfig from "../../../config/apiConfig";
-import {} from "react-native-chart-kit";
+import { } from "react-native-chart-kit";
 
 const { _width } = Dimensions.get('window');
 
@@ -120,15 +121,11 @@ export default function SubjectPerformanceScreen() {
                     </Text>
 
                     {performance.map((exam) => (
-                        <View
+                        <Card
                             key={exam.examType}
-                            style={{
-                                backgroundColor: colors.cardBackground,
-                                borderRadius: 16,
-                                padding: 18,
-                                marginBottom: 16,
-                                elevation: 2
-                            }}
+                            variant="elevated"
+                            style={{ marginBottom: 16 }}
+                            contentStyle={{ padding: 18 }}
                         >
                             {/* Exam Header */}
                             <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16 }}>
@@ -223,7 +220,7 @@ export default function SubjectPerformanceScreen() {
                                     </Text>
                                 </View>
                             )}
-                        </View>
+                        </Card>
                     ))}
 
                     {performance.length === 0 && (

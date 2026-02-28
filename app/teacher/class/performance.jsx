@@ -5,14 +5,16 @@ import {
     ScrollView,
     RefreshControl,
     ActivityIndicator,
-    Dimensions } from "react-native";
+    Dimensions
+} from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "../../../theme";
 import { useApiQuery } from "../../../hooks/useApi";
 import AppHeader from "../../../components/Header";
+import Card from "../../../components/Card";
 import apiConfig from "../../../config/apiConfig";
-import { LineChart,} from "react-native-chart-kit";
+import { LineChart, } from "react-native-chart-kit";
 
 const { width } = Dimensions.get('window');
 
@@ -94,13 +96,11 @@ export default function ClassPerformanceScreen() {
                     />
 
                     {/* Overall Stats */}
-                    <View style={{
-                        backgroundColor: colors.cardBackground,
-                        borderRadius: 16,
-                        padding: 20,
-                        marginTop: 20,
-                        elevation: 2
-                    }}>
+                    <Card
+                        variant="elevated"
+                        style={{ marginTop: 20 }}
+                        contentStyle={{ padding: 20 }}
+                    >
                         <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 16 }}>
                             Overall Statistics
                         </Text>
@@ -130,17 +130,15 @@ export default function ClassPerformanceScreen() {
                                 </Text>
                             </View>
                         </View>
-                    </View>
+                    </Card>
 
                     {/* Performance Trend Chart */}
                     {completedExams.length > 0 && (
-                        <View style={{
-                            backgroundColor: colors.cardBackground,
-                            borderRadius: 16,
-                            padding: 16,
-                            marginTop: 20,
-                            elevation: 2
-                        }}>
+                        <Card
+                            variant="elevated"
+                            style={{ marginTop: 20 }}
+                            contentStyle={{ padding: 16 }}
+                        >
                             <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 16 }}>
                                 Performance Trend
                             </Text>
@@ -169,7 +167,7 @@ export default function ClassPerformanceScreen() {
                                 bezier
                                 style={{ marginVertical: 8, borderRadius: 16 }}
                             />
-                        </View>
+                        </Card>
                     )}
 
                     {/* Exam-wise Cards */}
@@ -178,17 +176,13 @@ export default function ClassPerformanceScreen() {
                     </Text>
 
                     {performance.map((exam) => (
-                        <View
+                        <Card
                             key={exam.examType}
+                            variant="elevated"
                             style={{
-                                backgroundColor: colors.cardBackground,
-                                borderRadius: 16,
-                                padding: 18,
                                 marginBottom: 12,
-                                borderLeftWidth: 4,
-                                borderLeftColor: EXAM_COLORS[exam.examType],
-                                elevation: 2
                             }}
+                            contentStyle={{ padding: 18 }}
                         >
                             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                                 <View>
@@ -256,7 +250,7 @@ export default function ClassPerformanceScreen() {
                                     </Text>
                                 </View>
                             </View>
-                        </View>
+                        </Card>
                     ))}
 
                     {performance.length === 0 && (

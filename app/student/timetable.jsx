@@ -68,7 +68,7 @@ export default function StudentTimetableScreen() {
     if (timetableData?.schedule) {
         timetableData.schedule.forEach(daySchedule => {
             schedule[daySchedule.day] = daySchedule.periods.sort((a, b) => {
-                return parseTime(a.startTime) - parseTime(b.startTime);
+                return (a.periodNumber || 0) - (b.periodNumber || 0);
             });
         });
     }

@@ -18,6 +18,7 @@ import { useTheme } from "../../theme";
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/useApi";
 import { useQueryClient } from "@tanstack/react-query";
 import Header from "../../components/Header";
+import Card from "../../components/Card";
 import ModernTimePicker from "../../components/ModernTimePicker";
 import { useToast } from "../../components/ToastProvider";
 import apiConfig from "../../config/apiConfig";
@@ -104,17 +105,20 @@ export default function AdminTimetableScreen() {
             if (classTimetable && classTimetable.schedule) {
                 classTimetable.schedule.forEach(daySchedule => {
                     scheduleMap[daySchedule.day] = daySchedule.periods.map(p => {
-                        const subjectObj = allSubjects?.find(s => s._id === (p.subject._id || p.subject));
-                        const teacherObj = subjectObj?.teachers?.find(t => t._id === (p.teacher._id || p.teacher));
+                        const subjectId = p.subject?._id || p.subject;
+                        const teacherId = p.teacher?._id || p.teacher;
+
+                        const subjectObj = allSubjects?.find(s => s._id === subjectId);
+                        const teacherObj = subjectObj?.teachers?.find(t => t._id === teacherId);
 
                         return {
                             ...p,
-                            subjectId: p.subject._id || p.subject,
-                            teacherId: p.teacher._id || p.teacher,
+                            subjectId,
+                            teacherId,
                             subjectName: subjectObj?.name || 'Unknown',
                             teacherName: teacherObj?.name || 'No Teacher'
                         };
-                    });
+                    }).sort((a, b) => (a.periodNumber || 0) - (b.periodNumber || 0));
                 });
             }
         }
@@ -170,12 +174,16 @@ export default function AdminTimetableScreen() {
             // For simplicity, let's just default to now, or implement a parser if strictly needed.
             // A simple parser for "HH:mm PM":
             const parseTime = (timeStr) => {
-                const [time, modifier] = timeStr.split(' ');
-                let [hours, minutes] = time.split(':');
-                if (hours === '12') hours = '00';
-                if (modifier === 'PM') hours = parseInt(hours, 10) + 12;
+                if (!timeStr) return new Date();
+                const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+                if (!match) return new Date();
+                let [_, hours, minutes, modifier] = match;
+                hours = parseInt(hours, 10);
+                minutes = parseInt(minutes, 10);
+                if (modifier.toUpperCase() === 'PM' && hours < 12) hours += 12;
+                if (modifier.toUpperCase() === 'AM' && hours === 12) hours = 0;
                 const d = new Date();
-                d.setHours(Number(hours), Number(minutes));
+                d.setHours(hours, minutes, 0, 0);
                 return d;
             };
 
@@ -195,12 +203,16 @@ export default function AdminTimetableScreen() {
             const currentDayPeriods = schedule[selectedDay] || [];
             if (currentDayPeriods.length > 0) {
                 const parseTime = (timeStr) => {
-                    const [time, modifier] = timeStr.split(' ');
-                    let [hours, minutes] = time.split(':');
-                    if (hours === '12') hours = '00';
-                    if (modifier === 'PM') hours = parseInt(hours, 10) + 12;
+                    if (!timeStr) return new Date();
+                    const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+                    if (!match) return new Date();
+                    let [_, hours, minutes, modifier] = match;
+                    hours = parseInt(hours, 10);
+                    minutes = parseInt(minutes, 10);
+                    if (modifier.toUpperCase() === 'PM' && hours < 12) hours += 12;
+                    if (modifier.toUpperCase() === 'AM' && hours === 12) hours = 0;
                     const d = new Date();
-                    d.setHours(Number(hours), Number(minutes));
+                    d.setHours(hours, minutes, 0, 0);
                     return d;
                 };
                 let maxDate = new Date(); maxDate.setHours(0, 0, 0, 0);
@@ -482,20 +494,16 @@ export default function AdminTimetableScreen() {
                                 </View>
                             ) : (
                                 schedule[selectedDay].map((period, index) => (
-                                    <Pressable
+                                    <Card
                                         key={index}
+                                        variant="elevated"
                                         onPress={() => openPeriodModal(period)}
-                                        style={({ pressed }) => ({
-                                            backgroundColor: colors.cardBackground,
-                                            padding: 16,
-                                            borderRadius: 16,
-                                            marginBottom: 12,
+                                        style={{ marginBottom: 12 }}
+                                        contentStyle={{
                                             flexDirection: "row",
                                             alignItems: "center",
                                             gap: 16,
-                                            elevation: 2,
-                                            transform: [{ scale: pressed ? 0.98 : 1 }]
-                                        })}
+                                        }}
                                     >
                                         <View style={{
                                             width: 48, height: 48,
@@ -525,7 +533,7 @@ export default function AdminTimetableScreen() {
                                         <Pressable onPress={(e) => { e.stopPropagation(); deletePeriod(period); }} style={{ padding: 8 }}>
                                             <MaterialIcons name="delete-outline" size={24} color={colors.error} />
                                         </Pressable>
-                                    </Pressable>
+                                    </Card>
                                 ))
                             )}
                         </View>
@@ -669,7 +677,11 @@ export default function AdminTimetableScreen() {
                                     availableSubjects.map(sub => (
                                         <Pressable
                                             key={sub._id}
-                                            onPress={() => setTempPeriod({ ...tempPeriod, subject: sub._id, teacher: "" })}
+                                            onPress={() => setTempPeriod({
+                                                ...tempPeriod,
+                                                subject: sub._id,
+                                                teacher: sub.teachers?.[0]?._id || ""
+                                            })}
                                             style={{
                                                 paddingHorizontal: 16,
                                                 paddingVertical: 10,

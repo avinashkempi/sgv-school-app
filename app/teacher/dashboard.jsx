@@ -15,6 +15,7 @@ import apiConfig from "../../config/apiConfig";
 import { useApiQuery } from "../../hooks/useApi";
 import { useToast } from "../../components/ToastProvider";
 import AppHeader from "../../components/Header";
+import Card from "../../components/Card";
 
 export default function TeacherDashboard() {
     const router = useRouter();
@@ -92,24 +93,16 @@ export default function TeacherDashboard() {
                 </View>
             ) : (
                 asClassTeacher.map((cls) => (
-                    <Pressable
+                    <Card
                         key={cls._id}
+                        variant="elevated"
                         onPress={() => router.push(`/teacher/class/${cls._id}`)}
-                        style={({ pressed }) => ({
-                            backgroundColor: colors.cardBackground,
-                            borderRadius: 16,
-                            padding: 18,
-                            marginBottom: 12,
+                        style={{ marginBottom: 12 }}
+                        contentStyle={{
                             flexDirection: "row",
                             justifyContent: "space-between",
-                            alignItems: "center",
-                            opacity: pressed ? 0.9 : 1,
-                            shadowColor: "#000",
-                            shadowOffset: { width: 0, height: 2 },
-                            shadowOpacity: 0.06,
-                            shadowRadius: 6,
-                            elevation: 2,
-                        })}
+                            alignItems: "center"
+                        }}
                     >
                         <View style={{ flex: 1 }}>
                             <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
@@ -135,12 +128,13 @@ export default function TeacherDashboard() {
                                 </View>
 
                                 {cls.mySubjects && cls.mySubjects.length > 0 && (
-                                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4, flex: 1 }}>
                                         <MaterialIcons name="book" size={16} color={colors.textSecondary} />
                                         <Text style={{
                                             fontSize: 13,
                                             color: colors.textSecondary,
-                                            fontFamily: "DMSans-Medium"
+                                            fontFamily: "DMSans-Medium",
+                                            flex: 1
                                         }}>
                                             Teaching: {cls.mySubjects.join(", ")}
                                         </Text>
@@ -168,7 +162,7 @@ export default function TeacherDashboard() {
                         </View>
 
                         <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
-                    </Pressable>
+                    </Card>
                 ))
             )}
         </View>
@@ -200,32 +194,30 @@ export default function TeacherDashboard() {
                 </View>
             ) : (
                 allMySubjects.map((subj) => (
-                    <Pressable
+                    <Card
                         key={subj._id}
+                        variant="elevated"
                         onPress={() => router.push({
                             pathname: `/teacher/class/subject/${subj._id}`,
                             params: { id: subj.class._id, subjectId: subj._id }
                         })}
-                        style={({ pressed }) => ({
-                            backgroundColor: colors.cardBackground,
-                            borderRadius: 12,
-                            padding: 14,
+                        style={{
                             marginBottom: 8,
                             marginLeft: 12,
-                            opacity: pressed ? 0.9 : 1,
+                        }}
+                        contentStyle={{
                             flexDirection: "row",
                             justifyContent: "space-between",
-                            alignItems: "center",
-                            borderLeftWidth: 3,
-                            borderLeftColor: colors.primary
-                        })}
+                            alignItems: "center"
+                        }}
                     >
                         <View style={{ flex: 1 }}>
-                            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flex: 1 }}>
                                 <Text style={{
                                     fontSize: 16,
                                     fontFamily: "DMSans-SemiBold",
-                                    color: colors.textPrimary
+                                    color: colors.textPrimary,
+                                    flex: 1
                                 }}>
                                     {subj.class.name} {subj.class.section ? `- ${subj.class.section}` : ""}
                                 </Text>
@@ -251,14 +243,15 @@ export default function TeacherDashboard() {
                                     fontSize: 12,
                                     color: colors.textSecondary,
                                     fontFamily: "DMSans-Regular",
-                                    marginTop: 2
+                                    marginTop: 2,
+                                    flex: 1
                                 }}>
                                     {subj.class.branch}
                                 </Text>
                             )}
                         </View>
                         <MaterialIcons name="chevron-right" size={20} color={colors.textSecondary} />
-                    </Pressable>
+                    </Card>
                 ))
             )}
         </View>

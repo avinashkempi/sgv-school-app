@@ -11,6 +11,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
 import AppHeader from "../../components/Header";
+import Card from "../../components/Card";
 import apiConfig from "../../config/apiConfig";
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -75,7 +76,7 @@ export default function SchoolTimetableScreen() {
         if (!classTimetable) return [];
         const daySchedule = classTimetable.schedule?.find(s => s.day === selectedDay);
         if (!daySchedule) return [];
-        return [...daySchedule.periods].sort((a, b) => parseTime(a.startTime) - parseTime(b.startTime));
+        return [...daySchedule.periods].sort((a, b) => (a.periodNumber || 0) - (b.periodNumber || 0));
     };
 
     const dayPeriods = getSchedule();
@@ -188,18 +189,15 @@ export default function SchoolTimetableScreen() {
                             </View>
                         ) : (
                             dayPeriods.map((period, index) => (
-                                <View
+                                <Card
                                     key={index}
+                                    variant="elevated"
                                     style={{
-                                        backgroundColor: colors.cardBackground,
-                                        borderRadius: 16,
-                                        padding: 16,
                                         marginBottom: 12,
+                                    }}
+                                    contentStyle={{
                                         flexDirection: "row",
                                         gap: 16,
-                                        elevation: 1,
-                                        borderLeftWidth: 4,
-                                        borderLeftColor: colors.primary,
                                     }}
                                 >
                                     {/* Time Column */}
@@ -250,7 +248,7 @@ export default function SchoolTimetableScreen() {
                                             {period.periodNumber}
                                         </Text>
                                     </View>
-                                </View>
+                                </Card>
                             ))
                         )}
                     </View>
