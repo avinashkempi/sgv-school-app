@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '../theme';
 import apiFetch from '../utils/apiFetch';
 import apiConfig from '../config/apiConfig';
+import formatClassName from '../utils/formatClassName';
 
 const GlobalSearch = ({ visible, onClose }) => {
     const router = useRouter();
@@ -92,13 +93,13 @@ const GlobalSearch = ({ visible, onClose }) => {
                 icon = item.role === 'student' ? 'person' : 'person-outline';
                 break;
             case 'classes':
-                title = `${item.name} ${item.section || ''}`;
+                title = `${formatClassName(item.name)} ${item.section || ''}`;
                 subtitle = `Class Teacher: ${item.classTeacher?.name || 'Not assigned'}`;
                 icon = 'class';
                 break;
             case 'subjects':
                 title = item.name;
-                subtitle = `${item.class?.name} ${item.class?.section || ''}`;
+                subtitle = `${formatClassName(item.class?.name)} ${item.class?.section || ''}`;
                 icon = 'menu-book';
                 break;
             case 'exams':

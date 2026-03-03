@@ -13,6 +13,7 @@ import { useApiQuery } from "../../hooks/useApi";
 import AppHeader from "../../components/Header";
 import Card from "../../components/Card";
 import apiConfig from "../../config/apiConfig";
+import formatClassName from '../../utils/formatClassName';
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -129,7 +130,7 @@ export default function SchoolTimetableScreen() {
                                                 fontFamily: isSelected ? "DMSans-Bold" : "DMSans-Medium",
                                                 fontSize: 14
                                             }}>
-                                                {cls.name} {cls.section || ""}
+                                                {formatClassName(cls.name)} {cls.section || ""}
                                             </Text>
                                         </Pressable>
                                     );

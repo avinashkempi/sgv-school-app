@@ -16,6 +16,7 @@ import apiConfig from "../config/apiConfig";
 import { useToast } from "../components/ToastProvider";
 import AppHeader from "../components/Header";
 import { formatDate } from "../utils/date";
+import { formatClassName } from "../utils/formatClassName";
 
 export default function HistoryScreen() {
     const router = useRouter();
@@ -131,7 +132,7 @@ export default function HistoryScreen() {
                                 <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                                     <MaterialIcons name="class" size={16} color={colors.textSecondary} />
                                     <Text style={{ fontSize: 13, color: colors.textSecondary }}>
-                                        {item.class?.name} {item.class?.section}
+                                        {formatClassName(item.class)}
                                     </Text>
                                 </View>
                                 <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>

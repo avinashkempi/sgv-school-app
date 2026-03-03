@@ -16,6 +16,7 @@ import { useToast } from "../../components/ToastProvider";
 import AppHeader from "../../components/Header";
 import apiConfig from "../../config/apiConfig";
 import storage from "../../utils/storage";
+import { formatClassName } from "../../utils/formatClassName";
 
 export default function AssessmentDashboard() {
     const router = useRouter();
@@ -135,7 +136,7 @@ export default function AssessmentDashboard() {
                                     color: selectedClass?._id === cls._id ? "#fff" : colors.textPrimary,
                                     fontFamily: "DMSans-Medium"
                                 }}>
-                                    {cls.name} {cls.section}
+                                    {formatClassName(cls.name, cls.section)}
                                 </Text>
                             </TouchableOpacity>
                         ))

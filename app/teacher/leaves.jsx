@@ -9,6 +9,7 @@ import apiConfig from '../../config/apiConfig';
 import { useToast } from '../../components/ToastProvider';
 import { useTheme } from '../../theme';
 import Header from '../../components/Header';
+import formatClassName from '../../utils/formatClassName';
 
 export default function TeacherLeaves() {
     const router = useRouter();
@@ -182,7 +183,7 @@ export default function TeacherLeaves() {
                         {item.applicant?.name || 'Unknown'}
                     </Text>
                     <Text style={{ fontSize: 13, color: colors.onSurfaceVariant, fontFamily: "DMSans-Medium" }}>
-                        {item.applicantRole === 'student' ? `Class: ${item.class?.name || ''} ${item.class?.section || ''}` : 'Teacher'}
+                        {item.applicantRole === 'student' ? `Class: ${formatClassName(item.class?.name)} ${item.class?.section || ''}` : 'Teacher'}
                     </Text>
                 </View>
                 <View style={{ alignItems: 'flex-end' }}>

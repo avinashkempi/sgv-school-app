@@ -16,6 +16,7 @@ import { useApiQuery } from '../../hooks/useApi';
 import apiConfig from '../../config/apiConfig';
 import Header from '../../components/Header';
 import Card from '../../components/Card';
+import formatClassName from '../../utils/formatClassName';
 
 const { width } = Dimensions.get('window');
 
@@ -215,7 +216,7 @@ export default function ExamAnalyticsScreen() {
                             Top Class
                         </Text>
                         <Text style={{ fontSize: 16, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginTop: 4 }}>
-                            {topClass.className}
+                            {formatClassName(topClass.className)}
                         </Text>
                         <Text style={{ fontSize: 20, fontFamily: 'DMSans-Bold', color: colors.success, marginTop: 4 }}>
                             {topClass.avgPercentage}%
@@ -227,7 +228,7 @@ export default function ExamAnalyticsScreen() {
                             Needs Attention
                         </Text>
                         <Text style={{ fontSize: 16, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginTop: 4 }}>
-                            {bottomClass.className}
+                            {formatClassName(bottomClass.className)}
                         </Text>
                         <Text style={{ fontSize: 20, fontFamily: 'DMSans-Bold', color: '#FF9800', marginTop: 4 }}>
                             {bottomClass.avgPercentage}%
@@ -277,7 +278,7 @@ export default function ExamAnalyticsScreen() {
                                         </View>
                                         <View style={{ flex: 1 }}>
                                             <Text style={{ fontSize: 16, fontFamily: 'DMSans-Bold', color: colors.onSurface }}>
-                                                {cls.className}
+                                                {formatClassName(cls.className)}
                                             </Text>
                                             <Text style={{ fontSize: 12, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant }}>
                                                 {cls.examsCount} exams

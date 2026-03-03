@@ -11,6 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useToast } from "../components/ToastProvider";
 import Header from "../components/Header";
 import Card from "../components/Card";
+import { formatClassName } from "../utils/formatClassName";
 
 export default function SubjectsScreen() {
     const router = useRouter();
@@ -131,7 +132,7 @@ export default function SubjectsScreen() {
                 teacherClasses.map((cls) => (
                     <View key={cls._id} style={{ marginBottom: 24 }}>
                         <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 12, marginLeft: 4 }}>
-                            {cls.name} {cls.section ? `- ${cls.section}` : ""}
+                            {formatClassName(cls.name, cls.section)}
                         </Text>
 
                         {(!cls.subjects || cls.subjects.length === 0) ? (

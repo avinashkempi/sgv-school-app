@@ -19,6 +19,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import Header from "../../components/Header";
 import { useToast } from "../../components/ToastProvider";
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { formatClassName } from '../../utils/formatClassName';
 
 // ---------- Memoised row — only re-renders when its own props change ----------
 const SubjectMarkRow = memo(function SubjectMarkRow({ subject, isExcluded, marks, defaultMarks, onToggle, onChangeMark, colors }) {
@@ -55,7 +56,7 @@ const SubjectMarkRow = memo(function SubjectMarkRow({ subject, isExcluded, marks
                     {subject.name}
                 </Text>
                 <Text style={{ fontSize: 11, color: colors.textSecondary, fontFamily: "DMSans-Regular", lineHeight: 15 }} numberOfLines={1}>
-                    {subject.class?.name}{subject.class?.section ? ` ${subject.class.section}` : ""}
+                    {subject.class?.name ? formatClassName(subject.class) : ''}
                 </Text>
             </View>
 
@@ -321,7 +322,7 @@ export default function AdminExamScheduleScreen() {
                                 }}
                             >
                                 <Text style={{ color: selectedClassId === cls._id ? "#fff" : colors.textPrimary }}>
-                                    {cls.name} {cls.section}
+                                    {formatClassName(cls.name, cls.section)}
                                 </Text>
                             </Pressable>
                         ))}
@@ -583,7 +584,7 @@ export default function AdminExamScheduleScreen() {
                                                         }}
                                                     >
                                                         <Text style={{ color: isSelected ? "#fff" : colors.textPrimary }}>
-                                                            {cls.name} {cls.section}
+                                                            {formatClassName(cls.name, cls.section)}
                                                         </Text>
                                                     </Pressable>
                                                 );

@@ -15,6 +15,7 @@ import apiConfig from "../../config/apiConfig";
 import { useToast } from "../../components/ToastProvider";
 import Header from "../../components/Header";
 import { useApiQuery } from "../../hooks/useApi";
+import { formatClassName } from "../../utils/formatClassName";
 
 export default function StudentClassScreen() {
     const router = useRouter();
@@ -77,7 +78,7 @@ export default function StudentClassScreen() {
             >
                 <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
                     <Header
-                        title={classData.name}
+                        title={formatClassName(classData.name)}
                         subtitle={`Section ${classData.section || 'N/A'} • ${classData.academicYear?.name || ''}`}
                     />
 

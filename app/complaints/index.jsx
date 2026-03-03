@@ -22,6 +22,7 @@ import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/us
 import { useQueryClient } from "@tanstack/react-query";
 import Header from "../../components/Header";
 import { useToast } from "../../components/ToastProvider";
+import formatClassName from '../../utils/formatClassName';
 
 
 export default function ComplaintsScreen() {
@@ -268,7 +269,7 @@ export default function ComplaintsScreen() {
                             {item.subject ? item.subject.name : "General Feedback"}
                         </Text>
                         <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginTop: 4 }}>
-                            {item.class ? `${item.class.name} ${item.class.section || ''}` : ''}
+                            {item.class ? `${formatClassName(item.class.name)} ${item.class.section || ''}` : ''}
                         </Text>
                     </View>
                     <Text style={{ color: colors.textSecondary, fontSize: 12, fontFamily: "DMSans-Medium" }}>

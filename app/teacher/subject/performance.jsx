@@ -14,6 +14,7 @@ import { useApiQuery } from "../../../hooks/useApi";
 import AppHeader from "../../../components/Header";
 import Card from "../../../components/Card";
 import apiConfig from "../../../config/apiConfig";
+import formatClassName from '../../../utils/formatClassName';
 import { } from "react-native-chart-kit";
 
 const { _width } = Dimensions.get('window');
@@ -184,7 +185,7 @@ export default function SubjectPerformanceScreen() {
                                         >
                                             <View style={{ flex: 1 }}>
                                                 <Text style={{ fontSize: 14, fontFamily: "DMSans-SemiBold", color: colors.textPrimary }}>
-                                                    {classData.className}
+                                                    {formatClassName(classData.className)}
                                                 </Text>
                                                 <Text style={{ fontSize: 11, color: colors.textSecondary, fontFamily: "DMSans-Regular" }}>
                                                     {classData.studentsCount} student{classData.studentsCount !== 1 ? 's' : ''}

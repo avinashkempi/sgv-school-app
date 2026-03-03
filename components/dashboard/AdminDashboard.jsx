@@ -127,6 +127,12 @@ const AdminDashboard = () => {
                         color={colors.primary}
                         onPress={() => router.push('/admin/import-data')}
                     />
+                    <QuickActionButton
+                        title="Missing Tracker"
+                        icon="event-busy"
+                        color={colors.error}
+                        onPress={() => router.push({ pathname: '/admin/attendance', params: { tab: 'tracker' } })}
+                    />
 
                 </ScrollView>
             </View>
@@ -235,25 +241,67 @@ const AdminDashboard = () => {
                 )
             }
 
-            {
-                data.charts?.attendance && (data.charts.attendance.present > 0 || data.charts.attendance.absent > 0) ? (
-                    <ChartCard
-                        title="Today's Attendance"
-                        chartType="pie"
-                        data={[
-                            { name: 'Present', value: data.charts.attendance.present || 0 },
-                            { name: 'Absent', value: data.charts.attendance.absent || 0 }
-                        ]}
-                        height={200}
-                    />
-                ) : (
-                    <EmptyState
-                        icon="pie-chart"
-                        title="No Attendance Data"
-                        message="Attendance data is not available for today"
-                    />
-                )
-            }
+            {/* Detailed Attendance Summary */}
+            {data.charts?.attendance ? (
+                <View style={{
+                    backgroundColor: colors.surfaceContainer,
+                    borderRadius: 24,
+                    padding: 20,
+                    marginBottom: 16
+                }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                        <Text style={styles.titleMedium}>Daily Attendance Summary</Text>
+                        <MaterialIcons name="date-range" size={22} color={colors.primary} />
+                    </View>
+
+                    {/* Student Attendance Bar */}
+                    <View style={{ marginBottom: 20 }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                            <Text style={{ fontFamily: 'DMSans-Medium', color: colors.onSurface, fontSize: 14 }}>Students</Text>
+                            <Text style={{ fontFamily: 'DMSans-Bold', color: colors.onSurface, fontSize: 14 }}>
+                                {data.charts.attendance.student?.present || 0} / {data.charts.attendance.student?.total || 0}
+                            </Text>
+                        </View>
+                        <View style={{ height: 12, backgroundColor: colors.outlineVariant, borderRadius: 6, overflow: 'hidden', flexDirection: 'row' }}>
+                            <View style={{
+                                width: `${data.charts.attendance.student?.total > 0 ? ((data.charts.attendance.student.present / data.charts.attendance.student.total) * 100) : 0}%`,
+                                backgroundColor: colors.primary,
+                                height: '100%'
+                            }} />
+                        </View>
+                    </View>
+
+                    {/* Teacher Attendance Bar */}
+                    <View style={{ marginBottom: 20 }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                            <Text style={{ fontFamily: 'DMSans-Medium', color: colors.onSurface, fontSize: 14 }}>Teachers</Text>
+                            <Text style={{ fontFamily: 'DMSans-Bold', color: colors.onSurface, fontSize: 14 }}>
+                                {data.charts.attendance.teacher?.present || 0} / {data.charts.attendance.teacher?.total || 0}
+                            </Text>
+                        </View>
+                        <View style={{ height: 12, backgroundColor: colors.outlineVariant, borderRadius: 6, overflow: 'hidden', flexDirection: 'row' }}>
+                            <View style={{
+                                width: `${data.charts.attendance.teacher?.total > 0 ? ((data.charts.attendance.teacher.present / data.charts.attendance.teacher.total) * 100) : 0}%`,
+                                backgroundColor: colors.tertiary,
+                                height: '100%'
+                            }} />
+                        </View>
+                    </View>
+
+                    {/* Classes Marked Stat */}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primaryContainer, padding: 12, borderRadius: 12 }}>
+                        <MaterialIcons name="fact-check" size={24} color={colors.onPrimaryContainer} style={{ marginRight: 12 }} />
+                        <View>
+                            <Text style={{ fontFamily: 'DMSans-Medium', color: colors.onPrimaryContainer, fontSize: 13 }}>Classes Marked Today</Text>
+                            <Text style={{ fontFamily: 'DMSans-Bold', color: colors.onPrimaryContainer, fontSize: 16 }}>
+                                {data.charts.attendance.classesMarked?.count || 0} out of {data.charts.attendance.classesMarked?.total || 0}
+                            </Text>
+                        </View>
+                    </View>
+                </View>
+            ) : (
+                <EmptyState icon="event" title="No Attendance Data" message="Attendance data is not available" />
+            )}
 
             {/* Date Range Picker Modal */}
             <DateRangePicker

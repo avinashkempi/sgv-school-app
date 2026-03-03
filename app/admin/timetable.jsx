@@ -22,6 +22,7 @@ import Card from "../../components/Card";
 import ModernTimePicker from "../../components/ModernTimePicker";
 import { useToast } from "../../components/ToastProvider";
 import apiConfig from "../../config/apiConfig";
+import { formatClassName } from "../../utils/formatClassName";
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -423,7 +424,7 @@ export default function AdminTimetableScreen() {
                                     color: selectedClassId === cls._id ? "#fff" : colors.textPrimary,
                                     fontFamily: selectedClassId === cls._id ? "DMSans-Bold" : "DMSans-Medium"
                                 }}>
-                                    {cls.name} {cls.section}
+                                    {formatClassName(cls.name, cls.section)}
                                 </Text>
                             </Pressable>
                         ))}
@@ -784,7 +785,7 @@ export default function AdminTimetableScreen() {
 
                         <ScrollView showsVerticalScrollIndicator={false}>
                             <Text style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 16, fontFamily: "DMSans-Regular" }}>
-                                Copy the timing structure from <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary }}>{classes?.find(c => c._id === selectedClassId)?.name} {classes?.find(c => c._id === selectedClassId)?.section} - {selectedDay}</Text> to the selected classes and days below. Subjects and teachers will NOT be copied.
+                                Copy the timing structure from <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary }}>{formatClassName(classes?.find(c => c._id === selectedClassId)?.name, classes?.find(c => c._id === selectedClassId)?.section)} - {selectedDay}</Text> to the selected classes and days below. Subjects and teachers will NOT be copied.
                             </Text>
 
                             <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>Select Target Days</Text>
@@ -824,7 +825,7 @@ export default function AdminTimetableScreen() {
                                             borderColor: cloneTargetClasses.includes(cls._id) ? colors.primary : colors.outlineVariant
                                         }}
                                     >
-                                        <Text style={{ color: cloneTargetClasses.includes(cls._id) ? "#fff" : colors.textPrimary, fontFamily: "DMSans-Medium" }}>{cls.name} {cls.section}</Text>
+                                        <Text style={{ color: cloneTargetClasses.includes(cls._id) ? "#fff" : colors.textPrimary, fontFamily: "DMSans-Medium" }}>{formatClassName(cls.name, cls.section)}</Text>
                                     </Pressable>
                                 ))}
                             </View>

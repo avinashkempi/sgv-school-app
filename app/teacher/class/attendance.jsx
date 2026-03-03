@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
     View,
     Text,
@@ -8,11 +8,11 @@ import {
     RefreshControl,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import storage from "../../../utils/storage";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "../../../theme";
 import apiConfig from "../../../config/apiConfig";
-import apiFetch from "../../../utils/apiFetch";
+import { useApiQuery, useApiMutation, createApiMutationFn } from "../../../hooks/useApi";
+import { useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useToast } from "../../../components/ToastProvider";
 import AppHeader from "../../../components/Header";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -22,83 +22,89 @@ export default function MarkAttendanceScreen() {
     const params = useLocalSearchParams();
     const { _styles, colors } = useTheme();
     const { showToast } = useToast();
+    const queryClient = useQueryClient();
 
-    const { classId, subjectId } = params;
+    const { classId, subjectId, date: initialDate } = params;
 
-    const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
-    const [saving, setSaving] = useState(false);
-    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [selectedDate, setSelectedDate] = useState(initialDate ? new Date(initialDate + 'T00:00:00') : new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [students, setStudents] = useState([]);
-    const [classData, setClassData] = useState(null);
-    const [subjectData, setSubjectData] = useState(null);
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const [originalStatuses, setOriginalStatuses] = useState({});
 
-    useEffect(() => {
-        loadData();
-    }, [selectedDate]);
+    const dateStr = useMemo(() => selectedDate.toISOString().split('T')[0], [selectedDate]);
 
-    const loadData = async () => {
-        try {
-            const token = await storage.getItem("@auth_token");
+    // ─── Cached queries for class & subject (fetched once) ───
+    const { data: classData } = useApiQuery(
+        ['class', classId],
+        `${apiConfig.baseUrl}/classes/${classId}`,
+        { enabled: !!classId, staleTime: 5 * 60 * 1000 }
+    );
 
-            // Load class/subject info
-            if (classId) {
-                const classResponse = await apiFetch(`${apiConfig.baseUrl}/classes/${classId}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                if (classResponse.ok) {
-                    const data = await classResponse.json();
-                    setClassData(data);
-                }
-            }
+    const { data: subjectData } = useApiQuery(
+        ['subject', subjectId],
+        `${apiConfig.baseUrl}/subjects/${subjectId}`,
+        { enabled: !!subjectId, staleTime: 5 * 60 * 1000 }
+    );
 
-            if (subjectId) {
-                const subjectResponse = await apiFetch(`${apiConfig.baseUrl}/subjects/${subjectId}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                if (subjectResponse.ok) {
-                    const data = await subjectResponse.json();
-                    setSubjectData(data);
-                }
-            }
+    // ─── Attendance data with silent background refresh ───
+    const attendanceEndpoint = useMemo(() => {
+        if (subjectId) return `/attendance/subject/${subjectId}/date/${dateStr}`;
+        if (classId) return `/attendance/class/${classId}/date/${dateStr}`;
+        return null;
+    }, [classId, subjectId, dateStr]);
 
-            // Load attendance for selected date
-            const dateStr = selectedDate.toISOString().split('T')[0];
-
-            if (!classId && !subjectId) {
-                // If neither classId nor subjectId is present, we can't fetch specific attendance
-                setLoading(false);
-                return;
-            }
-
-            const endpoint = subjectId
-                ? `/attendance/subject/${subjectId}/date/${dateStr}`
-                : `/attendance/class/${classId}/date/${dateStr}`;
-
-            const response = await apiFetch(`${apiConfig.baseUrl}${endpoint}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setStudents(data);
-            } else {
-                showToast("Failed to load attendance", "error");
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error loading data", "error");
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
+    const {
+        data: attendanceData,
+        isLoading,
+        isFetching,
+        refetch
+    } = useApiQuery(
+        ['attendance', classId || subjectId, dateStr],
+        `${apiConfig.baseUrl}${attendanceEndpoint}`,
+        {
+            enabled: !!attendanceEndpoint,
+            placeholderData: keepPreviousData,
+            staleTime: 30 * 1000, // 30 seconds
         }
-    };
+    );
 
-    const onRefresh = () => {
+    // ─── Populate local state from query data ───
+    useEffect(() => {
+        if (attendanceData && Array.isArray(attendanceData)) {
+            // Apply on-leave auto-absent logic
+            const processed = attendanceData.map(s =>
+                s.onLeave && !s.status ? { ...s, status: 'absent' } : s
+            );
+            setStudents(processed);
+            const origMap = {};
+            attendanceData.forEach(s => { origMap[s.student._id] = s.status; });
+            setOriginalStatuses(origMap);
+            setHasUnsavedChanges(false);
+        }
+    }, [attendanceData]);
+
+    // ─── Save mutation with cache invalidation ───
+    const saveMutation = useApiMutation({
+        mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/attendance/mark`, 'POST'),
+        onSuccess: () => {
+            showToast("Attendance saved successfully", "success");
+            setHasUnsavedChanges(false);
+            // Invalidate this date's cache so it refetches fresh data
+            queryClient.invalidateQueries({ queryKey: ['attendance', classId || subjectId, dateStr] });
+        },
+        onError: (error) => {
+            showToast(error.message || "Failed to save attendance", "error");
+        }
+    });
+    const saving = saveMutation.isPending;
+
+    const [refreshing, setRefreshing] = useState(false);
+    const onRefresh = useCallback(async () => {
         setRefreshing(true);
-        loadData();
-    };
+        await refetch();
+        setRefreshing(false);
+    }, [refetch]);
 
     const handleStatusChange = (studentId, newStatus) => {
         setStudents(prevStudents =>
@@ -108,65 +114,36 @@ export default function MarkAttendanceScreen() {
                     : s
             )
         );
+        setHasUnsavedChanges(true);
     };
 
     const handleMarkAllPresent = () => {
         setStudents(prevStudents =>
-            prevStudents.map(s => ({ ...s, status: 'present' }))
+            prevStudents.map(s => s.onLeave ? { ...s, status: 'absent' } : { ...s, status: 'present' })
         );
+        setHasUnsavedChanges(true);
     };
 
+    const handleSaveAttendance = () => {
+        const attendanceRecords = students
+            .filter(s => s.status !== null)
+            .map(s => ({
+                studentId: s.student._id,
+                status: s.status,
+                remarks: s.remarks || ''
+            }));
 
-
-    const handleSaveAttendance = async () => {
-        try {
-            setSaving(true);
-            const token = await storage.getItem("@auth_token");
-
-            // Prepare attendance records
-            const attendanceRecords = students
-                .filter(s => s.status !== null)
-                .map(s => ({
-                    studentId: s.student._id,
-                    status: s.status,
-                    remarks: s.remarks || ''
-                }));
-
-            if (attendanceRecords.length === 0) {
-                showToast("Please mark attendance for at least one student", "warning");
-                setSaving(false);
-                return;
-            }
-
-            const dateStr = selectedDate.toISOString().split('T')[0];
-
-            const response = await apiFetch(`${apiConfig.baseUrl}/attendance/mark`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    classId,
-                    subjectId: null, // Force class-based attendance
-                    date: dateStr,
-                    attendanceRecords
-                })
-            });
-
-            if (response.ok) {
-                showToast("Attendance saved successfully", "success");
-                loadData();
-            } else {
-                const error = await response.json();
-                showToast(error.message || "Failed to save attendance", "error");
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("Error saving attendance", "error");
-        } finally {
-            setSaving(false);
+        if (attendanceRecords.length === 0) {
+            showToast("Please mark attendance for at least one student", "warning");
+            return;
         }
+
+        saveMutation.mutate({
+            classId,
+            subjectId: null,
+            date: dateStr,
+            attendanceRecords
+        });
     };
 
     const onDateChange = (event, selectedDate) => {
@@ -196,11 +173,17 @@ export default function MarkAttendanceScreen() {
         }
     };
 
+    // Computed counts
+    const presentCount = useMemo(() => students.filter(s => s.status === 'present').length, [students]);
+    const absentCount = useMemo(() => students.filter(s => s.status === 'absent').length, [students]);
+    const lateCount = useMemo(() => students.filter(s => s.status === 'late').length, [students]);
+    const unmarkedCount = useMemo(() => students.filter(s => !s.status).length, [students]);
+
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <ScrollView
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={{ paddingBottom: 120 }}
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
                     <AppHeader
@@ -208,27 +191,37 @@ export default function MarkAttendanceScreen() {
                         subtitle={subjectData ? `${subjectData.name} - ${classData?.name}` : classData?.name}
                     />
 
-                    {/* Date Picker */}
-                    <Pressable
-                        onPress={() => setShowDatePicker(true)}
-                        style={{
-                            backgroundColor: colors.cardBackground,
-                            borderRadius: 12,
-                            padding: 16,
-                            marginTop: 20,
-                            flexDirection: "row",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            elevation: 2
-                        }}
-                    >
-                        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                    {/* Date Navigation & Picker */}
+                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 20 }}>
+                        <Pressable
+                            onPress={() => { const d = new Date(selectedDate); d.setDate(d.getDate() - 1); setSelectedDate(d); }}
+                            style={({ pressed }) => ({ backgroundColor: colors.cardBackground, padding: 12, borderRadius: 12, elevation: 2, opacity: pressed ? 0.7 : 1 })}
+                        >
+                            <MaterialIcons name="chevron-left" size={24} color={colors.primary} />
+                        </Pressable>
+
+                        <Pressable
+                            onPress={() => setShowDatePicker(true)}
+                            style={({ pressed }) => ({
+                                flex: 1,
+                                backgroundColor: colors.cardBackground,
+                                borderRadius: 12,
+                                padding: 12,
+                                marginHorizontal: 12,
+                                flexDirection: "row",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                elevation: 2,
+                                gap: 12,
+                                opacity: pressed ? 0.7 : 1
+                            })}
+                        >
                             <MaterialIcons name="calendar-today" size={24} color={colors.primary} />
-                            <View>
+                            <View style={{ alignItems: 'center' }}>
                                 <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>
                                     Selected Date
                                 </Text>
-                                <Text style={{ fontSize: 17, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginTop: 2 }}>
+                                <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginTop: 2 }}>
                                     {selectedDate.toLocaleDateString('en-GB', {
                                         day: '2-digit',
                                         month: 'short',
@@ -236,9 +229,15 @@ export default function MarkAttendanceScreen() {
                                     })}
                                 </Text>
                             </View>
-                        </View>
-                        <MaterialIcons name="edit" size={20} color={colors.textSecondary} />
-                    </Pressable>
+                        </Pressable>
+
+                        <Pressable
+                            onPress={() => { const d = new Date(selectedDate); d.setDate(d.getDate() + 1); setSelectedDate(d); }}
+                            style={({ pressed }) => ({ backgroundColor: colors.cardBackground, padding: 12, borderRadius: 12, elevation: 2, opacity: pressed ? 0.7 : 1 })}
+                        >
+                            <MaterialIcons name="chevron-right" size={24} color={colors.primary} />
+                        </Pressable>
+                    </View>
 
                     {showDatePicker && (
                         <DateTimePicker
@@ -250,161 +249,264 @@ export default function MarkAttendanceScreen() {
                         />
                     )}
 
-                    {/* Quick Actions */}
-                    <View style={{ flexDirection: "row", gap: 12, marginTop: 20 }}>
-                        <Pressable
-                            onPress={handleMarkAllPresent}
-                            style={({ pressed }) => ({
-                                flex: 1,
-                                backgroundColor: colors.success + "15",
-                                borderRadius: 12,
-                                padding: 14,
-                                flexDirection: "row",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                gap: 8,
-                                opacity: pressed ? 0.7 : 1
-                            })}
-                        >
-                            <MaterialIcons name="check-circle" size={20} color={colors.success} />
-                            <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.success }}>
-                                All Present
-                            </Text>
-                        </Pressable>
+                    {/* Silent refresh spinner */}
+                    {isFetching && !isLoading && (
+                        <View style={{ alignItems: 'center', marginTop: 12 }}>
+                            <ActivityIndicator size="small" color={colors.primary} />
+                        </View>
+                    )}
 
+                    {/* Action Buttons — Mark All Present + Save */}
+                    {!isLoading && students.length > 0 && (
+                        <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
+                            <Pressable
+                                onPress={handleMarkAllPresent}
+                                style={({ pressed }) => ({
+                                    flex: 1,
+                                    backgroundColor: colors.success + '15',
+                                    borderWidth: 1.5,
+                                    borderColor: colors.success,
+                                    borderRadius: 12,
+                                    paddingVertical: 12,
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: 6,
+                                    opacity: pressed ? 0.7 : 1
+                                })}
+                            >
+                                <MaterialIcons name="check-circle" size={18} color={colors.success} />
+                                <Text style={{ fontSize: 13, fontFamily: 'DMSans-Bold', color: colors.success }}>All Present</Text>
+                            </Pressable>
 
+                            <Pressable
+                                onPress={handleSaveAttendance}
+                                disabled={saving}
+                                style={({ pressed }) => ({
+                                    flex: 1.5,
+                                    backgroundColor: colors.primary,
+                                    borderRadius: 12,
+                                    paddingVertical: 12,
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: 6,
+                                    opacity: pressed || saving ? 0.7 : 1,
+                                    elevation: 3
+                                })}
+                            >
+                                {saving ? (
+                                    <ActivityIndicator size="small" color="#fff" />
+                                ) : (
+                                    <>
+                                        <MaterialIcons name="save" size={18} color="#fff" />
+                                        <Text style={{ fontSize: 13, fontFamily: 'DMSans-Bold', color: '#fff' }}>Save Attendance</Text>
+                                        {hasUnsavedChanges && (
+                                            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#FF9800', marginLeft: 2 }} />
+                                        )}
+                                    </>
+                                )}
+                            </Pressable>
+                        </View>
+                    )}
+
+                    {/* Live Counter */}
+                    {!isLoading && students.length > 0 && (
+                        <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 16, marginTop: 12, marginBottom: 4 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: colors.success }} />
+                                <Text style={{ fontSize: 13, fontFamily: 'DMSans-Bold', color: colors.success }}>{presentCount} P</Text>
+                            </View>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: colors.error }} />
+                                <Text style={{ fontSize: 13, fontFamily: 'DMSans-Bold', color: colors.error }}>{absentCount} A</Text>
+                            </View>
+                            {lateCount > 0 && (
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                    <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#FF9800' }} />
+                                    <Text style={{ fontSize: 13, fontFamily: 'DMSans-Bold', color: '#FF9800' }}>{lateCount} L</Text>
+                                </View>
+                            )}
+                            {unmarkedCount > 0 && (
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                    <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#FF9800' }} />
+                                    <Text style={{ fontSize: 13, fontFamily: 'DMSans-Bold', color: '#FF9800' }}>{unmarkedCount} ?</Text>
+                                </View>
+                            )}
+                            <Text style={{ fontSize: 13, fontFamily: 'DMSans-Bold', color: colors.textSecondary }}>/ {students.length}</Text>
+                        </View>
+                    )}
+
+                    {/* Students List Header */}
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, marginBottom: 12 }}>
+                        <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
+                            Students ({students.length})
+                        </Text>
                     </View>
 
-                    {/* Attendance Summary */}
-                    <View style={{ flexDirection: 'row', gap: 12, marginTop: 24, marginBottom: 8 }}>
-                        <View style={{ flex: 1, backgroundColor: colors.success + '15', padding: 12, borderRadius: 12, alignItems: 'center' }}>
-                            <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.success }}>
-                                {students.filter(s => s.status === 'present').length}
-                            </Text>
-                            <Text style={{ fontSize: 12, color: colors.success, fontFamily: "DMSans-Medium" }}>Present</Text>
-                        </View>
-                        <View style={{ flex: 1, backgroundColor: colors.error + '15', padding: 12, borderRadius: 12, alignItems: 'center' }}>
-                            <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.error }}>
-                                {students.filter(s => s.status === 'absent').length}
-                            </Text>
-                            <Text style={{ fontSize: 12, color: colors.error, fontFamily: "DMSans-Medium" }}>Absent</Text>
-                        </View>
-                        <View style={{ flex: 1, backgroundColor: colors.primary + '15', padding: 12, borderRadius: 12, alignItems: 'center' }}>
-                            <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.primary }}>
-                                {students.length}
-                            </Text>
-                            <Text style={{ fontSize: 12, color: colors.primary, fontFamily: "DMSans-Medium" }}>Total</Text>
-                        </View>
-                    </View>
-
-                    {/* Students List */}
-                    <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 16 }}>
-                        Students List
-                    </Text>
-
-                    {loading ? (
+                    {isLoading ? (
                         <View style={{ flex: 1, justifyContent: "center", alignItems: "center", marginTop: 60 }}>
                             <ActivityIndicator size="large" color={colors.primary} />
                         </View>
                     ) : (
-                        students.map((studentData, index) => (
-                            <View
-                                key={studentData.student._id}
-                                style={{
-                                    backgroundColor: colors.cardBackground,
-                                    borderRadius: 12,
-                                    padding: 14,
-                                    marginBottom: 10,
-                                    elevation: 1
-                                }}
-                            >
-                                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={{ fontSize: 16, fontFamily: "DMSans-SemiBold", color: colors.textPrimary }}>
-                                            {index + 1}. {studentData.student.name}
-                                        </Text>
-                                        {studentData.student.email && (
-                                            <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2, fontFamily: "DMSans-Regular" }}>
-                                                {studentData.student.email}
+                        students.map((studentData, index) => {
+                            const statusColor = studentData.status ? getStatusColor(studentData.status) : null;
+                            const borderColor = studentData.onLeave ? '#FF9800' : statusColor;
+
+                            return (
+                                <Pressable
+                                    key={studentData.student._id}
+                                    onPress={() => {
+                                        const newStatus = studentData.status === 'present' ? 'absent' : 'present';
+                                        handleStatusChange(studentData.student._id, newStatus);
+                                    }}
+                                    style={({ pressed }) => ({
+                                        backgroundColor: colors.cardBackground,
+                                        borderRadius: 12,
+                                        padding: 12,
+                                        marginBottom: 8,
+                                        elevation: 1,
+                                        opacity: pressed ? 0.85 : 1,
+                                        ...(borderColor && { borderLeftWidth: 4, borderLeftColor: borderColor }),
+                                    })}
+                                >
+                                    {/* Top row: name + status badge */}
+                                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                                        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                            <Text style={{ fontSize: 15, fontFamily: "DMSans-SemiBold", color: colors.textPrimary }}>
+                                                {index + 1}. {studentData.student.name}
                                             </Text>
+                                            {studentData.onLeave && (
+                                                <View style={{ backgroundColor: '#FF9800' + '20', paddingHorizontal: 6, paddingVertical: 1, borderRadius: 6 }}>
+                                                    <Text style={{ fontSize: 10, fontFamily: "DMSans-Bold", color: '#FF9800' }}>ON LEAVE</Text>
+                                                </View>
+                                            )}
+                                        </View>
+                                        {studentData.status ? (
+                                            <View style={{
+                                                backgroundColor: getStatusColor(studentData.status) + '20',
+                                                paddingHorizontal: 10,
+                                                paddingVertical: 4,
+                                                borderRadius: 8,
+                                                flexDirection: 'row',
+                                                alignItems: 'center',
+                                                gap: 4
+                                            }}>
+                                                <MaterialIcons
+                                                    name={getStatusIcon(studentData.status)}
+                                                    size={16}
+                                                    color={getStatusColor(studentData.status)}
+                                                />
+                                                <Text style={{
+                                                    fontSize: 12,
+                                                    fontFamily: "DMSans-Bold",
+                                                    color: getStatusColor(studentData.status),
+                                                    textTransform: 'capitalize'
+                                                }}>
+                                                    {studentData.status}
+                                                </Text>
+                                            </View>
+                                        ) : (
+                                            <Text style={{ fontSize: 12, fontFamily: "DMSans-Medium", color: colors.textSecondary }}>Tap to mark</Text>
                                         )}
                                     </View>
-                                    {studentData.status && (
-                                        <MaterialIcons
-                                            name={getStatusIcon(studentData.status)}
-                                            size={24}
-                                            color={getStatusColor(studentData.status)}
-                                        />
-                                    )}
-                                </View>
 
-                                {/* Status Buttons */}
-                                <View style={{ flexDirection: "row", gap: 8 }}>
-                                    {['present', 'absent', 'late', 'excused'].map((status) => (
-                                        <Pressable
-                                            key={status}
-                                            onPress={() => handleStatusChange(studentData.student._id, status)}
-                                            style={({ pressed }) => ({
-                                                flex: 1,
-                                                backgroundColor: studentData.status === status
-                                                    ? getStatusColor(status) + "20"
-                                                    : colors.background,
-                                                borderWidth: studentData.status === status ? 2 : 1,
-                                                borderColor: studentData.status === status
-                                                    ? getStatusColor(status)
-                                                    : colors.textSecondary + "30",
-                                                borderRadius: 8,
-                                                paddingVertical: 10,
-                                                alignItems: "center",
-                                                opacity: pressed ? 0.7 : 1
-                                            })}
-                                        >
-                                            <Text style={{
-                                                fontSize: 11,
-                                                fontFamily: "DMSans-Bold",
-                                                color: studentData.status === status
-                                                    ? getStatusColor(status)
-                                                    : colors.textSecondary,
-                                                textTransform: "uppercase"
-                                            }}>
-                                                {status === 'present' ? 'P' : status === 'absent' ? 'A' : status === 'late' ? 'L' : 'E'}
-                                            </Text>
-                                        </Pressable>
-                                    ))}
-                                </View>
-                            </View>
-                        ))
+                                    {/* Leave reason */}
+                                    {studentData.onLeave && studentData.leaveReason && (
+                                        <Text style={{ fontSize: 11, color: '#FF9800', marginTop: 4, fontFamily: "DMSans-Medium" }}>
+                                            Reason: {studentData.leaveReason}
+                                        </Text>
+                                    )}
+
+                                    {/* Fine-tune P/A/L/E row — visible when status is set */}
+                                    {studentData.status && (
+                                        <View style={{ flexDirection: "row", gap: 6, marginTop: 8 }}>
+                                            {['present', 'absent', 'late', 'excused'].map((status) => (
+                                                <Pressable
+                                                    key={status}
+                                                    onPress={() => handleStatusChange(studentData.student._id, status)}
+                                                    style={({ pressed }) => ({
+                                                        flex: 1,
+                                                        backgroundColor: studentData.status === status
+                                                            ? getStatusColor(status) + "20"
+                                                            : 'transparent',
+                                                        borderWidth: studentData.status === status ? 1.5 : 1,
+                                                        borderColor: studentData.status === status
+                                                            ? getStatusColor(status)
+                                                            : colors.textSecondary + "20",
+                                                        borderRadius: 6,
+                                                        paddingVertical: 6,
+                                                        alignItems: "center",
+                                                        opacity: pressed ? 0.7 : 1
+                                                    })}
+                                                >
+                                                    <Text style={{
+                                                        fontSize: 10,
+                                                        fontFamily: "DMSans-Bold",
+                                                        color: studentData.status === status
+                                                            ? getStatusColor(status)
+                                                            : colors.textSecondary + '80',
+                                                    }}>
+                                                        {status === 'present' ? 'P' : status === 'absent' ? 'A' : status === 'late' ? 'L' : 'E'}
+                                                    </Text>
+                                                </Pressable>
+                                            ))}
+                                        </View>
+                                    )}
+                                </Pressable>
+                            );
+                        })
                     )}
 
-                    {/* Save Button */}
-                    {!loading && (
-                        <Pressable
-                            onPress={handleSaveAttendance}
-                            disabled={saving}
-                            style={({ pressed }) => ({
-                                backgroundColor: colors.primary,
-                                borderRadius: 12,
-                                padding: 16,
-                                marginTop: 24,
-                                flexDirection: "row",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                gap: 8,
-                                opacity: pressed || saving ? 0.7 : 1,
-                                elevation: 3
-                            })}
-                        >
-                            {saving ? (
-                                <ActivityIndicator size="small" color="#fff" />
-                            ) : (
-                                <>
-                                    <MaterialIcons name="save" size={24} color="#fff" />
-                                    <Text style={{ fontSize: 17, fontFamily: "DMSans-Bold", color: "#fff" }}>
-                                        Save Attendance
-                                    </Text>
-                                </>
-                            )}
-                        </Pressable>
+                    {/* Bottom Save Button (after student list) */}
+                    {!isLoading && students.length > 0 && (
+                        <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
+                            <Pressable
+                                onPress={handleMarkAllPresent}
+                                style={({ pressed }) => ({
+                                    flex: 1,
+                                    backgroundColor: colors.success + '15',
+                                    borderWidth: 1.5,
+                                    borderColor: colors.success,
+                                    borderRadius: 12,
+                                    paddingVertical: 12,
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: 6,
+                                    opacity: pressed ? 0.7 : 1
+                                })}
+                            >
+                                <MaterialIcons name="check-circle" size={18} color={colors.success} />
+                                <Text style={{ fontSize: 13, fontFamily: 'DMSans-Bold', color: colors.success }}>All Present</Text>
+                            </Pressable>
+
+                            <Pressable
+                                onPress={handleSaveAttendance}
+                                disabled={saving}
+                                style={({ pressed }) => ({
+                                    flex: 1.5,
+                                    backgroundColor: colors.primary,
+                                    borderRadius: 12,
+                                    paddingVertical: 12,
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: 6,
+                                    opacity: pressed || saving ? 0.7 : 1,
+                                    elevation: 3
+                                })}
+                            >
+                                {saving ? (
+                                    <ActivityIndicator size="small" color="#fff" />
+                                ) : (
+                                    <>
+                                        <MaterialIcons name="save" size={18} color="#fff" />
+                                        <Text style={{ fontSize: 13, fontFamily: 'DMSans-Bold', color: '#fff' }}>Save Attendance</Text>
+                                    </>
+                                )}
+                            </Pressable>
+                        </View>
                     )}
                 </View>
             </ScrollView>

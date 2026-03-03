@@ -15,6 +15,7 @@ import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/us
 import apiConfig from "../../config/apiConfig";
 import Header from "../../components/Header";
 import { useToast } from "../../components/ToastProvider";
+import formatClassName from '../../utils/formatClassName';
 
 export default function SendNotificationScreen() {
     const router = useRouter();
@@ -241,7 +242,7 @@ export default function SendNotificationScreen() {
                                         }}
                                     >
                                         <Text style={{ color: selectedClass === cls._id ? "#fff" : colors.textPrimary }}>
-                                            {cls.name}
+                                            {formatClassName(cls.name)}
                                         </Text>
                                     </Pressable>
                                 ))}

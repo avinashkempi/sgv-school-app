@@ -9,6 +9,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '../../components/ToastProvider';
 import { useTheme } from '../../theme';
 import Header from '../../components/Header';
+import formatClassName from '../../utils/formatClassName';
 
 export default function AdminLeaves() {
     const router = useRouter();
@@ -248,7 +249,7 @@ export default function AdminLeaves() {
                     </Text>
                     <Text style={{ fontSize: 13, color: colors.onSurfaceVariant, fontFamily: "DMSans-Medium" }}>
                         {item.applicantRole === 'student'
-                            ? `Class: ${item.class?.name || ''} ${item.class?.section || ''}`
+                            ? `Class: ${formatClassName(item.class?.name)} ${item.class?.section || ''}`
                             : (item.applicantRole || 'Unknown').toUpperCase()}
                     </Text>
                 </View>
@@ -426,7 +427,7 @@ export default function AdminLeaves() {
                     </Text>
                     <Text style={{ fontSize: 13, color: colors.onSurfaceVariant, fontFamily: "DMSans-Medium" }}>
                         {item.applicantRole === 'student'
-                            ? `Class: ${item.class?.name || ''} ${item.class?.section || ''}`
+                            ? `Class: ${formatClassName(item.class?.name)} ${item.class?.section || ''}`
                             : (item.applicantRole || 'Unknown').toUpperCase()}
                     </Text>
                 </View>

@@ -15,6 +15,7 @@ import apiConfig from "../../config/apiConfig";
 import { useApiQuery } from "../../hooks/useApi";
 import { useToast } from "../../components/ToastProvider";
 import AppHeader from "../../components/Header";
+import { formatClassName } from "../../utils/formatClassName";
 
 export default function TeacherClassesScreen() {
     const router = useRouter();
@@ -110,7 +111,7 @@ export default function TeacherClassesScreen() {
                                             >
                                                 <View>
                                                     <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
-                                                        {cls.name} {cls.section ? `- ${cls.section}` : ""}
+                                                        {formatClassName(cls.name, cls.section)}
                                                     </Text>
                                                     <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: 4, fontFamily: "DMSans-Regular" }}>
                                                         {cls.academicYear?.name} • {cls.branch}

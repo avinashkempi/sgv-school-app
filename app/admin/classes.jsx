@@ -19,6 +19,7 @@ import apiConfig from "../../config/apiConfig";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "../../components/ToastProvider";
 import AppHeader from "../../components/Header";
+import { formatClassName } from "../../utils/formatClassName";
 
 export default function ClassesScreen() {
     const router = useRouter();
@@ -176,7 +177,7 @@ export default function ClassesScreen() {
                             >
                                 <View>
                                     <Text style={{ fontSize: 18, fontWeight: "700", color: colors.textPrimary }}>
-                                        {cls.name} {cls.section ? `- ${cls.section}` : ""}
+                                        {formatClassName(cls.name, cls.section)}
                                     </Text>
                                     <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: 4 }}>
                                         {cls.branch} • {cls.studentCount || 0} Students

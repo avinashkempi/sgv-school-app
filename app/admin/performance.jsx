@@ -14,6 +14,7 @@ import { useTheme } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
 import AppHeader from "../../components/Header";
 import apiConfig from "../../config/apiConfig";
+import formatClassName from '../../utils/formatClassName';
 
 
 const { _width } = Dimensions.get('window');
@@ -235,7 +236,7 @@ export default function AdminPerformanceScreen() {
                             </View>
                             <View style={{ flex: 1 }}>
                                 <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
-                                    {cls.className}
+                                    {formatClassName(cls.className)}
                                 </Text>
                                 <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: "DMSans-Regular" }}>
                                     {cls.examsCount} exam{cls.examsCount !== 1 ? 's' : ''} completed

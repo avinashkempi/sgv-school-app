@@ -18,6 +18,7 @@ import apiConfig from "../../config/apiConfig";
 import { useQueryClient } from "@tanstack/react-query";
 import Header from "../../components/Header";
 import { useToast } from "../../components/ToastProvider";
+import { formatClassName } from "../../utils/formatClassName";
 
 export default function AdminFeesScreen() {
     const _router = useRouter();
@@ -459,7 +460,7 @@ export default function AdminFeesScreen() {
                                                 }}
                                             >
                                                 <Text style={{ color: selectedClassId === cls._id ? "#fff" : colors.textPrimary, fontFamily: "DMSans-Medium" }}>
-                                                    {cls.name} {cls.section}
+                                                    {formatClassName(cls.name, cls.section)}
                                                 </Text>
                                             </Pressable>
                                         ))}
@@ -828,7 +829,7 @@ export default function AdminFeesScreen() {
                                             <View style={{ flex: 1.5, alignItems: "center" }}>
                                                 <View style={{ backgroundColor: colors.background, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 }}>
                                                     <Text style={{ fontFamily: "DMSans-Medium", color: colors.textSecondary, fontSize: 12 }}>
-                                                        {item.className} {item.section ? `- ${item.section}` : ''}
+                                                        {formatClassName(item.className)} {item.section ? `- ${item.section}` : ''}
                                                     </Text>
                                                 </View>
                                             </View>

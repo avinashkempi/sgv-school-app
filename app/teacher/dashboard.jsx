@@ -16,6 +16,7 @@ import { useApiQuery } from "../../hooks/useApi";
 import { useToast } from "../../components/ToastProvider";
 import AppHeader from "../../components/Header";
 import Card from "../../components/Card";
+import { formatClassName } from "../../utils/formatClassName";
 
 export default function TeacherDashboard() {
     const router = useRouter();
@@ -111,7 +112,7 @@ export default function TeacherDashboard() {
                                     fontFamily: "DMSans-Bold",
                                     color: colors.textPrimary
                                 }}>
-                                    {cls.name} {cls.section ? `- ${cls.section}` : ""}
+                                    {formatClassName(cls.name, cls.section)}
                                 </Text>
                             </View>
 
@@ -219,7 +220,7 @@ export default function TeacherDashboard() {
                                     color: colors.textPrimary,
                                     flex: 1
                                 }}>
-                                    {subj.class.name} {subj.class.section ? `- ${subj.class.section}` : ""}
+                                    {formatClassName(subj.class)}
                                 </Text>
                                 {subj.isClassTeacher && (
                                     <View style={{

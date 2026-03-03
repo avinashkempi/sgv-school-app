@@ -17,6 +17,7 @@ import { useApiMutation, createApiMutationFn, useApiQuery } from "../../hooks/us
 import { useQueryClient } from "@tanstack/react-query";
 import Header from "../../components/Header";
 import { useToast } from "../../components/ToastProvider";
+import { formatClassName } from "../../utils/formatClassName";
 
 export default function GiveFeedbackScreen() {
     const router = useRouter();
@@ -183,7 +184,7 @@ export default function GiveFeedbackScreen() {
                             fontSize: 16
                         }}>
                             {selectedClass
-                                ? `${selectedClass.name} ${selectedClass.section || ""}${selectedClass.role === 'admin' ? '' : selectedClass.role === 'class_teacher' ? ' (Class Teacher)' : ' (Subject Teacher)'}`
+                                ? `${formatClassName(selectedClass.name, selectedClass.section)}${selectedClass.role === 'admin' ? '' : selectedClass.role === 'class_teacher' ? ' (Class Teacher)' : ' (Subject Teacher)'}`
                                 : "Select Class"}
                         </Text>
                         <MaterialIcons name="arrow-drop-down" size={24} color={colors.textSecondary} />
@@ -370,7 +371,7 @@ export default function GiveFeedbackScreen() {
                                     >
                                         <View>
                                             <Text style={{ fontSize: 16, fontFamily: "DMSans-SemiBold", color: colors.textPrimary }}>
-                                                {cls.name} {cls.section}
+                                                {formatClassName(cls.name, cls.section)}
                                             </Text>
                                             <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 4 }}>
                                                 {cls.role === 'admin' ? `${cls.students?.length || ''} students` : 'Class Teacher'}
