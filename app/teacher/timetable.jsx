@@ -39,7 +39,8 @@ export default function SchoolTimetableScreen() {
     // Fetch all timetables
     const { data: timetables, isLoading: loading, refetch } = useApiQuery(
         ['schoolTimetable'],
-        `${apiConfig.baseUrl}/timetable/all`
+        `${apiConfig.baseUrl}/timetable/all`,
+        { staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 }
     );
 
     // Auto-select first class

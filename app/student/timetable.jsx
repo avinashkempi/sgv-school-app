@@ -43,7 +43,8 @@ export default function StudentTimetableScreen() {
     // Fetch Timetable
     const { data: timetableData, isLoading: loading, refetch } = useApiQuery(
         ['studentTimetable'],
-        `${apiConfig.baseUrl}/timetable/my-timetable`
+        `${apiConfig.baseUrl}/timetable/my-timetable`,
+        { staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 }
     );
 
     // Helper to parse time string to minutes for sorting

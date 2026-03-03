@@ -196,7 +196,7 @@ export default function EventsScreen() {
     ['events'],
     apiConfig.url(apiConfig.endpoints.events.list),
     {
-      select: (data) => data.events || [],
+      select: (data) => data.event || [],
     }
   );
 
@@ -439,10 +439,10 @@ export default function EventsScreen() {
           onPress={() => setIsEventFormVisible(true)}
           style={({ pressed }) => ([
             styles.fab,
-            { opacity: pressed ? 0.9 : 1, bottom: 130 }
+            { opacity: pressed ? 0.9 : 1 }
           ])}
         >
-          <MaterialIcons name="add" size={24} color={colors.white} />
+          <MaterialIcons name="add" size={24} color={colors.onPrimaryContainer} />
         </Pressable>
       )}
     </View>

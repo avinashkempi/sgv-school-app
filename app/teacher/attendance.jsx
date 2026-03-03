@@ -17,7 +17,8 @@ export default function TeacherAttendance() {
     // Fetch Attendance
     const { data: attendanceData, isLoading: loading, refetch } = useApiQuery(
         ['teacherAttendance'],
-        `${apiConfig.baseUrl}/attendance/my-attendance`
+        `${apiConfig.baseUrl}/attendance/my-attendance`,
+        { staleTime: 2 * 60 * 1000, gcTime: 10 * 60 * 1000 }
     );
 
     const myAttendance = attendanceData?.attendance || [];

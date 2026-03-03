@@ -40,17 +40,17 @@ export default function AdminAttendance() {
     );
 
     // Fetch School Summary
-    const { data: schoolSummary, isLoading: summaryLoading, refetch: refetchSummary } = useApiQuery(
+    const { data: schoolSummary, isLoading: summaryLoading, isFetching: summaryFetching, refetch: refetchSummary } = useApiQuery(
         ['attendanceSummary', date.toISOString().split('T')[0]],
         `${apiConfig.baseUrl}/attendance/school-summary?date=${date.toISOString().split('T')[0]}`,
-        { enabled: activeTab === 'summary' }
+        { enabled: activeTab === 'summary', select: (d) => d.data, staleTime: 60 * 1000, gcTime: 10 * 60 * 1000 }
     );
 
     // Fetch Classes
     const { data: classesData = [] } = useApiQuery(
         ['classes'],
         `${apiConfig.baseUrl}/classes`,
-        { enabled: activeTab === 'student' }
+        { enabled: activeTab === 'student' || activeTab === 'summary', staleTime: 5 * 60 * 1000, gcTime: 10 * 60 * 1000 }
     );
     const classes = Array.isArray(classesData) ? classesData : (classesData.data || []);
 
@@ -58,14 +58,14 @@ export default function AdminAttendance() {
     const { data: studentAttendance, isLoading: studentLoading, refetch: refetchStudent } = useApiQuery(
         ['studentAttendance', selectedClass?._id, date.toISOString().split('T')[0]],
         `${apiConfig.baseUrl}/attendance/class/${selectedClass?._id}/date/${date.toISOString().split('T')[0]}`,
-        { enabled: activeTab === 'student' && !!selectedClass }
+        { enabled: activeTab === 'student' && !!selectedClass, staleTime: 30 * 1000, gcTime: 5 * 60 * 1000 }
     );
 
     // Fetch Staff List
     const { data: staffListResponse, isLoading: staffLoading, refetch: refetchStaff } = useApiQuery(
         ['staffList', date.toISOString().split('T')[0]],
         `${apiConfig.baseUrl}/attendance/staff-list?date=${date.toISOString().split('T')[0]}`,
-        { enabled: activeTab === 'staff' }
+        { enabled: activeTab === 'staff', staleTime: 30 * 1000, gcTime: 5 * 60 * 1000 }
     );
     const staffList = staffListResponse?.data;
 
@@ -73,7 +73,7 @@ export default function AdminAttendance() {
     const { data: myAttendanceData, isLoading: myAttendanceLoading, refetch: refetchMyAttendance } = useApiQuery(
         ['myAttendance'],
         `${apiConfig.baseUrl}/attendance/my-attendance`,
-        { enabled: activeTab === 'my_attendance' }
+        { enabled: activeTab === 'my_attendance', staleTime: 2 * 60 * 1000, gcTime: 10 * 60 * 1000 }
     );
     const myAttendance = myAttendanceData?.attendance || [];
     const mySummary = myAttendanceData?.summary || null;
@@ -82,7 +82,7 @@ export default function AdminAttendance() {
     const { data: classesMarkedResponse } = useApiQuery(
         ['classesMarked', date.toISOString().split('T')[0]],
         `${apiConfig.baseUrl}/attendance/classes-marked?date=${date.toISOString().split('T')[0]}`,
-        { enabled: activeTab === 'student' || activeTab === 'summary' }
+        { enabled: activeTab === 'student' || activeTab === 'summary', staleTime: 60 * 1000, gcTime: 10 * 60 * 1000 }
     );
     const classesMarked = classesMarkedResponse?.markedClasses || [];
 
@@ -92,7 +92,7 @@ export default function AdminAttendance() {
     const { data: trackerDataResponse, isLoading: trackerLoading, refetch: refetchTracker } = useApiQuery(
         ['missingTracker', trackerStartDate.toISOString().split('T')[0], trackerEndDate.toISOString().split('T')[0]],
         `${apiConfig.baseUrl}/attendance/missing-tracker?startDate=${trackerStartDate.toISOString().split('T')[0]}&endDate=${trackerEndDate.toISOString().split('T')[0]}`,
-        { enabled: activeTab === 'tracker' }
+        { enabled: activeTab === 'tracker', staleTime: 2 * 60 * 1000, gcTime: 10 * 60 * 1000 }
     );
     const trackerData = trackerDataResponse?.missingData || [];
 
@@ -395,7 +395,7 @@ export default function AdminAttendance() {
             ) : (
                 <View style={{ flex: 1 }}>
                     {activeTab === 'summary' && schoolSummary && (
-                        <ScrollView style={{ flex: 1, padding: 16 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+                        <ScrollView style={{ flex: 1, padding: 16 }} contentContainerStyle={{ paddingBottom: 120 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
                             {/* Summary Cards */}
                             <View style={{ flexDirection: 'row', gap: 12, marginBottom: 24 }}>
                                 <View style={[styles.summaryCardSmall, { backgroundColor: colors.primary + '15', alignItems: 'flex-start', padding: 20 }]}>

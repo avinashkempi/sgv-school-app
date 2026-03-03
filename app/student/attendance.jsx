@@ -45,14 +45,14 @@ export default function StudentAttendanceScreen() {
     const { data: summary, isLoading: loadingSummary, refetch: refetchSummary } = useApiQuery(
         ['studentAttendanceSummary', userId],
         `${apiConfig.baseUrl}/attendance/student/${userId}/summary`,
-        { enabled: !!userId }
+        { enabled: !!userId, staleTime: 2 * 60 * 1000, gcTime: 10 * 60 * 1000 }
     );
 
     // Fetch Attendance History
     const { data: historyData, isLoading: loadingHistory, refetch: refetchHistory } = useApiQuery(
         ['studentAttendanceHistory', userId],
         `${apiConfig.baseUrl}/attendance/student/${userId}`,
-        { enabled: !!userId }
+        { enabled: !!userId, staleTime: 2 * 60 * 1000, gcTime: 10 * 60 * 1000 }
     );
 
     const attendanceHistory = historyData?.attendance || [];

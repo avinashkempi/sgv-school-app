@@ -383,6 +383,30 @@ function createGlobalStyles(COLORS, mode) {
       fontFamily: FONTS.medium,
       marginBottom: 16,
     },
+    fab: {
+      position: 'absolute',
+      bottom: 140,
+      right: 20,
+      width: 56,
+      height: 56,
+      borderRadius: 16,
+      backgroundColor: COLORS.primaryContainer,
+      justifyContent: 'center',
+      alignItems: 'center',
+      elevation: 6,
+      shadowColor: COLORS.shadow,
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.3,
+      shadowRadius: 6,
+    },
+    buttonLarge: {
+      backgroundColor: COLORS.primary,
+      paddingVertical: 16,
+      paddingHorizontal: 24,
+      borderRadius: 100,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
   });
 }
 
