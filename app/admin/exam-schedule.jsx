@@ -235,14 +235,15 @@ export default function AdminExamScheduleScreen() {
         });
     };
 
-    // Fetch all subjects (for the per-subject marks UI)
-    const { data: allSubjectsData } = useApiQuery(
-        ['allSubjectsForExamInit'],
-        `${apiConfig.baseUrl}/subjects`,
-        { enabled: showInitModal && showPerSubjectMarks }
-    );
-    const allSubjects = Array.isArray(allSubjectsData) ? allSubjectsData
-        : (Array.isArray(allSubjectsData?.data) ? allSubjectsData.data : []);
+    // Use actual Subjects from classes data which have class mappings
+    const allSubjects = (classesData?.subjects || []).map(subject => {
+        // If class is just an ID, map it to the actual class object for display
+        if (typeof subject.class === 'string' || !subject.class?.name) {
+            const clsObj = classes.find(c => c._id === (subject.class?._id || subject.class?.toString()));
+            return { ...subject, class: clsObj || subject.class };
+        }
+        return subject;
+    });
 
     // When global marks change, update all per-subject marks that haven't been individually customised
     const applyGlobalMarksToSubjects = useCallback((newGlobalMarks) => {

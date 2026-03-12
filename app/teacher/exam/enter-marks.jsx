@@ -30,7 +30,6 @@ export default function EnterMarksScreen() {
 
     const [refreshing, setRefreshing] = useState(false);
     const [marksData, setMarksData] = useState({});
-    const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
 
     // Fetch Exam Details
     const { data: exam, isLoading: examLoading } = useApiQuery(
@@ -216,8 +215,7 @@ export default function EnterMarksScreen() {
             type: 'number'
         },
         { key: 'percentage', label: '%', width: 80, editable: false },
-        { key: 'grade', label: 'Grade', width: 80, editable: false, type: 'grade' },
-        { key: 'remarks', label: 'Remarks', width: 200, editable: false }
+        { key: 'grade', label: 'Grade', width: 80, editable: false, type: 'grade' }
     ];
 
     const gridValidation = {
@@ -296,133 +294,6 @@ export default function EnterMarksScreen() {
         </View>
     );
 
-    const renderListView = () => (
-        <>
-            {students.length === 0 ? (
-                <View style={{ alignItems: "center", marginTop: 40 }}>
-                    <MaterialIcons name="people-outline" size={64} color={colors.onSurfaceVariant} />
-                    <Text style={{ fontSize: 16, color: colors.onSurfaceVariant, marginTop: 16, fontFamily: "DMSans-Medium" }}>
-                        No students in this class
-                    </Text>
-                </View>
-            ) : (
-                students.map((student, index) => {
-                    const existingMark = existingMarksMap[student._id];
-                    const currentValue = marksData[student._id] || '';
-
-                    return (
-                        <View
-                            key={student._id}
-                            style={{
-                                backgroundColor: colors.surfaceContainerLow,
-                                borderRadius: 12,
-                                padding: 16,
-                                marginBottom: 12,
-                                borderWidth: 1,
-                                borderColor: colors.outlineVariant
-                            }}
-                        >
-                            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={{ fontSize: 16, fontFamily: "DMSans-SemiBold", color: colors.onSurface }}>
-                                        {index + 1}. {student.name}
-                                    </Text>
-                                    {student.email && (
-                                        <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginTop: 2, fontFamily: "DMSans-Regular" }}>
-                                            {student.email}
-                                        </Text>
-                                    )}
-                                </View>
-
-                                {existingMark && (
-                                    <View style={{
-                                        backgroundColor: getGradeColor(existingMark.grade) + "20",
-                                        paddingHorizontal: 12,
-                                        paddingVertical: 6,
-                                        borderRadius: 8
-                                    }}>
-                                        <Text style={{
-                                            fontSize: 16,
-                                            fontFamily: "DMSans-Bold",
-                                            color: getGradeColor(existingMark.grade)
-                                        }}>
-                                            {existingMark.grade}
-                                        </Text>
-                                    </View>
-                                )}
-                            </View>
-
-                            <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 6, fontFamily: "DMSans-Medium" }}>
-                                        Marks Obtained (out of {exam.totalMarks})
-                                    </Text>
-                                    <TextInput
-                                        placeholder="0"
-                                        placeholderTextColor={colors.onSurfaceVariant + "60"}
-                                        keyboardType="numeric"
-                                        style={{
-                                            backgroundColor: colors.surface,
-                                            padding: 12,
-                                            borderRadius: 10,
-                                            color: colors.onSurface,
-                                            fontSize: 18,
-                                            fontFamily: "DMSans-Bold",
-                                            borderWidth: 2,
-                                            borderColor: currentValue !== '' ? colors.primary : colors.outline
-                                        }}
-                                        value={currentValue}
-                                        onChangeText={(value) => handleMarksChange(student._id, value)}
-                                    />
-                                </View>
-
-                                {currentValue !== '' && !isNaN(currentValue) && (
-                                    <View style={{ alignItems: "center", minWidth: 60 }}>
-                                        <Text style={{ fontSize: 11, color: colors.onSurfaceVariant, marginBottom: 4, fontFamily: "DMSans-Medium" }}>
-                                            %
-                                        </Text>
-                                        <Text style={{ fontSize: 24, fontFamily: "DMSans-Bold", color: colors.primary }}>
-                                            {((parseFloat(currentValue) / exam.totalMarks) * 100).toFixed(0)}
-                                        </Text>
-                                    </View>
-                                )}
-                            </View>
-                        </View>
-                    );
-                })
-            )}
-
-            {students.length > 0 && (
-                <Pressable
-                    onPress={handleListSave}
-                    disabled={saveMarksMutation.isPending}
-                    style={({ pressed }) => ({
-                        backgroundColor: colors.primary,
-                        borderRadius: 12,
-                        padding: 16,
-                        marginTop: 24,
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 8,
-                        opacity: pressed || saveMarksMutation.isPending ? 0.7 : 1
-                    })}
-                >
-                    {saveMarksMutation.isPending ? (
-                        <ActivityIndicator size="small" color="#fff" />
-                    ) : (
-                        <>
-                            <MaterialIcons name="save" size={24} color="#fff" />
-                            <Text style={{ fontSize: 17, fontFamily: "DMSans-Bold", color: "#fff" }}>
-                                Save All Marks
-                            </Text>
-                        </>
-                    )}
-                </Pressable>
-            )}
-        </>
-    );
-
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <ScrollView
@@ -474,78 +345,12 @@ export default function EnterMarksScreen() {
                     {/* Stats Cards */}
                     {renderStatCards()}
 
-                    {/* View Mode Toggle */}
-                    <View style={{
-                        flexDirection: 'row',
-                        backgroundColor: colors.surfaceContainerHighest,
-                        borderRadius: 12,
-                        padding: 4,
-                        marginBottom: 20
-                    }}>
-                        <Pressable
-                            onPress={() => setViewMode('grid')}
-                            style={({ pressed }) => ({
-                                flex: 1,
-                                paddingVertical: 10,
-                                borderRadius: 8,
-                                backgroundColor: viewMode === 'grid'
-                                    ? (pressed ? colors.primary + 'DD' : colors.primary)
-                                    : 'transparent',
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: 6
-                            })}
-                        >
-                            <MaterialIcons
-                                name="grid-on"
-                                size={18}
-                                color={viewMode === 'grid' ? '#FFFFFF' : colors.onSurfaceVariant}
-                            />
-                            <Text style={{
-                                fontFamily: 'DMSans-Bold',
-                                fontSize: 13,
-                                color: viewMode === 'grid' ? '#FFFFFF' : colors.onSurfaceVariant
-                            }}>
-                                Grid View
-                            </Text>
-                        </Pressable>
-                        <Pressable
-                            onPress={() => setViewMode('list')}
-                            style={({ pressed }) => ({
-                                flex: 1,
-                                paddingVertical: 10,
-                                borderRadius: 8,
-                                backgroundColor: viewMode === 'list'
-                                    ? (pressed ? colors.primary + 'DD' : colors.primary)
-                                    : 'transparent',
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: 6
-                            })}
-                        >
-                            <MaterialIcons
-                                name="view-list"
-                                size={18}
-                                color={viewMode === 'list' ? '#FFFFFF' : colors.onSurfaceVariant}
-                            />
-                            <Text style={{
-                                fontFamily: 'DMSans-Bold',
-                                fontSize: 13,
-                                color: viewMode === 'list' ? '#FFFFFF' : colors.onSurfaceVariant
-                            }}>
-                                List View
-                            </Text>
-                        </Pressable>
-                    </View>
-
                     {/* Content */}
                     <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 16 }}>
                         Student Marks ({students.length})
                     </Text>
 
-                    {viewMode === 'grid' ? renderGridView() : renderListView()}
+                    {renderGridView()}
                 </View>
             </ScrollView>
         </View>

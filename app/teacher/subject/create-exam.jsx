@@ -149,9 +149,10 @@ export default function QuickExamWizard() {
     // Fetch teacher's subjects
     const { data: subjectsData, isLoading: subjectsLoading } = useApiQuery(
         ['teacherSubjects'],
-        `${apiConfig.baseUrl}/subjects/my-subjects`
+        `${apiConfig.baseUrl}/teachers/my-subjects`
     );
-    const subjects = subjectsData || [];
+    // teacherSubjects endpoint returns { subjects: [...], classTeacherOf: [...] }
+    const subjects = subjectsData?.subjects || [];
 
     // Quick init mutation
     const quickInitMutation = useApiMutation({

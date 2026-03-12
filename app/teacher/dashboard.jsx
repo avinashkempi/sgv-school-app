@@ -220,7 +220,7 @@ export default function TeacherDashboard() {
                                     color: colors.textPrimary,
                                     flex: 1
                                 }}>
-                                    {formatClassName(subj.class)}
+                                    {subj.name} • {subj.class.name}
                                 </Text>
                                 {subj.isClassTeacher && (
                                     <View style={{
@@ -239,17 +239,6 @@ export default function TeacherDashboard() {
                                     </View>
                                 )}
                             </View>
-                            {subj.class.branch && (
-                                <Text style={{
-                                    fontSize: 12,
-                                    color: colors.textSecondary,
-                                    fontFamily: "DMSans-Regular",
-                                    marginTop: 2,
-                                    flex: 1
-                                }}>
-                                    {subj.class.branch}
-                                </Text>
-                            )}
                         </View>
                         <MaterialIcons name="chevron-right" size={20} color={colors.textSecondary} />
                     </Card>
@@ -267,7 +256,59 @@ export default function TeacherDashboard() {
                 <View style={{ padding: 16, paddingTop: 24 }}>
                     <AppHeader title="My Teaching" subtitle="Manage your classes and subjects" />
 
-                    {/* Quick Action: History */}
+                    {/* Quick action tiles — admin-style compact grid */}
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
+                        <Pressable
+                            onPress={() => router.push('/teacher/exams-dashboard')}
+                            style={({ pressed }) => ({
+                                flex: 1,
+                                minWidth: '30%',
+                                backgroundColor: colors.cardBackground,
+                                padding: 20,
+                                borderRadius: 24,
+                                alignItems: 'center',
+                                shadowColor: "#000",
+                                shadowOffset: { width: 0, height: 4 },
+                                shadowOpacity: 0.05,
+                                shadowRadius: 12,
+                                elevation: 3,
+                                borderWidth: 1,
+                                borderColor: colors.border,
+                                opacity: pressed ? 0.9 : 1,
+                            })}
+                        >
+                            <View style={{ backgroundColor: '#E91E6315', padding: 16, borderRadius: 20, marginBottom: 12, alignItems: 'center', justifyContent: 'center' }}>
+                                <MaterialIcons name="assignment" size={28} color="#E91E63" />
+                            </View>
+                            <Text style={{ fontSize: 14, fontFamily: 'DMSans-Bold', color: colors.textPrimary, textAlign: 'center' }}>Manage Exams</Text>
+                        </Pressable>
+
+                        <Pressable
+                            onPress={() => router.push('/teacher/timetable')}
+                            style={({ pressed }) => ({
+                                flex: 1,
+                                minWidth: '30%',
+                                backgroundColor: colors.cardBackground,
+                                padding: 20,
+                                borderRadius: 24,
+                                alignItems: 'center',
+                                shadowColor: "#000",
+                                shadowOffset: { width: 0, height: 4 },
+                                shadowOpacity: 0.05,
+                                shadowRadius: 12,
+                                elevation: 3,
+                                borderWidth: 1,
+                                borderColor: colors.border,
+                                opacity: pressed ? 0.9 : 1,
+                            })}
+                        >
+                            <View style={{ backgroundColor: '#2196F315', padding: 16, borderRadius: 20, marginBottom: 12, alignItems: 'center', justifyContent: 'center' }}>
+                                <MaterialIcons name="schedule" size={28} color="#2196F3" />
+                            </View>
+                            <Text style={{ fontSize: 14, fontFamily: 'DMSans-Bold', color: colors.textPrimary, textAlign: 'center' }}>View Timetable</Text>
+                        </Pressable>
+                    </View>
+
                     <Pressable
                         onPress={() => router.push("/history")}
                         style={({ pressed }) => ({

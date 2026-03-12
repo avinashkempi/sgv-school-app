@@ -13,7 +13,7 @@ const DateRangePicker = ({ onRangeSelect, selectedRange, visible, onClose }) => 
         { id: 'thisWeek', label: 'This Week', icon: 'date-range' },
         { id: 'thisMonth', label: 'This Month', icon: 'calendar-month' },
         { id: 'last30Days', label: 'Last 30 Days', icon: 'calendar-today' },
-        { id: 'thisYear', label: 'This Year', icon: 'calendar-view-year' },
+        { id: 'thisYear', label: 'This Year', icon: 'calendar-today' },
         { id: 'lastYear', label: 'Last Year', icon: 'history' },
         { id: 'allTime', label: 'All Time', icon: 'all-inclusive' },
     ];

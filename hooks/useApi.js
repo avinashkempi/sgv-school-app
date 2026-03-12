@@ -23,6 +23,27 @@ export function useApiQuery(key, url, options = {}) {
 }
 
 /**
+ * Wrapper around useInfiniteQuery for API fetching with pagination
+ */
+import { useInfiniteQuery } from '@tanstack/react-query';
+
+export function useApiInfiniteQuery(key, urlFn, options = {}) {
+    return useInfiniteQuery({
+        queryKey: key,
+        queryFn: async ({ pageParam = 1 }) => {
+            const url = urlFn(pageParam);
+            const response = await apiFetch(url);
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Network response was not ok');
+            }
+            return response.json();
+        },
+        ...options,
+    });
+}
+
+/**
  * Wrapper around useMutation for API updates
  * @param {Function} mutationFn - Function to perform the mutation
  * @param {Object} options - Additional useMutation options

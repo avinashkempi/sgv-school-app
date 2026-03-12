@@ -88,10 +88,9 @@ export default function TeacherExamDashboard() {
         router.push('/teacher/subject/create-exam');
     };
 
-    const handleEnterMarks = (classSubject, examType) => {
-        const exam = classSubject.examStatus.find(e => e.type === examType);
-        if (exam?.examId) {
-            router.push(`/teacher/exam/enter-marks?examId=${exam.examId}`);
+    const handleEnterMarks = (examId, examType) => {
+        if (examId) {
+            router.push(`/teacher/exam/enter-marks?examId=${examId}`);
         } else {
             showToast('Exam not created yet', 'error');
         }
@@ -265,44 +264,73 @@ export default function TeacherExamDashboard() {
                 </View>
             </View>
 
-            {/* Action Buttons */}
-            <View style={{ flexDirection: 'row', gap: 8, marginTop: 14 }}>
-                <Pressable
-                    onPress={() => handleEnterMarks(item, 'FA1')}
-                    style={({ pressed }) => ({
-                        flex: 1,
-                        backgroundColor: pressed ? colors.primary + 'DD' : colors.primary,
-                        paddingVertical: 12,
-                        borderRadius: 10,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 6
-                    })}
-                >
-                    <MaterialIcons name="edit" size={18} color="#FFFFFF" />
-                    <Text style={{ color: '#FFFFFF', fontSize: 13, fontFamily: 'DMSans-Bold' }}>
-                        Enter Marks
-                    </Text>
-                </Pressable>
-                <Pressable
-                    onPress={() => handleViewReports(item.classId, item.subjectId)}
-                    style={({ pressed }) => ({
-                        backgroundColor: pressed ? colors.surfaceContainerHighest : colors.surfaceContainerHigh,
-                        paddingVertical: 12,
-                        paddingHorizontal: 16,
-                        borderRadius: 10,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 6
-                    })}
-                >
-                    <MaterialIcons name="analytics" size={18} color={colors.onSurface} />
-                    <Text style={{ color: colors.onSurface, fontSize: 13, fontFamily: 'DMSans-Bold' }}>
-                        Reports
-                    </Text>
-                </Pressable>
-            </View>
+            {/* Enter Marks per exam */}
+            {(() => {
+                const existingExams = item.examStatus.filter(e => e.exists);
+                if (existingExams.length === 0) {
+                    return (
+                        <View style={{ marginTop: 14, padding: 12, backgroundColor: colors.surfaceContainerHighest, borderRadius: 10 }}>
+                            <Text style={{ textAlign: 'center', color: colors.onSurfaceVariant, fontFamily: 'DMSans-Medium', fontSize: 13 }}>
+                                No exams created yet — admin must create exams first
+                            </Text>
+                        </View>
+                    );
+                }
+                return (
+                    <View style={{ marginTop: 14 }}>
+                        <Text style={{ fontSize: 12, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                            Enter Marks
+                        </Text>
+                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                            {existingExams.map(exam => (
+                                <Pressable
+                                    key={exam.type}
+                                    onPress={() => handleEnterMarks(exam.examId, exam.type)}
+                                    style={({ pressed }) => ({
+                                        backgroundColor: exam.marksComplete
+                                            ? (pressed ? '#388E3C' : '#4CAF50')
+                                            : (pressed ? colors.primary + 'DD' : colors.primary),
+                                        paddingVertical: 8,
+                                        paddingHorizontal: 14,
+                                        borderRadius: 20,
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                        gap: 4
+                                    })}
+                                >
+                                    <MaterialIcons
+                                        name={exam.marksComplete ? 'check-circle' : 'edit'}
+                                        size={14}
+                                        color="#FFFFFF"
+                                    />
+                                    <Text style={{ color: '#FFFFFF', fontSize: 13, fontFamily: 'DMSans-Bold' }}>
+                                        {exam.type}
+                                    </Text>
+                                </Pressable>
+                            ))}
+                        </View>
+                    </View>
+                );
+            })()}
+
+            {/* View Reports button */}
+            <Pressable
+                onPress={() => handleViewReports(item.classId, item.subjectId)}
+                style={({ pressed }) => ({
+                    marginTop: 10,
+                    backgroundColor: pressed ? colors.surfaceContainerHighest : colors.surfaceContainerHigh,
+                    paddingVertical: 10,
+                    paddingHorizontal: 16,
+                    borderRadius: 10,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6
+                })}
+            >
+                <MaterialIcons name="analytics" size={18} color={colors.onSurface} />
+                <Text style={{ color: colors.onSurface, fontSize: 13, fontFamily: 'DMSans-Bold' }}>Reports</Text>
+            </Pressable>
         </View>
     );
 
@@ -432,28 +460,7 @@ export default function TeacherExamDashboard() {
                 </View>
             </ScrollView>
 
-            {/* FAB */}
-            <Pressable
-                onPress={handleQuickInit}
-                style={({ pressed }) => ({
-                    position: 'absolute',
-                    bottom: 20,
-                    right: 20,
-                    backgroundColor: pressed ? colors.primary + 'DD' : colors.primary,
-                    width: 56,
-                    height: 56,
-                    borderRadius: 28,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    elevation: 4,
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.25,
-                    shadowRadius: 4
-                })}
-            >
-                <MaterialIcons name="add" size={28} color="#FFFFFF" />
-            </Pressable>
+
         </View>
     );
 }

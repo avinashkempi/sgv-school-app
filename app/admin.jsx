@@ -8,7 +8,8 @@ import {
   Alert,
   RefreshControl,
   ActivityIndicator,
-  Modal
+  Modal,
+  FlatList,
 } from "react-native";
 
 import { MaterialIcons } from "@expo/vector-icons";
@@ -19,10 +20,12 @@ import { useTheme } from "../theme";
 import apiConfig from "../config/apiConfig";
 
 import { useToast } from "../components/ToastProvider";
-import { useApiQuery, useApiMutation, createApiMutationFn } from "../hooks/useApi";
+import { useApiQuery, useApiMutation, createApiMutationFn, useApiInfiniteQuery } from "../hooks/useApi";
 import { useQueryClient } from "@tanstack/react-query";
 import Header from "../components/Header";
 import UserDetailModal from "../components/UserDetailModal";
+import UserCard from "../components/UserCard";
+import UserFormModal from "../components/UserFormModal";
 
 export default function AdminScreen() {
   const router = useRouter();
@@ -32,28 +35,12 @@ export default function AdminScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [roleFilter, setRoleFilter] = useState("all");
-  const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 20;
   const [showUserModal, setShowUserModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [modalMode, setModalMode] = useState("add"); // "add" or "edit"
   const [editingUser, setEditingUser] = useState(null);
   const [selectedDetailUser, setSelectedDetailUser] = useState(null);
-  const [userForm, setUserForm] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    password: "",
-    role: "student",
-    guardianName: "",
-    guardianPhone: "",
-    designation: "",
-    admissionDate: "",
-    joiningDate: ""
-  });
-  const [errors, setErrors] = useState({});
-  const [touched, setTouched] = useState({});
-  const [showPassword, setShowPassword] = useState(false);
 
   const availableRoles = ["student", "teacher", "staff", "admin", "super admin", "support_staff"];
 
@@ -66,17 +53,29 @@ export default function AdminScreen() {
   const isAdmin = user?.role === 'admin' || user?.role === 'super admin';
 
   // Fetch Users
-  const { data: usersData, isLoading: loading, error: usersError, refetch } = useApiQuery(
-    ['users', currentPage, searchQuery, roleFilter],
-    `${apiConfig.baseUrl}/users?page=${currentPage}&limit=${pageSize}&search=${searchQuery}&role=${roleFilter}`,
+  const {
+    data: usersData,
+    isLoading: loading,
+    error: usersError,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useApiInfiniteQuery(
+    ['users', searchQuery, roleFilter],
+    (pageParam) => `${apiConfig.baseUrl}/users?page=${pageParam}&limit=${pageSize}&search=${searchQuery}&role=${roleFilter}`,
     {
       enabled: !!isAdmin, // Only fetch if admin check passes
-      keepPreviousData: true,
+      getNextPageParam: (lastPage, pages) => {
+        if (lastPage.pagination && lastPage.pagination.page < lastPage.pagination.pages) {
+          return lastPage.pagination.page + 1;
+        }
+        return undefined;
+      }
     }
   );
 
-  const users = usersData?.data || [];
-  const totalPages = usersData?.pagination?.pages || 1;
+  const users = usersData?.pages.flatMap(page => page.data) || [];
 
   // Mutations
   const createUserMutation = useApiMutation({
@@ -84,7 +83,6 @@ export default function AdminScreen() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       showToast("User created successfully", "success");
-      setUserForm({ name: "", phone: "", email: "", password: "", role: "student" });
       setShowUserModal(false);
     },
     onError: (error) => showToast(error.message || "Failed to create user", "error")
@@ -132,12 +130,6 @@ export default function AdminScreen() {
     setRefreshing(false);
   };
 
-  const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setCurrentPage(newPage);
-    }
-  };
-
   const getRoleColor = (role) => {
     switch (role) {
       case "super admin":
@@ -165,904 +157,342 @@ export default function AdminScreen() {
     return user.role === 'support_staff' ? 'Support Staff' : user.role;
   };
 
-  const handleChange = (field, value) => {
-    setUserForm(prev => {
-      const updates = { [field]: value };
-      if (field === 'phone' && modalMode === 'add') {
-        // Auto-set password to phone@123
-        updates.password = `${value}@123`;
-      }
-      return { ...prev, ...updates };
-    });
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: null }));
-    }
-  };
-
-  const handleBlur = (field) => {
-    setTouched(prev => ({ ...prev, [field]: true }));
-    validateField(field);
-  };
-
-  const validateField = (field) => {
-    let newErrors = { ...errors };
-    if (field === 'name' && !userForm.name) newErrors.name = "Name is required";
-    if (field === 'phone' && !userForm.phone) newErrors.phone = "Phone is required";
-    if (field === 'password' && !userForm.password) newErrors.password = "Password is required";
-    setErrors(newErrors);
-  };
-
-  const isFormValid = () => {
-    return userForm.name && userForm.phone && userForm.password;
-  };
-
   const saving = createUserMutation.isPending || updateUserMutation.isPending;
 
-
-  const createUser = () => {
-    if (!userForm.name || !userForm.phone || !userForm.password) {
-      showToast("Please fill in all required fields", "error");
-      return;
-    }
-    createUserMutation.mutate(userForm);
+  const handleCreateUser = (data) => {
+    createUserMutation.mutate(data);
   };
+
+  const handleUpdateUser = (data) => {
+    updateUserMutation.mutate({ ...data, _id: editingUser._id });
+  };
+
+  const renderHeader = () => (
+    <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
+      {/* Minimal Header */}
+      <Header title="Admin" subtitle="Manage users and permissions" />
+
+      {/* Admin Actions - Organized by Category */}
+      <View style={{ gap: 24 }}>
+        {/* Academic Management Section - Super Admin Only */}
+        {user?.role === 'super admin' && (
+          <View>
+            <Text style={styles.sectionTitle}>
+              Academic Management
+            </Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
+              <MenuCard
+                title="Academic Year"
+                icon="calendar-today"
+                color={colors.primary}
+                onPress={() => router.push("/admin/academic-year")}
+              />
+              <MenuCard
+                title="Subjects"
+                icon="menu-book"
+                color="#673AB7"
+                onPress={() => router.push("/admin/subjects")}
+              />
+            </View>
+          </View>
+        )}
+
+        {/* Teaching Management Section - Admin & Super Admin */}
+        <View>
+          <Text style={styles.sectionTitle}>
+            Teaching Management
+          </Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
+            <MenuCard
+              title="Teacher Subjects"
+              icon="assignment-ind"
+              color="#4CAF50"
+              onPress={() => router.push("/admin/teacher-subjects")}
+            />
+          </View>
+        </View>
+
+        {/* Class Operations Section */}
+        <View>
+          <Text style={styles.sectionTitle}>
+            Class Operations
+          </Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
+            <MenuCard
+              title="Timetable"
+              icon="schedule"
+              color="#9C27B0"
+              onPress={() => router.push("/admin/timetable")}
+            />
+            <MenuCard
+              title="Exams"
+              icon="event"
+              color="#E91E63"
+              onPress={() => router.push("/admin/exam-schedule")}
+            />
+            <MenuCard
+              title="Exam Analytics"
+              icon="analytics"
+              color="#9C27B0"
+              onPress={() => router.push("/admin/exam-analytics")}
+            />
+          </View>
+        </View>
+
+        {/* Financial Section */}
+        <View>
+          <Text style={styles.sectionTitle}>
+            Financial
+          </Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
+            <MenuCard
+              title="Fees"
+              icon="attach-money"
+              color="#FF5722"
+              onPress={() => router.push("/admin/fees")}
+            />
+          </View>
+        </View>
+
+        {/* Communication & Requests Section */}
+        <View>
+          <Text style={styles.sectionTitle}>
+            Communication
+          </Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
+            <MenuCard
+              title="Complaints"
+              icon="feedback"
+              color="#607D8B"
+              onPress={() => router.push("/complaints")}
+            />
+            <MenuCard
+              title="Broadcast"
+              icon="campaign"
+              color="#3F51B5"
+              onPress={() => router.push("/admin/send-notification")}
+            />
+          </View>
+        </View>
+
+
+      </View>
+
+      {/* User Management Section */}
+      <View style={{ marginTop: 32 }}>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <Text style={styles.sectionTitle}>
+            User Management
+          </Text>
+          <Pressable
+            onPress={() => {
+              setModalMode("add");
+              setEditingUser(null);
+              setShowUserModal(true);
+            }}
+            style={({ pressed }) => ({
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: colors.primary,
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderRadius: 20,
+              opacity: pressed ? 0.9 : 1,
+              shadowColor: colors.primary,
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 4,
+            })}
+          >
+            <MaterialIcons name="add" size={20} color="#fff" style={{ marginRight: 4 }} />
+            <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: "#fff" }}>
+              Add User
+            </Text>
+          </Pressable>
+        </View>
+
+        {/* Search Bar */}
+        <View style={{ marginBottom: 20 }}>
+          <View style={[styles.input, {
+            flexDirection: "row",
+            alignItems: "center",
+            paddingHorizontal: 16,
+            height: 56,
+            borderRadius: 16
+          }]}>
+            <MaterialIcons name="search" size={24} color={colors.textSecondary} />
+            <TextInput
+              style={{
+                flex: 1,
+                marginLeft: 12,
+                fontSize: 16,
+                color: colors.textPrimary,
+                fontFamily: "DMSans-Regular",
+                paddingVertical: 0
+              }}
+              placeholder="Search users..."
+              placeholderTextColor={colors.textSecondary}
+              value={searchQuery}
+              onChangeText={(text) => {
+                setSearchQuery(text);
+              }}
+            />
+            {searchQuery.length > 0 && (
+              <Pressable onPress={() => setSearchQuery("")}>
+                <MaterialIcons name="close" size={20} color={colors.textSecondary} />
+              </Pressable>
+            )}
+          </View>
+        </View>
+
+        {/* Filters and Sort */}
+        <View style={{ marginBottom: 20 }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingRight: 20 }}>
+            {/* Role Filter */}
+            {["all", "student", "teacher", "admin", "staff", "support_staff", "alumni", "super admin"].map((role) => (
+              <Pressable
+                key={role}
+                onPress={() => {
+                  setRoleFilter(role);
+                }}
+                style={{
+                  paddingHorizontal: 16,
+                  paddingVertical: 8,
+                  backgroundColor: roleFilter === role ? colors.primary : colors.cardBackground,
+                  borderRadius: 20,
+                  borderWidth: 1,
+                  borderColor: roleFilter === role ? colors.primary : colors.border,
+                  elevation: roleFilter === role ? 4 : 0,
+                  shadowColor: roleFilter === role ? colors.primary : "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: roleFilter === role ? 0.3 : 0,
+                  shadowRadius: 4,
+                }}
+              >
+                <Text style={{
+                  color: roleFilter === role ? "#fff" : colors.textSecondary,
+                  fontFamily: roleFilter === role ? "DMSans-Bold" : "DMSans-Medium",
+                  textTransform: "capitalize",
+                  fontSize: 14
+                }}>
+                  {role === "all" ? "All Roles" : role === "support_staff" ? "Support Staff" : role}
+                </Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+
+        </View>
+      </View>
+    </View>
+  );
+
+  const renderFooter = () => (
+    <View style={{ paddingHorizontal: 20, paddingBottom: 100, alignItems: 'center', paddingTop: 16 }}>
+      {isFetchingNextPage && <ActivityIndicator size="small" color={colors.primary} />}
+    </View>
+  );
+
+  const renderEmptyList = () => {
+    if (loading && users.length === 0) {
+      return (
+        <View style={{ padding: 40, alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={{ marginTop: 16, color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>Loading users...</Text>
+        </View>
+      );
+    }
+    if (userError) {
+      return (
+        <View style={{ padding: 20, marginHorizontal: 20, alignItems: 'center', backgroundColor: colors.error + '10', borderRadius: 12 }}>
+          <MaterialIcons name="error-outline" size={40} color={colors.error} />
+          <Text style={{ marginTop: 8, color: colors.error, fontFamily: "DMSans-Bold" }}>Failed to load user profile</Text>
+          <Text style={{ marginTop: 4, color: colors.textSecondary, textAlign: 'center' }}>{userError.message}</Text>
+        </View>
+      );
+    }
+    if (!isAdmin && !userLoading) {
+      return (
+        <View style={{ padding: 20, marginHorizontal: 20, alignItems: 'center', backgroundColor: colors.warning + '10', borderRadius: 12 }}>
+          <MaterialIcons name="warning" size={40} color={colors.warning} />
+          <Text style={{ marginTop: 8, color: colors.warning, fontFamily: "DMSans-Bold" }}>Access Denied</Text>
+          <Text style={{ marginTop: 4, color: colors.textSecondary, textAlign: 'center' }}>You do not have permission to view this list.</Text>
+          <Text style={{ marginTop: 4, color: colors.textSecondary, fontSize: 12 }}>Current Role: {user?.role || 'Unknown'}</Text>
+        </View>
+      );
+    }
+    if (usersError) {
+      return (
+        <View style={{ padding: 20, marginHorizontal: 20, alignItems: 'center', backgroundColor: colors.error + '10', borderRadius: 12 }}>
+          <MaterialIcons name="error-outline" size={40} color={colors.error} />
+          <Text style={{ marginTop: 8, color: colors.error, fontFamily: "DMSans-Bold" }}>Failed to load users</Text>
+          <Text style={{ marginTop: 4, color: colors.textSecondary, textAlign: 'center' }}>{usersError.message}</Text>
+          <Pressable onPress={refetch} style={{ marginTop: 12, paddingHorizontal: 16, paddingVertical: 8, backgroundColor: colors.primary, borderRadius: 8 }}>
+            <Text style={{ color: '#fff', fontFamily: "DMSans-Bold" }}>Retry</Text>
+          </Pressable>
+        </View>
+      );
+    }
+    return (
+      <View style={{ alignItems: "center", padding: 40, opacity: 0.6 }}>
+        <MaterialIcons name="search-off" size={64} color={colors.textSecondary} />
+        <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16, fontFamily: "DMSans-Medium" }}>
+          No users found
+        </Text>
+      </View>
+    );
+  };
+
+  const renderUserItem = ({ item: userItem }) => (
+    <View style={{ paddingHorizontal: 20 }}>
+      <UserCard
+        userItem={userItem}
+        colors={colors}
+        getRoleColor={getRoleColor}
+        getRoleDisplay={getRoleDisplay}
+        onEdit={() => {
+          setModalMode("edit");
+          setEditingUser(userItem);
+          setShowUserModal(true);
+        }}
+        onDelete={() => deleteUser(userItem._id, userItem.name)}
+        onPress={() => {
+          setSelectedDetailUser(userItem);
+          setShowDetailModal(true);
+        }}
+      />
+    </View>
+  );
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: 100 }}
+      <FlatList
+        data={users}
+        keyExtractor={(item) => item._id}
+        renderItem={renderUserItem}
+        ListHeaderComponent={renderHeader}
+        ListFooterComponent={renderFooter}
+        ListEmptyComponent={renderEmptyList}
+        showsVerticalScrollIndicator={false}
+        onEndReached={() => {
+          if (hasNextPage) {
+            fetchNextPage();
+          }
+        }}
+        onEndReachedThreshold={0.5}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} />
         }
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
-          {/* Minimal Header */}
-          <Header title="Admin" subtitle="Manage users and permissions" />
+      />
 
-          {/* Admin Actions - Organized by Category */}
-          <View style={{ gap: 24 }}>
-            {/* Academic Management Section - Super Admin Only */}
-            {user?.role === 'super admin' && (
-              <View>
-                <Text style={styles.sectionTitle}>
-                  Academic Management
-                </Text>
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
-                  <MenuCard
-                    title="Academic Year"
-                    icon="calendar-today"
-                    color={colors.primary}
-                    onPress={() => router.push("/admin/academic-year")}
-                  />
-                  <MenuCard
-                    title="Subjects"
-                    icon="menu-book"
-                    color="#673AB7"
-                    onPress={() => router.push("/admin/subjects")}
-                  />
-                </View>
-              </View>
-            )}
-
-            {/* Teaching Management Section - Admin & Super Admin */}
-            <View>
-              <Text style={styles.sectionTitle}>
-                Teaching Management
-              </Text>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
-                <MenuCard
-                  title="Teacher Subjects"
-                  icon="assignment-ind"
-                  color="#4CAF50"
-                  onPress={() => router.push("/admin/teacher-subjects")}
-                />
-              </View>
-            </View>
-
-            {/* Class Operations Section */}
-            <View>
-              <Text style={styles.sectionTitle}>
-                Class Operations
-              </Text>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
-                <MenuCard
-                  title="Timetable"
-                  icon="schedule"
-                  color="#9C27B0"
-                  onPress={() => router.push("/admin/timetable")}
-                />
-                <MenuCard
-                  title="Exams"
-                  icon="event"
-                  color="#E91E63"
-                  onPress={() => router.push("/admin/exam-schedule")}
-                />
-                <MenuCard
-                  title="Exam Analytics"
-                  icon="analytics"
-                  color="#9C27B0"
-                  onPress={() => router.push("/admin/exam-analytics")}
-                />
-              </View>
-            </View>
-
-            {/* Financial Section */}
-            <View>
-              <Text style={styles.sectionTitle}>
-                Financial
-              </Text>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
-                <MenuCard
-                  title="Fees"
-                  icon="attach-money"
-                  color="#FF5722"
-                  onPress={() => router.push("/admin/fees")}
-                />
-              </View>
-            </View>
-
-            {/* Communication & Requests Section */}
-            <View>
-              <Text style={styles.sectionTitle}>
-                Communication
-              </Text>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
-                <MenuCard
-                  title="Complaints"
-                  icon="feedback"
-                  color="#607D8B"
-                  onPress={() => router.push("/complaints")}
-                />
-                <MenuCard
-                  title="Broadcast"
-                  icon="campaign"
-                  color="#3F51B5"
-                  onPress={() => router.push("/admin/send-notification")}
-                />
-              </View>
-            </View>
-
-
-          </View>
-
-          {/* User Management Section */}
-          <View style={{ marginTop: 32 }}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <Text style={styles.sectionTitle}>
-                User Management
-              </Text>
-              <Pressable
-                onPress={() => {
-                  setModalMode("add");
-                  setUserForm({ name: "", phone: "", email: "", password: "", role: "student" });
-                  setShowUserModal(true);
-                }}
-                style={({ pressed }) => ({
-                  flexDirection: "row",
-                  alignItems: "center",
-                  backgroundColor: colors.primary,
-                  paddingHorizontal: 16,
-                  paddingVertical: 8,
-                  borderRadius: 20,
-                  opacity: pressed ? 0.9 : 1,
-                  shadowColor: colors.primary,
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 8,
-                  elevation: 4,
-                })}
-              >
-                <MaterialIcons name="add" size={20} color="#fff" style={{ marginRight: 4 }} />
-                <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: "#fff" }}>
-                  Add User
-                </Text>
-              </Pressable>
-            </View>
-
-            {/* Search Bar */}
-            <View style={{ marginBottom: 20 }}>
-              <View style={[styles.input, {
-                flexDirection: "row",
-                alignItems: "center",
-                paddingHorizontal: 16,
-                height: 56,
-                borderRadius: 16
-              }]}>
-                <MaterialIcons name="search" size={24} color={colors.textSecondary} />
-                <TextInput
-                  style={{
-                    flex: 1,
-                    marginLeft: 12,
-                    fontSize: 16,
-                    color: colors.textPrimary,
-                    fontFamily: "DMSans-Regular",
-                    paddingVertical: 0
-                  }}
-                  placeholder="Search users..."
-                  placeholderTextColor={colors.textSecondary}
-                  value={searchQuery}
-                  onChangeText={(text) => {
-                    setSearchQuery(text);
-                    setCurrentPage(1);
-                  }}
-                />
-                {searchQuery.length > 0 && (
-                  <Pressable onPress={() => setSearchQuery("")}>
-                    <MaterialIcons name="close" size={20} color={colors.textSecondary} />
-                  </Pressable>
-                )}
-              </View>
-            </View>
-
-            {/* Filters and Sort */}
-            <View style={{ marginBottom: 20 }}>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingRight: 20 }}>
-                {/* Role Filter */}
-                {["all", "student", "teacher", "admin", "staff", "support_staff", "alumni", "super admin"].map((role) => (
-                  <Pressable
-                    key={role}
-                    onPress={() => {
-                      setRoleFilter(role);
-                      setCurrentPage(1);
-                    }}
-                    style={{
-                      paddingHorizontal: 16,
-                      paddingVertical: 8,
-                      backgroundColor: roleFilter === role ? colors.primary : colors.cardBackground,
-                      borderRadius: 20,
-                      borderWidth: 1,
-                      borderColor: roleFilter === role ? colors.primary : colors.border,
-                      elevation: roleFilter === role ? 4 : 0,
-                      shadowColor: roleFilter === role ? colors.primary : "#000",
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: roleFilter === role ? 0.3 : 0,
-                      shadowRadius: 4,
-                    }}
-                  >
-                    <Text style={{
-                      color: roleFilter === role ? "#fff" : colors.textSecondary,
-                      fontFamily: roleFilter === role ? "DMSans-Bold" : "DMSans-Medium",
-                      textTransform: "capitalize",
-                      fontSize: 14
-                    }}>
-                      {role === "all" ? "All Roles" : role === "support_staff" ? "Support Staff" : role}
-                    </Text>
-                  </Pressable>
-                ))}
-              </ScrollView>
-
-            </View>
-
-            {/* Users List */}
-            <View>
-              {loading && users.length === 0 ? (
-                <View style={{ padding: 40, alignItems: 'center' }}>
-                  <ActivityIndicator size="large" color={colors.primary} />
-                  <Text style={{ marginTop: 16, color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>Loading users...</Text>
-                </View>
-              ) : userError ? (
-                <View style={{ padding: 20, alignItems: 'center', backgroundColor: colors.error + '10', borderRadius: 12 }}>
-                  <MaterialIcons name="error-outline" size={40} color={colors.error} />
-                  <Text style={{ marginTop: 8, color: colors.error, fontFamily: "DMSans-Bold" }}>Failed to load user profile</Text>
-                  <Text style={{ marginTop: 4, color: colors.textSecondary, textAlign: 'center' }}>{userError.message}</Text>
-                </View>
-              ) : !isAdmin && !userLoading ? (
-                <View style={{ padding: 20, alignItems: 'center', backgroundColor: colors.warning + '10', borderRadius: 12 }}>
-                  <MaterialIcons name="warning" size={40} color={colors.warning} />
-                  <Text style={{ marginTop: 8, color: colors.warning, fontFamily: "DMSans-Bold" }}>Access Denied</Text>
-                  <Text style={{ marginTop: 4, color: colors.textSecondary, textAlign: 'center' }}>You do not have permission to view this list.</Text>
-                  <Text style={{ marginTop: 4, color: colors.textSecondary, fontSize: 12 }}>Current Role: {user?.role || 'Unknown'}</Text>
-                </View>
-              ) : usersError ? (
-                <View style={{ padding: 20, alignItems: 'center', backgroundColor: colors.error + '10', borderRadius: 12 }}>
-                  <MaterialIcons name="error-outline" size={40} color={colors.error} />
-                  <Text style={{ marginTop: 8, color: colors.error, fontFamily: "DMSans-Bold" }}>Failed to load users</Text>
-                  <Text style={{ marginTop: 4, color: colors.textSecondary, textAlign: 'center' }}>{usersError.message}</Text>
-                  <Pressable onPress={refetch} style={{ marginTop: 12, paddingHorizontal: 16, paddingVertical: 8, backgroundColor: colors.primary, borderRadius: 8 }}>
-                    <Text style={{ color: '#fff', fontFamily: "DMSans-Bold" }}>Retry</Text>
-                  </Pressable>
-                </View>
-              ) : (
-                <>
-                  {users.map((userItem) => (
-                    <Pressable
-                      key={userItem._id}
-                      onPress={() => {
-                        setSelectedDetailUser(userItem);
-                        setShowDetailModal(true);
-                      }}
-                      style={({ pressed }) => ({
-                        backgroundColor: colors.cardBackground,
-                        borderRadius: 20,
-                        padding: 16,
-                        marginBottom: 16,
-                        borderWidth: 1,
-                        borderColor: colors.border,
-                        opacity: pressed ? 0.95 : 1,
-                        elevation: 2,
-                        shadowColor: "#000",
-                        shadowOffset: { width: 0, height: 2 },
-                        shadowOpacity: 0.05,
-                        shadowRadius: 8,
-                      })}
-                    >
-                      {/* Row 1: Name */}
-                      <View>
-                        <Text
-                          style={{
-                            fontSize: 16,
-                            fontFamily: "DMSans-Bold",
-                            color: colors.textPrimary
-                          }}
-                        >
-                          {userItem.name}
-                        </Text>
-                      </View>
-
-                      {/* Row 2: Role, Class & Actions */}
-                      <View style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
-                      }}>
-                        <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
-                          {/* Role Badge */}
-                          <View style={{
-                            backgroundColor: getRoleColor(userItem.role) + "12",
-                            paddingHorizontal: 8,
-                            paddingVertical: 3,
-                            borderRadius: 6,
-                            borderWidth: 0.5,
-                            borderColor: getRoleColor(userItem.role) + "30"
-                          }}>
-                            <Text style={{
-                              fontSize: 10,
-                              fontFamily: "DMSans-Bold",
-                              color: getRoleColor(userItem.role),
-                              letterSpacing: 0.5
-                            }}>
-                              {getRoleDisplay(userItem).toUpperCase()}
-                            </Text>
-                          </View>
-
-                          {/* Class Badge (Students Only) */}
-                          {userItem.role === 'student' && userItem.currentClass?.name && (
-                            <View style={{
-                              backgroundColor: colors.primary + "10",
-                              paddingHorizontal: 8,
-                              paddingVertical: 3,
-                              borderRadius: 6,
-                              borderWidth: 0.5,
-                              borderColor: colors.primary + "20"
-                            }}>
-                              <Text style={{
-                                fontSize: 10,
-                                fontFamily: "DMSans-Bold",
-                                color: colors.primary,
-                                letterSpacing: 0.5
-                              }}>
-                                {userItem.currentClass.name.toUpperCase()}
-                              </Text>
-                            </View>
-                          )}
-                        </View>
-
-                        {/* Actions */}
-                        <View style={{ flexDirection: 'row', gap: 12 }}>
-                          <Pressable
-                            onPress={(e) => {
-                              e.stopPropagation();
-                              setModalMode("edit");
-                              setEditingUser(userItem);
-                              setUserForm({
-                                name: userItem.name,
-                                phone: userItem.phone,
-                                email: userItem.email || "",
-                                password: "",
-                                role: userItem.role,
-                                gender: userItem.gender || "",
-                                bloodGroup: userItem.bloodGroup || "",
-                                dateOfBirth: userItem.dateOfBirth ? userItem.dateOfBirth.split('T')[0] : "",
-                                address: userItem.address || "",
-                                guardianName: userItem.guardianName || "",
-                                guardianPhone: userItem.guardianPhone || "",
-                                phone2: userItem.phone2 || "",
-                                regNo: userItem.regNo || "",
-                                satsNumber: userItem.satsNumber || "",
-                                penNumber: userItem.penNumber || "",
-                                apaarId: userItem.apaarId || "",
-                                admissionDate: userItem.admissionDate ? userItem.admissionDate.split('T')[0] : "",
-                                isAdmitted: userItem.isAdmitted !== undefined ? userItem.isAdmitted : true,
-                                designation: userItem.designation || "",
-                                joiningDate: userItem.joiningDate ? userItem.joiningDate.split('T')[0] : "",
-                                remarks: userItem.remarks || ""
-                              });
-                              setShowUserModal(true);
-                            }}
-                            style={({ pressed }) => ({
-                              padding: 6,
-                              opacity: pressed ? 0.7 : 1
-                            })}
-                          >
-                            <MaterialIcons name="edit" size={22} color={colors.primary} />
-                          </Pressable>
-
-                          <Pressable
-                            onPress={(e) => {
-                              e.stopPropagation();
-                              Alert.alert(
-                                "Delete User",
-                                `Are you sure you want to delete ${userItem.name}?`,
-                                [
-                                  { text: "Cancel", style: "cancel" },
-                                  { text: "Delete", onPress: () => deleteUser(userItem._id, userItem.name), style: "destructive" }
-                                ]
-                              );
-                            }}
-                            style={({ pressed }) => ({
-                              padding: 6,
-                              opacity: pressed ? 0.7 : 1
-                            })}
-                          >
-                            <MaterialIcons name="delete-outline" size={22} color={colors.error} />
-                          </Pressable>
-                        </View>
-                      </View>
-
-                      {/* Row 3: Phone */}
-                      {userItem.phone && (
-                        <View style={{ flexDirection: "row", alignItems: "center" }}>
-                          <MaterialIcons name="phone" size={14} color={colors.textSecondary} style={{ marginRight: 6 }} />
-                          <Text style={{ fontSize: 13, color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>
-                            {userItem.phone}
-                          </Text>
-                        </View>
-                      )}
-                    </Pressable>
-                  ))}
-
-                  {users.length === 0 && (
-                    <View style={{ alignItems: "center", padding: 40, opacity: 0.6 }}>
-                      <MaterialIcons name="search-off" size={64} color={colors.textSecondary} />
-                      <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16, fontFamily: "DMSans-Medium" }}>
-                        No users found
-                      </Text>
-                    </View>
-                  )}
-
-                  {/* Pagination */}
-                  {totalPages > 1 && (
-                    <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: 24, gap: 16 }}>
-                      <Pressable
-                        onPress={() => handlePageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                        style={{
-                          padding: 12,
-                          backgroundColor: currentPage === 1 ? colors.background : colors.cardBackground,
-                          borderRadius: 12,
-                          opacity: currentPage === 1 ? 0.5 : 1,
-                          borderWidth: 1,
-                          borderColor: colors.border
-                        }}
-                      >
-                        <MaterialIcons name="chevron-left" size={24} color={colors.textPrimary} />
-                      </Pressable>
-
-                      <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
-                        Page {currentPage} of {totalPages}
-                      </Text>
-
-                      <Pressable
-                        onPress={() => handlePageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                        style={{
-                          padding: 12,
-                          backgroundColor: currentPage === totalPages ? colors.background : colors.cardBackground,
-                          borderRadius: 12,
-                          opacity: currentPage === totalPages ? 0.5 : 1,
-                          borderWidth: 1,
-                          borderColor: colors.border
-                        }}
-                      >
-                        <MaterialIcons name="chevron-right" size={24} color={colors.textPrimary} />
-                      </Pressable>
-                    </View>
-                  )}
-                </>
-              )}
-            </View>
-          </View>
-        </View>
-      </ScrollView>
-
-      {/* User Modal */}
-      <Modal
+      <UserFormModal
         visible={showUserModal}
-        animationType="fade"
-        transparent={true}
-        onRequestClose={() => setShowUserModal(false)}
-      >
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.6)" }}>
-          <View style={[styles.card, {
-            width: "90%",
-            maxWidth: 400,
-            maxHeight: "90%",
-            padding: 0,
-            overflow: 'hidden'
-          }]}>
-            <View style={{ padding: 24, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                <Text style={{ fontSize: 24, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
-                  {modalMode === "add" ? "New User" : "Edit User"}
-                </Text>
-                <Pressable onPress={() => setShowUserModal(false)} style={{ padding: 4 }}>
-                  <MaterialIcons name="close" size={24} color={colors.textSecondary} />
-                </Pressable>
-              </View>
-            </View>
-
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ padding: 24 }}
-            >
-              {/* Common Fields: Name, Phone, Email, Password */}
-              <View style={{ marginBottom: 24 }}>
-                <Text style={[styles.label, { marginBottom: 8 }]}>NAME</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter name"
-                  placeholderTextColor={colors.textSecondary}
-                  value={userForm.name}
-                  onChangeText={(text) => handleChange("name", text)}
-                  onBlur={() => handleBlur("name")}
-                />
-                {errors.name && touched.name && (
-                  <Text style={styles.errorText}>{errors.name}</Text>
-                )}
-              </View>
-
-              <View style={{ marginBottom: 24 }}>
-                <Text style={[styles.label, { marginBottom: 8 }]}>PHONE</Text>
-                <TextInput
-                  style={[styles.input, modalMode === 'edit' && { backgroundColor: colors.surfaceVariant, opacity: 0.7 }]}
-                  placeholder="Enter phone number"
-                  placeholderTextColor={colors.textSecondary}
-                  value={userForm.phone}
-                  onChangeText={(text) => handleChange("phone", text)}
-                  onBlur={() => handleBlur("phone")}
-                  keyboardType="phone-pad"
-                  maxLength={10}
-                  editable={modalMode === 'add'}
-                />
-                {errors.phone && touched.phone && (
-                  <Text style={styles.errorText}>{errors.phone}</Text>
-                )}
-                {modalMode === 'edit' && (
-                  <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 4 }}>
-                    Phone number cannot be changed.
-                  </Text>
-                )}
-              </View>
-
-              <View style={{ marginBottom: 24 }}>
-                <Text style={[styles.label, { marginBottom: 8 }]}>EMAIL</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter email (optional)"
-                  placeholderTextColor={colors.textSecondary}
-                  value={userForm.email}
-                  onChangeText={(text) => handleChange("email", text)}
-                  onBlur={() => handleBlur("email")}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-                {errors.email && touched.email && (
-                  <Text style={styles.errorText}>{errors.email}</Text>
-                )}
-              </View>
-
-              <View style={{ marginBottom: 24 }}>
-                <Text style={[styles.label, { marginBottom: 8 }]}>PASSWORD {modalMode === 'edit' && "(OPTIONAL)"}</Text>
-                <View style={[styles.input, { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 0 }]}>
-                  <TextInput
-                    style={{
-                      flex: 1,
-                      fontSize: 16,
-                      color: colors.textPrimary,
-                      fontFamily: "DMSans-Regular",
-                      paddingVertical: 14 // Match theme vertical padding
-                    }}
-                    placeholder={modalMode === 'edit' ? "Leave blank to keep current" : "Enter password"}
-                    placeholderTextColor={colors.textSecondary}
-                    value={userForm.password}
-                    onChangeText={(text) => handleChange("password", text)}
-                    onBlur={() => handleBlur("password")}
-                    secureTextEntry={!showPassword}
-                  />
-                  <Pressable
-                    onPress={() => setShowPassword(!showPassword)}
-                    style={{ paddingLeft: 8 }}
-                  >
-                    <MaterialIcons
-                      name={showPassword ? "visibility-off" : "visibility"}
-                      size={20}
-                      color={colors.textSecondary}
-                    />
-                  </Pressable>
-                </View>
-                {errors.password && touched.password && modalMode === 'add' && (
-                  <Text style={styles.errorText}>{errors.password}</Text>
-                )}
-              </View>
-
-              {/* Role Selection */}
-              <View style={{ marginBottom: 24 }}>
-                <Text style={[styles.label, { marginBottom: 12 }]}>ROLE</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-                  {availableRoles.map((role) => (
-                    <Pressable
-                      key={role}
-                      onPress={() => handleChange("role", role)}
-                      style={{
-                        paddingHorizontal: 16,
-                        paddingVertical: 10,
-                        backgroundColor: userForm.role === role ? colors.primary : colors.background,
-                        borderRadius: 12,
-                        borderWidth: 1,
-                        borderColor: userForm.role === role ? colors.primary : colors.border
-                      }}
-                    >
-                      <Text style={{
-                        color: userForm.role === role ? "#fff" : colors.textPrimary,
-                        fontFamily: "DMSans-Bold",
-                        textTransform: "capitalize",
-                        fontSize: 14
-                      }}>
-                        {role}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </ScrollView>
-              </View>
-
-              {/* Role Specific Fields */}
-              {userForm.role === "student" && (
-                <>
-                  <Text style={[styles.sectionTitle, { fontSize: 16, marginBottom: 16, marginTop: 8 }]}>Personal Details</Text>
-
-                  {/* Gender & Blood Group Row */}
-                  <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.label, { marginBottom: 8 }]}>GENDER</Text>
-                      <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-                        {['Boy', 'Girl', 'Other'].map(g => (
-                          <Pressable
-                            key={g}
-                            onPress={() => handleChange('gender', g)}
-                            style={{
-                              paddingHorizontal: 12,
-                              paddingVertical: 8,
-                              backgroundColor: userForm.gender === g ? colors.primary : colors.background,
-                              borderRadius: 8,
-                              borderWidth: 1,
-                              borderColor: userForm.gender === g ? colors.primary : colors.border,
-                              marginBottom: 4
-                            }}
-                          >
-                            <Text style={{ color: userForm.gender === g ? '#fff' : colors.textPrimary, fontSize: 12 }}>{g}</Text>
-                          </Pressable>
-                        ))}
-                      </View>
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.label, { marginBottom: 8 }]}>BLOOD GROUP</Text>
-                      <TextInput
-                        style={styles.input}
-                        placeholder="e.g. O+"
-                        placeholderTextColor={colors.textSecondary}
-                        value={userForm.bloodGroup}
-                        onChangeText={(text) => handleChange("bloodGroup", text)}
-                      />
-                    </View>
-                  </View>
-
-                  <View style={{ marginBottom: 20 }}>
-                    <Text style={[styles.label, { marginBottom: 8 }]}>DATE OF BIRTH (YYYY-MM-DD)</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="YYYY-MM-DD"
-                      placeholderTextColor={colors.textSecondary}
-                      value={userForm.dateOfBirth}
-                      onChangeText={(text) => handleChange("dateOfBirth", text)}
-                    />
-                  </View>
-
-                  <View style={{ marginBottom: 20 }}>
-                    <Text style={[styles.label, { marginBottom: 8 }]}>ADDRESS</Text>
-                    <TextInput
-                      style={[styles.input, { height: 80, textAlignVertical: 'top', paddingTop: 12 }]}
-                      placeholder="Full address"
-                      placeholderTextColor={colors.textSecondary}
-                      value={userForm.address}
-                      onChangeText={(text) => handleChange("address", text)}
-                      multiline
-                      numberOfLines={3}
-                    />
-                  </View>
-
-                  <Text style={[styles.sectionTitle, { fontSize: 16, marginBottom: 16, marginTop: 8 }]}>Guardian & Contact</Text>
-
-                  <View style={{ marginBottom: 20 }}>
-                    <Text style={[styles.label, { marginBottom: 8 }]}>GUARDIAN NAME</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Enter guardian name"
-                      placeholderTextColor={colors.textSecondary}
-                      value={userForm.guardianName}
-                      onChangeText={(text) => handleChange("guardianName", text)}
-                    />
-                  </View>
-                  <View style={{ marginBottom: 20 }}>
-                    <Text style={[styles.label, { marginBottom: 8 }]}>GUARDIAN PHONE</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Enter guardian phone"
-                      placeholderTextColor={colors.textSecondary}
-                      value={userForm.guardianPhone}
-                      onChangeText={(text) => handleChange("guardianPhone", text)}
-                      keyboardType="phone-pad"
-                      maxLength={10}
-                    />
-                  </View>
-                  <View style={{ marginBottom: 20 }}>
-                    <Text style={[styles.label, { marginBottom: 8 }]}>SECONDARY PHONE</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Alt phone (optional)"
-                      placeholderTextColor={colors.textSecondary}
-                      value={userForm.phone2}
-                      onChangeText={(text) => handleChange("phone2", text)}
-                      keyboardType="phone-pad"
-                      maxLength={10}
-                    />
-                  </View>
-
-                  <Text style={[styles.sectionTitle, { fontSize: 16, marginBottom: 16, marginTop: 8 }]}>Academic & IDs</Text>
-
-                  <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.label, { marginBottom: 8 }]}>REG NO</Text>
-                      <TextInput
-                        style={styles.input}
-                        value={userForm.regNo}
-                        onChangeText={(text) => handleChange("regNo", text)}
-                      />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.label, { marginBottom: 8 }]}>SATS NO</Text>
-                      <TextInput
-                        style={styles.input}
-                        value={userForm.satsNumber}
-                        onChangeText={(text) => handleChange("satsNumber", text)}
-                      />
-                    </View>
-                  </View>
-
-                  <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.label, { marginBottom: 8 }]}>PEN NO</Text>
-                      <TextInput
-                        style={styles.input}
-                        value={userForm.penNumber}
-                        onChangeText={(text) => handleChange("penNumber", text)}
-                      />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.label, { marginBottom: 8 }]}>APAAR ID</Text>
-                      <TextInput
-                        style={styles.input}
-                        value={userForm.apaarId}
-                        onChangeText={(text) => handleChange("apaarId", text)}
-                      />
-                    </View>
-                  </View>
-
-                  <View style={{ marginBottom: 20 }}>
-                    <Text style={[styles.label, { marginBottom: 8 }]}>ADMISSION DATE</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="YYYY-MM-DD"
-                      placeholderTextColor={colors.textSecondary}
-                      value={userForm.admissionDate}
-                      onChangeText={(text) => handleChange("admissionDate", text)}
-                    />
-                  </View>
-
-                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20, justifyContent: 'space-between' }}>
-                    <Text style={styles.label}>IS ADMITTED (ACTIVE)</Text>
-                    <Pressable
-                      onPress={() => handleChange('isAdmitted', !userForm.isAdmitted)}
-                      style={{
-                        width: 50, height: 30, borderRadius: 15,
-                        backgroundColor: userForm.isAdmitted !== false ? colors.success : colors.textSecondary + '40',
-                        justifyContent: 'center', alignItems: userForm.isAdmitted !== false ? 'flex-end' : 'flex-start',
-                        paddingHorizontal: 4
-                      }}
-                    >
-                      <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#fff' }} />
-                    </Pressable>
-                  </View>
-                </>
-              )}
-
-              {(userForm.role === "teacher" || userForm.role === "staff") && (
-                <>
-                  <View style={{ marginBottom: 20 }}>
-                    <Text style={[styles.label, { marginBottom: 8 }]}>DESIGNATION</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Enter designation"
-                      placeholderTextColor={colors.textSecondary}
-                      value={userForm.designation}
-                      onChangeText={(text) => handleChange("designation", text)}
-                    />
-                  </View>
-                </>
-              )}
-
-            </ScrollView>
-
-            <View style={{
-              flexDirection: "row",
-              gap: 16,
-              padding: 24,
-              borderTopWidth: 1,
-              borderTopColor: colors.border,
-              backgroundColor: colors.cardBackground
-            }}>
-              <Pressable
-                onPress={() => setShowUserModal(false)}
-                style={({ pressed }) => [
-                  styles.button,
-                  {
-                    flex: 1,
-                    backgroundColor: 'transparent',
-                    borderWidth: 1,
-                    borderColor: colors.border,
-                    opacity: pressed ? 0.7 : 1,
-                  }
-                ]}
-              >
-                <Text style={[styles.buttonText, { color: colors.textSecondary }]}>
-                  Cancel
-                </Text>
-              </Pressable>
-
-              <Pressable
-                onPress={modalMode === "add" ? createUser : () => updateUserMutation.mutate({ ...userForm, _id: editingUser._id })}
-                disabled={(modalMode === "add" && !isFormValid()) || saving}
-                style={({ pressed }) => [
-                  styles.button,
-                  {
-                    flex: 1,
-                    opacity: ((modalMode === "add" && !isFormValid()) || saving) ? 0.5 : (pressed ? 0.9 : 1),
-                  }
-                ]}
-              >
-                {saving ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <Text style={styles.buttonText}>
-                    {modalMode === "add" ? "Create User" : "Save Changes"}
-                  </Text>
-                )}
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setShowUserModal(false)}
+        modalMode={modalMode}
+        initialData={editingUser}
+        saving={saving}
+        onSubmit={modalMode === "add" ? handleCreateUser : handleUpdateUser}
+      />
       <UserDetailModal
         visible={showDetailModal}
         onClose={() => setShowDetailModal(false)}

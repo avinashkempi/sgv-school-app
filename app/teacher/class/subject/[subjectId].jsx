@@ -117,29 +117,6 @@ export default function SubjectDetailScreen() {
                     <View style={{ flexDirection: "row", gap: 12, marginTop: 20 }}>
                         <Pressable
                             onPress={() => router.push({
-                                pathname: "/teacher/subject/create-exam",
-                                params: { subjectId, classId: id }
-                            })}
-                            style={({ pressed }) => ({
-                                flex: 1,
-                                backgroundColor: colors.primary,
-                                borderRadius: 12,
-                                padding: 16,
-                                flexDirection: "row",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                gap: 8,
-                                opacity: pressed ? 0.9 : 1,
-                                elevation: 3
-                            })}
-                        >
-                            <MaterialIcons name="assignment" size={20} color="#fff" />
-                            <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: "#fff" }}>
-                                Manage Exams
-                            </Text>
-                        </Pressable>
-                        <Pressable
-                            onPress={() => router.push({
                                 pathname: "/teacher/subject/performance",
                                 params: { subjectId }
                             })}

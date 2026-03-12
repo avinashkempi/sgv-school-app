@@ -69,6 +69,29 @@ export const NotificationProvider = ({ children }) => {
         return false;
     };
 
+    const deleteNotificationContext = async (id) => {
+        try {
+            const response = await apiFetch(`${apiConfig.baseUrl}/notifications/${id}`, {
+                method: 'DELETE'
+            });
+            if (response.ok) {
+                setNotifications(prev => prev.filter(n => n._id !== id));
+                // Recalculate unread count
+                setUnreadCount(prev => {
+                    const deletedNotif = notifications.find(n => n._id === id);
+                    if (deletedNotif && !deletedNotif.isRead && prev > 0) {
+                        return prev - 1;
+                    }
+                    return prev;
+                });
+                return true;
+            }
+        } catch (error) {
+            console.error('[NotificationContext] Delete Error:', error);
+        }
+        return false;
+    };
+
     const markAllReadContext = async () => {
         try {
             const response = await apiFetch(`${apiConfig.baseUrl}/notifications/mark-all-read`, {
@@ -91,7 +114,8 @@ export const NotificationProvider = ({ children }) => {
             unreadCount,
             fetchNotifications,
             markAsRead: markAsReadContext,
-            markAllRead: markAllReadContext
+            markAllRead: markAllReadContext,
+            deleteNotification: deleteNotificationContext
         }}>
             {children}
         </NotificationContext.Provider>

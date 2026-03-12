@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     View,
     Text,
@@ -8,6 +8,7 @@ import {
     Pressable,
     Switch,
     Modal,
+    Alert,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -35,6 +36,7 @@ export default function NotificationsScreen() {
         fetchNotifications,
         markAsRead,
         markAllRead,
+        deleteNotification,
         unreadCount
     } = useNotifications();
 
@@ -52,7 +54,6 @@ export default function NotificationsScreen() {
         general: true
     };
 
-    // Update preferences mutation
     const updatePreferencesMutation = useApiMutation({
         mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/notifications/preferences`, 'PUT'),
         onSuccess: () => {
@@ -62,6 +63,38 @@ export default function NotificationsScreen() {
             showToast("Failed to update settings", "error");
         }
     });
+
+    const handleDelete = (id) => {
+        Alert.alert(
+            "Delete Notification",
+            "Are you sure you want to delete this notification? This action cannot be undone.",
+            [
+                { text: "Cancel", style: "cancel" },
+                { 
+                    text: "Delete", 
+                    style: "destructive",
+                    onPress: async () => {
+                        const success = await deleteNotification(id);
+                        if (success) {
+                            showToast("Notification deleted", "success");
+                        } else {
+                            showToast("Failed to delete notification", "error");
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+    // Auto mark all unread as read when screen is opened
+    useEffect(() => {
+        if (notifications.length > 0) {
+            notifications
+                .filter(n => !n.isRead)
+                .forEach(n => markAsRead(n._id));
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const togglePreference = (key) => {
         const newPreferences = { ...preferences, [key]: !preferences[key] };
@@ -145,8 +178,8 @@ export default function NotificationsScreen() {
                     notifications.map((notif) => (
                         <Card
                             key={notif._id}
-                            variant={notif.read ? "outlined" : "filled"}
-                            onPress={() => !notif.read && markAsRead(notif._id)}
+                            variant={notif.isRead ? "outlined" : "filled"}
+                            onPress={() => !notif.isRead && markAsRead(notif._id)}
                             style={{
                                 marginBottom: 12,
                             }}
@@ -157,7 +190,7 @@ export default function NotificationsScreen() {
                             }}
                         >
                             <View style={{
-                                backgroundColor: notif.read ? colors.surfaceContainerHighest : getColor(notif.type) + "20",
+                                backgroundColor: notif.isRead ? colors.surfaceContainerHighest : getColor(notif.type) + "20",
                                 padding: 10,
                                 borderRadius: 12,
                                 height: 48,
@@ -165,16 +198,26 @@ export default function NotificationsScreen() {
                                 justifyContent: "center",
                                 alignItems: "center"
                             }}>
-                                <MaterialIcons name={getIcon(notif.type)} size={26} color={notif.read ? colors.onSurfaceVariant : getColor(notif.type)} />
+                                <MaterialIcons name={getIcon(notif.type)} size={26} color={notif.isRead ? colors.onSurfaceVariant : getColor(notif.type)} />
                             </View>
                             <View style={{ flex: 1 }}>
-                                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 4, alignItems: 'center' }}>
-                                    <Text style={{ fontSize: 16, fontFamily: notif.read ? "DMSans-Medium" : "DMSans-Bold", color: colors.onSurface, flex: 1 }}>
+                                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 4, alignItems: 'flex-start' }}>
+                                    <Text style={{ fontSize: 16, fontFamily: notif.isRead ? "DMSans-Medium" : "DMSans-Bold", color: colors.onSurface, flex: 1, marginRight: 8 }}>
                                         {notif.title || "Notification"}
                                     </Text>
-                                    {!notif.read && (
-                                        <View style={{ height: 10, width: 10, borderRadius: 5, backgroundColor: colors.primary }} />
-                                    )}
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                        {!notif.isRead && (
+                                            <View style={{ height: 10, width: 10, borderRadius: 5, backgroundColor: colors.primary }} />
+                                        )}
+                                        {userData?.role && ['admin', 'super admin'].includes(userData.role) && (
+                                            <Pressable 
+                                                onPress={() => handleDelete(notif._id)}
+                                                hitSlop={8}
+                                            >
+                                                <MaterialIcons name="delete-outline" size={20} color={colors.error} />
+                                            </Pressable>
+                                        )}
+                                    </View>
                                 </View>
                                 <Text style={{ color: colors.onSurfaceVariant, fontFamily: "DMSans-Regular", fontSize: 14, marginBottom: 8, lineHeight: 20 }}>
                                     {notif.message}
