@@ -101,14 +101,21 @@ export default function PerformanceChart({
             return renderEmptyState();
         }
 
-        const pieData = data.map((item, index) => ({
-            name: item.name || item.label,
-            population: item.value || item.count,
-            color: item.color || getPieColor(index),
-            legendFontColor: colors.onSurface,
-            legendFontSize: 13,
-            legendFontFamily: 'DMSans-Medium'
-        }));
+        const pieData = data
+            .filter(item => (item.value || item.count || 0) > 0) // Filter out zero values
+            .map((item, index) => ({
+                name: item.name || item.label || `Item ${index}`,
+                population: item.value || item.count || 0,
+                color: item.color || getPieColor(index),
+                legendFontColor: colors.onSurface,
+                legendFontSize: 13,
+                legendFontFamily: 'DMSans-Medium'
+            }));
+
+        // If no data after filtering, show empty state
+        if (pieData.length === 0) {
+            return renderEmptyState();
+        }
 
         return (
             <View>
@@ -124,7 +131,7 @@ export default function PerformanceChart({
                         marginVertical: 8,
                         borderRadius: 16
                     }}
-                    absolute={false} // Show percentages instead of absolute values
+                    absolute={true} // Show absolute counts instead of percentages
                 />
                 {showLegend && (
                     <View style={{ marginTop: 16, flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>

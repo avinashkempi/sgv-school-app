@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
     View,
     Text,
-    ScrollView,
+    FlatList,
     TextInput,
     TouchableOpacity,
     ActivityIndicator,
@@ -134,13 +134,19 @@ export default function MarksEntryScreen() {
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
                 style={{ flex: 1 }}
             >
-                <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
-                    <View style={localStyles.headerRow}>
-                        <Text style={[localStyles.headerText, { color: colors.textSecondary, flex: 2 }]}>Student</Text>
-                        <Text style={[localStyles.headerText, { color: colors.textSecondary, flex: 1, textAlign: "center" }]}>Marks</Text>
-                    </View>
-
-                    {students?.map((student) => (
+                <FlatList
+                    data={students}
+                    keyExtractor={(item) => item._id}
+                    scrollEnabled={true}
+                    bounces={false}
+                    contentContainerStyle={{ padding: 16, paddingBottom: 180 }}
+                    ListHeaderComponent={
+                        <View style={localStyles.headerRow}>
+                            <Text style={[localStyles.headerText, { color: colors.textSecondary, flex: 2 }]}>Student</Text>
+                            <Text style={[localStyles.headerText, { color: colors.textSecondary, flex: 1, textAlign: "center" }]}>Marks</Text>
+                        </View>
+                    }
+                    renderItem={({ item: student }) => (
                         <View
                             key={student._id}
                             style={[localStyles.row, { backgroundColor: colors.cardBackground, borderColor: colors.borderColor }]}
@@ -173,18 +179,28 @@ export default function MarksEntryScreen() {
                                 />
                             </View>
                         </View>
-                    ))}
-                </ScrollView>
+                    )}
+                />
             </KeyboardAvoidingView>
 
             <View style={[localStyles.footer, { backgroundColor: colors.cardBackground, borderTopColor: colors.borderColor }]}>
                 <TouchableOpacity
-                    style={[localStyles.saveButton, { backgroundColor: colors.primary, opacity: saving ? 0.7 : 1 }]}
+                    style={[
+                        localStyles.saveButton,
+                        {
+                            backgroundColor: colors.primary,
+                            opacity: saving ? 0.7 : 1,
+                            pointerEvents: saving ? 'none' : 'auto'
+                        }
+                    ]}
                     onPress={handleSave}
                     disabled={saving}
                 >
                     {saving ? (
-                        <ActivityIndicator color="#fff" />
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                            <ActivityIndicator color="#fff" />
+                            <Text style={localStyles.saveButtonText}>Saving...</Text>
+                        </View>
                     ) : (
                         <Text style={localStyles.saveButtonText}>Save Marks</Text>
                     )}

@@ -49,6 +49,20 @@ export default function ClassReportsDashboard() {
         setRefreshing(false);
     };
 
+    // Grade color mapping helper
+    const getGradeColor = (grade) => {
+        const gradeColors = {
+            'A+': '#4CAF50',
+            'A': '#66BB6A',
+            'B+': '#2196F3',
+            'B': '#42A5F5',
+            'C': '#FF9800',
+            'D': '#FF5722',
+            'F': '#F44336'
+        };
+        return gradeColors[grade] || colors.onSurfaceVariant;
+    };
+
     // Prepare chart data
     const trendChartData = useMemo(() => {
         if (!subjectData?.summary) return null;
@@ -67,6 +81,11 @@ export default function ClassReportsDashboard() {
         if (!analyticsData?.gradeDistribution) return null;
 
         const dist = analyticsData.gradeDistribution;
+        const total = Object.values(dist).reduce((sum, count) => sum + count, 0);
+        
+        // If no grades yet, return null to not render the chart
+        if (total === 0) return null;
+
         return Object.keys(dist).map((grade, index) => ({
             name: grade,
             value: dist[grade],
@@ -85,19 +104,6 @@ export default function ClassReportsDashboard() {
             }]
         };
     }, [analyticsData]);
-
-    const getGradeColor = (grade) => {
-        const gradeColors = {
-            'A+': '#4CAF50',
-            'A': '#66BB6A',
-            'B+': '#2196F3',
-            'B': '#42A5F5',
-            'C': '#FF9800',
-            'D': '#FF5722',
-            'F': '#F44336'
-        };
-        return gradeColors[grade] || colors.onSurfaceVariant;
-    };
 
     const renderOverview = () => {
         if (!analyticsData) return null;

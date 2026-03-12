@@ -26,13 +26,7 @@ export default function TeacherExamDashboard() {
     const { colors } = useTheme();
     const { showToast } = useToast();
     const [refreshing, setRefreshing] = useState(false);
-    const [selectedTab, setSelectedTab] = useState('overview'); // 'overview', 'manage', 'reports'
-
-    // Manage tab filters
-    const [filterStatus, setFilterStatus] = useState(null); // null = all, or 'scheduled', 'completed', etc.
-    const [filterExamType, setFilterExamType] = useState(null); // null = all, or 'FA1', 'FA2', etc.
-    const [filterClass, setFilterClass] = useState(null);
-    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedTab, setSelectedTab] = useState('overview'); // 'overview', 'reports'
 
     // Fetch dashboard data
     const { data: dashboardData, isLoading, refetch } = useApiQuery(
@@ -42,32 +36,6 @@ export default function TeacherExamDashboard() {
 
     const dashboard = dashboardData?.dashboard || [];
     const academicYear = dashboardData?.academicYear;
-
-    // Get all exams from dashboard for Manage tab
-    const allExams = dashboard.flatMap(item =>
-        item.examStatus
-            .filter(e => e.exists)
-            .map(e => ({
-                ...e,
-                className: item.className,
-                subjectName: item.subjectName,
-                classId: item.classId,
-                subjectId: item.subjectId
-            }))
-    );
-
-    // Apply filters to exams
-    const filteredExams = allExams.filter(exam => {
-        if (filterStatus && exam.status !== filterStatus) return false;
-        if (filterExamType && exam.type !== filterExamType) return false;
-        if (filterClass && exam.classId !== filterClass) return false;
-        if (searchQuery) {
-            const query = searchQuery.toLowerCase();
-            return exam.subjectName.toLowerCase().includes(query) ||
-                exam.className.toLowerCase().includes(query);
-        }
-        return true;
-    });
 
     const onRefresh = async () => {
         setRefreshing(true);
@@ -377,8 +345,67 @@ export default function TeacherExamDashboard() {
     const renderContent = () => {
         if (selectedTab === 'overview') {
             return renderOverviewTab();
+        } else if (selectedTab === 'reports') {
+            return (
+                <View style={{ marginBottom: 20 }}>
+                    <Text style={{
+                        fontSize: 18,
+                        fontFamily: 'DMSans-Bold',
+                        color: colors.onSurface,
+                        marginBottom: 12
+                    }}>
+                        Performance Reports
+                    </Text>
+                    {dashboard.length === 0 ? (
+                        <View style={{
+                            alignItems: 'center',
+                            paddingVertical: 40,
+                            backgroundColor: colors.surfaceContainerHighest,
+                            borderRadius: 16
+                        }}>
+                            <MaterialIcons name="analytics" size={48} color={colors.onSurfaceVariant} style={{ opacity: 0.5 }} />
+                            <Text style={{
+                                color: colors.onSurfaceVariant,
+                                fontSize: 15,
+                                fontFamily: 'DMSans-Medium',
+                                marginTop: 12,
+                                textAlign: 'center'
+                            }}>
+                                No reports available
+                            </Text>
+                        </View>
+                    ) : (
+                        dashboard.map(item => (
+                            <Pressable
+                                key={`${item.classId}-${item.subjectId}`}
+                                onPress={() => handleViewReports(item.classId, item.subjectId)}
+                                style={({ pressed }) => ({
+                                    backgroundColor: colors.surfaceContainerLow,
+                                    borderRadius: 12,
+                                    padding: 14,
+                                    marginBottom: 10,
+                                    borderWidth: 1,
+                                    borderColor: colors.outlineVariant,
+                                    opacity: pressed ? 0.7 : 1
+                                })}
+                            >
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <View>
+                                        <Text style={{ fontSize: 15, fontFamily: 'DMSans-Bold', color: colors.onSurface }}>
+                                            {item.className}
+                                        </Text>
+                                        <Text style={{ fontSize: 13, fontFamily: 'DMSans-Regular', color: colors.primary, marginTop: 2 }}>
+                                            {item.subjectName}
+                                        </Text>
+                                    </View>
+                                    <MaterialIcons name="chevron-right" size={24} color={colors.primary} />
+                                </View>
+                            </Pressable>
+                        ))
+                    )}
+                </View>
+            );
         }
-        // TODO: Add manage and reports tabs
         return null;
     };
 
@@ -405,7 +432,7 @@ export default function TeacherExamDashboard() {
                 <View style={{ padding: 16, paddingTop: 24 }}>
                     <Header
                         title="Exam Management"
-                        subtitle={academicYear ? `${academicYear.name}` : 'Manage all your exams'}
+                        subtitle={academicYear?.name || 'Current Academic Year'}
                         showBack
                     />
 
@@ -421,7 +448,6 @@ export default function TeacherExamDashboard() {
                     }}>
                         {[
                             { id: 'overview', label: 'Overview', icon: 'dashboard' },
-                            { id: 'manage', label: 'Manage', icon: 'edit-calendar' },
                             { id: 'reports', label: 'Reports', icon: 'analytics' }
                         ].map(tab => (
                             <Pressable
