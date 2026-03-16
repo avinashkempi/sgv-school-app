@@ -27,6 +27,7 @@ export default function SendNotificationScreen() {
     const [type, setType] = useState("General");
     const [target, setTarget] = useState("all"); // 'all', 'class', 'user'
     const [selectedClass, setSelectedClass] = useState(null);
+    const [sendToPublic, setSendToPublic] = useState(false); // Toggle for public/non-logged-in users
 
     // Fetch Classes
     const { data: classes = [] } = useApiQuery(
@@ -61,7 +62,8 @@ export default function SendNotificationScreen() {
             message,
             type,
             target,
-            targetId: target === 'class' ? selectedClass : null
+            targetId: target === 'class' ? selectedClass : null,
+            sendToPublic
         });
     };
 
@@ -143,6 +145,43 @@ export default function SendNotificationScreen() {
                             ))}
                         </View>
                     </ScrollView>
+                </View>
+
+                {/* Send to Public Users Toggle */}
+                <View style={{ marginBottom: 24, backgroundColor: colors.cardBackground, borderRadius: 12, padding: 16, borderWidth: 1, borderColor: colors.textSecondary + "20" }}>
+                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                        <View style={{ flex: 1, marginRight: 12 }}>
+                            <Text style={{ color: colors.textPrimary, fontWeight: "600", fontSize: 16, marginBottom: 4 }}>
+                                Send to Public Users
+                            </Text>
+                            <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
+                                {sendToPublic 
+                                    ? "Will reach both logged-in and non-logged-in users" 
+                                    : "Only logged-in users will receive this notification"}
+                            </Text>
+                        </View>
+                        <Pressable
+                            onPress={() => setSendToPublic(!sendToPublic)}
+                            style={{
+                                width: 60,
+                                height: 36,
+                                backgroundColor: sendToPublic ? colors.primary : colors.textSecondary + "30",
+                                borderRadius: 18,
+                                justifyContent: "center",
+                                alignItems: sendToPublic ? "flex-end" : "flex-start",
+                                paddingHorizontal: 2
+                            }}
+                        >
+                            <View
+                                style={{
+                                    width: 32,
+                                    height: 32,
+                                    backgroundColor: "#fff",
+                                    borderRadius: 16
+                                }}
+                            />
+                        </Pressable>
+                    </View>
                 </View>
 
                 {/* Target Selection */}

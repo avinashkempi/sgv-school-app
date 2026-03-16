@@ -5,6 +5,8 @@ import storage from "../utils/storage";
 import { useTheme } from "../theme";
 import { useToast } from "../components/ToastProvider";
 import { formatDate } from "../utils/date";
+import { useRouter } from "expo-router";
+import { logoutHandler } from "../utils/logoutHandler";
 
 import { useApiQuery } from "../hooks/useApi";
 import apiConfig from "../config/apiConfig";
@@ -15,6 +17,7 @@ import Button from "../components/Button";
 export default function ProfileScreen() {
   const { styles, colors } = useTheme();
   const { showToast } = useToast();
+  const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
 
   const { data: user, refetch, isLoading } = useApiQuery(
@@ -33,17 +36,7 @@ export default function ProfileScreen() {
   };
 
   const handleLogout = async () => {
-    try {
-      await storage.removeItem('@auth_token');
-      await storage.removeItem('@auth_user');
-      const { queryClient } = require('../utils/queryClient');
-      queryClient.clear();
-      const { router } = require('expo-router');
-      router.replace('/login');
-    } catch (error) {
-      console.error('Logout failed:', error);
-      showToast('Failed to logout. Please try again.', 'error');
-    }
+    await logoutHandler(router, showToast);
   };
 
   const handleLogin = () => {
@@ -139,7 +132,7 @@ export default function ProfileScreen() {
                           <View style={{ width: '50%', marginBottom: 16 }}>
                             <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Class</Text>
                             <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>
-                              {user.currentClass?.name || user.currentClass}
+                              {typeof user.currentClass === 'string' ? user.currentClass : user.currentClass?.name || user.currentClass?.label || 'N/A'}
                             </Text>
                           </View>
                         )}

@@ -8,6 +8,7 @@ import {
     TextInput,
     Modal,
     Platform,
+    Alert,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -136,6 +137,16 @@ export default function AdminExamScheduleScreen() {
         onError: (error) => showToast(error.message || "Failed to update date", "error")
     });
 
+    // Delete Exam Mutation
+    const deleteExamMutation = useApiMutation({
+        mutationFn: (examId) => createApiMutationFn(`${apiConfig.baseUrl}/exams/${examId}`, 'DELETE')(),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['adminExamSchedule', selectedClassId] });
+            showToast("Exam deleted successfully", "success");
+        },
+        onError: (error) => showToast(error.message || "Failed to delete exam", "error")
+    });
+
     const handleDateChange = (event, selectedDate) => {
         setShowDatePicker(Platform.OS === 'ios');
         if (selectedDate) {
@@ -153,6 +164,21 @@ export default function AdminExamScheduleScreen() {
                 room: newRoom
             }
         });
+    };
+
+    const handleDeleteExam = (exam) => {
+        Alert.alert(
+            "Delete Exam",
+            `Are you sure you want to delete ${exam.subject?.name} - ${exam.name}? This will also delete all associated marks.`,
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Delete",
+                    onPress: () => deleteExamMutation.mutate(exam._id),
+                    style: "destructive"
+                }
+            ]
+        );
     };
 
     const [showInitModal, setShowInitModal] = useState(false);
@@ -386,10 +412,28 @@ export default function AdminExamScheduleScreen() {
                                 style={{
                                     padding: 8,
                                     backgroundColor: colors.primary + "15",
-                                    borderRadius: 8
+                                    borderRadius: 8,
+                                    marginRight: 8
                                 }}
                             >
                                 <MaterialIcons name="edit" size={20} color={colors.primary} />
+                            </Pressable>
+
+                            <Pressable
+                                onPress={() => handleDeleteExam(exam)}
+                                disabled={deleteExamMutation.isPending}
+                                style={{
+                                    padding: 8,
+                                    backgroundColor: colors.error + "15" || "#ff4444" + "15",
+                                    borderRadius: 8,
+                                    opacity: deleteExamMutation.isPending ? 0.5 : 1
+                                }}
+                            >
+                                {deleteExamMutation.isPending ? (
+                                    <ActivityIndicator size={20} color={colors.error || "#ff4444"} />
+                                ) : (
+                                    <MaterialIcons name="delete" size={20} color={colors.error || "#ff4444"} />
+                                )}
                             </Pressable>
                         </View>
                     ))

@@ -5,7 +5,8 @@ import {
     TextInput,
     ScrollView,
     Pressable,
-    Platform
+    Platform,
+    Keyboard
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../theme';
@@ -36,11 +37,25 @@ export default function DataGrid({
     const [editingCell, setEditingCell] = useState(null);
     const [localData, setLocalData] = useState(data);
     const [errors, setErrors] = useState({});
+    const [keyboardHeight, setKeyboardHeight] = useState(0);
     const inputRefs = useRef({});
 
     useEffect(() => {
         setLocalData(data);
     }, [data]);
+
+    useEffect(() => {
+        const showSub = Keyboard.addListener('keyboardDidShow', (e) => {
+            setKeyboardHeight(e.endCoordinates.height);
+        });
+        const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+            setKeyboardHeight(0);
+        });
+        return () => {
+            showSub.remove();
+            hideSub.remove();
+        };
+    }, []);
 
     const getCellKey = (rowIndex, columnKey) => `${rowIndex}-${columnKey}`;
 
@@ -372,10 +387,14 @@ export default function DataGrid({
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.surface, borderRadius: 12, overflow: 'hidden' }}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={true}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={true} keyboardShouldPersistTaps="handled">
                 <View>
                     {renderHeader()}
-                    <ScrollView showsVerticalScrollIndicator={true}>
+                    <ScrollView
+                        showsVerticalScrollIndicator={true}
+                        keyboardShouldPersistTaps="handled"
+                        contentContainerStyle={{ paddingBottom: keyboardHeight }}
+                    >
                         {localData.map((row, index) => renderRow(row, index))}
                     </ScrollView>
                 </View>

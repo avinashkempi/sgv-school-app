@@ -29,20 +29,27 @@ export async function getFCMToken() {
     try {
       tokenData = await Notifications.getDevicePushTokenAsync();
     } catch (e) {
-      console.warn('Failed to get device push token, trying Expo token:', e);
-      // Fallback for Expo Go (will not work for backend FCM, but good for debugging)
-      tokenData = await Notifications.getExpoPushTokenAsync({
-        projectId: Constants.expoConfig?.extra?.eas?.projectId,
-      });
+      console.warn('Failed to get device push token:', e);
+      // Do NOT fallback to Expo tokens as they don't work with Firebase FCM
+      console.error('❌ Cannot get native push token. Firebase notifications will not work.');
+      console.error('ℹ️ Use a Development Build or compiled APK/IPA to enable push notifications.');
+      return null;
     }
 
     const token = tokenData.data;
     console.log('Push Token:', token);
 
-    // Warn if using Expo Go with Native FCM backend
+    // Validate token format
+    if (!token || typeof token !== 'string' || token.length === 0) {
+      console.error('❌ Invalid token received:', token);
+      return null;
+    }
+
+    // Double-check: reject any Expo tokens that might slip through
     if (token.startsWith('ExponentPushToken')) {
-      console.warn('⚠️ You are using an Expo Push Token. Native Firebase FCM will NOT work with this token.');
-      console.warn('⚠️ Please use a Development Build or APK to test Firebase Push Notifications.');
+      console.error('❌ Received Expo Push Token. Firebase FCM does not support Expo tokens.');
+      console.error('ℹ️ Use a Development Build or compiled APK/IPA to enable push notifications.');
+      return null;
     }
 
     return token;
@@ -82,6 +89,12 @@ export async function registerFCMTokenWithBackend(token) {
 
     const authToken = await storage.getItem('@auth_token');
     const storedUser = await storage.getItem('@auth_user');
+
+    // Skip FCM registration in demo mode
+    if (authToken === 'demo-token') {
+      console.log('[FCM] Skipping token registration in demo mode');
+      return true;
+    }
 
     let userId = 'guest';
     let isAuthenticated = false;

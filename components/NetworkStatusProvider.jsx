@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import NetInfo from '@react-native-community/netinfo';
 import { ToastAndroid, Platform } from 'react-native';
+import storage from '../utils/storage';
 
 const NetworkStatusContext = createContext({
     isConnected: true,
@@ -41,20 +42,28 @@ export default function NetworkStatusProvider({ children }) {
             setIsConnected(!!state.isConnected);
             setIsInternetReachable(!!state.isInternetReachable);
 
-            // If we just came online, trigger callbacks
+            // If we just came online, trigger callbacks (but only if user is authenticated)
             if (wasOffline && isNowOnline) {
-
                 if (Platform.OS === 'android') {
                     ToastAndroid.show('Back online', ToastAndroid.SHORT);
                 }
 
-                // Execute all registered callbacks
-                onlineCallbacks.forEach((callback) => {
-                    try {
-                        callback();
-                    } catch (err) {
-                        console.error('[NETWORK] Error in online callback:', err);
+                // Check if user is authenticated before running callbacks
+                storage.getItem('@auth_token').then((token) => {
+                    if (token) {
+                        // User is authenticated, safe to run callbacks
+                        onlineCallbacks.forEach((callback) => {
+                            try {
+                                callback();
+                            } catch (err) {
+                                console.error('[NETWORK] Error in online callback:', err);
+                            }
+                        });
+                    } else {
+                        console.log('[NETWORK] Device online but user not authenticated, skipping callbacks');
                     }
+                }).catch((err) => {
+                    console.error('[NETWORK] Error checking auth token:', err);
                 });
             }
         });

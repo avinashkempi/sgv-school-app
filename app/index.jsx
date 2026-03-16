@@ -9,9 +9,11 @@ import Header from "../components/Header";
 import Card from "../components/Card";
 import SchoolPhotoCarousel from "../components/SchoolPhotoCarousel";
 import { useToast } from "../components/ToastProvider";
+import { useNetworkStatus } from "../components/NetworkStatusProvider";
 import apiConfig from "../config/apiConfig";
 import { useApiQuery } from "../hooks/useApi";
 import storage from "../utils/storage";
+import { logoutHandler } from "../utils/logoutHandler";
 import AdminDashboard from "../components/dashboard/AdminDashboard";
 import TeacherDashboard from "../components/dashboard/TeacherDashboard";
 import StudentDashboard from "../components/dashboard/StudentDashboard";
@@ -23,8 +25,9 @@ export default function HomeScreen() {
   const { schoolInfo: SCHOOL, refresh } = useSchoolInfo();
   const [refreshing, setRefreshing] = useState(false);
   const { showToast } = useToast();
+  const { isConnected } = useNetworkStatus();
 
-  const { data: userData, isError, refetch: refetchUser } = useApiQuery(
+  const { data: userData, isError, error, refetch: refetchUser } = useApiQuery(
     ['currentUser'],
     `${apiConfig.baseUrl}/auth/me`,
     {
@@ -50,14 +53,23 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
-    if (isError) {
-      const handleLogout = async () => {
-        await storage.multiRemove(['@auth_token', '@auth_user']);
-        router.replace('/login');
-      };
-      handleLogout();
+    if (isError && error?.isAuthError) {
+      // Check if token is already cleared (manual logout already in progress)
+      storage.getItem('@auth_token').then((token) => {
+        if (!token) {
+          // Token already cleared, manual logout was already triggered
+          console.log('[HomeScreen] Token already cleared, skipping auto-logout');
+          return;
+        }
+        // Only logout on auth errors (401), not network errors
+        logoutHandler(router);
+      }).catch((err) => {
+        console.error('[HomeScreen] Error checking token:', err);
+        // If we can't check, go ahead with logout to be safe
+        logoutHandler(router);
+      });
     }
-  }, [isError]);
+  }, [isError, error?.isAuthError]);
 
   return (
     <ScrollView

@@ -7,6 +7,8 @@ import {
     TextInput,
     ActivityIndicator,
     RefreshControl,
+    KeyboardAvoidingView,
+    Platform,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -295,10 +297,15 @@ export default function EnterMarksScreen() {
     );
 
     return (
-        <View style={{ flex: 1, backgroundColor: colors.background }}>
+        <KeyboardAvoidingView
+            style={{ flex: 1, backgroundColor: colors.background }}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
+        >
             <ScrollView
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={{ paddingBottom: 32 }}
+                keyboardShouldPersistTaps="handled"
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
                     <AppHeader
@@ -353,6 +360,6 @@ export default function EnterMarksScreen() {
                     {renderGridView()}
                 </View>
             </ScrollView>
-        </View>
+        </KeyboardAvoidingView>
     );
 }

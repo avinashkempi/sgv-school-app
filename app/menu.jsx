@@ -9,20 +9,15 @@ import storage from '../utils/storage';
 import { SCHOOL } from '../constants/basic-info';
 import Card from '../components/Card';
 import Button from '../components/Button';
+import { logoutHandler } from '../utils/logoutHandler';
 
 export default function MenuScreen() {
     const router = useRouter();
     const { styles, colors, mode, toggle, _gradients } = useTheme();
-    const { _showToast } = useToast();
+    const { showToast } = useToast();
 
     const handleLogout = async () => {
-        try {
-            await storage.removeItem('@auth_token');
-            await storage.removeItem('@auth_user');
-            router.replace('/login');
-        } catch (error) {
-            console.error('Logout failed:', error);
-        }
+        await logoutHandler(router, showToast);
     };
 
     const handlePress = async (appUrl, fallbackUrl) => {

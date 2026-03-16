@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import apiConfig from "../config/apiConfig";
 import { useApiMutation, createApiMutationFn } from "../hooks/useApi";
+import { clearAllCaches } from '../utils/cacheManager';
 
 // UI Components
 import TextInput from '../components/TextInput';
@@ -24,15 +25,9 @@ export default function Login() {
     onSuccess: async (data) => {
       if (data.token) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        // Check if a different user is logging in — if so, clear the stale cache
-        const prevUserStr = await storage.getItem('@auth_user');
-        if (prevUserStr) {
-          const prevUser = JSON.parse(prevUserStr);
-          if (prevUser.phone !== data.user.phone) {
-            const { queryClient } = require('../utils/queryClient');
-            queryClient.clear();
-          }
-        }
+        // ALWAYS clear cache to ensure fresh state for login
+        // (Don't check if different user - clear for security)
+        await clearAllCaches();
 
         await storage.setItem('@auth_token', data.token);
         await storage.setItem('@auth_user', JSON.stringify(data.user));

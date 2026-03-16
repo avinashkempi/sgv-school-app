@@ -1,40 +1,131 @@
 // Demo Data for Guest/Demo Mode
 
+// Valid MongoDB ObjectIds for demo
+const DEMO_ACADEMIC_YEAR_ID = "650e8400e29b41d4a716446655440000";
+const DEMO_CLASS_ID = "550e8400e29b41d4a716446655440001";
+const DEMO_STUDENT_ID = "660e8400e29b41d4a716446655440002";
+
 // 1. User Profile
 export const DEMO_USER = {
-    _id: "demo-student-id",
+    _id: DEMO_STUDENT_ID,
     name: "Harshika Patil",
     email: "harshika@demo.com",
     role: "student",
     phone: "9876543210",
     profileImage: "https://api.dicebear.com/7.x/avataaars/png?seed=Harshika&gender=female",
     currentClass: {
-        _id: "class-3-a",
-        name: "3rd Standard",
+        _id: DEMO_CLASS_ID,
+        value: "3",
+        label: "3rd Standard",
         section: "A",
-        academicYear: "2024-2025"
+        academicYear: DEMO_ACADEMIC_YEAR_ID
     }
 };
+
+// 1.5. Academic Years
+export const DEMO_ACADEMIC_YEARS = [
+    {
+        _id: DEMO_ACADEMIC_YEAR_ID,
+        name: "2024-2025",
+        startDate: "2024-06-01T00:00:00.000Z",
+        endDate: "2025-05-31T00:00:00.000Z",
+        isActive: true,
+        status: "current",
+        description: "Current Academic Year",
+        createdAt: "2024-06-01T00:00:00.000Z"
+    },
+    {
+        _id: "551e8400e29b41d4a716446655440001",
+        name: "2023-2024",
+        startDate: "2023-06-01T00:00:00.000Z",
+        endDate: "2024-05-31T00:00:00.000Z",
+        isActive: false,
+        status: "archived",
+        description: "Previous Academic Year",
+        createdAt: "2023-06-01T00:00:00.000Z"
+    }
+];
 
 // 2. Class Details & Subjects (Teachers: North Karnataka mix)
 export const DEMO_CLASS_DETAILS = {
     classData: {
-        _id: "class-3-a",
-        name: "3rd Standard",
+        _id: DEMO_CLASS_ID,
+        value: "3",
+        label: "3rd Standard",
         section: "A",
-        academicYear: "2024-2025",
+        branch: "Main",
+        academicYear: DEMO_ACADEMIC_YEAR_ID,
         classTeacher: { name: "Mrs. Savita Patil" }
     },
     subjects: [
-        { _id: "s1", name: "Kannada", code: "KAN03", teachers: [{ name: "Mrs. Savita Patil" }] },
-        { _id: "s2", name: "English", code: "ENG03", teachers: [{ name: "Ms. Mary D'Souza" }] },
-        { _id: "s3", name: "Hindi", code: "HIN03", teachers: [{ name: "Mrs. Ayesha Siddiqui" }] },
-        { _id: "s4", name: "Mathematics", code: "MAT03", teachers: [{ name: "Mr. Abdul Nadaf" }] },
-        { _id: "s5", name: "EVS", code: "EVS03", teachers: [{ name: "Mr. Basavaraj Kulkarni" }] },
-        { _id: "s6", name: "Computer", code: "COM03", teachers: [{ name: "Mr. John Peter" }] },
-        { _id: "s7", name: "Art & Craft", code: "ART03", teachers: [{ name: "Mrs. Renuka Desai" }] },
-        { _id: "s8", name: "Physical Education", code: "PE03", teachers: [{ name: "Mr. Suresh Meti" }] }
+        { _id: "760e8400e29b41d4a716446655440003", name: "Kannada", code: "KAN03", teachers: [{ name: "Mrs. Savita Patil" }] },
+        { _id: "760e8400e29b41d4a716446655440004", name: "English", code: "ENG03", teachers: [{ name: "Ms. Mary D'Souza" }] },
+        { _id: "760e8400e29b41d4a716446655440005", name: "Hindi", code: "HIN03", teachers: [{ name: "Mrs. Ayesha Siddiqui" }] },
+        { _id: "760e8400e29b41d4a716446655440006", name: "Mathematics", code: "MAT03", teachers: [{ name: "Mr. Abdul Nadaf" }] },
+        { _id: "760e8400e29b41d4a716446655440007", name: "EVS", code: "EVS03", teachers: [{ name: "Mr. Basavaraj Kulkarni" }] },
+        { _id: "760e8400e29b41d4a716446655440008", name: "Computer", code: "COM03", teachers: [{ name: "Mr. John Peter" }] },
+        { _id: "760e8400e29b41d4a716446655440009", name: "Art & Craft", code: "ART03", teachers: [{ name: "Mrs. Renuka Desai" }] },
+        { _id: "760e8400e29b41d4a71644665544000a", name: "Physical Education", code: "PE03", teachers: [{ name: "Mr. Suresh Meti" }] }
+    ],
+    students: [
+        {
+            _id: DEMO_STUDENT_ID,
+            name: "Harshika Patil",
+            email: "harshika@demo.com",
+            rollNumber: "001",
+            profileImage: "https://api.dicebear.com/7.x/avataaars/png?seed=Harshika&gender=female"
+        }
     ]
+};
+
+// 2.5. Teacher Subjects (for teacher role)
+const DEMO_TEACHER_ID = "770e8400e29b41d4a716446655440010";
+export const DEMO_TEACHER_SUBJECTS = {
+    subjects: [
+        {
+            _id: "760e8400e29b41d4a716446655440003",
+            name: "Kannada",
+            code: "KAN03",
+            class: {
+                _id: DEMO_CLASS_ID,
+                value: "3",
+                label: "3rd Standard",
+                section: "A",
+                branch: "Main"
+            },
+            teachers: [{ _id: DEMO_TEACHER_ID, name: "Mrs. Savita Patil", email: "savita.patil@school.edu" }],
+            isClassTeacher: true
+        },
+        {
+            _id: "760e8400e29b41d4a716446655440006",
+            name: "Mathematics",
+            code: "MAT03",
+            class: {
+                _id: DEMO_CLASS_ID,
+                value: "3",
+                label: "3rd Standard",
+                section: "A",
+                branch: "Main"
+            },
+            teachers: [{ _id: DEMO_TEACHER_ID, name: "Mrs. Savita Patil", email: "savita.patil@school.edu" }],
+            isClassTeacher: true
+        },
+        {
+            _id: "760e8400e29b41d4a716446655440004",
+            name: "English",
+            code: "ENG03",
+            class: {
+                _id: DEMO_CLASS_ID,
+                value: "3",
+                label: "3rd Standard",
+                section: "A",
+                branch: "Main"
+            },
+            teachers: [{ _id: DEMO_TEACHER_ID, name: "Mrs. Savita Patil", email: "savita.patil@school.edu" }],
+            isClassTeacher: true
+        }
+    ],
+    classTeacherOf: [DEMO_CLASS_ID]
 };
 
 // 3. Attendance Summary

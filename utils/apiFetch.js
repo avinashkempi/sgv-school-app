@@ -52,6 +52,10 @@ export default async function apiFetch(input, init = {}) {
       responseData = demoData.DEMO_NOTIFICATIONS;
     } else if (url.includes('/dashboard/student')) {
       responseData = demoData.DEMO_STUDENT_DASHBOARD;
+    } else if (url.includes('/academic-year')) {
+      responseData = demoData.DEMO_ACADEMIC_YEARS;
+    } else if (url.includes('/teachers/my-subjects')) {
+      responseData = demoData.DEMO_TEACHER_SUBJECTS;
     } else {
       responseData = {};
     }

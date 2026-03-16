@@ -2,6 +2,17 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiFetch from '../utils/apiFetch';
 
 /**
+ * Custom error class to track auth vs network errors
+ */
+class ApiError extends Error {
+    constructor(message, status, isAuthError = false) {
+        super(message);
+        this.status = status;
+        this.isAuthError = isAuthError;
+    }
+}
+
+/**
  * Wrapper around useQuery for API fetching
  * @param {Array} key - Query key
  * @param {string} url - API URL
@@ -14,9 +25,31 @@ export function useApiQuery(key, url, options = {}) {
             const response = await apiFetch(url);
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Network response was not ok');
+                const isAuthError = response.status === 401;
+                const error = new ApiError(
+                    errorData.message || 'Network response was not ok',
+                    response.status,
+                    isAuthError
+                );
+                throw error;
             }
             return response.json();
+        },
+        // Prevent retry on auth errors (401)
+        // For other errors, retry as per default or passed options
+        retry: (failureCount, error) => {
+            if (error?.isAuthError) {
+                return false; // Don't retry 401 errors
+            }
+            // For other errors, use default retry logic or passed retry option
+            if (options.retry === false) {
+                return false;
+            }
+            if (typeof options.retry === 'number') {
+                return failureCount < options.retry;
+            }
+            // Default retry 2 times for non-auth errors
+            return failureCount < 2;
         },
         ...options,
     });
@@ -35,9 +68,28 @@ export function useApiInfiniteQuery(key, urlFn, options = {}) {
             const response = await apiFetch(url);
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Network response was not ok');
+                const isAuthError = response.status === 401;
+                const error = new ApiError(
+                    errorData.message || 'Network response was not ok',
+                    response.status,
+                    isAuthError
+                );
+                throw error;
             }
             return response.json();
+        },
+        // Prevent retry on auth errors (401)
+        retry: (failureCount, error) => {
+            if (error?.isAuthError) {
+                return false;
+            }
+            if (options.retry === false) {
+                return false;
+            }
+            if (typeof options.retry === 'number') {
+                return failureCount < options.retry;
+            }
+            return failureCount < 2;
         },
         ...options,
     });
@@ -82,7 +134,13 @@ export const createApiMutationFn = (url, method = 'POST') => async (data) => {
 
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Network request failed');
+        const isAuthError = response.status === 401;
+        const error = new ApiError(
+            errorData.message || 'Network request failed',
+            response.status,
+            isAuthError
+        );
+        throw error;
     }
 
     return response.json();
