@@ -3,6 +3,21 @@ import { View, Text, Pressable, Alert } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../theme";
 
+const getTimeAgo = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMins = Math.floor((now - date) / 60000);
+    if (diffInMins < 1) return 'Just now';
+    if (diffInMins < 60) return `${diffInMins}m ago`;
+    const diffInHours = Math.floor(diffInMins / 60);
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays === 1) return 'Yesterday';
+    if (diffInDays < 7) return `${diffInDays}d ago`;
+    return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+};
+
 const UserCard = ({ userItem, getRoleColor, getRoleDisplay, colors, onEdit, onDelete, onPress }) => {
     return (
         <Pressable
@@ -120,15 +135,27 @@ const UserCard = ({ userItem, getRoleColor, getRoleDisplay, colors, onEdit, onDe
                 </View>
             </View>
 
-            {/* Row 3: Phone */}
-            {userItem.phone && (
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
-                    <MaterialIcons name="phone" size={14} color={colors.textSecondary} style={{ marginRight: 6 }} />
-                    <Text style={{ fontSize: 13, color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>
-                        {userItem.phone}
-                    </Text>
+            {/* Row 3: Phone & Last Active */}
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+                    {userItem.phone && (
+                        <>
+                            <MaterialIcons name="phone" size={14} color={colors.textSecondary} style={{ marginRight: 6 }} />
+                            <Text style={{ fontSize: 13, color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>
+                                {userItem.phone}
+                            </Text>
+                        </>
+                    )}
                 </View>
-            )}
+                {userItem.lastActiveAt && (
+                    <View style={{ flexDirection: "row", alignItems: "center" }}>
+                        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.success, marginRight: 6 }} />
+                        <Text style={{ fontSize: 11, color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>
+                            Active {getTimeAgo(userItem.lastActiveAt)}
+                        </Text>
+                    </View>
+                )}
+            </View>
         </Pressable>
     );
 };

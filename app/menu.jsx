@@ -87,7 +87,7 @@ export default function MenuScreen() {
                 <Header title="Menu" subtitle="Settings & More" />
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100, paddingHorizontal: 20 }}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.contentPaddingBottom, { paddingHorizontal: 20 }]}>
                 {/* Quick Actions Grid */}
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 10 }}>
                     {menuItems.map((item, index) => (

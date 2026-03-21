@@ -9,72 +9,57 @@ import DateRangePicker from '../DateRangePicker';
 import { LoadingState, ErrorState, EmptyState } from '../StateComponents';
 import apiFetch from '../../utils/apiFetch';
 import apiConfig from '../../config/apiConfig';
+import { useApiQuery } from '../../hooks/useApi';
 import { useFocusEffect } from 'expo-router';
 import { formatClassName } from '../../utils/formatClassName';
 
 const TeacherDashboard = () => {
     const router = useRouter();
     const { colors, styles } = useTheme();
-    const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
     const [dateRange, setDateRange] = useState('thisWeek');
     const [showDatePicker, setShowDatePicker] = useState(false);
-    const [missingDays, setMissingDays] = useState([]);
-    const [missingClassId, setMissingClassId] = useState(null);
-    const [missingClassName, setMissingClassName] = useState(null);
+    const [refreshing, setRefreshing] = useState(false);
 
-    const fetchStats = async (range = dateRange) => {
-        try {
-            const response = await apiFetch(`${apiConfig.baseUrl}/dashboard/teacher?range=${range}`);
-            if (response.ok) {
-                const json = await response.json();
-                setData(json);
-            }
-        } catch (error) {
-            console.error("Failed to fetch teacher stats", error);
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    };
+    // Dashboard Stats Query
+    const { data, isLoading: loading, refetch: refetchStats } = useApiQuery(
+        ['teacherDashboard', dateRange],
+        `${apiConfig.baseUrl}/dashboard/teacher?range=${dateRange}`,
+        { staleTime: 1000 * 60 * 5 }
+    );
 
-    const fetchMissingAttendance = async () => {
-        try {
+    // Missing Attendance Query
+    const todayStr = new Date().toISOString().split('T')[0];
+    const { data: missingData, refetch: refetchMissing } = useApiQuery(
+        ['teacherMissingAttendance', todayStr],
+        (() => {
             const endDate = new Date();
             const startDate = new Date();
-            startDate.setDate(endDate.getDate() - 14); // Check last 14 days
+            startDate.setDate(endDate.getDate() - 14);
+            return `${apiConfig.baseUrl}/attendance/missing-tracker?startDate=${startDate.toISOString().split('T')[0]}&endDate=${endDate.toISOString().split('T')[0]}`;
+        })(),
+        { staleTime: 1000 * 60 * 5 }
+    );
 
-            const response = await apiFetch(`${apiConfig.baseUrl}/attendance/missing-tracker?startDate=${startDate.toISOString().split('T')[0]}&endDate=${endDate.toISOString().split('T')[0]}`);
-            if (response.ok) {
-                const json = await response.json();
-                if (json.success && json.missingDays) {
-                    setMissingDays(json.missingDays);
-                    setMissingClassId(json.classId || null);
-                    setMissingClassName(json.className || null);
-                }
-            }
-        } catch (err) {
-            console.error("Failed to fetch missing attendance", err);
-        }
-    };
+    const missingDays = missingData?.success && missingData.missingDays ? missingData.missingDays : [];
+    const missingClassId = missingData?.success && missingData.classId ? missingData.classId : null;
+    const missingClassName = missingData?.success && missingData.className ? missingData.className : null;
 
     useFocusEffect(
         useCallback(() => {
-            fetchStats();
-            fetchMissingAttendance();
-        }, [dateRange])
+            // Silently refetch in background when focused
+            refetchStats();
+            refetchMissing();
+        }, [refetchStats, refetchMissing])
     );
 
-    const onRefresh = () => {
+    const onRefresh = async () => {
         setRefreshing(true);
-        fetchStats();
+        await Promise.all([refetchStats(), refetchMissing()]);
+        setRefreshing(false);
     };
 
     const handleDateRangeChange = (range) => {
         setDateRange(range);
-        setLoading(true);
-        fetchStats(range);
     };
 
     const getDateRangeLabel = () => {

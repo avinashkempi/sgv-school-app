@@ -8,39 +8,31 @@ import ChartCard from './ChartCard';
 import { LoadingState, EmptyState } from '../StateComponents';
 import apiFetch from '../../utils/apiFetch';
 import apiConfig from '../../config/apiConfig';
+import { useApiQuery } from '../../hooks/useApi';
 import { useFocusEffect } from 'expo-router';
 
 const StudentDashboard = () => {
     const router = useRouter();
     const { colors, styles } = useTheme();
-    const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
-    const fetchStats = async () => {
-        try {
-            const response = await apiFetch(`${apiConfig.baseUrl}/dashboard/student`);
-            if (response.ok) {
-                const json = await response.json();
-                setData(json);
-            }
-        } catch (error) {
-            console.error("Failed to fetch student stats", error);
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    };
+    const { data, isLoading: loading, refetch } = useApiQuery(
+        ['studentDashboard'],
+        `${apiConfig.baseUrl}/dashboard/student`,
+        { staleTime: 1000 * 60 * 5 }
+    );
 
     useFocusEffect(
         useCallback(() => {
-            fetchStats();
-        }, [])
+            // Silently refetch in background when focused
+            refetch();
+        }, [refetch])
     );
 
-    const onRefresh = () => {
+    const onRefresh = async () => {
         setRefreshing(true);
-        fetchStats();
+        await refetch();
+        setRefreshing(false);
     };
 
     if (loading && !data) {

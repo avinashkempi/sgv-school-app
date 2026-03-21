@@ -331,33 +331,42 @@ export default function ExamAnalyticsScreen() {
                         </Text>
                     </Card>
                 ) : (
-                    <View style={{ gap: 12 }}>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
                         {sortedSubjects.map((subj, index) => {
                             const pct = parseFloat(subj.avgPercentage) || 0;
+                            // Adding a bottom margin since gap sometimes doesn't work perfectly in older RN versions, but we'll keep both margin and space-between
                             return (
-                                <Card key={subj.subjectId} variant="elevated" style={{ padding: 16 }}>
-                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <View style={{ flex: 1 }}>
-                                            <Text style={{ fontSize: 16, fontFamily: 'DMSans-Bold', color: colors.onSurface }}>
-                                                {subj.subjectName}
-                                            </Text>
-                                            <Text style={{ fontSize: 12, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant, marginTop: 2 }}>
-                                                {subj.examsCount} exams across classes
+                                <Card key={subj.subjectId || subj.subjectName} variant="elevated" style={{ width: (width - 44) / 2, padding: 16, marginBottom: 16 }}>
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                                        <View style={{ 
+                                            width: 32, 
+                                            height: 32, 
+                                            borderRadius: 16, 
+                                            backgroundColor: colors.primaryContainer, 
+                                            justifyContent: 'center', 
+                                            alignItems: 'center' 
+                                        }}>
+                                            <Text style={{ fontSize: 14, fontFamily: 'DMSans-Bold', color: colors.primary }}>
+                                                {subj.subjectName.charAt(0).toUpperCase()}
                                             </Text>
                                         </View>
-                                        <View style={{
-                                            backgroundColor: getGradeColor(pct) + '15',
-                                            paddingHorizontal: 14,
-                                            paddingVertical: 6,
-                                            borderRadius: 12,
-                                        }}>
-                                            <Text style={{ fontSize: 18, fontFamily: 'DMSans-Bold', color: getGradeColor(pct) }}>
+                                        <View style={{ backgroundColor: getGradeColor(pct) + '15', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 }}>
+                                            <Text style={{ fontSize: 13, fontFamily: 'DMSans-Bold', color: getGradeColor(pct) }}>
                                                 {pct}%
                                             </Text>
                                         </View>
                                     </View>
+                                    
+                                    <View style={{ marginBottom: 12 }}>
+                                        <Text numberOfLines={1} ellipsizeMode="tail" style={{ fontSize: 15, fontFamily: 'DMSans-Bold', color: colors.onSurface }}>
+                                            {subj.subjectName}
+                                        </Text>
+                                        <Text style={{ fontSize: 11, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant, marginTop: 4 }}>
+                                            {subj.examsCount} {subj.examsCount === 1 ? 'exam' : 'exams'} overall
+                                        </Text>
+                                    </View>
 
-                                    <View style={{ height: 6, backgroundColor: colors.surfaceContainerHighest, borderRadius: 10, overflow: 'hidden', marginTop: 12 }}>
+                                    <View style={{ height: 4, backgroundColor: colors.surfaceContainerHighest, borderRadius: 10, overflow: 'hidden' }}>
                                         <View style={{
                                             height: '100%',
                                             width: `${pct}%`,

@@ -96,6 +96,7 @@ export default function AdminExamScheduleScreen() {
 
     const queryClient = useQueryClient();
     const [selectedClassId, setSelectedClassId] = useState(null);
+    const [deletingExamId, setDeletingExamId] = useState(null);
 
     // Edit Date State
     const [editingExam, setEditingExam] = useState(null);
@@ -143,8 +144,12 @@ export default function AdminExamScheduleScreen() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['adminExamSchedule', selectedClassId] });
             showToast("Exam deleted successfully", "success");
+            setDeletingExamId(null);
         },
-        onError: (error) => showToast(error.message || "Failed to delete exam", "error")
+        onError: (error) => {
+            showToast(error.message || "Failed to delete exam", "error");
+            setDeletingExamId(null);
+        }
     });
 
     const handleDateChange = (event, selectedDate) => {
@@ -174,7 +179,10 @@ export default function AdminExamScheduleScreen() {
                 { text: "Cancel", style: "cancel" },
                 {
                     text: "Delete",
-                    onPress: () => deleteExamMutation.mutate(exam._id),
+                    onPress: () => {
+                        setDeletingExamId(exam._id);
+                        deleteExamMutation.mutate(exam._id);
+                    },
                     style: "destructive"
                 }
             ]
@@ -421,15 +429,15 @@ export default function AdminExamScheduleScreen() {
 
                             <Pressable
                                 onPress={() => handleDeleteExam(exam)}
-                                disabled={deleteExamMutation.isPending}
+                                disabled={deletingExamId === exam._id}
                                 style={{
                                     padding: 8,
                                     backgroundColor: colors.error + "15" || "#ff4444" + "15",
                                     borderRadius: 8,
-                                    opacity: deleteExamMutation.isPending ? 0.5 : 1
+                                    opacity: deletingExamId === exam._id ? 0.5 : 1
                                 }}
                             >
-                                {deleteExamMutation.isPending ? (
+                                {deletingExamId === exam._id ? (
                                     <ActivityIndicator size={20} color={colors.error || "#ff4444"} />
                                 ) : (
                                     <MaterialIcons name="delete" size={20} color={colors.error || "#ff4444"} />

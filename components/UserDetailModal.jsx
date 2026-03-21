@@ -95,6 +95,13 @@ export default function UserDetailModal({ visible, onClose, user }) {
                             {user.address && <DetailRow icon="location-on" label="Address" value={user.address} />}
                         </DetailSection>
 
+                        {/* Account Activity */}
+                        {user.lastActiveAt && (
+                            <DetailSection title="ACCOUNT ACTIVITY">
+                                <DetailRow icon="access-time" label="Last Active" value={new Date(user.lastActiveAt).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })} />
+                            </DetailSection>
+                        )}
+
                         {/* Role Specific Details - Student */}
                         {user.role === 'student' && (
                             <>

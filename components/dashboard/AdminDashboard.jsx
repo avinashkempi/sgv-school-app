@@ -9,53 +9,41 @@ import DateRangePicker from '../DateRangePicker';
 import { LoadingState, ErrorState, EmptyState } from '../StateComponents';
 import apiFetch from '../../utils/apiFetch';
 import apiConfig from '../../config/apiConfig';
+import { useApiQuery } from '../../hooks/useApi';
 import { useFocusEffect } from 'expo-router';
 
 const AdminDashboard = () => {
     const router = useRouter();
     const { colors, styles } = useTheme();
-    const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
-    const [error, setError] = useState(null);
     const [dateRange, setDateRange] = useState('thisMonth');
     const [showDatePicker, setShowDatePicker] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
 
-    const fetchStats = async (range = dateRange) => {
-        try {
-            setError(null);
-            const response = await apiFetch(`${apiConfig.baseUrl}/dashboard/admin?range=${range}`);
-            if (response.ok) {
-                const json = await response.json();
-                setData(json);
-            } else {
-                const errJson = await response.json().catch(() => ({}));
-                setError(errJson.message || `Error ${response.status}`);
-            }
-        } catch (error) {
-            console.error("Failed to fetch admin stats", error);
-            setError(error.message || "An unexpected error occurred");
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
+    const { data, isLoading: loading, error: queryError, refetch } = useApiQuery(
+        ['adminDashboard', dateRange],
+        `${apiConfig.baseUrl}/dashboard/admin?range=${dateRange}`,
+        { 
+            staleTime: 1000 * 60 * 5 // Cache for 5 minutes
         }
-    };
+    );
+
+    const error = queryError ? queryError.message : null;
 
     useFocusEffect(
         useCallback(() => {
-            fetchStats();
-        }, [dateRange])
+            // Silently refetch in background when focused
+            refetch();
+        }, [refetch])
     );
 
-    const onRefresh = () => {
+    const onRefresh = async () => {
         setRefreshing(true);
-        fetchStats();
+        await refetch();
+        setRefreshing(false);
     };
 
     const handleDateRangeChange = (range) => {
         setDateRange(range);
-        setLoading(true);
-        fetchStats(range);
     };
 
     const getDateRangeLabel = () => {

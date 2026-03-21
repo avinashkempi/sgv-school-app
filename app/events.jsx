@@ -434,6 +434,7 @@ export default function EventsScreen() {
             handleEventSubmit(eventData);
           }}
           editItem={editingEvent}
+          isLoading={createEventMutation.isPending || updateEventMutation.isPending}
         />
       </ScrollView>
 

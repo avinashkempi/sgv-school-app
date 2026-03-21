@@ -372,7 +372,7 @@ function createGlobalStyles(COLORS, mode) {
       backgroundColor: COLORS.background,
     },
     contentPaddingBottom: {
-      paddingBottom: 100,
+      paddingBottom: 180,
     },
     smallLeftMargin: {
       marginLeft: 8,

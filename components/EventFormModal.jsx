@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Modal, Pressable, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Modal, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { useTheme } from '../theme';
@@ -26,11 +26,10 @@ const formatIndianDate = (dateInput) => {
   }
 };
 
-export default function EventFormModal({ isVisible, onClose, selectedDate, onSuccess, editItem = null }) {
+export default function EventFormModal({ isVisible, onClose, selectedDate, onSuccess, editItem = null, isLoading = false }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [isSchoolEvent, setIsSchoolEvent] = useState(false);
-  const [loading, _setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const { colors, styles: globalStyles } = useTheme();
@@ -193,13 +192,22 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
           </Pressable>
 
           <Pressable
-            style={[globalStyles.buttonLarge, { width: "100%", backgroundColor: colors.primary }, loading && { opacity: 0.6 }]}
+            style={[globalStyles.buttonLarge, { width: "100%", backgroundColor: colors.primary }, isLoading && { opacity: 0.6 }]}
             onPress={handleSubmit}
-            disabled={loading}
+            disabled={isLoading}
           >
-            <Text style={[globalStyles.buttonText, { color: colors.white }]}>
-              {isEditing ? 'Update Event' : 'Create Event'}
-            </Text>
+            {isLoading ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                <ActivityIndicator size="small" color={colors.white} />
+                <Text style={[globalStyles.buttonText, { color: colors.white }]}>
+                  {isEditing ? 'Updating...' : 'Creating...'}
+                </Text>
+              </View>
+            ) : (
+              <Text style={[globalStyles.buttonText, { color: colors.white }]}>
+                {isEditing ? 'Update Event' : 'Create Event'}
+              </Text>
+            )}
           </Pressable>
         </View>
       </View>

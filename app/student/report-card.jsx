@@ -228,10 +228,19 @@ export default function StudentReportCardScreen() {
                             </View>
                         </View>
                         {exam.isCompleted && (
-                            <View style={{ backgroundColor: getGradeColor(exam.grade) + '15', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12 }}>
-                                <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: getGradeColor(exam.grade) }}>
-                                    {exam.percentage}%
-                                </Text>
+                            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+                                {exam.classRank && (
+                                    <View style={{ backgroundColor: colors.primary + '15', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12 }}>
+                                        <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.primary }}>
+                                            Rank {exam.classRank}
+                                        </Text>
+                                    </View>
+                                )}
+                                <View style={{ backgroundColor: getGradeColor(exam.grade) + '15', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12 }}>
+                                    <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: getGradeColor(exam.grade) }}>
+                                        {exam.percentage}%
+                                    </Text>
+                                </View>
                             </View>
                         )}
                     </View>
