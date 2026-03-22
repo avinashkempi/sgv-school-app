@@ -64,7 +64,7 @@ const AdminDashboard = () => {
     }
 
     if (error && !data) {
-        return <ErrorState message={error} onRetry={fetchStats} />;
+        return <ErrorState message={error} onRetry={refetch} />;
     }
 
     if (!data) {

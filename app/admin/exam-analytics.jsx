@@ -7,6 +7,7 @@ import {
     ActivityIndicator,
     Animated,
     Pressable,
+    Modal,
     Dimensions
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -28,6 +29,7 @@ export default function ExamAnalyticsScreen() {
     const { colors } = useTheme();
     const [refreshing, setRefreshing] = useState(false);
     const [activeView, setActiveView] = useState('overview'); // 'overview' | 'classes' | 'subjects'
+    const [selectedItem, setSelectedItem] = useState(null); // item clicked for drill-down
 
     // Entrance animation
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -241,8 +243,11 @@ export default function ExamAnalyticsScreen() {
 
     const renderClasses = () => (
         <View style={{ marginTop: 20 }}>
-            <Text style={{ fontSize: 18, fontFamily: 'DMSans-Bold', color: colors.onBackground, marginBottom: 16 }}>
+            <Text style={{ fontSize: 18, fontFamily: 'DMSans-Bold', color: colors.onBackground, marginBottom: 4 }}>
                 Class-wise Performance
+            </Text>
+            <Text style={{ fontSize: 13, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant, marginBottom: 16 }}>
+                Tap a class to see exam-type breakdown
             </Text>
 
             {sortedClasses.length === 0 ? (
@@ -257,56 +262,65 @@ export default function ExamAnalyticsScreen() {
                     {sortedClasses.map((cls, index) => {
                         const pct = parseFloat(cls.avgPercentage) || 0;
                         return (
-                            <Card key={cls.classId} variant="elevated" style={{ padding: 16 }}>
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
-                                        <View style={{
-                                            width: 36,
-                                            height: 36,
-                                            borderRadius: 18,
-                                            backgroundColor: index === 0 ? colors.success + '15' : colors.primaryContainer,
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                        }}>
-                                            <Text style={{
-                                                fontSize: 14,
-                                                fontFamily: 'DMSans-Bold',
-                                                color: index === 0 ? colors.success : colors.primary,
+                            <Pressable key={cls.classId} onPress={() => setSelectedItem({ type: 'class', data: cls })}>
+                                <Card variant="elevated" style={{ padding: 16 }}>
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
+                                            <View style={{
+                                                width: 36,
+                                                height: 36,
+                                                borderRadius: 18,
+                                                backgroundColor: index === 0 ? colors.success + '15' : colors.primaryContainer,
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
                                             }}>
-                                                #{index + 1}
-                                            </Text>
+                                                <Text style={{
+                                                    fontSize: 14,
+                                                    fontFamily: 'DMSans-Bold',
+                                                    color: index === 0 ? colors.success : colors.primary,
+                                                }}>
+                                                    #{index + 1}
+                                                </Text>
+                                            </View>
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={{ fontSize: 16, fontFamily: 'DMSans-Bold', color: colors.onSurface }}>
+                                                    {formatClassName(cls.className)}
+                                                </Text>
+                                                <Text style={{ fontSize: 12, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant }}>
+                                                    {cls.examsCount || ''} exams · Tap for breakdown
+                                                </Text>
+                                            </View>
                                         </View>
-                                        <View style={{ flex: 1 }}>
-                                            <Text style={{ fontSize: 16, fontFamily: 'DMSans-Bold', color: colors.onSurface }}>
-                                                {formatClassName(cls.className)}
-                                            </Text>
-                                            <Text style={{ fontSize: 12, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant }}>
-                                                {cls.examsCount} exams
-                                            </Text>
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                            <View style={{
+                                                backgroundColor: getGradeColor(pct) + '15',
+                                                paddingHorizontal: 14,
+                                                paddingVertical: 6,
+                                                borderRadius: 12,
+                                            }}>
+                                                <Text style={{ fontSize: 18, fontFamily: 'DMSans-Bold', color: getGradeColor(pct) }}>
+                                                    {pct}%
+                                                </Text>
+                                            </View>
+                                            <MaterialIcons name="chevron-right" size={20} color={colors.onSurfaceVariant} />
                                         </View>
                                     </View>
-                                    <View style={{
-                                        backgroundColor: getGradeColor(pct) + '15',
-                                        paddingHorizontal: 14,
-                                        paddingVertical: 6,
-                                        borderRadius: 12,
-                                    }}>
-                                        <Text style={{ fontSize: 18, fontFamily: 'DMSans-Bold', color: getGradeColor(pct) }}>
-                                            {pct}%
-                                        </Text>
-                                    </View>
-                                </View>
 
-                                {/* Progress bar */}
-                                <View style={{ height: 6, backgroundColor: colors.surfaceContainerHighest, borderRadius: 10, overflow: 'hidden', marginTop: 12 }}>
-                                    <View style={{
-                                        height: '100%',
-                                        width: `${pct}%`,
-                                        backgroundColor: getGradeColor(pct),
-                                        borderRadius: 10,
-                                    }} />
-                                </View>
-                            </Card>
+                                     {/* Progress bar */}
+                                     <View style={{ marginTop: 14, marginBottom: 2 }}>
+                                         <View style={{ height: 10, backgroundColor: colors.surfaceContainerHighest, borderRadius: 100, overflow: 'hidden' }}>
+                                             <View style={{
+                                                 height: '100%',
+                                                 width: `${pct}%`,
+                                                 backgroundColor: getGradeColor(pct),
+                                                 borderRadius: 100,
+                                                 opacity: 0.9,
+                                             }} />
+                                         </View>
+                                     </View>
+
+                                 </Card>
+                            </Pressable>
                         );
                     })}
                 </View>
@@ -319,8 +333,11 @@ export default function ExamAnalyticsScreen() {
 
         return (
             <View style={{ marginTop: 20 }}>
-                <Text style={{ fontSize: 18, fontFamily: 'DMSans-Bold', color: colors.onBackground, marginBottom: 16 }}>
+                <Text style={{ fontSize: 18, fontFamily: 'DMSans-Bold', color: colors.onBackground, marginBottom: 4 }}>
                     Subject-wise Performance
+                </Text>
+                <Text style={{ fontSize: 13, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant, marginBottom: 16 }}>
+                    Tap a subject to see exam-type breakdown
                 </Text>
 
                 {sortedSubjects.length === 0 ? (
@@ -332,54 +349,169 @@ export default function ExamAnalyticsScreen() {
                     </Card>
                 ) : (
                     <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-                        {sortedSubjects.map((subj, index) => {
+                        {sortedSubjects.map((subj) => {
                             const pct = parseFloat(subj.avgPercentage) || 0;
-                            // Adding a bottom margin since gap sometimes doesn't work perfectly in older RN versions, but we'll keep both margin and space-between
                             return (
-                                <Card key={subj.subjectId || subj.subjectName} variant="elevated" style={{ width: (width - 44) / 2, padding: 16, marginBottom: 16 }}>
-                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                                        <View style={{ 
-                                            width: 32, 
-                                            height: 32, 
-                                            borderRadius: 16, 
-                                            backgroundColor: colors.primaryContainer, 
-                                            justifyContent: 'center', 
-                                            alignItems: 'center' 
-                                        }}>
-                                            <Text style={{ fontSize: 14, fontFamily: 'DMSans-Bold', color: colors.primary }}>
-                                                {subj.subjectName.charAt(0).toUpperCase()}
+                                <Pressable
+                                    key={subj.subjectId || subj.subjectName}
+                                    onPress={() => setSelectedItem({ type: 'subject', data: subj })}
+                                    style={{ width: (width - 44) / 2, marginBottom: 16 }}
+                                >
+                                    <Card variant="elevated" style={{ padding: 16 }}>
+                                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                                            <View style={{ 
+                                                width: 32, 
+                                                height: 32, 
+                                                borderRadius: 16, 
+                                                backgroundColor: colors.primaryContainer, 
+                                                justifyContent: 'center', 
+                                                alignItems: 'center' 
+                                            }}>
+                                                <Text style={{ fontSize: 14, fontFamily: 'DMSans-Bold', color: colors.primary }}>
+                                                    {subj.subjectName.charAt(0).toUpperCase()}
+                                                </Text>
+                                            </View>
+                                            <View style={{ backgroundColor: getGradeColor(pct) + '15', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 }}>
+                                                <Text style={{ fontSize: 13, fontFamily: 'DMSans-Bold', color: getGradeColor(pct) }}>
+                                                    {pct}%
+                                                </Text>
+                                            </View>
+                                        </View>
+                                        
+                                        <View style={{ marginBottom: 12 }}>
+                                            <Text numberOfLines={1} ellipsizeMode="tail" style={{ fontSize: 15, fontFamily: 'DMSans-Bold', color: colors.onSurface }}>
+                                                {subj.subjectName}
+                                            </Text>
+                                            <Text style={{ fontSize: 11, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant, marginTop: 4 }}>
+                                                {subj.examsCount} {subj.examsCount === 1 ? 'exam' : 'exams'} · tap for more
                                             </Text>
                                         </View>
-                                        <View style={{ backgroundColor: getGradeColor(pct) + '15', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 }}>
-                                            <Text style={{ fontSize: 13, fontFamily: 'DMSans-Bold', color: getGradeColor(pct) }}>
-                                                {pct}%
-                                            </Text>
-                                        </View>
-                                    </View>
-                                    
-                                    <View style={{ marginBottom: 12 }}>
-                                        <Text numberOfLines={1} ellipsizeMode="tail" style={{ fontSize: 15, fontFamily: 'DMSans-Bold', color: colors.onSurface }}>
-                                            {subj.subjectName}
-                                        </Text>
-                                        <Text style={{ fontSize: 11, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant, marginTop: 4 }}>
-                                            {subj.examsCount} {subj.examsCount === 1 ? 'exam' : 'exams'} overall
-                                        </Text>
-                                    </View>
 
-                                    <View style={{ height: 4, backgroundColor: colors.surfaceContainerHighest, borderRadius: 10, overflow: 'hidden' }}>
-                                        <View style={{
-                                            height: '100%',
-                                            width: `${pct}%`,
-                                            backgroundColor: getGradeColor(pct),
-                                            borderRadius: 10,
-                                        }} />
-                                    </View>
-                                </Card>
+                                        <View style={{ height: 6, backgroundColor: colors.surfaceContainerHighest, borderRadius: 100, overflow: 'hidden', marginTop: 2, marginBottom: 2 }}>
+                                            <View style={{
+                                                height: '100%',
+                                                width: `${pct}%`,
+                                                backgroundColor: getGradeColor(pct),
+                                                borderRadius: 100,
+                                                opacity: 0.85,
+                                            }} />
+                                        </View>
+
+                                     </Card>
+                                </Pressable>
                             );
                         })}
                     </View>
                 )}
             </View>
+        );
+    };
+
+    const renderDetailModal = () => {
+        if (!selectedItem) return null;
+        const { type, data } = selectedItem;
+        const title = type === 'class' ? formatClassName(data.className) : data.subjectName;
+        const overallPct = parseFloat(data.avgPercentage) || 0;
+        const breakdown = data.examTypeBreakdown || [];
+
+        return (
+            <Modal
+                transparent
+                visible={!!selectedItem}
+                animationType="slide"
+                onRequestClose={() => setSelectedItem(null)}
+            >
+                <Pressable
+                    style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' }}
+                    onPress={() => setSelectedItem(null)}
+                >
+                    <Pressable onPress={e => e.stopPropagation()}>
+                        <View style={{
+                            backgroundColor: colors.background,
+                            borderTopLeftRadius: 24,
+                            borderTopRightRadius: 24,
+                            padding: 24,
+                            paddingBottom: 40,
+                            maxHeight: '80%'
+                        }}>
+                            {/* Handle */}
+                            <View style={{ width: 40, height: 4, backgroundColor: colors.onSurfaceVariant + '40', borderRadius: 2, alignSelf: 'center', marginBottom: 20 }} />
+
+                            {/* Header */}
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={{ fontSize: 11, fontFamily: 'DMSans-Bold', color: colors.onSurfaceVariant, textTransform: 'uppercase', letterSpacing: 1 }}>
+                                        {type === 'class' ? 'Class' : 'Subject'} Breakdown
+                                    </Text>
+                                    <Text style={{ fontSize: 22, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginTop: 4 }}>
+                                        {title}
+                                    </Text>
+                                </View>
+                                <View style={{ backgroundColor: getGradeColor(overallPct) + '18', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 14 }}>
+                                    <Text style={{ fontSize: 22, fontFamily: 'DMSans-Bold', color: getGradeColor(overallPct) }}>
+                                        {overallPct}%
+                                    </Text>
+                                    <Text style={{ fontSize: 10, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant, textAlign: 'center' }}>
+                                        Overall
+                                    </Text>
+                                </View>
+                            </View>
+
+                            {/* Breakdown rows */}
+                            <ScrollView showsVerticalScrollIndicator={false}>
+                                {breakdown.length === 0 ? (
+                                    <View style={{ alignItems: 'center', paddingVertical: 32 }}>
+                                        <MaterialIcons name="bar-chart" size={40} color={colors.onSurfaceVariant} style={{ opacity: 0.4 }} />
+                                        <Text style={{ fontSize: 14, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant, marginTop: 12 }}>
+                                            No breakdown data available yet
+                                        </Text>
+                                    </View>
+                                ) : breakdown.map((b) => {
+                                    const bPct = b.avgPercentage !== null ? parseFloat(b.avgPercentage) : null;
+                                    const bColor = getExamTypeColor(b.examType);
+
+                                    return (
+                                        <View key={b.examType} style={{ marginBottom: 20 }}>
+                                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                                                    <View style={{ backgroundColor: bColor + '18', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
+                                                        <Text style={{ fontSize: 13, fontFamily: 'DMSans-Bold', color: bColor }}>
+                                                            {b.examType}
+                                                        </Text>
+                                                    </View>
+                                                    <Text style={{ fontSize: 12, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant }}>
+                                                        {b.examsCount} {b.examsCount === 1 ? 'exam' : 'exams'}
+                                                    </Text>
+                                                </View>
+                                                <Text style={{
+                                                    fontSize: 18,
+                                                    fontFamily: 'DMSans-Bold',
+                                                    color: bPct !== null ? getGradeColor(bPct) : colors.onSurfaceVariant
+                                                }}>
+                                                    {bPct !== null ? `${bPct}%` : '—'}
+                                                </Text>
+                                            </View>
+                                            <View style={{ height: 8, backgroundColor: colors.surfaceContainerHighest, borderRadius: 10, overflow: 'hidden' }}>
+                                                <View style={{
+                                                    height: '100%',
+                                                    width: bPct !== null ? `${bPct}%` : '0%',
+                                                    backgroundColor: bPct !== null ? bColor : colors.onSurfaceVariant + '30',
+                                                    borderRadius: 10,
+                                                }} />
+                                            </View>
+                                            {bPct === null && (
+                                                <Text style={{ fontSize: 11, fontFamily: 'DMSans-Regular', color: colors.onSurfaceVariant + '80', marginTop: 4 }}>
+                                                    No marks entered yet
+                                                </Text>
+                                            )}
+                                        </View>
+                                    );
+                                })}
+                            </ScrollView>
+                        </View>
+                    </Pressable>
+                </Pressable>
+            </Modal>
         );
     };
 
@@ -445,6 +577,8 @@ export default function ExamAnalyticsScreen() {
                 {activeView === 'subjects' && renderSubjects()}
 
             </ScrollView>
+
+            {renderDetailModal()}
         </View>
     );
 }

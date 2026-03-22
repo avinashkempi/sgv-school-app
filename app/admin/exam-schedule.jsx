@@ -9,6 +9,7 @@ import {
     Modal,
     Platform,
     Alert,
+    RefreshControl,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -98,16 +99,24 @@ export default function AdminExamScheduleScreen() {
     const [selectedClassId, setSelectedClassId] = useState(null);
     const [deletingExamId, setDeletingExamId] = useState(null);
 
+    const [activeTab, setActiveTab] = useState('schedules'); // Reverting tab code but keep string as fallback or remove if not used elsewhere, let's remove it entirely
+    // const [statusSearch, setStatusSearch] = useState("");
+    // const [statusFilter, setStatusFilter] = useState("All");
+
+
     // Edit Date State
     const [editingExam, setEditingExam] = useState(null);
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [newDate, setNewDate] = useState(new Date());
     const [newRoom, setNewRoom] = useState("");
 
+    const [refreshing, setRefreshing] = useState(false);
+
     // Fetch Classes
     const { data: classesData, isLoading: classesLoading } = useApiQuery(
         ['adminClassesInit'],
-        `${apiConfig.baseUrl}/classes/admin/init`
+        `${apiConfig.baseUrl}/classes/admin/init`,
+        { staleTime: 1000 * 60 * 5 }
     );
     const classes = classesData?.classes || [];
 
@@ -122,10 +131,26 @@ export default function AdminExamScheduleScreen() {
     const { data: exams = [], isLoading: examsLoading } = useApiQuery(
         ['adminExamSchedule', selectedClassId],
         `${apiConfig.baseUrl}/exams/schedule/class/${selectedClassId}`,
-        { enabled: !!selectedClassId }
+        { 
+            enabled: !!selectedClassId && activeTab === 'schedules',
+            staleTime: 1000 * 60 * 2 // 2 minutes for schedules
+        }
     );
 
+    // Removed adminMarksStatus query
+
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await queryClient.invalidateQueries({ queryKey: ['adminClassesInit'] });
+        if (selectedClassId) {
+            await queryClient.invalidateQueries({ queryKey: ['adminExamSchedule', selectedClassId] });
+        }
+        setRefreshing(false);
+    };
+
     const loading = classesLoading || (!!selectedClassId && examsLoading);
+
 
     // Update Exam Mutation
     const updateExamMutation = useApiMutation({
@@ -316,31 +341,33 @@ export default function AdminExamScheduleScreen() {
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
-            <View style={{ padding: 16, paddingTop: 24 }}>
-                <Header title="Exam Schedules" subtitle="Manage Dates" showBack />
+            <View style={{ padding: 16, paddingTop: 24, paddingBottom: 8 }}>
+                <Header title="Exam Management" subtitle="Manage Schedules" showBack />
 
                 <Pressable
                     onPress={() => setShowInitModal(true)}
                     style={{
-                        backgroundColor: colors.primary,
+                        backgroundColor: colors.primary + "15",
                         padding: 12,
                         borderRadius: 12,
                         flexDirection: "row",
                         alignItems: "center",
                         justifyContent: "center",
-                        marginTop: 16,
-                        gap: 8
+                        marginTop: 12,
+                        gap: 8,
+                        borderWidth: 1,
+                        borderColor: colors.primary + "30"
                     }}
                 >
-                    <MaterialIcons name="playlist-add-check" size={24} color="#fff" />
-                    <Text style={{ color: "#fff", fontFamily: "DMSans-Bold", fontSize: 16 }}>
+                    <MaterialIcons name="playlist-add-check" size={24} color={colors.primary} />
+                    <Text style={{ color: colors.primary, fontFamily: "DMSans-Bold", fontSize: 16 }}>
                         Initialize School Exams
                     </Text>
                 </Pressable>
             </View>
 
             <View style={{ paddingHorizontal: 16, marginBottom: 16 }}>
-                <Text style={{ color: colors.textSecondary, marginBottom: 8 }}>Select Class</Text>
+                <Text style={{ color: colors.textSecondary, marginBottom: 8, fontSize: 13, fontFamily: "DMSans-Medium" }}>Filter by Class</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View style={{ flexDirection: "row", gap: 8 }}>
                         {classes.map(cls => (
@@ -356,7 +383,7 @@ export default function AdminExamScheduleScreen() {
                                     borderColor: selectedClassId === cls._id ? colors.primary : colors.textSecondary + "20"
                                 }}
                             >
-                                <Text style={{ color: selectedClassId === cls._id ? "#fff" : colors.textPrimary }}>
+                                <Text style={{ color: selectedClassId === cls._id ? "#fff" : colors.textPrimary, fontFamily: "DMSans-Medium" }}>
                                     {formatClassName(cls.name, cls.section)}
                                 </Text>
                             </Pressable>
@@ -365,86 +392,104 @@ export default function AdminExamScheduleScreen() {
                 </ScrollView>
             </View>
 
-            <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
+            <ScrollView 
+                contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+                refreshControl={
+                    <RefreshControl 
+                        refreshing={refreshing} 
+                        onRefresh={onRefresh} 
+                        colors={[colors.primary]} 
+                        tintColor={colors.primary}
+                    />
+                }
+            >
                 {loading ? (
                     <ActivityIndicator color={colors.primary} style={{ marginTop: 40 }} />
-                ) : exams.length === 0 ? (
-                    <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
-                        <MaterialIcons name="event-busy" size={48} color={colors.textSecondary} />
-                        <Text style={{ color: colors.textSecondary, marginTop: 16 }}>No exams found for this class</Text>
-                    </View>
                 ) : (
-                    exams.map((exam) => (
-                        <View
-                            key={exam._id}
-                            style={{
-                                backgroundColor: colors.cardBackground,
-                                borderRadius: 16,
-                                padding: 16,
-                                marginBottom: 12,
-                                flexDirection: "row",
-                                justifyContent: "space-between",
-                                alignItems: "center"
-                            }}
-                        >
-                            <View style={{ flex: 1 }}>
-                                <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
-                                    {exam.subject?.name}
-                                </Text>
-                                <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
-                                    {exam.name} • {exam.type}
-                                </Text>
-                                <View style={{ flexDirection: "row", alignItems: "center", marginTop: 6, gap: 6 }}>
-                                    <MaterialIcons name="calendar-today" size={14} color={colors.primary} />
-                                    <Text style={{ color: colors.textPrimary, fontFamily: "DMSans-Medium" }}>
-                                        {new Date(exam.date).toLocaleDateString()}
-                                    </Text>
-                                </View>
-                                {exam.room && (
-                                    <View style={{ flexDirection: "row", alignItems: "center", marginTop: 4, gap: 6 }}>
-                                        <MaterialIcons name="meeting-room" size={14} color={colors.textSecondary} />
-                                        <Text style={{ color: colors.textSecondary, fontSize: 13, fontFamily: "DMSans-Medium" }}>
-                                            {exam.room}
-                                        </Text>
-                                    </View>
-                                )}
-                            </View>
-
-                            <Pressable
-                                onPress={() => {
-                                    setEditingExam(exam);
-                                    setNewDate(new Date(exam.date));
-                                    setNewRoom(exam.room || "");
-                                    setShowDatePicker(true);
-                                }}
-                                style={{
-                                    padding: 8,
-                                    backgroundColor: colors.primary + "15",
-                                    borderRadius: 8,
-                                    marginRight: 8
-                                }}
-                            >
-                                <MaterialIcons name="edit" size={20} color={colors.primary} />
-                            </Pressable>
-
-                            <Pressable
-                                onPress={() => handleDeleteExam(exam)}
-                                disabled={deletingExamId === exam._id}
-                                style={{
-                                    padding: 8,
-                                    backgroundColor: colors.error + "15" || "#ff4444" + "15",
-                                    borderRadius: 8,
-                                    opacity: deletingExamId === exam._id ? 0.5 : 1
-                                }}
-                            >
-                                {deletingExamId === exam._id ? (
-                                    <ActivityIndicator size={20} color={colors.error || "#ff4444"} />
-                                ) : (
-                                    <MaterialIcons name="delete" size={20} color={colors.error || "#ff4444"} />
-                                )}
-                            </Pressable>
+                    exams.length === 0 ? (
+                        <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
+                            <MaterialIcons name="event-busy" size={48} color={colors.textSecondary} />
+                            <Text style={{ color: colors.textSecondary, marginTop: 16 }}>No exams found for this class</Text>
                         </View>
-                    ))
+                    ) : (
+                        exams.map((exam) => (
+                            <View
+                                key={exam._id}
+                                style={{
+                                    backgroundColor: colors.cardBackground,
+                                    borderRadius: 16,
+                                    padding: 16,
+                                    marginBottom: 12,
+                                    flexDirection: "row",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    borderWidth: 1,
+                                    borderColor: colors.textSecondary + "08"
+                                }}
+                            >
+                                <View style={{ flex: 1 }}>
+                                    <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
+                                        {exam.subject?.name}
+                                    </Text>
+                                    <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 }}>
+                                        <View style={{ paddingHorizontal: 6, paddingVertical: 2, backgroundColor: colors.primary + "15", borderRadius: 4 }}>
+                                            <Text style={{ color: colors.primary, fontSize: 10, fontFamily: "DMSans-Bold" }}>{exam.standardizedType || 'EXAM'}</Text>
+                                        </View>
+                                    </View>
+                                    <View style={{ flexDirection: "row", alignItems: "center", marginTop: 8, gap: 12 }}>
+                                        <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                                            <MaterialIcons name="calendar-today" size={14} color={colors.textSecondary} />
+                                            <Text style={{ color: colors.textPrimary, fontSize: 13, fontFamily: "DMSans-Medium" }}>
+                                                {new Date(exam.date).toLocaleDateString()}
+                                            </Text>
+                                        </View>
+                                        {exam.room && (
+                                            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                                                <MaterialIcons name="meeting-room" size={14} color={colors.textSecondary} />
+                                                <Text style={{ color: colors.textSecondary, fontSize: 13, fontFamily: "DMSans-Medium" }}>
+                                                    {exam.room}
+                                                </Text>
+                                            </View>
+                                        )}
+                                    </View>
+                                </View>
+
+                                <View style={{ flexDirection: "row", gap: 8 }}>
+                                    <Pressable
+                                        onPress={() => {
+                                            setEditingExam(exam);
+                                            setNewDate(new Date(exam.date));
+                                            setNewRoom(exam.room || "");
+                                            setShowDatePicker(true);
+                                        }}
+                                        style={{
+                                            padding: 10,
+                                            backgroundColor: colors.primary + "10",
+                                            borderRadius: 10,
+                                        }}
+                                    >
+                                        <MaterialIcons name="edit" size={20} color={colors.primary} />
+                                    </Pressable>
+
+                                    <Pressable
+                                        onPress={() => handleDeleteExam(exam)}
+                                        disabled={deletingExamId === exam._id}
+                                        style={{
+                                            padding: 10,
+                                            backgroundColor: (colors.error || "#ff4444") + "10",
+                                            borderRadius: 10,
+                                        }}
+                                    >
+                                        {deletingExamId === exam._id ? (
+                                            <ActivityIndicator size={20} color={colors.error || "#ff4444"} />
+                                        ) : (
+                                            <MaterialIcons name="delete" size={20} color={colors.error || "#ff4444"} />
+                                        )}
+                                    </Pressable>
+                                </View>
+                            </View>
+                        ))
+                    )
                 )}
             </ScrollView>
 
