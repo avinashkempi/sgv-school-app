@@ -100,15 +100,16 @@ const StudentDashboard = () => {
             {data.charts?.performanceTrend && data.charts.performanceTrend.length > 0 ? (
                 <ChartCard
                     title="Performance Trend (Academic Year)"
+                    subtitle="Avg % across all subjects per exam"
                     chartType="line"
-                    labels={data.charts.performanceTrend.map(d => d.subject?.substring(0, 3) || 'Sub')}
-                    data={data.charts.performanceTrend.map(d => d.marks)}
+                    labels={data.charts.performanceTrend.map(d => d.examType)}
+                    data={data.charts.performanceTrend.map(d => d.percentage)}
                 />
             ) : (
                 <EmptyState
                     icon="show-chart"
                     title="No Performance Data"
-                    message="Your performance data will appear here once exams are graded"
+                    message="Your performance data will appear here once exam marks are published"
                 />
             )}
         </ScrollView>

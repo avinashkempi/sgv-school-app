@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Pressable, ActivityIndicator, ScrollView, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useApiQuery, useApiMutation, createApiMutationFn } from '../../hooks/useApi';
+import apiFetch from '../../utils/apiFetch';
 import { useQueryClient } from '@tanstack/react-query';
 import apiConfig from '../../config/apiConfig';
 import { useToast } from '../../components/ToastProvider';
@@ -29,6 +30,20 @@ export default function AdminAttendance() {
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [selectedClass, setSelectedClass] = useState(null);
     const [refreshing, setRefreshing] = useState(false);
+
+    // Pagination state for My Attendance tab
+    const MY_PAGE_SIZE = 30;
+    const [myPage, setMyPage] = useState(1);
+    const [allMyAttendance, setAllMyAttendance] = useState([]);
+    const [myHasMore, setMyHasMore] = useState(false);
+    const [myLoadingMore, setMyLoadingMore] = useState(false);
+    const [mySummaryData, setMySummaryData] = useState(null);
+
+    // Show More state
+    const [absentVisible, setAbsentVisible] = useState(15);
+    const ABSENT_PAGE = 15;
+    const [trackerVisible, setTrackerVisible] = useState(10);
+    const TRACKER_PAGE = 10;
 
     const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -69,14 +84,43 @@ export default function AdminAttendance() {
     );
     const staffList = staffListResponse?.data;
 
-    // Fetch My Attendance
-    const { data: myAttendanceData, isLoading: myAttendanceLoading, refetch: refetchMyAttendance } = useApiQuery(
-        ['myAttendance'],
-        `${apiConfig.baseUrl}/attendance/my-attendance`,
-        { enabled: activeTab === 'my_attendance', staleTime: 2 * 60 * 1000, gcTime: 10 * 60 * 1000 }
+    // Fetch My Attendance (page 1) — subsequent pages fetched via loadMoreMyAttendance
+    const { isLoading: myAttendanceLoading, refetch: refetchMyAttendance } = useApiQuery(
+        ['myAttendanceAdmin'],
+        `${apiConfig.baseUrl}/attendance/my-attendance?page=1&limit=${MY_PAGE_SIZE}`,
+        {
+            enabled: activeTab === 'my_attendance',
+            staleTime: 2 * 60 * 1000,
+            gcTime: 10 * 60 * 1000,
+            onSuccess: (data) => {
+                setAllMyAttendance(data?.attendance || []);
+                setMySummaryData(data?.summary || null);
+                setMyHasMore(data?.pagination?.hasMore || false);
+                setMyPage(1);
+            }
+        }
     );
-    const myAttendance = myAttendanceData?.attendance || [];
-    const mySummary = myAttendanceData?.summary || null;
+
+    const loadMoreMyAttendance = useCallback(async () => {
+        if (myLoadingMore || !myHasMore) return;
+        setMyLoadingMore(true);
+        try {
+            const nextPage = myPage + 1;
+            const res = await apiFetch(`${apiConfig.baseUrl}/attendance/my-attendance?page=${nextPage}&limit=${MY_PAGE_SIZE}`);
+            const data = await res.json();
+            if (data?.attendance?.length > 0) {
+                setAllMyAttendance(prev => [...prev, ...data.attendance]);
+                setMyHasMore(data?.pagination?.hasMore || false);
+                setMyPage(nextPage);
+            } else {
+                setMyHasMore(false);
+            }
+        } catch (e) {
+            console.error('loadMoreMyAttendance error:', e);
+        } finally {
+            setMyLoadingMore(false);
+        }
+    }, [myLoadingMore, myHasMore, myPage]);
 
     // Fetch Classes Marked
     const { data: classesMarkedResponse } = useApiQuery(
@@ -100,10 +144,10 @@ export default function AdminAttendance() {
 
     const onRefresh = async () => {
         setRefreshing(true);
-        if (activeTab === 'summary') await refetchSummary();
+        if (activeTab === 'summary') { await refetchSummary(); setAbsentVisible(ABSENT_PAGE); }
         if (activeTab === 'student') await refetchStudent();
         if (activeTab === 'staff') await refetchStaff();
-        if (activeTab === 'tracker') await refetchTracker();
+        if (activeTab === 'tracker') { await refetchTracker(); setTrackerVisible(TRACKER_PAGE); }
         if (activeTab === 'my_attendance') await refetchMyAttendance();
         setRefreshing(false);
     };
@@ -435,17 +479,29 @@ export default function AdminAttendance() {
                             {(schoolSummary?.absentList || []).length === 0 ? (
                                 <Text style={styles.emptyText}>No one marked absent yet.</Text>
                             ) : (
-                                schoolSummary.absentList.map((item) => (
-                                    <View key={item._id} style={styles.absentRow}>
-                                        <View>
-                                            <Text style={styles.absentName}>{item.name}</Text>
-                                            <Text style={styles.absentRole}>{item.designation ? item.designation : item.role === 'support_staff' ? 'Support Staff' : item.role} {item.className ? `• ${formatClassName(item.className)}` : ''}</Text>
+                                <>
+                                    {schoolSummary.absentList.slice(0, absentVisible).map((item) => (
+                                        <View key={item._id} style={styles.absentRow}>
+                                            <View>
+                                                <Text style={styles.absentName}>{item.name}</Text>
+                                                <Text style={styles.absentRole}>{item.designation ? item.designation : item.role === 'support_staff' ? 'Support Staff' : item.role} {item.className ? `• ${formatClassName(item.className)}` : ''}</Text>
+                                            </View>
+                                            <View style={styles.absentTag}>
+                                                <Text style={styles.absentTagText}>Absent</Text>
+                                            </View>
                                         </View>
-                                        <View style={styles.absentTag}>
-                                            <Text style={styles.absentTagText}>Absent</Text>
-                                        </View>
-                                    </View>
-                                ))
+                                    ))}
+                                    {absentVisible < schoolSummary.absentList.length && (
+                                        <TouchableOpacity
+                                            onPress={() => setAbsentVisible(v => v + ABSENT_PAGE)}
+                                            style={{ alignItems: 'center', paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: colors.primary + '50', marginTop: 8 }}
+                                        >
+                                            <Text style={{ fontSize: 14, fontFamily: 'DMSans-SemiBold', color: colors.primary }}>
+                                                Show More ({schoolSummary.absentList.length - absentVisible} remaining)
+                                            </Text>
+                                        </TouchableOpacity>
+                                    )}
+                                </>
                             )}
                         </ScrollView>
                     )}
@@ -617,72 +673,84 @@ export default function AdminAttendance() {
                             <Text style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 16, fontFamily: 'DMSans-Regular' }}>
                                 Shows days where classes missed marking attendance.
                             </Text>
-                            <FlatList
-                                data={trackerData}
-                                keyExtractor={(item) => item.date}
-                                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-                                renderItem={({ item }) => (
-                                    <View style={{
-                                        backgroundColor: colors.cardBackground,
-                                        borderRadius: 12,
-                                        padding: 16,
-                                        marginBottom: 12,
-                                        elevation: 1,
-                                        borderLeftWidth: 4,
-                                        borderLeftColor: item.missingCount > 0 ? colors.error : colors.success
-                                    }}>
-                                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                                            <Text style={{ fontSize: 16, fontFamily: 'DMSans-Bold', color: colors.textPrimary }}>
-                                                {new Date(item.date).toDateString()}
-                                            </Text>
-                                            <View style={{ backgroundColor: item.missingCount > 0 ? colors.error + '20' : colors.success + '20', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
-                                                <Text style={{ fontSize: 12, fontFamily: 'DMSans-Bold', color: item.missingCount > 0 ? colors.error : colors.success }}>
-                                                    {item.missingCount > 0 ? `${item.missingCount} Missing` : 'Complete'}
-                                                </Text>
-                                            </View>
-                                        </View>
-                                        {item.missingCount > 0 ? (
-                                            <View>
-                                                <Text style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 4, fontFamily: 'DMSans-Medium' }}>
-                                                    Classes that missed attendance:
-                                                </Text>
-                                                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-                                                    {item.missingClasses.map((cls, idx) => (
-                                                        <Text key={idx} style={{
-                                                            fontSize: 12,
-                                                            backgroundColor: colors.surfaceContainer,
-                                                            paddingHorizontal: 8,
-                                                            paddingVertical: 4,
-                                                            borderRadius: 4,
-                                                            color: colors.textPrimary
-                                                        }}>
-                                                            {formatClassName(cls.name, cls.section)}
-                                                        </Text>
-                                                    ))}
-                                                </View>
-                                            </View>
-                                        ) : (
-                                            <Text style={{ fontSize: 13, color: colors.textSecondary, fontFamily: 'DMSans-Regular' }}>
-                                                All {item.totalCount} classes marked attendance on this day.
-                                            </Text>
-                                        )}
-                                    </View>
-                                )}
-                                ListEmptyComponent={
+                            <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />} contentContainerStyle={{ paddingBottom: 100 }}>
+                                {trackerData.length === 0 ? (
                                     <EmptyState title="No Tracking Data" message="There is no attendance tracking data for the selected period." icon="event-busy" />
-                                }
-                                contentContainerStyle={{ paddingBottom: 100 }}
-                            />
+                                ) : (
+                                    <>
+                                        {trackerData.slice(0, trackerVisible).map((item) => (
+                                            <View key={item.date} style={{
+                                                backgroundColor: colors.cardBackground,
+                                                borderRadius: 12,
+                                                padding: 16,
+                                                marginBottom: 12,
+                                                elevation: 1,
+                                                borderLeftWidth: 4,
+                                                borderLeftColor: item.missingCount > 0 ? colors.error : colors.success
+                                            }}>
+                                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                                    <Text style={{ fontSize: 16, fontFamily: 'DMSans-Bold', color: colors.textPrimary }}>
+                                                        {new Date(item.date).toDateString()}
+                                                    </Text>
+                                                    <View style={{ backgroundColor: item.missingCount > 0 ? colors.error + '20' : colors.success + '20', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
+                                                        <Text style={{ fontSize: 12, fontFamily: 'DMSans-Bold', color: item.missingCount > 0 ? colors.error : colors.success }}>
+                                                            {item.missingCount > 0 ? `${item.missingCount} Missing` : 'Complete'}
+                                                        </Text>
+                                                    </View>
+                                                </View>
+                                                {item.missingCount > 0 ? (
+                                                    <View>
+                                                        <Text style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 4, fontFamily: 'DMSans-Medium' }}>
+                                                            Classes that missed attendance:
+                                                        </Text>
+                                                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                                                            {item.missingClasses.map((cls, idx) => (
+                                                                <Text key={idx} style={{
+                                                                    fontSize: 12,
+                                                                    backgroundColor: colors.surfaceContainer,
+                                                                    paddingHorizontal: 8,
+                                                                    paddingVertical: 4,
+                                                                    borderRadius: 4,
+                                                                    color: colors.textPrimary
+                                                                }}>
+                                                                    {formatClassName(cls.name, cls.section)}
+                                                                </Text>
+                                                            ))}
+                                                        </View>
+                                                    </View>
+                                                ) : (
+                                                    <Text style={{ fontSize: 13, color: colors.textSecondary, fontFamily: 'DMSans-Regular' }}>
+                                                        All {item.totalCount} classes marked attendance on this day.
+                                                    </Text>
+                                                )}
+                                            </View>
+                                        ))}
+                                        {trackerVisible < trackerData.length && (
+                                            <TouchableOpacity
+                                                onPress={() => setTrackerVisible(v => v + TRACKER_PAGE)}
+                                                style={{ alignItems: 'center', paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: colors.primary + '50', marginTop: 4, marginBottom: 8 }}
+                                            >
+                                                <Text style={{ fontSize: 14, fontFamily: 'DMSans-SemiBold', color: colors.primary }}>
+                                                    Show More ({trackerData.length - trackerVisible} remaining)
+                                                </Text>
+                                            </TouchableOpacity>
+                                        )}
+                                    </>
+                                )}
+                            </ScrollView>
                         </View>
                     )}
 
                     {activeTab === 'my_attendance' && (
                         <AttendanceView
-                            attendanceHistory={myAttendance}
-                            summary={mySummary}
-                            loading={loading}
+                            attendanceHistory={allMyAttendance}
+                            summary={mySummaryData}
+                            loading={myAttendanceLoading}
                             refreshing={refreshing}
                             onRefresh={onRefresh}
+                            onLoadMore={loadMoreMyAttendance}
+                            loadingMore={myLoadingMore}
+                            hasMore={myHasMore}
                             title="My Attendance Log"
                             subtitle="Track your admin attendance"
                         />
