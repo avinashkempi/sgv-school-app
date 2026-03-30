@@ -112,6 +112,13 @@ export default function AdminExamScheduleScreen() {
 
     const [refreshing, setRefreshing] = useState(false);
 
+    // Fetch Current User
+    const { data: userData } = useApiQuery(
+        ['currentUser'],
+        `${apiConfig.baseUrl}/auth/me`
+    );
+    const currentUser = userData?.user;
+
     // Fetch Classes
     const { data: classesData, isLoading: classesLoading } = useApiQuery(
         ['adminClassesInit'],
@@ -471,21 +478,23 @@ export default function AdminExamScheduleScreen() {
                                         <MaterialIcons name="edit" size={20} color={colors.primary} />
                                     </Pressable>
 
-                                    <Pressable
-                                        onPress={() => handleDeleteExam(exam)}
-                                        disabled={deletingExamId === exam._id}
-                                        style={{
-                                            padding: 10,
-                                            backgroundColor: (colors.error || "#ff4444") + "10",
-                                            borderRadius: 10,
-                                        }}
-                                    >
-                                        {deletingExamId === exam._id ? (
-                                            <ActivityIndicator size={20} color={colors.error || "#ff4444"} />
-                                        ) : (
-                                            <MaterialIcons name="delete" size={20} color={colors.error || "#ff4444"} />
-                                        )}
-                                    </Pressable>
+                                    {(currentUser?.role === 'admin' || currentUser?.role === 'super admin') && (
+                                        <Pressable
+                                            onPress={() => handleDeleteExam(exam)}
+                                            disabled={deletingExamId === exam._id}
+                                            style={{
+                                                padding: 10,
+                                                backgroundColor: (colors.error || "#ff4444") + "10",
+                                                borderRadius: 10,
+                                            }}
+                                        >
+                                            {deletingExamId === exam._id ? (
+                                                <ActivityIndicator size={20} color={colors.error || "#ff4444"} />
+                                            ) : (
+                                                <MaterialIcons name="delete" size={20} color={colors.error || "#ff4444"} />
+                                            )}
+                                        </Pressable>
+                                    )}
                                 </View>
                             </View>
                         ))

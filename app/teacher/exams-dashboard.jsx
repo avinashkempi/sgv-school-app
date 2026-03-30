@@ -45,10 +45,10 @@ export default function TeacherExamDashboard() {
 
     // Calculate overall summary
     const overallSummary = dashboard.reduce((acc, item) => {
-        acc.examsCreated += item.summary.examsCreated;
-        acc.marksEntered += item.summary.marksEntered;
-        acc.marksPublished += item.summary.marksPublished;
-        acc.pending += item.summary.pending;
+        acc.examsCreated += item.summary?.examsCreated || 0;
+        acc.marksEntered += item.summary?.marksEntered || 0;
+        acc.marksPublished += item.summary?.marksPublished || 0;
+        acc.pending += item.summary?.pending || 0;
         return acc;
     }, { examsCreated: 0, marksEntered: 0, marksPublished: 0, pending: 0 });
 
@@ -155,9 +155,9 @@ export default function TeacherExamDashboard() {
         );
     };
 
-    const renderClassSubjectCard = (item) => (
+    const renderClassSubjectCard = (item, index) => (
         <View
-            key={`${item.classId}-${item.subjectId}`}
+            key={`card-${item.classId || 'noid'}-${item.subjectId || 'noid'}-${index}`}
             style={{
                 backgroundColor: colors.surfaceContainerLow,
                 borderRadius: 16,
@@ -208,7 +208,7 @@ export default function TeacherExamDashboard() {
             }}>
                 <View style={{ flex: 1 }}>
                     <Text style={{ fontSize: 20, fontFamily: 'DMSans-Bold', color: colors.primary }}>
-                        {item.summary.examsCreated}/6
+                        {item.summary?.examsCreated || 0}/6
                     </Text>
                     <Text style={{ fontSize: 11, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant }}>
                         Created
@@ -216,7 +216,7 @@ export default function TeacherExamDashboard() {
                 </View>
                 <View style={{ flex: 1 }}>
                     <Text style={{ fontSize: 20, fontFamily: 'DMSans-Bold', color: colors.success }}>
-                        {item.summary.marksEntered}
+                        {item.summary?.marksEntered || 0}
                     </Text>
                     <Text style={{ fontSize: 11, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant }}>
                         Marks Entered
@@ -224,7 +224,7 @@ export default function TeacherExamDashboard() {
                 </View>
                 <View style={{ flex: 1 }}>
                     <Text style={{ fontSize: 20, fontFamily: 'DMSans-Bold', color: colors.error }}>
-                        {item.summary.pending}
+                        {item.summary?.pending || 0}
                     </Text>
                     <Text style={{ fontSize: 11, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant }}>
                         Pending
@@ -336,7 +336,7 @@ export default function TeacherExamDashboard() {
                         </Text>
                     </View>
                 ) : (
-                    dashboard.map(item => renderClassSubjectCard(item))
+                    dashboard.map((item, index) => renderClassSubjectCard(item, index))
                 )}
             </View>
         </View>
@@ -375,9 +375,9 @@ export default function TeacherExamDashboard() {
                             </Text>
                         </View>
                     ) : (
-                        dashboard.map(item => (
+                        dashboard.map((item, index) => (
                             <Pressable
-                                key={`${item.classId}-${item.subjectId}`}
+                                key={`${item.classId}-${item.subjectId}-${index}`}
                                 onPress={() => handleViewReports(item.classId, item.subjectId)}
                                 style={({ pressed }) => ({
                                     backgroundColor: colors.surfaceContainerLow,
