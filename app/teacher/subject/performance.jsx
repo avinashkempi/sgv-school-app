@@ -158,7 +158,7 @@ export default function SubjectPerformanceScreen() {
                                         color: getGradeColor(exam.overallAvgPercentage),
                                         marginTop: 4
                                     }}>
-                                        {exam.overallAvgPercentage.toFixed(1)}% avg
+                                        {exam.overallAvgPercentage?.toFixed(1) || '0.0'}% avg
                                     </Text>
                                 </View>
                             </View>

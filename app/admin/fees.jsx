@@ -6,7 +6,8 @@ import {
     Pressable,
     ActivityIndicator,
     TextInput,
-    FlatList
+    FlatList,
+    RefreshControl
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import storage from "../../utils/storage";
@@ -27,6 +28,19 @@ export default function AdminFeesScreen() {
 
     const [activeTab, setActiveTab] = useState("dashboard"); // dashboard, collect, structure, students
     const queryClient = useQueryClient();
+    const [refreshing, setRefreshing] = useState(false);
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        try {
+            await Promise.all([
+                queryClient.invalidateQueries(['feeAnalytics']),
+                queryClient.invalidateQueries(['studentsFeeSummary', selectedYearId])
+            ]);
+        } finally {
+            setRefreshing(false);
+        }
+    };
 
 
     // Collect Fees State
@@ -51,7 +65,7 @@ export default function AdminFeesScreen() {
     const [selectedStudents, setSelectedStudents] = useState([]);
 
     // Fetch Analytics
-    const { data: analytics = { collectedToday: 0, collectedThisMonth: 0, totalCollected: 0 }, isLoading: analyticsLoading } = useApiQuery(
+    const { data: analytics = { collectedToday: 0, collectedThisMonth: 0, totalCollected: 0, totalExpectedFees: 0, totalPending: 0, totalArrears: 0 }, isLoading: analyticsLoading } = useApiQuery(
         ['feeAnalytics'],
         `${apiConfig.baseUrl}/fees/analytics`
     );
@@ -273,9 +287,22 @@ export default function AdminFeesScreen() {
                 </View>
             </View>
 
-            <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+            <ScrollView 
+                contentContainerStyle={{ paddingBottom: 100 }}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} />
+                }
+            >
                 {activeTab === 'dashboard' && (
                     <View style={{ padding: 16 }}>
+                        {/* Summary Headers */}
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>Overview</Text>
+                            <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>
+                                Collection Rate: {analytics.totalExpectedFees > 0 ? ((analytics.totalCollected / analytics.totalExpectedFees) * 100).toFixed(1) : 0}%
+                            </Text>
+                        </View>
+
                         {/* Hero Card */}
                         <View style={{
                             backgroundColor: colors.primary,
@@ -339,6 +366,29 @@ export default function AdminFeesScreen() {
                                 </Text>
                             </View>
                         </View>
+
+                        {/* Extended Insights Grid */}
+                        <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginTop: 24, marginBottom: 12 }}>Insights</Text>
+                        <View style={{ flexDirection: "row", gap: 16, marginBottom: 16 }}>
+                            <View style={{ flex: 1, backgroundColor: colors.error + "15", padding: 16, borderRadius: 16 }}>
+                                <Text style={{ color: colors.error, fontSize: 12, fontFamily: "DMSans-Bold", textTransform: "uppercase" }}>Total Pending</Text>
+                                <Text style={{ color: colors.error, fontSize: 20, fontFamily: "DMSans-Bold", marginTop: 8 }}>₹{analytics.totalPending.toLocaleString()}</Text>
+                            </View>
+                            <View style={{ flex: 1, backgroundColor: (colors.warning || "#FFB020") + "15", padding: 16, borderRadius: 16 }}>
+                                <Text style={{ color: colors.warning || "#FFB020", fontSize: 12, fontFamily: "DMSans-Bold", textTransform: "uppercase" }}>Arrears</Text>
+                                <Text style={{ color: colors.warning || "#FFB020", fontSize: 20, fontFamily: "DMSans-Bold", marginTop: 8 }}>₹{analytics.totalArrears.toLocaleString()}</Text>
+                            </View>
+                        </View>
+                        <View style={{ backgroundColor: colors.cardBackground, padding: 16, borderRadius: 16, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                            <View>
+                                <Text style={{ color: colors.textSecondary, fontSize: 13, fontFamily: "DMSans-Medium" }}>Total Expected Revenue</Text>
+                                <Text style={{ color: colors.textPrimary, fontSize: 24, fontFamily: "DMSans-Bold", marginTop: 4 }}>₹{analytics.totalExpectedFees.toLocaleString()}</Text>
+                            </View>
+                            <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: colors.primary + "15", justifyContent: "center", alignItems: "center" }}>
+                                <MaterialIcons name="account-balance-wallet" size={24} color={colors.primary} />
+                            </View>
+                        </View>
+
                     </View>
                 )}
 

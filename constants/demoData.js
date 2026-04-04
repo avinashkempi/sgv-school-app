@@ -785,9 +785,9 @@ export const DEMO_STUDENT_DASHBOARD = {
     },
     charts: {
         performanceTrend: [
-            { exam: 'Unit 1', subject: 'Math', marks: 85 },
-            { exam: 'Unit 1', subject: 'Science', marks: 78 },
-            { exam: 'Unit 1', subject: 'English', marks: 92 }
+            { examType: 'FA1', percentage: 85, subjectCount: 5 },
+            { examType: 'FA2', percentage: 78, subjectCount: 5 },
+            { examType: 'SA1', percentage: 92, subjectCount: 5 }
         ]
     }
 };

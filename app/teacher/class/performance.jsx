@@ -230,7 +230,7 @@ export default function ClassPerformanceScreen() {
                                         fontFamily: "DMSans-Bold",
                                         color: getGradeColor(exam.avgPercentage)
                                     }}>
-                                        {exam.avgPercentage.toFixed(1)}%
+                                        {exam.avgPercentage?.toFixed(1) || '0.0'}%
                                     </Text>
                                 </View>
                                 <View style={{ flex: 1, alignItems: "center" }}>
@@ -238,7 +238,7 @@ export default function ClassPerformanceScreen() {
                                         Highest
                                     </Text>
                                     <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.success }}>
-                                        {exam.highest.toFixed(1)}%
+                                        {exam.highest?.toFixed(1) || '0.0'}%
                                     </Text>
                                 </View>
                                 <View style={{ flex: 1, alignItems: "flex-end" }}>
@@ -246,7 +246,7 @@ export default function ClassPerformanceScreen() {
                                         Lowest
                                     </Text>
                                     <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.error }}>
-                                        {exam.lowest.toFixed(1)}%
+                                        {exam.lowest?.toFixed(1) || '0.0'}%
                                     </Text>
                                 </View>
                             </View>

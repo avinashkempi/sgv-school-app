@@ -102,8 +102,8 @@ const StudentDashboard = () => {
                     title="Performance Trend (Academic Year)"
                     subtitle="Avg % across all subjects per exam"
                     chartType="line"
-                    labels={data.charts.performanceTrend.map(d => d.examType)}
-                    data={data.charts.performanceTrend.map(d => d.percentage)}
+                    labels={data.charts.performanceTrend.map(d => d.examType || 'N/A')}
+                    data={data.charts.performanceTrend.map(d => typeof d.percentage === 'number' ? d.percentage : 0)}
                 />
             ) : (
                 <EmptyState
