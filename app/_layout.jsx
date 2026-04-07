@@ -30,6 +30,7 @@ Notifications.setNotificationHandler({
 import DemoBanner from "../components/DemoBanner";
 import storage from "../utils/storage";
 import { useState } from "react";
+import useOfflinePrefetch from "../hooks/useOfflinePrefetch";
 
 // separate component so we can use useTheme inside ThemeProvider
 function Inner() {
@@ -38,6 +39,8 @@ function Inner() {
   const segments = useSegments();
   const router = useRouter();
   const [isReady, setIsReady] = useState(false);
+
+  useOfflinePrefetch();
 
   useEffect(() => {
     const checkAuth = async () => {

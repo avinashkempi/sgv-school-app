@@ -61,6 +61,38 @@ export default function AdminAttendance() {
         { enabled: activeTab === 'summary', select: (d) => d.data, staleTime: 60 * 1000, gcTime: 10 * 60 * 1000 }
     );
 
+    // Fetch if current date is holiday
+    const { data: holidayData, refetch: refetchHoliday } = useApiQuery(
+        ['holidayStatus', date.toISOString().split('T')[0]],
+        `${apiConfig.baseUrl}/events?startDate=${date.toISOString().split('T')[0]}&endDate=${date.toISOString().split('T')[0]}&isHoliday=true`,
+        { enabled: activeTab !== 'my_attendance' && activeTab !== 'tracker', staleTime: 60 * 1000 }
+    );
+    const holidayEvent = (holidayData?.event && holidayData.event.length > 0) ? holidayData.event[0] : null;
+    const isSunday = date.getDay() === 0;
+    const isHoliday = isSunday || !!holidayEvent;
+    const holidayReason = isSunday ? 'Sunday (Weekend)' : holidayEvent?.title;
+
+    // Mutation to mark as holiday
+    const toggleHolidayMutation = useApiMutation({
+        mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/events`, 'POST'),
+        onSuccess: () => {
+            showToast('Holiday marked successfully', 'success');
+            refetchHoliday();
+            refetchSummary();
+        },
+        onError: () => showToast('Failed to mark holiday', 'error')
+    });
+
+    const handleMarkAsHoliday = () => {
+        toggleHolidayMutation.mutate({
+            title: 'School Holiday',
+            date: date.toISOString().split('T')[0],
+            isSchoolEvent: true,
+            isHoliday: true,
+            description: 'Manually marked as a holiday from attendance dashboard'
+        });
+    };
+
     // Fetch Classes
     const { data: classesData = [] } = useApiQuery(
         ['classes'],
@@ -273,6 +305,7 @@ export default function AdminAttendance() {
             case 'absent': return colors.error;
             case 'late': return '#FF9800';
             case 'excused': return '#2196F3';
+            case 'half-day': return '#9C27B0';
             default: return colors.textSecondary;
         }
     };
@@ -283,6 +316,7 @@ export default function AdminAttendance() {
             case 'absent': return 'cancel';
             case 'late': return 'schedule';
             case 'excused': return 'verified';
+            case 'half-day': return 'timelapse';
             default: return 'radio-button-unchecked';
         }
     };
@@ -315,7 +349,7 @@ export default function AdminAttendance() {
 
             {/* Status Buttons */}
             <View style={{ flexDirection: "row", gap: 8 }}>
-                {['present', 'absent', 'late', 'excused'].map((status) => (
+                {['present', 'half-day', 'absent', 'late', 'excused'].map((status) => (
                     <TouchableOpacity
                         key={status}
                         onPress={() => handleStaffStatusChange(index, status)}
@@ -342,7 +376,7 @@ export default function AdminAttendance() {
                                 : colors.textSecondary,
                             textTransform: "uppercase"
                         }}>
-                            {status === 'present' ? 'P' : status === 'absent' ? 'A' : status === 'late' ? 'L' : 'E'}
+                            {status === 'present' ? 'P' : status === 'half-day' ? 'HD' : status === 'absent' ? 'A' : status === 'late' ? 'L' : 'E'}
                         </Text>
                     </TouchableOpacity>
                 ))}
@@ -399,7 +433,7 @@ export default function AdminAttendance() {
 
             {/* Date Picker for Student/Staff/Summary tabs */}
             {activeTab !== 'my_attendance' && activeTab !== 'tracker' && (
-                <View style={styles.dateBar}>
+                <View style={[styles.dateBar, { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }]}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary + '15', borderRadius: 24, paddingHorizontal: 4 }}>
                         <TouchableOpacity
                             onPress={() => { const d = new Date(date); d.setDate(d.getDate() - 1); setDate(d); }}
@@ -420,6 +454,16 @@ export default function AdminAttendance() {
                             <MaterialIcons name="chevron-right" size={24} color={colors.primary} />
                         </TouchableOpacity>
                     </View>
+                    
+                    {!isHoliday && (user?.role === 'admin' || user?.role === 'super admin') && (
+                        <TouchableOpacity 
+                            style={{ marginLeft: 12, backgroundColor: colors.primary + '15', padding: 10, borderRadius: 24, justifyContent: 'center', alignItems: 'center' }}
+                            onPress={handleMarkAsHoliday}
+                        >
+                            <MaterialIcons name="event-busy" size={20} color={colors.primary} />
+                        </TouchableOpacity>
+                    )}
+
                     {showDatePicker && (
                         <DateTimePicker
                             value={date}
@@ -431,6 +475,13 @@ export default function AdminAttendance() {
                             }}
                         />
                     )}
+                </View>
+            )}
+
+            {isHoliday && activeTab !== 'my_attendance' && activeTab !== 'tracker' && (
+                <View style={{ backgroundColor: colors.primary + '15', marginHorizontal: 16, marginBottom: 16, padding: 16, borderRadius: 12, alignItems: 'center', borderColor: colors.primary, borderWidth: 1 }}>
+                    <Text style={{ fontSize: 18, fontWeight: 'bold', color: colors.primary }}>🌴 Holiday</Text>
+                    <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: 4, textAlign: 'center' }}>{holidayReason}</Text>
                 </View>
             )}
 
@@ -544,10 +595,17 @@ export default function AdminAttendance() {
 
                             {selectedClass && (
                                 <>
-                                    <FlatList
-                                        style={{ flex: 1 }}
-                                        data={localStudentAttendance}
-                                        keyExtractor={(item) => item.student._id}
+                                {isHoliday ? (
+                                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 }}>
+                                        <MaterialIcons name="event-busy" size={48} color={colors.textSecondary} />
+                                        <Text style={{ color: colors.textSecondary, fontSize: 16, marginTop: 12 }}>Attendance cannot be marked on holidays.</Text>
+                                    </View>
+                                ) : (
+                                    <>
+                                        <FlatList
+                                            style={{ flex: 1 }}
+                                            data={localStudentAttendance}
+                                            keyExtractor={(item) => item.student._id}
                                         renderItem={({ item, index }) => {
                                             const statusColor = item.status ? getStatusColor(item.status) : null;
                                             const borderColor = item.onLeave ? '#FF9800' : statusColor;
@@ -631,6 +689,8 @@ export default function AdminAttendance() {
                                             </TouchableOpacity>
                                         </View>
                                     </View>
+                                    </>
+                                )}
                                 </>
                             )}
                         </View>
@@ -638,8 +698,15 @@ export default function AdminAttendance() {
 
                     {activeTab === 'staff' && (
                         <View style={{ flex: 1 }}>
-                            <View style={styles.actionHeader}>
-                                <TouchableOpacity onPress={markAllStaffPresent} style={styles.textButton}>
+                            {isHoliday ? (
+                                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 }}>
+                                    <MaterialIcons name="event-busy" size={48} color={colors.textSecondary} />
+                                    <Text style={{ color: colors.textSecondary, fontSize: 16, marginTop: 12 }}>Attendance cannot be marked on holidays.</Text>
+                                </View>
+                            ) : (
+                                <>
+                                    <View style={styles.actionHeader}>
+                                        <TouchableOpacity onPress={markAllStaffPresent} style={styles.textButton}>
                                     <Text style={[styles.textButtonText, { color: colors.primary }]}>Mark All Present</Text>
                                 </TouchableOpacity>
                             </View>
@@ -664,6 +731,8 @@ export default function AdminAttendance() {
                                     )}
                                 </TouchableOpacity>
                             </View>
+                                </>
+                            )}
                         </View>
                     )}
 

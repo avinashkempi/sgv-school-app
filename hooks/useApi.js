@@ -22,18 +22,29 @@ export function useApiQuery(key, url, options = {}) {
     return useQuery({
         queryKey: key,
         queryFn: async () => {
-            const response = await apiFetch(url);
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                const isAuthError = response.status === 401;
-                const error = new ApiError(
-                    errorData.message || 'Network response was not ok',
-                    response.status,
-                    isAuthError
-                );
+            try {
+                const response = await apiFetch(url);
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    const isAuthError = response.status === 401;
+                    const error = new ApiError(
+                        errorData.message || 'Network response was not ok',
+                        response.status,
+                        isAuthError
+                    );
+                    throw error;
+                }
+                return response.json();
+            } catch (error) {
+                // Wrap pure native network errors defensively
+                if (error instanceof TypeError && error.message.includes('Network request failed')) {
+                    if (options.silent) {
+                        return null; // Gracefully degrade if requested
+                    }
+                    throw new ApiError('You are currently offline', 0, false);
+                }
                 throw error;
             }
-            return response.json();
         },
         // Prevent retry on auth errors (401)
         // For other errors, retry as per default or passed options
@@ -64,19 +75,30 @@ export function useApiInfiniteQuery(key, urlFn, options = {}) {
     return useInfiniteQuery({
         queryKey: key,
         queryFn: async ({ pageParam = 1 }) => {
-            const url = urlFn(pageParam);
-            const response = await apiFetch(url);
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                const isAuthError = response.status === 401;
-                const error = new ApiError(
-                    errorData.message || 'Network response was not ok',
-                    response.status,
-                    isAuthError
-                );
+            try {
+                const url = urlFn(pageParam);
+                const response = await apiFetch(url);
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    const isAuthError = response.status === 401;
+                    const error = new ApiError(
+                        errorData.message || 'Network response was not ok',
+                        response.status,
+                        isAuthError
+                    );
+                    throw error;
+                }
+                return response.json();
+            } catch (error) {
+                // Wrap pure native network errors defensively
+                if (error instanceof TypeError && error.message.includes('Network request failed')) {
+                    if (options.silent) {
+                        return null; // Gracefully degrade if requested
+                    }
+                    throw new ApiError('You are currently offline', 0, false);
+                }
                 throw error;
             }
-            return response.json();
         },
         // Prevent retry on auth errors (401)
         retry: (failureCount, error) => {

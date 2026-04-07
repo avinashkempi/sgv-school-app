@@ -30,6 +30,7 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [isSchoolEvent, setIsSchoolEvent] = useState(false);
+  const [isHoliday, setIsHoliday] = useState(false);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const { colors, styles: globalStyles } = useTheme();
@@ -43,10 +44,12 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
         setTitle(editItem.title || '');
         setDescription(editItem.description || '');
         setIsSchoolEvent(editItem.isSchoolEvent !== undefined ? editItem.isSchoolEvent : false);
+        setIsHoliday(editItem.isHoliday !== undefined ? editItem.isHoliday : false);
       } else {
         setTitle('');
         setDescription('');
         setIsSchoolEvent(false);
+        setIsHoliday(false);
       }
       setErrors({});
       setTouched({});
@@ -106,6 +109,7 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
       date: isEditing ? editItem.date : selectedDate,
       description: description.trim(),
       isSchoolEvent: isSchoolEvent,
+      isHoliday: isHoliday,
       _id: editItem?._id // Pass ID if editing
     });
   };
@@ -189,6 +193,19 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
               style={{ marginRight: 8 }}
             />
             <Text style={[globalStyles.cardText, { color: colors.textPrimary }]}>Mark as School Event</Text>
+          </Pressable>
+
+          <Pressable
+            style={{ marginBottom: 16, flexDirection: 'row', alignItems: 'center' }}
+            onPress={() => setIsHoliday(!isHoliday)}
+          >
+            <MaterialIcons
+              name={isHoliday ? "check-box" : "check-box-outline-blank"}
+              size={24}
+              color={colors.primary}
+              style={{ marginRight: 8 }}
+            />
+            <Text style={[globalStyles.cardText, { color: colors.textPrimary }]}>Mark as Holiday (Skips Attendance)</Text>
           </Pressable>
 
           <Pressable

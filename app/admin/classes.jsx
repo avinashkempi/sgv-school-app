@@ -16,7 +16,7 @@ import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/useApi";
 import apiConfig from "../../config/apiConfig";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useToast } from "../../components/ToastProvider";
 import AppHeader from "../../components/Header";
 import { formatClassName } from "../../utils/formatClassName";
@@ -47,10 +47,13 @@ export default function ClassesScreen() {
     );
 
     // Fetch Data (Classes, Years, Teachers)
-    const { data: initData, isLoading: loading, refetch } = useApiQuery(
+    const { data: initData, isLoading: loading, error: fetchError, refetch } = useApiQuery(
         ['adminClassesInit'],
-        `${apiConfig.baseUrl}/classes/admin/init`
+        `${apiConfig.baseUrl}/classes/admin/init`,
+        { placeholderData: keepPreviousData }
     );
+
+    const isOfflineData = !!fetchError && !!initData;
 
     const classes = initData?.classes || [];
     const teachers = initData?.teachers || [];
@@ -150,6 +153,13 @@ export default function ClassesScreen() {
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
                     <AppHeader title="Classes" subtitle="Manage classes and sections" showBack />
+
+                    {isOfflineData && (
+                        <View style={{ backgroundColor: colors.warning + '20', padding: 12, borderRadius: 8, marginTop: 16, flexDirection: 'row', alignItems: 'center' }}>
+                            <MaterialIcons name="cloud-off" size={20} color={colors.warning} style={{ marginRight: 8 }} />
+                            <Text style={{ color: colors.warning, fontSize: 13, flex: 1, fontFamily: 'DMSans-Medium' }}>You are currently offline. Showing cached classes from your last session.</Text>
+                        </View>
+                    )}
 
                     <View style={{ marginTop: 16 }}>
                         {classes.map((cls) => (

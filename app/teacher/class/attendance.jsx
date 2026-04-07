@@ -173,6 +173,17 @@ export default function MarkAttendanceScreen() {
         }
     };
 
+    // Fetch if current date is holiday
+    const { data: holidayData } = useApiQuery(
+        ['holidayStatus', dateStr],
+        `${apiConfig.baseUrl}/events?startDate=${dateStr}&endDate=${dateStr}&isHoliday=true`,
+        { staleTime: 60 * 1000 }
+    );
+    const holidayEvent = (holidayData?.event && holidayData.event.length > 0) ? holidayData.event[0] : null;
+    const isSunday = selectedDate.getDay() === 0;
+    const isHoliday = isSunday || !!holidayEvent;
+    const holidayReason = isSunday ? 'Sunday (Weekend)' : holidayEvent?.title;
+
     // Computed counts
     const presentCount = useMemo(() => students.filter(s => s.status === 'present').length, [students]);
     const absentCount = useMemo(() => students.filter(s => s.status === 'absent').length, [students]);
@@ -256,8 +267,15 @@ export default function MarkAttendanceScreen() {
                         </View>
                     )}
 
+                    {isHoliday && (
+                        <View style={{ backgroundColor: colors.primary + '15', marginVertical: 16, padding: 16, borderRadius: 12, alignItems: 'center', borderColor: colors.primary, borderWidth: 1 }}>
+                            <Text style={{ fontSize: 18, fontWeight: 'bold', color: colors.primary }}>🌴 Holiday</Text>
+                            <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: 4, textAlign: 'center' }}>{holidayReason}</Text>
+                        </View>
+                    )}
+
                     {/* Action Buttons — Mark All Present + Save */}
-                    {!isLoading && students.length > 0 && (
+                    {!isHoliday && !isLoading && students.length > 0 && (
                         <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
                             <Pressable
                                 onPress={handleMarkAllPresent}
@@ -311,7 +329,7 @@ export default function MarkAttendanceScreen() {
                     )}
 
                     {/* Live Counter */}
-                    {!isLoading && students.length > 0 && (
+                    {!isHoliday && !isLoading && students.length > 0 && (
                         <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 16, marginTop: 12, marginBottom: 4 }}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                                 <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: colors.success }} />
@@ -338,11 +356,13 @@ export default function MarkAttendanceScreen() {
                     )}
 
                     {/* Students List Header */}
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, marginBottom: 12 }}>
-                        <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
-                            Students ({students.length})
-                        </Text>
-                    </View>
+                    {!isHoliday && (
+                        <>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, marginBottom: 12 }}>
+                            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
+                                Students ({students.length})
+                            </Text>
+                        </View>
 
                     {isLoading ? (
                         <View style={{ flex: 1, justifyContent: "center", alignItems: "center", marginTop: 60 }}>
@@ -507,6 +527,8 @@ export default function MarkAttendanceScreen() {
                                 )}
                             </Pressable>
                         </View>
+                    )}
+                    </>
                     )}
                 </View>
             </ScrollView>
