@@ -18,6 +18,7 @@ import apiConfig from '../../config/apiConfig';
 import Header from '../../components/Header';
 import Card from '../../components/Card';
 import formatClassName from '../../utils/formatClassName';
+import { useRouter } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
@@ -27,6 +28,7 @@ const { width } = Dimensions.get('window');
  */
 export default function ExamAnalyticsScreen() {
     const { colors } = useTheme();
+    const router = useRouter();
     const [refreshing, setRefreshing] = useState(false);
     const [activeView, setActiveView] = useState('overview'); // 'overview' | 'classes' | 'subjects'
     const [selectedItem, setSelectedItem] = useState(null); // item clicked for drill-down
@@ -508,6 +510,42 @@ export default function ExamAnalyticsScreen() {
                                     );
                                 })}
                             </ScrollView>
+
+                            {type === 'class' && (
+                                <Pressable
+                                    onPress={() => {
+                                        setSelectedItem(null);
+                                        setTimeout(() => {
+                                            router.push(`/shared/class-reports?classId=${data.classId}`);
+                                        }, 300);
+                                    }}
+                                    style={({ pressed }) => ({
+                                        backgroundColor: colors.primary,
+                                        paddingVertical: 14,
+                                        borderRadius: 12,
+                                        alignItems: 'center',
+                                        flexDirection: 'row',
+                                        justifyContent: 'center',
+                                        gap: 8,
+                                        marginTop: 20,
+                                        opacity: pressed ? 0.9 : 1,
+                                        shadowColor: colors.primary,
+                                        shadowOffset: { width: 0, height: 4 },
+                                        shadowOpacity: 0.3,
+                                        shadowRadius: 8,
+                                        elevation: 4,
+                                    })}
+                                >
+                                    <MaterialIcons name="assessment" size={20} color="#FFFFFF" />
+                                    <Text style={{
+                                        fontSize: 15,
+                                        fontFamily: 'DMSans-Bold',
+                                        color: '#FFFFFF'
+                                    }}>
+                                        View Student Rankings & Reports
+                                    </Text>
+                                </Pressable>
+                            )}
                         </View>
                     </Pressable>
                 </Pressable>

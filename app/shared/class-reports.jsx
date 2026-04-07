@@ -204,7 +204,7 @@ export default function ClassReportsDashboard() {
                     Student Rankings
                 </Text>
 
-                {analyticsData.studentRankings.slice(0, 10).map((student, index) => (
+                {analyticsData.studentRankings.map((student, index) => (
                     <View
                         key={student.studentId}
                         style={{
