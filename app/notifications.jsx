@@ -93,8 +93,7 @@ export default function NotificationsScreen() {
                 .filter(n => !n.isRead)
                 .forEach(n => markAsRead(n._id));
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [markAsRead, notifications]);
 
     const togglePreference = (key) => {
         const newPreferences = { ...preferences, [key]: !preferences[key] };
@@ -268,7 +267,7 @@ export default function NotificationsScreen() {
                         </View>
 
                         <Text style={{ color: colors.onSurfaceVariant, marginBottom: 24, fontSize: 15 }}>
-                            Choose what you'd like to be notified about.
+                            Choose what you would like to be notified about.
                         </Text>
 
                         {Object.keys(preferences).map((key) => (

@@ -36,7 +36,9 @@ export const NotificationProvider = ({ children }) => {
 
                 // Listen for new push notifications (Foreground)
                 notificationListener = Notifications.addNotificationReceivedListener(_notification => {
-                    console.log('[FCM] Notification received in foreground, refetching...');
+                    if (__DEV__) {
+                        console.log('[FCM] Notification received in foreground, refetching...');
+                    }
                     // Automatically refetch notifications to update UI
                     fetchNotifications();
                 });
@@ -53,7 +55,7 @@ export const NotificationProvider = ({ children }) => {
         };
     }, [fetchNotifications]);
 
-    const markAsReadContext = async (id) => {
+    const markAsReadContext = useCallback(async (id) => {
         try {
             const response = await apiFetch(`${apiConfig.baseUrl}/notifications/${id}/read`, {
                 method: 'PUT'
@@ -67,9 +69,9 @@ export const NotificationProvider = ({ children }) => {
             console.error('[NotificationContext] Mark Read Error:', error);
         }
         return false;
-    };
+    }, []);
 
-    const deleteNotificationContext = async (id) => {
+    const deleteNotificationContext = useCallback(async (id) => {
         try {
             const response = await apiFetch(`${apiConfig.baseUrl}/notifications/${id}`, {
                 method: 'DELETE'
@@ -90,9 +92,9 @@ export const NotificationProvider = ({ children }) => {
             console.error('[NotificationContext] Delete Error:', error);
         }
         return false;
-    };
+    }, [notifications]);
 
-    const markAllReadContext = async () => {
+    const markAllReadContext = useCallback(async () => {
         try {
             const response = await apiFetch(`${apiConfig.baseUrl}/notifications/mark-all-read`, {
                 method: 'PUT'
@@ -106,7 +108,7 @@ export const NotificationProvider = ({ children }) => {
             console.error('[NotificationContext] Mark All Read Error:', error);
         }
         return false;
-    };
+    }, []);
 
     return (
         <NotificationContext.Provider value={{

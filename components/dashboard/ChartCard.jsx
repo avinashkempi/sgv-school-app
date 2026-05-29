@@ -60,8 +60,8 @@ const ChartCard = ({ title, chartType, data, labels, height = 220, secondary = f
                         withInnerLines={false}
                     />
                 );
-            case 'pie':
-                const pieData = data.map((item, index) => ({
+            case 'pie': {
+                const pieData = (data || []).map((item, index) => ({
                     name: item.name,
                     population: item.value,
                     color: index === 0 ? colors.primary : (index === 1 ? colors.secondary : colors.tertiary),
@@ -80,6 +80,7 @@ const ChartCard = ({ title, chartType, data, labels, height = 220, secondary = f
                         absolute
                     />
                 );
+            }
             default:
                 return null;
         }

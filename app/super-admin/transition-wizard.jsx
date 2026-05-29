@@ -495,7 +495,7 @@ export default function TransitionWizardScreen() {
                         🔐 Security Confirmation Required
                     </Text>
                     <Text style={{ fontSize: 13, fontFamily: 'DMSans-Regular', color: colors.onSurfaceVariant, marginBottom: 12 }}>
-                        Type "CONFIRM TRANSITION" to proceed:
+                        Type CONFIRM TRANSITION to proceed:
                     </Text>
                     <TextInput
                         value={confirmationText}

@@ -35,5 +35,8 @@
         "varsIgnorePattern": "^_"
       }
     ]
+  },
+  "globals": {
+    "__DEV__": "readonly"
   }
 }
