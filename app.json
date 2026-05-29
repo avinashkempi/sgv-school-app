@@ -9,7 +9,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.sgvschool.app"
+      "bundleIdentifier": "com.sgvschool.app",
+      "infoPlist": {
+        "LSApplicationQueriesSchemes": ["itms-apps"]
+      }
     },
     "web": {
       "bundler": "metro",

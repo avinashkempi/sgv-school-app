@@ -106,6 +106,16 @@ function Inner() {
     };
   }, []);
 
+  // Check for store app updates on mount
+  useEffect(() => {
+    try {
+      const { checkAppUpdate } = require('../utils/inAppUpdates');
+      checkAppUpdate();
+    } catch (err) {
+      console.warn('Failed to initialize app update check:', err);
+    }
+  }, []);
+
   if (!isReady) {
     return (
       <SafeAreaView style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }]}>
