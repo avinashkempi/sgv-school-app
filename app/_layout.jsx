@@ -13,7 +13,7 @@ import * as Notifications from 'expo-notifications';
 import { getFCMToken, registerFCMTokenWithBackend } from '../utils/fcm';
 import { NavigationProvider } from "../context/NavigationContext";
 import { NotificationProvider } from "../context/NotificationContext";
-import { AcademicYearProvider } from "../contexts/AcademicYearContext";
+import { AcademicYearProvider, useAcademicYear } from "../contexts/AcademicYearContext";
 
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { queryClient, persister } from '../utils/queryClient';
@@ -39,6 +39,7 @@ function Inner() {
   const segments = useSegments();
   const router = useRouter();
   const [isReady, setIsReady] = useState(false);
+  const { syncYear } = useAcademicYear();
 
   useOfflinePrefetch();
 
@@ -55,6 +56,9 @@ function Inner() {
       } else if (token && inLoginGroup) {
         // Token exists and on login page -> Redirect to home
         router.replace('/');
+      } else if (token && !inLoginGroup) {
+        // Logged in, sync academic year context
+        syncYear();
       }
 
       setIsReady(true);

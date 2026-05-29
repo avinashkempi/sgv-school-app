@@ -8,10 +8,13 @@ import YearSelector from "./academic-year/YearSelector";
 import { useApiQuery } from "../hooks/useApi";
 import apiConfig from "../config/apiConfig";
 
+import { useAcademicYear } from "../contexts/AcademicYearContext";
+
 const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
   const router = useRouter();
   const { colors, styles } = useTheme();
   const { unreadCount } = useNotifications();
+  const { selectedYear } = useAcademicYear();
 
   // Fetch user to check if Super Admin for Time Travel UI
   const { data: userData } = useApiQuery(
@@ -37,10 +40,39 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
         alignItems: "flex-start",
       }}>
         <View style={{ flex: 1 }}>
-          {isSuperAdmin && (
+          {isSuperAdmin ? (
             <View style={{ marginBottom: 12 }}>
               <YearSelector />
             </View>
+          ) : (
+            selectedYear && (
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: selectedYear.isActive ? colors.primaryContainer : colors.errorContainer,
+                paddingHorizontal: 10,
+                paddingVertical: 4,
+                borderRadius: 16,
+                borderWidth: 1,
+                borderColor: selectedYear.isActive ? colors.primary : colors.error,
+                marginBottom: 12,
+                alignSelf: 'flex-start'
+              }}>
+                <MaterialIcons
+                  name={selectedYear.status === 'archived' ? 'history' : 'calendar-today'}
+                  size={12}
+                  color={selectedYear.isActive ? colors.onPrimaryContainer : colors.onErrorContainer}
+                />
+                <Text style={{
+                  fontSize: 11,
+                  fontFamily: 'DMSans-Bold',
+                  marginLeft: 4,
+                  color: selectedYear.isActive ? colors.onPrimaryContainer : colors.onErrorContainer
+                }}>
+                  {selectedYear.name}
+                </Text>
+              </View>
+            )
           )}
           <Text style={{
             fontSize: 14,
@@ -125,10 +157,39 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
       )}
 
       <View style={{ flex: 1, paddingRight: 16 }}>
-        {isSuperAdmin && (
+        {isSuperAdmin ? (
           <View style={{ marginBottom: 4 }}>
             <YearSelector />
           </View>
+        ) : (
+          selectedYear && (
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: selectedYear.isActive ? colors.primaryContainer : colors.errorContainer,
+              paddingHorizontal: 8,
+              paddingVertical: 2,
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: selectedYear.isActive ? colors.primary : colors.error,
+              marginBottom: 4,
+              alignSelf: 'flex-start'
+            }}>
+              <MaterialIcons
+                name={selectedYear.status === 'archived' ? 'history' : 'calendar-today'}
+                size={10}
+                color={selectedYear.isActive ? colors.onPrimaryContainer : colors.onErrorContainer}
+              />
+              <Text style={{
+                fontSize: 10,
+                fontFamily: 'DMSans-Bold',
+                marginLeft: 4,
+                color: selectedYear.isActive ? colors.onPrimaryContainer : colors.onErrorContainer
+              }}>
+                {selectedYear.name}
+              </Text>
+            </View>
+          )
         )}
         <Text style={{
           fontSize: 22,
