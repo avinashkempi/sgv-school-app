@@ -1,6 +1,6 @@
 import { Stack, useRouter, useSegments } from "expo-router";
 import { useFonts } from "expo-font";
-import { Text, Platform, View, ActivityIndicator } from "react-native";
+import { Text, Platform, ActivityIndicator } from "react-native";
 import { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemeProvider, useTheme } from "../theme";
@@ -21,7 +21,8 @@ import { queryClient, persister } from '../utils/queryClient';
 // Configure how notifications are displayed when app is in foreground
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
   }),
@@ -65,7 +66,7 @@ function Inner() {
     };
 
     checkAuth();
-  }, [segments]);
+  }, [router, segments, syncYear]);
 
   // Setup push notifications
   useEffect(() => {

@@ -1,6 +1,5 @@
 import * as Notifications from 'expo-notifications';
 import { Platform, Alert } from 'react-native';
-import Constants from 'expo-constants';
 
 /**
  * Get the FCM (Firebase Cloud Messaging) registration token using Expo Notifications
@@ -20,7 +19,9 @@ export async function getFCMToken() {
     }
 
     if (finalStatus !== 'granted') {
-      console.log('Permission denied');
+      if (__DEV__) {
+        console.log('Push notification permission denied');
+      }
       return null;
     }
 
@@ -37,7 +38,9 @@ export async function getFCMToken() {
     }
 
     const token = tokenData.data;
-    console.log('Push Token:', token);
+    if (__DEV__) {
+      console.log('[FCM] Push token received');
+    }
 
     // Validate token format
     if (!token || typeof token !== 'string' || token.length === 0) {
@@ -92,7 +95,9 @@ export async function registerFCMTokenWithBackend(token) {
 
     // Skip FCM registration in demo mode
     if (authToken === 'demo-token') {
-      console.log('[FCM] Skipping token registration in demo mode');
+      if (__DEV__) {
+        console.log('[FCM] Skipping token registration in demo mode');
+      }
       return true;
     }
 
@@ -131,7 +136,9 @@ export async function registerFCMTokenWithBackend(token) {
     }
 
     const _result = await response.json();
-    console.log('[FCM] Token registered with backend successfully');
+    if (__DEV__) {
+      console.log('[FCM] Token registered with backend successfully');
+    }
 
     return true;
   } catch (error) {

@@ -12,7 +12,7 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "test": "jest --watchAll",
-    "lint": "expo lint",
+    "lint": "eslint . --ext .js,.jsx",
     "lint:fix": "npx eslint --ext .js,.jsx app/ --fix",
     "postinstall": "patch-package"
   },

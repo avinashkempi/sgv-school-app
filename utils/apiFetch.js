@@ -6,8 +6,12 @@ import * as demoData from '../constants/demoData';
 // 2. Intercepts requests for Demo Mode
 export default async function apiFetch(input, init = {}) {
   const url = typeof input === 'string' ? input : input.url;
-  console.log(`[apiFetch] Calling: ${url}`, { method: init.method || 'GET' });
-  const { _silent = false, ...fetchInit } = init;
+  const { _silent = false, silent = false, ...fetchInit } = init;
+  const isSilent = _silent || silent;
+
+  if (__DEV__ && !isSilent) {
+    console.log(`[apiFetch] Calling: ${url}`, { method: init.method || 'GET' });
+  }
 
   // Get auth token from storage
   const token = await storage.getItem('@auth_token');
@@ -110,7 +114,9 @@ export default async function apiFetch(input, init = {}) {
       // Non-Super Admins MUST be forced to the active year if it differs
       if (!isSuperAdmin) {
         if (!storedYear || storedYear._id !== activeYear._id) {
-          console.log(`[apiFetch] Backend forced academic year context update to: ${activeYear.name}`);
+          if (__DEV__) {
+            console.log(`[apiFetch] Backend forced academic year context update to: ${activeYear.name}`);
+          }
           
           // 1. Update AsyncStorage
           await storage.setItem('selectedAcademicYear', JSON.stringify(activeYear));

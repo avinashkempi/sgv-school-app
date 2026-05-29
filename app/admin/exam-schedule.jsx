@@ -617,7 +617,7 @@ export default function AdminExamScheduleScreen() {
                             </View>
 
                             <Text style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 20, fontFamily: "DMSans-Regular" }}>
-                                This will create the selected exam type for the selected scope where it doesn't exist yet.
+                                This will create the selected exam type for the selected scope where it does not exist yet.
                             </Text>
 
                             {/* Scope Selection */}

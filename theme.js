@@ -449,7 +449,9 @@ export function ThemeProvider({ children }) {
 
     return () => {
       mounted = false;
-      try { sub && sub.remove && sub.remove(); } catch (e) { }
+      try { sub && sub.remove && sub.remove(); } catch (e) {
+        console.warn('Theme listener cleanup failed:', e);
+      }
     };
   }, []);
 
