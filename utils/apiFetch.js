@@ -94,6 +94,41 @@ export default async function apiFetch(input, init = {}) {
     headers,
   });
 
+  // Intercept response headers to check if academic year has been updated on backend
+  try {
+    const activeYearHeader = response.headers.get('x-active-academic-year');
+    if (activeYearHeader) {
+      const activeYear = JSON.parse(activeYearHeader);
+      
+      const storedYearStr = await storage.getItem('selectedAcademicYear');
+      const storedYear = storedYearStr ? JSON.parse(storedYearStr) : null;
+
+      const userStr = await storage.getItem('@auth_user');
+      const user = userStr ? JSON.parse(userStr) : null;
+      const isSuperAdmin = user?.role === 'super admin';
+
+      // Non-Super Admins MUST be forced to the active year if it differs
+      if (!isSuperAdmin) {
+        if (!storedYear || storedYear._id !== activeYear._id) {
+          console.log(`[apiFetch] Backend forced academic year context update to: ${activeYear.name}`);
+          
+          // 1. Update AsyncStorage
+          await storage.setItem('selectedAcademicYear', JSON.stringify(activeYear));
+          
+          // 2. Update React Context state immediately
+          const { notifyAcademicYearChange } = require('../contexts/AcademicYearContext');
+          notifyAcademicYearChange(activeYear);
+          
+          // 3. Invalidate React Query caches to trigger UI refresh
+          const { queryClient } = require('./queryClient');
+          queryClient.invalidateQueries();
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('apiFetch: Error checking/syncing active year header', err);
+  }
+
   return response;
 }
 

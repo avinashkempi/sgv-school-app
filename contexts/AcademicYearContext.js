@@ -106,6 +106,14 @@ export const AcademicYearProvider = ({ children }) => {
         }
     };
 
+    // Allow external updates (like from fetch interceptor)
+    useEffect(() => {
+        activeYearSetter = setSelectedYear;
+        return () => {
+            activeYearSetter = null;
+        };
+    }, []);
+
     return (
         <AcademicYearContext.Provider value={{
             selectedYear,
@@ -116,6 +124,14 @@ export const AcademicYearProvider = ({ children }) => {
             {children}
         </AcademicYearContext.Provider>
     );
+};
+
+let activeYearSetter = null;
+
+export const notifyAcademicYearChange = (newYear) => {
+    if (activeYearSetter) {
+        activeYearSetter(newYear);
+    }
 };
 
 export const useAcademicYear = () => {
