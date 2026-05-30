@@ -82,11 +82,17 @@ export default async function apiFetch(input, init = {}) {
 
   // Inject Time-Travel Context Header for Super Admins
   try {
-    const storedYearStr = await storage.getItem('selectedAcademicYear');
-    if (storedYearStr) {
-      const storedYear = JSON.parse(storedYearStr);
-      if (storedYear && storedYear._id) {
-        headers['x-academic-year'] = storedYear._id;
+    const userStr = await storage.getItem('@auth_user');
+    const user = userStr ? JSON.parse(userStr) : null;
+    const isSuperAdmin = user?.role === 'super admin';
+
+    if (isSuperAdmin) {
+      const storedYearStr = await storage.getItem('selectedAcademicYear');
+      if (storedYearStr) {
+        const storedYear = JSON.parse(storedYearStr);
+        if (storedYear && storedYear._id) {
+          headers['x-academic-year'] = storedYear._id;
+        }
       }
     }
   } catch (err) {

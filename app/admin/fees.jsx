@@ -874,7 +874,7 @@ export default function AdminFeesScreen() {
                                         >
                                             <View style={{ flex: 2 }}>
                                                 <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary, fontSize: 14 }}>{item.name}</Text>
-                                                <Text style={{ color: colors.textSecondary, fontSize: 11 }}>{item.rollNo ? `Roll: ${item.rollNo}` : ''}</Text>
+                                                <Text style={{ color: colors.textSecondary, fontSize: 11 }}>{item.regNo ? `Reg No: ${item.regNo}` : ''}</Text>
                                             </View>
                                             <View style={{ flex: 1.5, alignItems: "center" }}>
                                                 <View style={{ backgroundColor: colors.background, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 }}>

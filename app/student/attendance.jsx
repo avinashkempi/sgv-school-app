@@ -124,8 +124,10 @@ export default function StudentAttendanceScreen() {
             };
         }
         // Fallback: compute from loaded history
+        // Count late, excused, half-day as present to match backend & monthly breakdown calculations
+        const PRESENT_STATUSES = ['present', 'late', 'excused', 'half-day'];
         const total = allHistory.length;
-        const present = allHistory.filter(r => r.status === 'present').length;
+        const present = allHistory.filter(r => PRESENT_STATUSES.includes(r.status)).length;
         const percentage = total > 0 ? ((present / total) * 100).toFixed(1) : 0;
         return { present, total, percentage };
     }, [summary, allHistory]);
