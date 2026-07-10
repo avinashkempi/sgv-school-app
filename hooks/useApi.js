@@ -26,7 +26,7 @@ export function useApiQuery(key, url, options = {}) {
                 const response = await apiFetch(url);
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
-                    const isAuthError = response.status === 401;
+                    const isAuthError = response.status === 401 || (response.status === 403 && errorData.message === 'Invalid or expired token');
                     const error = new ApiError(
                         errorData.message || 'Network response was not ok',
                         response.status,
@@ -80,7 +80,7 @@ export function useApiInfiniteQuery(key, urlFn, options = {}) {
                 const response = await apiFetch(url);
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
-                    const isAuthError = response.status === 401;
+                    const isAuthError = response.status === 401 || (response.status === 403 && errorData.message === 'Invalid or expired token');
                     const error = new ApiError(
                         errorData.message || 'Network response was not ok',
                         response.status,
@@ -156,7 +156,7 @@ export const createApiMutationFn = (url, method = 'POST') => async (data) => {
 
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        const isAuthError = response.status === 401;
+        const isAuthError = response.status === 401 || (response.status === 403 && errorData.message === 'Invalid or expired token');
         const error = new ApiError(
             errorData.message || 'Network request failed',
             response.status,
