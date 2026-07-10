@@ -26,10 +26,11 @@ export default function UserDetailModal({ visible, onClose, user }) {
     };
 
     const getRoleDisplay = (user) => {
-        if ((user.role === 'teacher' || user.role === 'staff' || user.role === 'support_staff') && user.designation) {
+        const role = user.role || 'student';
+        if ((role === 'teacher' || role === 'staff' || role === 'support_staff') && user.designation) {
             return user.designation;
         }
-        return user.role.replace('_', ' ');
+        return role.replace('_', ' ');
     };
 
     return (
@@ -103,7 +104,7 @@ export default function UserDetailModal({ visible, onClose, user }) {
                         )}
 
                         {/* Role Specific Details - Student */}
-                        {user.role === 'student' && (
+                        {(user.role === 'student' || !user.role) && (
                             <>
                                 <DetailSection title="ACADEMIC & IDENTITY">
                                     <View style={{ flexDirection: 'row', gap: 16 }}>
