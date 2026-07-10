@@ -18,7 +18,7 @@ const getTimeAgo = (dateString) => {
     return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
 };
 
-const UserCard = ({ userItem, getRoleColor, getRoleDisplay, colors, onEdit, onDelete, onPress }) => {
+const UserCard = ({ userItem, getRoleColor, getRoleDisplay, colors, onEdit, onDelete, onResetPassword, onPress }) => {
     return (
         <Pressable
             onPress={onPress}
@@ -100,6 +100,31 @@ const UserCard = ({ userItem, getRoleColor, getRoleDisplay, colors, onEdit, onDe
 
                 {/* Actions */}
                 <View style={{ flexDirection: 'row', gap: 12 }}>
+                    <Pressable
+                        onPress={(e) => {
+                            e.stopPropagation();
+                            const userPhone = userItem.phone || userItem.phone2;
+                            if (!userPhone) {
+                                Alert.alert("Error", "This user has no phone number to reset password with.");
+                                return;
+                            }
+                            Alert.alert(
+                                "Reset Password",
+                                `Are you sure you want to reset the password for ${userItem.name} to ${userPhone}@123?`,
+                                [
+                                    { text: "Cancel", style: "cancel" },
+                                    { text: "Reset", onPress: () => onResetPassword(), style: "default" }
+                                ]
+                            );
+                        }}
+                        style={({ pressed }) => ({
+                            padding: 6,
+                            opacity: pressed ? 0.7 : 1
+                        })}
+                    >
+                        <MaterialIcons name="vpn-key" size={22} color={colors.primary} />
+                    </Pressable>
+
                     <Pressable
                         onPress={(e) => {
                             e.stopPropagation();

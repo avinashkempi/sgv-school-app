@@ -116,6 +116,15 @@ export default function AdminScreen() {
     onError: (error) => showToast(error.message || "Failed to revert promotion", "error")
   });
 
+  const resetPasswordMutation = useApiMutation({
+    mutationFn: (id) => createApiMutationFn(`${apiConfig.baseUrl}/users/${id}/reset-password`, 'PUT')(),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      showToast(data.message || "Password reset successfully", "success");
+    },
+    onError: (error) => showToast(error.message || "Failed to reset password", "error")
+  });
+
   const updateUserRole = (userId, newRole) => {
     updateUserMutation.mutate({ _id: userId, role: newRole });
   };
@@ -456,6 +465,7 @@ export default function AdminScreen() {
           setShowUserModal(true);
         }}
         onDelete={() => deleteUser(userItem._id, userItem.name)}
+        onResetPassword={() => resetPasswordMutation.mutate(userItem._id)}
         onPress={() => {
           setSelectedDetailUser(userItem);
           setShowDetailModal(true);

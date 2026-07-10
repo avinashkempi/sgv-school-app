@@ -1,5 +1,5 @@
 import React, { useState, } from "react";
-import { View, Text, ScrollView, RefreshControl, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, RefreshControl, ActivityIndicator, TextInput, Modal, Pressable, Alert } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import storage from "../utils/storage";
 import { useTheme } from "../theme";
@@ -8,7 +8,7 @@ import { formatDate } from "../utils/date";
 import { useRouter } from "expo-router";
 import { logoutHandler } from "../utils/logoutHandler";
 
-import { useApiQuery } from "../hooks/useApi";
+import { useApiQuery, useApiMutation, createApiMutationFn } from "../hooks/useApi";
 import apiConfig from "../config/apiConfig";
 
 import Card from "../components/Card";
@@ -28,6 +28,46 @@ export default function ProfileScreen() {
       select: (data) => data.user
     }
   );
+
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+
+  const changePasswordMutation = useApiMutation({
+    mutationFn: (data) => createApiMutationFn(`${apiConfig.baseUrl}/auth/change-password`, 'POST')(data),
+    onSuccess: () => {
+      showToast("Password changed successfully", "success");
+      setShowChangePasswordModal(false);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    },
+    onError: (error) => {
+      showToast(error.message || "Failed to change password", "error");
+    }
+  });
+
+  const handleChangePasswordSubmit = () => {
+    if (user && !user.mustChangePassword && !currentPassword) {
+      showToast("Current password is required", "error");
+      return;
+    }
+    if (!newPassword || newPassword.length < 8) {
+      showToast("New password must be at least 8 characters long", "error");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      showToast("Passwords do not match", "error");
+      return;
+    }
+    changePasswordMutation.mutate({
+      currentPassword: user.mustChangePassword ? undefined : currentPassword,
+      newPassword
+    });
+  };
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -287,7 +327,18 @@ export default function ProfileScreen() {
         )}
       </View>
 
-      <View>
+      <View style={{ gap: 12 }}>
+        {user && (
+          <Button
+            variant="outlined"
+            onPress={() => setShowChangePasswordModal(true)}
+            icon="lock"
+            style={{ borderColor: colors.primary }}
+            textStyle={{ color: colors.primary }}
+          >
+            Change Password
+          </Button>
+        )}
         {user ? (
           <Button
             variant="filled"
@@ -308,6 +359,144 @@ export default function ProfileScreen() {
           </Button>
         )}
       </View>
+
+      {/* Change Password Modal */}
+      {user && (
+        <Modal
+          visible={showChangePasswordModal}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setShowChangePasswordModal(false)}
+        >
+          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+            <View style={{ backgroundColor: colors.background, borderRadius: 24, padding: 24, width: '100%', maxWidth: 400, borderWidth: 1, borderColor: colors.border }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
+                  Change Password
+                </Text>
+                <Pressable onPress={() => {
+                  setShowChangePasswordModal(false);
+                  setCurrentPassword('');
+                  setNewPassword('');
+                  setConfirmPassword('');
+                }}>
+                  <MaterialIcons name="close" size={24} color={colors.textSecondary} />
+                </Pressable>
+              </View>
+
+              {/* Current Password Field (only if mustChangePassword is not true) */}
+              {!user.mustChangePassword && (
+                <View style={{ marginBottom: 16 }}>
+                  <Text style={{ fontSize: 13, fontFamily: "DMSans-Bold", color: colors.textSecondary, marginBottom: 8 }}>
+                    CURRENT PASSWORD
+                  </Text>
+                  <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    borderRadius: 12,
+                    paddingHorizontal: 12,
+                    backgroundColor: colors.cardBackground
+                  }}>
+                    <TextInput
+                      style={{ flex: 1, paddingVertical: 12, fontSize: 15, fontFamily: "DMSans-Medium", color: colors.textPrimary }}
+                      placeholder="Enter current password"
+                      placeholderTextColor={colors.textSecondary}
+                      value={currentPassword}
+                      onChangeText={setCurrentPassword}
+                      secureTextEntry={!showCurrentPassword}
+                      autoCapitalize="none"
+                    />
+                    <Pressable onPress={() => setShowCurrentPassword(!showCurrentPassword)} style={{ padding: 4 }}>
+                      <MaterialIcons name={showCurrentPassword ? "visibility-off" : "visibility"} size={20} color={colors.textSecondary} />
+                    </Pressable>
+                  </View>
+                </View>
+              )}
+
+              {/* New Password Field */}
+              <View style={{ marginBottom: 16 }}>
+                <Text style={{ fontSize: 13, fontFamily: "DMSans-Bold", color: colors.textSecondary, marginBottom: 8 }}>
+                  NEW PASSWORD
+                </Text>
+                <View style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  borderRadius: 12,
+                  paddingHorizontal: 12,
+                  backgroundColor: colors.cardBackground
+                }}>
+                  <TextInput
+                    style={{ flex: 1, paddingVertical: 12, fontSize: 15, fontFamily: "DMSans-Medium", color: colors.textPrimary }}
+                    placeholder="At least 8 characters"
+                    placeholderTextColor={colors.textSecondary}
+                    value={newPassword}
+                    onChangeText={setNewPassword}
+                    secureTextEntry={!showNewPassword}
+                    autoCapitalize="none"
+                  />
+                  <Pressable onPress={() => setShowNewPassword(!showNewPassword)} style={{ padding: 4 }}>
+                    <MaterialIcons name={showNewPassword ? "visibility-off" : "visibility"} size={20} color={colors.textSecondary} />
+                  </Pressable>
+                </View>
+              </View>
+
+              {/* Confirm New Password Field */}
+              <View style={{ marginBottom: 24 }}>
+                <Text style={{ fontSize: 13, fontFamily: "DMSans-Bold", color: colors.textSecondary, marginBottom: 8 }}>
+                  CONFIRM NEW PASSWORD
+                </Text>
+                <View style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  borderRadius: 12,
+                  paddingHorizontal: 12,
+                  backgroundColor: colors.cardBackground
+                }}>
+                  <TextInput
+                    style={{ flex: 1, paddingVertical: 12, fontSize: 15, fontFamily: "DMSans-Medium", color: colors.textPrimary }}
+                    placeholder="Re-enter new password"
+                    placeholderTextColor={colors.textSecondary}
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    secureTextEntry={!showNewPassword}
+                    autoCapitalize="none"
+                  />
+                </View>
+              </View>
+
+              {/* Actions */}
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                <Button
+                  variant="outlined"
+                  onPress={() => {
+                    setShowChangePasswordModal(false);
+                    setCurrentPassword('');
+                    setNewPassword('');
+                    setConfirmPassword('');
+                  }}
+                  style={{ flex: 1 }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="filled"
+                  onPress={handleChangePasswordSubmit}
+                  loading={changePasswordMutation.isPending}
+                  style={{ flex: 1 }}
+                >
+                  Submit
+                </Button>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      )}
     </ScrollView>
   );
 }
