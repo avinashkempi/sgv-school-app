@@ -39,23 +39,22 @@ export default function ProfileScreen() {
   const changePasswordMutation = useApiMutation({
     mutationFn: (data) => createApiMutationFn(`${apiConfig.baseUrl}/auth/change-password`, 'POST')(data),
     onSuccess: () => {
-      showToast("Password changed successfully", "success");
+      showToast("Password reset successfully", "success");
       setShowChangePasswordModal(false);
-      setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     },
     onError: (error) => {
-      showToast(error.message || "Failed to change password", "error");
+      showToast(error.message || "Failed to reset password", "error");
     }
   });
 
   const handleChangePasswordSubmit = () => {
-    if (user && !user.mustChangePassword && !currentPassword) {
-      showToast("Current password is required", "error");
+    if (!newPassword || !confirmPassword) {
+      showToast("Both fields are mandatory", "error");
       return;
     }
-    if (!newPassword || newPassword.length < 8) {
+    if (newPassword.length < 8) {
       showToast("New password must be at least 8 characters long", "error");
       return;
     }
@@ -64,7 +63,6 @@ export default function ProfileScreen() {
       return;
     }
     changePasswordMutation.mutate({
-      currentPassword: user.mustChangePassword ? undefined : currentPassword,
       newPassword
     });
   };
@@ -336,7 +334,7 @@ export default function ProfileScreen() {
             style={{ borderColor: colors.primary }}
             textStyle={{ color: colors.primary }}
           >
-            Change Password
+            Reset Password
           </Button>
         )}
         {user ? (
@@ -360,7 +358,7 @@ export default function ProfileScreen() {
         )}
       </View>
 
-      {/* Change Password Modal */}
+      {/* Reset Password Modal */}
       {user && (
         <Modal
           visible={showChangePasswordModal}
@@ -372,48 +370,16 @@ export default function ProfileScreen() {
             <View style={{ backgroundColor: colors.background, borderRadius: 24, padding: 24, width: '100%', maxWidth: 400, borderWidth: 1, borderColor: colors.border }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                 <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
-                  Change Password
+                  Reset Password
                 </Text>
                 <Pressable onPress={() => {
                   setShowChangePasswordModal(false);
-                  setCurrentPassword('');
                   setNewPassword('');
                   setConfirmPassword('');
                 }}>
                   <MaterialIcons name="close" size={24} color={colors.textSecondary} />
                 </Pressable>
               </View>
-
-              {/* Current Password Field (only if mustChangePassword is not true) */}
-              {!user.mustChangePassword && (
-                <View style={{ marginBottom: 16 }}>
-                  <Text style={{ fontSize: 13, fontFamily: "DMSans-Bold", color: colors.textSecondary, marginBottom: 8 }}>
-                    CURRENT PASSWORD
-                  </Text>
-                  <View style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    borderWidth: 1,
-                    borderColor: colors.border,
-                    borderRadius: 12,
-                    paddingHorizontal: 12,
-                    backgroundColor: colors.cardBackground
-                  }}>
-                    <TextInput
-                      style={{ flex: 1, paddingVertical: 12, fontSize: 15, fontFamily: "DMSans-Medium", color: colors.textPrimary }}
-                      placeholder="Enter current password"
-                      placeholderTextColor={colors.textSecondary}
-                      value={currentPassword}
-                      onChangeText={setCurrentPassword}
-                      secureTextEntry={!showCurrentPassword}
-                      autoCapitalize="none"
-                    />
-                    <Pressable onPress={() => setShowCurrentPassword(!showCurrentPassword)} style={{ padding: 4 }}>
-                      <MaterialIcons name={showCurrentPassword ? "visibility-off" : "visibility"} size={20} color={colors.textSecondary} />
-                    </Pressable>
-                  </View>
-                </View>
-              )}
 
               {/* New Password Field */}
               <View style={{ marginBottom: 16 }}>
@@ -476,7 +442,6 @@ export default function ProfileScreen() {
                   variant="outlined"
                   onPress={() => {
                     setShowChangePasswordModal(false);
-                    setCurrentPassword('');
                     setNewPassword('');
                     setConfirmPassword('');
                   }}
@@ -488,9 +453,10 @@ export default function ProfileScreen() {
                   variant="filled"
                   onPress={handleChangePasswordSubmit}
                   loading={changePasswordMutation.isPending}
+                  disabled={!newPassword || !confirmPassword}
                   style={{ flex: 1 }}
                 >
-                  Submit
+                  Save
                 </Button>
               </View>
             </View>
