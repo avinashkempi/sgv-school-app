@@ -392,101 +392,8 @@ export default function AdminFeesScreen() {
                     </View>
                 )}
 
-                <View style={{ padding: 16 }}>
-                    {!selectedStudent ? (
-                        <View style={{ alignItems: "center", marginTop: 40 }}>
-                            <Text style={{ color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>Select a student to view details</Text>
-                        </View>
-                    ) : (
-                        <View>
-                            <Pressable
-                                onPress={() => setSelectedStudent(null)}
-                                style={{ flexDirection: "row", alignItems: "center", marginBottom: 20, alignSelf: "flex-start" }}
-                            >
-                                <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: colors.cardBackground, justifyContent: "center", alignItems: "center", marginRight: 8 }}>
-                                    <MaterialIcons name="arrow-back" size={20} color={colors.textPrimary} />
-                                </View>
-                                <Text style={{ color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>Back to List</Text>
-                            </Pressable>
 
-                            {/* Student Profile Card */}
-                            <View style={{
-                                backgroundColor: colors.cardBackground,
-                                padding: 24,
-                                borderRadius: 24,
-                                marginBottom: 24,
-                                alignItems: "center"
-                            }}>
-                                <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: colors.primary + "15", justifyContent: "center", alignItems: "center", marginBottom: 16 }}>
-                                    <Text style={{ fontSize: 32, fontFamily: "DMSans-Bold", color: colors.primary }}>{selectedStudent.name.charAt(0)}</Text>
-                                </View>
-                                <Text style={{ fontSize: 22, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 4 }}>{selectedStudent.name}</Text>
-                                <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 24 }}>
-                                    <View style={{ paddingHorizontal: 10, paddingVertical: 4, backgroundColor: colors.background, borderRadius: 8, marginRight: 8 }}>
-                                        <Text style={{ color: colors.textSecondary, fontSize: 13, fontFamily: "DMSans-Medium" }}>
-                                            {feeDetails?.feeStructure ? "Fee Structure Assigned" : "No Structure"}
-                                        </Text>
-                                    </View>
-                                    <Text style={{ color: colors.textSecondary }}>• {selectedStudent.phone}</Text>
-                                </View>
 
-                                <View style={{ flexDirection: "row", width: "100%", gap: 12 }}>
-                                    <View style={{ flex: 1, backgroundColor: colors.background, padding: 16, borderRadius: 16, alignItems: "center" }}>
-                                        <Text style={{ color: colors.textSecondary, fontSize: 12, marginBottom: 4 }}>Total Fees</Text>
-                                        <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary, fontSize: 18 }}>₹{feeDetails?.totalFees || 0}</Text>
-                                    </View>
-                                    <View style={{ flex: 1, backgroundColor: colors.success + "10", padding: 16, borderRadius: 16, alignItems: "center" }}>
-                                        <Text style={{ color: colors.success, fontSize: 12, marginBottom: 4 }}>Paid</Text>
-                                        <Text style={{ fontFamily: "DMSans-Bold", color: colors.success, fontSize: 18 }}>₹{feeDetails?.paidAmount || 0}</Text>
-                                    </View>
-                                    <View style={{ flex: 1, backgroundColor: colors.error + "10", padding: 16, borderRadius: 16, alignItems: "center" }}>
-                                        <Text style={{ color: colors.error, fontSize: 12, marginBottom: 4 }}>Pending</Text>
-                                        <Text style={{ fontFamily: "DMSans-Bold", color: colors.error, fontSize: 18 }}>₹{feeDetails?.pendingAmount || 0}</Text>
-                                    </View>
-                                </View>
-                            </View>
-
-                            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 16 }}>Payment History</Text>
-
-                            {feeDetails?.payments && feeDetails.payments.length > 0 ? (
-                                <View style={{ backgroundColor: colors.cardBackground, borderRadius: 24, padding: 8 }}>
-                                    {feeDetails.payments.map((payment, index) => (
-                                        <View key={payment._id || index} style={{
-                                            padding: 16,
-                                            borderBottomWidth: index === feeDetails.payments.length - 1 ? 0 : 1,
-                                            borderBottomColor: colors.textSecondary + "10",
-                                            flexDirection: "row",
-                                            justifyContent: "space-between",
-                                            alignItems: "center"
-                                        }}>
-                                            <View>
-                                                <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary, fontSize: 16 }}>₹{payment.amount}</Text>
-                                                <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 4 }}>
-                                                    {new Date(payment.paymentDate).toLocaleDateString()} • {payment.paymentMethod}
-                                                </Text>
-                                                {payment.receiptNumber && (
-                                                    <Text style={{ color: colors.textSecondary, fontSize: 12, fontFamily: "DMSans-Mono", marginTop: 2 }}>
-                                                        #{payment.receiptNumber}
-                                                    </Text>
-                                                )}
-                                            </View>
-                                            <View style={{ backgroundColor: colors.success + "15", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
-                                                <Text style={{ color: colors.success, fontSize: 12, fontFamily: "DMSans-Bold", textTransform: "capitalize" }}>
-                                                    {payment.status || "Success"}
-                                                </Text>
-                                            </View>
-                                        </View>
-                                    ))}
-                                </View>
-                            ) : (
-                                <View style={{ alignItems: "center", padding: 40, backgroundColor: colors.cardBackground, borderRadius: 24 }}>
-                                    <MaterialIcons name="receipt-long" size={48} color={colors.textSecondary + "40"} />
-                                    <Text style={{ color: colors.textSecondary, marginTop: 16, fontFamily: "DMSans-Medium" }}>No payment history found</Text>
-                                </View>
-                            )}
-                        </View>
-                    )}
-                </View>
 
                 {
                     activeTab === 'structure' && (
@@ -787,123 +694,213 @@ export default function AdminFeesScreen() {
                 {
                     activeTab === 'students' && (
                         <View style={{ padding: 16 }}>
-                            {/* Search and Sort Header */}
-                            <View style={{ flexDirection: "row", gap: 12, marginBottom: 16 }}>
-                                <TextInput
-                                    value={studentSearchQuery}
-                                    onChangeText={setStudentSearchQuery}
-                                    placeholder="Search by name, class..."
-                                    placeholderTextColor={colors.textSecondary}
-                                    style={{
-                                        flex: 1,
+                            {selectedStudent ? (
+                                <View>
+                                    <Pressable
+                                        onPress={() => setSelectedStudent(null)}
+                                        style={{ flexDirection: "row", alignItems: "center", marginBottom: 20, alignSelf: "flex-start" }}
+                                    >
+                                        <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: colors.cardBackground, justifyContent: "center", alignItems: "center", marginRight: 8 }}>
+                                            <MaterialIcons name="arrow-back" size={20} color={colors.textPrimary} />
+                                        </View>
+                                        <Text style={{ color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>Back to List</Text>
+                                    </Pressable>
+
+                                    {/* Student Profile Card */}
+                                    <View style={{
                                         backgroundColor: colors.cardBackground,
-                                        padding: 12,
-                                        borderRadius: 12,
-                                        color: colors.textPrimary,
-                                        fontFamily: "DMSans-Medium"
-                                    }}
-                                />
-                                <Pressable
-                                    onPress={() => {
-                                        setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
-                                        if (sortBy !== 'className') setSortBy('className');
-                                    }}
-                                    style={{
-                                        backgroundColor: sortBy === 'className' ? colors.primary + "20" : colors.cardBackground,
-                                        paddingHorizontal: 16,
-                                        borderRadius: 12,
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                        flexDirection: "row",
-                                        gap: 4
-                                    }}
-                                >
-                                    <Text style={{ fontFamily: "DMSans-Medium", color: sortBy === 'className' ? colors.primary : colors.textSecondary }}>Class</Text>
-                                    {sortBy === 'className' && (
-                                        <MaterialIcons name={sortOrder === 'asc' ? "arrow-drop-up" : "arrow-drop-down"} size={20} color={colors.primary} />
-                                    )}
-                                </Pressable>
-                            </View>
-
-                            {/* Table Header */}
-                            <View style={{ flexDirection: "row", paddingVertical: 12, paddingHorizontal: 16, backgroundColor: colors.primary + "10", borderRadius: 12, marginBottom: 8 }}>
-                                <Text style={{ flex: 2, fontFamily: "DMSans-Bold", color: colors.primary, fontSize: 13 }}>Student</Text>
-                                <Text style={{ flex: 1.5, fontFamily: "DMSans-Bold", color: colors.primary, fontSize: 13, textAlign: "center" }}>Class</Text>
-                                <Text style={{ flex: 1.5, fontFamily: "DMSans-Bold", color: colors.primary, fontSize: 13, textAlign: "right" }}>Pending</Text>
-                            </View>
-
-                            {studentsLoading ? (
-                                <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 40 }} />
-                            ) : (
-                                <FlatList
-                                    data={allStudents
-                                        .filter(s =>
-                                            s.name.toLowerCase().includes(studentSearchQuery.toLowerCase()) ||
-                                            (s.className && s.className.toLowerCase().includes(studentSearchQuery.toLowerCase()))
-                                        )
-                                        .sort((a, b) => {
-                                            if (sortBy === 'className') {
-                                                const classA = a.className || '';
-                                                const classB = b.className || '';
-                                                return sortOrder === 'asc' ? classA.localeCompare(classB) : classB.localeCompare(classA);
-                                            }
-                                            return 0; // Default sort order (usually by name from backend or fetch order)
-                                        })
-                                    }
-                                    scrollEnabled={false}
-                                    keyExtractor={(item) => item._id}
-                                    contentContainerStyle={{ paddingBottom: 20 }}
-                                    renderItem={({ item }) => (
-                                        <Pressable
-                                            onPress={() => {
-                                                setSelectedStudent(item);
-                                                // We might need to fetch full details here if summary is not enough, 
-                                                // but for now relying on the same logic as before which calls useApiQuery when selectedStudent is set.
-                                            }}
-                                            style={{
-                                                backgroundColor: colors.cardBackground,
-                                                paddingVertical: 14,
-                                                paddingHorizontal: 16,
-                                                borderRadius: 12,
-                                                marginBottom: 8,
-                                                flexDirection: "row",
-                                                alignItems: "center",
-                                                borderWidth: 1,
-                                                borderColor: colors.textSecondary + "10"
-                                            }}
-                                        >
-                                            <View style={{ flex: 2 }}>
-                                                <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary, fontSize: 14 }}>{item.name}</Text>
-                                                <Text style={{ color: colors.textSecondary, fontSize: 11 }}>{item.regNo ? `Reg No: ${item.regNo}` : ''}</Text>
-                                            </View>
-                                            <View style={{ flex: 1.5, alignItems: "center" }}>
-                                                <View style={{ backgroundColor: colors.background, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 }}>
-                                                    <Text style={{ fontFamily: "DMSans-Medium", color: colors.textSecondary, fontSize: 12 }}>
-                                                        {formatClassName(item.className)} {item.section ? `- ${item.section}` : ''}
-                                                    </Text>
-                                                </View>
-                                            </View>
-                                            <View style={{ flex: 1.5, alignItems: "flex-end" }}>
-                                                <Text style={{
-                                                    fontFamily: "DMSans-Bold",
-                                                    fontSize: 14,
-                                                    color: item.pendingAmount > 0 ? colors.error : colors.success
-                                                }}>
-                                                    ₹{item.pendingAmount || 0}
+                                        padding: 24,
+                                        borderRadius: 24,
+                                        marginBottom: 24,
+                                        alignItems: "center"
+                                    }}>
+                                        <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: colors.primary + "15", justifyContent: "center", alignItems: "center", marginBottom: 16 }}>
+                                            <Text style={{ fontSize: 32, fontFamily: "DMSans-Bold", color: colors.primary }}>{selectedStudent.name.charAt(0)}</Text>
+                                        </View>
+                                        <Text style={{ fontSize: 22, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 4 }}>{selectedStudent.name}</Text>
+                                        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 24 }}>
+                                            <View style={{ paddingHorizontal: 10, paddingVertical: 4, backgroundColor: colors.background, borderRadius: 8, marginRight: 8 }}>
+                                                <Text style={{ color: colors.textSecondary, fontSize: 13, fontFamily: "DMSans-Medium" }}>
+                                                    {feeDetails?.feeStructure ? "Fee Structure Assigned" : "No Structure"}
                                                 </Text>
-                                                {item.pendingAmount > 0 && (
-                                                    <Text style={{ color: colors.error, fontSize: 10 }}>Due</Text>
-                                                )}
                                             </View>
-                                        </Pressable>
-                                    )}
-                                    ListEmptyComponent={() => (
-                                        <View style={{ alignItems: "center", marginTop: 40 }}>
-                                            <MaterialIcons name="person-off" size={48} color={colors.textSecondary + "40"} />
-                                            <Text style={{ color: colors.textSecondary, marginTop: 16, fontFamily: "DMSans-Medium" }}>No students found</Text>
+                                            <Text style={{ color: colors.textSecondary }}>• {selectedStudent.phone}</Text>
+                                        </View>
+
+                                        <View style={{ flexDirection: "row", width: "100%", gap: 12 }}>
+                                            <View style={{ flex: 1, backgroundColor: colors.background, padding: 16, borderRadius: 16, alignItems: "center" }}>
+                                                <Text style={{ color: colors.textSecondary, fontSize: 12, marginBottom: 4 }}>Total Fees</Text>
+                                                <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary, fontSize: 18 }}>₹{feeDetails?.totalFees || 0}</Text>
+                                            </View>
+                                            <View style={{ flex: 1, backgroundColor: colors.success + "10", padding: 16, borderRadius: 16, alignItems: "center" }}>
+                                                <Text style={{ color: colors.success, fontSize: 12, marginBottom: 4 }}>Paid</Text>
+                                                <Text style={{ fontFamily: "DMSans-Bold", color: colors.success, fontSize: 18 }}>₹{feeDetails?.paidAmount || 0}</Text>
+                                            </View>
+                                            <View style={{ flex: 1, backgroundColor: colors.error + "10", padding: 16, borderRadius: 16, alignItems: "center" }}>
+                                                <Text style={{ color: colors.error, fontSize: 12, marginBottom: 4 }}>Pending</Text>
+                                                <Text style={{ fontFamily: "DMSans-Bold", color: colors.error, fontSize: 18 }}>₹{feeDetails?.pendingAmount || 0}</Text>
+                                            </View>
+                                        </View>
+                                    </View>
+
+                                    <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 16 }}>Payment History</Text>
+
+                                    {feeDetails?.payments && feeDetails.payments.length > 0 ? (
+                                        <View style={{ backgroundColor: colors.cardBackground, borderRadius: 24, padding: 8 }}>
+                                            {feeDetails.payments.map((payment, index) => (
+                                                <View key={payment._id || index} style={{
+                                                    padding: 16,
+                                                    borderBottomWidth: index === feeDetails.payments.length - 1 ? 0 : 1,
+                                                    borderBottomColor: colors.textSecondary + "10",
+                                                    flexDirection: "row",
+                                                    justifyContent: "space-between",
+                                                    alignItems: "center"
+                                                }}>
+                                                    <View>
+                                                        <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary, fontSize: 16 }}>₹{payment.amount}</Text>
+                                                        <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 4 }}>
+                                                            {new Date(payment.paymentDate).toLocaleDateString()} • {payment.paymentMethod}
+                                                        </Text>
+                                                        {payment.receiptNumber && (
+                                                            <Text style={{ color: colors.textSecondary, fontSize: 12, fontFamily: "DMSans-Mono", marginTop: 2 }}>
+                                                                #{payment.receiptNumber}
+                                                            </Text>
+                                                        )}
+                                                    </View>
+                                                    <View style={{ backgroundColor: colors.success + "15", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
+                                                        <Text style={{ color: colors.success, fontSize: 12, fontFamily: "DMSans-Bold", textTransform: "capitalize" }}>
+                                                            {payment.status || "Success"}
+                                                        </Text>
+                                                    </View>
+                                                </View>
+                                            ))}
+                                        </View>
+                                    ) : (
+                                        <View style={{ alignItems: "center", padding: 40, backgroundColor: colors.cardBackground, borderRadius: 24 }}>
+                                            <MaterialIcons name="receipt-long" size={48} color={colors.textSecondary + "40"} />
+                                            <Text style={{ color: colors.textSecondary, marginTop: 16, fontFamily: "DMSans-Medium" }}>No payment history found</Text>
                                         </View>
                                     )}
-                                />
+                                </View>
+                            ) : (
+                                <View>
+                                    {/* Search and Sort Header */}
+                                    <View style={{ flexDirection: "row", gap: 12, marginBottom: 16 }}>
+                                        <TextInput
+                                            value={studentSearchQuery}
+                                            onChangeText={setStudentSearchQuery}
+                                            placeholder="Search by name, class..."
+                                            placeholderTextColor={colors.textSecondary}
+                                            style={{
+                                                flex: 1,
+                                                backgroundColor: colors.cardBackground,
+                                                padding: 12,
+                                                borderRadius: 12,
+                                                color: colors.textPrimary,
+                                                fontFamily: "DMSans-Medium"
+                                            }}
+                                        />
+                                        <Pressable
+                                            onPress={() => {
+                                                setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+                                                if (sortBy !== 'className') setSortBy('className');
+                                            }}
+                                            style={{
+                                                backgroundColor: sortBy === 'className' ? colors.primary + "20" : colors.cardBackground,
+                                                paddingHorizontal: 16,
+                                                borderRadius: 12,
+                                                justifyContent: "center",
+                                                alignItems: "center",
+                                                flexDirection: "row",
+                                                gap: 4
+                                            }}
+                                        >
+                                            <Text style={{ fontFamily: "DMSans-Medium", color: sortBy === 'className' ? colors.primary : colors.textSecondary }}>Class</Text>
+                                            {sortBy === 'className' && (
+                                                <MaterialIcons name={sortOrder === 'asc' ? "arrow-drop-up" : "arrow-drop-down"} size={20} color={colors.primary} />
+                                            )}
+                                        </Pressable>
+                                    </View>
+
+                                    {/* Table Header */}
+                                    <View style={{ flexDirection: "row", paddingVertical: 12, paddingHorizontal: 16, backgroundColor: colors.primary + "10", borderRadius: 12, marginBottom: 8 }}>
+                                        <Text style={{ flex: 2, fontFamily: "DMSans-Bold", color: colors.primary, fontSize: 13 }}>Student</Text>
+                                        <Text style={{ flex: 1.5, fontFamily: "DMSans-Bold", color: colors.primary, fontSize: 13, textAlign: "center" }}>Class</Text>
+                                        <Text style={{ flex: 1.5, fontFamily: "DMSans-Bold", color: colors.primary, fontSize: 13, textAlign: "right" }}>Pending</Text>
+                                    </View>
+
+                                    {studentsLoading ? (
+                                        <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 40 }} />
+                                    ) : (
+                                        <FlatList
+                                            data={allStudents
+                                                .filter(s =>
+                                                    s.name.toLowerCase().includes(studentSearchQuery.toLowerCase()) ||
+                                                    (s.className && s.className.toLowerCase().includes(studentSearchQuery.toLowerCase()))
+                                                )
+                                                .sort((a, b) => {
+                                                    if (sortBy === 'className') {
+                                                        const classA = a.className || '';
+                                                        const classB = b.className || '';
+                                                        return sortOrder === 'asc' ? classA.localeCompare(classB) : classB.localeCompare(classA);
+                                                    }
+                                                    return 0;
+                                                })
+                                            }
+                                            scrollEnabled={false}
+                                            keyExtractor={(item) => item._id}
+                                            contentContainerStyle={{ paddingBottom: 20 }}
+                                            renderItem={({ item }) => (
+                                                <Pressable
+                                                    onPress={() => {
+                                                        setSelectedStudent(item);
+                                                    }}
+                                                    style={{
+                                                        backgroundColor: colors.cardBackground,
+                                                        paddingVertical: 14,
+                                                        paddingHorizontal: 16,
+                                                        borderRadius: 12,
+                                                        marginBottom: 8,
+                                                        flexDirection: "row",
+                                                        alignItems: "center",
+                                                        borderWidth: 1,
+                                                        borderColor: colors.textSecondary + "10"
+                                                    }}
+                                                >
+                                                    <View style={{ flex: 2 }}>
+                                                        <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary, fontSize: 14 }}>{item.name}</Text>
+                                                        <Text style={{ color: colors.textSecondary, fontSize: 11 }}>{item.regNo ? `Reg No: ${item.regNo}` : ''}</Text>
+                                                    </View>
+                                                    <View style={{ flex: 1.5, alignItems: "center" }}>
+                                                        <View style={{ backgroundColor: colors.background, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 }}>
+                                                            <Text style={{ fontFamily: "DMSans-Medium", color: colors.textSecondary, fontSize: 12 }}>
+                                                                {formatClassName(item.className)} {item.section ? `- ${item.section}` : ''}
+                                                            </Text>
+                                                        </View>
+                                                    </View>
+                                                    <View style={{ flex: 1.5, alignItems: "flex-end" }}>
+                                                        <Text style={{
+                                                            fontFamily: "DMSans-Bold",
+                                                            fontSize: 14,
+                                                            color: item.pendingAmount > 0 ? colors.error : colors.success
+                                                        }}>
+                                                            ₹{item.pendingAmount || 0}
+                                                        </Text>
+                                                        {item.pendingAmount > 0 && (
+                                                            <Text style={{ color: colors.error, fontSize: 10 }}>Due</Text>
+                                                        )}
+                                                    </View>
+                                                </Pressable>
+                                            )}
+                                            ListEmptyComponent={() => (
+                                                <View style={{ alignItems: "center", marginTop: 40 }}>
+                                                    <MaterialIcons name="person-off" size={48} color={colors.textSecondary + "40"} />
+                                                    <Text style={{ color: colors.textSecondary, marginTop: 16, fontFamily: "DMSans-Medium" }}>No students found</Text>
+                                                </View>
+                                            )}
+                                        />
+                                    )}
+                                </View>
                             )}
                         </View>
                     )

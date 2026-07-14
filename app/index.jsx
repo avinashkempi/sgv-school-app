@@ -168,7 +168,7 @@ export default function HomeScreen() {
               }} />
               <Text style={[styles.text, { flex: 1, marginBottom: 0 }]}>
                 <Text style={{ fontFamily: "DMSans-Medium", color: colors.onSurface }}>Renuka Nagar, Mangasuli</Text>
-                {"\n"}Kindergarten to 8th Standard (9th and 10th opening soon).
+                {"\n"}Kindergarten to 10th Standard.
               </Text>
             </View>
 
@@ -182,8 +182,8 @@ export default function HomeScreen() {
                 marginRight: 10
               }} />
               <Text style={[styles.text, { flex: 1, marginBottom: 0 }]}>
-                <Text style={{ fontFamily: "DMSans-Medium", color: colors.onSurface }}>Ugar Khurd</Text>
-                {"\n"}Only Kindergarten.
+                <Text style={{ fontFamily: "DMSans-Medium", color: colors.onSurface }}>Meenatai Nagar, Ugar Khurd</Text>
+                {"\n"}Kindergarten.
               </Text>
             </View>
           </View>
