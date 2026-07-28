@@ -13,12 +13,15 @@ import { clearAllCaches } from '../utils/cacheManager';
 import TextInput from '../components/TextInput';
 import Button from '../components/Button';
 
+import { useToast } from '../components/ToastProvider';
+
 export default function Login() {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const { styles, colors, mode } = useTheme();
   const router = useRouter();
+  const { showToast } = useToast();
 
   const loginMutation = useApiMutation({
     mutationFn: createApiMutationFn(apiConfig.url(apiConfig.endpoints.auth.login), 'POST'),
@@ -31,16 +34,17 @@ export default function Login() {
 
         await storage.setItem('@auth_token', data.token);
         await storage.setItem('@auth_user', JSON.stringify(data.user));
+        showToast('Logged in successfully', 'success', 2000);
         router.replace('/');
       } else {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-        alert(data.message || 'Login failed');
+        showToast(data.message || 'Login failed', 'error');
       }
     },
     onError: (error) => {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       console.error('Login error:', error);
-      alert(error.message || 'Network error. Please try again.');
+      showToast(error.message || 'Network error. Please try again.', 'error');
     }
   });
 
@@ -48,7 +52,7 @@ export default function Login() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (!phone || !password) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      alert('Please enter both phone number and password.');
+      showToast('Please enter both phone number and password.', 'error');
       return;
     }
     loginMutation.mutate({ phone, password });

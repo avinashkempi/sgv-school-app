@@ -117,21 +117,24 @@ export default function AdminAttendance() {
     const staffList = staffListResponse?.data;
 
     // Fetch My Attendance (page 1) — subsequent pages fetched via loadMoreMyAttendance
-    const { isLoading: myAttendanceLoading, refetch: refetchMyAttendance } = useApiQuery(
+    const { data: myAttendanceResponse, isLoading: myAttendanceLoading, refetch: refetchMyAttendance } = useApiQuery(
         ['myAttendanceAdmin'],
         `${apiConfig.baseUrl}/attendance/my-attendance?page=1&limit=${MY_PAGE_SIZE}`,
         {
             enabled: activeTab === 'my_attendance',
             staleTime: 2 * 60 * 1000,
             gcTime: 10 * 60 * 1000,
-            onSuccess: (data) => {
-                setAllMyAttendance(data?.attendance || []);
-                setMySummaryData(data?.summary || null);
-                setMyHasMore(data?.pagination?.hasMore || false);
-                setMyPage(1);
-            }
         }
     );
+
+    useEffect(() => {
+        if (myAttendanceResponse) {
+            setAllMyAttendance(myAttendanceResponse?.attendance || []);
+            setMySummaryData(myAttendanceResponse?.summary || null);
+            setMyHasMore(myAttendanceResponse?.pagination?.hasMore || false);
+            setMyPage(1);
+        }
+    }, [myAttendanceResponse]);
 
     const loadMoreMyAttendance = useCallback(async () => {
         if (myLoadingMore || !myHasMore) return;

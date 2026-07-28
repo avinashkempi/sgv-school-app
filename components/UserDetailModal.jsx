@@ -127,7 +127,7 @@ export default function UserDetailModal({ visible, onClose, user }) {
                                     <DetailRow label="Date of Birth" value={user.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString() : "N/A"} />
                                     <DetailRow label="Guardian Name" value={user.guardianName || "N/A"} />
                                     <DetailRow label="Guardian Phone" value={user.guardianPhone || "N/A"} />
-                                    <DetailRow label="Status" value={user.isAdmitted ? "Active (Admitted)" : "Inactive"} />
+                                    <DetailRow label="Status" value={user.isActive !== false ? "Active" : "Inactive"} />
                                 </DetailSection>
                             </>
                         )}

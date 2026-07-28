@@ -60,6 +60,30 @@ export default async function apiFetch(input, init = {}) {
       responseData = demoData.DEMO_ACADEMIC_YEARS;
     } else if (url.includes('/teachers/my-subjects')) {
       responseData = demoData.DEMO_TEACHER_SUBJECTS;
+    } else if (url.includes('/attendance/school-summary')) {
+      responseData = {
+        success: true,
+        data: {
+          students: { total: 450, present: 420, absent: 30 },
+          teachers: { total: 25, present: 24, absent: 1 },
+          absentList: []
+        }
+      };
+    } else if (url.includes('/attendance/staff-list')) {
+      responseData = { success: true, data: [] };
+    } else if (url.includes('/attendance/classes-marked')) {
+      responseData = { success: true, markedClasses: [] };
+    } else if (url.includes('/attendance/missing-tracker')) {
+      responseData = { success: true, missingData: [] };
+    } else if (url.includes('/marks/analytics/class/')) {
+      responseData = {
+        totalStudents: 30,
+        statistics: { average: 78.5, highest: 98.0, lowest: 45.0 },
+        gradeDistribution: { 'A+': 5, 'A': 10, 'B+': 8, 'B': 4, 'C': 3 },
+        studentRankings: []
+      };
+    } else if (url.includes('/classes')) {
+      responseData = demoData.DEMO_CLASSES || [];
     } else {
       responseData = {};
     }

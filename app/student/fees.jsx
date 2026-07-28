@@ -119,7 +119,7 @@ export default function StudentFeesScreen() {
                             <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
                                 <Text style={{ color: colors.textPrimary, fontFamily: "DMSans-Bold" }}>Net Payable</Text>
                                 <Text style={{ color: colors.primary, fontFamily: "DMSans-Bold" }}>
-                                    ₹{(feeData?.totalFees - (feeData?.concession || 0))}
+                                    ₹{((feeData?.totalFees || 0) - (feeData?.concession || 0)).toLocaleString()}
                                 </Text>
                             </View>
                         </View>

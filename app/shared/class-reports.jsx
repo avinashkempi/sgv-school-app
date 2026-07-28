@@ -108,7 +108,7 @@ export default function ClassReportsDashboard() {
     const renderOverview = () => {
         if (!analyticsData) return null;
 
-        const stats = analyticsData.statistics;
+        const stats = analyticsData?.statistics;
 
         return (
             <View>
@@ -124,7 +124,7 @@ export default function ClassReportsDashboard() {
                 <View style={{ flexDirection: 'row', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
                     <StatCard
                         label="Students"
-                        value={analyticsData.totalStudents}
+                        value={analyticsData?.totalStudents ?? 0}
                         icon="people"
                         color="#2196F3"
                         gradient
@@ -132,7 +132,7 @@ export default function ClassReportsDashboard() {
                     />
                     <StatCard
                         label="Avg Score"
-                        value={`${stats.average.toFixed(1)}%`}
+                        value={stats?.average != null ? `${stats.average.toFixed(1)}%` : 'N/A'}
                         icon="insights"
                         color="#4CAF50"
                         gradient
@@ -140,7 +140,7 @@ export default function ClassReportsDashboard() {
                     />
                     <StatCard
                         label="Highest"
-                        value={`${stats.highest.toFixed(1)}%`}
+                        value={stats?.highest != null ? `${stats.highest.toFixed(1)}%` : 'N/A'}
                         icon="arrow-upward"
                         color="#FF9800"
                         gradient

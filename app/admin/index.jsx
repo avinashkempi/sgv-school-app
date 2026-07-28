@@ -16,16 +16,16 @@ import { MaterialIcons } from "@expo/vector-icons";
 
 
 import { useRouter } from "expo-router";
-import { useTheme } from "../theme";
-import apiConfig from "../config/apiConfig";
+import { useTheme } from "../../theme";
+import apiConfig from "../../config/apiConfig";
 
-import { useToast } from "../components/ToastProvider";
-import { useApiQuery, useApiMutation, createApiMutationFn, useApiInfiniteQuery } from "../hooks/useApi";
+import { useToast } from "../../components/ToastProvider";
+import { useApiQuery, useApiMutation, createApiMutationFn, useApiInfiniteQuery } from "../../hooks/useApi";
 import { useQueryClient } from "@tanstack/react-query";
-import Header from "../components/Header";
-import UserDetailModal from "../components/UserDetailModal";
-import UserCard from "../components/UserCard";
-import UserFormModal from "../components/UserFormModal";
+import Header from "../../components/Header";
+import UserDetailModal from "../../components/UserDetailModal";
+import UserCard from "../../components/UserCard";
+import UserFormModal from "../../components/UserFormModal";
 
 export default function AdminScreen() {
   const router = useRouter();

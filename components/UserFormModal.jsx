@@ -286,98 +286,99 @@ export default function UserFormModal({
                             </ScrollView>
                         </View>
 
-                        {/* Role Specific Fields */}
+                        {/* Personal Details - Available for All Roles */}
+                        <Text style={[styles.sectionTitle, { fontSize: 16, marginBottom: 16, marginTop: 8 }]}>Personal Details</Text>
+
+                        {/* Gender & Blood Group Row */}
+                        <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
+                            <Controller
+                                control={control}
+                                name="gender"
+                                render={({ field: { value } }) => (
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={[styles.label, { marginBottom: 8 }]}>GENDER</Text>
+                                        <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+                                            {['Boy', 'Girl', 'Other'].map(g => (
+                                                <Pressable
+                                                    key={g}
+                                                    onPress={() => setValue('gender', value === g ? '' : g)}
+                                                    style={{
+                                                        paddingHorizontal: 12,
+                                                        paddingVertical: 8,
+                                                        backgroundColor: value === g ? colors.primary : colors.background,
+                                                        borderRadius: 8,
+                                                        borderWidth: 1,
+                                                        borderColor: value === g ? colors.primary : colors.border,
+                                                        marginBottom: 4
+                                                    }}
+                                                >
+                                                    <Text style={{ color: value === g ? '#fff' : colors.textPrimary, fontSize: 12 }}>{g}</Text>
+                                                </Pressable>
+                                            ))}
+                                        </View>
+                                    </View>
+                                )}
+                            />
+                            <View style={{ flex: 1 }}>
+                                <Text style={[styles.label, { marginBottom: 8 }]}>BLOOD GROUP</Text>
+                                <Controller
+                                    control={control}
+                                    name="bloodGroup"
+                                    render={({ field: { onChange, onBlur, value } }) => (
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder="e.g. O+"
+                                            placeholderTextColor={colors.textSecondary}
+                                            value={value}
+                                            onChangeText={onChange}
+                                            onBlur={onBlur}
+                                        />
+                                    )}
+                                />
+                            </View>
+                        </View>
+
+                        <View style={{ marginBottom: 20 }}>
+                            <Text style={[styles.label, { marginBottom: 8 }]}>DATE OF BIRTH (YYYY-MM-DD)</Text>
+                            <Controller
+                                control={control}
+                                name="dateOfBirth"
+                                render={({ field: { onChange, onBlur, value } }) => (
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder="YYYY-MM-DD"
+                                        placeholderTextColor={colors.textSecondary}
+                                        value={value}
+                                        onChangeText={onChange}
+                                        onBlur={onBlur}
+                                    />
+                                )}
+                            />
+                        </View>
+
+                        <View style={{ marginBottom: 20 }}>
+                            <Text style={[styles.label, { marginBottom: 8 }]}>ADDRESS</Text>
+                            <Controller
+                                control={control}
+                                name="address"
+                                render={({ field: { onChange, onBlur, value } }) => (
+                                    <TextInput
+                                        style={[styles.input, { height: 80, textAlignVertical: 'top', paddingTop: 12 }]}
+                                        placeholder="Full address"
+                                        placeholderTextColor={colors.textSecondary}
+                                        value={value}
+                                        onChangeText={onChange}
+                                        onBlur={onBlur}
+                                        multiline
+                                        numberOfLines={3}
+                                    />
+                                )}
+                            />
+                        </View>
+
+                        {/* Student Specific Fields */}
                         {watchedRole === "student" && (
                             <>
-                                <Text style={[styles.sectionTitle, { fontSize: 16, marginBottom: 16, marginTop: 8 }]}>Personal Details</Text>
-
-                                {/* Gender & Blood Group Row */}
-                                <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
-                                    <Controller
-                                        control={control}
-                                        name="gender"
-                                        render={({ field: { value } }) => (
-                                            <View style={{ flex: 1 }}>
-                                                <Text style={[styles.label, { marginBottom: 8 }]}>GENDER</Text>
-                                                <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-                                                    {['Boy', 'Girl', 'Other'].map(g => (
-                                                        <Pressable
-                                                            key={g}
-                                                            onPress={() => setValue('gender', g)}
-                                                            style={{
-                                                                paddingHorizontal: 12,
-                                                                paddingVertical: 8,
-                                                                backgroundColor: value === g ? colors.primary : colors.background,
-                                                                borderRadius: 8,
-                                                                borderWidth: 1,
-                                                                borderColor: value === g ? colors.primary : colors.border,
-                                                                marginBottom: 4
-                                                            }}
-                                                        >
-                                                            <Text style={{ color: value === g ? '#fff' : colors.textPrimary, fontSize: 12 }}>{g}</Text>
-                                                        </Pressable>
-                                                    ))}
-                                                </View>
-                                            </View>
-                                        )}
-                                    />
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={[styles.label, { marginBottom: 8 }]}>BLOOD GROUP</Text>
-                                        <Controller
-                                            control={control}
-                                            name="bloodGroup"
-                                            render={({ field: { onChange, onBlur, value } }) => (
-                                                <TextInput
-                                                    style={styles.input}
-                                                    placeholder="e.g. O+"
-                                                    placeholderTextColor={colors.textSecondary}
-                                                    value={value}
-                                                    onChangeText={onChange}
-                                                    onBlur={onBlur}
-                                                />
-                                            )}
-                                        />
-                                    </View>
-                                </View>
-
-                                <View style={{ marginBottom: 20 }}>
-                                    <Text style={[styles.label, { marginBottom: 8 }]}>DATE OF BIRTH (YYYY-MM-DD)</Text>
-                                    <Controller
-                                        control={control}
-                                        name="dateOfBirth"
-                                        render={({ field: { onChange, onBlur, value } }) => (
-                                            <TextInput
-                                                style={styles.input}
-                                                placeholder="YYYY-MM-DD"
-                                                placeholderTextColor={colors.textSecondary}
-                                                value={value}
-                                                onChangeText={onChange}
-                                                onBlur={onBlur}
-                                            />
-                                        )}
-                                    />
-                                </View>
-
-                                <View style={{ marginBottom: 20 }}>
-                                    <Text style={[styles.label, { marginBottom: 8 }]}>ADDRESS</Text>
-                                    <Controller
-                                        control={control}
-                                        name="address"
-                                        render={({ field: { onChange, onBlur, value } }) => (
-                                            <TextInput
-                                                style={[styles.input, { height: 80, textAlignVertical: 'top', paddingTop: 12 }]}
-                                                placeholder="Full address"
-                                                placeholderTextColor={colors.textSecondary}
-                                                value={value}
-                                                onChangeText={onChange}
-                                                onBlur={onBlur}
-                                                multiline
-                                                numberOfLines={3}
-                                            />
-                                        )}
-                                    />
-                                </View>
-
                                 <Text style={[styles.sectionTitle, { fontSize: 16, marginBottom: 16, marginTop: 8 }]}>Guardian & Contact</Text>
 
                                 <View style={{ marginBottom: 20 }}>
@@ -521,11 +522,11 @@ export default function UserFormModal({
                                         )}
                                     />
                                 </View>
-
                             </>
                         )}
 
-                        {(watchedRole === "teacher" || watchedRole === "staff" || watchedRole === "support_staff") && (
+                        {/* Non-Student Role Details */}
+                        {watchedRole !== "student" && (
                             <>
                                 <Text style={[styles.sectionTitle, { fontSize: 16, marginBottom: 16, marginTop: 8 }]}>Role Details</Text>
                                 <View style={{ marginBottom: 20 }}>
@@ -536,7 +537,7 @@ export default function UserFormModal({
                                         render={({ field: { onChange, onBlur, value } }) => (
                                             <TextInput
                                                 style={styles.input}
-                                                placeholder="e.g. Science Teacher"
+                                                placeholder="e.g. Physical Instructor, Science Teacher"
                                                 placeholderTextColor={colors.textSecondary}
                                                 value={value}
                                                 onChangeText={onChange}

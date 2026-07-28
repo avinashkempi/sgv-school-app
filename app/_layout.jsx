@@ -33,6 +33,22 @@ import storage from "../utils/storage";
 import { useState } from "react";
 import useOfflinePrefetch from "../hooks/useOfflinePrefetch";
 
+function isTokenExpired(token) {
+  if (!token || token === 'demo-token') return false;
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return true;
+    const payloadJson = atob ? atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')) : Buffer.from(parts[1], 'base64').toString('utf8');
+    const payload = JSON.parse(payloadJson);
+    if (payload.exp && Date.now() >= payload.exp * 1000) {
+      return true;
+    }
+    return false;
+  } catch (err) {
+    return false; // If parsing fails, fall back to API 401 handling
+  }
+}
+
 // separate component so we can use useTheme inside ThemeProvider
 function Inner() {
   const { styles, colors } = useTheme();
@@ -52,9 +68,19 @@ function Inner() {
   useEffect(() => {
     const checkAuth = async () => {
       const token = await storage.getItem('@auth_token');
-      setIsDemo(token === 'demo-token');
-
       const inLoginGroup = segments[0] === 'login';
+
+      if (token && isTokenExpired(token)) {
+        await storage.multiRemove(['@auth_token', '@auth_user']);
+        if (showToast) {
+          showToast('Session expired. Please log in again.', 'error', 3500);
+        }
+        router.replace('/login');
+        setIsReady(true);
+        return;
+      }
+
+      setIsDemo(token === 'demo-token');
 
       if (!token && !inLoginGroup) {
         // No token and not on login page -> Redirect to login with proper notice
@@ -137,26 +163,24 @@ function Inner() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
-      <ToastProvider>
-        <NetworkStatusProvider>
-          <NavigationProvider>
-            <NotificationProvider>
-              {isDemo && !isLogin && <DemoBanner />}
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                  // Enable gesture navigation
-                  gestureEnabled: true,
-                  gestureDirection: 'horizontal',
-                  // Detach inactive screens for better memory usage
-                  detachInactiveScreens: true,
-                }}
-              />
-              {!isLogin && <BottomNavigation />}
-            </NotificationProvider>
-          </NavigationProvider>
-        </NetworkStatusProvider>
-      </ToastProvider>
+      <NetworkStatusProvider>
+        <NavigationProvider>
+          <NotificationProvider>
+            {isDemo && !isLogin && <DemoBanner />}
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                // Enable gesture navigation
+                gestureEnabled: true,
+                gestureDirection: 'horizontal',
+                // Detach inactive screens for better memory usage
+                detachInactiveScreens: true,
+              }}
+            />
+            {!isLogin && <BottomNavigation />}
+          </NotificationProvider>
+        </NavigationProvider>
+      </NetworkStatusProvider>
     </SafeAreaView>
   );
 }
@@ -190,11 +214,13 @@ export default function RootLayout() {
       persistOptions={{ persister }}
     >
       <ThemeProvider>
-        <ErrorBoundary>
-          <AcademicYearProvider>
-            <Inner />
-          </AcademicYearProvider>
-        </ErrorBoundary>
+        <ToastProvider>
+          <ErrorBoundary>
+            <AcademicYearProvider>
+              <Inner />
+            </AcademicYearProvider>
+          </ErrorBoundary>
+        </ToastProvider>
       </ThemeProvider>
     </PersistQueryClientProvider>
   );

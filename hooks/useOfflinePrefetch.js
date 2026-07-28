@@ -34,27 +34,32 @@ export default function useOfflinePrefetch() {
                 // Prefetch common core data that applies globally
                 prefetch(['events'], '/events');
                 prefetch(['notifications'], '/notifications');
-                prefetch(['auth', 'me'], '/auth/me');
 
-                // Pre-fetch based on role (simple heuristic: attempt to fetch student dashboard 
-                // and if it succeeds, fetch student context, else it will just fail silently)
-                // Note: To be more precise, we would decode the JWT or use auth context to check role.
-                // For now, we defensively prefetch common paths that students/teachers rely on.
-                
-                // Student Data
-                prefetch(['studentDashboard'], '/dashboard/student');
-                prefetch(['myLeaves'], '/leaves/my-leaves');
-                prefetch(['timetable'], '/timetable/my-timetable');
-                prefetch(['studentFees'], '/fees/student');
-                prefetch(['studentExams'], '/exams/schedule/student');
-                
-                // Teacher Data (these will naturally fail/noop if the user is a student)
-                prefetch(['teacherDashboard'], '/dashboard/teacher');
-                prefetch(['teacherSubjects'], '/teachers/my-subjects');
-                
-                
-                // Admin Data
-                prefetch(['adminClassesInit'], '/classes/admin/init');
+                // Fetch user info first to safely determine role before prefetching role-restricted endpoints
+                const meRes = await apiFetch(`${apiConfig.baseUrl}/auth/me`);
+                if (!isMounted || !meRes.ok) return;
+                const meData = await meRes.json();
+                const role = meData?.user?.role;
+
+                if (!role) return;
+
+                // Pre-fetch based on role to avoid triggering 403 Forbidden errors
+                if (role === 'student') {
+                    const userId = meData?.user?._id;
+                    prefetch(['studentDashboard'], '/dashboard/student');
+                    prefetch(['myLeaves'], '/leaves/my-leaves');
+                    prefetch(['timetable'], '/timetable/my-timetable');
+                    if (userId) {
+                        prefetch(['studentFees', userId], `/fees/student/${userId}`);
+                    }
+                    prefetch(['studentExams'], '/exams/schedule/student');
+                } else if (role === 'teacher') {
+                    prefetch(['teacherDashboard'], '/dashboard/teacher');
+                    prefetch(['teacherSubjects'], '/teachers/my-subjects');
+                    prefetch(['myLeaves'], '/leaves/my-leaves');
+                } else if (role === 'admin' || role === 'super admin') {
+                    prefetch(['adminClassesInit'], '/classes/admin/init');
+                }
                 
             } catch (err) {
                 console.log('[Prefetch] Failed to execute offline prefetching:', err);

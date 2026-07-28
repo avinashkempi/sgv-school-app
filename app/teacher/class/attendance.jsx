@@ -140,7 +140,7 @@ export default function MarkAttendanceScreen() {
 
         saveMutation.mutate({
             classId,
-            subjectId: null,
+            subjectId: subjectId || null,
             date: dateStr,
             attendanceRecords
         });

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useApiQuery } from '../../hooks/useApi';
@@ -21,20 +21,23 @@ export default function TeacherAttendance() {
     const [summary, setSummary] = useState(null);
 
     // Initial fetch (page 1), uses React Query for caching & loading state
-    const { isLoading: loading, refetch } = useApiQuery(
+    const { data, isLoading: loading, refetch } = useApiQuery(
         ['teacherAttendance'],
         `${apiConfig.baseUrl}/attendance/my-attendance?page=1&limit=${PAGE_SIZE}`,
         {
             staleTime: 2 * 60 * 1000,
             gcTime: 10 * 60 * 1000,
-            onSuccess: (data) => {
-                setAllRecords(data?.attendance || []);
-                setSummary(data?.summary || null);
-                setHasMore(data?.pagination?.hasMore || false);
-                setPage(1);
-            }
         }
     );
+
+    useEffect(() => {
+        if (data) {
+            setAllRecords(data?.attendance || []);
+            setSummary(data?.summary || null);
+            setHasMore(data?.pagination?.hasMore || false);
+            setPage(1);
+        }
+    }, [data]);
 
     const loadMore = useCallback(async () => {
         if (loadingMore || !hasMore) return;
