@@ -4,9 +4,20 @@ import { clearAllCaches, cancelAllQueries } from './cacheManager';
 /**
  * Unified logout handler
  * Cleans up all state, caches, and redirects to login
- * Called from: profile.jsx, menu.jsx, index.jsx (on 401 error)
+ * Called from: profile.jsx, menu.jsx, index.jsx (on 401 error), global query cache
  */
-export async function logoutHandler(router, showToast = null) {
+export async function logoutHandler(router, messageOrToast = null, showToastFn = null) {
+  let message = null;
+  let showToast = null;
+
+  if (typeof messageOrToast === 'function') {
+    showToast = messageOrToast;
+    message = 'Logged out successfully';
+  } else {
+    message = messageOrToast;
+    showToast = showToastFn;
+  }
+
   try {
     console.log('[LogoutHandler] Starting logout process...');
 
@@ -28,9 +39,12 @@ export async function logoutHandler(router, showToast = null) {
       console.warn('[LogoutHandler] Could not clear academic year:', err);
     }
 
-    // 5. Show optional success message (only on manual logout, not on auth error)
-    if (showToast) {
-      showToast('Logged out successfully', 'info', 1500);
+    // 5. Show toast notification if available
+    if (showToast && message) {
+      const isManualLogout = message === 'Logged out successfully';
+      const toastType = isManualLogout ? 'info' : 'error';
+      const duration = isManualLogout ? 1500 : 3500;
+      showToast(message, toastType, duration);
     }
 
     console.log('[LogoutHandler] Logout complete, redirecting to login...');

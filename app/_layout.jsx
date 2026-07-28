@@ -4,7 +4,7 @@ import { Text, Platform, ActivityIndicator } from "react-native";
 import { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemeProvider, useTheme } from "../theme";
-import { ToastProvider } from "../components/ToastProvider";
+import { ToastProvider, useToast } from "../components/ToastProvider";
 
 import NetworkStatusProvider from "../components/NetworkStatusProvider";
 import BottomNavigation from "../components/BottomNavigation";
@@ -16,7 +16,7 @@ import { NotificationProvider } from "../context/NotificationContext";
 import { AcademicYearProvider, useAcademicYear } from "../contexts/AcademicYearContext";
 
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
-import { queryClient, persister } from '../utils/queryClient';
+import { queryClient, persister, setGlobalAuthHandler } from '../utils/queryClient';
 
 // Configure how notifications are displayed when app is in foreground
 Notifications.setNotificationHandler({
@@ -41,8 +41,13 @@ function Inner() {
   const router = useRouter();
   const [isReady, setIsReady] = useState(false);
   const { syncYear } = useAcademicYear();
+  const { showToast } = useToast();
 
   useOfflinePrefetch();
+
+  useEffect(() => {
+    setGlobalAuthHandler(router, showToast);
+  }, [router, showToast]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -52,7 +57,10 @@ function Inner() {
       const inLoginGroup = segments[0] === 'login';
 
       if (!token && !inLoginGroup) {
-        // No token and not on login page -> Redirect to login
+        // No token and not on login page -> Redirect to login with proper notice
+        if (showToast) {
+          showToast('Please log in to access this page', 'error', 3000);
+        }
         router.replace('/login');
       } else if (token && inLoginGroup) {
         // Token exists and on login page -> Redirect to home
@@ -66,7 +74,7 @@ function Inner() {
     };
 
     checkAuth();
-  }, [router, segments, syncYear]);
+  }, [router, segments, syncYear, showToast]);
 
   // Setup push notifications
   useEffect(() => {

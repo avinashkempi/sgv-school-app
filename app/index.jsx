@@ -62,14 +62,14 @@ export default function HomeScreen() {
           return;
         }
         // Only logout on auth errors (401), not network errors
-        logoutHandler(router);
+        logoutHandler(router, error?.message || 'Session expired. Please log in again.', showToast);
       }).catch((err) => {
         console.error('[HomeScreen] Error checking token:', err);
         // If we can't check, go ahead with logout to be safe
-        logoutHandler(router);
+        logoutHandler(router, 'Session expired. Please log in again.', showToast);
       });
     }
-  }, [isError, error?.isAuthError]);
+  }, [isError, error?.isAuthError, error?.message, showToast]);
 
   return (
     <ScrollView
