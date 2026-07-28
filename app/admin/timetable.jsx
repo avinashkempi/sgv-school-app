@@ -101,23 +101,26 @@ export default function AdminTimetableScreen() {
         DAYS.forEach(day => scheduleMap[day] = []);
 
         if (allTimetables) {
-            const classTimetable = allTimetables.find(t => t.class === selectedClassId);
+            const classTimetable = allTimetables.find(t => (t.class?._id || t.class)?.toString() === selectedClassId?.toString());
 
             if (classTimetable && classTimetable.schedule) {
                 classTimetable.schedule.forEach(daySchedule => {
                     scheduleMap[daySchedule.day] = daySchedule.periods.map(p => {
-                        const subjectId = p.subject?._id || p.subject;
-                        const teacherId = p.teacher?._id || p.teacher;
+                        const subjectId = (p.subject?._id || p.subject)?.toString();
+                        const teacherId = (p.teacher?._id || p.teacher)?.toString();
 
-                        const subjectObj = allSubjects?.find(s => s._id === subjectId);
-                        const teacherObj = subjectObj?.teachers?.find(t => t._id === teacherId);
+                        const subjectObj = allSubjects?.find(s => s._id?.toString() === subjectId);
+                        const teacherObj = subjectObj?.teachers?.find(t => t._id?.toString() === teacherId);
+
+                        const subjectName = typeof p.subject === 'object' && p.subject?.name ? p.subject.name : (subjectObj?.name || 'Unknown');
+                        const teacherName = typeof p.teacher === 'object' && p.teacher?.name ? p.teacher.name : (teacherObj?.name || 'No Teacher');
 
                         return {
                             ...p,
                             subjectId,
                             teacherId,
-                            subjectName: subjectObj?.name || 'Unknown',
-                            teacherName: teacherObj?.name || 'No Teacher'
+                            subjectName,
+                            teacherName
                         };
                     }).sort((a, b) => (a.periodNumber || 0) - (b.periodNumber || 0));
                 });
@@ -132,9 +135,10 @@ export default function AdminTimetableScreen() {
         onSuccess: () => {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             showToast("Timetable saved successfully", "success");
-            // Invalidate to re-fetch if needed, or we could optimistically update 'allTimetables' in cache
-            // For now, simpler to invalidate.
             queryClient.invalidateQueries({ queryKey: ['adminClassesInit'] });
+            queryClient.invalidateQueries({ queryKey: ['schoolTimetable'] });
+            queryClient.invalidateQueries({ queryKey: ['studentTimetable'] });
+            queryClient.invalidateQueries({ queryKey: ['teacherSchedule'] });
         },
         onError: (_error) => {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);

@@ -46,7 +46,10 @@ export default function SchoolTimetableScreen() {
     // Auto-select first class
     useEffect(() => {
         if (!selectedClassId && timetables && timetables.length > 0) {
-            setSelectedClassId(timetables[0].class?._id || timetables[0].class);
+            const firstValid = timetables.find(t => t.class);
+            if (firstValid) {
+                setSelectedClassId(firstValid.class?._id || firstValid.class);
+            }
         }
     }, [timetables, selectedClassId]);
 

@@ -41,7 +41,7 @@ export default function StudentTimetableScreen() {
     }, []);
 
     // Fetch Timetable
-    const { data: timetableData, isLoading: loading, refetch } = useApiQuery(
+    const { data: timetableData, isLoading: loading, error, refetch } = useApiQuery(
         ['studentTimetable'],
         `${apiConfig.baseUrl}/timetable/my-timetable`,
         { staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 }
@@ -143,7 +143,7 @@ export default function StudentTimetableScreen() {
                             <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
                                 <MaterialIcons name="event-busy" size={48} color={colors.textSecondary} />
                                 <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16 }}>
-                                    No classes scheduled
+                                    {error?.message || "No classes scheduled"}
                                 </Text>
                             </View>
                         ) : (
