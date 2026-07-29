@@ -9,6 +9,7 @@ import { LoadingState, EmptyState } from '../StateComponents';
 import apiFetch from '../../utils/apiFetch';
 import apiConfig from '../../config/apiConfig';
 import { useApiQuery } from '../../hooks/useApi';
+import { CACHE_TIERS } from '../../utils/cacheConfig';
 import { useFocusEffect } from 'expo-router';
 
 const StudentDashboard = () => {
@@ -19,15 +20,11 @@ const StudentDashboard = () => {
     const { data, isLoading: loading, refetch } = useApiQuery(
         ['studentDashboard'],
         `${apiConfig.baseUrl}/dashboard/student`,
-        { staleTime: 1000 * 60 * 5 }
+        { ...CACHE_TIERS.MODERATE }
     );
 
-    useFocusEffect(
-        useCallback(() => {
-            // Silently refetch in background when focused
-            refetch();
-        }, [refetch])
-    );
+    // React Query handles stale-while-revalidate based on CACHE_TIERS.MODERATE
+    // Manual refetch is only needed on pull-to-refresh (onRefresh)
 
     const onRefresh = async () => {
         setRefreshing(true);

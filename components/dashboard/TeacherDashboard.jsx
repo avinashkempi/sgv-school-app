@@ -44,13 +44,8 @@ const TeacherDashboard = () => {
     const missingClassId = missingData?.success && missingData.classId ? missingData.classId : null;
     const missingClassName = missingData?.success && missingData.className ? missingData.className : null;
 
-    useFocusEffect(
-        useCallback(() => {
-            // Silently refetch in background when focused
-            refetchStats();
-            refetchMissing();
-        }, [refetchStats, refetchMissing])
-    );
+    // React Query handles stale-while-revalidate based on CACHE_TIERS.MODERATE
+    // Manual refetch is only needed on pull-to-refresh (onRefresh)
 
     const onRefresh = async () => {
         setRefreshing(true);

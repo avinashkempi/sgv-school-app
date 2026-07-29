@@ -12,6 +12,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
+import { CACHE_TIERS } from "../../utils/cacheConfig";
 import AppHeader from "../../components/Header";
 import Card from "../../components/Card";
 import apiConfig from "../../config/apiConfig";
@@ -44,7 +45,7 @@ export default function StudentTimetableScreen() {
     const { data: timetableData, isLoading: loading, error, refetch } = useApiQuery(
         ['studentTimetable'],
         `${apiConfig.baseUrl}/timetable/my-timetable`,
-        { staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 }
+        CACHE_TIERS.STABLE
     );
 
     // Helper to parse time string to minutes for sorting

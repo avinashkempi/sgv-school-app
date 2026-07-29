@@ -12,6 +12,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "../../../theme";
 import apiConfig from "../../../config/apiConfig";
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../../../hooks/useApi";
+import { CACHE_TIERS } from "../../../utils/cacheConfig";
 import { useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useToast } from "../../../components/ToastProvider";
 import AppHeader from "../../../components/Header";
@@ -38,13 +39,13 @@ export default function MarkAttendanceScreen() {
     const { data: classData } = useApiQuery(
         ['class', classId],
         `${apiConfig.baseUrl}/classes/${classId}`,
-        { enabled: !!classId, staleTime: 5 * 60 * 1000 }
+        { enabled: !!classId, ...CACHE_TIERS.STABLE }
     );
 
     const { data: subjectData } = useApiQuery(
         ['subject', subjectId],
         `${apiConfig.baseUrl}/subjects/${subjectId}`,
-        { enabled: !!subjectId, staleTime: 5 * 60 * 1000 }
+        { enabled: !!subjectId, ...CACHE_TIERS.STABLE }
     );
 
     // ─── Attendance data with silent background refresh ───
@@ -65,7 +66,7 @@ export default function MarkAttendanceScreen() {
         {
             enabled: !!attendanceEndpoint,
             placeholderData: keepPreviousData,
-            staleTime: 30 * 1000, // 30 seconds
+            staleTime: CACHE_TIERS.REAL_TIME.staleTime,
         }
     );
 
@@ -177,7 +178,7 @@ export default function MarkAttendanceScreen() {
     const { data: holidayData } = useApiQuery(
         ['holidayStatus', dateStr],
         `${apiConfig.baseUrl}/events?startDate=${dateStr}&endDate=${dateStr}&isHoliday=true`,
-        { staleTime: 60 * 1000 }
+        CACHE_TIERS.MODERATE
     );
     const holidayEvent = (holidayData?.event && holidayData.event.length > 0) ? holidayData.event[0] : null;
     const isSunday = selectedDate.getDay() === 0;

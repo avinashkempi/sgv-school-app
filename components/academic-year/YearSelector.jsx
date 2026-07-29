@@ -6,6 +6,9 @@ import apiFetch from '../../utils/apiFetch';
 import apiConfig from '../../config/apiConfig';
 import { useAcademicYear } from '../../contexts/AcademicYearContext';
 import { useToast } from '../ToastProvider';
+import storage from '../../utils/storage';
+
+const CACHED_YEARS_KEY = '@cached_academic_years';
 
 const YearSelector = ({ onYearChanged }) => {
     const { colors, styles } = useTheme();
@@ -16,14 +19,36 @@ const YearSelector = ({ onYearChanged }) => {
     const [years, setYears] = useState([]);
     const [loading, setLoading] = useState(false);
 
-    // Fetch available years from backend
+    // Fetch available years from backend with offline caching
     const fetchYears = async () => {
         setLoading(true);
+        let hasCache = false;
+
+        // 1. Try to load cached years first
+        try {
+            const cachedStr = await storage.getItem(CACHED_YEARS_KEY);
+            if (cachedStr) {
+                const cachedData = JSON.parse(cachedStr);
+                if (Array.isArray(cachedData) && cachedData.length > 0) {
+                    setYears(cachedData);
+                    hasCache = true;
+                    if (!selectedYear) {
+                        const activeYear = cachedData.find(y => y.isActive) || cachedData[0];
+                        if (activeYear) setYear(activeYear);
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn("Failed to load cached academic years", e);
+        }
+
+        // 2. Fetch fresh data from network
         try {
             const response = await apiFetch(`${apiConfig.baseUrl}/academic-year`);
             if (response.ok) {
                 const data = await response.json();
                 setYears(data);
+                await storage.setItem(CACHED_YEARS_KEY, JSON.stringify(data));
 
                 // If no year is currently selected (first launch), default to the 'isActive: true' one
                 if (!selectedYear) {
@@ -34,12 +59,15 @@ const YearSelector = ({ onYearChanged }) => {
                         setYear(data[0]);
                     }
                 }
-            } else {
+            } else if (!hasCache) {
                 showToast("Failed to fetch academic years", "error");
             }
         } catch (error) {
             console.error("Error fetching academic years:", error);
-            showToast("Network error fetching years", "error");
+            // Only show network error toast if NO cached data was available (WhatsApp-like behavior)
+            if (!hasCache) {
+                showToast("Network error fetching years", "error");
+            }
         } finally {
             setLoading(false);
         }

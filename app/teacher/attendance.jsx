@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useApiQuery } from '../../hooks/useApi';
+import { CACHE_TIERS } from '../../utils/cacheConfig';
 import apiFetch from '../../utils/apiFetch';
 import apiConfig from '../../config/apiConfig';
 import { useTheme } from '../../theme';
@@ -25,8 +26,7 @@ export default function TeacherAttendance() {
         ['teacherAttendance'],
         `${apiConfig.baseUrl}/attendance/my-attendance?page=1&limit=${PAGE_SIZE}`,
         {
-            staleTime: 2 * 60 * 1000,
-            gcTime: 10 * 60 * 1000,
+            ...CACHE_TIERS.MODERATE,
         }
     );
 

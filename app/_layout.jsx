@@ -32,6 +32,7 @@ import DemoBanner from "../components/DemoBanner";
 import storage from "../utils/storage";
 import { useState } from "react";
 import useOfflinePrefetch from "../hooks/useOfflinePrefetch";
+import { setupAppStateRefresh } from "../utils/appStateRefresh";
 
 function isTokenExpired(token) {
   if (!token || token === 'demo-token') return false;
@@ -60,6 +61,13 @@ function Inner() {
   const { showToast } = useToast();
 
   useOfflinePrefetch();
+
+  // Wire AppState to React Query's focusManager so stale queries
+  // auto-refetch when the app comes back to the foreground
+  useEffect(() => {
+    const cleanup = setupAppStateRefresh();
+    return cleanup;
+  }, []);
 
   useEffect(() => {
     setGlobalAuthHandler(router, showToast);
@@ -211,7 +219,7 @@ export default function RootLayout() {
   return (
     <PersistQueryClientProvider
       client={queryClient}
-      persistOptions={{ persister }}
+      persistOptions={{ persister, maxAge: Infinity }}
     >
       <ThemeProvider>
         <ToastProvider>

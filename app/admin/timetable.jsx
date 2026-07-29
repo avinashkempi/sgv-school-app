@@ -16,6 +16,7 @@ import * as Haptics from 'expo-haptics';
 import SkeletonLoader from "../../components/SkeletonLoader";
 import { useTheme } from "../../theme";
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/useApi";
+import { CACHE_TIERS } from "../../utils/cacheConfig";
 import { useQueryClient } from "@tanstack/react-query";
 import Header from "../../components/Header";
 import Card from "../../components/Card";
@@ -38,7 +39,7 @@ export default function AdminTimetableScreen() {
     const { data: currentUser } = useApiQuery(
         ['currentUser'],
         `${apiConfig.baseUrl}/auth/me`,
-        { select: (d) => d.user, staleTime: Infinity }
+        { select: (d) => d.user, ...CACHE_TIERS.STABLE }
     );
     useEffect(() => {
         if (currentUser && currentUser.role !== 'admin' && currentUser.role !== 'super admin') {
@@ -71,9 +72,7 @@ export default function AdminTimetableScreen() {
         ['adminClassesInit'],
         `${apiConfig.baseUrl}/classes/admin/init`,
         {
-            staleTime: 5 * 60 * 1000, // 5 minutes stale time to prevent heavy overfetching
-            cacheTime: Infinity, // Keep data in memory forever (throughout session)
-            gcTime: Infinity, // For React Query v5+ support
+            ...CACHE_TIERS.STABLE,
         }
     );
 

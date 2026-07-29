@@ -1,46 +1,50 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useCallback } from 'react';
 import * as Notifications from 'expo-notifications';
+import { useQueryClient } from '@tanstack/react-query';
 import apiFetch from '../utils/apiFetch';
 import storage from '../utils/storage';
 import apiConfig from '../config/apiConfig';
+import { useApiQuery } from '../hooks/useApi';
+import { CACHE_TIERS } from '../utils/cacheConfig';
 
 const NotificationContext = createContext();
 
 export const NotificationProvider = ({ children }) => {
-    const [notifications, setNotifications] = useState([]);
-    const [unreadCount, setUnreadCount] = useState(0);
+    const queryClient = useQueryClient();
 
-    const fetchNotifications = useCallback(async () => {
-        try {
-            const response = await apiFetch(`${apiConfig.baseUrl}/notifications`);
-            if (response.ok) {
-                const data = await response.json();
-                setNotifications(data.notifications || []);
-                // Use the server-supplied unreadCount; fall back to local count if absent
-                setUnreadCount(data.unreadCount ?? (data.notifications || []).filter(n => !n.isRead).length);
-            }
-        } catch (error) {
-            console.error('[NotificationContext] Fetch Error:', error);
+    // ── Fetch notifications via React Query ──
+    // This query is now persisted to AsyncStorage via PersistQueryClientProvider,
+    // so notifications are available immediately on app open (even offline).
+    const {
+        data: notificationData,
+        refetch,
+    } = useApiQuery(
+        ['notifications'],
+        `${apiConfig.baseUrl}/notifications`,
+        {
+            ...CACHE_TIERS.REAL_TIME,
+            // Don't fetch if not authenticated (prevents 401 on login screen)
+            enabled: true,
         }
-    }, []);
+    );
 
+    const notifications = notificationData?.notifications || [];
+    const unreadCount = notificationData?.unreadCount
+        ?? notifications.filter(n => !n.isRead).length;
+
+    // ── Listen for push notifications to invalidate cache ──
     useEffect(() => {
-        let isMounted = true;
         let notificationListener = null;
 
         const init = async () => {
             const token = await storage.getItem('@auth_token');
-            if (token && isMounted) {
-                // Initial fetch
-                fetchNotifications();
-
-                // Listen for new push notifications (Foreground)
+            if (token) {
                 notificationListener = Notifications.addNotificationReceivedListener(_notification => {
                     if (__DEV__) {
-                        console.log('[FCM] Notification received in foreground, refetching...');
+                        console.log('[FCM] Notification received in foreground, invalidating cache...');
                     }
-                    // Automatically refetch notifications to update UI
-                    fetchNotifications();
+                    // Invalidate the query — React Query will refetch automatically
+                    queryClient.invalidateQueries({ queryKey: ['notifications'] });
                 });
             }
         };
@@ -48,76 +52,121 @@ export const NotificationProvider = ({ children }) => {
         init();
 
         return () => {
-            isMounted = false;
             if (notificationListener) {
                 notificationListener.remove();
             }
         };
-    }, [fetchNotifications]);
+    }, [queryClient]);
 
-    const markAsReadContext = useCallback(async (id) => {
+    // ── Optimistic mutations ──
+
+    const markAsRead = useCallback(async (id) => {
         try {
-            const response = await apiFetch(`${apiConfig.baseUrl}/notifications/${id}/read`, {
-                method: 'PUT'
+            // Optimistic update
+            queryClient.setQueryData(['notifications'], (old) => {
+                if (!old) return old;
+                return {
+                    ...old,
+                    notifications: (old.notifications || []).map(n =>
+                        n._id === id ? { ...n, isRead: true } : n
+                    ),
+                    unreadCount: Math.max(0, (old.unreadCount || 0) - 1),
+                };
             });
+
+            const response = await apiFetch(`${apiConfig.baseUrl}/notifications/${id}/read`, {
+                method: 'PUT',
+            });
+
             if (response.ok) {
-                setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
-                setUnreadCount(prev => Math.max(0, prev - 1));
                 return true;
+            } else {
+                // Revert on failure
+                queryClient.invalidateQueries({ queryKey: ['notifications'] });
             }
         } catch (error) {
             console.error('[NotificationContext] Mark Read Error:', error);
+            queryClient.invalidateQueries({ queryKey: ['notifications'] });
         }
         return false;
-    }, []);
+    }, [queryClient]);
 
-    const deleteNotificationContext = useCallback(async (id) => {
+    const deleteNotification = useCallback(async (id) => {
+        // Snapshot for rollback
+        const previousData = queryClient.getQueryData(['notifications']);
+
         try {
-            const response = await apiFetch(`${apiConfig.baseUrl}/notifications/${id}`, {
-                method: 'DELETE'
+            // Optimistic update
+            queryClient.setQueryData(['notifications'], (old) => {
+                if (!old) return old;
+                const deletedNotif = (old.notifications || []).find(n => n._id === id);
+                const wasUnread = deletedNotif && !deletedNotif.isRead;
+                return {
+                    ...old,
+                    notifications: (old.notifications || []).filter(n => n._id !== id),
+                    unreadCount: wasUnread
+                        ? Math.max(0, (old.unreadCount || 0) - 1)
+                        : (old.unreadCount || 0),
+                };
             });
+
+            const response = await apiFetch(`${apiConfig.baseUrl}/notifications/${id}`, {
+                method: 'DELETE',
+            });
+
             if (response.ok) {
-                setNotifications(prev => prev.filter(n => n._id !== id));
-                // Recalculate unread count
-                setUnreadCount(prev => {
-                    const deletedNotif = notifications.find(n => n._id === id);
-                    if (deletedNotif && !deletedNotif.isRead && prev > 0) {
-                        return prev - 1;
-                    }
-                    return prev;
-                });
                 return true;
+            } else {
+                // Rollback
+                queryClient.setQueryData(['notifications'], previousData);
             }
         } catch (error) {
             console.error('[NotificationContext] Delete Error:', error);
+            queryClient.setQueryData(['notifications'], previousData);
         }
         return false;
-    }, [notifications]);
+    }, [queryClient]);
 
-    const markAllReadContext = useCallback(async () => {
+    const markAllRead = useCallback(async () => {
         try {
-            const response = await apiFetch(`${apiConfig.baseUrl}/notifications/mark-all-read`, {
-                method: 'PUT'
+            // Optimistic update
+            queryClient.setQueryData(['notifications'], (old) => {
+                if (!old) return old;
+                return {
+                    ...old,
+                    notifications: (old.notifications || []).map(n => ({ ...n, isRead: true })),
+                    unreadCount: 0,
+                };
             });
+
+            const response = await apiFetch(`${apiConfig.baseUrl}/notifications/mark-all-read`, {
+                method: 'PUT',
+            });
+
             if (response.ok) {
-                setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-                setUnreadCount(0);
                 return true;
+            } else {
+                queryClient.invalidateQueries({ queryKey: ['notifications'] });
             }
         } catch (error) {
             console.error('[NotificationContext] Mark All Read Error:', error);
+            queryClient.invalidateQueries({ queryKey: ['notifications'] });
         }
         return false;
-    }, []);
+    }, [queryClient]);
+
+    const fetchNotifications = useCallback(async () => {
+        await refetch();
+    }, [refetch]);
 
     return (
         <NotificationContext.Provider value={{
             notifications,
             unreadCount,
             fetchNotifications,
-            markAsRead: markAsReadContext,
-            markAllRead: markAllReadContext,
-            deleteNotification: deleteNotificationContext
+            markAsRead,
+            markAllRead,
+            deleteNotification,
         }}>
             {children}
         </NotificationContext.Provider>

@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../theme';
 import { useApiQuery } from '../../hooks/useApi';
+import { CACHE_TIERS } from '../../utils/cacheConfig';
 import apiConfig from '../../config/apiConfig';
 import Header from '../../components/Header';
 import ExamTimeline from '../../components/ExamTimeline';
@@ -41,7 +42,8 @@ export default function StudentExamScheduleScreen() {
     // Fetch exam schedule
     const { data: examsData, isLoading, refetch } = useApiQuery(
         ['studentExamSchedule'],
-        `${apiConfig.baseUrl}/exams/schedule/student`
+        `${apiConfig.baseUrl}/exams/schedule/student`,
+        CACHE_TIERS.STABLE
     );
 
     const exams = examsData || [];

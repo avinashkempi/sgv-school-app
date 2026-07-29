@@ -12,6 +12,7 @@ import { useToast } from "../components/ToastProvider";
 import { useNetworkStatus } from "../components/NetworkStatusProvider";
 import apiConfig from "../config/apiConfig";
 import { useApiQuery } from "../hooks/useApi";
+import { CACHE_TIERS } from "../utils/cacheConfig";
 import storage from "../utils/storage";
 import { logoutHandler } from "../utils/logoutHandler";
 import AdminDashboard from "../components/dashboard/AdminDashboard";
@@ -31,8 +32,8 @@ export default function HomeScreen() {
     ['currentUser'],
     `${apiConfig.baseUrl}/auth/me`,
     {
+      ...CACHE_TIERS.STABLE,
       enabled: true,
-      staleTime: Infinity,
       retry: false,
       select: (data) => data.user,
     }

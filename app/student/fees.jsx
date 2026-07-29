@@ -11,6 +11,7 @@ import storage from "../../utils/storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
+import { CACHE_TIERS } from "../../utils/cacheConfig";
 import Header from "../../components/Header";
 import Card from "../../components/Card";
 import apiConfig from "../../config/apiConfig";
@@ -40,7 +41,7 @@ export default function StudentFeesScreen() {
     const { data: feeData, isLoading: loading, refetch } = useApiQuery(
         ['studentFees', userId],
         `${apiConfig.baseUrl}/fees/student/${userId}`,
-        { enabled: !!userId }
+        { enabled: !!userId, ...CACHE_TIERS.STABLE }
     );
 
     const onRefresh = async () => {

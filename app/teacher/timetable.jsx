@@ -10,6 +10,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
+import { CACHE_TIERS } from "../../utils/cacheConfig";
 import AppHeader from "../../components/Header";
 import Card from "../../components/Card";
 import apiConfig from "../../config/apiConfig";
@@ -40,7 +41,7 @@ export default function SchoolTimetableScreen() {
     const { data: timetables, isLoading: loading, refetch } = useApiQuery(
         ['schoolTimetable'],
         `${apiConfig.baseUrl}/timetable/all`,
-        { staleTime: 5 * 60 * 1000, gcTime: 30 * 60 * 1000 }
+        CACHE_TIERS.STABLE
     );
 
     // Auto-select first class

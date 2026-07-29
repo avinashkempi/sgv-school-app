@@ -1,5 +1,6 @@
 import storage from './storage';
 import { clearAllCaches, cancelAllQueries } from './cacheManager';
+import { unregisterBackgroundSync } from './backgroundSync';
 
 /**
  * Unified logout handler
@@ -31,6 +32,13 @@ export async function logoutHandler(router, messageOrToast = null, showToastFn =
     // 3. Clear ALL caches (React Query + manual + persisted)
     await clearAllCaches();
     console.log('[LogoutHandler] All caches cleared');
+
+    // 3b. Unregister background sync task
+    try {
+      await unregisterBackgroundSync();
+    } catch (err) {
+      console.warn('[LogoutHandler] Could not unregister background sync:', err);
+    }
 
     // 4. Clear academic year context
     try {

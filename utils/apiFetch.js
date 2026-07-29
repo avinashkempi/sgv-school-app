@@ -123,10 +123,25 @@ export default async function apiFetch(input, init = {}) {
     console.warn('apiFetch: Could not attach x-academic-year context', err);
   }
 
-  const response = await fetch(input, {
-    ...fetchInit,
-    headers,
-  });
+  const controller = new AbortController();
+  const timeoutMs = init.timeout || 6000;
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  let response;
+  try {
+    response = await fetch(input, {
+      ...fetchInit,
+      headers,
+      signal: fetchInit.signal || controller.signal,
+    });
+    clearTimeout(timeoutId);
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw new TypeError('Network request timed out');
+    }
+    throw err;
+  }
 
   // Intercept response headers to check if academic year has been updated on backend
   try {

@@ -5,6 +5,7 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useApiQuery, useApiMutation, createApiMutationFn } from '../../hooks/useApi';
+import { CACHE_TIERS } from '../../utils/cacheConfig';
 import apiFetch from '../../utils/apiFetch';
 import { useQueryClient } from '@tanstack/react-query';
 import apiConfig from '../../config/apiConfig';
@@ -58,14 +59,14 @@ export default function AdminAttendance() {
     const { data: schoolSummary, isLoading: summaryLoading, isFetching: summaryFetching, refetch: refetchSummary } = useApiQuery(
         ['attendanceSummary', date.toISOString().split('T')[0]],
         `${apiConfig.baseUrl}/attendance/school-summary?date=${date.toISOString().split('T')[0]}`,
-        { enabled: activeTab === 'summary', select: (d) => d.data, staleTime: 60 * 1000, gcTime: 10 * 60 * 1000 }
+        { enabled: activeTab === 'summary', select: (d) => d.data, ...CACHE_TIERS.MODERATE }
     );
 
     // Fetch if current date is holiday
     const { data: holidayData, refetch: refetchHoliday } = useApiQuery(
         ['holidayStatus', date.toISOString().split('T')[0]],
         `${apiConfig.baseUrl}/events?startDate=${date.toISOString().split('T')[0]}&endDate=${date.toISOString().split('T')[0]}&isHoliday=true`,
-        { enabled: activeTab !== 'my_attendance' && activeTab !== 'tracker', staleTime: 60 * 1000 }
+        { enabled: activeTab !== 'my_attendance' && activeTab !== 'tracker', ...CACHE_TIERS.MODERATE }
     );
     const holidayEvent = (holidayData?.event && holidayData.event.length > 0) ? holidayData.event[0] : null;
     const isSunday = date.getDay() === 0;
@@ -97,7 +98,7 @@ export default function AdminAttendance() {
     const { data: classesData = [] } = useApiQuery(
         ['classes'],
         `${apiConfig.baseUrl}/classes`,
-        { enabled: activeTab === 'student' || activeTab === 'summary', staleTime: 5 * 60 * 1000, gcTime: 10 * 60 * 1000 }
+        { enabled: activeTab === 'student' || activeTab === 'summary', ...CACHE_TIERS.MODERATE }
     );
     const classes = Array.isArray(classesData) ? classesData : (classesData.data || []);
 
@@ -105,14 +106,14 @@ export default function AdminAttendance() {
     const { data: studentAttendance, isLoading: studentLoading, refetch: refetchStudent } = useApiQuery(
         ['studentAttendance', selectedClass?._id, date.toISOString().split('T')[0]],
         `${apiConfig.baseUrl}/attendance/class/${selectedClass?._id}/date/${date.toISOString().split('T')[0]}`,
-        { enabled: activeTab === 'student' && !!selectedClass, staleTime: 30 * 1000, gcTime: 5 * 60 * 1000 }
+        { enabled: activeTab === 'student' && !!selectedClass, ...CACHE_TIERS.REAL_TIME }
     );
 
     // Fetch Staff List
     const { data: staffListResponse, isLoading: staffLoading, refetch: refetchStaff } = useApiQuery(
         ['staffList', date.toISOString().split('T')[0]],
         `${apiConfig.baseUrl}/attendance/staff-list?date=${date.toISOString().split('T')[0]}`,
-        { enabled: activeTab === 'staff', staleTime: 30 * 1000, gcTime: 5 * 60 * 1000 }
+        { enabled: activeTab === 'staff', ...CACHE_TIERS.REAL_TIME }
     );
     const staffList = staffListResponse?.data;
 
@@ -122,8 +123,7 @@ export default function AdminAttendance() {
         `${apiConfig.baseUrl}/attendance/my-attendance?page=1&limit=${MY_PAGE_SIZE}`,
         {
             enabled: activeTab === 'my_attendance',
-            staleTime: 2 * 60 * 1000,
-            gcTime: 10 * 60 * 1000,
+            ...CACHE_TIERS.MODERATE,
         }
     );
 
@@ -161,7 +161,7 @@ export default function AdminAttendance() {
     const { data: classesMarkedResponse } = useApiQuery(
         ['classesMarked', date.toISOString().split('T')[0]],
         `${apiConfig.baseUrl}/attendance/classes-marked?date=${date.toISOString().split('T')[0]}`,
-        { enabled: activeTab === 'student' || activeTab === 'summary', staleTime: 60 * 1000, gcTime: 10 * 60 * 1000 }
+        { enabled: activeTab === 'student' || activeTab === 'summary', ...CACHE_TIERS.MODERATE }
     );
     const classesMarked = classesMarkedResponse?.markedClasses || [];
 
@@ -171,7 +171,7 @@ export default function AdminAttendance() {
     const { data: trackerDataResponse, isLoading: trackerLoading, refetch: refetchTracker } = useApiQuery(
         ['missingTracker', trackerStartDate.toISOString().split('T')[0], trackerEndDate.toISOString().split('T')[0]],
         `${apiConfig.baseUrl}/attendance/missing-tracker?startDate=${trackerStartDate.toISOString().split('T')[0]}&endDate=${trackerEndDate.toISOString().split('T')[0]}`,
-        { enabled: activeTab === 'tracker', staleTime: 2 * 60 * 1000, gcTime: 10 * 60 * 1000 }
+        { enabled: activeTab === 'tracker', ...CACHE_TIERS.MODERATE }
     );
     const trackerData = trackerDataResponse?.missingData || [];
 

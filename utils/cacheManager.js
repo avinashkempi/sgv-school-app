@@ -5,8 +5,7 @@ import { queryClient } from './queryClient';
  * Clear ALL caches comprehensively:
  * - React Query in-memory cache
  * - React Query persisted cache (AsyncStorage)
- * - Manual app caches
- * - Context state if needed
+ * - Legacy manual app caches (from old dual-cache system)
  */
 export async function clearAllCaches() {
   try {
@@ -18,30 +17,16 @@ export async function clearAllCaches() {
     // 2. Clear React Query persisted cache from AsyncStorage
     await storage.removeItem('@react-query-persist');
 
-    // 3. Clear all manual app caches
-    const keysToRemove = [
+    // 3. Clear legacy manual cache keys (kept for cleanup of old installs)
+    const legacyKeys = [
       '@cached_events',
       '@cached_school_info',
-      '@cached_notifications',
-      '@cached_user_data',
-      '@cached_attendance',
-      '@cached_marks',
-      '@cached_fees',
-      '@cached_timetable',
-      '@cached_exams',
-      '@cached_leaves',
-      '@cached_subjects',
-      '@cached_classes',
-      '@cached_teachers',
-      '@cached_students',
-      '@cached_staff',
-      '@cached_admin_dashboard',
-      '@cached_teacher_dashboard',
-      '@cached_student_dashboard',
-      'selectedAcademicYear', // Academic year context
+      '@cached_news',
+      '@cached_users',
+      'selectedAcademicYear',
     ];
 
-    await storage.multiRemove(keysToRemove);
+    await storage.multiRemove(legacyKeys);
 
     console.log('[CacheManager] All caches cleared successfully');
     return { success: true };

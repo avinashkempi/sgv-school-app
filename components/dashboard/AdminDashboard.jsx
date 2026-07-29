@@ -10,6 +10,7 @@ import { LoadingState, ErrorState, EmptyState } from '../StateComponents';
 import apiFetch from '../../utils/apiFetch';
 import apiConfig from '../../config/apiConfig';
 import { useApiQuery } from '../../hooks/useApi';
+import { CACHE_TIERS } from '../../utils/cacheConfig';
 import { useFocusEffect } from 'expo-router';
 
 const AdminDashboard = () => {
@@ -22,19 +23,13 @@ const AdminDashboard = () => {
     const { data, isLoading: loading, error: queryError, refetch } = useApiQuery(
         ['adminDashboard', dateRange],
         `${apiConfig.baseUrl}/dashboard/admin?range=${dateRange}`,
-        { 
-            staleTime: 1000 * 60 * 5 // Cache for 5 minutes
-        }
+        { ...CACHE_TIERS.MODERATE }
     );
 
     const error = queryError ? queryError.message : null;
 
-    useFocusEffect(
-        useCallback(() => {
-            // Silently refetch in background when focused
-            refetch();
-        }, [refetch])
-    );
+    // React Query handles stale-while-revalidate based on CACHE_TIERS.MODERATE
+    // Manual refetch is only needed on pull-to-refresh (onRefresh) or date range change
 
     const onRefresh = async () => {
         setRefreshing(true);

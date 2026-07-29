@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useRef } from "react";
 import { StyleSheet, Text, View, Platform } from "react-native";
 import { useTheme } from "../theme";
 import Animated, {
@@ -20,12 +20,35 @@ export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
   const { _colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const recentToastsRef = useRef(new Map());
 
   const removeToast = useCallback((id) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
   const showToast = useCallback((msg, type = 'info', duration = 3000) => {
+    if (!msg) return;
+
+    const now = Date.now();
+    const key = `${type}:${msg}`;
+    const lastShown = recentToastsRef.current.get(key) || 0;
+
+    // Deduplicate: If identical toast message was shown in the last 10 seconds, suppress it
+    if (now - lastShown < 10000) {
+      return;
+    }
+
+    recentToastsRef.current.set(key, now);
+
+    // Clean up old entries from recentToastsRef map periodically
+    if (recentToastsRef.current.size > 50) {
+      for (const [k, timestamp] of recentToastsRef.current.entries()) {
+        if (now - timestamp > 30000) {
+          recentToastsRef.current.delete(k);
+        }
+      }
+    }
+
     const id = Date.now().toString() + Math.random().toString();
     
     setToasts((prev) => {

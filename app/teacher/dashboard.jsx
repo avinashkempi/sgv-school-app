@@ -13,6 +13,7 @@ import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
 import apiConfig from "../../config/apiConfig";
 import { useApiQuery } from "../../hooks/useApi";
+import { CACHE_TIERS } from "../../utils/cacheConfig";
 import { useToast } from "../../components/ToastProvider";
 import AppHeader from "../../components/Header";
 import Card from "../../components/Card";
@@ -47,7 +48,8 @@ export default function TeacherDashboard() {
 
     const { data: dashboardData, isLoading: loading, refetch } = useApiQuery(
         ['teacherDashboard'],
-        `${apiConfig.baseUrl}/teachers/my-classes-and-subjects`
+        `${apiConfig.baseUrl}/teachers/my-classes-and-subjects`,
+        CACHE_TIERS.MODERATE
     );
 
     const asClassTeacher = dashboardData?.asClassTeacher || [];

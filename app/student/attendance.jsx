@@ -11,6 +11,7 @@ import storage from "../../utils/storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
+import { CACHE_TIERS } from "../../utils/cacheConfig";
 import apiFetch from "../../utils/apiFetch";
 import Header from "../../components/Header";
 import ModernCalendar from "../../components/ModernCalendar";
@@ -51,7 +52,7 @@ export default function StudentAttendanceScreen() {
     const { data: summary, isLoading: loadingSummary, refetch: refetchSummary } = useApiQuery(
         ['studentAttendanceSummary', userId],
         `${apiConfig.baseUrl}/attendance/student/${userId}/summary`,
-        { enabled: !!userId, staleTime: 2 * 60 * 1000, gcTime: 10 * 60 * 1000 }
+        { enabled: !!userId, ...CACHE_TIERS.MODERATE }
     );
 
     // Fetch history page 1 when userId becomes available

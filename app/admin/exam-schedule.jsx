@@ -16,6 +16,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/useApi";
+import { CACHE_TIERS } from "../../utils/cacheConfig";
 import apiConfig from "../../config/apiConfig";
 import { useQueryClient } from "@tanstack/react-query";
 import Header from "../../components/Header";
@@ -123,7 +124,7 @@ export default function AdminExamScheduleScreen() {
     const { data: classesData, isLoading: classesLoading } = useApiQuery(
         ['adminClassesInit'],
         `${apiConfig.baseUrl}/classes/admin/init`,
-        { staleTime: 1000 * 60 * 5 }
+        CACHE_TIERS.STABLE
     );
     const classes = classesData?.classes || [];
 
@@ -140,7 +141,7 @@ export default function AdminExamScheduleScreen() {
         `${apiConfig.baseUrl}/exams/schedule/class/${selectedClassId}`,
         { 
             enabled: !!selectedClassId && activeTab === 'schedules',
-            staleTime: 1000 * 60 * 2 // 2 minutes for schedules
+            ...CACHE_TIERS.STABLE
         }
     );
 

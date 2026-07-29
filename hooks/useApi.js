@@ -37,7 +37,14 @@ export function useApiQuery(key, url, options = {}) {
                 return response.json();
             } catch (error) {
                 // Wrap pure native network errors defensively
-                if (error instanceof TypeError && error.message.includes('Network request failed')) {
+                const isNetErr = (
+                    error instanceof TypeError &&
+                    (error.message.includes('Network request failed') ||
+                     error.message.includes('Failed to fetch') ||
+                     error.message.includes('Network request timed out'))
+                ) || error?.name === 'AbortError';
+
+                if (isNetErr) {
                     if (options.silent) {
                         return null; // Gracefully degrade if requested
                     }
@@ -91,7 +98,14 @@ export function useApiInfiniteQuery(key, urlFn, options = {}) {
                 return response.json();
             } catch (error) {
                 // Wrap pure native network errors defensively
-                if (error instanceof TypeError && error.message.includes('Network request failed')) {
+                const isNetErr = (
+                    error instanceof TypeError &&
+                    (error.message.includes('Network request failed') ||
+                     error.message.includes('Failed to fetch') ||
+                     error.message.includes('Network request timed out'))
+                ) || error?.name === 'AbortError';
+
+                if (isNetErr) {
                     if (options.silent) {
                         return null; // Gracefully degrade if requested
                     }

@@ -9,6 +9,7 @@ import { useRouter } from "expo-router";
 import { logoutHandler } from "../utils/logoutHandler";
 
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../hooks/useApi";
+import { CACHE_TIERS } from "../utils/cacheConfig";
 import apiConfig from "../config/apiConfig";
 
 import Card from "../components/Card";
@@ -24,7 +25,7 @@ export default function ProfileScreen() {
     ['currentUser'],
     `${apiConfig.baseUrl}/auth/me`,
     {
-      staleTime: 0,
+      ...CACHE_TIERS.MODERATE,
       select: (data) => data.user
     }
   );

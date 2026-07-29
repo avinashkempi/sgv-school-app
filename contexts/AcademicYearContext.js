@@ -34,6 +34,7 @@ export const AcademicYearProvider = ({ children }) => {
             const response = await apiFetch(`${apiConfig.baseUrl}/academic-year`);
             if (response.ok) {
                 const data = await response.json();
+                await storage.setItem('@cached_academic_years', JSON.stringify(data));
                 const activeYear = data.find(y => y.isActive) || data.find(y => y.status === 'current') || data[0];
 
                 if (!activeYear) return;
@@ -78,12 +79,16 @@ export const AcademicYearProvider = ({ children }) => {
                 if (storedYear) {
                     setSelectedYear(JSON.parse(storedYear));
                 }
-                await syncYear();
             } catch (error) {
                 console.error("Error loading selected academic year:", error);
             } finally {
                 setIsYearReady(true);
             }
+
+            // Sync with backend non-blockingly in background
+            syncYear().catch((err) => {
+                console.log('[AcademicYearContext] Background sync skipped/failed:', err);
+            });
         };
 
         loadPersistedYear();

@@ -1,235 +1,133 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import storage from '../utils/storage';
+import { useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import apiConfig from '../config/apiConfig';
-import {
-  getCachedData,
-  setCachedData,
-  isCacheStale,
-  isRefreshing,
-  setRefreshLock,
-  clearRefreshLock,
-  CACHE_KEYS,
-  CACHE_EXPIRY,
-  STALE_TIME
-} from '../utils/cache';
-import apiFetch from '../utils/apiFetch';
-import { useNetworkStatus } from '../components/NetworkStatusProvider';
+import { useApiQuery } from './useApi';
+import { CACHE_TIERS } from '../utils/cacheConfig';
+
+/**
+ * Fetches and caches events via React Query.
+ *
+ * Replaces the old dual-cache approach (manual AsyncStorage cache.js +
+ * refresh locks + manual stale-while-revalidate) with a single React Query
+ * query that handles all of this automatically.
+ *
+ * The hook fetches a 3-month window of events (previous month → next month)
+ * and provides CRUD helpers that do optimistic updates via queryClient.setQueryData.
+ */
+
+const DEFAULT_QUERY_KEY = 'events';
+
+function getDefaultDateRange() {
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0).toISOString();
+  return { startDate: startOfMonth, endDate: endOfMonth };
+}
+
+function buildEventsUrl(startDate, endDate) {
+  const queryParts = [];
+  if (startDate) queryParts.push(`startDate=${encodeURIComponent(startDate)}`);
+  if (endDate) queryParts.push(`endDate=${encodeURIComponent(endDate)}`);
+  if (!startDate && !endDate) queryParts.push('limit=100');
+  const queryString = queryParts.length > 0 ? `?${queryParts.join('&')}` : '';
+  return apiConfig.url(`${apiConfig.endpoints.events.list}${queryString}`);
+}
 
 export default function useEvents() {
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const isMountedRef = useRef(true);
+  const queryClient = useQueryClient();
 
-  // Track current range for auto-refresh
-  const currentRangeRef = useRef({ start: null, end: null });
+  const { startDate, endDate } = getDefaultDateRange();
+  const eventsUrl = buildEventsUrl(startDate, endDate);
 
-  const { isConnected, registerOnlineCallback } = useNetworkStatus();
-
-  // Fetch events from API  
-  const fetchEventsFromAPI = useCallback(async (startDate, endDate, silent = false) => {
-    const token = await storage.getItem('@auth_token');
-    const fetchOptions = { silent }; // Pass silent flag
-    if (token) {
-      fetchOptions.headers = { Authorization: `Bearer ${token}` };
+  const {
+    data: events = [],
+    isLoading: loading,
+    error,
+    refetch,
+  } = useApiQuery(
+    [DEFAULT_QUERY_KEY],
+    eventsUrl,
+    {
+      ...CACHE_TIERS.MODERATE,
+      select: (data) => {
+        // API returns { event: [...] }
+        const eventsData = data?.event || data || [];
+        if (!Array.isArray(eventsData)) return [];
+        return eventsData;
+      },
     }
+  );
 
-    const queryParts = [];
-    if (startDate) queryParts.push(`startDate=${encodeURIComponent(startDate)}`);
-    if (endDate) queryParts.push(`endDate=${encodeURIComponent(endDate)}`);
-    if (!startDate && !endDate) queryParts.push('limit=100');
-
-    const queryString = queryParts.length > 0 ? `?${queryParts.join('&')}` : '';
-
-
-
-    const response = await apiFetch(
-      apiConfig.url(`${apiConfig.endpoints.events.list}${queryString}`),
-      fetchOptions
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const eventsData = data.event || [];
-
-    if (!Array.isArray(eventsData)) {
-      throw new Error('Invalid events data structure from API');
-    }
-
-
-    return eventsData;
-  }, []);
-
-  // Fetch events with smart caching
-  const fetchEventsRange = useCallback(async (startDate, endDate, callback, silent = false) => {
-    const cacheKey = CACHE_KEYS.EVENTS;
-
-    // Update current range ref
-    currentRangeRef.current = { start: startDate, end: endDate };
-
-    // If offline, just return (we rely on cache which is already loaded)
-    if (!isConnected) {
-
-      if (callback) callback(null, 0);
-      return;
-    }
-
-    // Prevent duplicate fetches
-    if (isRefreshing(cacheKey)) {
-
-      if (callback) callback(null, 0);
-      return;
-    }
-
+  // Fetch events for a specific date range (used by calendar views)
+  const fetchEventsRange = useCallback(async (start, end, callback, silent = false) => {
     try {
-      setRefreshLock(cacheKey);
-
-      const eventsData = await fetchEventsFromAPI(startDate, endDate, silent);
-
-      if (isMountedRef.current) {
-        setEvents(eventsData);
-        setError(null);
-      }
-
-      await setCachedData(cacheKey, eventsData);
-
-
-      if (callback) callback(null, eventsData.length);
+      const url = buildEventsUrl(start, end);
+      // Prefetch into the same query key so data is unified
+      await queryClient.prefetchQuery({
+        queryKey: [DEFAULT_QUERY_KEY],
+        queryFn: async () => {
+          const { default: apiFetch } = await import('../utils/apiFetch');
+          const response = await apiFetch(url, { silent });
+          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+          return response.json();
+        },
+        staleTime: CACHE_TIERS.MODERATE.staleTime,
+      });
+      if (callback) callback(null, 0);
     } catch (err) {
-
-      // Suppress network errors as requested
       if (callback) callback(err);
-    } finally {
-      clearRefreshLock(cacheKey);
     }
-  }, [fetchEventsFromAPI, isConnected]);
+  }, [queryClient]);
 
-  // Initial load with cache-first strategy
-  useEffect(() => {
-    let cancelled = false;
+  // ── CRUD helpers with optimistic updates ──
 
-    const loadEvents = async () => {
-      const cacheKey = CACHE_KEYS.EVENTS;
-
-      try {
-        // Step 1: Try to load from cache first
-        const cachedEvents = await getCachedData(cacheKey, CACHE_EXPIRY.EVENTS);
-
-        if (cachedEvents && cachedEvents.length > 0 && !cancelled) {
-
-          setEvents(cachedEvents);
-          setLoading(false);
-
-          // Step 2: Check if cache is stale or if we should refresh
-          const isStale = await isCacheStale(cacheKey, STALE_TIME.EVENTS);
-
-          if (isStale && isConnected) {
-
-            // Refresh in background without showing loader
-            const now = new Date();
-            const startOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
-            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0).toISOString();
-            fetchEventsRange(startOfMonth, endOfMonth, null, true); // silent=true
-          }
-        } else {
-          // Step 3: No cache, fetch from API
-
-          const now = new Date();
-          const startOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
-          const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0).toISOString();
-
-          await fetchEventsRange(startOfMonth, endOfMonth, null, true); // silent=true (prevent global loader)
-
-          if (!cancelled) {
-            setLoading(false);
-          }
-        }
-      } catch (err) {
-
-        if (!cancelled) {
-          // setError(err.message); // Suppress error
-          setLoading(false);
-        }
-      }
-    };
-
-    loadEvents();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [fetchEventsRange, isConnected]);
-
-  // Register online callback for auto-refresh
-  useEffect(() => {
-    const unsubscribe = registerOnlineCallback(() => {
-
-      const { start, end } = currentRangeRef.current;
-      if (start && end) {
-        fetchEventsRange(start, end, null, true); // silent refresh
-      } else {
-        // Default range if none set
-        const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
-        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0).toISOString();
-        fetchEventsRange(startOfMonth, endOfMonth, null, true);
-      }
-    });
-
-    return unsubscribe;
-  }, [registerOnlineCallback, fetchEventsRange]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
-
-  // Helper functions for CRUD operations
   const addEvent = useCallback((newEvent) => {
     const normalized = { ...newEvent };
     if (!normalized._id && normalized.id) normalized._id = normalized.id;
-    // Handle various boolean formats
     if (typeof normalized.isSchoolEvent === 'string') {
       normalized.isSchoolEvent = normalized.isSchoolEvent === 'true';
     } else {
       normalized.isSchoolEvent = Boolean(normalized.isSchoolEvent);
     }
 
-    setEvents(prev => {
-      const updated = [...prev, normalized];
-      // Update cache in background
-      setCachedData(CACHE_KEYS.EVENTS, updated);
-      return updated;
+    queryClient.setQueryData([DEFAULT_QUERY_KEY], (old) => {
+      const oldData = old?.event || old || [];
+      return { event: [...oldData, normalized] };
     });
-  }, []);
+  }, [queryClient]);
 
   const updateEvent = useCallback((updatedEvent) => {
     const normalized = { ...updatedEvent };
     if (!normalized._id && normalized.id) normalized._id = normalized.id;
 
-    setEvents(prev => {
-      const updated = prev.map(event =>
-        event._id === normalized._id ? normalized : event
-      );
-      // Update cache in background
-      setCachedData(CACHE_KEYS.EVENTS, updated);
-      return updated;
+    queryClient.setQueryData([DEFAULT_QUERY_KEY], (old) => {
+      const oldData = old?.event || old || [];
+      return {
+        event: oldData.map(event =>
+          event._id === normalized._id ? normalized : event
+        ),
+      };
     });
-  }, []);
+  }, [queryClient]);
 
   const removeEvent = useCallback((eventId) => {
-    setEvents(prev => {
-      const updated = prev.filter(event => event._id !== eventId);
-      // Update cache in background
-      setCachedData(CACHE_KEYS.EVENTS, updated);
-      return updated;
+    queryClient.setQueryData([DEFAULT_QUERY_KEY], (old) => {
+      const oldData = old?.event || old || [];
+      return {
+        event: oldData.filter(event => event._id !== eventId),
+      };
     });
-  }, []);
+  }, [queryClient]);
+
+  const refreshEvents = useCallback(async (silent = true) => {
+    try {
+      await refetch();
+    } catch (err) {
+      if (!silent) {
+        console.warn('[useEvents] Refresh failed:', err);
+      }
+    }
+  }, [refetch]);
 
   return {
     events,
@@ -239,17 +137,6 @@ export default function useEvents() {
     updateEvent,
     removeEvent,
     fetchEventsRange,
-    refreshEvents: useCallback(async (silent = true) => {
-      const { start, end } = currentRangeRef.current;
-      if (start && end) {
-        await fetchEventsRange(start, end, null, silent);
-      } else {
-        // Default to current month if no range set
-        const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
-        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0).toISOString();
-        await fetchEventsRange(startOfMonth, endOfMonth, null, silent);
-      }
-    }, [fetchEventsRange])
+    refreshEvents,
   };
 }

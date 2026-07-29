@@ -48,7 +48,7 @@ export const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
             staleTime: 1000 * 60 * 5, // 5 minutes
-            gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days (offline cache availability)
+            gcTime: Infinity, // Permanent offline cache storage (like WhatsApp)
             retry: 2,
             networkMode: 'offlineFirst', // Run queries even if network seems offline
         },
