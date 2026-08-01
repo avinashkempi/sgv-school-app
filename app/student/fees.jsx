@@ -41,7 +41,7 @@ export default function StudentFeesScreen() {
     const { data: feeData, isLoading: loading, refetch } = useApiQuery(
         ['studentFees', userId],
         `${apiConfig.baseUrl}/fees/student/${userId}`,
-        { enabled: !!userId, ...CACHE_TIERS.STABLE }
+        { enabled: !!userId && userId !== 'undefined', ...CACHE_TIERS.STABLE }
     );
 
     const onRefresh = async () => {

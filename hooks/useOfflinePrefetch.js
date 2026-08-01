@@ -62,7 +62,7 @@ export default function useOfflinePrefetch() {
                     prefetch(['studentDashboard'], '/dashboard/student', CACHE_TIERS.MODERATE);
                     prefetch(['myLeaves'], '/leaves/my-leaves', CACHE_TIERS.MODERATE);
                     prefetch(['studentTimetable'], '/timetable/my-timetable', CACHE_TIERS.STABLE);
-                    if (userId) {
+                    if (userId && userId !== 'undefined') {
                         prefetch(['studentFees', userId], `/fees/student/${userId}`, CACHE_TIERS.STABLE);
                         prefetch(['studentAttendanceSummary', userId], `/attendance/student/${userId}/summary`, CACHE_TIERS.MODERATE);
                     }

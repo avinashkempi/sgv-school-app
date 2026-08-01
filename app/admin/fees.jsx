@@ -97,10 +97,11 @@ export default function AdminFeesScreen() {
     const allStudents = studentsData || [];
 
     // Fetch Fee Details for Selected Student
+    const selectedStudentId = selectedStudent?._id || selectedStudent?.id;
     const { data: feeDetails, refetch: refetchFeeDetails } = useApiQuery(
-        ['feeDetails', selectedStudent?._id],
-        `${apiConfig.baseUrl}/fees/student/${selectedStudent?._id}`,
-        { enabled: !!selectedStudent }
+        ['feeDetails', selectedStudentId],
+        `${apiConfig.baseUrl}/fees/student/${selectedStudentId}`,
+        { enabled: !!selectedStudentId && selectedStudentId !== 'undefined' }
     );
 
     // Fetch Fee Structure for Selected Class
