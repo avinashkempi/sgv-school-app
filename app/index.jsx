@@ -1,6 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { View, Text, ScrollView, Animated, StatusBar, RefreshControl, } from "react-native";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "expo-router";
 import useFade from "../hooks/useFade";
 import { useTheme } from "../theme";
@@ -13,8 +13,7 @@ import { useNetworkStatus } from "../components/NetworkStatusProvider";
 import apiConfig from "../config/apiConfig";
 import { useApiQuery } from "../hooks/useApi";
 import { CACHE_TIERS } from "../utils/cacheConfig";
-import storage from "../utils/storage";
-import { logoutHandler } from "../utils/logoutHandler";
+
 import AdminDashboard from "../components/dashboard/AdminDashboard";
 import TeacherDashboard from "../components/dashboard/TeacherDashboard";
 import StudentDashboard from "../components/dashboard/StudentDashboard";
@@ -53,24 +52,8 @@ export default function HomeScreen() {
     }
   };
 
-  useEffect(() => {
-    if (isError && error?.isAuthError) {
-      // Check if token is already cleared (manual logout already in progress)
-      storage.getItem('@auth_token').then((token) => {
-        if (!token) {
-          // Token already cleared, manual logout was already triggered
-          console.log('[HomeScreen] Token already cleared, skipping auto-logout');
-          return;
-        }
-        // Only logout on auth errors (401), not network errors
-        logoutHandler(router, error?.message || 'Session expired. Please log in again.', showToast);
-      }).catch((err) => {
-        console.error('[HomeScreen] Error checking token:', err);
-        // If we can't check, go ahead with logout to be safe
-        logoutHandler(router, 'Session expired. Please log in again.', showToast);
-      });
-    }
-  }, [isError, error?.isAuthError, error?.message, showToast]);
+  // Auth errors (401) are handled globally by queryClient.QueryCache.onError
+  // No need for duplicate handling here — it caused double-logout race conditions
 
   return (
     <ScrollView

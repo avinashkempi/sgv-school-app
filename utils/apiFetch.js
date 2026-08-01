@@ -124,7 +124,7 @@ export default async function apiFetch(input, init = {}) {
   }
 
   const controller = new AbortController();
-  const timeoutMs = init.timeout || 6000;
+  const timeoutMs = init.timeout || 30000;
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   let response;
@@ -146,33 +146,40 @@ export default async function apiFetch(input, init = {}) {
   // Intercept response headers to check if academic year has been updated on backend
   try {
     const activeYearHeader = response.headers.get('x-active-academic-year');
-    if (activeYearHeader) {
-      const activeYear = JSON.parse(activeYearHeader);
-      
-      const storedYearStr = await storage.getItem('selectedAcademicYear');
-      const storedYear = storedYearStr ? JSON.parse(storedYearStr) : null;
+    if (activeYearHeader && activeYearHeader.trim()) {
+      let activeYear;
+      try {
+        activeYear = JSON.parse(activeYearHeader);
+      } catch (parseErr) {
+        console.warn('apiFetch: Malformed x-active-academic-year header, skipping', parseErr);
+        activeYear = null;
+      }
+      if (activeYear && activeYear._id) {
+        const storedYearStr = await storage.getItem('selectedAcademicYear');
+        const storedYear = storedYearStr ? JSON.parse(storedYearStr) : null;
 
-      const userStr = await storage.getItem('@auth_user');
-      const user = userStr ? JSON.parse(userStr) : null;
-      const isSuperAdmin = user?.role === 'super admin';
+        const userStr = await storage.getItem('@auth_user');
+        const user = userStr ? JSON.parse(userStr) : null;
+        const isSuperAdmin = user?.role === 'super admin';
 
-      // Non-Super Admins MUST be forced to the active year if it differs
-      if (!isSuperAdmin) {
-        if (!storedYear || storedYear._id !== activeYear._id) {
-          if (__DEV__) {
-            console.log(`[apiFetch] Backend forced academic year context update to: ${activeYear.name}`);
+        // Non-Super Admins MUST be forced to the active year if it differs
+        if (!isSuperAdmin) {
+          if (!storedYear || storedYear._id !== activeYear._id) {
+            if (__DEV__) {
+              console.log(`[apiFetch] Backend forced academic year context update to: ${activeYear.name}`);
+            }
+            
+            // 1. Update AsyncStorage
+            await storage.setItem('selectedAcademicYear', JSON.stringify(activeYear));
+            
+            // 2. Update React Context state immediately
+            const { notifyAcademicYearChange } = require('../contexts/AcademicYearContext');
+            notifyAcademicYearChange(activeYear);
+            
+            // 3. Invalidate React Query caches to trigger UI refresh
+            const { queryClient } = require('./queryClient');
+            queryClient.invalidateQueries();
           }
-          
-          // 1. Update AsyncStorage
-          await storage.setItem('selectedAcademicYear', JSON.stringify(activeYear));
-          
-          // 2. Update React Context state immediately
-          const { notifyAcademicYearChange } = require('../contexts/AcademicYearContext');
-          notifyAcademicYearChange(activeYear);
-          
-          // 3. Invalidate React Query caches to trigger UI refresh
-          const { queryClient } = require('./queryClient');
-          queryClient.invalidateQueries();
         }
       }
     }

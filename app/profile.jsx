@@ -39,7 +39,10 @@ export default function ProfileScreen() {
 
   const changePasswordMutation = useApiMutation({
     mutationFn: (data) => createApiMutationFn(`${apiConfig.baseUrl}/auth/change-password`, 'POST')(data),
-    onSuccess: () => {
+    onSuccess: async (data) => {
+      if (data?.token) {
+        await storage.setItem('@auth_token', data.token);
+      }
       showToast("Password reset successfully", "success");
       setShowChangePasswordModal(false);
       setCurrentPassword('');
@@ -81,7 +84,6 @@ export default function ProfileScreen() {
   };
 
   const handleLogin = () => {
-    const { router } = require('expo-router');
     router.replace('/login');
   };
 

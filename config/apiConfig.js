@@ -30,6 +30,7 @@ const endpoints = {
   },
   fcm: {
     register: '/fcm/register',
+    registerPublic: '/fcm/register-public',
     unregister: '/fcm/unregister',
   },
   subjects: {

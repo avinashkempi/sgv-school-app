@@ -1,5 +1,5 @@
 import * as Notifications from 'expo-notifications';
-import { Platform, Alert } from 'react-native';
+import { Platform } from 'react-native';
 
 /**
  * Get the FCM (Firebase Cloud Messaging) registration token using Expo Notifications
@@ -58,8 +58,7 @@ export async function getFCMToken() {
     return token;
   } catch (error) {
     console.error('[FCM] Failed to get token:', error);
-    Alert.alert('Push Notification Error', 'Failed to get push token: ' + error.message);
-    throw error;
+    return null;
   }
 }
 
@@ -114,7 +113,11 @@ export async function registerFCMTokenWithBackend(token) {
       }
     }
 
-    const response = await apiFetch(apiConfig.url(apiConfig.endpoints.fcm.register), {
+    const endpoint = (authToken && isAuthenticated)
+      ? apiConfig.endpoints.fcm.register
+      : apiConfig.endpoints.fcm.registerPublic;
+
+    const response = await apiFetch(apiConfig.url(endpoint), {
       method: 'POST',
       silent: true,
       headers: {

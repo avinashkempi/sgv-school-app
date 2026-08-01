@@ -19,30 +19,40 @@ export const setGlobalAuthHandler = (router, showToast) => {
     globalShowToast = showToast;
 };
 
+/**
+ * Debounced auth error handler.
+ * When multiple queries fail with 401 simultaneously (common on app open),
+ * we only trigger logout once via the logoutHandler's own mutex guard.
+ */
+let authErrorHandled = false;
+
+function handleGlobalAuthError(error) {
+    if (!error?.isAuthError || authErrorHandled) return;
+    authErrorHandled = true;
+
+    const { logoutHandler } = require('./logoutHandler');
+    logoutHandler(
+        globalRouter,
+        error?.message || 'Session expired or invalid. Please log in again.',
+        globalShowToast
+    );
+
+    // Reset the flag after a delay so future genuine auth errors are still caught
+    setTimeout(() => {
+        authErrorHandled = false;
+    }, 3000);
+}
+
 // Create a client with global 401 auth handling
 export const queryClient = new QueryClient({
     queryCache: new QueryCache({
         onError: (error) => {
-            if (error?.isAuthError) {
-                const { logoutHandler } = require('./logoutHandler');
-                logoutHandler(
-                    globalRouter,
-                    error?.message || 'Session expired or invalid. Please log in again.',
-                    globalShowToast
-                );
-            }
+            handleGlobalAuthError(error);
         }
     }),
     mutationCache: new MutationCache({
         onError: (error) => {
-            if (error?.isAuthError) {
-                const { logoutHandler } = require('./logoutHandler');
-                logoutHandler(
-                    globalRouter,
-                    error?.message || 'Session expired or invalid. Please log in again.',
-                    globalShowToast
-                );
-            }
+            handleGlobalAuthError(error);
         }
     }),
     defaultOptions: {

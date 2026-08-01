@@ -34,7 +34,7 @@ class ErrorBoundary extends React.Component {
             <MaterialIcons name="error" size={64} color="#FF6B6B" />
             <Text style={styles.title}>Oops! Something went wrong.</Text>
             <Text style={styles.subtitle}>
-              We&apos;re sorry, but an unexpected error occurred. Please try again.
+              We{"'"}re sorry, but an unexpected error occurred. Please try again.
             </Text>
 
             <TouchableOpacity style={styles.button} onPress={this.handleTryAgain}>

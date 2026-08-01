@@ -1,7 +1,7 @@
 import { Stack, useRouter, useSegments } from "expo-router";
 import { useFonts } from "expo-font";
 import { Text, Platform, ActivityIndicator } from "react-native";
-import { useEffect } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemeProvider, useTheme } from "../theme";
 import { ToastProvider, useToast } from "../components/ToastProvider";
@@ -34,19 +34,41 @@ import { useState } from "react";
 import useOfflinePrefetch from "../hooks/useOfflinePrefetch";
 import { setupAppStateRefresh } from "../utils/appStateRefresh";
 
+/**
+ * Decode a base64url-encoded string (works in React Native without atob/Buffer).
+ */
+function base64UrlDecode(str) {
+  // Replace URL-safe chars
+  let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+  // Pad with '=' to make length a multiple of 4
+  while (base64.length % 4 !== 0) base64 += '=';
+
+  // Try atob first (available in most environments)
+  if (typeof atob === 'function') {
+    return atob(base64);
+  }
+  // Fallback for environments without atob
+  if (typeof Buffer !== 'undefined') {
+    return Buffer.from(base64, 'base64').toString('utf8');
+  }
+  // If neither is available, throw so caller can handle gracefully
+  throw new Error('No base64 decoder available');
+}
+
 function isTokenExpired(token) {
   if (!token || token === 'demo-token') return false;
   try {
     const parts = token.split('.');
     if (parts.length !== 3) return true;
-    const payloadJson = atob ? atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')) : Buffer.from(parts[1], 'base64').toString('utf8');
+    const payloadJson = base64UrlDecode(parts[1]);
     const payload = JSON.parse(payloadJson);
     if (payload.exp && Date.now() >= payload.exp * 1000) {
       return true;
     }
     return false;
   } catch (err) {
-    return false; // If parsing fails, fall back to API 401 handling
+    // If parsing fails, don't block the user — fall back to backend 401 handling
+    return false;
   }
 }
 
@@ -73,10 +95,15 @@ function Inner() {
     setGlobalAuthHandler(router, showToast);
   }, [router, showToast]);
 
+  // Ref to track whether the initial auth check has completed
+  const initialAuthDone = useRef(false);
+
+  // ── Effect 1: ONE-TIME initial auth check on mount ──
+  // Validates token, handles expiry, sets demo mode, syncs academic year.
+  // Runs ONLY ONCE — does NOT depend on segments, so navigation changes won't re-trigger.
   useEffect(() => {
-    const checkAuth = async () => {
+    const initialAuthCheck = async () => {
       const token = await storage.getItem('@auth_token');
-      const inLoginGroup = segments[0] === 'login';
 
       if (token && isTokenExpired(token)) {
         await storage.multiRemove(['@auth_token', '@auth_user']);
@@ -84,17 +111,17 @@ function Inner() {
           showToast('Session expired. Please log in again.', 'error', 3500);
         }
         router.replace('/login');
+        initialAuthDone.current = true;
         setIsReady(true);
         return;
       }
 
       setIsDemo(token === 'demo-token');
 
+      const inLoginGroup = segments[0] === 'login';
+
       if (!token && !inLoginGroup) {
-        // No token and not on login page -> Redirect to login with proper notice
-        if (showToast) {
-          showToast('Please log in to access this page', 'error', 3000);
-        }
+        // No token — silently redirect to login (no alarming toast for first-time users)
         router.replace('/login');
       } else if (token && inLoginGroup) {
         // Token exists and on login page -> Redirect to home
@@ -104,11 +131,35 @@ function Inner() {
         syncYear();
       }
 
+      initialAuthDone.current = true;
       setIsReady(true);
     };
 
-    checkAuth();
-  }, [router, segments, syncYear, showToast]);
+    initialAuthCheck();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Intentionally empty — run only once on mount
+
+  // ── Effect 2: Lightweight navigation guard ──
+  // After initial auth is done, only prevents unauthenticated access to protected routes.
+  // Does NOT re-validate the token or re-sync academic year on every navigation.
+  useEffect(() => {
+    if (!initialAuthDone.current) return; // Wait for initial check to complete
+
+    const guardNavigation = async () => {
+      const token = await storage.getItem('@auth_token');
+      const inLoginGroup = segments[0] === 'login';
+
+      setIsDemo(token === 'demo-token');
+
+      if (!token && !inLoginGroup) {
+        router.replace('/login');
+      } else if (token && inLoginGroup) {
+        router.replace('/');
+      }
+    };
+
+    guardNavigation();
+  }, [segments, router]);
 
   // Setup push notifications
   useEffect(() => {

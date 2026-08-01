@@ -6,8 +6,20 @@ import { unregisterBackgroundSync } from './backgroundSync';
  * Unified logout handler
  * Cleans up all state, caches, and redirects to login
  * Called from: profile.jsx, menu.jsx, index.jsx (on 401 error), global query cache
+ *
+ * Includes a re-entrancy guard to prevent multiple simultaneous logouts
+ * (e.g., when multiple queries all return 401 at the same time).
  */
+let isLoggingOut = false;
+
 export async function logoutHandler(router, messageOrToast = null, showToastFn = null) {
+  // Re-entrancy guard: if a logout is already in progress, silently skip
+  if (isLoggingOut) {
+    console.log('[LogoutHandler] Logout already in progress, skipping duplicate call');
+    return;
+  }
+  isLoggingOut = true;
+
   let message = null;
   let showToast = null;
 
@@ -69,5 +81,11 @@ export async function logoutHandler(router, messageOrToast = null, showToastFn =
     if (router && router.replace) {
       router.replace('/login');
     }
+  } finally {
+    // Reset the guard after a short delay to allow navigation to complete
+    // and prevent immediate re-trigger from stale error callbacks
+    setTimeout(() => {
+      isLoggingOut = false;
+    }, 2000);
   }
 }

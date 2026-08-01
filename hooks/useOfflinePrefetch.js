@@ -11,7 +11,6 @@ const PREFETCH_COOLDOWN_MS = 5 * 60 * 1000;
 export default function useOfflinePrefetch() {
     const queryClient = useQueryClient();
     const lastPrefetchRef = useRef(0);
-    const appStateRef = useRef(AppState.currentState);
 
     useEffect(() => {
         let isMounted = true;
