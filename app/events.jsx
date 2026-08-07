@@ -11,7 +11,7 @@ import Header from "../components/Header";
 import EventFormModal from "../components/EventFormModal";
 import ModernCalendar from "../components/ModernCalendar";
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../hooks/useApi";
-import storage from "../utils/storage";
+import { useAuth } from "../context/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import apiConfig from "../config/apiConfig";
 
@@ -201,13 +201,7 @@ export default function EventsScreen() {
     }
   );
 
-  const [userData, setUserData] = useState(null);
-
-  React.useEffect(() => {
-    storage.getItem('@auth_user').then(userStr => {
-      if (userStr) setUserData(JSON.parse(userStr));
-    });
-  }, []);
+  const { user: userData } = useAuth();
 
   const isAuthenticated = userData?.role === 'admin' || userData?.role === 'super admin';
 

@@ -15,36 +15,28 @@ import apiConfig from "../../config/apiConfig";
 import { useApiMutation, createApiMutationFn } from "../../hooks/useApi";
 import Header from "../../components/Header";
 import { useToast } from "../../components/ToastProvider";
+import { useAuth } from "../../context/AuthContext";
 
 export default function RaiseComplaintScreen() {
     const router = useRouter();
-    const { _styles, colors } = useTheme();
+    const { styles, colors } = useTheme();
     const { showToast } = useToast();
+    const { user } = useAuth();
+    const userRole = user?.role;
 
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
-    const [category, setCategory] = useState("Academic");
+    const [category, setCategory] = useState("Facilities");
     const [priority, setPriority] = useState("Medium");
-    const [visibility, setVisibility] = useState("teacher"); // 'teacher', 'admin' (for students)
-    const [userRole, setUserRole] = useState(null);
-
+    const [visibility, setVisibility] = useState("all_admins");
+    const [targetTeacher, setTargetTeacher] = useState("");
 
     useEffect(() => {
-        checkUserRole();
-    }, []);
-
-    const checkUserRole = async () => {
-        const userStr = await storage.getItem("@auth_user");
-        if (userStr) {
-            const user = JSON.parse(userStr);
-            const role = user.role;
-            setUserRole(role);
-            if (role === 'teacher') {
-                setCategory("Management");
-                setVisibility("super_admin");
-            }
+        if (userRole === 'teacher') {
+            setCategory("Management");
+            setVisibility("super_admin");
         }
-    };
+    }, [userRole]);
 
     const raiseComplaintMutation = useApiMutation({
         mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/complaints`, 'POST'),

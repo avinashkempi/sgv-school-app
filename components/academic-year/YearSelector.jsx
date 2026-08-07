@@ -4,7 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import apiFetch from '../../utils/apiFetch';
 import apiConfig from '../../config/apiConfig';
-import { useAcademicYear } from '../../contexts/AcademicYearContext';
+import { useAcademicYear } from '../../context/AcademicYearContext';
 import { useToast } from '../ToastProvider';
 import storage from '../../utils/storage';
 

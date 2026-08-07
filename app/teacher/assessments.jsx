@@ -15,34 +15,24 @@ import { useApiQuery, useApiMutation } from "../../hooks/useApi";
 import { useToast } from "../../components/ToastProvider";
 import AppHeader from "../../components/Header";
 import apiConfig from "../../config/apiConfig";
-import storage from "../../utils/storage";
 import { formatClassName } from "../../utils/formatClassName";
+import { useAuth } from "../../context/AuthContext";
 
 export default function AssessmentDashboard() {
     const router = useRouter();
     const { _styles, colors } = useTheme();
     const { showToast } = useToast();
+    const { user, userId } = useAuth();
 
-    const [user, setUser] = useState(null);
     const [selectedClass, setSelectedClass] = useState(null);
     const [selectedSubject, setSelectedSubject] = useState(null);
-
-    useEffect(() => {
-        const loadUser = async () => {
-            const storedUser = await storage.getItem("@auth_user");
-            if (storedUser) {
-                setUser(JSON.parse(storedUser));
-            }
-        };
-        loadUser();
-    }, []);
 
     // Fetch Teacher's Classes (Assuming generic teacher classes endpoint or filtering)
     // For now, let's use the existing teacher classes endpoint
     const { data: teacherClasses, isLoading: loadingClasses } = useApiQuery(
-        ['teacherClasses', user?.id],
-        `${apiConfig.baseUrl}/teachers/${user?.id}/classes`,
-        { enabled: !!user?.id }
+        ['teacherClasses', userId],
+        `${apiConfig.baseUrl}/teachers/${userId}/classes`,
+        { enabled: !!userId }
     );
 
     // Fetch Subjects for selected class (if class teacher) or just teacher's subjects

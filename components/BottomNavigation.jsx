@@ -6,7 +6,7 @@ import * as Haptics from "expo-haptics";
 import { BlurView } from "expo-blur";
 import { useTheme } from "../theme";
 import { ROUTES } from "../constants/routes";
-import storage from '../utils/storage';
+import { useAuth } from '../context/AuthContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function BottomNavigation() {
@@ -14,25 +14,8 @@ function BottomNavigation() {
   const pathname = usePathname();
   const { colors, mode } = useTheme();
   const [activeTab, setActiveTab] = useState(ROUTES.HOME);
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const insets = useSafeAreaInsets();
-
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const storedUser = await storage.getItem('@auth_user');
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
-        } else {
-          setUser(null);
-        }
-      } catch (e) {
-        console.warn('Failed to load user', e);
-        setUser(null);
-      }
-    };
-    loadUser();
-  }, [pathname]);
 
   const navigationItems = useMemo(() => [
     {

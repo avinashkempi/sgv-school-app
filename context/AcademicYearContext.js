@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
 import storage from '../utils/storage';
 import { queryClient } from '../utils/queryClient';
 import apiFetch from '../utils/apiFetch';
@@ -9,6 +9,8 @@ const AcademicYearContext = createContext();
 export const AcademicYearProvider = ({ children }) => {
     const [selectedYear, setSelectedYear] = useState(null); // Stores the full year object
     const [isYearReady, setIsYearReady] = useState(false);
+    // Track the userId to detect account switches
+    const lastUserIdRef = useRef(null);
 
     // Sync academic year with backend
     const syncYear = async () => {
@@ -29,7 +31,16 @@ export const AcademicYearProvider = ({ children }) => {
 
             const userStr = await storage.getItem('@auth_user');
             const user = userStr ? JSON.parse(userStr) : null;
+            const currentUserId = user?.id || user?._id;
             const isSuperAdmin = user?.role === 'super admin';
+
+            // Detect account switch — reset year if different user
+            if (lastUserIdRef.current && currentUserId && lastUserIdRef.current !== String(currentUserId)) {
+                if (__DEV__) console.log('[AcademicYearContext] Account switch detected, resetting year');
+                await storage.removeItem('selectedAcademicYear');
+                setSelectedYear(null);
+            }
+            lastUserIdRef.current = currentUserId ? String(currentUserId) : null;
 
             const response = await apiFetch(`${apiConfig.baseUrl}/academic-year`);
             if (response.ok) {
@@ -111,11 +122,13 @@ export const AcademicYearProvider = ({ children }) => {
         }
     };
 
-    // Allow external updates (like from fetch interceptor)
+    // Allow external updates (like from fetch interceptor) and manual resets
     useEffect(() => {
         activeYearSetter = setSelectedYear;
+        globalSyncYear = syncYear;
         return () => {
             activeYearSetter = null;
+            globalSyncYear = null;
         };
     }, []);
 
@@ -132,10 +145,25 @@ export const AcademicYearProvider = ({ children }) => {
 };
 
 let activeYearSetter = null;
+let globalSyncYear = null;
 
 export const notifyAcademicYearChange = (newYear) => {
     if (activeYearSetter) {
         activeYearSetter(newYear);
+    }
+};
+
+export const resetAcademicYearState = () => {
+    if (activeYearSetter) {
+        activeYearSetter(null);
+    }
+};
+
+export const triggerAcademicYearSync = () => {
+    if (globalSyncYear) {
+        globalSyncYear().catch((err) => {
+            console.log('[AcademicYearContext] manual sync failed:', err);
+        });
     }
 };
 

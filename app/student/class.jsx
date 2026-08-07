@@ -16,23 +16,14 @@ import { useToast } from "../../components/ToastProvider";
 import Header from "../../components/Header";
 import { useApiQuery } from "../../hooks/useApi";
 import { formatClassName } from "../../utils/formatClassName";
+import { useAuth } from "../../context/AuthContext";
 
 export default function StudentClassScreen() {
     const router = useRouter();
     const { styles, colors } = useTheme();
     const { _showToast } = useToast();
     const [refreshing, setRefreshing] = useState(false);
-    const [user, setUser] = useState(null);
-
-    useEffect(() => {
-        const loadUser = async () => {
-            const storedUser = await storage.getItem("@auth_user");
-            if (storedUser) {
-                setUser(JSON.parse(storedUser));
-            }
-        };
-        loadUser();
-    }, []);
+    const { user } = useAuth();
 
     const classId = user?.currentClass?._id || user?.currentClass;
 

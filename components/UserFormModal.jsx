@@ -4,6 +4,8 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../theme";
 import { useForm, Controller } from "react-hook-form";
 
+import { useApiQuery } from "../hooks/useApi";
+import apiConfig from "../config/apiConfig";
 const availableRoles = ["student", "teacher", "staff", "admin", "super admin", "support_staff"];
 
 export default function UserFormModal({
@@ -46,6 +48,7 @@ export default function UserFormModal({
             designation: "",
             joiningDate: "",
             remarks: "",
+            currentClass: "",
         },
         mode: "onBlur"
     });
@@ -74,6 +77,7 @@ export default function UserFormModal({
                     designation: initialData.designation || "",
                     joiningDate: initialData.joiningDate ? initialData.joiningDate.split('T')[0] : "",
                     remarks: initialData.remarks || "",
+                    currentClass: initialData.currentClass?._id || initialData.currentClass || "",
                 });
             } else {
                 reset({
@@ -97,6 +101,7 @@ export default function UserFormModal({
                     designation: "",
                     joiningDate: "",
                     remarks: "",
+                    currentClass: "",
                 });
             }
             setShowPassword(false);
@@ -105,6 +110,12 @@ export default function UserFormModal({
 
     const watchedRole = watch("role");
 
+    const { data: classesData } = useApiQuery(
+        ['classes'],
+        `${apiConfig.baseUrl}/classes`,
+        { enabled: visible }
+    );
+    const classes = Array.isArray(classesData) ? classesData : (classesData?.data || []);
     return (
         <Modal
             visible={visible}
@@ -379,6 +390,45 @@ export default function UserFormModal({
                         {/* Student Specific Fields */}
                         {watchedRole === "student" && (
                             <>
+                                <View style={{ marginBottom: 20 }}>
+                                    <Text style={[styles.label, { marginBottom: 8 }]}>CLASS</Text>
+                                    <Controller
+                                            control={control}
+                                            name="currentClass"
+                                            rules={{ required: "Class is required" }}
+                                            render={({ field: { onChange, value } }) => (
+                                                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingVertical: 4 }}>
+                                                    {classes.map(cls => (
+                                                        <Pressable
+                                                            key={cls._id}
+                                                            onPress={() => onChange(cls._id)}
+                                                            style={{
+                                                                paddingHorizontal: 14,
+                                                                paddingVertical: 10,
+                                                                backgroundColor: value === cls._id ? colors.primary : colors.cardBackground,
+                                                                borderRadius: 10,
+                                                                marginRight: 8,
+                                                                borderWidth: 1,
+                                                                borderColor: value === cls._id ? colors.primary : colors.border,
+                                                            }}
+                                                        >
+                                                            <Text style={{
+                                                                color: value === cls._id ? '#fff' : colors.textPrimary,
+                                                                fontFamily: 'DMSans-Medium',
+                                                                fontSize: 14,
+                                                            }}>
+                                                                {cls.name || cls.label}
+                                                            </Text>
+                                                        </Pressable>
+                                                    ))}
+                                                </ScrollView>
+                                            )}
+                                        />
+                                    {errors.currentClass && (
+                                        <Text style={styles.errorText}>{errors.currentClass.message}</Text>
+                                    )}
+                                </View>
+
                                 <Text style={[styles.sectionTitle, { fontSize: 16, marginBottom: 16, marginTop: 8 }]}>Guardian & Contact</Text>
 
                                 <View style={{ marginBottom: 20 }}>

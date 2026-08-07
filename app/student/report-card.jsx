@@ -57,11 +57,10 @@ function AnimatedPercentage({ value, color, fontSize = 64 }) {
 
 export default function StudentReportCardScreen() {
     const _router = useRouter();
-    const { _styles, colors } = useTheme();
-
+    const { styles, colors, mode } = useTheme();
+    const { user, userId: authUserId } = useAuth();
     const [refreshing, setRefreshing] = useState(false);
-    const [user, setUser] = useState(null);
-    const [activeTab, setActiveTab] = useState('overview');
+    const [selectedTab, setSelectedTab] = useState('overview'); // overview | subjects | attendance | remarks
 
     // Entrance animation
     const heroAnim = useRef(new Animated.Value(0)).current;
@@ -70,17 +69,7 @@ export default function StudentReportCardScreen() {
         Animated.spring(heroAnim, { toValue: 1, useNativeDriver: true, tension: 50, friction: 8 }).start();
     }, []);
 
-    useEffect(() => {
-        const loadUser = async () => {
-            const storedUser = await storage.getItem("@auth_user");
-            if (storedUser) {
-                setUser(JSON.parse(storedUser));
-            }
-        };
-        loadUser();
-    }, []);
-
-    const userId = user?.id || user?._id;
+    const userId = user?.id || user?._id || authUserId;
 
     // Fetch Standardized Report Card (now includes classRank + totalInClass)
     const { data: reportCard, isLoading: _loading, refetch } = useApiQuery(

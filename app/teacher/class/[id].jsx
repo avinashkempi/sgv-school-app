@@ -4,16 +4,16 @@ import {
     Text,
     ScrollView,
     Pressable,
-    TextInput,
+    TextInput as RNTextInput,
     RefreshControl,
     ActivityIndicator,
     Modal,
     Alert
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import storage from "../../../utils/storage";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "../../../theme";
+import { useAuth } from "../../../context/AuthContext";
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../../../hooks/useApi";
 import { useQueryClient } from "@tanstack/react-query";
 import apiConfig from "../../../config/apiConfig";
@@ -21,13 +21,17 @@ import { useToast } from "../../../components/ToastProvider";
 import AppHeader from "../../../components/Header";
 import { formatDate } from "../../../utils/date";
 import UserDetailModal from "../../../components/UserDetailModal";
+import Button from "../../../components/Button";
+import SegmentedControl from "../../../components/SegmentedControl";
+import { EmptyState } from "../../../components/StateComponents";
 
 export default function ClassDetailsScreen() {
-    const router = useRouter();
     const { id } = useLocalSearchParams();
-    const queryClient = useQueryClient();
-    const { _styles, colors } = useTheme();
+    const router = useRouter();
+    const { styles, colors } = useTheme();
     const { showToast } = useToast();
+    const { user } = useAuth();
+    const queryClient = useQueryClient();
 
     const [refreshing, setRefreshing] = useState(false);
 
@@ -39,26 +43,8 @@ export default function ClassDetailsScreen() {
 
     const [activeTab, setActiveTab] = useState("subjects"); // subjects, students
     const [searchQuery, setSearchQuery] = useState("");
-    const [user, setUser] = useState(null);
-
     const [selectedGlobalSubjectIds, setSelectedGlobalSubjectIds] = useState([]);
     const [selectedStudentIds, setSelectedStudentIds] = useState([]);
-
-    useEffect(() => {
-        loadUserData();
-    }, []);
-
-    const loadUserData = async () => {
-        try {
-            const storedUser = await storage.getItem("@auth_user");
-            if (storedUser) {
-                const parsedUser = JSON.parse(storedUser);
-                setUser(parsedUser);
-            }
-        } catch (error) {
-            console.error("Failed to load user:", error);
-        }
-    };
 
     // Fetch Class Details
     const { data, isLoading: loading, refetch } = useApiQuery(
@@ -295,8 +281,8 @@ export default function ClassDetailsScreen() {
                                 })}
                                 style={({ pressed }) => ({
                                     flex: 1,
-                                    backgroundColor: colors.cardBackground,
-                                    borderRadius: 12,
+                                    backgroundColor: colors.surfaceContainer,
+                                    borderRadius: 16,
                                     padding: 16,
                                     alignItems: "center",
                                     opacity: pressed ? 0.7 : 1,
@@ -304,7 +290,7 @@ export default function ClassDetailsScreen() {
                                 })}
                             >
                                 <MaterialIcons name="how-to-reg" size={28} color={colors.primary} />
-                                <Text style={{ fontSize: 13, fontFamily: "DMSans-SemiBold", color: colors.textPrimary, marginTop: 8 }}>
+                                <Text style={{ fontSize: 13, fontFamily: "DMSans-SemiBold", color: colors.onSurface, marginTop: 8 }}>
                                     Attendance
                                 </Text>
                             </Pressable>
@@ -315,8 +301,8 @@ export default function ClassDetailsScreen() {
                                 })}
                                 style={({ pressed }) => ({
                                     flex: 1,
-                                    backgroundColor: colors.cardBackground,
-                                    borderRadius: 12,
+                                    backgroundColor: colors.surfaceContainer,
+                                    borderRadius: 16,
                                     padding: 16,
                                     alignItems: "center",
                                     opacity: pressed ? 0.7 : 1,
@@ -324,7 +310,7 @@ export default function ClassDetailsScreen() {
                                 })}
                             >
                                 <MaterialIcons name="insights" size={28} color={colors.success} />
-                                <Text style={{ fontSize: 13, fontFamily: "DMSans-SemiBold", color: colors.textPrimary, marginTop: 8 }}>
+                                <Text style={{ fontSize: 13, fontFamily: "DMSans-SemiBold", color: colors.onSurface, marginTop: 8 }}>
                                     Performance
                                 </Text>
                             </Pressable>
@@ -334,44 +320,24 @@ export default function ClassDetailsScreen() {
 
 
                     {/* Tabs */}
-                    <View style={{ flexDirection: "row", marginBottom: 24, backgroundColor: colors.cardBackground, padding: 4, borderRadius: 12 }}>
-                        <Pressable
-                            onPress={() => setActiveTab("subjects")}
-                            style={{
-                                flex: 1,
-                                paddingVertical: 10,
-                                alignItems: "center",
-                                backgroundColor: activeTab === "subjects" ? colors.primary : "transparent",
-                                borderRadius: 8
-                            }}
-                        >
-                            <Text style={{ fontWeight: "600", color: activeTab === "subjects" ? "#fff" : colors.textSecondary }}>Subjects</Text>
-                        </Pressable>
-                        <Pressable
-                            onPress={() => setActiveTab("students")}
-                            style={{
-                                flex: 1,
-                                paddingVertical: 10,
-                                alignItems: "center",
-                                backgroundColor: activeTab === "students" ? colors.primary : "transparent",
-                                borderRadius: 8
-                            }}
-                        >
-                            <Text style={{ fontWeight: "600", color: activeTab === "students" ? "#fff" : colors.textSecondary }}>
-                                Students ({students.length})
-                            </Text>
-                        </Pressable>
-                    </View>
+                    <SegmentedControl
+                        tabs={[
+                            { key: 'subjects', label: 'Subjects' },
+                            { key: 'students', label: `Students (${students.length})` },
+                        ]}
+                        activeTab={activeTab}
+                        onTabChange={setActiveTab}
+                        style={{ marginBottom: 24 }}
+                    />
 
                     {activeTab === "subjects" ? (
                         <View>
                             {subjects.length === 0 ? (
-                                <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
-                                    <MaterialIcons name="library-books" size={48} color={colors.textSecondary} />
-                                    <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16 }}>
-                                        No subjects added yet.
-                                    </Text>
-                                </View>
+                                <EmptyState
+                                    icon="library-books"
+                                    title="No Subjects Yet"
+                                    message="No subjects have been added to this class yet."
+                                />
                             ) : (
                                 subjects.map((subject) => (
                                     <Pressable
@@ -381,11 +347,11 @@ export default function ClassDetailsScreen() {
                                             params: { id, subjectId: subject._id }
                                         })}
                                         style={({ pressed }) => ({
-                                            backgroundColor: colors.cardBackground,
+                                            backgroundColor: colors.surfaceContainer,
                                             borderRadius: 16,
                                             padding: 16,
                                             marginBottom: 12,
-                                            shadowColor: "#000",
+                                            shadowColor: colors.shadow,
                                             shadowOffset: { width: 0, height: 1 },
                                             shadowOpacity: 0.05,
                                             shadowRadius: 4,
@@ -401,15 +367,15 @@ export default function ClassDetailsScreen() {
                                                 <MaterialIcons name="book" size={24} color={colors.primary} />
                                             </View>
                                             <View style={{ flex: 1 }}>
-                                                <Text style={{ fontSize: 16, fontWeight: "700", color: colors.textPrimary }}>
+                                                <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
                                                     {subject.name}
                                                 </Text>
                                                 {subject.teachers && subject.teachers.length > 0 ? (
-                                                    <Text style={{ fontSize: 13, color: colors.textSecondary, marginTop: 2, fontFamily: "DMSans-Medium" }}>
+                                                    <Text style={{ fontSize: 13, color: colors.onSurfaceVariant, marginTop: 2, fontFamily: "DMSans-Medium" }}>
                                                         {subject.teachers.map(t => t.name).join(", ")}
                                                     </Text>
                                                 ) : (
-                                                    <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2, fontStyle: "italic" }}>
+                                                    <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginTop: 2, fontStyle: "italic" }}>
                                                         No teachers assigned
                                                     </Text>
                                                 )}
@@ -419,6 +385,7 @@ export default function ClassDetailsScreen() {
                                         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                                             {canManageClass && (
                                                 <Pressable
+                                                    accessibilityLabel="Remove subject"
                                                     onPress={(e) => {
                                                         e.stopPropagation();
                                                         handleRemoveSubject(subject._id, subject.name);
@@ -428,7 +395,7 @@ export default function ClassDetailsScreen() {
                                                     <MaterialIcons name="delete-outline" size={24} color={colors.error} />
                                                 </Pressable>
                                             )}
-                                            <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
+                                            <MaterialIcons name="chevron-right" size={24} color={colors.onSurfaceVariant} />
                                         </View>
                                     </Pressable>
                                 ))
@@ -437,22 +404,21 @@ export default function ClassDetailsScreen() {
                     ) : (
                         <View>
                             {students.length === 0 ? (
-                                <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
-                                    <MaterialIcons name="people-outline" size={48} color={colors.textSecondary} />
-                                    <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16 }}>
-                                        No students in this class yet.
-                                    </Text>
-                                </View>
+                                <EmptyState
+                                    icon="people-outline"
+                                    title="No Students Yet"
+                                    message="No students have been added to this class yet."
+                                />
                             ) : (
                                 students.map((student) => (
                                     <View
                                         key={student._id}
                                         style={{
-                                            backgroundColor: colors.cardBackground,
+                                            backgroundColor: colors.surfaceContainer,
                                             borderRadius: 16,
                                             padding: 16,
                                             marginBottom: 12,
-                                            shadowColor: "#000",
+                                            shadowColor: colors.shadow,
                                             shadowOffset: { width: 0, height: 1 },
                                             shadowOpacity: 0.05,
                                             shadowRadius: 4,
@@ -469,37 +435,38 @@ export default function ClassDetailsScreen() {
                                                         }}
                                                         style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
                                                     >
-                                                        <Text style={{ fontSize: 16, fontWeight: "700", color: colors.primary, textDecorationLine: 'underline' }}>
+                                                        <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.primary, textDecorationLine: 'underline' }}>
                                                             {student.name}
                                                         </Text>
                                                     </Pressable>
                                                 ) : (
-                                                    <Text style={{ fontSize: 16, fontWeight: "700", color: colors.textPrimary }}>
+                                                    <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
                                                         {student.name}
                                                     </Text>
                                                 )}
-                                                <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: 4 }}>
+                                                <Text style={{ fontSize: 14, color: colors.onSurfaceVariant, marginTop: 4 }}>
                                                     {student.phone}
                                                 </Text>
                                                 {student.email && (
-                                                    <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: 2 }}>
+                                                    <Text style={{ fontSize: 14, color: colors.onSurfaceVariant, marginTop: 2 }}>
                                                         {student.email}
                                                     </Text>
                                                 )}
                                                 {student.guardianName && (
-                                                    <Text style={{ fontSize: 13, color: colors.textSecondary, marginTop: 6 }}>
+                                                    <Text style={{ fontSize: 13, color: colors.onSurfaceVariant, marginTop: 6 }}>
                                                         Guardian: {student.guardianName}
                                                         {student.guardianPhone && ` (${student.guardianPhone})`}
                                                     </Text>
                                                 )}
                                                 {student.admissionDate && (
-                                                    <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 4 }}>
+                                                    <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginTop: 4 }}>
                                                         Admitted: {formatDate(student.admissionDate)}
                                                     </Text>
                                                 )}
                                             </View>
                                             {canManageClass && (
                                                 <Pressable
+                                                    accessibilityLabel="Remove student"
                                                     onPress={() => handleRemoveStudent(student._id, student.name)}
                                                     style={{ padding: 8 }}
                                                 >
@@ -523,7 +490,6 @@ export default function ClassDetailsScreen() {
                     <Pressable
                         onPress={() => {
                             if (activeTab === "subjects") {
-                                // Open modal with empty selection — already-added subjects are shown greyed out in the list
                                 setSelectedGlobalSubjectIds([]);
                                 setShowAddSubjectModal(true);
                                 setSearchQuery("");
@@ -533,20 +499,25 @@ export default function ClassDetailsScreen() {
                         }}
                         style={({ pressed }) => ({
                             position: "absolute",
-                            bottom: 130,
+                            bottom: 140,
                             right: 24,
-                            backgroundColor: colors.primary,
+                            backgroundColor: colors.primaryContainer,
                             width: 56,
                             height: 56,
-                            borderRadius: 28,
+                            borderRadius: 16,
                             justifyContent: "center",
                             alignItems: "center",
                             elevation: 6,
+                            shadowColor: colors.shadow,
+                            shadowOffset: { width: 0, height: 3 },
+                            shadowOpacity: 0.3,
+                            shadowRadius: 6,
                             zIndex: 9999,
                             opacity: pressed ? 0.9 : 1,
                         })}
+                        accessibilityLabel={activeTab === 'subjects' ? 'Add subject' : 'Add student'}
                     >
-                        <MaterialIcons name="add" size={28} color="#fff" />
+                        <MaterialIcons name="add" size={28} color={colors.onPrimaryContainer} />
                     </Pressable>
                 )
             }
@@ -554,33 +525,42 @@ export default function ClassDetailsScreen() {
             {/* Add Subject Modal */}
             <Modal visible={showAddSubjectModal} animationType="slide" transparent>
                 <View style={{ flex: 1, justifyContent: "center", backgroundColor: "rgba(0,0,0,0.5)", padding: 20 }}>
-                    <View style={{ backgroundColor: colors.cardBackground, borderRadius: 16, padding: 24, maxHeight: "80%" }}>
-                        <Text style={{ fontSize: 20, fontWeight: "700", color: colors.textPrimary, marginBottom: 16 }}>
+                    <View style={{ backgroundColor: colors.surfaceContainerLow, borderRadius: 16, padding: 24, maxHeight: "80%" }}>
+                        <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 16 }}>
                             Add Subjects to Class
                         </Text>
 
-                        <TextInput
-                            placeholder="Search subjects..."
-                            placeholderTextColor={colors.textSecondary}
-                            style={{
-                                backgroundColor: colors.background,
-                                padding: 12,
-                                borderRadius: 8,
-                                color: colors.textPrimary,
-                                marginBottom: 16
-                            }}
-                            value={searchQuery}
-                            onChangeText={setSearchQuery}
-                        />
+                        <View style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            backgroundColor: colors.surfaceContainerHighest,
+                            borderRadius: 12,
+                            paddingHorizontal: 12,
+                            marginBottom: 16,
+                        }}>
+                            <MaterialIcons name="search" size={20} color={colors.onSurfaceVariant} style={{ marginRight: 8 }} />
+                            <RNTextInput
+                                placeholder="Search subjects..."
+                                placeholderTextColor={colors.onSurfaceVariant}
+                                style={{
+                                    flex: 1,
+                                    paddingVertical: 12,
+                                    fontSize: 16,
+                                    fontFamily: 'DMSans-Regular',
+                                    color: colors.onSurface,
+                                }}
+                                value={searchQuery}
+                                onChangeText={setSearchQuery}
+                            />
+                        </View>
 
                         <ScrollView style={{ maxHeight: 400 }}>
                             {globalSubjects.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 ? (
-                                <View style={{ alignItems: "center", paddingVertical: 40 }}>
-                                    <MaterialIcons name="library-books" size={48} color={colors.textSecondary} />
-                                    <Text style={{ color: colors.textSecondary, marginTop: 16 }}>
-                                        {searchQuery ? "No subjects found" : "No subjects available. Please ask admin to add subjects to the master list."}
-                                    </Text>
-                                </View>
+                                <EmptyState
+                                    icon="library-books"
+                                    title={searchQuery ? "No Subjects Found" : "No Subjects Available"}
+                                    message={searchQuery ? "Try a different search term." : "Please ask admin to add subjects to the master list."}
+                                />
                             ) : (
                                 globalSubjects.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase())).map((item) => {
                                     const isSelected = selectedGlobalSubjectIds.includes(item._id);
@@ -599,15 +579,15 @@ export default function ClassDetailsScreen() {
                                             disabled={isAlreadyAdded}
                                             style={({ pressed }) => ({
                                                 backgroundColor: isAlreadyAdded
-                                                    ? colors.disabled + "30"
-                                                    : isSelected ? colors.primary + "10" : (pressed ? colors.background : colors.cardBackground),
+                                                    ? colors.onSurface + '08'
+                                                    : isSelected ? colors.primary + "10" : (pressed ? colors.surfaceContainerHigh : colors.surfaceContainer),
                                                 borderRadius: 12,
                                                 padding: 12,
                                                 marginBottom: 8,
                                                 borderWidth: 1,
                                                 borderColor: isAlreadyAdded
-                                                    ? colors.textSecondary
-                                                    : isSelected ? colors.primary : colors.border,
+                                                    ? colors.onSurfaceVariant
+                                                    : isSelected ? colors.primary : colors.outlineVariant,
                                                 flexDirection: "row",
                                                 alignItems: "center",
                                                 gap: 12,
@@ -619,16 +599,16 @@ export default function ClassDetailsScreen() {
                                                 height: 24,
                                                 borderRadius: 12,
                                                 borderWidth: 2,
-                                                borderColor: isAlreadyAdded || isSelected ? colors.primary : colors.textSecondary,
+                                                borderColor: isAlreadyAdded || isSelected ? colors.primary : colors.onSurfaceVariant,
                                                 alignItems: "center",
                                                 justifyContent: "center",
                                                 backgroundColor: isAlreadyAdded || isSelected ? colors.primary : "transparent"
                                             }}>
-                                                {(isSelected || isAlreadyAdded) && <MaterialIcons name="check" size={16} color="#fff" />}
+                                                {(isSelected || isAlreadyAdded) && <MaterialIcons name="check" size={16} color={colors.onPrimary} />}
                                             </View>
                                             <View style={{ flex: 1 }}>
                                                 <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                                                    <Text style={{ fontSize: 16, fontWeight: "600", color: colors.textPrimary }}>
+                                                    <Text style={{ fontSize: 16, fontFamily: "DMSans-SemiBold", color: colors.onSurface }}>
                                                         {item.name}
                                                     </Text>
                                                     {isAlreadyAdded && (
@@ -638,7 +618,7 @@ export default function ClassDetailsScreen() {
                                                     )}
                                                 </View>
                                                 {item.code && (
-                                                    <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: 2 }}>
+                                                    <Text style={{ fontSize: 14, color: colors.onSurfaceVariant, marginTop: 2, fontFamily: 'DMSans-Regular' }}>
                                                         Code: {item.code}
                                                     </Text>
                                                 )}
@@ -649,36 +629,26 @@ export default function ClassDetailsScreen() {
                             )}
                         </ScrollView>
 
-                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 16, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 16 }}>
-                            <Pressable
+                        <View style={{ flexDirection: "row", justifyContent: "flex-end", alignItems: "center", marginTop: 16, borderTopWidth: 1, borderTopColor: colors.outlineVariant, paddingTop: 16, gap: 12 }}>
+                            <Button
+                                variant="text"
                                 onPress={() => {
                                     setShowAddSubjectModal(false);
                                     setSelectedGlobalSubjectIds([]);
                                     setSearchQuery("");
                                 }}
-                                style={{ padding: 12 }}
                             >
-                                <Text style={{ color: colors.textSecondary, fontWeight: "600" }}>Cancel</Text>
-                            </Pressable>
+                                Cancel
+                            </Button>
 
-                            <Pressable
+                            <Button
+                                variant="filled"
                                 onPress={handleAddSubject}
-                                disabled={selectedGlobalSubjectIds.length === 0 || addSubjectMutation.isPending}
-                                style={{
-                                    backgroundColor: (selectedGlobalSubjectIds.length > 0 && !addSubjectMutation.isPending) ? colors.primary : colors.disabled,
-                                    paddingHorizontal: 20,
-                                    paddingVertical: 12,
-                                    borderRadius: 8,
-                                    flexDirection: "row",
-                                    alignItems: "center",
-                                    gap: 8
-                                }}
+                                disabled={selectedGlobalSubjectIds.length === 0}
+                                loading={addSubjectMutation.isPending}
                             >
-                                {addSubjectMutation.isPending && <ActivityIndicator size="small" color="#fff" />}
-                                <Text style={{ color: "#fff", fontWeight: "600" }}>
-                                    {addSubjectMutation.isPending ? "Adding..." : `Add ${selectedGlobalSubjectIds.length > 0 ? `${selectedGlobalSubjectIds.length} ` : ""}Selected`}
-                                </Text>
-                            </Pressable>
+                                {addSubjectMutation.isPending ? "Adding..." : `Add ${selectedGlobalSubjectIds.length > 0 ? `${selectedGlobalSubjectIds.length} ` : ""}Selected`}
+                            </Button>
                         </View>
                     </View>
                 </View>
@@ -687,33 +657,42 @@ export default function ClassDetailsScreen() {
             {/* Add Student Modal */}
             <Modal visible={showAddStudentModal} animationType="slide" transparent>
                 <View style={{ flex: 1, justifyContent: "center", backgroundColor: "rgba(0,0,0,0.5)", padding: 20 }}>
-                    <View style={{ backgroundColor: colors.cardBackground, borderRadius: 16, padding: 24, maxHeight: "80%" }}>
-                        <Text style={{ fontSize: 20, fontWeight: "700", color: colors.textPrimary, marginBottom: 16 }}>
+                    <View style={{ backgroundColor: colors.surfaceContainerLow, borderRadius: 16, padding: 24, maxHeight: "80%" }}>
+                        <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 16 }}>
                             Add Students to Class
                         </Text>
 
-                        <TextInput
-                            placeholder="Search by name or phone..."
-                            placeholderTextColor={colors.textSecondary}
-                            style={{
-                                backgroundColor: colors.background,
-                                padding: 12,
-                                borderRadius: 8,
-                                color: colors.textPrimary,
-                                marginBottom: 16
-                            }}
-                            value={searchQuery}
-                            onChangeText={setSearchQuery}
-                        />
+                        <View style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            backgroundColor: colors.surfaceContainerHighest,
+                            borderRadius: 12,
+                            paddingHorizontal: 12,
+                            marginBottom: 16,
+                        }}>
+                            <MaterialIcons name="search" size={20} color={colors.onSurfaceVariant} style={{ marginRight: 8 }} />
+                            <RNTextInput
+                                placeholder="Search by name or phone..."
+                                placeholderTextColor={colors.onSurfaceVariant}
+                                style={{
+                                    flex: 1,
+                                    paddingVertical: 12,
+                                    fontSize: 16,
+                                    fontFamily: 'DMSans-Regular',
+                                    color: colors.onSurface,
+                                }}
+                                value={searchQuery}
+                                onChangeText={setSearchQuery}
+                            />
+                        </View>
 
                         <ScrollView style={{ maxHeight: 400 }}>
                             {filteredAvailableStudents.length === 0 ? (
-                                <View style={{ alignItems: "center", paddingVertical: 40 }}>
-                                    <MaterialIcons name="person-off" size={48} color={colors.textSecondary} />
-                                    <Text style={{ color: colors.textSecondary, marginTop: 16 }}>
-                                        {searchQuery ? "No students found" : "No unassigned students available"}
-                                    </Text>
-                                </View>
+                                <EmptyState
+                                    icon="person-off"
+                                    title={searchQuery ? "No Students Found" : "No Unassigned Students"}
+                                    message={searchQuery ? "Try a different search term." : "All students are already assigned to classes."}
+                                />
                             ) : (
                                 filteredAvailableStudents.map((student) => {
                                     const isSelected = selectedStudentIds.includes(student._id);
@@ -722,12 +701,12 @@ export default function ClassDetailsScreen() {
                                             key={student._id}
                                             onPress={() => toggleStudentSelection(student._id)}
                                             style={({ pressed }) => ({
-                                                backgroundColor: isSelected ? colors.primary + "10" : (pressed ? colors.background : colors.cardBackground),
+                                                backgroundColor: isSelected ? colors.primary + "10" : (pressed ? colors.surfaceContainerHigh : colors.surfaceContainer),
                                                 borderRadius: 12,
                                                 padding: 12,
                                                 marginBottom: 8,
                                                 borderWidth: 1,
-                                                borderColor: isSelected ? colors.primary : colors.border,
+                                                borderColor: isSelected ? colors.primary : colors.outlineVariant,
                                                 flexDirection: "row",
                                                 alignItems: "center",
                                                 gap: 12
@@ -738,22 +717,22 @@ export default function ClassDetailsScreen() {
                                                 height: 24,
                                                 borderRadius: 12,
                                                 borderWidth: 2,
-                                                borderColor: isSelected ? colors.primary : colors.textSecondary,
+                                                borderColor: isSelected ? colors.primary : colors.onSurfaceVariant,
                                                 alignItems: "center",
                                                 justifyContent: "center",
                                                 backgroundColor: isSelected ? colors.primary : "transparent"
                                             }}>
-                                                {isSelected && <MaterialIcons name="check" size={16} color="#fff" />}
+                                                {isSelected && <MaterialIcons name="check" size={16} color={colors.onPrimary} />}
                                             </View>
                                             <View style={{ flex: 1 }}>
-                                                <Text style={{ fontSize: 16, fontWeight: "600", color: colors.textPrimary }}>
+                                                <Text style={{ fontSize: 16, fontFamily: "DMSans-SemiBold", color: colors.onSurface }}>
                                                     {student.name}
                                                 </Text>
-                                                <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: 2 }}>
+                                                <Text style={{ fontSize: 14, color: colors.onSurfaceVariant, marginTop: 2, fontFamily: 'DMSans-Regular' }}>
                                                     {student.phone}
                                                 </Text>
                                                 {student.admissionDate && (
-                                                    <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 4 }}>
+                                                    <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginTop: 4, fontFamily: 'DMSans-Regular' }}>
                                                         Admitted: {formatDate(student.admissionDate)}
                                                     </Text>
                                                 )}
@@ -764,36 +743,26 @@ export default function ClassDetailsScreen() {
                             )}
                         </ScrollView>
 
-                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 16, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 16 }}>
-                            <Pressable
+                        <View style={{ flexDirection: "row", justifyContent: "flex-end", alignItems: "center", marginTop: 16, borderTopWidth: 1, borderTopColor: colors.outlineVariant, paddingTop: 16, gap: 12 }}>
+                            <Button
+                                variant="text"
                                 onPress={() => {
                                     setShowAddStudentModal(false);
                                     setSearchQuery("");
                                     setSelectedStudentIds([]);
                                 }}
-                                style={{ padding: 12 }}
                             >
-                                <Text style={{ color: colors.textSecondary, fontWeight: "600" }}>Cancel</Text>
-                            </Pressable>
+                                Cancel
+                            </Button>
 
-                            <Pressable
+                            <Button
+                                variant="filled"
                                 onPress={handleBulkAddStudents}
-                                disabled={selectedStudentIds.length === 0 || addStudentsMutation.isPending}
-                                style={{
-                                    backgroundColor: (selectedStudentIds.length > 0 && !addStudentsMutation.isPending) ? colors.primary : colors.disabled,
-                                    paddingHorizontal: 20,
-                                    paddingVertical: 12,
-                                    borderRadius: 8,
-                                    flexDirection: "row",
-                                    alignItems: "center",
-                                    gap: 8
-                                }}
+                                disabled={selectedStudentIds.length === 0}
+                                loading={addStudentsMutation.isPending}
                             >
-                                {addStudentsMutation.isPending && <ActivityIndicator size="small" color="#fff" />}
-                                <Text style={{ color: "#fff", fontWeight: "600" }}>
-                                    {addStudentsMutation.isPending ? "Adding..." : `Add ${selectedStudentIds.length > 0 ? `${selectedStudentIds.length} ` : ""}Selected`}
-                                </Text>
-                            </Pressable>
+                                {addStudentsMutation.isPending ? "Adding..." : `Add ${selectedStudentIds.length > 0 ? `${selectedStudentIds.length} ` : ""}Selected`}
+                            </Button>
                         </View>
                     </View>
                 </View>

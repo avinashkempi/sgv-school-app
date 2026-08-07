@@ -30,7 +30,7 @@ export default function StudentLeaves() {
 
     // Fetch Leaves
     const { data: leavesData, isLoading: loading, refetch } = useApiQuery(
-        ['studentLeaves'],
+        ['studentLeaves', userId],
         `${apiConfig.baseUrl}/leaves/my-leaves`
     );
     const leaves = leavesData?.data || [];

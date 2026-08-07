@@ -1,6 +1,19 @@
 import storage from './storage';
 import * as demoData from '../constants/demoData';
 
+let inMemoryToken = null;
+let useInMemoryToken = false;
+
+export const setApiFetchToken = (token) => {
+  inMemoryToken = token;
+  useInMemoryToken = true;
+};
+
+export const clearApiFetchToken = () => {
+  inMemoryToken = null;
+  useInMemoryToken = true;
+};
+
 // Enhanced wrapper around fetch that:
 // 1. Automatically includes auth token if available
 // 2. Intercepts requests for Demo Mode
@@ -13,8 +26,8 @@ export default async function apiFetch(input, init = {}) {
     console.log(`[apiFetch] Calling: ${url}`, { method: init.method || 'GET' });
   }
 
-  // Get auth token from storage
-  const token = await storage.getItem('@auth_token');
+  // Get auth token from memory (instant override) or storage
+  const token = useInMemoryToken ? inMemoryToken : await storage.getItem('@auth_token');
 
   // Check for Demo Mode
   if (token === 'demo-token') {
@@ -173,7 +186,7 @@ export default async function apiFetch(input, init = {}) {
             await storage.setItem('selectedAcademicYear', JSON.stringify(activeYear));
             
             // 2. Update React Context state immediately
-            const { notifyAcademicYearChange } = require('../contexts/AcademicYearContext');
+            const { notifyAcademicYearChange } = require('../context/AcademicYearContext');
             notifyAcademicYearChange(activeYear);
             
             // 3. Invalidate React Query caches to trigger UI refresh

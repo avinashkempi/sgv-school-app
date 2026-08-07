@@ -13,6 +13,8 @@ import { useNetworkStatus } from "../components/NetworkStatusProvider";
 import apiConfig from "../config/apiConfig";
 import { useApiQuery } from "../hooks/useApi";
 import { CACHE_TIERS } from "../utils/cacheConfig";
+import { useAuth } from "../context/AuthContext";
+import { useEffect } from "react";
 
 import AdminDashboard from "../components/dashboard/AdminDashboard";
 import TeacherDashboard from "../components/dashboard/TeacherDashboard";
@@ -26,17 +28,24 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const { showToast } = useToast();
   const { isConnected } = useNetworkStatus();
+  const { updateUser, isAuthenticated } = useAuth();
 
   const { data: userData, isError, error, refetch: refetchUser } = useApiQuery(
     ['currentUser'],
     `${apiConfig.baseUrl}/auth/me`,
     {
       ...CACHE_TIERS.STABLE,
-      enabled: true,
+      enabled: isAuthenticated,
       retry: false,
       select: (data) => data.user,
     }
   );
+
+  useEffect(() => {
+    if (userData) {
+      updateUser(userData);
+    }
+  }, [userData, updateUser]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -104,11 +113,7 @@ export default function HomeScreen() {
             }}>
               <MaterialIcons name="apartment" size={24} color={colors.onPrimaryContainer} />
             </View>
-            <Text style={{
-              fontSize: 18,
-              fontFamily: "DMSans-Medium",
-              color: colors.onSurface
-            }}>
+            <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
               About Us
             </Text>
           </View>
@@ -131,11 +136,7 @@ export default function HomeScreen() {
             }}>
               <MaterialIcons name="school" size={24} color={colors.onSecondaryContainer} />
             </View>
-            <Text style={{
-              fontSize: 18,
-              fontFamily: "DMSans-Medium",
-              color: colors.onSurface
-            }}>
+            <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
               Branches
             </Text>
           </View>
@@ -189,11 +190,7 @@ export default function HomeScreen() {
             }}>
               <MaterialIcons name="flag" size={24} color={colors.onTertiaryContainer} />
             </View>
-            <Text style={{
-              fontSize: 18,
-              fontFamily: "DMSans-Medium",
-              color: colors.onSurface
-            }}>
+            <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
               Our Mission
             </Text>
           </View>

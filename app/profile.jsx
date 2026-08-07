@@ -1,12 +1,12 @@
 import React, { useState, } from "react";
-import { View, Text, ScrollView, RefreshControl, ActivityIndicator, TextInput, Modal, Pressable, Alert } from "react-native";
+import { View, Text, ScrollView, RefreshControl, ActivityIndicator, TextInput, Modal, Pressable, Alert, StatusBar } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import storage from "../utils/storage";
 import { useTheme } from "../theme";
 import { useToast } from "../components/ToastProvider";
 import { formatDate } from "../utils/date";
 import { useRouter } from "expo-router";
-import { logoutHandler } from "../utils/logoutHandler";
+import { useAuth } from "../context/AuthContext";
 
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../hooks/useApi";
 import { CACHE_TIERS } from "../utils/cacheConfig";
@@ -14,11 +14,15 @@ import apiConfig from "../config/apiConfig";
 
 import Card from "../components/Card";
 import Button from "../components/Button";
+import AppTextInput from "../components/TextInput";
+import { LoadingState } from "../components/StateComponents";
+import Header from "../components/Header";
 
 export default function ProfileScreen() {
-  const { styles, colors } = useTheme();
+  const { styles, colors, mode } = useTheme();
   const { showToast } = useToast();
   const router = useRouter();
+  const { logout } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
 
   const { data: user, refetch, isLoading } = useApiQuery(
@@ -80,7 +84,7 @@ export default function ProfileScreen() {
   };
 
   const handleLogout = async () => {
-    await logoutHandler(router, showToast);
+    await logout(router, null, showToast);
   };
 
   const handleLogin = () => {
@@ -89,8 +93,11 @@ export default function ProfileScreen() {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: colors.background }}>
-        <ActivityIndicator size="large" color={colors.primary} />
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
+        <Header title="Profile" />
+        <View style={{ flex: 1, justifyContent: "center" }}>
+          <LoadingState message="Loading profile..." />
+        </View>
       </View>
     );
   }
@@ -103,6 +110,7 @@ export default function ProfileScreen() {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
       }
     >
+      <StatusBar barStyle={mode === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
       <View style={{ alignItems: "center", marginTop: 20, marginBottom: 40 }}>
         <View style={{
           width: 100,
@@ -389,86 +397,42 @@ export default function ProfileScreen() {
 
               {/* Current Password Field */}
               <View style={{ marginBottom: 16 }}>
-                <Text style={{ fontSize: 13, fontFamily: "DMSans-Bold", color: colors.textSecondary, marginBottom: 8 }}>
-                  CURRENT PASSWORD
-                </Text>
-                <View style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  borderRadius: 12,
-                  paddingHorizontal: 12,
-                  backgroundColor: colors.cardBackground
-                }}>
-                  <TextInput
-                    style={{ flex: 1, paddingVertical: 12, fontSize: 15, fontFamily: "DMSans-Medium", color: colors.textPrimary }}
-                    placeholder="Enter current password"
-                    placeholderTextColor={colors.textSecondary}
-                    value={currentPassword}
-                    onChangeText={setCurrentPassword}
-                    secureTextEntry={!showCurrentPassword}
-                    autoCapitalize="none"
-                  />
-                  <Pressable onPress={() => setShowCurrentPassword(!showCurrentPassword)} style={{ padding: 4 }}>
-                    <MaterialIcons name={showCurrentPassword ? "visibility-off" : "visibility"} size={20} color={colors.textSecondary} />
-                  </Pressable>
-                </View>
+                <AppTextInput
+                  label="CURRENT PASSWORD"
+                  placeholder="Enter current password"
+                  value={currentPassword}
+                  onChangeText={setCurrentPassword}
+                  secureTextEntry={!showCurrentPassword}
+                  autoCapitalize="none"
+                  rightIcon={showCurrentPassword ? "visibility-off" : "visibility"}
+                  onRightIconPress={() => setShowCurrentPassword(!showCurrentPassword)}
+                />
               </View>
 
               {/* New Password Field */}
               <View style={{ marginBottom: 16 }}>
-                <Text style={{ fontSize: 13, fontFamily: "DMSans-Bold", color: colors.textSecondary, marginBottom: 8 }}>
-                  NEW PASSWORD
-                </Text>
-                <View style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  borderRadius: 12,
-                  paddingHorizontal: 12,
-                  backgroundColor: colors.cardBackground
-                }}>
-                  <TextInput
-                    style={{ flex: 1, paddingVertical: 12, fontSize: 15, fontFamily: "DMSans-Medium", color: colors.textPrimary }}
-                    placeholder="At least 8 characters"
-                    placeholderTextColor={colors.textSecondary}
-                    value={newPassword}
-                    onChangeText={setNewPassword}
-                    secureTextEntry={!showNewPassword}
-                    autoCapitalize="none"
-                  />
-                  <Pressable onPress={() => setShowNewPassword(!showNewPassword)} style={{ padding: 4 }}>
-                    <MaterialIcons name={showNewPassword ? "visibility-off" : "visibility"} size={20} color={colors.textSecondary} />
-                  </Pressable>
-                </View>
+                <AppTextInput
+                  label="NEW PASSWORD"
+                  placeholder="At least 8 characters"
+                  value={newPassword}
+                  onChangeText={setNewPassword}
+                  secureTextEntry={!showNewPassword}
+                  autoCapitalize="none"
+                  rightIcon={showNewPassword ? "visibility-off" : "visibility"}
+                  onRightIconPress={() => setShowNewPassword(!showNewPassword)}
+                />
               </View>
 
               {/* Confirm New Password Field */}
               <View style={{ marginBottom: 24 }}>
-                <Text style={{ fontSize: 13, fontFamily: "DMSans-Bold", color: colors.textSecondary, marginBottom: 8 }}>
-                  CONFIRM NEW PASSWORD
-                </Text>
-                <View style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  borderRadius: 12,
-                  paddingHorizontal: 12,
-                  backgroundColor: colors.cardBackground
-                }}>
-                  <TextInput
-                    style={{ flex: 1, paddingVertical: 12, fontSize: 15, fontFamily: "DMSans-Medium", color: colors.textPrimary }}
-                    placeholder="Re-enter new password"
-                    placeholderTextColor={colors.textSecondary}
-                    value={confirmPassword}
-                    onChangeText={setConfirmPassword}
-                    secureTextEntry={!showNewPassword}
-                    autoCapitalize="none"
-                  />
-                </View>
+                <AppTextInput
+                  label="CONFIRM NEW PASSWORD"
+                  placeholder="Re-enter new password"
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry={!showNewPassword}
+                  autoCapitalize="none"
+                />
               </View>
 
               {/* Actions */}

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { View, Text, ScrollView, RefreshControl } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import storage from "../utils/storage";
+import { useAuth } from "../context/AuthContext";
 import { useRouter } from "expo-router";
 import { useTheme } from "../theme";
 import Header from "../components/Header";
@@ -12,26 +12,8 @@ import { useApiQuery } from "../hooks/useApi";
 export default function RequestsScreen() {
     const router = useRouter();
     const { styles, colors } = useTheme();
-    const [user, setUser] = useState(null);
+    const { user } = useAuth();
     const [refreshing, setRefreshing] = useState(false);
-
-    useEffect(() => {
-        loadUser();
-    }, []);
-
-    const loadUser = async () => {
-        try {
-            const storedUser = await storage.getItem('@auth_user');
-            if (storedUser) {
-                setUser(JSON.parse(storedUser));
-            } else {
-                router.replace('/login');
-            }
-        } catch (e) {
-            console.warn('Failed to load user', e);
-            router.replace('/login');
-        }
-    };
 
     // Fetch Teacher Classes (for teachers)
     const { data: teacherClassesData, refetch: refetchClasses } = useApiQuery(

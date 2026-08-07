@@ -8,7 +8,7 @@ import YearSelector from "./academic-year/YearSelector";
 import { useApiQuery } from "../hooks/useApi";
 import apiConfig from "../config/apiConfig";
 
-import { useAcademicYear } from "../contexts/AcademicYearContext";
+import { useAcademicYear } from "../context/AcademicYearContext";
 
 const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
   const router = useRouter();
@@ -97,6 +97,7 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
 
         {/* Notification Bell */}
         <Pressable
+          accessibilityLabel="Notifications"
           onPress={() => router.push("/notifications")}
           style={({ pressed }) => ({
             padding: 12,
@@ -137,6 +138,7 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
     <View style={{ marginBottom: 24, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
       {showBack && (
         <Pressable
+          accessibilityLabel="Go back"
           onPress={() => {
             if (router.canGoBack()) {
               router.back();
@@ -230,14 +232,14 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
             top: 4,
             backgroundColor: colors.error,
             borderRadius: 10,
-            minWidth: 16,
-            height: 16,
+            minWidth: 18,
+            height: 18,
             justifyContent: 'center',
             alignItems: 'center',
             borderWidth: 2,
             borderColor: colors.background
           }}>
-            <Text style={{ color: colors.onError, fontSize: 8, fontFamily: 'DMSans-Bold' }}>
+            <Text style={{ color: colors.onError, fontSize: 10, fontFamily: 'DMSans-Bold' }}>
               {unreadCount > 9 ? '9+' : unreadCount}
             </Text>
           </View>

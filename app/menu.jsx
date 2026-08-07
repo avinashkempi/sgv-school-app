@@ -1,23 +1,24 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable, Switch, Linking, } from 'react-native';
+import React from 'react';
+import { View, Text, ScrollView, Pressable, Switch, Linking, StatusBar, } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons, FontAwesome, } from '@expo/vector-icons';
 import { useTheme } from '../theme';
 import { useToast } from '../components/ToastProvider';
 import Header from '../components/Header';
-import storage from '../utils/storage';
+import { useAuth } from '../context/AuthContext';
 import { SCHOOL } from '../constants/basic-info';
 import Card from '../components/Card';
 import Button from '../components/Button';
-import { logoutHandler } from '../utils/logoutHandler';
 
 export default function MenuScreen() {
     const router = useRouter();
     const { styles, colors, mode, toggle, _gradients } = useTheme();
+    const statusBarStyle = mode === 'dark' ? 'light-content' : 'dark-content';
     const { showToast } = useToast();
+    const { user, logout } = useAuth();
 
     const handleLogout = async () => {
-        await logoutHandler(router, showToast);
+        await logout(router, null, showToast);
     };
 
     const handlePress = async (appUrl, fallbackUrl) => {
@@ -33,23 +34,6 @@ export default function MenuScreen() {
         }
     };
 
-    const [user, setUser] = useState(null);
-
-    React.useEffect(() => {
-        loadUser();
-    }, []);
-
-    const loadUser = async () => {
-        try {
-            const storedUser = await storage.getItem('@auth_user');
-            if (storedUser) {
-                setUser(JSON.parse(storedUser));
-            }
-        } catch (e) {
-            console.warn('Failed to load user', e);
-        }
-    };
-
     const navigateToComplaints = () => {
         router.push('/complaints');
     };
@@ -60,14 +44,14 @@ export default function MenuScreen() {
             subtitle: "View & edit your profile",
             icon: "person",
             route: "/profile",
-            color: "#673AB7"
+            color: colors.primary
         },
         {
             title: "Events",
             subtitle: "School calendar & upcoming",
             icon: "event",
             route: "/events",
-            color: "#4CAF50"
+            color: colors.tertiary
         },
 
         // Only show Complaints if user is logged in
@@ -76,13 +60,14 @@ export default function MenuScreen() {
             subtitle: "Raise issues or feedback",
             icon: "feedback",
             action: navigateToComplaints,
-            color: "#FF5722"
+            color: colors.error
         }] : []),
 
     ];
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
+            <StatusBar barStyle={statusBarStyle} backgroundColor={colors.background} />
             <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
                 <Header title="Menu" subtitle="Settings & More" />
             </View>
@@ -178,8 +163,8 @@ export default function MenuScreen() {
                         onPress={() => handlePress(SCHOOL.socials.instagramAppUrl, SCHOOL.socials.instagram)}
                         style={({ pressed }) => ({ alignItems: 'center', opacity: pressed ? 0.7 : 1 })}
                     >
-                        <View style={{ width: 56, height: 56, borderRadius: 18, backgroundColor: '#C1358415', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
-                            <FontAwesome name="instagram" size={28} color="#C13584" />
+                        <View style={{ width: 56, height: 56, borderRadius: 18, backgroundColor: '#E1306C15', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+                            <FontAwesome name="instagram" size={28} color="#E1306C" />
                         </View>
                         <Text style={{ fontSize: 12, fontFamily: "DMSans-Medium", color: colors.onSurfaceVariant }}>Instagram</Text>
                     </Pressable>

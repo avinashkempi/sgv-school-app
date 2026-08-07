@@ -18,36 +18,21 @@ import { useToast } from "../../components/ToastProvider";
 import AppHeader from "../../components/Header";
 import Card from "../../components/Card";
 import { formatClassName } from "../../utils/formatClassName";
+import { useAuth } from "../../context/AuthContext";
+import SegmentedControl from "../../components/SegmentedControl";
+import { EmptyState, LoadingState } from "../../components/StateComponents";
 
 export default function TeacherDashboard() {
     const router = useRouter();
-    const { _styles, colors } = useTheme();
+    const { styles, colors } = useTheme();
     const { _showToast } = useToast();
+    const { user, userId } = useAuth();
 
     const [refreshing, setRefreshing] = useState(false);
-    const [_user, setUser] = useState(null);
     const [activeTab, setActiveTab] = useState('classTeacher'); // 'classTeacher' or 'mySubjects'
 
-    useEffect(() => {
-        const loadUser = async () => {
-            const storedUser = await storage.getItem("@auth_user");
-            if (!storedUser) {
-                router.replace("/login");
-                return;
-            }
-            try {
-                setUser(JSON.parse(storedUser));
-            } catch (e) {
-                console.error("Failed to parse stored user:", e);
-                await storage.removeItem("@auth_user");
-                router.replace("/login");
-            }
-        };
-        loadUser();
-    }, []);
-
     const { data: dashboardData, isLoading: loading, refetch } = useApiQuery(
-        ['teacherDashboard'],
+        ['teacherDashboard', userId],
         `${apiConfig.baseUrl}/teachers/my-classes-and-subjects`,
         CACHE_TIERS.MODERATE
     );
@@ -73,27 +58,11 @@ export default function TeacherDashboard() {
     const renderClassTeacherTab = () => (
         <View>
             {asClassTeacher.length === 0 ? (
-                <View style={{ alignItems: "center", marginTop: 60, opacity: 0.6 }}>
-                    <MaterialIcons name="class" size={56} color={colors.textSecondary} />
-                    <Text style={{
-                        color: colors.textSecondary,
-                        marginTop: 20,
-                        fontSize: 16,
-                        fontFamily: "DMSans-Medium"
-                    }}>
-                        You are not a class teacher of any class
-                    </Text>
-                    <Text style={{
-                        color: colors.textSecondary,
-                        marginTop: 8,
-                        fontSize: 13,
-                        fontFamily: "DMSans-Regular",
-                        textAlign: "center",
-                        paddingHorizontal: 40
-                    }}>
-                        Check &ldquo;My Subjects&rdquo; tab to see subjects you teach
-                    </Text>
-                </View>
+                <EmptyState
+                    icon="class"
+                    title="Not a Class Teacher"
+                    message={'You are not a class teacher of any class. Check "My Subjects" tab to see subjects you teach.'}
+                />
             ) : (
                 asClassTeacher.map((cls) => (
                     <Card
@@ -112,7 +81,7 @@ export default function TeacherDashboard() {
                                 <Text style={{
                                     fontSize: 18,
                                     fontFamily: "DMSans-Bold",
-                                    color: colors.textPrimary
+                                    color: colors.onSurface
                                 }}>
                                     {formatClassName(cls.name, cls.section)}
                                 </Text>
@@ -120,10 +89,10 @@ export default function TeacherDashboard() {
 
                             <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginTop: 4 }}>
                                 <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                                    <MaterialIcons name="people" size={16} color={colors.textSecondary} />
+                                    <MaterialIcons name="people" size={16} color={colors.onSurfaceVariant} />
                                     <Text style={{
                                         fontSize: 13,
-                                        color: colors.textSecondary,
+                                        color: colors.onSurfaceVariant,
                                         fontFamily: "DMSans-Medium"
                                     }}>
                                         {cls.studentCount} students
@@ -132,10 +101,10 @@ export default function TeacherDashboard() {
 
                                 {cls.mySubjects && cls.mySubjects.length > 0 && (
                                     <View style={{ flexDirection: "row", alignItems: "center", gap: 4, flex: 1 }}>
-                                        <MaterialIcons name="book" size={16} color={colors.textSecondary} />
+                                        <MaterialIcons name="book" size={16} color={colors.onSurfaceVariant} />
                                         <Text style={{
                                             fontSize: 13,
-                                            color: colors.textSecondary,
+                                            color: colors.onSurfaceVariant,
                                             fontFamily: "DMSans-Medium",
                                             flex: 1
                                         }}>
@@ -164,7 +133,7 @@ export default function TeacherDashboard() {
                             </View>
                         </View>
 
-                        <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
+                        <MaterialIcons name="chevron-right" size={24} color={colors.onSurfaceVariant} />
                     </Card>
                 ))
             )}
@@ -174,27 +143,11 @@ export default function TeacherDashboard() {
     const renderMySubjectsTab = () => (
         <View>
             {Object.keys(groupedSubjects).length === 0 ? (
-                <View style={{ alignItems: "center", marginTop: 60, opacity: 0.6 }}>
-                    <MaterialIcons name="library-books" size={56} color={colors.textSecondary} />
-                    <Text style={{
-                        color: colors.textSecondary,
-                        marginTop: 20,
-                        fontSize: 16,
-                        fontFamily: "DMSans-Medium"
-                    }}>
-                        No subjects assigned to you yet
-                    </Text>
-                    <Text style={{
-                        color: colors.textSecondary,
-                        marginTop: 8,
-                        fontSize: 13,
-                        fontFamily: "DMSans-Regular",
-                        textAlign: "center",
-                        paddingHorizontal: 40
-                    }}>
-                        Check &ldquo;My Subjects&rdquo; tab to see subjects you teach
-                    </Text>
-                </View>
+                <EmptyState
+                    icon="library-books"
+                    title="No Subjects Assigned"
+                    message={'No subjects have been assigned to you yet. Check "As Class Teacher" tab to see your class.'}
+                />
             ) : (
                 allMySubjects.map((subj) => (
                     <Card
@@ -219,7 +172,7 @@ export default function TeacherDashboard() {
                                 <Text style={{
                                     fontSize: 16,
                                     fontFamily: "DMSans-SemiBold",
-                                    color: colors.textPrimary,
+                                    color: colors.onSurface,
                                     flex: 1
                                 }}>
                                     {subj.name} • {subj.class.name}
@@ -242,7 +195,7 @@ export default function TeacherDashboard() {
                                 )}
                             </View>
                         </View>
-                        <MaterialIcons name="chevron-right" size={20} color={colors.textSecondary} />
+                        <MaterialIcons name="chevron-right" size={20} color={colors.onSurfaceVariant} />
                     </Card>
                 ))
             )}
@@ -265,24 +218,24 @@ export default function TeacherDashboard() {
                             style={({ pressed }) => ({
                                 flex: 1,
                                 minWidth: '30%',
-                                backgroundColor: colors.cardBackground,
+                                backgroundColor: colors.surfaceContainer,
                                 padding: 20,
                                 borderRadius: 24,
                                 alignItems: 'center',
-                                shadowColor: "#000",
+                                shadowColor: colors.shadow,
                                 shadowOffset: { width: 0, height: 4 },
                                 shadowOpacity: 0.05,
                                 shadowRadius: 12,
                                 elevation: 3,
                                 borderWidth: 1,
-                                borderColor: colors.border,
+                                borderColor: colors.outlineVariant,
                                 opacity: pressed ? 0.9 : 1,
                             })}
                         >
                             <View style={{ backgroundColor: '#E91E6315', padding: 16, borderRadius: 20, marginBottom: 12, alignItems: 'center', justifyContent: 'center' }}>
                                 <MaterialIcons name="assignment" size={28} color="#E91E63" />
                             </View>
-                            <Text style={{ fontSize: 14, fontFamily: 'DMSans-Bold', color: colors.textPrimary, textAlign: 'center' }}>Manage Exams</Text>
+                            <Text style={{ fontSize: 14, fontFamily: 'DMSans-Bold', color: colors.onSurface, textAlign: 'center' }}>Manage Exams</Text>
                         </Pressable>
 
                         <Pressable
@@ -290,35 +243,35 @@ export default function TeacherDashboard() {
                             style={({ pressed }) => ({
                                 flex: 1,
                                 minWidth: '30%',
-                                backgroundColor: colors.cardBackground,
+                                backgroundColor: colors.surfaceContainer,
                                 padding: 20,
                                 borderRadius: 24,
                                 alignItems: 'center',
-                                shadowColor: "#000",
+                                shadowColor: colors.shadow,
                                 shadowOffset: { width: 0, height: 4 },
                                 shadowOpacity: 0.05,
                                 shadowRadius: 12,
                                 elevation: 3,
                                 borderWidth: 1,
-                                borderColor: colors.border,
+                                borderColor: colors.outlineVariant,
                                 opacity: pressed ? 0.9 : 1,
                             })}
                         >
                             <View style={{ backgroundColor: '#2196F315', padding: 16, borderRadius: 20, marginBottom: 12, alignItems: 'center', justifyContent: 'center' }}>
                                 <MaterialIcons name="schedule" size={28} color="#2196F3" />
                             </View>
-                            <Text style={{ fontSize: 14, fontFamily: 'DMSans-Bold', color: colors.textPrimary, textAlign: 'center' }}>View Timetable</Text>
+                            <Text style={{ fontSize: 14, fontFamily: 'DMSans-Bold', color: colors.onSurface, textAlign: 'center' }}>View Timetable</Text>
                         </Pressable>
                     </View>
 
                     <Pressable
                         onPress={() => router.push("/history")}
                         style={({ pressed }) => ({
-                            backgroundColor: colors.cardBackground,
+                            backgroundColor: colors.surfaceContainer,
                             borderRadius: 16,
                             padding: 16,
                             marginBottom: 24,
-                            shadowColor: "#000",
+                            shadowColor: colors.shadow,
                             shadowOffset: { width: 0, height: 1 },
                             shadowOpacity: 0.05,
                             shadowRadius: 4,
@@ -334,69 +287,33 @@ export default function TeacherDashboard() {
                                 <MaterialIcons name="history" size={24} color="#795548" />
                             </View>
                             <View>
-                                <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
+                                <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
                                     History
                                 </Text>
-                                <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2, fontFamily: "DMSans-Regular" }}>
+                                <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginTop: 2, fontFamily: "DMSans-Regular" }}>
                                     View past exams
                                 </Text>
                             </View>
                         </View>
-                        <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
+                        <MaterialIcons name="chevron-right" size={24} color={colors.onSurfaceVariant} />
                     </Pressable>
 
                     {loading ? (
-                        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", marginTop: 100 }}>
-                            <ActivityIndicator size="large" color={colors.primary} />
+                        <View style={{ marginTop: 60 }}>
+                            <LoadingState message="Loading dashboard..." />
                         </View>
                     ) : (
                         <>
                             {/* Tab Switcher */}
-                            <View style={{
-                                flexDirection: "row",
-                                backgroundColor: colors.cardBackground,
-                                borderRadius: 12,
-                                padding: 4,
-                                marginBottom: 20
-                            }}>
-                                <Pressable
-                                    onPress={() => setActiveTab('classTeacher')}
-                                    style={{
-                                        flex: 1,
-                                        paddingVertical: 10,
-                                        borderRadius: 10,
-                                        backgroundColor: activeTab === 'classTeacher' ? colors.primary : 'transparent',
-                                        alignItems: "center"
-                                    }}
-                                >
-                                    <Text style={{
-                                        fontSize: 14,
-                                        fontFamily: "DMSans-Bold",
-                                        color: activeTab === 'classTeacher' ? '#fff' : colors.textSecondary
-                                    }}>
-                                        As Class Teacher
-                                    </Text>
-                                </Pressable>
-
-                                <Pressable
-                                    onPress={() => setActiveTab('mySubjects')}
-                                    style={{
-                                        flex: 1,
-                                        paddingVertical: 10,
-                                        borderRadius: 10,
-                                        backgroundColor: activeTab === 'mySubjects' ? colors.primary : 'transparent',
-                                        alignItems: "center"
-                                    }}
-                                >
-                                    <Text style={{
-                                        fontSize: 14,
-                                        fontFamily: "DMSans-Bold",
-                                        color: activeTab === 'mySubjects' ? '#fff' : colors.textSecondary
-                                    }}>
-                                        My Subjects
-                                    </Text>
-                                </Pressable>
-                            </View>
+                            <SegmentedControl
+                                tabs={[
+                                    { key: 'classTeacher', label: 'As Class Teacher' },
+                                    { key: 'mySubjects', label: 'My Subjects' },
+                                ]}
+                                activeTab={activeTab}
+                                onTabChange={setActiveTab}
+                                style={{ marginBottom: 20 }}
+                            />
 
                             {/* Tab Content */}
                             {activeTab === 'classTeacher' ? renderClassTeacherTab() : renderMySubjectsTab()}

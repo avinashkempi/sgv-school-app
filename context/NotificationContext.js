@@ -2,29 +2,30 @@ import React, { createContext, useContext, useEffect, useCallback } from 'react'
 import * as Notifications from 'expo-notifications';
 import { useQueryClient } from '@tanstack/react-query';
 import apiFetch from '../utils/apiFetch';
-import storage from '../utils/storage';
 import apiConfig from '../config/apiConfig';
 import { useApiQuery } from '../hooks/useApi';
 import { CACHE_TIERS } from '../utils/cacheConfig';
+import { useAuth } from './AuthContext';
 
 const NotificationContext = createContext();
 
 export const NotificationProvider = ({ children }) => {
     const queryClient = useQueryClient();
+    const { isAuthenticated, isDemo, userId } = useAuth();
 
     // ── Fetch notifications via React Query ──
-    // This query is now persisted to AsyncStorage via PersistQueryClientProvider,
-    // so notifications are available immediately on app open (even offline).
+    // Query key is scoped to userId so different users don't see each other's notifications.
+    // Disabled when not authenticated (prevents 401 on login screen).
     const {
         data: notificationData,
         refetch,
     } = useApiQuery(
-        ['notifications'],
+        ['notifications', userId],
         `${apiConfig.baseUrl}/notifications`,
         {
             ...CACHE_TIERS.REAL_TIME,
-            // Don't fetch if not authenticated (prevents 401 on login screen)
-            enabled: true,
+            // Only fetch when authenticated (not demo, not logged out)
+            enabled: isAuthenticated && !!userId,
         }
     );
 
@@ -34,36 +35,31 @@ export const NotificationProvider = ({ children }) => {
 
     // ── Listen for push notifications to invalidate cache ──
     useEffect(() => {
+        if (!isAuthenticated || !userId) return;
+
         let notificationListener = null;
 
-        const init = async () => {
-            const token = await storage.getItem('@auth_token');
-            if (token) {
-                notificationListener = Notifications.addNotificationReceivedListener(_notification => {
-                    if (__DEV__) {
-                        console.log('[FCM] Notification received in foreground, invalidating cache...');
-                    }
-                    // Invalidate the query — React Query will refetch automatically
-                    queryClient.invalidateQueries({ queryKey: ['notifications'] });
-                });
+        notificationListener = Notifications.addNotificationReceivedListener(_notification => {
+            if (__DEV__) {
+                console.log('[FCM] Notification received in foreground, invalidating cache...');
             }
-        };
-
-        init();
+            // Invalidate the query — React Query will refetch automatically
+            queryClient.invalidateQueries({ queryKey: ['notifications', userId] });
+        });
 
         return () => {
             if (notificationListener) {
                 notificationListener.remove();
             }
         };
-    }, [queryClient]);
+    }, [queryClient, isAuthenticated, userId]);
 
     // ── Optimistic mutations ──
 
     const markAsRead = useCallback(async (id) => {
         try {
             // Optimistic update
-            queryClient.setQueryData(['notifications'], (old) => {
+            queryClient.setQueryData(['notifications', userId], (old) => {
                 if (!old) return old;
                 return {
                     ...old,
@@ -82,22 +78,22 @@ export const NotificationProvider = ({ children }) => {
                 return true;
             } else {
                 // Revert on failure
-                queryClient.invalidateQueries({ queryKey: ['notifications'] });
+                queryClient.invalidateQueries({ queryKey: ['notifications', userId] });
             }
         } catch (error) {
             console.error('[NotificationContext] Mark Read Error:', error);
-            queryClient.invalidateQueries({ queryKey: ['notifications'] });
+            queryClient.invalidateQueries({ queryKey: ['notifications', userId] });
         }
         return false;
-    }, [queryClient]);
+    }, [queryClient, userId]);
 
     const deleteNotification = useCallback(async (id) => {
         // Snapshot for rollback
-        const previousData = queryClient.getQueryData(['notifications']);
+        const previousData = queryClient.getQueryData(['notifications', userId]);
 
         try {
             // Optimistic update
-            queryClient.setQueryData(['notifications'], (old) => {
+            queryClient.setQueryData(['notifications', userId], (old) => {
                 if (!old) return old;
                 const deletedNotif = (old.notifications || []).find(n => n._id === id);
                 const wasUnread = deletedNotif && !deletedNotif.isRead;
@@ -118,19 +114,19 @@ export const NotificationProvider = ({ children }) => {
                 return true;
             } else {
                 // Rollback
-                queryClient.setQueryData(['notifications'], previousData);
+                queryClient.setQueryData(['notifications', userId], previousData);
             }
         } catch (error) {
             console.error('[NotificationContext] Delete Error:', error);
-            queryClient.setQueryData(['notifications'], previousData);
+            queryClient.setQueryData(['notifications', userId], previousData);
         }
         return false;
-    }, [queryClient]);
+    }, [queryClient, userId]);
 
     const markAllRead = useCallback(async () => {
         try {
             // Optimistic update
-            queryClient.setQueryData(['notifications'], (old) => {
+            queryClient.setQueryData(['notifications', userId], (old) => {
                 if (!old) return old;
                 return {
                     ...old,
@@ -146,14 +142,14 @@ export const NotificationProvider = ({ children }) => {
             if (response.ok) {
                 return true;
             } else {
-                queryClient.invalidateQueries({ queryKey: ['notifications'] });
+                queryClient.invalidateQueries({ queryKey: ['notifications', userId] });
             }
         } catch (error) {
             console.error('[NotificationContext] Mark All Read Error:', error);
-            queryClient.invalidateQueries({ queryKey: ['notifications'] });
+            queryClient.invalidateQueries({ queryKey: ['notifications', userId] });
         }
         return false;
-    }, [queryClient]);
+    }, [queryClient, userId]);
 
     const fetchNotifications = useCallback(async () => {
         await refetch();

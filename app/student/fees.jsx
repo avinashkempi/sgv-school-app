@@ -7,11 +7,7 @@ import {
     RefreshControl,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import storage from "../../utils/storage";
-import { useRouter } from "expo-router";
-import { useTheme } from "../../theme";
-import { useApiQuery } from "../../hooks/useApi";
-import { CACHE_TIERS } from "../../utils/cacheConfig";
+import { useAuth } from "../../context/AuthContext";
 import Header from "../../components/Header";
 import Card from "../../components/Card";
 import apiConfig from "../../config/apiConfig";
@@ -23,19 +19,9 @@ export default function StudentFeesScreen() {
     const { _showToast } = useToast();
 
     const [refreshing, setRefreshing] = useState(false);
-    const [user, setUser] = useState(null);
+    const { user, userId: authUserId } = useAuth();
 
-    useEffect(() => {
-        const loadUser = async () => {
-            const storedUser = await storage.getItem("@auth_user");
-            if (storedUser) {
-                setUser(JSON.parse(storedUser));
-            }
-        };
-        loadUser();
-    }, []);
-
-    const userId = user?.id || user?._id;
+    const userId = user?.id || user?._id || authUserId;
 
     // Fetch Fees Data
     const { data: feeData, isLoading: loading, refetch } = useApiQuery(

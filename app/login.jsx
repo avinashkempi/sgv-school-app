@@ -2,12 +2,11 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, StatusBar, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../theme';
-import storage from '../utils/storage';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import apiConfig from "../config/apiConfig";
 import { useApiMutation, createApiMutationFn } from "../hooks/useApi";
-import { clearAllCaches } from '../utils/cacheManager';
+import { useAuth } from '../context/AuthContext';
 
 // UI Components
 import TextInput from '../components/TextInput';
@@ -22,18 +21,17 @@ export default function Login() {
   const { styles, colors, mode } = useTheme();
   const router = useRouter();
   const { showToast } = useToast();
+  const { login: authLogin } = useAuth();
 
   const loginMutation = useApiMutation({
     mutationFn: createApiMutationFn(apiConfig.url(apiConfig.endpoints.auth.login), 'POST'),
     onSuccess: async (data) => {
       if (data.token) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        // ALWAYS clear cache to ensure fresh state for login
-        // (Don't check if different user - clear for security)
-        await clearAllCaches();
 
-        await storage.setItem('@auth_token', data.token);
-        await storage.setItem('@auth_user', JSON.stringify(data.user));
+        // Use AuthContext.login — handles cache clearing, FCM, state
+        await authLogin(data.token, data.user);
+
         showToast('Logged in successfully', 'success', 2000);
         router.replace('/');
       } else {
@@ -56,6 +54,17 @@ export default function Login() {
       return;
     }
     loginMutation.mutate({ phone, password });
+  };
+
+  const handleDemoLogin = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    const { DEMO_USER } = require('../constants/demoData');
+
+    // Use AuthContext.login for demo mode too — ensures cache clearing
+    await authLogin('demo-token', DEMO_USER);
+
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    router.replace('/');
   };
 
   const loading = loginMutation.isPending;
@@ -153,14 +162,7 @@ export default function Login() {
 
             <Button
               variant="outlined"
-              onPress={async () => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                const { DEMO_USER } = require('../constants/demoData');
-                await storage.setItem('@auth_token', 'demo-token');
-                await storage.setItem('@auth_user', JSON.stringify(DEMO_USER));
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                router.replace('/');
-              }}
+              onPress={handleDemoLogin}
             >
               View as Guest
             </Button>

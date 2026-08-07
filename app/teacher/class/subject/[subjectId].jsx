@@ -11,6 +11,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import storage from "../../../../utils/storage";
 import { useTheme } from "../../../../theme";
+import { useAuth } from "../../../../context/AuthContext";
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../../../../hooks/useApi";
 import { useQueryClient } from "@tanstack/react-query";
 import PostContentModal from "../../../../components/PostContentModal";
@@ -28,20 +29,7 @@ export default function SubjectDetailScreen() {
 
     const [refreshing, setRefreshing] = useState(false);
     const [showPostModal, setShowPostModal] = useState(false);
-    const [user, setUser] = useState(null);
-
-    useEffect(() => {
-        loadUserData();
-    }, []);
-
-    const loadUserData = async () => {
-        try {
-            const storedUser = await storage.getItem("@auth_user");
-            if (storedUser) setUser(JSON.parse(storedUser));
-        } catch (error) {
-            console.error("Failed to load user:", error);
-        }
-    };
+    const { user } = useAuth();
 
     // Fetch Subject Details
     const { data: subjects } = useApiQuery(

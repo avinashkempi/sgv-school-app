@@ -58,30 +58,20 @@ export default function ComplaintsScreen() {
     const [status, setStatus] = useState("Resolved");
 
     useEffect(() => {
-        checkUserRole();
-    }, []);
-
-    const checkUserRole = async () => {
-        const userStr = await storage.getItem("@auth_user");
-        if (userStr) {
-            const user = JSON.parse(userStr);
-            setUserId(user._id || user.id);
-            const role = user.role;
-            setUserRole(role);
-
-            // Set default tab based on role
-            const normalizedRole = role === 'super admin' ? 'super admin' : role;
-            if (normalizedRole === 'student') setActiveTab('my_complaints');
-            else if (normalizedRole === 'teacher') setActiveTab('my_complaints');
-            else setActiveTab('inbox');
+        if (!userRole) return;
+        const normalizedRole = userRole === 'super admin' ? 'super admin' : userRole;
+        if (normalizedRole === 'student' || normalizedRole === 'teacher') {
+            setActiveTab('my_complaints');
+        } else {
+            setActiveTab('inbox');
         }
-    };
+    }, [userRole]);
 
     // Check if teacher is a class teacher (for FAB visibility)
     const { data: teacherClassData } = useApiQuery(
-        ['myClassesForFeedback'],
+        ['myClassesForFeedback', userId],
         `${apiConfig.baseUrl}/teachers/my-classes-and-subjects`,
-        { enabled: userRole === 'teacher' }
+        { enabled: userRole === 'teacher' && !!userId }
     );
 
     useEffect(() => {
@@ -102,12 +92,12 @@ export default function ComplaintsScreen() {
         }
     };
 
-    const queryKey = ['data', activeTab];
+    const queryKey = ['complaintsData', activeTab, userId];
 
     const { data: listData, isLoading: loading, refetch } = useApiQuery(
         queryKey,
         `${apiConfig.baseUrl}${getApiEndpoint()}`,
-        { enabled: !!userRole && activeTab !== 'loading' }
+        { enabled: !!userRole && activeTab !== 'loading' && !!userId }
     );
 
     const onRefresh = async () => {

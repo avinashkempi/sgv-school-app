@@ -18,19 +18,21 @@ import { useQueryClient } from "@tanstack/react-query";
 import Header from "../../components/Header";
 import { useToast } from "../../components/ToastProvider";
 import { formatClassName } from "../../utils/formatClassName";
+import { useAuth } from "../../context/AuthContext";
 
 export default function GiveFeedbackScreen() {
     const router = useRouter();
     const { _styles, colors } = useTheme();
     const { showToast } = useToast();
     const queryClient = useQueryClient();
+    const { user, userId } = useAuth();
+    const userRole = user?.role;
 
     // Form inputs
     const [message, setMessage] = useState("");
     const [selectedClass, setSelectedClass] = useState(null);
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [selectedSubject, setSelectedSubject] = useState(null);
-    const [userRole, setUserRole] = useState(null);
 
     // Filtered data states
     const [availableSubjects, setAvailableSubjects] = useState([]);
@@ -42,24 +44,13 @@ export default function GiveFeedbackScreen() {
     const [classSearch, setClassSearch] = useState("");
     const [studentSearch, setStudentSearch] = useState("");
 
-    useEffect(() => {
-        const loadRole = async () => {
-            const userStr = await storage.getItem("@auth_user");
-            if (userStr) {
-                const user = JSON.parse(userStr);
-                setUserRole(user.role);
-            }
-        };
-        loadRole();
-    }, []);
-
     const isAdmin = userRole === 'admin' || userRole === 'super admin';
 
     // Fetch Teacher's Classes and Subjects (for teachers)
     const { data: teacherData, isLoading: loadingTeacherClasses } = useApiQuery(
-        ['myClassesAndSubjects'],
+        ['myClassesAndSubjects', userId],
         `${apiConfig.baseUrl}/teachers/my-classes-and-subjects`,
-        { enabled: userRole === 'teacher' }
+        { enabled: userRole === 'teacher' && !!userId }
     );
 
     // Fetch All Classes (for admins)

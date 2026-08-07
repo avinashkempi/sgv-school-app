@@ -17,13 +17,16 @@ import AppHeader from "../../components/Header";
 import Card from "../../components/Card";
 import apiConfig from "../../config/apiConfig";
 import { useToast } from "../../components/ToastProvider";
+import { useAuth } from "../../context/AuthContext";
+import { EmptyState, LoadingState } from "../../components/StateComponents";
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export default function StudentTimetableScreen() {
     const _router = useRouter();
-    const { _styles, colors } = useTheme();
+    const { colors } = useTheme();
     const { _showToast } = useToast();
+    const { userId } = useAuth();
 
     const [refreshing, setRefreshing] = useState(false);
     const [selectedDay, setSelectedDay] = useState('Monday');
@@ -43,9 +46,9 @@ export default function StudentTimetableScreen() {
 
     // Fetch Timetable
     const { data: timetableData, isLoading: loading, error, refetch } = useApiQuery(
-        ['studentTimetable'],
+        ['studentTimetable', userId],
         `${apiConfig.baseUrl}/timetable/my-timetable`,
-        CACHE_TIERS.STABLE
+        { ...CACHE_TIERS.STABLE, enabled: !!userId }
     );
 
     // Helper to parse time string to minutes for sorting
@@ -83,8 +86,11 @@ export default function StudentTimetableScreen() {
 
     if (loading) {
         return (
-            <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: "center", alignItems: "center" }}>
-                <ActivityIndicator size="large" color={colors.primary} />
+            <View style={{ flex: 1, backgroundColor: colors.background }}>
+                <AppHeader title="My Timetable" subtitle="Class Schedule" showBack />
+                <View style={{ flex: 1, justifyContent: "center" }}>
+                    <LoadingState message="Loading timetable..." />
+                </View>
             </View>
         );
     }
@@ -109,18 +115,28 @@ export default function StudentTimetableScreen() {
                                         style={{
                                             paddingHorizontal: 16,
                                             paddingVertical: 8,
-                                            backgroundColor: selectedDay === day ? colors.primary : colors.cardBackground,
+                                            backgroundColor: selectedDay === day ? colors.secondaryContainer : colors.surfaceContainer,
                                             borderRadius: 12,
                                             borderWidth: 1,
-                                            borderColor: selectedDay === day ? colors.primary : colors.textSecondary + "20"
+                                            borderColor: selectedDay === day ? colors.onSecondaryContainer + '30' : colors.outlineVariant
                                         }}
                                     >
                                         <Text style={{
-                                            color: selectedDay === day ? "#fff" : colors.textPrimary,
+                                            color: selectedDay === day ? colors.onSecondaryContainer : colors.onSurfaceVariant,
                                             fontFamily: selectedDay === day ? "DMSans-Bold" : "DMSans-Medium"
                                         }}>
                                             {day.slice(0, 3)}
                                         </Text>
+                                        {day === currentDay && (
+                                            <View style={{
+                                                width: 5,
+                                                height: 5,
+                                                borderRadius: 3,
+                                                backgroundColor: selectedDay === day ? colors.onSecondaryContainer : colors.primary,
+                                                alignSelf: 'center',
+                                                marginTop: 4
+                                            }} />
+                                        )}
                                     </Pressable>
                                 ))}
                             </View>
@@ -130,7 +146,7 @@ export default function StudentTimetableScreen() {
                     {/* Schedule List */}
                     <View style={{ marginTop: 24 }}>
                         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
+                            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
                                 {selectedDay}
                             </Text>
                             {selectedDay === currentDay && (
@@ -141,12 +157,11 @@ export default function StudentTimetableScreen() {
                         </View>
 
                         {(!schedule[selectedDay] || schedule[selectedDay].length === 0) ? (
-                            <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
-                                <MaterialIcons name="event-busy" size={48} color={colors.textSecondary} />
-                                <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16 }}>
-                                    {error?.message || "No classes scheduled"}
-                                </Text>
-                            </View>
+                            <EmptyState
+                                icon="event-busy"
+                                title="No Classes"
+                                message={error?.message || "No classes scheduled for this day."}
+                            />
                         ) : (
                             schedule[selectedDay].map((period, index) => (
                                 <Card

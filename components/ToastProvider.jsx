@@ -83,6 +83,7 @@ export function ToastProvider({ children }) {
 }
 
 function ToastItem({ msg, type, _onDismiss }) {
+  const { mode, colors: themeColors } = useTheme();
   const getToastConfig = () => {
     switch (type) {
       case 'success':
@@ -114,25 +115,25 @@ function ToastItem({ msg, type, _onDismiss }) {
       style={styles.toastWrapper}
     >
       {Platform.OS === 'ios' ? (
-        <BlurView intensity={80} tint="light" style={styles.blurContainer}>
-          <ToastContent msg={msg} config={config} />
+        <BlurView intensity={80} tint={mode === 'dark' ? 'dark' : 'light'} style={styles.blurContainer}>
+          <ToastContent msg={msg} config={config} textColor={themeColors.onSurface} />
         </BlurView>
       ) : (
-        <View style={[styles.blurContainer, styles.androidBackground]}>
-          <ToastContent msg={msg} config={config} />
+        <View style={[styles.blurContainer, { backgroundColor: mode === 'dark' ? 'rgba(30, 30, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)', borderWidth: 1, borderColor: mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}>
+          <ToastContent msg={msg} config={config} textColor={themeColors.onSurface} />
         </View>
       )}
     </Animated.View>
   );
 }
 
-function ToastContent({ msg, config }) {
+function ToastContent({ msg, config, textColor }) {
   return (
     <View style={styles.contentContainer}>
       <View style={[styles.iconContainer, { backgroundColor: config.accentColor + '15' }]}>
         <Feather name={config.icon} size={18} color={config.accentColor} />
       </View>
-      <Text style={styles.text}>{msg}</Text>
+      <Text style={[styles.text, { color: textColor || '#1F2937' }]}>{msg}</Text>
     </View>
   );
 }
@@ -164,11 +165,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  androidBackground: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
-  },
+  // androidBackground styles are now inline to support dark mode
   contentContainer: {
     flexDirection: 'row',
     alignItems: 'center',

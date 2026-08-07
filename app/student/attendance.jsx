@@ -15,18 +15,18 @@ import { CACHE_TIERS } from "../../utils/cacheConfig";
 import apiFetch from "../../utils/apiFetch";
 import Header from "../../components/Header";
 import ModernCalendar from "../../components/ModernCalendar";
+import { LoadingState } from "../../components/StateComponents";
 import apiConfig from "../../config/apiConfig";
+import { useAuth } from "../../context/AuthContext";
 
 const PAGE_SIZE = 30;
 const MONTHLY_PAGE_SIZE = 3;
 
 export default function StudentAttendanceScreen() {
     const _router = useRouter();
-    const { colors } = useTheme();
-
+    const { _styles, colors } = useTheme();
+    const { user, userId: authUserId } = useAuth();
     const [refreshing, setRefreshing] = useState(false);
-    const [user, setUser] = useState(null);
-    const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().split('T')[0]);
 
     // Pagination state
     const [page, setPage] = useState(1);
@@ -38,15 +38,7 @@ export default function StudentAttendanceScreen() {
     // Monthly summary pagination
     const [monthlyVisible, setMonthlyVisible] = useState(MONTHLY_PAGE_SIZE);
 
-    useEffect(() => {
-        const loadUser = async () => {
-            const storedUser = await storage.getItem("@auth_user");
-            if (storedUser) setUser(JSON.parse(storedUser));
-        };
-        loadUser();
-    }, []);
-
-    const userId = user?.id || user?._id;
+    const userId = user?.id || user?._id || authUserId;
 
     // Fetch Attendance Summary (always full — not paginated)
     const { data: summary, isLoading: loadingSummary, refetch: refetchSummary } = useApiQuery(
@@ -111,7 +103,7 @@ export default function StudentAttendanceScreen() {
             case 'absent': return colors.error;
             case 'late': return '#FF9800';
             case 'excused': return '#2196F3';
-            default: return colors.textSecondary;
+            default: return colors.onSurfaceVariant;
         }
     };
 
@@ -160,8 +152,13 @@ export default function StudentAttendanceScreen() {
 
     if (loading) {
         return (
-            <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: "center", alignItems: "center" }}>
-                <ActivityIndicator size="large" color={colors.primary} />
+            <View style={{ flex: 1, backgroundColor: colors.background }}>
+                <View style={{ padding: 16, paddingTop: 24 }}>
+                    <Header title="My Attendance" subtitle="Track your attendance record" />
+                </View>
+                <View style={{ flex: 1, justifyContent: "center" }}>
+                    <LoadingState message="Loading attendance records..." />
+                </View>
             </View>
         );
     }
@@ -200,14 +197,14 @@ export default function StudentAttendanceScreen() {
             {/* Subject-wise Breakdown */}
             {summary?.subjectWise && summary.subjectWise.length > 0 && (
                 <View style={{ marginTop: 24 }}>
-                    <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 12 }}>
+                    <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 12 }}>
                         Subject-wise Attendance
                     </Text>
                     {summary.subjectWise.map((subject) => (
                         <View
                             key={subject.subjectId}
                             style={{
-                                backgroundColor: colors.cardBackground,
+                                backgroundColor: colors.surfaceContainer,
                                 borderRadius: 12,
                                 padding: 16,
                                 marginBottom: 10,
@@ -216,10 +213,10 @@ export default function StudentAttendanceScreen() {
                         >
                             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                                 <View style={{ flex: 1 }}>
-                                    <Text style={{ fontSize: 16, fontFamily: "DMSans-SemiBold", color: colors.textPrimary }}>
+                                    <Text style={{ fontSize: 16, fontFamily: "DMSans-SemiBold", color: colors.onSurface }}>
                                         {subject.name}
                                     </Text>
-                                    <Text style={{ fontSize: 13, color: colors.textSecondary, marginTop: 4, fontFamily: "DMSans-Regular" }}>
+                                    <Text style={{ fontSize: 13, color: colors.onSurfaceVariant, marginTop: 4, fontFamily: "DMSans-Regular" }}>
                                         {subject.present} / {subject.total} classes
                                     </Text>
                                 </View>
@@ -245,13 +242,13 @@ export default function StudentAttendanceScreen() {
 
             {/* Calendar */}
             <View style={{
-                backgroundColor: colors.cardBackground,
+                backgroundColor: colors.surfaceContainer,
                 borderRadius: 16,
                 padding: 16,
                 marginTop: 24,
                 elevation: 2
             }}>
-                <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 4 }}>
+                <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 4 }}>
                     Attendance Calendar
                 </Text>
                 <ModernCalendar
@@ -272,7 +269,7 @@ export default function StudentAttendanceScreen() {
                     ].map(({ label, color }) => (
                         <View key={label} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                             <View style={{ width: 16, height: 16, borderRadius: 4, backgroundColor: color + "40" }} />
-                            <Text style={{ fontSize: 11, color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>{label}</Text>
+                            <Text style={{ fontSize: 11, color: colors.onSurfaceVariant, fontFamily: "DMSans-Medium" }}>{label}</Text>
                         </View>
                     ))}
                 </View>
@@ -281,14 +278,14 @@ export default function StudentAttendanceScreen() {
             {/* Monthly Summary */}
             {visibleMonths.length > 0 && (
                 <View style={{ marginTop: 24 }}>
-                    <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 12 }}>
+                    <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 12 }}>
                         Monthly Summary
                     </Text>
                     {visibleMonths.map((month) => (
                         <View
                             key={month.month}
                             style={{
-                                backgroundColor: colors.cardBackground,
+                                backgroundColor: colors.surfaceContainer,
                                 borderRadius: 12,
                                 padding: 16,
                                 marginBottom: 8,
@@ -299,8 +296,8 @@ export default function StudentAttendanceScreen() {
                             }}
                         >
                             <View>
-                                <Text style={{ fontSize: 15, fontFamily: "DMSans-SemiBold", color: colors.textPrimary }}>{month.month}</Text>
-                                <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2, fontFamily: "DMSans-Regular" }}>
+                                <Text style={{ fontSize: 15, fontFamily: "DMSans-SemiBold", color: colors.onSurface }}>{month.month}</Text>
+                                <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginTop: 2, fontFamily: "DMSans-Regular" }}>
                                     {month.present} / {month.total} days
                                 </Text>
                             </View>
@@ -334,7 +331,7 @@ export default function StudentAttendanceScreen() {
             )}
 
             {allHistory.length > 0 && (
-                <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginTop: 24, marginBottom: 12 }}>
+                <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.onSurface, marginTop: 24, marginBottom: 12 }}>
                     Attendance History
                 </Text>
             )}
@@ -345,7 +342,7 @@ export default function StudentAttendanceScreen() {
         const color = getStatusColor(item.status);
         return (
             <View style={{
-                backgroundColor: colors.cardBackground,
+                backgroundColor: colors.surfaceContainer,
                 borderRadius: 12,
                 padding: 14,
                 marginBottom: 8,
@@ -358,11 +355,11 @@ export default function StudentAttendanceScreen() {
                 elevation: 1,
             }}>
                 <View>
-                    <Text style={{ fontSize: 14, fontFamily: 'DMSans-SemiBold', color: colors.textPrimary }}>
+                    <Text style={{ fontSize: 14, fontFamily: 'DMSans-SemiBold', color: colors.onSurface }}>
                         {new Date(item.date).toDateString()}
                     </Text>
                     {item.remarks ? (
-                        <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2, fontFamily: 'DMSans-Regular' }}>
+                        <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginTop: 2, fontFamily: 'DMSans-Regular' }}>
                             {item.remarks}
                         </Text>
                     ) : null}
@@ -378,7 +375,7 @@ export default function StudentAttendanceScreen() {
         <View style={{ paddingBottom: 100 }}>
             {loadingMore && <ActivityIndicator size="small" color={colors.primary} style={{ marginVertical: 16 }} />}
             {!hasMore && allHistory.length > 0 && (
-                <Text style={{ textAlign: 'center', color: colors.textSecondary, fontSize: 13, fontFamily: 'DMSans-Regular', marginVertical: 16 }}>
+                <Text style={{ textAlign: 'center', color: colors.onSurfaceVariant, fontSize: 13, fontFamily: 'DMSans-Regular', marginVertical: 16 }}>
                     All records loaded
                 </Text>
             )}

@@ -16,6 +16,7 @@ import { useApiQuery } from "../../hooks/useApi";
 import { useToast } from "../../components/ToastProvider";
 import AppHeader from "../../components/Header";
 import { formatClassName } from "../../utils/formatClassName";
+import { useAuth } from "../../context/AuthContext";
 
 export default function TeacherClassesScreen() {
     const router = useRouter();
@@ -23,29 +24,11 @@ export default function TeacherClassesScreen() {
     const { action } = params;
     const { styles, colors } = useTheme();
     const { _showToast } = useToast();
-    const [_user, setUser] = useState(null);
+    const { user } = useAuth();
     const [refreshing, setRefreshing] = useState(false);
 
-    useEffect(() => {
-        const loadUser = async () => {
-            const storedUser = await storage.getItem("@auth_user");
-            if (!storedUser) {
-                router.replace("/login");
-                return;
-            }
-            try {
-                setUser(JSON.parse(storedUser));
-            } catch (e) {
-                console.error("Failed to parse stored user:", e);
-                await storage.removeItem("@auth_user");
-                router.replace("/login");
-            }
-        };
-        loadUser();
-    }, []);
-
     const { data: classesData, isLoading: loading, refetch } = useApiQuery(
-        ['teacherClasses'],
+        ['teacherClasses', userId],
         `${apiConfig.baseUrl}/classes/my-classes`
     );
     const classes = classesData || [];

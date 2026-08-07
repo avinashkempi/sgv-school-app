@@ -143,6 +143,9 @@ export async function registerFCMTokenWithBackend(token) {
       console.log('[FCM] Token registered with backend successfully');
     }
 
+    // Store the FCM token so we can unregister it on account switch/logout
+    await storage.setItem('@last_fcm_token', token);
+
     return true;
   } catch (error) {
     console.error('[FCM] Failed to register token with backend:', error);
@@ -151,8 +154,126 @@ export async function registerFCMTokenWithBackend(token) {
   }
 }
 
+/**
+ * Unregister FCM token from backend on logout or account switch.
+ * Prevents the previous user from receiving push notifications on this device.
+ * @returns {Promise<boolean>} Success status
+ */
+export async function unregisterFCMTokenFromBackend() {
+  try {
+    const storage = (await import('./storage')).default;
+    const apiFetch = (await import('./apiFetch')).default;
+    const apiConfig = (await import('../config/apiConfig')).default;
+
+    const authToken = await storage.getItem('@auth_token');
+    const lastFcmToken = await storage.getItem('@last_fcm_token');
+
+    if (!lastFcmToken || !authToken || authToken === 'demo-token') {
+      return true; // Nothing to unregister
+    }
+
+    const response = await apiFetch(apiConfig.url(apiConfig.endpoints.fcm.unregister), {
+      method: 'POST',
+      silent: true,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({ token: lastFcmToken }),
+    });
+
+    if (response.ok) {
+      if (__DEV__) {
+        console.log('[FCM] Token unregistered from backend successfully');
+      }
+      await storage.removeItem('@last_fcm_token');
+      return true;
+    }
+
+    // If we reach here, the response was not OK. Queue it for later.
+    await queueFailedUnregister(lastFcmToken, authToken);
+    return false;
+  } catch (error) {
+    console.warn('[FCM] Failed to unregister token from backend:', error);
+    try {
+      const storage = (await import('./storage')).default;
+      const authToken = await storage.getItem('@auth_token');
+      const lastFcmToken = await storage.getItem('@last_fcm_token');
+      if (lastFcmToken && authToken && authToken !== 'demo-token') {
+        await queueFailedUnregister(lastFcmToken, authToken);
+      }
+    } catch (e) {
+      // Ignore errors during fallback queueing
+    }
+    return false;
+  }
+}
+
+async function queueFailedUnregister(fcmToken, authToken) {
+  try {
+    const storage = (await import('./storage')).default;
+    const pendingRaw = await storage.getItem('@pending_fcm_unregister');
+    const pending = pendingRaw ? JSON.parse(pendingRaw) : [];
+    
+    // Avoid duplicates
+    if (!pending.some(p => p.token === fcmToken)) {
+      pending.push({ token: fcmToken, authToken });
+      await storage.setItem('@pending_fcm_unregister', JSON.stringify(pending));
+    }
+  } catch (err) {
+    console.warn('[FCM] Could not queue failed unregister:', err);
+  }
+}
+
+export async function flushPendingFCMUnregisters() {
+  try {
+    const storage = (await import('./storage')).default;
+    const apiFetch = (await import('./apiFetch')).default;
+    const apiConfig = (await import('../config/apiConfig')).default;
+
+    const pendingRaw = await storage.getItem('@pending_fcm_unregister');
+    if (!pendingRaw) return;
+    
+    const pending = JSON.parse(pendingRaw);
+    if (!pending || pending.length === 0) return;
+
+    const remaining = [];
+    
+    for (const item of pending) {
+      try {
+        const response = await apiFetch(apiConfig.url(apiConfig.endpoints.fcm.unregister), {
+          method: 'POST',
+          silent: true,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${item.authToken}`,
+          },
+          body: JSON.stringify({ token: item.token }),
+        });
+
+        if (!response.ok && response.status !== 401 && response.status !== 403) {
+          // If it fails but NOT because of auth (e.g. 500 or network), keep it in queue
+          remaining.push(item);
+        }
+      } catch (err) {
+        remaining.push(item);
+      }
+    }
+
+    if (remaining.length === 0) {
+      await storage.removeItem('@pending_fcm_unregister');
+    } else if (remaining.length !== pending.length) {
+      await storage.setItem('@pending_fcm_unregister', JSON.stringify(remaining));
+    }
+  } catch (err) {
+    console.warn('[FCM] Error flushing pending unregisters:', err);
+  }
+}
+
 export default {
   getFCMToken,
   logFCMToken,
   registerFCMTokenWithBackend,
+  unregisterFCMTokenFromBackend,
+  flushPendingFCMUnregisters,
 };

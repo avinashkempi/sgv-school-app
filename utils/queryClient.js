@@ -13,16 +13,18 @@ onlineManager.setEventListener((setOnline) => {
 
 let globalRouter = null;
 let globalShowToast = null;
+let globalLogout = null;
 
-export const setGlobalAuthHandler = (router, showToast) => {
+export const setGlobalAuthHandler = (router, showToast, logout = null) => {
     globalRouter = router;
     globalShowToast = showToast;
+    globalLogout = logout;
 };
 
 /**
  * Debounced auth error handler.
  * When multiple queries fail with 401 simultaneously (common on app open),
- * we only trigger logout once via the logoutHandler's own mutex guard.
+ * we only trigger logout once via the re-entrancy guard.
  */
 let authErrorHandled = false;
 
@@ -30,12 +32,16 @@ function handleGlobalAuthError(error) {
     if (!error?.isAuthError || authErrorHandled) return;
     authErrorHandled = true;
 
-    const { logoutHandler } = require('./logoutHandler');
-    logoutHandler(
-        globalRouter,
-        error?.message || 'Session expired or invalid. Please log in again.',
-        globalShowToast
-    );
+    const message = error?.message || 'Session expired or invalid. Please log in again.';
+
+    // Prefer AuthContext.logout if available (handles cache + FCM + state)
+    if (globalLogout) {
+        globalLogout(globalRouter, message, globalShowToast);
+    } else {
+        // Fallback to standalone logoutHandler
+        const { logoutHandler } = require('./logoutHandler');
+        logoutHandler(globalRouter, message, globalShowToast);
+    }
 
     // Reset the flag after a delay so future genuine auth errors are still caught
     setTimeout(() => {

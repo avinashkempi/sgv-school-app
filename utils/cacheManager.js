@@ -6,16 +6,20 @@ import { queryClient } from './queryClient';
  * - React Query in-memory cache
  * - React Query persisted cache (AsyncStorage)
  * - Legacy manual app caches (from old dual-cache system)
+ *
+ * Note: We remove the persisted cache key BEFORE clearing in-memory,
+ * to prevent the persister from re-writing stale data during the clear window.
  */
 export async function clearAllCaches() {
   try {
     console.log('[CacheManager] Starting comprehensive cache clear...');
 
-    // 1. Clear React Query in-memory cache
-    queryClient.clear();
-
-    // 2. Clear React Query persisted cache from AsyncStorage
+    // 1. Remove the persisted cache from AsyncStorage FIRST
+    //    This prevents the throttled persister from re-saving stale data
     await storage.removeItem('@react-query-persist');
+
+    // 2. Clear React Query in-memory cache
+    queryClient.clear();
 
     // 3. Clear legacy manual cache keys (kept for cleanup of old installs)
     const legacyKeys = [
@@ -24,9 +28,15 @@ export async function clearAllCaches() {
       '@cached_news',
       '@cached_users',
       'selectedAcademicYear',
+      '@cached_academic_years',
+      '@bg_notification_count',
     ];
 
     await storage.multiRemove(legacyKeys);
+
+    // 4. Remove persisted cache again after clear, in case the persister
+    //    re-wrote during the brief window above (belt and suspenders)
+    await storage.removeItem('@react-query-persist');
 
     console.log('[CacheManager] All caches cleared successfully');
     return { success: true };

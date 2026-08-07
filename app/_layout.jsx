@@ -10,10 +10,10 @@ import NetworkStatusProvider from "../components/NetworkStatusProvider";
 import BottomNavigation from "../components/BottomNavigation";
 import ErrorBoundary from "../components/ErrorBoundary";
 import * as Notifications from 'expo-notifications';
-import { getFCMToken, registerFCMTokenWithBackend } from '../utils/fcm';
 import { NavigationProvider } from "../context/NavigationContext";
 import { NotificationProvider } from "../context/NotificationContext";
-import { AcademicYearProvider, useAcademicYear } from "../contexts/AcademicYearContext";
+import { AuthProvider, useAuth } from "../context/AuthContext";
+import { AcademicYearProvider, useAcademicYear } from "../context/AcademicYearContext";
 
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { queryClient, persister, setGlobalAuthHandler } from '../utils/queryClient';
@@ -29,58 +29,18 @@ Notifications.setNotificationHandler({
 });
 
 import DemoBanner from "../components/DemoBanner";
-import storage from "../utils/storage";
 import { useState } from "react";
 import useOfflinePrefetch from "../hooks/useOfflinePrefetch";
 import { setupAppStateRefresh } from "../utils/appStateRefresh";
 
-/**
- * Decode a base64url-encoded string (works in React Native without atob/Buffer).
- */
-function base64UrlDecode(str) {
-  // Replace URL-safe chars
-  let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
-  // Pad with '=' to make length a multiple of 4
-  while (base64.length % 4 !== 0) base64 += '=';
-
-  // Try atob first (available in most environments)
-  if (typeof atob === 'function') {
-    return atob(base64);
-  }
-  // Fallback for environments without atob
-  if (typeof Buffer !== 'undefined') {
-    return Buffer.from(base64, 'base64').toString('utf8');
-  }
-  // If neither is available, throw so caller can handle gracefully
-  throw new Error('No base64 decoder available');
-}
-
-function isTokenExpired(token) {
-  if (!token || token === 'demo-token') return false;
-  try {
-    const parts = token.split('.');
-    if (parts.length !== 3) return true;
-    const payloadJson = base64UrlDecode(parts[1]);
-    const payload = JSON.parse(payloadJson);
-    if (payload.exp && Date.now() >= payload.exp * 1000) {
-      return true;
-    }
-    return false;
-  } catch (err) {
-    // If parsing fails, don't block the user — fall back to backend 401 handling
-    return false;
-  }
-}
-
 // separate component so we can use useTheme inside ThemeProvider
 function Inner() {
   const { styles, colors } = useTheme();
-  const [isDemo, setIsDemo] = useState(false);
   const segments = useSegments();
   const router = useRouter();
-  const [isReady, setIsReady] = useState(false);
   const { syncYear } = useAcademicYear();
   const { showToast } = useToast();
+  const { isReady, isAuthenticated, isDemo, token, user, logout } = useAuth();
 
   useOfflinePrefetch();
 
@@ -91,109 +51,67 @@ function Inner() {
     return cleanup;
   }, []);
 
+  // Wire global auth error handler (for 401s from React Query)
   useEffect(() => {
-    setGlobalAuthHandler(router, showToast);
-  }, [router, showToast]);
+    // Pass a logout-aware handler so 401 errors trigger AuthContext.logout
+    setGlobalAuthHandler(router, showToast, logout);
+  }, [router, showToast, logout]);
 
-  // Ref to track whether the initial auth check has completed
-  const initialAuthDone = useRef(false);
+  // Ref to track whether the initial routing has completed
+  const initialRoutingDone = useRef(false);
 
-  // ── Effect 1: ONE-TIME initial auth check on mount ──
-  // Validates token, handles expiry, sets demo mode, syncs academic year.
-  // Runs ONLY ONCE — does NOT depend on segments, so navigation changes won't re-trigger.
+  // ── Effect 1: ONE-TIME initial routing on mount (after AuthContext is ready) ──
   useEffect(() => {
-    const initialAuthCheck = async () => {
-      const token = await storage.getItem('@auth_token');
+    if (!isReady || initialRoutingDone.current) return;
 
-      if (token && isTokenExpired(token)) {
-        await storage.multiRemove(['@auth_token', '@auth_user']);
-        if (showToast) {
-          showToast('Session expired. Please log in again.', 'error', 3500);
-        }
-        router.replace('/login');
-        initialAuthDone.current = true;
-        setIsReady(true);
-        return;
-      }
+    const inLoginGroup = segments[0] === 'login';
 
-      setIsDemo(token === 'demo-token');
+    if (!token && !inLoginGroup) {
+      // No token — redirect to login
+      router.replace('/login');
+    } else if (token && inLoginGroup) {
+      // Token exists and on login page -> Redirect to home
+      router.replace('/');
+    } else if (token && !inLoginGroup) {
+      // Logged in, sync academic year context
+      syncYear();
+    }
 
-      const inLoginGroup = segments[0] === 'login';
-
-      if (!token && !inLoginGroup) {
-        // No token — silently redirect to login (no alarming toast for first-time users)
-        router.replace('/login');
-      } else if (token && inLoginGroup) {
-        // Token exists and on login page -> Redirect to home
-        router.replace('/');
-      } else if (token && !inLoginGroup) {
-        // Logged in, sync academic year context
-        syncYear();
-      }
-
-      initialAuthDone.current = true;
-      setIsReady(true);
-    };
-
-    initialAuthCheck();
+    initialRoutingDone.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Intentionally empty — run only once on mount
+  }, [isReady]); // Runs when AuthContext finishes loading
 
   // ── Effect 2: Lightweight navigation guard ──
-  // After initial auth is done, only prevents unauthenticated access to protected routes.
-  // Does NOT re-validate the token or re-sync academic year on every navigation.
+  // After initial routing is done, prevents unauthenticated access to protected routes.
   useEffect(() => {
-    if (!initialAuthDone.current) return; // Wait for initial check to complete
+    if (!initialRoutingDone.current || !isReady) return;
 
-    const guardNavigation = async () => {
-      const token = await storage.getItem('@auth_token');
-      const inLoginGroup = segments[0] === 'login';
+    const inLoginGroup = segments[0] === 'login';
 
-      setIsDemo(token === 'demo-token');
+    if (!token && !inLoginGroup) {
+      router.replace('/login');
+    } else if (token && inLoginGroup) {
+      router.replace('/');
+    }
+  }, [segments, router, token, isReady]);
 
-      if (!token && !inLoginGroup) {
-        router.replace('/login');
-      } else if (token && inLoginGroup) {
-        router.replace('/');
-      }
-    };
-
-    guardNavigation();
-  }, [segments, router]);
-
-  // Setup push notifications
+  // Setup push notification listeners (FCM registration is now handled by AuthContext.login)
   useEffect(() => {
+    if (Platform.OS === 'web') return;
+
     let notificationSubscription;
     let responseSubscription;
 
-    const setupNotifications = async () => {
-      if (Platform.OS === 'web') return;
+    // Listen for foreground notifications
+    notificationSubscription = Notifications.addNotificationReceivedListener(_notification => {
+      // Foreground notification received
+    });
 
-      try {
-        // Get and register FCM token
-        const token = await getFCMToken();
-        if (token) {
-          await registerFCMTokenWithBackend(token);
-        }
+    // Listen for notification taps
+    responseSubscription = Notifications.addNotificationResponseReceivedListener(_response => {
+      // Notification tap handling
+    });
 
-        // Listen for foreground notifications
-        notificationSubscription = Notifications.addNotificationReceivedListener(_notification => {
-          // Handle foreground notification
-        });
-
-        // Listen for notification taps (when user clicks notification)
-        responseSubscription = Notifications.addNotificationResponseReceivedListener(_response => {
-          // You can add navigation logic here if needed
-          // e.g., navigate to news page when news notification is tapped
-        });
-      } catch (error) {
-        // Don't throw - app should work even if notifications fail
-      }
-    };
-
-    setupNotifications();
-
-    // Cleanup subscriptions on unmount
     return () => {
       notificationSubscription?.remove();
       responseSubscription?.remove();
@@ -251,6 +169,12 @@ export default function RootLayout() {
     'DMSans-Medium': require("../assets/fonts/DMSans-Medium.ttf"),
     'DMSans-SemiBold': require("../assets/fonts/DMSans-SemiBold.ttf"),
     'DMSans-Bold': require("../assets/fonts/DMSans-Bold.ttf"),
+    // Icon fonts - bundled for offline support
+    ...require('@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialIcons.ttf') && { 'MaterialIcons': require('@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialIcons.ttf') },
+    ...require('@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome.ttf') && { 'FontAwesome': require('@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome.ttf') },
+    ...require('@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf') && { 'Material Design Icons': require('@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf') },
+    ...require('@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Feather.ttf') && { 'Feather': require('@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Feather.ttf') },
+    ...require('@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Ionicons.ttf') && { 'Ionicons': require('@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Ionicons.ttf') },
   });
 
   useEffect(() => {
@@ -275,9 +199,11 @@ export default function RootLayout() {
       <ThemeProvider>
         <ToastProvider>
           <ErrorBoundary>
-            <AcademicYearProvider>
-              <Inner />
-            </AcademicYearProvider>
+            <AuthProvider>
+              <AcademicYearProvider>
+                <Inner />
+              </AcademicYearProvider>
+            </AuthProvider>
           </ErrorBoundary>
         </ToastProvider>
       </ThemeProvider>

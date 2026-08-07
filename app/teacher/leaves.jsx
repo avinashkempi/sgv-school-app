@@ -10,6 +10,8 @@ import { useToast } from '../../components/ToastProvider';
 import { useTheme } from '../../theme';
 import Header from '../../components/Header';
 import formatClassName from '../../utils/formatClassName';
+import SegmentedControl from '../../components/SegmentedControl';
+import { EmptyState } from '../../components/StateComponents';
 
 export default function TeacherLeaves() {
     const router = useRouter();
@@ -41,25 +43,25 @@ export default function TeacherLeaves() {
 
     // Fetch Pending Requests
     const { data: requestsData, isLoading: requestsLoading, refetch: refetchRequests } = useApiQuery(
-        ['teacherLeaveRequests'],
+        ['teacherLeaveRequests', userId],
         `${apiConfig.baseUrl}/leaves/pending`,
-        { enabled: activeTab === 'requests' }
+        { enabled: activeTab === 'requests' && !!userId }
     );
     const requests = requestsData?.data || [];
 
     // Fetch My Leaves
     const { data: myLeavesData, isLoading: myLeavesLoading, refetch: refetchMyLeaves } = useApiQuery(
-        ['teacherMyLeaves'],
+        ['teacherMyLeaves', userId],
         `${apiConfig.baseUrl}/leaves/my-leaves`,
-        { enabled: activeTab === 'my_leaves' }
+        { enabled: activeTab === 'my_leaves' && !!userId }
     );
     const myLeaves = myLeavesData?.data || [];
 
     // Fetch Leave Balance
     const { data: balanceData, isLoading: balanceLoading, refetch: refetchBalance } = useApiQuery(
-        ['teacherLeaveBalance'],
+        ['teacherLeaveBalance', userId],
         `${apiConfig.baseUrl}/leaves/balance`,
-        { enabled: activeTab === 'my_leaves' }
+        { enabled: activeTab === 'my_leaves' && !!userId }
     );
     const leaveBalance = balanceData?.data || null;
 
@@ -307,44 +309,15 @@ export default function TeacherLeaves() {
                 <Header title="Leave Management" showBack={true} />
             </View>
 
-            <View style={{ flexDirection: 'row', marginHorizontal: 16, marginBottom: 16, backgroundColor: colors.surfaceContainer, borderRadius: 12, padding: 4 }}>
-                <TouchableOpacity
-                    style={{
-                        flex: 1,
-                        paddingVertical: 10,
-                        alignItems: 'center',
-                        borderRadius: 8,
-                        backgroundColor: activeTab === 'requests' ? colors.background : 'transparent',
-                        elevation: activeTab === 'requests' ? 2 : 0,
-                        shadowColor: "#000",
-                        shadowOpacity: activeTab === 'requests' ? 0.05 : 0,
-                    }}
-                    onPress={() => setActiveTab('requests')}
-                >
-                    <Text style={{
-                        fontFamily: activeTab === 'requests' ? "DMSans-Bold" : "DMSans-Medium",
-                        color: activeTab === 'requests' ? colors.primary : colors.onSurfaceVariant
-                    }}>Requests</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={{
-                        flex: 1,
-                        paddingVertical: 10,
-                        alignItems: 'center',
-                        borderRadius: 8,
-                        backgroundColor: activeTab === 'my_leaves' ? colors.background : 'transparent',
-                        elevation: activeTab === 'my_leaves' ? 2 : 0,
-                        shadowColor: "#000",
-                        shadowOpacity: activeTab === 'my_leaves' ? 0.05 : 0,
-                    }}
-                    onPress={() => setActiveTab('my_leaves')}
-                >
-                    <Text style={{
-                        fontFamily: activeTab === 'my_leaves' ? "DMSans-Bold" : "DMSans-Medium",
-                        color: activeTab === 'my_leaves' ? colors.primary : colors.onSurfaceVariant
-                    }}>My Leaves</Text>
-                </TouchableOpacity>
-            </View>
+            <SegmentedControl
+                tabs={[
+                    { key: 'requests', label: 'Requests' },
+                    { key: 'my_leaves', label: 'My Leaves' },
+                ]}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                style={{ marginHorizontal: 16, marginBottom: 16 }}
+            />
 
             {activeTab === 'my_leaves' && leaveBalance && (
                 <View style={{
@@ -386,17 +359,18 @@ export default function TeacherLeaves() {
                     contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
                     ListEmptyComponent={
-                        <View style={{ alignItems: 'center', marginTop: 40, opacity: 0.6 }}>
-                            <MaterialIcons name="event-busy" size={64} color={colors.onSurfaceVariant} />
-                            <Text style={{ marginTop: 16, fontSize: 16, color: colors.onSurfaceVariant, fontFamily: "DMSans-Medium" }}>No records found.</Text>
-                        </View>
+                        <EmptyState
+                            icon="event-busy"
+                            title="No Records"
+                            message="No leave records found."
+                        />
                     }
                 />
             )}
 
             {activeTab === 'my_leaves' && (
                 <TouchableOpacity
-                    style={styles.fab}
+                    style={[styles.fab, { backgroundColor: colors.primaryContainer }]}
                     onPress={() => setApplyModalVisible(true)}
                     activeOpacity={0.8}
                 >
@@ -516,7 +490,7 @@ export default function TeacherLeaves() {
                                         style={{
                                             flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 8,
                                             backgroundColor: !isHalfDay ? colors.background : 'transparent',
-                                            elevation: !isHalfDay ? 1 : 0, shadowColor: "#000", shadowOpacity: !isHalfDay ? 0.05 : 0
+                                            elevation: !isHalfDay ? 1 : 0, shadowColor: colors.shadow, shadowOpacity: !isHalfDay ? 0.05 : 0
                                         }}
                                         onPress={() => setIsHalfDay(false)}
                                     >
@@ -526,7 +500,7 @@ export default function TeacherLeaves() {
                                         style={{
                                             flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 8,
                                             backgroundColor: isHalfDay ? colors.background : 'transparent',
-                                            elevation: isHalfDay ? 1 : 0, shadowColor: "#000", shadowOpacity: isHalfDay ? 0.05 : 0
+                                            elevation: isHalfDay ? 1 : 0, shadowColor: colors.shadow, shadowOpacity: isHalfDay ? 0.05 : 0
                                         }}
                                         onPress={() => setIsHalfDay(true)}
                                     >
@@ -660,21 +634,20 @@ const styles_internal = StyleSheet.create({
     // Kept for backward compatibility if needed
     label: {
         fontSize: 12,
-        color: '#666',
+        color: '#999',
         marginBottom: 8,
-        fontWeight: 'bold',
+        fontFamily: 'DMSans-Bold',
         letterSpacing: 0.5
     },
     fab: {
         position: 'absolute',
-        bottom: 130,
+        bottom: 140,
         right: 20,
-        backgroundColor: '#2F6CD4', // Will be overridden by inline styles
         flexDirection: 'row',
         alignItems: 'center',
         paddingVertical: 12,
         paddingHorizontal: 20,
-        borderRadius: 30,
+        borderRadius: 16,
         elevation: 4,
     },
 });

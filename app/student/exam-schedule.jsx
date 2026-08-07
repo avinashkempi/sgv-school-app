@@ -41,7 +41,7 @@ export default function StudentExamScheduleScreen() {
 
     // Fetch exam schedule
     const { data: examsData, isLoading, refetch } = useApiQuery(
-        ['studentExamSchedule'],
+        ['studentExamSchedule', userId],
         `${apiConfig.baseUrl}/exams/schedule/student`,
         CACHE_TIERS.STABLE
     );
