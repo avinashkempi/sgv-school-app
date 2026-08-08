@@ -52,9 +52,10 @@ export default function ExamAnalyticsScreen() {
     };
 
     const getGradeColor = (percentage) => {
-        if (percentage >= 80) return colors.success;
-        if (percentage >= 60) return '#2196F3';
-        if (percentage >= 40) return '#FF9800';
+        if (percentage >= 90) return colors.success;
+        if (percentage >= 70) return '#2196F3';
+        if (percentage >= 50) return '#FF9800';
+        if (percentage >= 30) return '#FF5722';
         return colors.error;
     };
 

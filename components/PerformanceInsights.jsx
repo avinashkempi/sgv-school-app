@@ -91,11 +91,9 @@ export default function PerformanceInsights({ reportData }) {
 
     const getGradeColor = (percentage) => {
         if (percentage >= 90) return '#4CAF50';
-        if (percentage >= 80) return '#66BB6A';
         if (percentage >= 70) return '#2196F3';
-        if (percentage >= 60) return '#42A5F5';
         if (percentage >= 50) return '#FF9800';
-        if (percentage >= 40) return '#FF5722';
+        if (percentage >= 30) return '#FF5722';
         return '#F44336';
     };
 

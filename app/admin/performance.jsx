@@ -49,9 +49,9 @@ export default function AdminPerformanceScreen() {
 
     const getGradeColor = (percentage) => {
         if (percentage >= 90) return colors.success;
-        if (percentage >= 75) return '#2196F3';
-        if (percentage >= 60) return '#FF9800';
-        if (percentage >= 40) return '#FF5722';
+        if (percentage >= 70) return '#2196F3';
+        if (percentage >= 50) return '#FF9800';
+        if (percentage >= 30) return '#FF5722';
         return colors.error;
     };
 

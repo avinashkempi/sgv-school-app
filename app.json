@@ -11,7 +11,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.sgvschool.app",
       "infoPlist": {
-        "LSApplicationQueriesSchemes": ["itms-apps"]
+        "LSApplicationQueriesSchemes": [
+          "itms-apps"
+        ]
       }
     },
     "web": {
@@ -39,7 +41,8 @@
             "buildToolsVersion": "36.0.0"
           }
         }
-      ]
+      ],
+      "expo-video"
     ],
     "android": {
       "package": "com.sgvschool.app",
@@ -56,7 +59,9 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "extra": {
       "router": {
         "origin": false

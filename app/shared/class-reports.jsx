@@ -53,12 +53,10 @@ export default function ClassReportsDashboard() {
     const getGradeColor = (grade) => {
         const gradeColors = {
             'A+': '#4CAF50',
-            'A': '#66BB6A',
-            'B+': '#2196F3',
-            'B': '#42A5F5',
-            'C': '#FF9800',
-            'D': '#FF5722',
-            'F': '#F44336'
+            'A': '#2196F3',
+            'B+': '#FF9800',
+            'B': '#FF5722',
+            'C': '#F44336'
         };
         return gradeColors[grade] || colors.onSurfaceVariant;
     };

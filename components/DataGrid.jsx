@@ -194,12 +194,10 @@ export default function DataGrid({
     const getGradeColor = (grade) => {
         const gradeColors = {
             'A+': '#4CAF50',
-            'A': '#66BB6A',
-            'B+': '#29B6F6',
-            'B': '#42A5F5',
-            'C': '#FFA726',
-            'D': '#FF7043',
-            'F': '#EF5350'
+            'A': '#2196F3',
+            'B+': '#FF9800',
+            'B': '#FF5722',
+            'C': '#EF5350'
         };
         return gradeColors[grade] || colors.onSurfaceVariant;
     };

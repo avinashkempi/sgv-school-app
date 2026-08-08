@@ -183,10 +183,11 @@ export default function EnterMarksScreen() {
     };
 
     const getGradeColor = (grade) => {
-        if (grade === 'A+' || grade === 'A') return colors.success;
-        if (grade === 'B+' || grade === 'B') return '#2196F3';
-        if (grade === 'C') return '#FF9800';
-        if (grade === 'D') return '#FF5722';
+        if (grade === 'A+') return colors.success;
+        if (grade === 'A') return '#2196F3';
+        if (grade === 'B+') return '#FF9800';
+        if (grade === 'B') return '#FF5722';
+        if (grade === 'C') return colors.error;
         return colors.error;
     };
 

@@ -32,9 +32,11 @@ import DemoBanner from "../components/DemoBanner";
 import { useState } from "react";
 import useOfflinePrefetch from "../hooks/useOfflinePrefetch";
 import { setupAppStateRefresh } from "../utils/appStateRefresh";
+import VideoSplash from "../components/VideoSplash";
 
 // separate component so we can use useTheme inside ThemeProvider
 function Inner() {
+  const [showVideoSplash, setShowVideoSplash] = useState(true);
   const { styles, colors } = useTheme();
   const segments = useSegments();
   const router = useRouter();
@@ -127,6 +129,10 @@ function Inner() {
       console.warn('Failed to initialize app update check:', err);
     }
   }, []);
+
+  if (showVideoSplash) {
+    return <VideoSplash onFinish={() => setShowVideoSplash(false)} />;
+  }
 
   if (!isReady) {
     return (

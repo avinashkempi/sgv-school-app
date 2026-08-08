@@ -92,10 +92,11 @@ export default function StudentReportCardScreen() {
     };
 
     const getGradeColor = (grade) => {
-        if (grade === 'A+' || grade === 'A') return colors.success;
-        if (grade === 'B+' || grade === 'B') return '#2196F3';
-        if (grade === 'C') return '#FF9800';
-        if (grade === 'D') return '#FF5722';
+        if (grade === 'A+') return colors.success;
+        if (grade === 'A') return '#2196F3';
+        if (grade === 'B+') return '#FF9800';
+        if (grade === 'B') return '#FF5722';
+        if (grade === 'C') return colors.error;
         return colors.error;
     };
 
@@ -376,12 +377,10 @@ export default function StudentReportCardScreen() {
     // Helper for subject analysis chart color
     const getGrade = (percentage) => {
         if (percentage >= 90) return 'A+';
-        if (percentage >= 80) return 'A';
-        if (percentage >= 70) return 'B+';
-        if (percentage >= 60) return 'B';
-        if (percentage >= 50) return 'C';
-        if (percentage >= 40) return 'D';
-        return 'F';
+        if (percentage >= 70) return 'A';
+        if (percentage >= 50) return 'B+';
+        if (percentage >= 30) return 'B';
+        return 'C';
     };
 
     return (
