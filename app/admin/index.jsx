@@ -167,7 +167,196 @@ export default function AdminScreen() {
     updateUserMutation.mutate({ ...data, _id: editingUser._id });
   };
 
-  const renderHeader = () => (
+  const renderFooter = () => (
+    <View style={{ paddingHorizontal: 20, paddingBottom: 100, alignItems: 'center', paddingTop: 16 }}>
+      {isFetchingNextPage && <ActivityIndicator size="small" color={colors.primary} />}
+    </View>
+  );
+
+  const renderEmptyList = () => {
+    if (loading && users.length === 0) {
+      return (
+        <View style={{ padding: 40, alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={{ marginTop: 16, color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>Loading users...</Text>
+        </View>
+      );
+    }
+    if (userError) {
+      return (
+        <View style={{ padding: 20, marginHorizontal: 20, alignItems: 'center', backgroundColor: colors.error + '10', borderRadius: 12 }}>
+          <MaterialIcons name="error-outline" size={40} color={colors.error} />
+          <Text style={{ marginTop: 8, color: colors.error, fontFamily: "DMSans-Bold" }}>Failed to load user profile</Text>
+          <Text style={{ marginTop: 4, color: colors.textSecondary, textAlign: 'center' }}>{userError.message}</Text>
+        </View>
+      );
+    }
+    if (!isAdmin && !userLoading) {
+      return (
+        <View style={{ padding: 20, marginHorizontal: 20, alignItems: 'center', backgroundColor: colors.warning + '10', borderRadius: 12 }}>
+          <MaterialIcons name="warning" size={40} color={colors.warning} />
+          <Text style={{ marginTop: 8, color: colors.warning, fontFamily: "DMSans-Bold" }}>Access Denied</Text>
+          <Text style={{ marginTop: 4, color: colors.textSecondary, textAlign: 'center' }}>You do not have permission to view this list.</Text>
+          <Text style={{ marginTop: 4, color: colors.textSecondary, fontSize: 12 }}>Current Role: {user?.role || 'Unknown'}</Text>
+        </View>
+      );
+    }
+    if (usersError) {
+      return (
+        <View style={{ padding: 20, marginHorizontal: 20, alignItems: 'center', backgroundColor: colors.error + '10', borderRadius: 12 }}>
+          <MaterialIcons name="error-outline" size={40} color={colors.error} />
+          <Text style={{ marginTop: 8, color: colors.error, fontFamily: "DMSans-Bold" }}>Failed to load users</Text>
+          <Text style={{ marginTop: 4, color: colors.textSecondary, textAlign: 'center' }}>{usersError.message}</Text>
+          <Pressable onPress={refetch} style={{ marginTop: 12, paddingHorizontal: 16, paddingVertical: 8, backgroundColor: colors.primary, borderRadius: 8 }}>
+            <Text style={{ color: '#fff', fontFamily: "DMSans-Bold" }}>Retry</Text>
+          </Pressable>
+        </View>
+      );
+    }
+    return (
+      <View style={{ alignItems: "center", padding: 40, opacity: 0.6 }}>
+        <MaterialIcons name="search-off" size={64} color={colors.textSecondary} />
+        <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16, fontFamily: "DMSans-Medium" }}>
+          No users found
+        </Text>
+      </View>
+    );
+  };
+
+  const renderUserItem = ({ item: userItem }) => (
+    <View style={{ paddingHorizontal: 20 }}>
+      <UserCard
+        userItem={userItem}
+        colors={colors}
+        getRoleColor={getRoleColor}
+        getRoleDisplay={getRoleDisplay}
+        onEdit={() => {
+          setModalMode("edit");
+          setEditingUser(userItem);
+          setShowUserModal(true);
+        }}
+        onDelete={() => deleteUser(userItem._id, userItem.name)}
+        onPress={() => {
+          setSelectedDetailUser(userItem);
+          setShowDetailModal(true);
+        }}
+      />
+    </View>
+  );
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={users}
+        keyExtractor={(item) => item._id}
+        renderItem={renderUserItem}
+        ListHeaderComponent={
+          <AdminHeader
+            user={user}
+            colors={colors}
+            styles={styles}
+            router={router}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            roleFilter={roleFilter}
+            setRoleFilter={setRoleFilter}
+            onAddUser={() => {
+              setModalMode("add");
+              setEditingUser(null);
+              setShowUserModal(true);
+            }}
+          />
+        }
+        ListFooterComponent={renderFooter}
+        ListEmptyComponent={renderEmptyList}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        onEndReached={() => {
+          if (hasNextPage) {
+            fetchNextPage();
+          }
+        }}
+        onEndReachedThreshold={0.5}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} />
+        }
+      />
+
+      <UserFormModal
+        visible={showUserModal}
+        onClose={() => setShowUserModal(false)}
+        modalMode={modalMode}
+        initialData={editingUser}
+        saving={saving}
+        onSubmit={modalMode === "add" ? handleCreateUser : handleUpdateUser}
+      />
+      <UserDetailModal
+        visible={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        user={selectedDetailUser}
+      />
+    </View>
+  );
+}
+
+// Helper Component for Menu Cards
+const MenuCard = ({ title, icon, color, onPress }) => {
+  const { colors } = useTheme();
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => ({
+        flex: 1,
+        minWidth: "30%",
+        backgroundColor: colors.cardBackground,
+        padding: 20,
+        borderRadius: 24,
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 12,
+        elevation: 3,
+        borderWidth: 1,
+        borderColor: colors.border,
+        opacity: pressed ? 0.9 : 1
+      })}
+    >
+      <View style={{
+        backgroundColor: color + "15",
+        padding: 16,
+        borderRadius: 20,
+        marginBottom: 12,
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <MaterialIcons name={icon} size={28} color={color} />
+      </View>
+      <Text style={{
+        fontSize: 14,
+        fontFamily: "DMSans-Bold",
+        color: colors.textPrimary,
+        textAlign: "center"
+      }}>
+        {title}
+      </Text>
+    </Pressable>
+  );
+};
+
+const AdminHeader = React.memo(function AdminHeader({
+  user,
+  colors,
+  styles,
+  router,
+  searchQuery,
+  setSearchQuery,
+  roleFilter,
+  setRoleFilter,
+  onAddUser,
+}) {
+  return (
     <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
       {/* Minimal Header */}
       <Header title="Admin" subtitle="Manage users and permissions" />
@@ -274,8 +463,6 @@ export default function AdminScreen() {
             />
           </View>
         </View>
-
-
       </View>
 
       {/* User Management Section */}
@@ -285,11 +472,7 @@ export default function AdminScreen() {
             User Management
           </Text>
           <Pressable
-            onPress={() => {
-              setModalMode("add");
-              setEditingUser(null);
-              setShowUserModal(true);
-            }}
+            onPress={onAddUser}
             style={({ pressed }) => ({
               flexDirection: "row",
               alignItems: "center",
@@ -381,169 +564,8 @@ export default function AdminScreen() {
               </Pressable>
             ))}
           </ScrollView>
-
         </View>
       </View>
     </View>
   );
-
-  const renderFooter = () => (
-    <View style={{ paddingHorizontal: 20, paddingBottom: 100, alignItems: 'center', paddingTop: 16 }}>
-      {isFetchingNextPage && <ActivityIndicator size="small" color={colors.primary} />}
-    </View>
-  );
-
-  const renderEmptyList = () => {
-    if (loading && users.length === 0) {
-      return (
-        <View style={{ padding: 40, alignItems: 'center' }}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={{ marginTop: 16, color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>Loading users...</Text>
-        </View>
-      );
-    }
-    if (userError) {
-      return (
-        <View style={{ padding: 20, marginHorizontal: 20, alignItems: 'center', backgroundColor: colors.error + '10', borderRadius: 12 }}>
-          <MaterialIcons name="error-outline" size={40} color={colors.error} />
-          <Text style={{ marginTop: 8, color: colors.error, fontFamily: "DMSans-Bold" }}>Failed to load user profile</Text>
-          <Text style={{ marginTop: 4, color: colors.textSecondary, textAlign: 'center' }}>{userError.message}</Text>
-        </View>
-      );
-    }
-    if (!isAdmin && !userLoading) {
-      return (
-        <View style={{ padding: 20, marginHorizontal: 20, alignItems: 'center', backgroundColor: colors.warning + '10', borderRadius: 12 }}>
-          <MaterialIcons name="warning" size={40} color={colors.warning} />
-          <Text style={{ marginTop: 8, color: colors.warning, fontFamily: "DMSans-Bold" }}>Access Denied</Text>
-          <Text style={{ marginTop: 4, color: colors.textSecondary, textAlign: 'center' }}>You do not have permission to view this list.</Text>
-          <Text style={{ marginTop: 4, color: colors.textSecondary, fontSize: 12 }}>Current Role: {user?.role || 'Unknown'}</Text>
-        </View>
-      );
-    }
-    if (usersError) {
-      return (
-        <View style={{ padding: 20, marginHorizontal: 20, alignItems: 'center', backgroundColor: colors.error + '10', borderRadius: 12 }}>
-          <MaterialIcons name="error-outline" size={40} color={colors.error} />
-          <Text style={{ marginTop: 8, color: colors.error, fontFamily: "DMSans-Bold" }}>Failed to load users</Text>
-          <Text style={{ marginTop: 4, color: colors.textSecondary, textAlign: 'center' }}>{usersError.message}</Text>
-          <Pressable onPress={refetch} style={{ marginTop: 12, paddingHorizontal: 16, paddingVertical: 8, backgroundColor: colors.primary, borderRadius: 8 }}>
-            <Text style={{ color: '#fff', fontFamily: "DMSans-Bold" }}>Retry</Text>
-          </Pressable>
-        </View>
-      );
-    }
-    return (
-      <View style={{ alignItems: "center", padding: 40, opacity: 0.6 }}>
-        <MaterialIcons name="search-off" size={64} color={colors.textSecondary} />
-        <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16, fontFamily: "DMSans-Medium" }}>
-          No users found
-        </Text>
-      </View>
-    );
-  };
-
-  const renderUserItem = ({ item: userItem }) => (
-    <View style={{ paddingHorizontal: 20 }}>
-      <UserCard
-        userItem={userItem}
-        colors={colors}
-        getRoleColor={getRoleColor}
-        getRoleDisplay={getRoleDisplay}
-        onEdit={() => {
-          setModalMode("edit");
-          setEditingUser(userItem);
-          setShowUserModal(true);
-        }}
-        onDelete={() => deleteUser(userItem._id, userItem.name)}
-        onPress={() => {
-          setSelectedDetailUser(userItem);
-          setShowDetailModal(true);
-        }}
-      />
-    </View>
-  );
-
-  return (
-    <View style={styles.container}>
-      <FlatList
-        data={users}
-        keyExtractor={(item) => item._id}
-        renderItem={renderUserItem}
-        ListHeaderComponent={renderHeader}
-        ListFooterComponent={renderFooter}
-        ListEmptyComponent={renderEmptyList}
-        showsVerticalScrollIndicator={false}
-        onEndReached={() => {
-          if (hasNextPage) {
-            fetchNextPage();
-          }
-        }}
-        onEndReachedThreshold={0.5}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} />
-        }
-      />
-
-      <UserFormModal
-        visible={showUserModal}
-        onClose={() => setShowUserModal(false)}
-        modalMode={modalMode}
-        initialData={editingUser}
-        saving={saving}
-        onSubmit={modalMode === "add" ? handleCreateUser : handleUpdateUser}
-      />
-      <UserDetailModal
-        visible={showDetailModal}
-        onClose={() => setShowDetailModal(false)}
-        user={selectedDetailUser}
-      />
-    </View>
-  );
-}
-
-// Helper Component for Menu Cards
-const MenuCard = ({ title, icon, color, onPress }) => {
-  const { colors } = useTheme();
-
-  return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => ({
-        flex: 1,
-        minWidth: "30%",
-        backgroundColor: colors.cardBackground,
-        padding: 20,
-        borderRadius: 24,
-        alignItems: "center",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.05,
-        shadowRadius: 12,
-        elevation: 3,
-        borderWidth: 1,
-        borderColor: colors.border,
-        opacity: pressed ? 0.9 : 1
-      })}
-    >
-      <View style={{
-        backgroundColor: color + "15",
-        padding: 16,
-        borderRadius: 20,
-        marginBottom: 12,
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        <MaterialIcons name={icon} size={28} color={color} />
-      </View>
-      <Text style={{
-        fontSize: 14,
-        fontFamily: "DMSans-Bold",
-        color: colors.textPrimary,
-        textAlign: "center"
-      }}>
-        {title}
-      </Text>
-    </Pressable>
-  );
-};
+});
