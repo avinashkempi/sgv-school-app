@@ -1,6 +1,7 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import { View, Text, ScrollView, Animated, StatusBar, RefreshControl, } from "react-native";
-import { useState } from "react";
+import { View, Text, ScrollView, StatusBar, RefreshControl, } from "react-native";
+import Animated from "react-native-reanimated";
+import { useState, useRef } from "react";
 import { useRouter } from "expo-router";
 import useFade from "../hooks/useFade";
 import { useTheme } from "../theme";
@@ -14,7 +15,7 @@ import apiConfig from "../config/apiConfig";
 import { useApiQuery } from "../hooks/useApi";
 import { CACHE_TIERS } from "../utils/cacheConfig";
 import { useAuth } from "../context/AuthContext";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 
 import AdminDashboard from "../components/dashboard/AdminDashboard";
 import TeacherDashboard from "../components/dashboard/TeacherDashboard";
@@ -22,7 +23,7 @@ import StudentDashboard from "../components/dashboard/StudentDashboard";
 
 export default function HomeScreen() {
   const router = useRouter();
-  const fadeAnim = useFade();
+  const fadeStyle = useFade();
   const { styles, colors, mode } = useTheme();
   const { schoolInfo: SCHOOL, refresh } = useSchoolInfo();
   const [refreshing, setRefreshing] = useState(false);
@@ -41,8 +42,11 @@ export default function HomeScreen() {
     }
   );
 
+  // Guard: skip redundant updateUser calls to avoid full-tree context re-renders
+  const lastUserIdRef = useRef(null);
   useEffect(() => {
-    if (userData) {
+    if (userData && userData._id !== lastUserIdRef.current) {
+      lastUserIdRef.current = userData._id;
       updateUser(userData);
     }
   }, [userData, updateUser]);
@@ -99,7 +103,7 @@ export default function HomeScreen() {
       </View>
 
       {/* About Us Section */}
-      <Animated.View style={{ opacity: fadeAnim }}>
+      <Animated.View style={fadeStyle}>
         <Card variant="filled">
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
             <View style={{
@@ -113,16 +117,16 @@ export default function HomeScreen() {
             }}>
               <MaterialIcons name="apartment" size={24} color={colors.onPrimaryContainer} />
             </View>
-            <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
+            <Text style={[styles.titleLarge, { marginBottom: 0 }]}>
               About Us
             </Text>
           </View>
-          <Text style={[styles.text, { marginBottom: 0 }]}>{SCHOOL.about}</Text>
+          <Text style={[styles.bodyLarge, { marginBottom: 0 }]}>{SCHOOL.about}</Text>
         </Card>
       </Animated.View>
 
       {/* Branches Section */}
-      <Animated.View style={{ opacity: fadeAnim }}>
+      <Animated.View style={fadeStyle}>
         <Card variant="filled">
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
             <View style={{
@@ -136,7 +140,7 @@ export default function HomeScreen() {
             }}>
               <MaterialIcons name="school" size={24} color={colors.onSecondaryContainer} />
             </View>
-            <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
+            <Text style={[styles.titleLarge, { marginBottom: 0 }]}>
               Branches
             </Text>
           </View>
@@ -151,8 +155,8 @@ export default function HomeScreen() {
                 marginTop: 8,
                 marginRight: 10
               }} />
-              <Text style={[styles.text, { flex: 1, marginBottom: 0 }]}>
-                <Text style={{ fontFamily: "DMSans-Medium", color: colors.onSurface }}>Renuka Nagar, Mangasuli</Text>
+              <Text style={[styles.bodyLarge, { flex: 1, marginBottom: 0 }]}>
+                <Text style={styles.titleMedium}>Renuka Nagar, Mangasuli</Text>
                 {"\n"}Kindergarten to 10th Standard.
               </Text>
             </View>
@@ -166,8 +170,8 @@ export default function HomeScreen() {
                 marginTop: 8,
                 marginRight: 10
               }} />
-              <Text style={[styles.text, { flex: 1, marginBottom: 0 }]}>
-                <Text style={{ fontFamily: "DMSans-Medium", color: colors.onSurface }}>Meenatai Nagar, Ugar Khurd</Text>
+              <Text style={[styles.bodyLarge, { flex: 1, marginBottom: 0 }]}>
+                <Text style={styles.titleMedium}>Meenatai Nagar, Ugar Khurd</Text>
                 {"\n"}Kindergarten.
               </Text>
             </View>
@@ -176,7 +180,7 @@ export default function HomeScreen() {
       </Animated.View>
 
       {/* Mission Section */}
-      <Animated.View style={{ opacity: fadeAnim }}>
+      <Animated.View style={fadeStyle}>
         <Card variant="filled">
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
             <View style={{
@@ -190,11 +194,11 @@ export default function HomeScreen() {
             }}>
               <MaterialIcons name="flag" size={24} color={colors.onTertiaryContainer} />
             </View>
-            <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
+            <Text style={[styles.titleLarge, { marginBottom: 0 }]}>
               Our Mission
             </Text>
           </View>
-          <Text style={[styles.text, { marginBottom: 0 }]}>{SCHOOL.mission}</Text>
+          <Text style={[styles.bodyLarge, { marginBottom: 0 }]}>{SCHOOL.mission}</Text>
         </Card>
       </Animated.View>
     </ScrollView>

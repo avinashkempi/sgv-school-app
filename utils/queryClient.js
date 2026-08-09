@@ -44,7 +44,7 @@ function handleGlobalAuthError(error) {
     }
 
     // Reset the flag after a delay so future genuine auth errors are still caught
-    setTimeout(() => {
+    global.setTimeout(() => {
         authErrorHandled = false;
     }, 3000);
 }

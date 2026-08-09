@@ -395,7 +395,7 @@ export default function AdminAttendance() {
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Attendance Management</Text>
+                <Text style={styles.titleLarge}>Attendance Management</Text>
                 <View style={{ width: 24 }} />
             </View>
 
@@ -513,7 +513,7 @@ export default function AdminAttendance() {
                             </View>
 
                             {/* Classes Marked */}
-                            <Text style={styles.sectionTitle}>Classes Marked Today</Text>
+                            <Text style={styles.titleMedium}>Classes Marked Today</Text>
                             <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardBackground, padding: 16, borderRadius: 12, marginBottom: 24, elevation: 1 }}>
                                 <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: colors.tertiary + '20', justifyContent: 'center', alignItems: 'center', marginRight: 16 }}>
                                     <MaterialIcons name="fact-check" size={24} color={colors.tertiary} />
@@ -529,7 +529,7 @@ export default function AdminAttendance() {
                             </View>
 
                             {/* Absent List */}
-                            <Text style={styles.sectionTitle}>Absent Today</Text>
+                            <Text style={styles.titleMedium}>Absent Today</Text>
                             {(schoolSummary?.absentList || []).length === 0 ? (
                                 <Text style={styles.emptyText}>No one marked absent yet.</Text>
                             ) : (
@@ -563,7 +563,7 @@ export default function AdminAttendance() {
                     {activeTab === 'student' && (
                         <View style={{ flex: 1 }}>
                             <View style={{ padding: 16, paddingBottom: 0 }}>
-                                <Text style={styles.sectionTitle}>Select Class</Text>
+                                <Text style={styles.titleMedium}>Select Class</Text>
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.classScroll}>
                                     {classes.map((cls) => {
                                         const isMarked = classesMarked.includes(cls._id);
@@ -741,7 +741,7 @@ export default function AdminAttendance() {
 
                     {activeTab === 'tracker' && (
                         <View style={{ flex: 1, padding: 16 }}>
-                            <Text style={styles.sectionTitle}>Missing Attendance Tracker</Text>
+                            <Text style={styles.titleMedium}>Missing Attendance Tracker</Text>
                             <Text style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 16, fontFamily: 'DMSans-Regular' }}>
                                 Shows days where classes missed marking attendance.
                             </Text>

@@ -70,10 +70,10 @@ const TextInput = ({
     };
 
     return (
-        <View style={[styles.inputContainer, containerStyle]}>
+        <View style={[containerStyle]}>
             {label && (
                 <Text style={[
-                    styles.label,
+                    styles.labelMedium,
                     {
                         color: error ? colors.error : (isFocused ? colors.primary : colors.onSurfaceVariant),
                         marginBottom: 8
@@ -138,7 +138,7 @@ const TextInput = ({
             </View>
 
             {error && (
-                <Text style={[styles.errorText, { color: colors.error }]}>
+                <Text style={[styles.bodySmall, { color: colors.error, marginTop: 4, marginLeft: 4 }]}>
                     {error}
                 </Text>
             )}

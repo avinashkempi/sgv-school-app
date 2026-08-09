@@ -84,7 +84,7 @@ export async function logoutHandler(router, messageOrToast = null, showToastFn =
   } finally {
     // Reset the guard after a short delay to allow navigation to complete
     // and prevent immediate re-trigger from stale error callbacks
-    setTimeout(() => {
+    global.setTimeout(() => {
       isLoggingOut = false;
     }, 2000);
   }

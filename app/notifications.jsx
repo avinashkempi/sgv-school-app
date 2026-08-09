@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, memo, useCallback } from "react";
 import {
     View,
     Text,
-    ScrollView,
+    FlatList,
     RefreshControl,
     ActivityIndicator,
     Pressable,
@@ -23,6 +23,89 @@ import Card from "../components/Card";
 import { useNotifications } from "../hooks/useNotifications";
 import { EmptyState } from "../components/StateComponents";
 
+const getIcon = (type) => {
+    switch (type) {
+        case 'Homework': return 'assignment';
+        case 'Exam': return 'event-note';
+        case 'Fee': return 'attach-money';
+        case 'Emergency': return 'warning';
+        case 'Event': return 'event';
+        default: return 'notifications';
+    }
+};
+
+const getColor = (type, colors) => {
+    switch (type) {
+        case 'Homework': return '#9C27B0';
+        case 'Exam': return '#E91E63';
+        case 'Fee': return '#FF5722';
+        case 'Emergency': return '#F44336';
+        case 'Event': return '#4CAF50';
+        default: return colors.primary;
+    }
+};
+
+// Extracted and memoized notification item
+const NotificationItem = memo(({ notif, colors, markAsRead, handleDelete, isAdmin }) => {
+    const handlePress = useCallback(() => {
+        if (!notif.isRead) markAsRead(notif._id);
+    }, [notif.isRead, notif._id, markAsRead]);
+
+    return (
+        <Card
+            variant={notif.isRead ? "outlined" : "filled"}
+            onPress={handlePress}
+            style={{ marginBottom: 12 }}
+            contentStyle={{
+                flexDirection: "row",
+                gap: 16,
+                padding: 16
+            }}
+        >
+            <View style={{
+                backgroundColor: notif.isRead ? colors.surfaceContainerHighest : getColor(notif.type, colors) + "20",
+                padding: 10,
+                borderRadius: 12,
+                height: 48,
+                width: 48,
+                justifyContent: "center",
+                alignItems: "center"
+            }}>
+                <MaterialIcons name={getIcon(notif.type)} size={26} color={notif.isRead ? colors.onSurfaceVariant : getColor(notif.type, colors)} />
+            </View>
+            <View style={{ flex: 1 }}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 4, alignItems: 'flex-start' }}>
+                    <Text style={{ fontSize: 16, fontFamily: notif.isRead ? "DMSans-Medium" : "DMSans-Bold", color: colors.onSurface, flex: 1, marginRight: 8 }}>
+                        {notif.title || "Notification"}
+                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                        {!notif.isRead && (
+                            <View style={{ height: 10, width: 10, borderRadius: 5, backgroundColor: colors.primary }} />
+                        )}
+                        {isAdmin && (
+                            <Pressable 
+                                onPress={() => handleDelete(notif._id)}
+                                hitSlop={8}
+                            >
+                                <MaterialIcons name="delete-outline" size={20} color={colors.error} />
+                            </Pressable>
+                        )}
+                    </View>
+                </View>
+                <Text style={{ color: colors.onSurfaceVariant, fontFamily: "DMSans-Regular", fontSize: 14, marginBottom: 8, lineHeight: 20 }}>
+                    {notif.message}
+                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <MaterialIcons name="access-time" size={12} color={colors.outline} />
+                    <Text style={{ fontSize: 12, fontFamily: "DMSans-Regular", color: colors.outline }}>
+                        {new Date(notif.createdAt).toLocaleDateString()} • {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </Text>
+                </View>
+            </View>
+        </Card>
+    );
+});
+
 export default function NotificationsScreen() {
     const { colors } = useTheme();
     const { showToast } = useToast();
@@ -40,7 +123,8 @@ export default function NotificationsScreen() {
         unreadCount
     } = useNotifications();
 
-    // Fetch Preferences (keeping this from react-query as it's fine)
+    const hasMarkedRef = useRef(false);
+
     const { data: userData } = useApiQuery(
         ['currentUser'],
         `${apiConfig.baseUrl}/auth/me`,
@@ -54,6 +138,8 @@ export default function NotificationsScreen() {
         general: true
     };
 
+    const isAdmin = userData?.role && ['admin', 'super admin'].includes(userData.role);
+
     const updatePreferencesMutation = useApiMutation({
         mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/notifications/preferences`, 'PUT'),
         onSuccess: () => {
@@ -64,7 +150,7 @@ export default function NotificationsScreen() {
         }
     });
 
-    const handleDelete = (id) => {
+    const handleDelete = useCallback((id) => {
         Alert.alert(
             "Delete Notification",
             "Are you sure you want to delete this notification? This action cannot be undone.",
@@ -84,11 +170,13 @@ export default function NotificationsScreen() {
                 }
             ]
         );
-    };
+    }, [deleteNotification, showToast]);
 
     // Auto mark all unread as read when screen is opened
+    // Use ref to ensure it only runs once per mount, avoiding re-render loops
     useEffect(() => {
-        if (notifications.length > 0) {
+        if (!hasMarkedRef.current && notifications.length > 0) {
+            hasMarkedRef.current = true;
             notifications
                 .filter(n => !n.isRead)
                 .forEach(n => markAsRead(n._id));
@@ -100,27 +188,15 @@ export default function NotificationsScreen() {
         updatePreferencesMutation.mutate({ preferences: newPreferences });
     };
 
-    const getIcon = (type) => {
-        switch (type) {
-            case 'Homework': return 'assignment';
-            case 'Exam': return 'event-note';
-            case 'Fee': return 'attach-money';
-            case 'Emergency': return 'warning';
-            case 'Event': return 'event';
-            default: return 'notifications';
-        }
-    };
-
-    const getColor = (type) => {
-        switch (type) {
-            case 'Homework': return '#9C27B0';
-            case 'Exam': return '#E91E63';
-            case 'Fee': return '#FF5722';
-            case 'Emergency': return '#F44336';
-            case 'Event': return '#4CAF50';
-            default: return colors.primary;
-        }
-    };
+    const renderItem = useCallback(({ item }) => (
+        <NotificationItem 
+            notif={item} 
+            colors={colors} 
+            markAsRead={markAsRead} 
+            handleDelete={handleDelete} 
+            isAdmin={isAdmin}
+        />
+    ), [colors, markAsRead, handleDelete, isAdmin]);
 
     if (loading && !notifications.length) {
         return (
@@ -155,7 +231,11 @@ export default function NotificationsScreen() {
                 }
             />
 
-            <ScrollView
+            <FlatList
+                data={notifications}
+                keyExtractor={(item) => item._id}
+                renderItem={renderItem}
+                contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
                 refreshControl={
                     <RefreshControl
                         refreshing={refreshing}
@@ -163,9 +243,7 @@ export default function NotificationsScreen() {
                         colors={[colors.primary]}
                     />
                 }
-                contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
-            >
-                {notifications.length === 0 ? (
+                ListEmptyComponent={
                     <View style={{ marginTop: 60 }}>
                         <EmptyState
                             icon="notifications-none"
@@ -173,132 +251,81 @@ export default function NotificationsScreen() {
                             message="No notifications to show at the moment."
                         />
                     </View>
-                ) : (
-                    notifications.map((notif) => (
-                        <Card
-                            key={notif._id}
-                            variant={notif.isRead ? "outlined" : "filled"}
-                            onPress={() => !notif.isRead && markAsRead(notif._id)}
-                            style={{
-                                marginBottom: 12,
-                            }}
-                            contentStyle={{
-                                flexDirection: "row",
-                                gap: 16,
-                                padding: 16
-                            }}
-                        >
-                            <View style={{
-                                backgroundColor: notif.isRead ? colors.surfaceContainerHighest : getColor(notif.type) + "20",
-                                padding: 10,
-                                borderRadius: 12,
-                                height: 48,
-                                width: 48,
-                                justifyContent: "center",
-                                alignItems: "center"
-                            }}>
-                                <MaterialIcons name={getIcon(notif.type)} size={26} color={notif.isRead ? colors.onSurfaceVariant : getColor(notif.type)} />
-                            </View>
-                            <View style={{ flex: 1 }}>
-                                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 4, alignItems: 'flex-start' }}>
-                                    <Text style={{ fontSize: 16, fontFamily: notif.isRead ? "DMSans-Medium" : "DMSans-Bold", color: colors.onSurface, flex: 1, marginRight: 8 }}>
-                                        {notif.title || "Notification"}
-                                    </Text>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                                        {!notif.isRead && (
-                                            <View style={{ height: 10, width: 10, borderRadius: 5, backgroundColor: colors.primary }} />
-                                        )}
-                                        {userData?.role && ['admin', 'super admin'].includes(userData.role) && (
-                                            <Pressable 
-                                                onPress={() => handleDelete(notif._id)}
-                                                hitSlop={8}
-                                            >
-                                                <MaterialIcons name="delete-outline" size={20} color={colors.error} />
-                                            </Pressable>
-                                        )}
-                                    </View>
-                                </View>
-                                <Text style={{ color: colors.onSurfaceVariant, fontFamily: "DMSans-Regular", fontSize: 14, marginBottom: 8, lineHeight: 20 }}>
-                                    {notif.message}
+                }
+                initialNumToRender={10}
+                maxToRenderPerBatch={5}
+                windowSize={5}
+                removeClippedSubviews={true}
+            />
+
+            {/* Settings Modal - kept rendered since it's lightweight but could be lazy loaded */}
+            {showSettings && (
+                <Modal
+                    visible={showSettings}
+                    animationType="slide"
+                    transparent={true}
+                    onRequestClose={() => setShowSettings(false)}
+                >
+                    <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
+                        <View style={{
+                            backgroundColor: colors.surface,
+                            borderTopLeftRadius: 32,
+                            borderTopRightRadius: 32,
+                            padding: 24,
+                            elevation: 10,
+                            shadowColor: '#000',
+                            shadowOffset: { width: 0, height: -2 },
+                            shadowOpacity: 0.25,
+                            shadowRadius: 10
+                        }}>
+                            <View style={{ width: 40, height: 4, backgroundColor: colors.outlineVariant, borderRadius: 2, alignSelf: 'center', marginBottom: 20 }} />
+
+                            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+                                <Text style={{ fontSize: 22, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
+                                    Notifications
                                 </Text>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                    <MaterialIcons name="access-time" size={12} color={colors.outline} />
-                                    <Text style={{ fontSize: 12, fontFamily: "DMSans-Regular", color: colors.outline }}>
-                                        {new Date(notif.createdAt).toLocaleDateString()} • {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </Text>
-                                </View>
+                                <Pressable
+                                    onPress={() => setShowSettings(false)}
+                                    style={{ padding: 4 }}
+                                >
+                                    <MaterialIcons name="close" size={24} color={colors.onSurfaceVariant} />
+                                </Pressable>
                             </View>
-                        </Card>
-                    ))
-                )}
-            </ScrollView>
 
-            {/* Settings Modal */}
-            <Modal
-                visible={showSettings}
-                animationType="slide"
-                transparent={true}
-                onRequestClose={() => setShowSettings(false)}
-            >
-                <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
-                    <View style={{
-                        backgroundColor: colors.surface,
-                        borderTopLeftRadius: 32,
-                        borderTopRightRadius: 32,
-                        padding: 24,
-                        elevation: 10,
-                        shadowColor: '#000',
-                        shadowOffset: { width: 0, height: -2 },
-                        shadowOpacity: 0.25,
-                        shadowRadius: 10
-                    }}>
-                        <View style={{ width: 40, height: 4, backgroundColor: colors.outlineVariant, borderRadius: 2, alignSelf: 'center', marginBottom: 20 }} />
-
-                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-                            <Text style={{ fontSize: 22, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
-                                Notifications
+                            <Text style={{ color: colors.onSurfaceVariant, marginBottom: 24, fontSize: 15 }}>
+                                Choose what you would like to be notified about.
                             </Text>
-                            <Pressable
-                                onPress={() => setShowSettings(false)}
-                                style={{ padding: 4 }}
-                            >
-                                <MaterialIcons name="close" size={24} color={colors.onSurfaceVariant} />
-                            </Pressable>
-                        </View>
 
-                        <Text style={{ color: colors.onSurfaceVariant, marginBottom: 24, fontSize: 15 }}>
-                            Choose what you would like to be notified about.
-                        </Text>
-
-                        {Object.keys(preferences).map((key) => (
-                            <View key={key} style={{
-                                flexDirection: "row",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                                marginBottom: 12,
-                                backgroundColor: colors.surfaceVariant + '40',
-                                padding: 16,
-                                borderRadius: 16
-                            }}>
-                                <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
-                                    <MaterialIcons name={getIcon(key.charAt(0).toUpperCase() + key.slice(1))} size={24} color={getColor(key.charAt(0).toUpperCase() + key.slice(1))} />
-                                    <Text style={{ fontSize: 16, color: colors.onSurface, textTransform: "capitalize", fontFamily: 'DMSans-Medium' }}>
-                                        {key} Alerts
-                                    </Text>
+                            {Object.keys(preferences).map((key) => (
+                                <View key={key} style={{
+                                    flexDirection: "row",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    marginBottom: 12,
+                                    backgroundColor: colors.surfaceVariant + '40',
+                                    padding: 16,
+                                    borderRadius: 16
+                                }}>
+                                    <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
+                                        <MaterialIcons name={getIcon(key.charAt(0).toUpperCase() + key.slice(1))} size={24} color={getColor(key.charAt(0).toUpperCase() + key.slice(1), colors)} />
+                                        <Text style={{ fontSize: 16, color: colors.onSurface, textTransform: "capitalize", fontFamily: 'DMSans-Medium' }}>
+                                            {key} Alerts
+                                        </Text>
+                                    </View>
+                                    <Switch
+                                        value={preferences[key]}
+                                        onValueChange={() => togglePreference(key)}
+                                        trackColor={{ false: colors.outline, true: colors.primaryContainer }}
+                                        thumbColor={preferences[key] ? colors.primary : colors.surface}
+                                    />
                                 </View>
-                                <Switch
-                                    value={preferences[key]}
-                                    onValueChange={() => togglePreference(key)}
-                                    trackColor={{ false: colors.outline, true: colors.primaryContainer }}
-                                    thumbColor={preferences[key] ? colors.primary : colors.surface}
-                                />
-                            </View>
-                        ))}
+                            ))}
 
-                        <View style={{ height: 40 }} />
+                            <View style={{ height: 40 }} />
+                        </View>
                     </View>
-                </View>
-            </Modal>
+                </Modal>
+            )}
         </View>
     );
 }

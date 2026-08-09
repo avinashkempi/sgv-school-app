@@ -56,7 +56,7 @@ export default function TeacherClassesScreen() {
                     ) : (
                         <View style={{ gap: 24 }}>
                             <View>
-                                <Text style={styles.sectionTitle}>
+                                <Text style={styles.titleMedium}>
                                     My Classes
                                 </Text>
                                 {classes.length === 0 ? (

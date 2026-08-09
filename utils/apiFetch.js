@@ -32,7 +32,7 @@ export default async function apiFetch(input, init = {}) {
   // Check for Demo Mode
   if (token === 'demo-token') {
     // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => global.setTimeout(resolve, 500));
 
     let responseData = null;
     const url = typeof input === 'string' ? input : input.url;
@@ -136,9 +136,9 @@ export default async function apiFetch(input, init = {}) {
     console.warn('apiFetch: Could not attach x-academic-year context', err);
   }
 
-  const controller = new AbortController();
+  const controller = new global.AbortController();
   const timeoutMs = init.timeout || 30000;
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  const timeoutId = global.setTimeout(() => controller.abort(), timeoutMs);
 
   let response;
   try {
@@ -147,9 +147,9 @@ export default async function apiFetch(input, init = {}) {
       headers,
       signal: fetchInit.signal || controller.signal,
     });
-    clearTimeout(timeoutId);
+    global.clearTimeout(timeoutId);
   } catch (err) {
-    clearTimeout(timeoutId);
+    global.clearTimeout(timeoutId);
     if (err.name === 'AbortError') {
       throw new TypeError('Network request timed out');
     }

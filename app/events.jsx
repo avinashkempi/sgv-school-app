@@ -1,5 +1,5 @@
 import React, { useState, useMemo, } from "react";
-import { ScrollView, View, Text, Pressable, Alert, RefreshControl, ActivityIndicator } from "react-native";
+import { FlatList, View, Text, Pressable, Alert, RefreshControl, ActivityIndicator } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -14,6 +14,10 @@ import { useApiQuery, useApiMutation, createApiMutationFn } from "../hooks/useAp
 import { useAuth } from "../context/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import apiConfig from "../config/apiConfig";
+
+import { formatDate } from "../utils/date";
+
+import Card from "../components/Card";
 
 // Memoized day renderer component for performance
 const DayRenderer = React.memo(({ date, state, marking, onDayPress, colors }) => {
@@ -100,15 +104,11 @@ const DayRenderer = React.memo(({ date, state, marking, onDayPress, colors }) =>
 
 DayRenderer.displayName = 'DayRenderer';
 
-import { formatDate } from "../utils/date";
-
 // ... inside component
 // Helper to format dates for display in Indian format (DD-MM-YYYY)
 const formatIndianDate = (dateInput) => {
   return formatDate(dateInput);
 };
-
-import Card from "../components/Card";
 
 // Memoized EventCard component with custom comparison for optimal performance
 const EventCard = React.memo(({ event, colors, isAdmin, onEdit, onDelete }) => {
@@ -325,98 +325,101 @@ export default function EventsScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView
+      <FlatList
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: 100 }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} />
         }
         showsVerticalScrollIndicator={false}
-      >
-        <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
-          <Header title="Events" subtitle="View and manage events" />
+        data={filteredEvents}
+        keyExtractor={(item) => (item._id ?? item.id).toString()}
+        renderItem={({ item }) => (
+          <EventCard
+            event={{ ...item, date: formatIndianDate(item.date) }}
+            styles={styles}
+            colors={colors}
+            isAdmin={isAuthenticated}
+            onEdit={() => handleEditEvent(item)}
+            onDelete={() => {
+              Alert.alert(
+                "Delete Event",
+                `Are you sure you want to delete "${item.title}"? This action cannot be undone.`,
+                [
+                  { text: "Cancel", style: "cancel" },
+                  { text: "Delete", style: "destructive", onPress: () => handleDeleteEvent(item._id, item.title) },
+                ]
+              );
+            }}
+          />
+        )}
+        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+        ListHeaderComponent={
+          <>
+            <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
+              <Header title="Events" subtitle="View and manage events" />
 
-          <View style={[styles.card, { padding: 0, overflow: 'hidden', marginBottom: 24 }]}>
-            <ModernCalendar
-              current={selectedDate}
-              onDayPress={handleDateSelect}
-              onMonthChange={(_month) => {
-                // React Query handles caching automatically, no need to manually fetch range
-                // But if we want to prefetch, we could do it here
-              }}
-              markedDates={markedDates}
-              dayComponent={({ date, state, marking }) => (
-                <DayRenderer
-                  date={date}
-                  state={state}
-                  marking={marking}
+              <View style={[{ backgroundColor: colors.surfaceContainer, borderRadius: 16 }, { padding: 0, overflow: 'hidden', marginBottom: 24 }]}>
+                <ModernCalendar
+                  current={selectedDate}
                   onDayPress={handleDateSelect}
-                  colors={colors}
-                />
-              )}
-              style={{
-                borderRadius: 24,
-              }}
-              theme={{
-                calendarBackground: 'transparent',
-                'stylesheet.day.basic': {
-                  base: {
-                    width: 40,
-                    height: 40,
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }
-                }
-              }}
-            />
-          </View>
-
-          {selectedDate && (
-            <View>
-              <Text style={[styles.sectionTitle, { marginBottom: 16 }]}>
-                Events on {formatIndianDate(selectedDate)}
-              </Text>
-
-              {loading && filteredEvents.length === 0 ? (
-                <View style={{ alignItems: 'center', padding: 20 }}>
-                  <ActivityIndicator size="small" color={colors.primary} />
-                  <Text style={{ color: colors.textSecondary, marginTop: 8, fontFamily: "DMSans-Regular" }}>Loading events...</Text>
-                </View>
-              ) : filteredEvents.length === 0 ? (
-                <View style={{ alignItems: 'center', padding: 40, opacity: 0.6 }}>
-                  <MaterialIcons name="event-busy" size={48} color={colors.textSecondary} />
-                  <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16, fontFamily: "DMSans-Medium" }}>
-                    No events on this day
-                  </Text>
-                </View>
-              ) : (
-                <View style={{ gap: 12 }}>
-                  {filteredEvents.map((item) => (
-                    <EventCard
-                      key={item._id ?? item.id}
-                      event={{ ...item, date: formatIndianDate(item.date) }}
-                      styles={styles}
+                  onMonthChange={(_month) => {
+                  }}
+                  markedDates={markedDates}
+                  dayComponent={({ date, state, marking }) => (
+                    <DayRenderer
+                      date={date}
+                      state={state}
+                      marking={marking}
+                      onDayPress={handleDateSelect}
                       colors={colors}
-                      isAdmin={isAuthenticated}
-                      onEdit={() => handleEditEvent(item)}
-                      onDelete={() => {
-                        Alert.alert(
-                          "Delete Event",
-                          `Are you sure you want to delete "${item.title}"? This action cannot be undone.`,
-                          [
-                            { text: "Cancel", style: "cancel" },
-                            { text: "Delete", style: "destructive", onPress: () => handleDeleteEvent(item._id, item.title) },
-                          ]
-                        );
-                      }}
                     />
-                  ))}
-                </View>
+                  )}
+                  style={{
+                    borderRadius: 24,
+                  }}
+                  theme={{
+                    calendarBackground: 'transparent',
+                    'stylesheet.day.basic': {
+                      base: {
+                        width: 40,
+                        height: 40,
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }
+                    }
+                  }}
+                />
+              </View>
+
+              {selectedDate && (
+                <Text style={[styles.titleMedium, { marginBottom: 16 }]}>
+                  Events on {formatIndianDate(selectedDate)}
+                </Text>
               )}
             </View>
-          )}
-        </View>
+          </>
+        }
+        ListEmptyComponent={
+          selectedDate ? (
+            loading && filteredEvents.length === 0 ? (
+              <View style={{ alignItems: 'center', padding: 20 }}>
+                <ActivityIndicator size="small" color={colors.primary} />
+                <Text style={{ color: colors.textSecondary, marginTop: 8, fontFamily: "DMSans-Regular" }}>Loading events...</Text>
+              </View>
+            ) : (
+              <View style={{ alignItems: 'center', padding: 40, opacity: 0.6 }}>
+                <MaterialIcons name="event-busy" size={48} color={colors.textSecondary} />
+                <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16, fontFamily: "DMSans-Medium" }}>
+                  No events on this day
+                </Text>
+              </View>
+            )
+          ) : null
+        }
+      />
 
+      {isEventFormVisible && (
         <EventFormModal
           isVisible={isEventFormVisible}
           onClose={() => {
@@ -430,7 +433,7 @@ export default function EventsScreen() {
           editItem={editingEvent}
           isLoading={createEventMutation.isPending || updateEventMutation.isPending}
         />
-      </ScrollView>
+      )}
 
       {/* FAB for Add Event - Outside ScrollView to stay fixed */}
       {isAuthenticated && (

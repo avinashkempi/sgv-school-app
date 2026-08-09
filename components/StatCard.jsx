@@ -70,7 +70,19 @@ export default function StatCard({
 
     const size = getSize();
 
-    const CardContent = () => (
+    if (gradient) {
+        return (
+            <Card
+                variant="elevated"
+                style={{ flex: 1, minWidth: variant === 'compact' ? 140 : 160, overflow: 'hidden' }}
+                contentStyle={{ padding: 0 }}
+            >
+                <LinearGradient
+                    colors={[color, color + 'CC']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={{ borderRadius: 12 }}
+                >
         <View style={{ padding: size.padding }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <View style={{ flex: 1 }}>
@@ -141,22 +153,6 @@ export default function StatCard({
                 </View>
             </View>
         </View>
-    );
-
-    if (gradient) {
-        return (
-            <Card
-                variant="elevated"
-                style={{ flex: 1, minWidth: variant === 'compact' ? 140 : 160, overflow: 'hidden' }}
-                contentStyle={{ padding: 0 }}
-            >
-                <LinearGradient
-                    colors={[color, color + 'CC']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={{ borderRadius: 12 }}
-                >
-                    <CardContent />
                 </LinearGradient>
             </Card>
         );
@@ -168,7 +164,76 @@ export default function StatCard({
             style={{ flex: 1, minWidth: variant === 'compact' ? 140 : 160 }}
             contentStyle={{ padding: 0 }}
         >
-            <CardContent />
+        <View style={{ padding: size.padding }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <View style={{ flex: 1 }}>
+                    <Text style={{
+                        fontSize: size.labelSize,
+                        fontFamily: 'DMSans-Medium',
+                        color: gradient ? '#FFFFFF' : colors.onSurfaceVariant,
+                        marginBottom: 8,
+                        opacity: gradient ? 0.9 : 1
+                    }}>
+                        {label}
+                    </Text>
+                    <Text style={{
+                        fontSize: size.valueSize,
+                        fontFamily: 'DMSans-Bold',
+                        color: gradient ? '#FFFFFF' : colors.onSurface,
+                        marginBottom: subtitle || trend ? 6 : 0
+                    }}>
+                        {value}
+                    </Text>
+                    {subtitle && (
+                        <Text style={{
+                            fontSize: size.labelSize - 1,
+                            fontFamily: 'DMSans-Regular',
+                            color: gradient ? '#FFFFFF' : colors.onSurfaceVariant,
+                            opacity: gradient ? 0.8 : 0.7
+                        }}>
+                            {subtitle}
+                        </Text>
+                    )}
+                    {trend && (
+                        <View style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 4,
+                            marginTop: 4
+                        }}>
+                            <MaterialIcons
+                                name={getTrendIcon()}
+                                size={14}
+                                color={gradient ? '#FFFFFF' : getTrendColor()}
+                            />
+                            {trendValue && (
+                                <Text style={{
+                                    fontSize: 11,
+                                    fontFamily: 'DMSans-Bold',
+                                    color: gradient ? '#FFFFFF' : getTrendColor()
+                                }}>
+                                    {trendValue}
+                                </Text>
+                            )}
+                        </View>
+                    )}
+                </View>
+                <View style={{
+                    backgroundColor: gradient ? 'rgba(255,255,255,0.2)' : color + '15',
+                    width: size.iconSize + 16,
+                    height: size.iconSize + 16,
+                    borderRadius: (size.iconSize + 16) / 2,
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}>
+                    <MaterialIcons
+                        name={icon}
+                        size={size.iconSize}
+                        color={gradient ? '#FFFFFF' : color}
+                    />
+                </View>
+            </View>
+        </View>
         </Card>
     );
 }

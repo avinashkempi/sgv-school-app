@@ -393,7 +393,7 @@ export default function TeacherLeaves() {
 
                         {actionType === 'rejected' && (
                             <>
-                                <Text style={styles.label}>Rejection Reason *</Text>
+                                <Text style={styles.labelMedium}>Rejection Reason *</Text>
                                 <TextInput
                                     style={{
                                         borderWidth: 1, borderColor: colors.outline, borderRadius: 8, padding: 12,
@@ -404,7 +404,7 @@ export default function TeacherLeaves() {
                                     value={rejectionReason}
                                     onChangeText={setRejectionReason}
                                 />
-                                <Text style={styles.label}>Comments *</Text>
+                                <Text style={styles.labelMedium}>Comments *</Text>
                                 <TextInput
                                     style={{
                                         borderWidth: 1, borderColor: colors.outline, borderRadius: 8, padding: 12,
@@ -422,7 +422,7 @@ export default function TeacherLeaves() {
 
                         {actionType === 'approved' && (
                             <>
-                                <Text style={styles.label}>Note (Optional)</Text>
+                                <Text style={styles.labelMedium}>Note (Optional)</Text>
                                 <TextInput
                                     style={{
                                         borderWidth: 1, borderColor: colors.outline, borderRadius: 8, padding: 12,
@@ -484,7 +484,7 @@ export default function TeacherLeaves() {
 
                         <ScrollView showsVerticalScrollIndicator={false}>
                             <View style={{ marginBottom: 24 }}>
-                                <Text style={styles.label}>LEAVE TYPE</Text>
+                                <Text style={styles.labelMedium}>LEAVE TYPE</Text>
                                 <View style={{ flexDirection: 'row', backgroundColor: colors.surfaceContainer, borderRadius: 12, padding: 4 }}>
                                     <Pressable
                                         style={{
@@ -511,7 +511,7 @@ export default function TeacherLeaves() {
 
                             {isHalfDay && (
                                 <View style={{ marginBottom: 24 }}>
-                                    <Text style={styles.label}>SLOT</Text>
+                                    <Text style={styles.labelMedium}>SLOT</Text>
                                     <View style={{ flexDirection: 'row', gap: 12 }}>
                                         <Pressable
                                             style={{
@@ -541,7 +541,7 @@ export default function TeacherLeaves() {
 
                             <View style={{ flexDirection: 'row', gap: 16 }}>
                                 <View style={{ flex: 1, marginBottom: 24 }}>
-                                    <Text style={styles.label}>START DATE</Text>
+                                    <Text style={styles.labelMedium}>START DATE</Text>
                                     <TouchableOpacity
                                         style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.surfaceContainer, borderRadius: 12, padding: 14 }}
                                         onPress={() => setShowStartPicker(true)}
@@ -568,7 +568,7 @@ export default function TeacherLeaves() {
 
                                 {!isHalfDay && (
                                     <View style={{ flex: 1, marginBottom: 24 }}>
-                                        <Text style={styles.label}>END DATE</Text>
+                                        <Text style={styles.labelMedium}>END DATE</Text>
                                         <TouchableOpacity
                                             style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.surfaceContainer, borderRadius: 12, padding: 14 }}
                                             onPress={() => setShowEndPicker(true)}
@@ -593,7 +593,7 @@ export default function TeacherLeaves() {
                             </View>
 
                             <View style={{ marginBottom: 32 }}>
-                                <Text style={styles.label}>REASON</Text>
+                                <Text style={styles.labelMedium}>REASON</Text>
                                 <TextInput
                                     style={{
                                         backgroundColor: colors.surfaceContainer, borderRadius: 12, padding: 14, fontSize: 16,

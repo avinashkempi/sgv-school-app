@@ -36,7 +36,7 @@ const DateRangePicker = ({ onRangeSelect, selectedRange, visible, onClose }) => 
         >
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.6)' }}>
                 <View style={[
-                    styles.card,
+                    { backgroundColor: colors.surfaceContainer, borderRadius: 16, padding: 16, marginBottom: 16 },
                     {
                         width: '90%',
                         maxWidth: 400,

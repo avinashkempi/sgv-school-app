@@ -13,8 +13,8 @@ const storage = {
     getItem: async (key) => {
         if (isWeb) {
             try {
-                if (typeof localStorage !== 'undefined') {
-                    return localStorage.getItem(key);
+                if (typeof global.localStorage !== 'undefined') {
+                    return global.localStorage.getItem(key);
                 }
             } catch (e) {
                 console.error('Local storage is not available:', e);
@@ -28,9 +28,7 @@ const storage = {
     setItem: async (key, value) => {
         if (isWeb) {
             try {
-                if (typeof localStorage !== 'undefined') {
-                    localStorage.setItem(key, value);
-                }
+                return typeof global.localStorage !== 'undefined' ? global.localStorage.setItem(key, value) : null;
             } catch (e) {
                 console.error('Local storage is not available:', e);
             }
@@ -42,9 +40,7 @@ const storage = {
     removeItem: async (key) => {
         if (isWeb) {
             try {
-                if (typeof localStorage !== 'undefined') {
-                    localStorage.removeItem(key);
-                }
+                if (typeof global.localStorage !== 'undefined') global.localStorage.removeItem(key);
             } catch (e) {
                 console.error('Local storage is not available:', e);
             }
@@ -56,8 +52,8 @@ const storage = {
     multiRemove: async (keys) => {
         if (isWeb) {
             try {
-                if (typeof localStorage !== 'undefined') {
-                    keys.forEach(key => localStorage.removeItem(key));
+                if (typeof global.localStorage !== 'undefined') {
+                    keys.forEach(key => global.localStorage.removeItem(key));
                 }
             } catch (e) {
                 console.error('Local storage is not available:', e);
@@ -70,8 +66,8 @@ const storage = {
     clear: async () => {
         if (isWeb) {
             try {
-                if (typeof localStorage !== 'undefined') {
-                    localStorage.clear();
+                if (typeof global.localStorage !== 'undefined') {
+                    global.localStorage.clear();
                 }
             } catch (e) {
                 console.error('Local storage is not available:', e);

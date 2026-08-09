@@ -18,6 +18,12 @@ import { AcademicYearProvider, useAcademicYear } from "../context/AcademicYearCo
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { queryClient, persister, setGlobalAuthHandler } from '../utils/queryClient';
 
+import DemoBanner from "../components/DemoBanner";
+import { useState } from "react";
+import useOfflinePrefetch from "../hooks/useOfflinePrefetch";
+import { setupAppStateRefresh } from "../utils/appStateRefresh";
+import VideoSplash from "../components/VideoSplash";
+
 // Configure how notifications are displayed when app is in foreground
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -27,12 +33,6 @@ Notifications.setNotificationHandler({
     shouldSetBadge: true,
   }),
 });
-
-import DemoBanner from "../components/DemoBanner";
-import { useState } from "react";
-import useOfflinePrefetch from "../hooks/useOfflinePrefetch";
-import { setupAppStateRefresh } from "../utils/appStateRefresh";
-import VideoSplash from "../components/VideoSplash";
 
 // separate component so we can use useTheme inside ThemeProvider
 function Inner() {
@@ -156,6 +156,12 @@ function Inner() {
                 // Enable gesture navigation
                 gestureEnabled: true,
                 gestureDirection: 'horizontal',
+                fullScreenGestureEnabled: true,
+                // Native-driven fast transitions (Android: fade_from_bottom is smooth & fast)
+                animation: 'fade_from_bottom',
+                animationDuration: 200,
+                // Freeze off-screen screens to save CPU/GPU cycles
+                freezeOnBlur: true,
                 // Detach inactive screens for better memory usage
                 detachInactiveScreens: true,
               }}

@@ -11,6 +11,7 @@ import {
 import { useTheme } from "../theme";
 import Header from "./Header";
 import ModernCalendar from "./ModernCalendar";
+import Button from "./Button";
 
 const { width } = Dimensions.get('window');
 const _cellSize = (width - 80) / 7;
@@ -29,7 +30,7 @@ export default function AttendanceView({
     title = "My Attendance",
     subtitle = "Track your attendance record"
 }) {
-    const { colors } = useTheme();
+    const { colors, styles } = useTheme();
     const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().split('T')[0]);
     const [monthlyVisible, setMonthlyVisible] = useState(MONTHLY_PAGE_SIZE);
 
@@ -83,26 +84,26 @@ export default function AttendanceView({
                 alignItems: "center",
                 elevation: 4
             }}>
-                <Text style={{ fontSize: 16, color: "#fff", opacity: 0.9, fontFamily: "DMSans-Medium" }}>
+                <Text style={[styles.titleMedium, { color: "#fff", opacity: 0.9 }]}>
                     Overall Attendance
                 </Text>
-                <Text style={{ fontSize: 64, fontFamily: "DMSans-Bold", color: "#fff", marginTop: 8 }}>
+                <Text style={[styles.displayLarge, { color: "#fff", marginTop: 8 }]}>
                     {summary?.percentage || 0}%
                 </Text>
                 <View style={{ flexDirection: "row", gap: 24, marginTop: 16 }}>
                     <View style={{ alignItems: "center" }}>
-                        <Text style={{ fontSize: 28, fontFamily: "DMSans-Bold", color: "#fff" }}>
+                        <Text style={[styles.headlineMedium, { color: "#fff" }]}>
                             {summary?.present || 0}
                         </Text>
-                        <Text style={{ fontSize: 12, color: "#fff", opacity: 0.8, fontFamily: "DMSans-Regular" }}>
+                        <Text style={[styles.labelMedium, { color: "#fff", opacity: 0.8 }]}>
                             Present
                         </Text>
                     </View>
                     <View style={{ alignItems: "center" }}>
-                        <Text style={{ fontSize: 28, fontFamily: "DMSans-Bold", color: "#fff" }}>
+                        <Text style={[styles.headlineMedium, { color: "#fff" }]}>
                             {summary?.total || 0}
                         </Text>
-                        <Text style={{ fontSize: 12, color: "#fff", opacity: 0.8, fontFamily: "DMSans-Regular" }}>
+                        <Text style={[styles.labelMedium, { color: "#fff", opacity: 0.8 }]}>
                             Total Days
                         </Text>
                     </View>
@@ -117,7 +118,7 @@ export default function AttendanceView({
                 marginTop: 24,
                 elevation: 2
             }}>
-                <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 4 }}>
+                <Text style={[styles.titleLarge, { color: colors.onSurface, marginBottom: 4 }]}>
                     Attendance Calendar
                 </Text>
                 <ModernCalendar
@@ -146,7 +147,7 @@ export default function AttendanceView({
             {/* Monthly Summary */}
             {visibleMonths.length > 0 && (
                 <View style={{ marginTop: 24 }}>
-                    <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 12 }}>
+                    <Text style={[styles.titleLarge, { color: colors.onSurface, marginBottom: 12 }]}>
                         Monthly Summary
                     </Text>
                     {visibleMonths.map((month) => (
@@ -164,45 +165,35 @@ export default function AttendanceView({
                             }}
                         >
                             <View>
-                                <Text style={{ fontSize: 15, fontFamily: "DMSans-SemiBold", color: colors.textPrimary }}>
+                                <Text style={[styles.bodyLarge, { fontFamily: "DMSans-SemiBold", color: colors.onSurface }]}>
                                     {month.month}
                                 </Text>
-                                <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2, fontFamily: "DMSans-Regular" }}>
+                                <Text style={[styles.bodySmall, { color: colors.onSurfaceVariant, marginTop: 2 }]}>
                                     {month.present} / {month.total} days
                                 </Text>
                             </View>
-                            <Text style={{
-                                fontSize: 20,
-                                fontFamily: "DMSans-Bold",
+                            <Text style={[styles.titleLarge, {
                                 color: parseFloat(month.percentage) >= 75 ? colors.success : colors.error
-                            }}>
+                            }]}>
                                 {month.percentage}%
                             </Text>
                         </View>
                     ))}
                     {canShowMoreMonths && (
-                        <TouchableOpacity
+                        <Button
+                            variant="outlined"
                             onPress={() => setMonthlyVisible(v => v + MONTHLY_PAGE_SIZE)}
-                            style={{
-                                alignItems: 'center',
-                                paddingVertical: 10,
-                                borderRadius: 10,
-                                borderWidth: 1,
-                                borderColor: colors.primary + '50',
-                                marginTop: 4,
-                            }}
+                            style={{ marginTop: 4, borderColor: colors.primary + '50' }}
                         >
-                            <Text style={{ fontSize: 14, fontFamily: 'DMSans-SemiBold', color: colors.primary }}>
-                                Show More Months
-                            </Text>
-                        </TouchableOpacity>
+                            Show More Months
+                        </Button>
                     )}
                 </View>
             )}
 
             {/* Attendance History Header */}
             {attendanceHistory.length > 0 && (
-                <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginTop: 24, marginBottom: 12 }}>
+                <Text style={[styles.titleLarge, { color: colors.onSurface, marginTop: 24, marginBottom: 12 }]}>
                     Attendance History
                 </Text>
             )}

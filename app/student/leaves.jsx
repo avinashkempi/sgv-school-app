@@ -276,7 +276,7 @@ export default function StudentLeaves() {
                         <ScrollView showsVerticalScrollIndicator={false}>
                             {/* Leave Type Toggle */}
                             <View style={{ marginBottom: 24 }}>
-                                <Text style={styles.label}>LEAVE TYPE</Text>
+                                <Text style={styles.labelMedium}>LEAVE TYPE</Text>
                                 <View style={{
                                     flexDirection: 'row',
                                     backgroundColor: colors.surfaceContainer,
@@ -324,7 +324,7 @@ export default function StudentLeaves() {
 
                             {isHalfDay && (
                                 <View style={{ marginBottom: 24 }}>
-                                    <Text style={styles.label}>SLOT</Text>
+                                    <Text style={styles.labelMedium}>SLOT</Text>
                                     <View style={{ flexDirection: 'row', gap: 12 }}>
                                         <Pressable
                                             style={{
@@ -366,7 +366,7 @@ export default function StudentLeaves() {
 
                             <View style={{ flexDirection: 'row', gap: 16 }}>
                                 <View style={{ flex: 1, marginBottom: 24 }}>
-                                    <Text style={styles.label}>START DATE</Text>
+                                    <Text style={styles.labelMedium}>START DATE</Text>
                                     <TouchableOpacity
                                         style={{
                                             flexDirection: 'row',
@@ -404,7 +404,7 @@ export default function StudentLeaves() {
 
                                 {!isHalfDay && (
                                     <View style={{ flex: 1, marginBottom: 24 }}>
-                                        <Text style={styles.label}>END DATE</Text>
+                                        <Text style={styles.labelMedium}>END DATE</Text>
                                         <TouchableOpacity
                                             style={{
                                                 flexDirection: 'row',
@@ -438,7 +438,7 @@ export default function StudentLeaves() {
                             </View>
 
                             <View style={{ marginBottom: 32 }}>
-                                <Text style={styles.label}>REASON</Text>
+                                <Text style={styles.labelMedium}>REASON</Text>
                                 <TextInput
                                     style={{
                                         backgroundColor: colors.surfaceContainer,

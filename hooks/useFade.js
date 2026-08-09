@@ -1,17 +1,33 @@
-import { useRef, useEffect } from "react";
-import { Animated, Easing } from "react-native";
+import { useEffect } from "react";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+} from "react-native-reanimated";
 
-export default function useFade(duration = 100, toValue = 1) {
-  const anim = useRef(new Animated.Value(0)).current;
+/**
+ * useFade — UI-thread fade-in animation using Reanimated.
+ *
+ * Returns an animated style object ready to spread into
+ * Reanimated's <Animated.View style={fadeStyle}>.
+ *
+ * @param {number} duration  – animation duration in ms (default 200)
+ * @param {number} toValue   – target opacity (default 1)
+ */
+export default function useFade(duration = 200, toValue = 1) {
+  const opacity = useSharedValue(0);
 
   useEffect(() => {
-    Animated.timing(anim, {
-      toValue,
+    opacity.value = withTiming(toValue, {
       duration,
-      useNativeDriver: true,
       easing: Easing.out(Easing.quad),
-    }).start();
-  }, [anim, duration, toValue]);
+    });
+  }, [duration, toValue]);
 
-  return anim;
+  const fadeStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
+
+  return fadeStyle;
 }

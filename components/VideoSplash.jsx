@@ -7,12 +7,12 @@ const videoAsset = require('../assets/SGV Logo Video.mp4');
 export default function VideoSplash({ onFinish }) {
   const isFinished = useRef(false);
 
-  const handleFinish = () => {
+  const handleFinish = React.useCallback(() => {
     if (!isFinished.current) {
       isFinished.current = true;
       onFinish();
     }
-  };
+  }, [onFinish]);
 
   const player = useVideoPlayer(videoAsset, (player) => {
     player.loop = false;
@@ -25,15 +25,15 @@ export default function VideoSplash({ onFinish }) {
     });
 
     // Fallback timer (e.g. 10s max) in case video event doesn't trigger on some devices
-    const timer = setTimeout(() => {
+    const timer = global.setTimeout(() => {
       handleFinish();
     }, 12000);
 
     return () => {
       subscription.remove();
-      clearTimeout(timer);
+      global.clearTimeout(timer);
     };
-  }, [player]);
+  }, [player, handleFinish]);
 
   return (
     <View style={styles.container}>

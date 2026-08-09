@@ -60,7 +60,7 @@ export function ToastProvider({ children }) {
     });
 
     if (duration > 0) {
-      setTimeout(() => {
+      global.setTimeout(() => {
         removeToast(id);
       }, duration);
     }

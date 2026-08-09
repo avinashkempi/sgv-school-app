@@ -372,7 +372,7 @@ export default function ProfileScreen() {
       </View>
 
       {/* Reset Password Modal */}
-      {user && (
+      {showChangePasswordModal && (
         <Modal
           visible={showChangePasswordModal}
           animationType="slide"

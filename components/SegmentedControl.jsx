@@ -39,7 +39,7 @@ const SegmentedControl = ({ tabs, activeTab, onTabChange, style }) => {
                         accessibilityLabel={tab.label}
                     >
                         <Text style={[
-                            styles.label,
+                            styles.labelMedium,
                             {
                                 color: isActive ? colors.onSecondaryContainer : colors.onSurfaceVariant,
                                 fontFamily: isActive ? 'DMSans-Bold' : 'DMSans-Medium',

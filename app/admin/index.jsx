@@ -282,19 +282,23 @@ export default function AdminScreen() {
         }
       />
 
-      <UserFormModal
-        visible={showUserModal}
-        onClose={() => setShowUserModal(false)}
-        modalMode={modalMode}
-        initialData={editingUser}
-        saving={saving}
-        onSubmit={modalMode === "add" ? handleCreateUser : handleUpdateUser}
-      />
-      <UserDetailModal
-        visible={showDetailModal}
-        onClose={() => setShowDetailModal(false)}
-        user={selectedDetailUser}
-      />
+      {showUserModal && (
+        <UserFormModal
+          visible={showUserModal}
+          onClose={() => setShowUserModal(false)}
+          modalMode={modalMode}
+          initialData={editingUser}
+          saving={saving}
+          onSubmit={modalMode === "add" ? handleCreateUser : handleUpdateUser}
+        />
+      )}
+      {showDetailModal && (
+        <UserDetailModal
+          visible={showDetailModal}
+          onClose={() => setShowDetailModal(false)}
+          user={selectedDetailUser}
+        />
+      )}
     </View>
   );
 }
@@ -366,7 +370,7 @@ const AdminHeader = React.memo(function AdminHeader({
         {/* Academic Management Section - Super Admin Only */}
         {user?.role === 'super admin' && (
           <View>
-            <Text style={styles.sectionTitle}>
+            <Text style={styles.titleMedium}>
               Academic Management
             </Text>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
@@ -388,7 +392,7 @@ const AdminHeader = React.memo(function AdminHeader({
 
         {/* Teaching Management Section - Admin & Super Admin */}
         <View>
-          <Text style={styles.sectionTitle}>
+          <Text style={styles.titleMedium}>
             Teaching Management
           </Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
@@ -403,7 +407,7 @@ const AdminHeader = React.memo(function AdminHeader({
 
         {/* Class Operations Section */}
         <View>
-          <Text style={styles.sectionTitle}>
+          <Text style={styles.titleMedium}>
             Class Operations
           </Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
@@ -430,7 +434,7 @@ const AdminHeader = React.memo(function AdminHeader({
 
         {/* Financial Section */}
         <View>
-          <Text style={styles.sectionTitle}>
+          <Text style={styles.titleMedium}>
             Financial
           </Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
@@ -445,7 +449,7 @@ const AdminHeader = React.memo(function AdminHeader({
 
         {/* Communication & Requests Section */}
         <View>
-          <Text style={styles.sectionTitle}>
+          <Text style={styles.titleMedium}>
             Communication
           </Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
@@ -468,7 +472,7 @@ const AdminHeader = React.memo(function AdminHeader({
       {/* User Management Section */}
       <View style={{ marginTop: 32 }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <Text style={styles.sectionTitle}>
+          <Text style={styles.titleMedium}>
             User Management
           </Text>
           <Pressable
@@ -497,7 +501,7 @@ const AdminHeader = React.memo(function AdminHeader({
 
         {/* Search Bar */}
         <View style={{ marginBottom: 20 }}>
-          <View style={[styles.input, {
+          <View style={[[styles.bodyLarge, { borderWidth: 1, borderColor: colors.outline, backgroundColor: 'transparent' }], {
             flexDirection: "row",
             alignItems: "center",
             paddingHorizontal: 16,

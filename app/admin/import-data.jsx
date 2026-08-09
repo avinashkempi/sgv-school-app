@@ -62,7 +62,8 @@ export default function ImportDataScreen() {
                 body: JSON.stringify({ wipe: wipeData.toString(), academicYearId: selectedYearId, feesOnly }),
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                timeout: 120000
             });
 
             const json = await response.json();
@@ -96,7 +97,8 @@ export default function ImportDataScreen() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                timeout: 120000
             });
 
             const json = await response.json();

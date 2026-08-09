@@ -32,7 +32,7 @@ class ErrorBoundary extends React.Component {
         <View style={styles.container}>
           <View style={styles.content}>
             <MaterialIcons name="error" size={64} color="#FF6B6B" />
-            <Text style={styles.title}>Oops! Something went wrong.</Text>
+            <Text style={styles.headlineMedium}>Oops! Something went wrong.</Text>
             <Text style={styles.subtitle}>
               We{"'"}re sorry, but an unexpected error occurred. Please try again.
             </Text>

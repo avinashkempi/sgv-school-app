@@ -1,23 +1,21 @@
 import React, { createContext, useState, useContext, useEffect, useCallback, useRef } from 'react';
+import { Platform } from 'react-native';
+import { decode as atob } from 'base-64';
 import storage from '../utils/storage';
 import { clearAllCaches, cancelAllQueries } from '../utils/cacheManager';
 import { unregisterBackgroundSync, registerBackgroundSync } from '../utils/backgroundSync';
-import { queryClient } from '../utils/queryClient';
 import { setApiFetchToken, clearApiFetchToken } from '../utils/apiFetch';
-import { Platform } from 'react-native';
 import { resetAcademicYearState, triggerAcademicYearSync } from '../context/AcademicYearContext';
 
 const AuthContext = createContext(null);
 
 /**
- * Decode a base64url-encoded string (works in React Native without atob/Buffer).
+ * Decode a base64url-encoded string.
  */
 function base64UrlDecode(str) {
   let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
   while (base64.length % 4 !== 0) base64 += '=';
-  if (typeof atob === 'function') return atob(base64);
-  if (typeof Buffer !== 'undefined') return Buffer.from(base64, 'base64').toString('utf8');
-  throw new Error('No base64 decoder available');
+  return atob(base64);
 }
 
 function isTokenExpired(token) {
@@ -83,7 +81,7 @@ export const AuthProvider = ({ children }) => {
         
         // Flush any pending FCM unregistrations from previous offline logouts
         if (Platform.OS !== 'web') {
-          setTimeout(async () => {
+          global.setTimeout(async () => {
             try {
               const { flushPendingFCMUnregisters } = require('../utils/fcm');
               await flushPendingFCMUnregisters();
@@ -237,7 +235,7 @@ export const AuthProvider = ({ children }) => {
       // Still redirect even on error
       if (router?.replace) router.replace('/login');
     } finally {
-      setTimeout(() => {
+      global.setTimeout(() => {
         isLoggingOut.current = false;
       }, 2000);
     }

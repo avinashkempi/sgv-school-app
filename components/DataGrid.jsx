@@ -4,6 +4,7 @@ import {
     Text,
     TextInput,
     ScrollView,
+    FlatList,
     Pressable,
     Platform,
     Keyboard
@@ -388,13 +389,23 @@ export default function DataGrid({
             <ScrollView horizontal showsHorizontalScrollIndicator={true} keyboardShouldPersistTaps="handled">
                 <View>
                     {renderHeader()}
-                    <ScrollView
+                    <FlatList
+                        data={localData}
+                        keyExtractor={(_, index) => index.toString()}
+                        renderItem={({ item, index }) => renderRow(item, index)}
                         showsVerticalScrollIndicator={true}
                         keyboardShouldPersistTaps="handled"
                         contentContainerStyle={{ paddingBottom: keyboardHeight }}
-                    >
-                        {localData.map((row, index) => renderRow(row, index))}
-                    </ScrollView>
+                        initialNumToRender={15}
+                        maxToRenderPerBatch={10}
+                        windowSize={5}
+                        removeClippedSubviews={true}
+                        getItemLayout={(_, index) => ({
+                            length: 50, // Approximate row height
+                            offset: 50 * index,
+                            index,
+                        })}
+                    />
                 </View>
             </ScrollView>
 

@@ -5,8 +5,8 @@ import { useTheme } from "../theme";
 
 export default function ThemeToggle({ size = 20 }) {
   const { mode, toggle, colors } = useTheme();
-  const rotate = useRef(new Animated.Value(0)).current;
-  const fade = useRef(new Animated.Value(1)).current;
+  const [rotate] = React.useState(() => new Animated.Value(0));
+  const [fade] = React.useState(() => new Animated.Value(1));
 
   useEffect(() => {
     // animate rotate & fade when mode changes
@@ -36,7 +36,7 @@ export default function ThemeToggle({ size = 20 }) {
         }),
       ]),
     ]).start();
-  }, [mode]);
+  }, [mode, rotate, fade]);
 
   const spin = rotate.interpolate({
     inputRange: [0, 1],

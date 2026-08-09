@@ -1,5 +1,13 @@
-import React, { useState, useEffect, useMemo, useCallback, memo, useRef } from "react";
-import { View, Text, Pressable, StyleSheet, Animated } from "react-native";
+import React, { useMemo, useCallback, memo, useEffect } from "react";
+import { View, Text, Pressable, StyleSheet, Platform } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+  interpolate,
+  Extrapolation,
+} from "react-native-reanimated";
 import { useRouter, usePathname } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
@@ -9,11 +17,12 @@ import { ROUTES } from "../constants/routes";
 import { useAuth } from '../context/AuthContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 function BottomNavigation() {
   const router = useRouter();
   const pathname = usePathname();
   const { colors, mode } = useTheme();
-  const [activeTab, setActiveTab] = useState(ROUTES.HOME);
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
 
@@ -61,14 +70,12 @@ function BottomNavigation() {
     },
   ], [user]);
 
-  useEffect(() => {
+  // Derive active route from pathname
+  const activeRoute = useMemo(() => {
     const matchingItem = navigationItems
       .filter(item => item.route === '/' ? pathname === '/' : pathname.startsWith(item.route))
       .sort((a, b) => b.route.length - a.route.length)[0];
-
-    if (matchingItem) {
-      setActiveTab(matchingItem.route);
-    }
+    return matchingItem?.route || ROUTES.HOME;
   }, [pathname, navigationItems]);
 
   const handleTabPress = useCallback((route) => {
@@ -76,13 +83,14 @@ function BottomNavigation() {
     if (pathname === route) return;
 
     requestAnimationFrame(() => {
-      setActiveTab(route);
       router.replace(route);
     });
   }, [pathname, router]);
 
+  const Container = Platform.OS === 'android' ? View : BlurView;
+
   return (
-    <BlurView intensity={80} tint={mode === 'dark' ? 'dark' : 'light'} style={[
+    <Container intensity={80} tint={mode === 'dark' ? 'dark' : 'light'} style={[
       styles.container,
       {
         backgroundColor: colors.surfaceContainer + 'CC', // 80% opacity for frosted glass effect
@@ -97,80 +105,84 @@ function BottomNavigation() {
       }
     ]}>
       {navigationItems.map((item) => {
-        const isActive = activeTab === item.route;
+        const isActive = activeRoute === item.route;
         return (
           <TabItem
             key={item.label}
             item={item}
             isActive={isActive}
-            onPress={() => handleTabPress(item.route)}
+            onPress={handleTabPress}
             colors={colors}
           />
         );
       })}
-    </BlurView>
+    </Container>
   );
 }
 
 const TabItem = memo(({ item, isActive, onPress, colors }) => {
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-  const activeAnim = useRef(new Animated.Value(0)).current;
+  const scale = useSharedValue(1);
+  const activeProgress = useSharedValue(isActive ? 1 : 0);
 
   useEffect(() => {
-    Animated.timing(activeAnim, {
-      toValue: isActive ? 1 : 0,
-      duration: 250, // Slightly slower for more "expressive" feel
-      useNativeDriver: true,
-    }).start();
-  }, [isActive]);
+    // eslint-disable-next-line react-hooks/immutability
+    activeProgress.value = withTiming(isActive ? 1 : 0, { duration: 250 });
+  }, [isActive, activeProgress]);
 
   const handlePressIn = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 0.9,
-      useNativeDriver: true,
-      speed: 50,
-      bounciness: 10,
-    }).start();
+    scale.value = withSpring(0.9, { damping: 15, stiffness: 300 });
   };
 
   const handlePressOut = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      useNativeDriver: true,
-      speed: 50,
-      bounciness: 10,
-    }).start();
+    scale.value = withSpring(1, { damping: 15, stiffness: 300 });
   };
+
+  const handlePress = useCallback(() => {
+    onPress(item.route);
+  }, [onPress, item.route]);
+
+  const containerStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const pillStyle = useAnimatedStyle(() => ({
+    opacity: activeProgress.value,
+    transform: [
+      {
+        scaleX: interpolate(
+          activeProgress.value,
+          [0, 1],
+          [0.4, 1],
+          Extrapolation.CLAMP,
+        ),
+      },
+      {
+        scaleY: interpolate(
+          activeProgress.value,
+          [0, 1],
+          [0.8, 1],
+          Extrapolation.CLAMP,
+        ),
+      },
+    ],
+  }));
 
   return (
     <Pressable
-      onPress={onPress}
+      onPress={handlePress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       style={styles.tabItem}
       hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
     >
-      <Animated.View style={{ alignItems: 'center', transform: [{ scale: scaleAnim }] }}>
+      <Animated.View style={[{ alignItems: 'center' }, containerStyle]}>
         <View style={styles.iconContainer}>
           {/* Active Pill */}
           <Animated.View style={[
             StyleSheet.absoluteFill,
             styles.activePill,
-            {
-              backgroundColor: colors.secondaryContainer,
-              opacity: activeAnim,
-              transform: [{
-                scaleX: activeAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0.4, 1] // Start narrower
-                })
-              }, {
-                scaleY: activeAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0.8, 1]
-                })
-              }]
-            }
+            { backgroundColor: colors.secondaryContainer },
+            pillStyle,
           ]} />
 
           <MaterialIcons

@@ -87,7 +87,7 @@ const ChartCard = ({ title, chartType, data, labels, height = 220, secondary = f
     };
 
     return (
-        <View style={[styles.card, { backgroundColor: colors.surfaceContainer, borderRadius: 24, padding: 20 }]}>
+        <View style={[{ backgroundColor: colors.surfaceContainer, borderRadius: 24, padding: 20 }]}>
             <Text style={[styles.titleMedium, { marginBottom: 16 }]}>{title}</Text>
             <View style={{ alignItems: 'center', overflow: 'hidden' }}>
                 {renderChart()}

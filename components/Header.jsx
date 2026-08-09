@@ -74,23 +74,14 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
               </View>
             )
           )}
-          <Text style={{
-            fontSize: 14,
+          <Text style={[styles.labelLarge, {
             color: colors.onSurfaceVariant,
-            fontFamily: "DMSans-Medium",
             marginBottom: 8,
-            letterSpacing: 0.25,
             textTransform: 'uppercase'
-          }}>
+          }]}>
             Welcome to
           </Text>
-          <Text style={{
-            fontSize: 32, // Headline Medium size roughly
-            color: colors.onBackground,
-            fontFamily: "DMSans-Bold",
-            letterSpacing: 0,
-            lineHeight: 40
-          }}>
+          <Text style={[styles.headlineLarge, { color: colors.onBackground }]}>
             {title}
           </Text>
         </View>
@@ -193,22 +184,14 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
             </View>
           )
         )}
-        <Text style={{
-          fontSize: 22,
-          fontFamily: "DMSans-Bold", // Title Large
-          color: colors.onBackground,
-          letterSpacing: 0
-        }}>
+        <Text style={[styles.titleLarge, { color: colors.onBackground }]}>
           {title}
         </Text>
         {subtitle && (
-          <Text style={{
-            fontSize: 14,
+          <Text style={[styles.titleSmall, {
             color: colors.onSurfaceVariant,
-            marginTop: 2,
-            fontFamily: "DMSans-Medium", // Title Small
-            letterSpacing: 0.1
-          }}>
+            marginTop: 2
+          }]}>
             {subtitle}
           </Text>
         )}

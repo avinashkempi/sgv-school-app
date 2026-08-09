@@ -2,6 +2,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiFetch from '../utils/apiFetch';
 
 /**
+ * Wrapper around useInfiniteQuery for API fetching with pagination
+ */
+import { useInfiniteQuery } from '@tanstack/react-query';
+
+/**
  * Custom error class to track auth vs network errors
  */
 class ApiError extends Error {
@@ -72,11 +77,6 @@ export function useApiQuery(key, url, options = {}) {
         ...options,
     });
 }
-
-/**
- * Wrapper around useInfiniteQuery for API fetching with pagination
- */
-import { useInfiniteQuery } from '@tanstack/react-query';
 
 export function useApiInfiniteQuery(key, urlFn, options = {}) {
     return useInfiniteQuery({

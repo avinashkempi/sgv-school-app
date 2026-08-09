@@ -791,3 +791,7 @@ export const DEMO_STUDENT_DASHBOARD = {
         ]
     }
 };
+
+export const DEMO_CLASSES = [
+  { _id: "550e8400e29b41d4a716446655440001", value: "3", label: "3rd Standard", section: "A", branch: "Main" }
+];

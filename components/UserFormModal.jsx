@@ -108,6 +108,7 @@ export default function UserFormModal({
         }
     }, [visible, modalMode, initialData, reset]);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const watchedRole = watch("role");
 
     const { data: classesData } = useApiQuery(
@@ -124,7 +125,7 @@ export default function UserFormModal({
             onRequestClose={onClose}
         >
             <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.6)" }}>
-                <View style={[styles.card, {
+                <View style={[{ backgroundColor: colors.surfaceContainer, borderRadius: 16, padding: 16, marginBottom: 16 }, {
                     width: "90%",
                     maxWidth: 400,
                     maxHeight: "90%",
@@ -148,14 +149,14 @@ export default function UserFormModal({
                     >
                         {/* Common Fields: Name, Phone, Email, Password */}
                         <View style={{ marginBottom: 24 }}>
-                            <Text style={[styles.label, { marginBottom: 8 }]}>NAME</Text>
+                            <Text style={[styles.labelMedium, { marginBottom: 8 }]}>NAME</Text>
                             <Controller
                                 control={control}
                                 name="name"
                                 rules={{ required: "Name is required" }}
                                 render={({ field: { onChange, onBlur, value } }) => (
                                     <TextInput
-                                        style={styles.input}
+                                        style={[styles.bodyLarge, { borderWidth: 1, borderColor: colors.outline, borderRadius: 4, padding: 14, backgroundColor: 'transparent' }]}
                                         placeholder="Enter name"
                                         placeholderTextColor={colors.textSecondary}
                                         value={value}
@@ -165,19 +166,19 @@ export default function UserFormModal({
                                 )}
                             />
                             {errors.name && (
-                                <Text style={styles.errorText}>{errors.name.message}</Text>
+                                <Text style={styles.bodySmall}>{errors.name.message}</Text>
                             )}
                         </View>
 
                         <View style={{ marginBottom: 24 }}>
-                            <Text style={[styles.label, { marginBottom: 8 }]}>PHONE</Text>
+                            <Text style={[styles.labelMedium, { marginBottom: 8 }]}>PHONE</Text>
                             <Controller
                                 control={control}
                                 name="phone"
                                 rules={{ required: "Phone is required", minLength: { value: 10, message: "Enter 10 digit number" } }}
                                 render={({ field: { onChange, onBlur, value } }) => (
                                     <TextInput
-                                        style={[styles.input, modalMode === 'edit' && { backgroundColor: colors.surfaceVariant, opacity: 0.7 }]}
+                                        style={[[styles.bodyLarge, { borderWidth: 1, borderColor: colors.outline, borderRadius: 4, padding: 14, backgroundColor: 'transparent' }], modalMode === 'edit' && { backgroundColor: colors.surfaceVariant, opacity: 0.7 }]}
                                         placeholder="Enter phone number"
                                         placeholderTextColor={colors.textSecondary}
                                         value={value}
@@ -195,7 +196,7 @@ export default function UserFormModal({
                                 )}
                             />
                             {errors.phone && (
-                                <Text style={styles.errorText}>{errors.phone.message}</Text>
+                                <Text style={styles.bodySmall}>{errors.phone.message}</Text>
                             )}
                             {modalMode === 'edit' && (
                                 <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 4 }}>
@@ -205,13 +206,13 @@ export default function UserFormModal({
                         </View>
 
                         <View style={{ marginBottom: 24 }}>
-                            <Text style={[styles.label, { marginBottom: 8 }]}>EMAIL</Text>
+                            <Text style={[styles.labelMedium, { marginBottom: 8 }]}>EMAIL</Text>
                             <Controller
                                 control={control}
                                 name="email"
                                 render={({ field: { onChange, onBlur, value } }) => (
                                     <TextInput
-                                        style={styles.input}
+                                        style={[styles.bodyLarge, { borderWidth: 1, borderColor: colors.outline, borderRadius: 4, padding: 14, backgroundColor: 'transparent' }]}
                                         placeholder="Enter email (optional)"
                                         placeholderTextColor={colors.textSecondary}
                                         value={value}
@@ -225,8 +226,8 @@ export default function UserFormModal({
                         </View>
 
                         <View style={{ marginBottom: 24 }}>
-                            <Text style={[styles.label, { marginBottom: 8 }]}>PASSWORD {modalMode === 'edit' && "(OPTIONAL)"}</Text>
-                            <View style={[styles.input, { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 0 }]}>
+                            <Text style={[styles.labelMedium, { marginBottom: 8 }]}>PASSWORD {modalMode === 'edit' && "(OPTIONAL)"}</Text>
+                            <View style={[[styles.bodyLarge, { borderWidth: 1, borderColor: colors.outline, borderRadius: 4, padding: 14, backgroundColor: 'transparent' }], { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 0 }]}>
                                 <Controller
                                     control={control}
                                     name="password"
@@ -263,13 +264,13 @@ export default function UserFormModal({
                                 </Pressable>
                             </View>
                             {errors.password && modalMode === 'add' && (
-                                <Text style={styles.errorText}>{errors.password.message}</Text>
+                                <Text style={styles.bodySmall}>{errors.password.message}</Text>
                             )}
                         </View>
 
                         {/* Role Selection */}
                         <View style={{ marginBottom: 24 }}>
-                            <Text style={[styles.label, { marginBottom: 12 }]}>ROLE</Text>
+                            <Text style={[styles.labelMedium, { marginBottom: 12 }]}>ROLE</Text>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
                                 {availableRoles.map((role) => (
                                     <Pressable
@@ -298,7 +299,7 @@ export default function UserFormModal({
                         </View>
 
                         {/* Personal Details - Available for All Roles */}
-                        <Text style={[styles.sectionTitle, { fontSize: 16, marginBottom: 16, marginTop: 8 }]}>Personal Details</Text>
+                        <Text style={[styles.titleLarge, { fontSize: 16, marginBottom: 16, marginTop: 8 }]}>Personal Details</Text>
 
                         {/* Gender & Blood Group Row */}
                         <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
@@ -307,7 +308,7 @@ export default function UserFormModal({
                                 name="gender"
                                 render={({ field: { value } }) => (
                                     <View style={{ flex: 1 }}>
-                                        <Text style={[styles.label, { marginBottom: 8 }]}>GENDER</Text>
+                                        <Text style={[styles.labelMedium, { marginBottom: 8 }]}>GENDER</Text>
                                         <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
                                             {['Boy', 'Girl', 'Other'].map(g => (
                                                 <Pressable
@@ -331,13 +332,13 @@ export default function UserFormModal({
                                 )}
                             />
                             <View style={{ flex: 1 }}>
-                                <Text style={[styles.label, { marginBottom: 8 }]}>BLOOD GROUP</Text>
+                                <Text style={[styles.labelMedium, { marginBottom: 8 }]}>BLOOD GROUP</Text>
                                 <Controller
                                     control={control}
                                     name="bloodGroup"
                                     render={({ field: { onChange, onBlur, value } }) => (
                                         <TextInput
-                                            style={styles.input}
+                                            style={[styles.bodyLarge, { borderWidth: 1, borderColor: colors.outline, borderRadius: 4, padding: 14, backgroundColor: 'transparent' }]}
                                             placeholder="e.g. O+"
                                             placeholderTextColor={colors.textSecondary}
                                             value={value}
@@ -350,13 +351,13 @@ export default function UserFormModal({
                         </View>
 
                         <View style={{ marginBottom: 20 }}>
-                            <Text style={[styles.label, { marginBottom: 8 }]}>DATE OF BIRTH (YYYY-MM-DD)</Text>
+                            <Text style={[styles.labelMedium, { marginBottom: 8 }]}>DATE OF BIRTH (YYYY-MM-DD)</Text>
                             <Controller
                                 control={control}
                                 name="dateOfBirth"
                                 render={({ field: { onChange, onBlur, value } }) => (
                                     <TextInput
-                                        style={styles.input}
+                                        style={[styles.bodyLarge, { borderWidth: 1, borderColor: colors.outline, borderRadius: 4, padding: 14, backgroundColor: 'transparent' }]}
                                         placeholder="YYYY-MM-DD"
                                         placeholderTextColor={colors.textSecondary}
                                         value={value}
@@ -368,13 +369,13 @@ export default function UserFormModal({
                         </View>
 
                         <View style={{ marginBottom: 20 }}>
-                            <Text style={[styles.label, { marginBottom: 8 }]}>ADDRESS</Text>
+                            <Text style={[styles.labelMedium, { marginBottom: 8 }]}>ADDRESS</Text>
                             <Controller
                                 control={control}
                                 name="address"
                                 render={({ field: { onChange, onBlur, value } }) => (
                                     <TextInput
-                                        style={[styles.input, { height: 80, textAlignVertical: 'top', paddingTop: 12 }]}
+                                        style={[[styles.bodyLarge, { borderWidth: 1, borderColor: colors.outline, borderRadius: 4, padding: 14, backgroundColor: 'transparent' }], { height: 80, textAlignVertical: 'top', paddingTop: 12 }]}
                                         placeholder="Full address"
                                         placeholderTextColor={colors.textSecondary}
                                         value={value}
@@ -391,7 +392,7 @@ export default function UserFormModal({
                         {watchedRole === "student" && (
                             <>
                                 <View style={{ marginBottom: 20 }}>
-                                    <Text style={[styles.label, { marginBottom: 8 }]}>CLASS</Text>
+                                    <Text style={[styles.labelMedium, { marginBottom: 8 }]}>CLASS</Text>
                                     <Controller
                                             control={control}
                                             name="currentClass"
@@ -425,20 +426,20 @@ export default function UserFormModal({
                                             )}
                                         />
                                     {errors.currentClass && (
-                                        <Text style={styles.errorText}>{errors.currentClass.message}</Text>
+                                        <Text style={styles.bodySmall}>{errors.currentClass.message}</Text>
                                     )}
                                 </View>
 
-                                <Text style={[styles.sectionTitle, { fontSize: 16, marginBottom: 16, marginTop: 8 }]}>Guardian & Contact</Text>
+                                <Text style={[styles.titleLarge, { fontSize: 16, marginBottom: 16, marginTop: 8 }]}>Guardian & Contact</Text>
 
                                 <View style={{ marginBottom: 20 }}>
-                                    <Text style={[styles.label, { marginBottom: 8 }]}>GUARDIAN NAME</Text>
+                                    <Text style={[styles.labelMedium, { marginBottom: 8 }]}>GUARDIAN NAME</Text>
                                     <Controller
                                         control={control}
                                         name="guardianName"
                                         render={({ field: { onChange, onBlur, value } }) => (
                                             <TextInput
-                                                style={styles.input}
+                                                style={[styles.bodyLarge, { borderWidth: 1, borderColor: colors.outline, borderRadius: 4, padding: 14, backgroundColor: 'transparent' }]}
                                                 placeholder="Enter guardian name"
                                                 placeholderTextColor={colors.textSecondary}
                                                 value={value}
@@ -449,13 +450,13 @@ export default function UserFormModal({
                                     />
                                 </View>
                                 <View style={{ marginBottom: 20 }}>
-                                    <Text style={[styles.label, { marginBottom: 8 }]}>GUARDIAN PHONE</Text>
+                                    <Text style={[styles.labelMedium, { marginBottom: 8 }]}>GUARDIAN PHONE</Text>
                                     <Controller
                                         control={control}
                                         name="guardianPhone"
                                         render={({ field: { onChange, onBlur, value } }) => (
                                             <TextInput
-                                                style={styles.input}
+                                                style={[styles.bodyLarge, { borderWidth: 1, borderColor: colors.outline, borderRadius: 4, padding: 14, backgroundColor: 'transparent' }]}
                                                 placeholder="Enter guardian phone"
                                                 placeholderTextColor={colors.textSecondary}
                                                 value={value}
@@ -468,13 +469,13 @@ export default function UserFormModal({
                                     />
                                 </View>
                                 <View style={{ marginBottom: 20 }}>
-                                    <Text style={[styles.label, { marginBottom: 8 }]}>SECONDARY PHONE</Text>
+                                    <Text style={[styles.labelMedium, { marginBottom: 8 }]}>SECONDARY PHONE</Text>
                                     <Controller
                                         control={control}
                                         name="phone2"
                                         render={({ field: { onChange, onBlur, value } }) => (
                                             <TextInput
-                                                style={styles.input}
+                                                style={[styles.bodyLarge, { borderWidth: 1, borderColor: colors.outline, borderRadius: 4, padding: 14, backgroundColor: 'transparent' }]}
                                                 placeholder="Alt phone (optional)"
                                                 placeholderTextColor={colors.textSecondary}
                                                 value={value}
@@ -487,17 +488,17 @@ export default function UserFormModal({
                                     />
                                 </View>
 
-                                <Text style={[styles.sectionTitle, { fontSize: 16, marginBottom: 16, marginTop: 8 }]}>Academic & IDs</Text>
+                                <Text style={[styles.titleLarge, { fontSize: 16, marginBottom: 16, marginTop: 8 }]}>Academic & IDs</Text>
 
                                 <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
                                     <View style={{ flex: 1 }}>
-                                        <Text style={[styles.label, { marginBottom: 8 }]}>REG NO</Text>
+                                        <Text style={[styles.labelMedium, { marginBottom: 8 }]}>REG NO</Text>
                                         <Controller
                                             control={control}
                                             name="regNo"
                                             render={({ field: { onChange, onBlur, value } }) => (
                                                 <TextInput
-                                                    style={styles.input}
+                                                    style={[styles.bodyLarge, { borderWidth: 1, borderColor: colors.outline, borderRadius: 4, padding: 14, backgroundColor: 'transparent' }]}
                                                     value={value}
                                                     onChangeText={onChange}
                                                     onBlur={onBlur}
@@ -506,13 +507,13 @@ export default function UserFormModal({
                                         />
                                     </View>
                                     <View style={{ flex: 1 }}>
-                                        <Text style={[styles.label, { marginBottom: 8 }]}>SATS NO</Text>
+                                        <Text style={[styles.labelMedium, { marginBottom: 8 }]}>SATS NO</Text>
                                         <Controller
                                             control={control}
                                             name="satsNumber"
                                             render={({ field: { onChange, onBlur, value } }) => (
                                                 <TextInput
-                                                    style={styles.input}
+                                                    style={[styles.bodyLarge, { borderWidth: 1, borderColor: colors.outline, borderRadius: 4, padding: 14, backgroundColor: 'transparent' }]}
                                                     value={value}
                                                     onChangeText={onChange}
                                                     onBlur={onBlur}
@@ -524,13 +525,13 @@ export default function UserFormModal({
 
                                 <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
                                     <View style={{ flex: 1 }}>
-                                        <Text style={[styles.label, { marginBottom: 8 }]}>PEN NO</Text>
+                                        <Text style={[styles.labelMedium, { marginBottom: 8 }]}>PEN NO</Text>
                                         <Controller
                                             control={control}
                                             name="penNumber"
                                             render={({ field: { onChange, onBlur, value } }) => (
                                                 <TextInput
-                                                    style={styles.input}
+                                                    style={[styles.bodyLarge, { borderWidth: 1, borderColor: colors.outline, borderRadius: 4, padding: 14, backgroundColor: 'transparent' }]}
                                                     value={value}
                                                     onChangeText={onChange}
                                                     onBlur={onBlur}
@@ -539,13 +540,13 @@ export default function UserFormModal({
                                         />
                                     </View>
                                     <View style={{ flex: 1 }}>
-                                        <Text style={[styles.label, { marginBottom: 8 }]}>APAAR ID</Text>
+                                        <Text style={[styles.labelMedium, { marginBottom: 8 }]}>APAAR ID</Text>
                                         <Controller
                                             control={control}
                                             name="apaarId"
                                             render={({ field: { onChange, onBlur, value } }) => (
                                                 <TextInput
-                                                    style={styles.input}
+                                                    style={[styles.bodyLarge, { borderWidth: 1, borderColor: colors.outline, borderRadius: 4, padding: 14, backgroundColor: 'transparent' }]}
                                                     value={value}
                                                     onChangeText={onChange}
                                                     onBlur={onBlur}
@@ -556,13 +557,13 @@ export default function UserFormModal({
                                 </View>
 
                                 <View style={{ marginBottom: 20 }}>
-                                    <Text style={[styles.label, { marginBottom: 8 }]}>ADMISSION DATE</Text>
+                                    <Text style={[styles.labelMedium, { marginBottom: 8 }]}>ADMISSION DATE</Text>
                                     <Controller
                                         control={control}
                                         name="admissionDate"
                                         render={({ field: { onChange, onBlur, value } }) => (
                                             <TextInput
-                                                style={styles.input}
+                                                style={[styles.bodyLarge, { borderWidth: 1, borderColor: colors.outline, borderRadius: 4, padding: 14, backgroundColor: 'transparent' }]}
                                                 placeholder="YYYY-MM-DD"
                                                 placeholderTextColor={colors.textSecondary}
                                                 value={value}
@@ -578,15 +579,15 @@ export default function UserFormModal({
                         {/* Non-Student Role Details */}
                         {watchedRole !== "student" && (
                             <>
-                                <Text style={[styles.sectionTitle, { fontSize: 16, marginBottom: 16, marginTop: 8 }]}>Role Details</Text>
+                                <Text style={[styles.titleLarge, { fontSize: 16, marginBottom: 16, marginTop: 8 }]}>Role Details</Text>
                                 <View style={{ marginBottom: 20 }}>
-                                    <Text style={[styles.label, { marginBottom: 8 }]}>DESIGNATION</Text>
+                                    <Text style={[styles.labelMedium, { marginBottom: 8 }]}>DESIGNATION</Text>
                                     <Controller
                                         control={control}
                                         name="designation"
                                         render={({ field: { onChange, onBlur, value } }) => (
                                             <TextInput
-                                                style={styles.input}
+                                                style={[styles.bodyLarge, { borderWidth: 1, borderColor: colors.outline, borderRadius: 4, padding: 14, backgroundColor: 'transparent' }]}
                                                 placeholder="e.g. Physical Instructor, Science Teacher"
                                                 placeholderTextColor={colors.textSecondary}
                                                 value={value}
@@ -598,13 +599,13 @@ export default function UserFormModal({
                                 </View>
 
                                 <View style={{ marginBottom: 20 }}>
-                                    <Text style={[styles.label, { marginBottom: 8 }]}>JOINING DATE</Text>
+                                    <Text style={[styles.labelMedium, { marginBottom: 8 }]}>JOINING DATE</Text>
                                     <Controller
                                         control={control}
                                         name="joiningDate"
                                         render={({ field: { onChange, onBlur, value } }) => (
                                             <TextInput
-                                                style={styles.input}
+                                                style={[styles.bodyLarge, { borderWidth: 1, borderColor: colors.outline, borderRadius: 4, padding: 14, backgroundColor: 'transparent' }]}
                                                 placeholder="YYYY-MM-DD"
                                                 placeholderTextColor={colors.textSecondary}
                                                 value={value}
@@ -616,13 +617,13 @@ export default function UserFormModal({
                                 </View>
 
                                 <View style={{ marginBottom: 20 }}>
-                                    <Text style={[styles.label, { marginBottom: 8 }]}>REMARKS</Text>
+                                    <Text style={[styles.labelMedium, { marginBottom: 8 }]}>REMARKS</Text>
                                     <Controller
                                         control={control}
                                         name="remarks"
                                         render={({ field: { onChange, onBlur, value } }) => (
                                             <TextInput
-                                                style={[styles.input, { height: 80, textAlignVertical: 'top', paddingTop: 12 }]}
+                                                style={[[styles.bodyLarge, { borderWidth: 1, borderColor: colors.outline, borderRadius: 4, padding: 14, backgroundColor: 'transparent' }], { height: 80, textAlignVertical: 'top', paddingTop: 12 }]}
                                                 placeholderTextColor={colors.textSecondary}
                                                 value={value}
                                                 onChangeText={onChange}

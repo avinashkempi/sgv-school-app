@@ -9,9 +9,8 @@ const StatCard = ({ title, value, subtitle, icon, trend, trendValue, color, onPr
     const isPositive = trendValue >= 0;
     const trendColor = isPositive ? colors.success : colors.error;
 
-    const CardContent = () => (
+    const content = (
         <View style={[
-            styles.card,
             {
                 backgroundColor: colors.surfaceContainer,
                 borderRadius: 24,
@@ -49,7 +48,7 @@ const StatCard = ({ title, value, subtitle, icon, trend, trendValue, color, onPr
                     <Text style={[styles.titleSmall, { opacity: 0.7, marginBottom: 4 }]}>{title}</Text>
                     <Text style={[styles.headlineMedium, { color: colors.onSurface }]}>{value}</Text>
                     {subtitle && (
-                        <Text style={{ fontSize: 11, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Medium', marginTop: 2 }} numberOfLines={1}>{subtitle}</Text>
+                        <Text style={[styles.labelSmall, { color: colors.onSurfaceVariant, marginTop: 2 }]} numberOfLines={1}>{subtitle}</Text>
                     )}
                 </>
             )}
@@ -65,12 +64,12 @@ const StatCard = ({ title, value, subtitle, icon, trend, trendValue, color, onPr
                     transform: [{ scale: pressed ? 0.98 : 1 }]
                 })}
             >
-                <CardContent />
+                {content}
             </Pressable>
         );
     }
 
-    return <CardContent />;
+    return content;
 };
 
 export default StatCard;

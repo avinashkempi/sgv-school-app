@@ -274,55 +274,6 @@ function createGlobalStyles(COLORS, mode) {
     },
 
     // Legacy style support used in current files
-    title: {
-      fontFamily: FONTS.headlineMedium,
-      fontSize: 28,
-      color: COLORS.onBackground,
-      marginBottom: 24,
-      textAlign: "left",
-    },
-    headerTitle: {
-      fontFamily: FONTS.titleLarge,
-      fontSize: 22,
-      color: COLORS.onBackground,
-      marginBottom: 4,
-    },
-    subHeader: {
-      fontFamily: FONTS.bodyLarge,
-      fontSize: 16,
-      color: COLORS.onSurfaceVariant,
-      marginBottom: 24,
-    },
-    label: {
-      fontFamily: FONTS.labelMedium,
-      fontSize: 12,
-      color: COLORS.onSurfaceVariant,
-      marginBottom: 8,
-    },
-    text: {
-      fontFamily: FONTS.bodyLarge,
-      fontSize: 16,
-      color: COLORS.onSurfaceVariant,
-      lineHeight: 24,
-      marginBottom: 12,
-    },
-    link: {
-      fontFamily: FONTS.labelLarge, // Links should look like interactive labels
-      fontSize: 16,
-      color: COLORS.primary,
-    },
-    buttonText: {
-      fontFamily: FONTS.labelLarge,
-      fontSize: 14,
-      color: COLORS.onPrimary,
-      textAlign: "center",
-    },
-    errorText: {
-      fontFamily: FONTS.bodySmall,
-      color: COLORS.error,
-      marginTop: 4,
-      marginLeft: 4,
-    },
 
     // Layout Utils
     row: {
@@ -342,31 +293,6 @@ function createGlobalStyles(COLORS, mode) {
     },
 
     // Components (Legacy definitions for backwards compatibility until refactor is complete)
-    card: {
-      backgroundColor: COLORS.surfaceContainer,
-      borderRadius: 16,
-      padding: 16,
-      marginBottom: 16,
-    },
-    input: {
-      borderWidth: 1,
-      borderColor: COLORS.outline,
-      borderRadius: 4,
-      paddingVertical: 14,
-      paddingHorizontal: 16,
-      fontSize: 16,
-      fontFamily: FONTS.bodyLarge,
-      color: COLORS.onSurface,
-      backgroundColor: 'transparent',
-    },
-    button: {
-      backgroundColor: COLORS.primary,
-      paddingVertical: 12,
-      paddingHorizontal: 24,
-      borderRadius: 100,
-      alignItems: "center",
-      justifyContent: "center",
-    },
     safeArea: {
       flex: 1,
       backgroundColor: COLORS.background,
@@ -374,15 +300,7 @@ function createGlobalStyles(COLORS, mode) {
     contentPaddingBottom: {
       paddingBottom: 180,
     },
-    smallLeftMargin: {
-      marginLeft: 8,
-    },
-    sectionTitle: {
-      fontSize: 18,
-      color: COLORS.onSurface,
-      fontFamily: FONTS.medium,
-      marginBottom: 16,
-    },
+
     fab: {
       position: 'absolute',
       bottom: 140,
@@ -399,14 +317,7 @@ function createGlobalStyles(COLORS, mode) {
       shadowOpacity: 0.3,
       shadowRadius: 6,
     },
-    buttonLarge: {
-      backgroundColor: COLORS.primary,
-      paddingVertical: 16,
-      paddingHorizontal: 24,
-      borderRadius: 100,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
+
   });
 }
 

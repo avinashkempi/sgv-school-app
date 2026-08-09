@@ -108,7 +108,7 @@ export default function MenuScreen() {
                 </View>
 
                 {/* Settings Section */}
-                <Text style={[styles.sectionTitle, { marginTop: 24, marginBottom: 12 }]}>Preferences</Text>
+                <Text style={[styles.titleMedium, { marginTop: 24, marginBottom: 12 }]}>Preferences</Text>
 
                 <Card variant="filled" style={{ padding: 0, overflow: 'hidden' }}>
                     <View style={{
@@ -147,7 +147,7 @@ export default function MenuScreen() {
                 </Card>
 
                 {/* Socials Section */}
-                <Text style={[styles.sectionTitle, { marginTop: 24, marginBottom: 12 }]}>Follow Us</Text>
+                <Text style={[styles.titleMedium, { marginTop: 24, marginBottom: 12 }]}>Follow Us</Text>
                 <Card variant="outlined" contentStyle={{ flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 24 }}>
                     <Pressable
                         onPress={() => handlePress(SCHOOL.socials.youtubeAppUrl, SCHOOL.socials.youtube)}

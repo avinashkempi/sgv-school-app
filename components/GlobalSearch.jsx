@@ -50,7 +50,7 @@ const GlobalSearch = ({ visible, onClose }) => {
     };
 
     useEffect(() => {
-        const timeoutId = setTimeout(() => {
+        const timeoutId = global.setTimeout(() => {
             if (query.trim().length >= 2) {
                 handleSearch(query);
             } else {
@@ -58,7 +58,7 @@ const GlobalSearch = ({ visible, onClose }) => {
             }
         }, 300); // Debounce
 
-        return () => clearTimeout(timeoutId);
+        return () => global.clearTimeout(timeoutId);
     }, [query]);
 
     const navigateToResult = (type, item) => {
