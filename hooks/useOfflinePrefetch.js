@@ -41,6 +41,7 @@ export default function useOfflinePrefetch() {
                             return response.json();
                         },
                         staleTime: tier.staleTime,
+                        retry: false, // Don't retry failed prefetches
                     });
                 };
 

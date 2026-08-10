@@ -11,7 +11,6 @@ import Animated, {
 import { useTheme } from '../theme';
 import { getGoogleDriveEmbedUrl } from '../utils/googleDrive';
 import { MaterialIcons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import SkeletonLoader from './SkeletonLoader';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -29,7 +28,7 @@ const CarouselItem = React.memo(({ item, width, height }) => {
 
     return (
         <View style={[styles.itemContainer, { width, height }]}>
-            <View style={[styles.imageContainer, { backgroundColor: colors.background }]}>
+            <View style={[styles.imageContainer, { backgroundColor: 'transparent' }]}>
                 {loading && (
                     <View style={styles.loadingContainer}>
                         <SkeletonLoader width={width} height={height} borderRadius={0} />
@@ -43,7 +42,7 @@ const CarouselItem = React.memo(({ item, width, height }) => {
                     <Image
                         source={imageUrl}
                         style={styles.image}
-                        contentFit="cover"
+                        contentFit="contain"
                         transition={200}
                         cachePolicy="memory-disk"
                         recyclingKey={`carousel-${item}`}
@@ -64,6 +63,7 @@ CarouselItem.displayName = 'CarouselItem';
 
 // Animated pagination dot
 const PaginationDot = React.memo(({ index, scrollX, itemWidth }) => {
+    const { colors } = useTheme();
     const dotStyle = useAnimatedStyle(() => {
         const inputRange = [
             (index - 1) * itemWidth,
@@ -74,13 +74,13 @@ const PaginationDot = React.memo(({ index, scrollX, itemWidth }) => {
             width: interpolate(
                 scrollX.value,
                 inputRange,
-                [6, 20, 6],
+                [8, 24, 8],
                 Extrapolation.CLAMP,
             ),
             opacity: interpolate(
                 scrollX.value,
                 inputRange,
-                [0.5, 1, 0.5],
+                [0.3, 1, 0.3],
                 Extrapolation.CLAMP,
             ),
         };
@@ -90,7 +90,7 @@ const PaginationDot = React.memo(({ index, scrollX, itemWidth }) => {
         <Animated.View
             style={[
                 styles.dot,
-                { backgroundColor: '#fff' },
+                { backgroundColor: colors.primary },
                 dotStyle,
             ]}
         />
@@ -153,11 +153,11 @@ export default function SchoolPhotoCarousel({ photos }) {
 
     // Calculate item width based on container padding
     const ITEM_WIDTH = SCREEN_WIDTH - 32; // 16px padding on each side
-    const ITEM_HEIGHT = 300; // Increased height for better visibility
+    const ITEM_HEIGHT = 240; // Sleek modern banner height
 
     return (
         <View style={styles.container}>
-            <View style={[styles.carouselWrapper, { height: ITEM_HEIGHT, width: ITEM_WIDTH, backgroundColor: colors.background }]}>
+            <View style={[styles.carouselWrapper, { height: ITEM_HEIGHT, width: ITEM_WIDTH, backgroundColor: 'transparent' }]}>
                 <AnimatedFlatList
                     ref={flatListRef}
                     data={photos}
@@ -181,28 +181,21 @@ export default function SchoolPhotoCarousel({ photos }) {
                         index,
                     })}
                 />
-
-                {/* Gradient Overlay for Text/Dots Visibility */}
-                <LinearGradient
-                    colors={['transparent', 'rgba(0,0,0,0.2)']}
-                    style={styles.gradientOverlay}
-                    pointerEvents="none"
-                />
-
-                {/* Pagination Dots — fully Reanimated, UI-thread driven */}
-                {photos.length > 1 && (
-                    <View style={styles.pagination}>
-                        {photos.map((_, index) => (
-                            <PaginationDot
-                                key={index}
-                                index={index}
-                                scrollX={scrollX}
-                                itemWidth={ITEM_WIDTH}
-                            />
-                        ))}
-                    </View>
-                )}
             </View>
+
+            {/* Pagination Dots — fully Reanimated, UI-thread driven */}
+            {photos.length > 1 && (
+                <View style={styles.pagination}>
+                    {photos.map((_, index) => (
+                        <PaginationDot
+                            key={index}
+                            index={index}
+                            scrollX={scrollX}
+                            itemWidth={ITEM_WIDTH}
+                        />
+                    ))}
+                </View>
+            )}
         </View>
     );
 }
@@ -213,14 +206,8 @@ const styles = StyleSheet.create({
         marginBottom: 24,
     },
     carouselWrapper: {
-        borderRadius: 20,
+        borderRadius: 24,
         overflow: 'hidden',
-        // Shadow
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-        elevation: 8,
         position: 'relative',
     },
     itemContainer: {
@@ -255,17 +242,14 @@ const styles = StyleSheet.create({
         height: 30,
     },
     pagination: {
-        position: 'absolute',
-        bottom: 12,
-        left: 0,
-        right: 0,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
+        marginTop: 12,
     },
     dot: {
-        height: 6,
-        borderRadius: 3,
-        marginHorizontal: 3,
+        height: 8,
+        borderRadius: 4,
+        marginHorizontal: 4,
     },
 });

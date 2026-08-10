@@ -61,8 +61,8 @@ export function useApiQuery(key, url, options = {}) {
         // Prevent retry on auth errors (401)
         // For other errors, retry as per default or passed options
         retry: (failureCount, error) => {
-            if (error?.isAuthError) {
-                return false; // Don't retry 401 errors
+            if (error?.isAuthError || (error?.status >= 400 && error?.status < 500)) {
+                return false; // Don't retry 4xx client errors (like 401, 403, 404)
             }
             // For other errors, use default retry logic or passed retry option
             if (options.retry === false) {
@@ -116,8 +116,8 @@ export function useApiInfiniteQuery(key, urlFn, options = {}) {
         },
         // Prevent retry on auth errors (401)
         retry: (failureCount, error) => {
-            if (error?.isAuthError) {
-                return false;
+            if (error?.isAuthError || (error?.status >= 400 && error?.status < 500)) {
+                return false; // Don't retry 4xx client errors
             }
             if (options.retry === false) {
                 return false;
@@ -170,7 +170,10 @@ export const createApiMutationFn = (url, method = 'POST') => async (data) => {
 
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        const isAuthError = response.status === 401 || (response.status === 403 && errorData.message === 'Invalid or expired token');
+        // Do not treat login 401 as a token expiration error
+        const isLoginEndpoint = url.includes('/auth/login');
+        const isAuthError = !isLoginEndpoint && (response.status === 401 || (response.status === 403 && errorData.message === 'Invalid or expired token'));
+        
         const error = new ApiError(
             errorData.message || 'Network request failed',
             response.status,

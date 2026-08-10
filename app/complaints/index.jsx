@@ -11,7 +11,10 @@ import {
     Alert,
     ActionSheetIOS,
     Platform,
-    ScrollView
+    ScrollView,
+    KeyboardAvoidingView,
+    Keyboard,
+    TouchableWithoutFeedback
 } from "react-native";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -23,6 +26,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import Header from "../../components/Header";
 import { useToast } from "../../components/ToastProvider";
 import formatClassName from '../../utils/formatClassName';
+import { useAuth } from "../../context/AuthContext";
 
 
 export default function ComplaintsScreen() {
@@ -30,6 +34,10 @@ export default function ComplaintsScreen() {
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
     const queryClient = useQueryClient();
+    const { user, userId: authUserId } = useAuth();
+
+    const userRole = user?.role;
+    const userId = authUserId || user?._id || user?.id;
 
     // Tabs: 
     // Student: 'my_complaints', 'teacher_feedback'
@@ -38,9 +46,8 @@ export default function ComplaintsScreen() {
     const [activeTab, setActiveTab] = useState("loading");
 
     const [refreshing, setRefreshing] = useState(false);
-    const [userRole, setUserRole] = useState(null);
-    const [userId, setUserId] = useState(null); // Need userId for permission checks locally if needed
     const [isClassTeacher, setIsClassTeacher] = useState(false);
+    const [expandedCards, setExpandedCards] = useState({});
 
     // Edit State
     const [editingFeedback, setEditingFeedback] = useState(null);
@@ -60,10 +67,10 @@ export default function ComplaintsScreen() {
     useEffect(() => {
         if (!userRole) return;
         const normalizedRole = userRole === 'super admin' ? 'super admin' : userRole;
-        if (normalizedRole === 'student' || normalizedRole === 'teacher') {
-            setActiveTab('my_complaints');
+        if (normalizedRole === 'student' || normalizedRole === 'teacher' || normalizedRole === 'staff' || normalizedRole === 'support_staff') {
+            setActiveTab(prev => (prev === 'loading' || prev === 'inbox' ? 'my_complaints' : prev));
         } else {
-            setActiveTab('inbox');
+            setActiveTab(prev => (prev === 'loading' || prev === 'my_complaints' ? 'inbox' : prev));
         }
     }, [userRole]);
 
@@ -180,77 +187,131 @@ export default function ComplaintsScreen() {
         });
     };
 
+    const getPriorityColor = (priority) => {
+        switch (priority) {
+            case 'High': return colors.error;
+            case 'Medium': return colors.warning;
+            case 'Low': return colors.success;
+            default: return colors.textSecondary;
+        }
+    };
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'Resolved': return colors.success;
+            case 'Rejected': return colors.error;
+            case 'In Progress': return colors.warning;
+            default: return colors.textSecondary;
+        }
+    };
+
 
     // --- Render Items ---
 
-    const renderComplaintItem = (item) => (
-        <Pressable
-            key={item._id}
-            style={({ pressed }) => [
-                styles.cardMinimal,
-                { marginBottom: 12, opacity: pressed ? 0.9 : 1 }
-            ]}
-        >
-            <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 12 }}>
-                <View style={{ flexDirection: "row", gap: 8 }}>
-                    <View style={{ paddingHorizontal: 10, paddingVertical: 4, backgroundColor: colors.primary + "15", borderRadius: 8 }}>
-                        <Text style={{ color: colors.primary, fontSize: 11, fontFamily: "DMSans-Bold" }}>{item.category}</Text>
+    const renderComplaintItem = (item) => {
+        const isExpanded = !!expandedCards[item._id];
+        const isLongDescription = item.description && item.description.length > 90;
+
+        return (
+            <Pressable
+                key={item._id}
+                onPress={() => setExpandedCards(prev => ({ ...prev, [item._id]: !prev[item._id] }))}
+                style={({ pressed }) => [
+                    styles.cardMinimal,
+                    { marginBottom: 12, opacity: pressed ? 0.95 : 1 }
+                ]}
+            >
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                    <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
+                        <View style={{ paddingHorizontal: 10, paddingVertical: 4, backgroundColor: colors.primary + "15", borderRadius: 8 }}>
+                            <Text style={{ color: colors.primary, fontSize: 11, fontFamily: "DMSans-Bold" }}>{item.category}</Text>
+                        </View>
+                        <View style={{ paddingHorizontal: 10, paddingVertical: 4, backgroundColor: getStatusColor(item.status) + "15", borderRadius: 8 }}>
+                            <Text style={{ color: getStatusColor(item.status), fontSize: 11, fontFamily: "DMSans-Bold" }}>{item.status}</Text>
+                        </View>
+                        {item.priority && (
+                            <View style={{ paddingHorizontal: 10, paddingVertical: 4, backgroundColor: getPriorityColor(item.priority) + "15", borderRadius: 8 }}>
+                                <Text style={{ color: getPriorityColor(item.priority), fontSize: 11, fontFamily: "DMSans-Bold" }}>{item.priority}</Text>
+                            </View>
+                        )}
                     </View>
-                    <View style={{ paddingHorizontal: 10, paddingVertical: 4, backgroundColor: getStatusColor(item.status) + "15", borderRadius: 8 }}>
-                        <Text style={{ color: getStatusColor(item.status), fontSize: 11, fontFamily: "DMSans-Bold" }}>{item.status}</Text>
-                    </View>
+                    <Text style={{ color: colors.textSecondary, fontSize: 12, fontFamily: "DMSans-Medium" }}>
+                        {new Date(item.createdAt).toLocaleDateString()}
+                    </Text>
                 </View>
-                <Text style={{ color: colors.textSecondary, fontSize: 12, fontFamily: "DMSans-Medium" }}>
-                    {new Date(item.createdAt).toLocaleDateString()}
+
+                <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 6 }}>{item.title}</Text>
+                <Text
+                    style={{ color: colors.textSecondary, fontFamily: "DMSans-Regular", fontSize: 14, lineHeight: 20 }}
+                    numberOfLines={isExpanded ? undefined : 3}
+                >
+                    {item.description}
                 </Text>
-            </View>
 
-            <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 6 }}>{item.title}</Text>
-            <Text style={{ color: colors.textSecondary, fontFamily: "DMSans-Regular", fontSize: 14, lineHeight: 20 }} numberOfLines={2}>
-                {item.description}
-            </Text>
-
-            {activeTab === 'inbox' && (
-                <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.border }}>
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                        <Text style={{ color: colors.textSecondary, fontSize: 12, fontFamily: "DMSans-Regular" }}>
-                            From: <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
-                                {item.raisedBy?.name || 'Unknown'}
-                                {item.raisedBy?.role ? ` (${item.raisedBy.role !== 'student' && item.raisedBy.designation ? item.raisedBy.designation : item.raisedBy.role === 'support_staff' ? 'Support Staff' : item.raisedBy.role})` : ''}
-                            </Text>
+                {isLongDescription && (
+                    <View style={{ flexDirection: "row", alignItems: "center", marginTop: 6 }}>
+                        <Text style={{ color: colors.primary, fontSize: 12, fontFamily: "DMSans-Bold" }}>
+                            {isExpanded ? "Show Less" : "Read Full Message"}
                         </Text>
-                        <Pressable
-                            onPress={() => {
-                                setSelectedComplaint(item);
-                                setStatus(item.status === 'Pending' ? 'In Progress' : item.status);
-                                setResponse(item.adminResponse || "");
-                            }}
-                            style={{ paddingHorizontal: 12, paddingVertical: 6, backgroundColor: colors.primary + "10", borderRadius: 8 }}
-                        >
-                            <Text style={{ color: colors.primary, fontSize: 12, fontFamily: "DMSans-Bold" }}>Update</Text>
-                        </Pressable>
+                        <MaterialIcons
+                            name={isExpanded ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+                            size={18}
+                            color={colors.primary}
+                        />
                     </View>
-                </View>
-            )}
+                )}
 
-            {item.adminResponse && activeTab === 'my_complaints' && (
-                <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.background + "50", borderRadius: 8, padding: 8 }}>
-                    <Text style={{ color: colors.primary, fontSize: 11, fontFamily: "DMSans-Bold", marginBottom: 2 }}>ADMIN RESPONSE</Text>
-                    <Text style={{ color: colors.textSecondary, fontSize: 13, fontFamily: "DMSans-Regular" }}>{item.adminResponse}</Text>
-                </View>
-            )}
-        </Pressable>
-    );
+                {activeTab === 'inbox' && (
+                    <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.border }}>
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                            <Text style={{ color: colors.textSecondary, fontSize: 12, fontFamily: "DMSans-Regular", flex: 1, marginRight: 8 }}>
+                                From: <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
+                                    {item.raisedBy?.name || 'Unknown'}
+                                    {item.raisedBy?.role ? ` (${item.raisedBy.role !== 'student' && item.raisedBy.designation ? item.raisedBy.designation : item.raisedBy.role === 'support_staff' ? 'Support Staff' : item.raisedBy.role})` : ''}
+                                </Text>
+                            </Text>
+                            <Pressable
+                                onPress={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedComplaint(item);
+                                    setStatus(item.status === 'Pending' ? 'In Progress' : item.status);
+                                    setResponse(item.adminResponse || "");
+                                }}
+                                style={{ paddingHorizontal: 12, paddingVertical: 6, backgroundColor: colors.primary + "10", borderRadius: 8 }}
+                            >
+                                <Text style={{ color: colors.primary, fontSize: 12, fontFamily: "DMSans-Bold" }}>Update</Text>
+                            </Pressable>
+                        </View>
+                    </View>
+                )}
+
+                {item.adminResponse && (activeTab === 'my_complaints' || isExpanded) && (
+                    <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.background + "50", borderRadius: 8, padding: 10 }}>
+                        <Text style={{ color: colors.primary, fontSize: 11, fontFamily: "DMSans-Bold", marginBottom: 2 }}>ADMIN RESPONSE</Text>
+                        <Text
+                            style={{ color: colors.textSecondary, fontSize: 13, fontFamily: "DMSans-Regular", lineHeight: 18 }}
+                            numberOfLines={isExpanded ? undefined : 3}
+                        >
+                            {item.adminResponse}
+                        </Text>
+                    </View>
+                )}
+            </Pressable>
+        );
+    };
 
     const renderFeedbackItem = (item) => {
         const canEdit = (userRole === 'teacher' && item.teacher?._id === userId) || userRole === 'admin' || userRole === 'super admin';
+        const isExpanded = !!expandedCards[item._id];
+        const isLongMessage = item.message && item.message.length > 100;
 
         return (
-            <View
+            <Pressable
                 key={item._id}
-                style={[
+                onPress={() => setExpandedCards(prev => ({ ...prev, [item._id]: !prev[item._id] }))}
+                style={({ pressed }) => [
                     styles.cardMinimal,
-                    { marginBottom: 12, borderLeftWidth: 4, borderLeftColor: colors.secondary }
+                    { marginBottom: 12, borderLeftWidth: 4, borderLeftColor: colors.secondary, opacity: pressed ? 0.95 : 1 }
                 ]}
             >
                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
@@ -268,13 +329,28 @@ export default function ComplaintsScreen() {
                 </View>
 
                 <View style={{ marginBottom: 12 }}>
-                    <Text style={{ color: colors.textPrimary, fontFamily: "DMSans-Regular", fontSize: 15, lineHeight: 22 }}>
+                    <Text
+                        style={{ color: colors.textPrimary, fontFamily: "DMSans-Regular", fontSize: 15, lineHeight: 22 }}
+                        numberOfLines={isExpanded ? undefined : 4}
+                    >
                         {item.message}
                     </Text>
+                    {isLongMessage && (
+                        <View style={{ flexDirection: "row", alignItems: "center", marginTop: 4 }}>
+                            <Text style={{ color: colors.primary, fontSize: 12, fontFamily: "DMSans-Bold" }}>
+                                {isExpanded ? "Show Less" : "Read Full Message"}
+                            </Text>
+                            <MaterialIcons
+                                name={isExpanded ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+                                size={18}
+                                color={colors.primary}
+                            />
+                        </View>
+                    )}
                 </View>
 
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.border }}>
-                    <View>
+                    <View style={{ flex: 1, marginRight: 8 }}>
                         {activeTab === 'teacher_feedback' || activeTab === 'feedback_logs' ? (
                             <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
                                 From: <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary }}>{item.teacher?.name}</Text>
@@ -288,26 +364,17 @@ export default function ComplaintsScreen() {
 
                     {canEdit && (
                         <View style={{ flexDirection: "row", gap: 16 }}>
-                            <Pressable onPress={() => handleEdit(item)}>
+                            <Pressable onPress={(e) => { e.stopPropagation(); handleEdit(item); }}>
                                 <MaterialIcons name="edit" size={18} color={colors.primary} />
                             </Pressable>
-                            <Pressable onPress={() => handleDelete(item)}>
+                            <Pressable onPress={(e) => { e.stopPropagation(); handleDelete(item); }}>
                                 <MaterialIcons name="delete" size={18} color={colors.error} />
                             </Pressable>
                         </View>
                     )}
                 </View>
-            </View>
+            </Pressable>
         );
-    };
-
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'Resolved': return colors.success;
-            case 'Rejected': return colors.error;
-            case 'In Progress': return colors.warning;
-            default: return colors.textSecondary;
-        }
     };
 
     // --- Tab Rendering ---
@@ -341,7 +408,7 @@ export default function ComplaintsScreen() {
             {/* Role-Based Tabs */}
             <View style={{ marginBottom: 16 }}>
                 <View style={{ flexDirection: "row", backgroundColor: colors.cardBackground, borderRadius: 12, padding: 4 }}>
-                    {userRole === 'student' && (
+                    {(userRole === 'student' || userRole === 'staff' || userRole === 'support_staff') && (
                         <>
                             <TabButton id="my_complaints" label="Complaints" />
                             <TabButton id="teacher_feedback" label="Feedback" />
@@ -410,6 +477,8 @@ export default function ComplaintsScreen() {
                     }}
                     keyExtractor={item => item._id}
                     contentContainerStyle={{ paddingBottom: 100 }}
+                    keyboardShouldPersistTaps="handled"
+                    keyboardDismissMode="on-drag"
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
                     ListEmptyComponent={() => (
                         <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6, paddingHorizontal: 20 }}>
@@ -522,152 +591,176 @@ export default function ComplaintsScreen() {
             )}
 
             {/* Edit Feedback Modal */}
-            <Modal visible={!!editingFeedback} transparent animationType="fade">
-                <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 20 }}>
-                    <View style={{ backgroundColor: colors.cardBackground, borderRadius: 24, padding: 24 }}>
-                        <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 20 }}>Edit Feedback</Text>
+            <Modal visible={!!editingFeedback} transparent animationType="fade" onRequestClose={() => setEditingFeedback(null)}>
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : "height"}
+                    style={{ flex: 1 }}
+                >
+                    <Pressable
+                        style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 20 }}
+                        onPress={Keyboard.dismiss}
+                    >
+                        <Pressable
+                            style={{ backgroundColor: colors.cardBackground, borderRadius: 24, padding: 24 }}
+                            onPress={(e) => e.stopPropagation()}
+                        >
+                            <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 20 }}>Edit Feedback</Text>
 
-                        <TextInput
-                            value={editMessage}
-                            onChangeText={setEditMessage}
-                            multiline
-                            numberOfLines={4}
-                            style={{
-                                backgroundColor: colors.background,
-                                borderRadius: 16,
-                                padding: 16,
-                                color: colors.textPrimary,
-                                fontFamily: "DMSans-Medium",
-                                fontSize: 15,
-                                minHeight: 120,
-                                textAlignVertical: "top",
-                                marginBottom: 24,
-                                borderWidth: 1,
-                                borderColor: colors.border
-                            }}
-                        />
-
-                        <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: 12 }}>
-                            <Pressable
-                                onPress={() => setEditingFeedback(null)}
-                                style={{ paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12, backgroundColor: colors.background }}
-                            >
-                                <Text style={{ color: colors.textSecondary, fontFamily: "DMSans-Bold" }}>Cancel</Text>
-                            </Pressable>
-                            <Pressable
-                                onPress={submitEdit}
+                            <TextInput
+                                value={editMessage}
+                                onChangeText={setEditMessage}
+                                multiline
+                                numberOfLines={4}
                                 style={{
-                                    backgroundColor: colors.primary,
-                                    paddingHorizontal: 24,
-                                    paddingVertical: 12,
-                                    borderRadius: 12,
-                                    shadowColor: colors.primary,
-                                    shadowOffset: { width: 0, height: 4 },
-                                    shadowOpacity: 0.3,
-                                    shadowRadius: 8,
-                                    elevation: 4
+                                    backgroundColor: colors.background,
+                                    borderRadius: 16,
+                                    padding: 16,
+                                    color: colors.textPrimary,
+                                    fontFamily: "DMSans-Medium",
+                                    fontSize: 15,
+                                    minHeight: 120,
+                                    textAlignVertical: "top",
+                                    marginBottom: 24,
+                                    borderWidth: 1,
+                                    borderColor: colors.border
                                 }}
-                                disabled={updateFeedbackMutation.isPending}
-                            >
-                                {updateFeedbackMutation.isPending ? (
-                                    <ActivityIndicator size="small" color="#fff" />
-                                ) : (
-                                    <Text style={{ color: "#fff", fontFamily: "DMSans-Bold" }}>Update</Text>
-                                )}
-                            </Pressable>
-                        </View>
-                    </View>
-                </View>
+                            />
+
+                            <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: 12 }}>
+                                <Pressable
+                                    onPress={() => setEditingFeedback(null)}
+                                    style={{ paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12, backgroundColor: colors.background }}
+                                >
+                                    <Text style={{ color: colors.textSecondary, fontFamily: "DMSans-Bold" }}>Cancel</Text>
+                                </Pressable>
+                                <Pressable
+                                    onPress={submitEdit}
+                                    style={{
+                                        backgroundColor: colors.primary,
+                                        paddingHorizontal: 24,
+                                        paddingVertical: 12,
+                                        borderRadius: 12,
+                                        shadowColor: colors.primary,
+                                        shadowOffset: { width: 0, height: 4 },
+                                        shadowOpacity: 0.3,
+                                        shadowRadius: 8,
+                                        elevation: 4
+                                    }}
+                                    disabled={updateFeedbackMutation.isPending}
+                                >
+                                    {updateFeedbackMutation.isPending ? (
+                                        <ActivityIndicator size="small" color="#fff" />
+                                    ) : (
+                                        <Text style={{ color: "#fff", fontFamily: "DMSans-Bold" }}>Update</Text>
+                                    )}
+                                </Pressable>
+                            </View>
+                        </Pressable>
+                    </Pressable>
+                </KeyboardAvoidingView>
             </Modal>
 
             {/* Admin Status Update Modal */}
-            <Modal visible={!!selectedComplaint} transparent animationType="slide">
-                <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
-                    <View style={{ backgroundColor: colors.cardBackground, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24 }}>
-                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                            <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>Update Status</Text>
-                            <Pressable
-                                onPress={() => setSelectedComplaint(null)}
-                                style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors.background, justifyContent: "center", alignItems: "center" }}
-                            >
-                                <MaterialIcons name="close" size={20} color={colors.textSecondary} />
-                            </Pressable>
-                        </View>
+            <Modal visible={!!selectedComplaint} transparent animationType="slide" onRequestClose={() => setSelectedComplaint(null)}>
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : "height"}
+                    style={{ flex: 1 }}
+                >
+                    <Pressable
+                        style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}
+                        onPress={Keyboard.dismiss}
+                    >
+                        <Pressable
+                            style={{ backgroundColor: colors.cardBackground, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: "85%" }}
+                            onPress={(e) => e.stopPropagation()}
+                        >
+                            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+                                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                                    <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>Update Status</Text>
+                                    <Pressable
+                                        onPress={() => setSelectedComplaint(null)}
+                                        style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors.background, justifyContent: "center", alignItems: "center" }}
+                                    >
+                                        <MaterialIcons name="close" size={20} color={colors.textSecondary} />
+                                    </Pressable>
+                                </View>
 
-                        <View style={{ marginBottom: 20 }}>
-                            <Text style={{ color: colors.textSecondary, fontSize: 13 }}>Complaint:</Text>
-                            <Text style={{ fontSize: 16, color: colors.textPrimary, fontFamily: "DMSans-Bold", marginTop: 4 }}>
-                                {selectedComplaint?.title}
-                            </Text>
-                        </View>
+                                <View style={{ marginBottom: 20 }}>
+                                    <Text style={{ color: colors.textSecondary, fontSize: 13 }}>Complaint:</Text>
+                                    <Text style={{ fontSize: 16, color: colors.textPrimary, fontFamily: "DMSans-Bold", marginTop: 4 }}>
+                                        {selectedComplaint?.title}
+                                    </Text>
+                                </View>
 
-                        <Text style={{ color: colors.textSecondary, marginBottom: 12, fontFamily: "DMSans-Medium" }}>Set Status</Text>
-                        <View style={{ flexDirection: "row", gap: 10, marginBottom: 24 }}>
-                            {['In Progress', 'Resolved', 'Rejected'].map(s => (
-                                <Pressable
-                                    key={s}
-                                    onPress={() => setStatus(s)}
+                                <Text style={{ color: colors.textSecondary, marginBottom: 12, fontFamily: "DMSans-Medium" }}>Set Status</Text>
+                                <View style={{ flexDirection: "row", gap: 10, marginBottom: 24 }}>
+                                    {['In Progress', 'Resolved', 'Rejected'].map(s => (
+                                        <Pressable
+                                            key={s}
+                                            onPress={() => setStatus(s)}
+                                            style={{
+                                                flex: 1,
+                                                padding: 12,
+                                                backgroundColor: status === s ? colors.primary : colors.background,
+                                                borderRadius: 12,
+                                                alignItems: "center",
+                                                borderWidth: 1,
+                                                borderColor: status === s ? colors.primary : colors.border
+                                            }}
+                                        >
+                                            <Text style={{ color: status === s ? "#fff" : colors.textPrimary, fontSize: 13, fontFamily: "DMSans-Bold" }}>{s}</Text>
+                                        </Pressable>
+                                    ))}
+                                </View>
+
+                                <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>Admin Response</Text>
+                                <TextInput
+                                    value={response}
+                                    onChangeText={setResponse}
+                                    placeholder="Write a response to the user..."
+                                    placeholderTextColor={colors.textSecondary}
+                                    multiline
+                                    numberOfLines={4}
                                     style={{
-                                        flex: 1,
-                                        padding: 12,
-                                        backgroundColor: status === s ? colors.primary : colors.background,
-                                        borderRadius: 12,
-                                        alignItems: "center",
+                                        backgroundColor: colors.background,
+                                        borderRadius: 16,
+                                        padding: 16,
+                                        color: colors.textPrimary,
+                                        fontFamily: "DMSans-Medium",
+                                        minHeight: 100,
+                                        textAlignVertical: "top",
+                                        marginBottom: 24,
                                         borderWidth: 1,
-                                        borderColor: status === s ? colors.primary : colors.border
+                                        borderColor: colors.border
+                                    }}
+                                />
+
+                                <Pressable
+                                    onPress={handleUpdateStatus}
+                                    disabled={updateStatusMutation.isPending}
+                                    style={{
+                                        backgroundColor: colors.primary,
+                                        padding: 18,
+                                        borderRadius: 16,
+                                        alignItems: "center",
+                                        opacity: updateStatusMutation.isPending ? 0.7 : 1,
+                                        shadowColor: colors.primary,
+                                        shadowOffset: { width: 0, height: 4 },
+                                        shadowOpacity: 0.3,
+                                        shadowRadius: 8,
+                                        elevation: 4
                                     }}
                                 >
-                                    <Text style={{ color: status === s ? "#fff" : colors.textPrimary, fontSize: 13, fontFamily: "DMSans-Bold" }}>{s}</Text>
+                                    {updateStatusMutation.isPending ? (
+                                        <ActivityIndicator size="small" color="#fff" />
+                                    ) : (
+                                        <Text style={{ color: "#fff", fontFamily: "DMSans-Bold", fontSize: 16 }}>Update Complaint</Text>
+                                    )}
                                 </Pressable>
-                            ))}
-                        </View>
-
-                        <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>Admin Response</Text>
-                        <TextInput
-                            value={response}
-                            onChangeText={setResponse}
-                            placeholder="Write a response to the user..."
-                            placeholderTextColor={colors.textSecondary}
-                            multiline
-                            numberOfLines={4}
-                            style={{
-                                backgroundColor: colors.background,
-                                borderRadius: 16,
-                                padding: 16,
-                                color: colors.textPrimary,
-                                fontFamily: "DMSans-Medium",
-                                minHeight: 100,
-                                textAlignVertical: "top",
-                                marginBottom: 24,
-                                borderWidth: 1,
-                                borderColor: colors.border
-                            }}
-                        />
-
-                        <Pressable
-                            onPress={handleUpdateStatus}
-                            disabled={updateStatusMutation.isPending}
-                            style={{
-                                backgroundColor: colors.primary,
-                                padding: 18,
-                                borderRadius: 16,
-                                alignItems: "center",
-                                opacity: updateStatusMutation.isPending ? 0.7 : 1,
-                                shadowColor: colors.primary,
-                                shadowOffset: { width: 0, height: 4 },
-                                shadowOpacity: 0.3,
-                                shadowRadius: 8,
-                                elevation: 4
-                            }}
-                        >
-                            {updateStatusMutation.isPending ? (
-                                <ActivityIndicator size="small" color="#fff" />
-                            ) : (
-                                <Text style={{ color: "#fff", fontFamily: "DMSans-Bold", fontSize: 16 }}>Update Complaint</Text>
-                            )}
+                            </ScrollView>
                         </Pressable>
-                    </View>
-                </View>
+                    </Pressable>
+                </KeyboardAvoidingView>
             </Modal>
 
         </View>
