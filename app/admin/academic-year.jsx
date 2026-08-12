@@ -192,23 +192,75 @@ export default function AcademicYearScreen() {
 
     const renderReportsTab = () => (
         <View style={{ marginTop: 16 }}>
+            {/* Year Selector */}
             <View style={{
-                backgroundColor: colors.surfaceContainerHigh,
-                borderRadius: 12,
+                backgroundColor: colors.surfaceContainerLow,
+                borderRadius: 16,
                 marginBottom: 16,
                 borderWidth: 1,
-                borderColor: colors.outlineVariant
+                borderColor: colors.outlineVariant + '40',
+                padding: 16,
             }}>
-                <Picker
-                    selectedValue={selectedYearId}
-                    onValueChange={(itemValue) => setSelectedYearId(itemValue)}
-                    style={{ color: colors.onSurface }}
-                    dropdownIconColor={colors.onSurfaceVariant}
-                >
-                    {years.map((year) => (
-                        <Picker.Item key={year._id} label={year.name} value={year._id} />
-                    ))}
-                </Picker>
+                <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 8,
+                    marginBottom: 10,
+                }}>
+                    <View style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 10,
+                        backgroundColor: colors.primary + '15',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}>
+                        <MaterialIcons name="calendar-today" size={16} color={colors.primary} />
+                    </View>
+                    <Text style={{
+                        fontSize: 13,
+                        fontFamily: 'DMSans-Bold',
+                        color: colors.onSurfaceVariant,
+                        letterSpacing: 0.3,
+                    }}>
+                        Academic Year
+                    </Text>
+                </View>
+                <View style={{
+                    backgroundColor: colors.surfaceContainerHigh,
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    borderColor: colors.outlineVariant + '50',
+                    overflow: 'hidden',
+                }}>
+                    <Picker
+                        selectedValue={selectedYearId}
+                        onValueChange={(itemValue) => setSelectedYearId(itemValue)}
+                        style={{
+                            color: colors.onSurface,
+                            height: 48,
+                            paddingHorizontal: 12,
+                            fontSize: 15,
+                            fontFamily: 'DMSans-Medium',
+                            backgroundColor: 'transparent',
+                            borderWidth: 0,
+                        }}
+                        dropdownIconColor={colors.primary}
+                    >
+                        {years.map((year) => (
+                            <Picker.Item
+                                key={year._id}
+                                label={year.name + (year.isActive ? '  ● Active' : '')}
+                                value={year._id}
+                                style={{
+                                    fontFamily: 'DMSans-Medium',
+                                    fontSize: 15,
+                                    color: colors.onSurface,
+                                }}
+                            />
+                        ))}
+                    </Picker>
+                </View>
             </View>
 
             {reportLoading ? (
