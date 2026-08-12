@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, RefreshControl, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -6,11 +6,9 @@ import { useTheme } from '../../theme';
 import StatCard from './StatCard';
 import ChartCard from './ChartCard';
 import DateRangePicker from '../DateRangePicker';
-import { LoadingState, ErrorState, EmptyState } from '../StateComponents';
-import apiFetch from '../../utils/apiFetch';
+import { LoadingState, EmptyState } from '../StateComponents';
 import apiConfig from '../../config/apiConfig';
 import { useApiQuery } from '../../hooks/useApi';
-import { useFocusEffect } from 'expo-router';
 import { formatClassName } from '../../utils/formatClassName';
 
 const TeacherDashboard = () => {

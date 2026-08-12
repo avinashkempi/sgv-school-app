@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable, Alert } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme } from "../theme";
 
 const getTimeAgo = (dateString) => {
     if (!dateString) return '';

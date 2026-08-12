@@ -1,17 +1,14 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, ScrollView, RefreshControl, Pressable, Dimensions } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, RefreshControl, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import StatCard from './StatCard';
-import ChartCard from './ChartCard';
 import DateRangePicker from '../DateRangePicker';
 import { LoadingState, ErrorState, EmptyState } from '../StateComponents';
-import apiFetch from '../../utils/apiFetch';
 import apiConfig from '../../config/apiConfig';
 import { useApiQuery } from '../../hooks/useApi';
 import { CACHE_TIERS } from '../../utils/cacheConfig';
-import { useFocusEffect } from 'expo-router';
 
 const AdminDashboard = () => {
     const router = useRouter();

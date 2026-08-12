@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable } from 'react-native';
 import { useTheme } from '../theme';
 
 /**
@@ -17,6 +17,7 @@ const Card = ({
     contentStyle,
     ...props
 }) => {
+    // eslint-disable-next-line no-unused-vars
     const { colors, styles } = useTheme();
 
     const getBackgroundColor = () => {

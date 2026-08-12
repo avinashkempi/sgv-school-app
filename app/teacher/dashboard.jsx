@@ -1,14 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
     View,
     Text,
     ScrollView,
     Pressable,
     RefreshControl,
-    ActivityIndicator,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import storage from "../../utils/storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
 import apiConfig from "../../config/apiConfig";
@@ -24,8 +22,10 @@ import { EmptyState, LoadingState } from "../../components/StateComponents";
 
 export default function TeacherDashboard() {
     const router = useRouter();
+    // eslint-disable-next-line no-unused-vars
     const { styles, colors } = useTheme();
     const { _showToast } = useToast();
+    // eslint-disable-next-line no-unused-vars
     const { user, userId } = useAuth();
 
     const [refreshing, setRefreshing] = useState(false);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
     View,
     Text,
@@ -8,7 +8,6 @@ import {
     ActivityIndicator,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import storage from "../../utils/storage";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "../../theme";
 import apiConfig from "../../config/apiConfig";
@@ -24,7 +23,8 @@ export default function TeacherClassesScreen() {
     const { action } = params;
     const { styles, colors } = useTheme();
     const { _showToast } = useToast();
-    const { user } = useAuth();
+    const { user, userId: authUserId } = useAuth();
+    const userId = user?.id || user?._id || authUserId;
     const [refreshing, setRefreshing] = useState(false);
 
     const { data: classesData, isLoading: loading, refetch } = useApiQuery(

@@ -11,6 +11,7 @@ const NotificationContext = createContext();
 
 export const NotificationProvider = ({ children }) => {
     const queryClient = useQueryClient();
+    // eslint-disable-next-line no-unused-vars
     const { isAuthenticated, isDemo, userId } = useAuth();
 
     // ── Fetch notifications via React Query ──

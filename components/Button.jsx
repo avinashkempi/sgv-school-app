@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, Pressable, ActivityIndicator, View } from 'react-native';
+import { Text, Pressable, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../theme';
 
@@ -24,6 +24,7 @@ const Button = ({
     textStyle,
     ...props
 }) => {
+    // eslint-disable-next-line no-unused-vars
     const { colors, styles } = useTheme();
 
     // Determine Colors based on Variant

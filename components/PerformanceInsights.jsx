@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, Pressable } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../theme';
 import Card from './Card';
@@ -189,7 +189,7 @@ export default function PerformanceInsights({ reportData }) {
             <Text style={{ fontSize: 18, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginTop: 20, marginBottom: 12 }}>
                 Areas to Improve 📚
             </Text>
-            {insights.weaknesses.map((item, index) => (
+            {insights.weaknesses.map((item, _index) => (
                 <Card key={item.subject} variant="outlined" style={{ marginBottom: 12 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                         <View style={{

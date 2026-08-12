@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Pressable, Modal, FlatList, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Modal, FlatList, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import apiFetch from '../../utils/apiFetch';
@@ -76,6 +76,7 @@ const YearSelector = ({ onYearChanged }) => {
     useEffect(() => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
         fetchYears();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleSelectYear = async (year) => {

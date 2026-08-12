@@ -15,22 +15,26 @@ import apiConfig from "../config/apiConfig";
 import { useApiQuery } from "../hooks/useApi";
 import { CACHE_TIERS } from "../utils/cacheConfig";
 import { useAuth } from "../context/AuthContext";
-import { useEffect, useCallback } from "react";
+import { useEffect } from "react";
 
 import AdminDashboard from "../components/dashboard/AdminDashboard";
 import TeacherDashboard from "../components/dashboard/TeacherDashboard";
 import StudentDashboard from "../components/dashboard/StudentDashboard";
 
 export default function HomeScreen() {
+  // eslint-disable-next-line no-unused-vars
   const router = useRouter();
   const fadeStyle = useFade();
   const { styles, colors, mode } = useTheme();
   const { schoolInfo: SCHOOL, refresh } = useSchoolInfo();
   const [refreshing, setRefreshing] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const { showToast } = useToast();
+  // eslint-disable-next-line no-unused-vars
   const { isConnected } = useNetworkStatus();
   const { updateUser, isAuthenticated } = useAuth();
 
+  // eslint-disable-next-line no-unused-vars
   const { data: userData, isError, error, refetch: refetchUser } = useApiQuery(
     ['currentUser'],
     `${apiConfig.baseUrl}/auth/me`,
@@ -58,6 +62,7 @@ export default function HomeScreen() {
         refresh(true),
         refetchUser()
       ]);
+    // eslint-disable-next-line no-unused-vars
     } catch (err) {
       // Suppress error
     } finally {

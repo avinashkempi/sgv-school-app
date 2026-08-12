@@ -11,6 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../theme';
 
 export default function SkeletonLoader({ width = '100%', height = 20, style, borderRadius = 8 }) {
+    // eslint-disable-next-line no-unused-vars
     const { colors, mode } = useTheme();
     const animatedValue = useSharedValue(0);
 
@@ -20,6 +21,7 @@ export default function SkeletonLoader({ width = '100%', height = 20, style, bor
             -1,
             false
         );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const baseColor = mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.08)';

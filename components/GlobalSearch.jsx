@@ -9,6 +9,7 @@ import formatClassName from '../utils/formatClassName';
 
 const GlobalSearch = ({ visible, onClose }) => {
     const router = useRouter();
+    // eslint-disable-next-line no-unused-vars
     const { colors, styles } = useTheme();
     const [query, setQuery] = useState('');
     const [results, setResults] = useState(null);

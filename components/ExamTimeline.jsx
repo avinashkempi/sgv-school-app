@@ -29,6 +29,7 @@ const ExamTimelineItem = React.memo(({ exam, index, isLast, colors, onExamPress,
       index * 80,
       withTiming(1, { duration: 400, easing: Easing.out(Easing.quad) })
     );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({

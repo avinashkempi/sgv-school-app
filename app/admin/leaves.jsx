@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, RefreshControl, ActivityIndicator, ScrollView, Switch, SectionList, Pressable } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, RefreshControl, ActivityIndicator, ScrollView, SectionList, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -12,6 +12,7 @@ import Header from '../../components/Header';
 import formatClassName from '../../utils/formatClassName';
 
 export default function AdminLeaves() {
+    // eslint-disable-next-line no-unused-vars
     const router = useRouter();
     const { showToast } = useToast();
     const queryClient = useQueryClient();

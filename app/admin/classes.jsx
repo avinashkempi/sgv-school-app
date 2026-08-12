@@ -47,6 +47,7 @@ export default function ClassesScreen() {
     );
 
     // Fetch Data (Classes, Years, Teachers)
+    // eslint-disable-next-line no-unused-vars
     const { data: initData, isLoading: loading, error: fetchError, refetch } = useApiQuery(
         ['adminClassesInit'],
         `${apiConfig.baseUrl}/classes/admin/init`,

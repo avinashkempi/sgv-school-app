@@ -21,12 +21,14 @@ import PerformanceChart from '../../components/PerformanceChart';
  * Shared component for Admin and Teachers to view comprehensive class analytics
  */
 export default function ClassReportsDashboard() {
+    // eslint-disable-next-line no-unused-vars
     const router = useRouter();
     const params = useLocalSearchParams();
     const { colors } = useTheme();
 
     const [refreshing, setRefreshing] = useState(false);
     const [selectedExamType, setSelectedExamType] = useState(null); // null = all exams
+    // eslint-disable-next-line no-unused-vars
     const [selectedClass, setSelectedClass] = useState(params.classId || null);
 
     // Fetch class analytics
@@ -84,12 +86,14 @@ export default function ClassReportsDashboard() {
         // If no grades yet, return null to not render the chart
         if (total === 0) return null;
 
+        // eslint-disable-next-line no-unused-vars
         return Object.keys(dist).map((grade, index) => ({
             name: grade,
             value: dist[grade],
             color: getGradeColor(grade),
             legendFontColor: colors.onSurface
         }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [analyticsData, colors.onSurface]);
 
     const topPerformersData = useMemo(() => {

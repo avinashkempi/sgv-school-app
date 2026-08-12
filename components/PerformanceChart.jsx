@@ -28,6 +28,7 @@ export default function PerformanceChart({
         backgroundGradientTo: colors.surface,
         decimalPlaces: 1,
         color: (opacity = 1) => `rgba(33, 150, 243, ${opacity})`,
+        // eslint-disable-next-line no-unused-vars
         labelColor: (opacity = 1) => colors.onSurface,
         style: {
             borderRadius: 16

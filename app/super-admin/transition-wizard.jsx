@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
@@ -96,6 +96,7 @@ export default function TransitionWizardScreen() {
         });
     };
 
+    // eslint-disable-next-line no-unused-vars
     const handleUpdatePromotion = (index, field, value) => {
         const updated = [...editedPromotionPlan];
         updated[index] = { ...updated[index], [field]: value };

@@ -12,7 +12,6 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
-import { useRouter } from "expo-router";
 import { useTheme } from "../theme";
 import apiConfig from "../config/apiConfig";
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../hooks/useApi";
@@ -46,6 +45,7 @@ const getColor = (type, colors) => {
 };
 
 // Extracted and memoized notification item
+// eslint-disable-next-line react/display-name
 const NotificationItem = memo(({ notif, colors, markAsRead, handleDelete, isAdmin }) => {
     const handlePress = useCallback(() => {
         if (!notif.isRead) markAsRead(notif._id);

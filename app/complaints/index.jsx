@@ -9,16 +9,13 @@ import {
     Modal,
     TextInput,
     Alert,
-    ActionSheetIOS,
     Platform,
     ScrollView,
     KeyboardAvoidingView,
-    Keyboard,
-    TouchableWithoutFeedback
+    Keyboard
 } from "react-native";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
-import storage from "../../utils/storage";
 import { useTheme } from "../../theme";
 import apiConfig from "../../config/apiConfig";
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/useApi";
@@ -46,6 +43,7 @@ export default function ComplaintsScreen() {
     const [activeTab, setActiveTab] = useState("loading");
 
     const [refreshing, setRefreshing] = useState(false);
+    // eslint-disable-next-line no-unused-vars
     const [isClassTeacher, setIsClassTeacher] = useState(false);
     const [expandedCards, setExpandedCards] = useState({});
 

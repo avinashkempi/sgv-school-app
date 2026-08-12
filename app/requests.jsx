@@ -28,7 +28,6 @@ export default function RequestsScreen() {
 
     const onRefresh = async () => {
         setRefreshing(true);
-        await loadUser();
         if (user && user.role === 'teacher') {
             await refetchClasses();
         }

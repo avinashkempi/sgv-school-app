@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
     View,
     Text,
@@ -22,6 +22,7 @@ export default function AssessmentDashboard() {
     const router = useRouter();
     const { _styles, colors } = useTheme();
     const { showToast } = useToast();
+    // eslint-disable-next-line no-unused-vars
     const { user, userId } = useAuth();
 
     const [selectedClass, setSelectedClass] = useState(null);

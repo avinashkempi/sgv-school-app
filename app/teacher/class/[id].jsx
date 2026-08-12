@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
     View,
     Text,
@@ -6,7 +6,6 @@ import {
     Pressable,
     TextInput as RNTextInput,
     RefreshControl,
-    ActivityIndicator,
     Modal,
     Alert
 } from "react-native";
@@ -28,6 +27,7 @@ import { EmptyState } from "../../../components/StateComponents";
 export default function ClassDetailsScreen() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
+    // eslint-disable-next-line no-unused-vars
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
     const { user } = useAuth();
@@ -47,6 +47,7 @@ export default function ClassDetailsScreen() {
     const [selectedStudentIds, setSelectedStudentIds] = useState([]);
 
     // Fetch Class Details
+    // eslint-disable-next-line no-unused-vars
     const { data, isLoading: loading, refetch } = useApiQuery(
         ['classDetails', id],
         `${apiConfig.baseUrl}/classes/${id}/full-details`,
@@ -154,6 +155,7 @@ export default function ClassDetailsScreen() {
                 try {
                     await addSubjectMutation.mutateAsync(subjectId);
                     successCount++;
+                // eslint-disable-next-line no-unused-vars
                 } catch (error) {
                     failCount++;
                 }

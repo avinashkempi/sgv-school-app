@@ -5,7 +5,6 @@ import {
     FlatList,
     ActivityIndicator,
     RefreshControl,
-    TouchableOpacity,
     Dimensions
 } from "react-native";
 import { useTheme } from "../theme";
@@ -65,6 +64,7 @@ export default function AttendanceView({
             };
         });
         return marks;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [attendanceHistory, colors]);
 
     const monthlyBreakdown = summary?.monthlyBreakdown || [];

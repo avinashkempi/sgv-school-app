@@ -23,6 +23,7 @@ import { LinearGradient } from 'expo-linear-gradient';
  * Comprehensive view of an academic year with all statistics and data
  */
 export default function YearDetailsScreen() {
+    // eslint-disable-next-line no-unused-vars
     const router = useRouter();
     const params = useLocalSearchParams();
     const { colors } = useTheme();

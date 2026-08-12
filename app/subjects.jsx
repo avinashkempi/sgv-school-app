@@ -1,5 +1,5 @@
 import React, { useState, } from "react";
-import { View, Text, ScrollView, RefreshControl, ActivityIndicator, Pressable } from "react-native";
+import { View, Text, ScrollView, RefreshControl, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -52,6 +52,7 @@ export default function SubjectsScreen() {
                         return { ...cls, subjects: data.subjects || [] };
                     }
                     return cls;
+                // eslint-disable-next-line no-unused-vars
                 } catch (e) {
                     return cls;
                 }

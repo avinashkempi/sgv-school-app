@@ -100,6 +100,7 @@ const PaginationDot = React.memo(({ index, scrollX, itemWidth }) => {
 PaginationDot.displayName = 'PaginationDot';
 
 export default function SchoolPhotoCarousel({ photos }) {
+    // eslint-disable-next-line no-unused-vars
     const { colors } = useTheme();
     const scrollX = useSharedValue(0);
     const flatListRef = useRef(null);

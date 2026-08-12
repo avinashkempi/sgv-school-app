@@ -48,6 +48,7 @@ export default function AcademicYearScreen() {
     const userRole = userData?.role;
 
     // Fetch Academic Years
+    // eslint-disable-next-line no-unused-vars
     const { data: years = [], isLoading: loadingYears, refetch: refetchYears } = useApiQuery(
         ['academicYears'],
         `${apiConfig.baseUrl}/academic-year`

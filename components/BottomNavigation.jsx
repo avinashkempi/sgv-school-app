@@ -17,6 +17,7 @@ import { ROUTES } from "../constants/routes";
 import { useAuth } from '../context/AuthContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+// eslint-disable-next-line no-unused-vars
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 function BottomNavigation() {
@@ -125,7 +126,6 @@ const TabItem = memo(({ item, isActive, onPress, colors }) => {
   const activeProgress = useSharedValue(isActive ? 1 : 0);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/immutability
     activeProgress.value = withTiming(isActive ? 1 : 0, { duration: 250 });
   }, [isActive, activeProgress]);
 

@@ -31,6 +31,7 @@ export default function MarkAttendanceScreen() {
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [students, setStudents] = useState([]);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    // eslint-disable-next-line no-unused-vars
     const [originalStatuses, setOriginalStatuses] = useState({});
 
     const dateStr = useMemo(() => selectedDate.toISOString().split('T')[0], [selectedDate]);

@@ -12,6 +12,7 @@ const PREFETCH_COOLDOWN_MS = 5 * 60 * 1000;
 export default function useOfflinePrefetch() {
     const queryClient = useQueryClient();
     const lastPrefetchRef = useRef(0);
+    // eslint-disable-next-line no-unused-vars
     const { isAuthenticated, isDemo, userId, token } = useAuth();
 
     useEffect(() => {

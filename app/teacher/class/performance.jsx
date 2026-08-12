@@ -18,6 +18,7 @@ import { LineChart, } from "react-native-chart-kit";
 
 const { width } = Dimensions.get('window');
 
+// eslint-disable-next-line no-unused-vars
 const EXAM_COLORS = {
     'FA1': '#4CAF50',
     'FA2': '#2196F3',
@@ -155,6 +156,7 @@ export default function ClassPerformanceScreen() {
                                     backgroundGradientFrom: colors.cardBackground,
                                     backgroundGradientTo: colors.cardBackground,
                                     decimalPlaces: 0,
+                                    // eslint-disable-next-line no-unused-vars
                                     color: (opacity = 1) => colors.primary,
                                     labelColor: (_opacity = 1) => colors.textSecondary,
                                     style: { borderRadius: 16 },

@@ -100,6 +100,7 @@ export default function AdminExamScheduleScreen() {
     const [selectedClassId, setSelectedClassId] = useState(null);
     const [deletingExamId, setDeletingExamId] = useState(null);
 
+    // eslint-disable-next-line no-unused-vars
     const [activeTab, setActiveTab] = useState('schedules'); // Reverting tab code but keep string as fallback or remove if not used elsewhere, let's remove it entirely
     // const [statusSearch, setStatusSearch] = useState("");
     // const [statusFilter, setStatusFilter] = useState("All");
@@ -126,6 +127,7 @@ export default function AdminExamScheduleScreen() {
         `${apiConfig.baseUrl}/classes/admin/init`,
         CACHE_TIERS.STABLE
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const classes = classesData?.classes || [];
 
     // Set initial selected class
@@ -337,6 +339,7 @@ export default function AdminExamScheduleScreen() {
                 return updated;
             });
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [showPerSubjectMarks, allSubjects.length]);
 
     if (loading && classes.length === 0) {

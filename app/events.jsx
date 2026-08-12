@@ -278,6 +278,7 @@ export default function EventsScreen() {
             if (!event || !event.date) return false;
             try {
               return new Date(event.date).toISOString().split('T')[0] === selectedDate;
+            // eslint-disable-next-line no-unused-vars
             } catch (e) {
               return false;
             }
@@ -289,6 +290,7 @@ export default function EventsScreen() {
             return 0;
           })
         : [],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [selectedDate, allEvents, refreshFlag]
   );
 
@@ -307,6 +309,7 @@ export default function EventsScreen() {
         if (curr.isSchoolEvent) {
           acc[date].hasSchoolEvent = true;
         }
+      // eslint-disable-next-line no-unused-vars
       } catch (e) {
         // Ignore invalid dates
       }
@@ -321,6 +324,7 @@ export default function EventsScreen() {
     }
 
     return dates;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate, allEvents, refreshFlag]);
 
   return (

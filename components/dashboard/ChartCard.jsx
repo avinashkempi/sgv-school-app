@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, Dimensions } from 'react-native';
 import { useTheme } from '../../theme';
 import { LineChart, BarChart, PieChart } from 'react-native-chart-kit';
 
@@ -11,7 +11,9 @@ const ChartCard = ({ title, chartType, data, labels, height = 220, secondary = f
         backgroundGradientFrom: colors.surfaceContainer,
         backgroundGradientTo: colors.surfaceContainer,
         decimalPlaces: 0,
+        // eslint-disable-next-line no-unused-vars
         color: (opacity = 1) => secondary ? colors.tertiary : colors.primary,
+        // eslint-disable-next-line no-unused-vars
         labelColor: (opacity = 1) => colors.onSurfaceVariant,
         style: {
             borderRadius: 16

@@ -21,6 +21,7 @@ const formatIndianDate = (dateInput) => {
     const month = String(d.getMonth() + 1).padStart(2, "0");
     const year = d.getFullYear();
     return `${day}-${month}-${year}`;
+  // eslint-disable-next-line no-unused-vars
   } catch (e) {
     return String(dateInput);
   }

@@ -12,7 +12,6 @@ import {
     TouchableWithoutFeedback
 } from "react-native";
 import { useRouter } from "expo-router";
-import storage from "../../utils/storage";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../../theme";
 import apiConfig from "../../config/apiConfig";
@@ -23,6 +22,7 @@ import { useAuth } from "../../context/AuthContext";
 
 export default function RaiseComplaintScreen() {
     const router = useRouter();
+    // eslint-disable-next-line no-unused-vars
     const { styles, colors } = useTheme();
     const { showToast } = useToast();
     const { user } = useAuth();
@@ -31,8 +31,10 @@ export default function RaiseComplaintScreen() {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [category, setCategory] = useState("Facilities");
+    // eslint-disable-next-line no-unused-vars
     const [priority, setPriority] = useState("Medium");
     const [visibility, setVisibility] = useState("all_admins");
+    // eslint-disable-next-line no-unused-vars
     const [targetTeacher, setTargetTeacher] = useState("");
 
     useEffect(() => {

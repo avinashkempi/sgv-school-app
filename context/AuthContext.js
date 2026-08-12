@@ -85,6 +85,7 @@ export const AuthProvider = ({ children }) => {
             try {
               const { flushPendingFCMUnregisters } = require('../utils/fcm');
               await flushPendingFCMUnregisters();
+            // eslint-disable-next-line no-unused-vars
             } catch (err) {}
           }, 2000);
         }

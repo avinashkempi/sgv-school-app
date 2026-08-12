@@ -1,7 +1,7 @@
 import { Stack, useRouter, useSegments } from "expo-router";
 import { useFonts } from "expo-font";
 import { Text, Platform, ActivityIndicator } from "react-native";
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemeProvider, useTheme } from "../theme";
 import { ToastProvider, useToast } from "../components/ToastProvider";
@@ -42,6 +42,7 @@ function Inner() {
   const router = useRouter();
   const { syncYear } = useAcademicYear();
   const { showToast } = useToast();
+  // eslint-disable-next-line no-unused-vars
   const { isReady, isAuthenticated, isDemo, token, user, logout } = useAuth();
 
   useOfflinePrefetch();

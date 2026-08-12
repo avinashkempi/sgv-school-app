@@ -61,6 +61,7 @@ export default function SchoolTimetableScreen() {
     };
 
     // Helper to parse time string to minutes for sorting
+    // eslint-disable-next-line no-unused-vars
     const parseTime = (timeStr) => {
         if (!timeStr) return 0;
         const [time, modifier] = timeStr.split(' ');

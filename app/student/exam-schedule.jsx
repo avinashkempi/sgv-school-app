@@ -12,6 +12,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../theme';
+import { useAuth } from '../../context/AuthContext';
 import { useApiQuery } from '../../hooks/useApi';
 import { CACHE_TIERS } from '../../utils/cacheConfig';
 import apiConfig from '../../config/apiConfig';
@@ -25,6 +26,8 @@ import ExamTimeline from '../../components/ExamTimeline';
 export default function StudentExamScheduleScreen() {
     const router = useRouter();
     const { colors } = useTheme();
+    const { user, userId: authUserId } = useAuth();
+    const userId = user?.id || user?._id || authUserId;
     const [refreshing, setRefreshing] = useState(false);
     const [filterSubject, setFilterSubject] = useState(null);
 
@@ -37,6 +40,7 @@ export default function StudentExamScheduleScreen() {
             Animated.spring(heroAnim, { toValue: 1, useNativeDriver: true, tension: 60, friction: 8 }),
             Animated.spring(filterAnim, { toValue: 1, useNativeDriver: true, tension: 60, friction: 8 }),
         ]).start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Fetch exam schedule

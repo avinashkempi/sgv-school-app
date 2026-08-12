@@ -14,7 +14,6 @@ import { useApiQuery } from '../../hooks/useApi';
 import apiConfig from '../../config/apiConfig';
 import Header from '../../components/Header';
 import StatCard from '../../components/StatCard';
-import ExamCard from '../../components/ExamCard';
 import { useToast } from '../../components/ToastProvider';
 
 /**
@@ -52,10 +51,12 @@ export default function TeacherExamDashboard() {
         return acc;
     }, { examsCreated: 0, marksEntered: 0, marksPublished: 0, pending: 0 });
 
+    // eslint-disable-next-line no-unused-vars
     const handleQuickInit = () => {
         router.push('/teacher/subject/create-exam');
     };
 
+    // eslint-disable-next-line no-unused-vars
     const handleEnterMarks = (examId, examType) => {
         if (examId) {
             router.push(`/teacher/exam/enter-marks?examId=${examId}`);

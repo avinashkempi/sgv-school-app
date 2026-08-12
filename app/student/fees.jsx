@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
     View,
     Text,
@@ -12,6 +12,10 @@ import Header from "../../components/Header";
 import Card from "../../components/Card";
 import apiConfig from "../../config/apiConfig";
 import { useToast } from "../../components/ToastProvider";
+import { useRouter } from "expo-router";
+import { useTheme } from "../../theme";
+import { useApiQuery } from "../../hooks/useApi";
+import { CACHE_TIERS } from "../../utils/cacheConfig";
 
 export default function StudentFeesScreen() {
     const _router = useRouter();

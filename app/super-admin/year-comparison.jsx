@@ -19,6 +19,7 @@ import PerformanceChart from '../../components/PerformanceChart';
  * Compare multiple academic years side-by-side with analytics
  */
 export default function YearComparisonScreen() {
+    // eslint-disable-next-line no-unused-vars
     const router = useRouter();
     const { colors } = useTheme();
     const [selectedYears, setSelectedYears] = useState([]);

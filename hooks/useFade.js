@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import Animated, {
+import {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
@@ -23,6 +23,7 @@ export default function useFade(duration = 200, toValue = 1) {
       duration,
       easing: Easing.out(Easing.quad),
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [duration, toValue]);
 
   const fadeStyle = useAnimatedStyle(() => ({

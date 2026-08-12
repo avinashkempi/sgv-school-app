@@ -10,7 +10,6 @@ import {
     Animated
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import storage from "../../utils/storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
@@ -33,6 +32,7 @@ function AnimatedPercentage({ value, color, fontSize = 64 }) {
             duration: 1200,
             useNativeDriver: false,
         }).start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [value]);
 
     const [displayValue, setDisplayValue] = useState('0');
@@ -42,6 +42,7 @@ function AnimatedPercentage({ value, color, fontSize = 64 }) {
             setDisplayValue(v.toFixed(1));
         });
         return () => animValue.removeListener(listener);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
@@ -58,6 +59,7 @@ function AnimatedPercentage({ value, color, fontSize = 64 }) {
 
 export default function StudentReportCardScreen() {
     const _router = useRouter();
+    // eslint-disable-next-line no-unused-vars
     const { styles, colors, mode } = useTheme();
     const { user, userId: authUserId } = useAuth();
     const [refreshing, setRefreshing] = useState(false);
@@ -68,6 +70,7 @@ export default function StudentReportCardScreen() {
 
     useEffect(() => {
         Animated.spring(heroAnim, { toValue: 1, useNativeDriver: true, tension: 50, friction: 8 }).start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const userId = user?.id || user?._id || authUserId;

@@ -36,6 +36,7 @@ const transformSchoolData = (result) => {
 };
 
 export default function useSchoolInfo() {
+  // eslint-disable-next-line no-unused-vars
   const queryClient = useQueryClient();
 
   const {

@@ -3,8 +3,6 @@ import {
     View,
     Text,
     ScrollView,
-    Pressable,
-    TextInput,
     ActivityIndicator,
     RefreshControl,
     KeyboardAvoidingView,
@@ -22,6 +20,7 @@ import DataGrid from "../../../components/DataGrid";
 import StatCard from "../../../components/StatCard";
 
 export default function EnterMarksScreen() {
+    // eslint-disable-next-line no-unused-vars
     const router = useRouter();
     const params = useLocalSearchParams();
     const queryClient = useQueryClient();
@@ -46,6 +45,7 @@ export default function EnterMarksScreen() {
         `${apiConfig.baseUrl}/classes/${exam?.class?._id}/full-details`,
         { enabled: !!exam?.class?._id }
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const students = classData?.students || [];
 
     // Fetch Existing Marks
@@ -154,6 +154,7 @@ export default function EnterMarksScreen() {
         });
     };
 
+    // eslint-disable-next-line no-unused-vars
     const handleListSave = () => {
         const marksArray = Object.keys(marksData)
             .filter(studentId => marksData[studentId] !== '' && marksData[studentId] !== undefined)
@@ -182,6 +183,7 @@ export default function EnterMarksScreen() {
         });
     };
 
+    // eslint-disable-next-line no-unused-vars
     const getGradeColor = (grade) => {
         if (grade === 'A+') return colors.success;
         if (grade === 'A') return '#2196F3';

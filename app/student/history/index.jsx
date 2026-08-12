@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView, RefreshControl, Pressable } from 'react-native';
+import { View, Text, ScrollView, RefreshControl } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme } from '../../../theme';
@@ -10,7 +10,9 @@ import apiFetch from '../../../utils/apiFetch';
 import apiConfig from '../../../config/apiConfig';
 
 export default function StudentHistoryScreen() {
+    // eslint-disable-next-line no-unused-vars
     const router = useRouter();
+    // eslint-disable-next-line no-unused-vars
     const { colors, styles } = useTheme();
 
     const [historyData, setHistoryData] = useState([]);

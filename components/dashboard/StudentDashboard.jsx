@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, RefreshControl, Pressable } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -6,11 +6,9 @@ import { useTheme } from '../../theme';
 import StatCard from './StatCard';
 import ChartCard from './ChartCard';
 import { LoadingState, EmptyState } from '../StateComponents';
-import apiFetch from '../../utils/apiFetch';
 import apiConfig from '../../config/apiConfig';
 import { useApiQuery } from '../../hooks/useApi';
 import { CACHE_TIERS } from '../../utils/cacheConfig';
-import { useFocusEffect } from 'expo-router';
 
 const StudentDashboard = () => {
     const router = useRouter();

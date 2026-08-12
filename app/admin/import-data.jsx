@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Platform, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import * as DocumentPicker from 'expo-document-picker';
 import { useTheme } from '../../theme';
 import { useApiQuery } from '../../hooks/useApi';
 import Header from '../../components/Header';
@@ -12,6 +11,7 @@ import apiConfig from '../../config/apiConfig';
 import { useToast } from '../../components/ToastProvider';
 
 export default function ImportDataScreen() {
+    // eslint-disable-next-line no-unused-vars
     const router = useRouter();
     const { colors, styles } = useTheme();
     const { showToast } = useToast();

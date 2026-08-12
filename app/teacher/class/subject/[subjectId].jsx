@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
     View,
     Text,
@@ -9,7 +9,6 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
-import storage from "../../../../utils/storage";
 import { useTheme } from "../../../../theme";
 import { useAuth } from "../../../../context/AuthContext";
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../../../../hooks/useApi";
@@ -29,6 +28,7 @@ export default function SubjectDetailScreen() {
 
     const [refreshing, setRefreshing] = useState(false);
     const [showPostModal, setShowPostModal] = useState(false);
+    // eslint-disable-next-line no-unused-vars
     const { user } = useAuth();
 
     // Fetch Subject Details

@@ -7,7 +7,6 @@ import {
     RefreshControl,
     TouchableOpacity,
 } from "react-native";
-import storage from "../../utils/storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
@@ -37,6 +36,8 @@ export default function StudentAttendanceScreen() {
 
     // Monthly summary pagination
     const [monthlyVisible, setMonthlyVisible] = useState(MONTHLY_PAGE_SIZE);
+    
+    const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().split('T')[0]);
 
     const userId = user?.id || user?._id || authUserId;
 
@@ -75,6 +76,7 @@ export default function StudentAttendanceScreen() {
         if (userId) {
             fetchHistoryPage(1, true);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userId]);
 
     const loadMore = useCallback(async () => {
@@ -143,6 +145,7 @@ export default function StudentAttendanceScreen() {
             };
         });
         return marks;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [allHistory, colors]);
 
     const monthlyBreakdown = summary?.monthlyBreakdown || [];

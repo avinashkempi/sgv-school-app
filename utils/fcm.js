@@ -202,6 +202,7 @@ export async function unregisterFCMTokenFromBackend() {
       if (lastFcmToken && authToken && authToken !== 'demo-token') {
         await queueFailedUnregister(lastFcmToken, authToken);
       }
+    // eslint-disable-next-line no-unused-vars
     } catch (e) {
       // Ignore errors during fallback queueing
     }
@@ -255,6 +256,7 @@ export async function flushPendingFCMUnregisters() {
           // If it fails but NOT because of auth (e.g. 500 or network), keep it in queue
           remaining.push(item);
         }
+      // eslint-disable-next-line no-unused-vars
       } catch (err) {
         remaining.push(item);
       }

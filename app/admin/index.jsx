@@ -5,10 +5,8 @@ import {
   ScrollView,
   Pressable,
   TextInput,
-  Alert,
   RefreshControl,
   ActivityIndicator,
-  Modal,
   FlatList,
 } from "react-native";
 
@@ -42,6 +40,7 @@ export default function AdminScreen() {
   const [editingUser, setEditingUser] = useState(null);
   const [selectedDetailUser, setSelectedDetailUser] = useState(null);
 
+  // eslint-disable-next-line no-unused-vars
   const availableRoles = ["student", "teacher", "staff", "admin", "super admin", "support_staff"];
 
   // Check Auth & Admin
@@ -66,6 +65,7 @@ export default function AdminScreen() {
     (pageParam) => `${apiConfig.baseUrl}/users?page=${pageParam}&limit=${pageSize}&search=${searchQuery}&role=${roleFilter}`,
     {
       enabled: !!isAdmin, // Only fetch if admin check passes
+      // eslint-disable-next-line no-unused-vars
       getNextPageParam: (lastPage, pages) => {
         if (lastPage.pagination && lastPage.pagination.page < lastPage.pagination.pages) {
           return lastPage.pagination.page + 1;
@@ -107,6 +107,7 @@ export default function AdminScreen() {
     onError: (error) => showToast(error.message || "Failed to delete user", "error")
   });
 
+  // eslint-disable-next-line no-unused-vars
   const revertPromotionMutation = useApiMutation({
     mutationFn: (id) => createApiMutationFn(`${apiConfig.baseUrl}/users/${id}/revert-promotion`, 'PUT')(),
     onSuccess: (data) => {
@@ -116,6 +117,7 @@ export default function AdminScreen() {
     onError: (error) => showToast(error.message || "Failed to revert promotion", "error")
   });
 
+  // eslint-disable-next-line no-unused-vars
   const updateUserRole = (userId, newRole) => {
     updateUserMutation.mutate({ _id: userId, role: newRole });
   };

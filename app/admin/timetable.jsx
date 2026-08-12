@@ -45,6 +45,7 @@ export default function AdminTimetableScreen() {
         if (currentUser && currentUser.role !== 'admin' && currentUser.role !== 'super admin') {
             router.replace('/teacher/timetable');
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentUser]);
 
     // Filtered State for UI
@@ -548,6 +549,7 @@ export default function AdminTimetableScreen() {
                                 onPress={handleSaveTimetable}
                                 disabled={saveTimetableMutation.isPending}
                                 android_ripple={{ color: 'rgba(255, 255, 255, 0.2)' }}
+                                // eslint-disable-next-line no-unused-vars
                                 style={({ pressed }) => ({
                                     backgroundColor: colors.primary,
                                     borderRadius: 14,
@@ -743,6 +745,7 @@ export default function AdminTimetableScreen() {
                             <Pressable
                                 onPress={savePeriod}
                                 android_ripple={{ color: 'rgba(255, 255, 255, 0.2)' }}
+                                // eslint-disable-next-line no-unused-vars
                                 style={({ pressed }) => ({
                                     backgroundColor: colors.primary,
                                     padding: 18,
@@ -837,6 +840,7 @@ export default function AdminTimetableScreen() {
                                 onPress={handleCloneTimings}
                                 disabled={isCloning || !schedule[selectedDay] || schedule[selectedDay].length === 0}
                                 android_ripple={{ color: 'rgba(255, 255, 255, 0.2)' }}
+                                // eslint-disable-next-line no-unused-vars
                                 style={({ pressed }) => ({
                                     backgroundColor: colors.primary,
                                     padding: 18,

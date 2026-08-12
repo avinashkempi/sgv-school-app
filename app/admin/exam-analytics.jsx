@@ -37,6 +37,7 @@ export default function ExamAnalyticsScreen() {
     const fadeAnim = useRef(new Animated.Value(0)).current;
     useEffect(() => {
         Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Fetch school-wide performance

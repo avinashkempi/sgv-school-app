@@ -1,5 +1,5 @@
 import React, { useState, } from "react";
-import { View, Text, ScrollView, RefreshControl, ActivityIndicator, TextInput, Modal, Pressable, Alert, StatusBar } from "react-native";
+import { View, Text, ScrollView, RefreshControl, Modal, Pressable, StatusBar } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import storage from "../utils/storage";
 import { useTheme } from "../theme";

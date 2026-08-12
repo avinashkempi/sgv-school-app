@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, RefreshControl, ActivityIndicator, ScrollView, Switch, Pressable } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, RefreshControl, ActivityIndicator, ScrollView, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -12,12 +12,16 @@ import Header from '../../components/Header';
 import formatClassName from '../../utils/formatClassName';
 import SegmentedControl from '../../components/SegmentedControl';
 import { EmptyState } from '../../components/StateComponents';
+import { useAuth } from '../../context/AuthContext';
 
 export default function TeacherLeaves() {
+    // eslint-disable-next-line no-unused-vars
     const router = useRouter();
     const queryClient = useQueryClient();
     const { showToast } = useToast();
     const { colors, styles } = useTheme();
+    const { user, userId: authUserId } = useAuth();
+    const userId = user?.id || user?._id || authUserId;
     const [activeTab, setActiveTab] = useState('requests'); // 'requests' or 'my_leaves'
 
     // Data State
@@ -239,7 +243,9 @@ export default function TeacherLeaves() {
 
     const renderMyLeaveItem = ({ item }) => {
         const isRejected = item.status === 'rejected';
+        // eslint-disable-next-line no-unused-vars
         const start = new Date(item.startDate);
+        // eslint-disable-next-line no-unused-vars
         const end = new Date(item.endDate);
 
         return (
@@ -630,6 +636,7 @@ export default function TeacherLeaves() {
     );
 }
 
+// eslint-disable-next-line no-unused-vars
 const styles_internal = StyleSheet.create({
     // Kept for backward compatibility if needed
     label: {

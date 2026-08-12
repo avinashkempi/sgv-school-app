@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView, Pressable, RefreshControl, Switch } from 'react-native';
+import { View, Text, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme } from '../theme';
@@ -53,6 +53,7 @@ const NotificationCenter = () => {
     useFocusEffect(
         useCallback(() => {
             fetchNotifications();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [selectedCategory, filterRead])
     );
 

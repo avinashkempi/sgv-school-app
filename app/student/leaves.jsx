@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, RefreshControl, ActivityIndicator, ScrollView, Switch, Pressable } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, RefreshControl, ActivityIndicator, ScrollView, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -10,12 +10,16 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../theme';
 import Header from '../../components/Header';
 import Card from '../../components/Card';
+import { useAuth } from '../../context/AuthContext';
 
 export default function StudentLeaves() {
+    // eslint-disable-next-line no-unused-vars
     const router = useRouter();
     const queryClient = useQueryClient();
     const { showToast } = useToast();
     const { colors, styles } = useTheme();
+    const { user, userId: authUserId } = useAuth();
+    const userId = user?.id || user?._id || authUserId;
     const [refreshing, setRefreshing] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
 
@@ -494,6 +498,7 @@ export default function StudentLeaves() {
     );
 }
 
+// eslint-disable-next-line no-unused-vars
 const styles_internal = StyleSheet.create({
     // Kept for backward compatibility if needed, but we used inline styles from theme
 });

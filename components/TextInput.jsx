@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput as RNTextInput, Text, StyleSheet, Pressable, Animated } from 'react-native';
+import { View, TextInput as RNTextInput, Text, Pressable } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../theme';
 
@@ -65,6 +65,7 @@ const TextInput = ({
         };
     };
 
+    // eslint-disable-next-line no-unused-vars
     const getTextColor = () => {
         return error ? colors.error : colors.onSurface;
     };

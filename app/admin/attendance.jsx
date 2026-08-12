@@ -56,6 +56,7 @@ export default function AdminAttendance() {
     );
 
     // Fetch School Summary
+    // eslint-disable-next-line no-unused-vars
     const { data: schoolSummary, isLoading: summaryLoading, isFetching: summaryFetching, refetch: refetchSummary } = useApiQuery(
         ['attendanceSummary', date.toISOString().split('T')[0]],
         `${apiConfig.baseUrl}/attendance/school-summary?date=${date.toISOString().split('T')[0]}`,
@@ -166,7 +167,9 @@ export default function AdminAttendance() {
     const classesMarked = classesMarkedResponse?.markedClasses || [];
 
     // Fetch Tracker Data
+    // eslint-disable-next-line no-unused-vars
     const [trackerStartDate, setTrackerStartDate] = useState(new Date(new Date().setDate(new Date().getDate() - 14))); // Last 14 days
+    // eslint-disable-next-line no-unused-vars
     const [trackerEndDate, setTrackerEndDate] = useState(new Date());
     const { data: trackerDataResponse, isLoading: trackerLoading, refetch: refetchTracker } = useApiQuery(
         ['missingTracker', trackerStartDate.toISOString().split('T')[0], trackerEndDate.toISOString().split('T')[0]],

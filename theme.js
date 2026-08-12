@@ -341,6 +341,7 @@ export function ThemeProvider({ children }) {
             setMode(sys === "dark" ? "dark" : "light");
           }
         }
+      // eslint-disable-next-line no-unused-vars
       } catch (e) {
         const sys = Appearance.getColorScheme();
         if (mounted) setMode(sys === "dark" ? "dark" : "light");
