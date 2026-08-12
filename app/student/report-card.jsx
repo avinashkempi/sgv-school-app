@@ -13,6 +13,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import storage from "../../utils/storage";
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
+import { useAuth } from "../../context/AuthContext";
 import { useApiQuery } from "../../hooks/useApi";
 import Header from "../../components/Header";
 import apiConfig from "../../config/apiConfig";
@@ -60,7 +61,7 @@ export default function StudentReportCardScreen() {
     const { styles, colors, mode } = useTheme();
     const { user, userId: authUserId } = useAuth();
     const [refreshing, setRefreshing] = useState(false);
-    const [selectedTab, setSelectedTab] = useState('overview'); // overview | subjects | attendance | remarks
+    const [activeTab, setActiveTab] = useState('overview'); // overview | subjects | attendance | remarks
 
     // Entrance animation
     const heroAnim = useRef(new Animated.Value(0)).current;
