@@ -59,7 +59,7 @@ function BottomNavigation() {
     }] : []),
     ...(user && (user.role === 'student' || user.role === 'teacher' || user.role === 'staff' || user.role === 'admin' || user.role === 'super admin') ? [{
       route: "/requests",
-      label: "Requests",
+      label: "Attendance",
       icon: "assignment",
       inactiveIcon: "assignment",
     }] : []),
@@ -219,10 +219,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     paddingTop: 12, // Increased top padding for floating feel
     paddingHorizontal: 8,
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
   },
   tabItem: {
     flex: 1,

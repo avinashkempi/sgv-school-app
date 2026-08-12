@@ -17,12 +17,9 @@ import { AcademicYearProvider, useAcademicYear } from "../context/AcademicYearCo
 
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { queryClient, persister, setGlobalAuthHandler } from '../utils/queryClient';
-
 import DemoBanner from "../components/DemoBanner";
-import { useState } from "react";
 import useOfflinePrefetch from "../hooks/useOfflinePrefetch";
 import { setupAppStateRefresh } from "../utils/appStateRefresh";
-import VideoSplash from "../components/VideoSplash";
 
 // Configure how notifications are displayed when app is in foreground
 Notifications.setNotificationHandler({
@@ -36,7 +33,6 @@ Notifications.setNotificationHandler({
 
 // separate component so we can use useTheme inside ThemeProvider
 function Inner() {
-  const [showVideoSplash, setShowVideoSplash] = useState(true);
   const { styles, colors } = useTheme();
   const segments = useSegments();
   const router = useRouter();
@@ -130,10 +126,6 @@ function Inner() {
       console.warn('Failed to initialize app update check:', err);
     }
   }, []);
-
-  if (showVideoSplash) {
-    return <VideoSplash onFinish={() => setShowVideoSplash(false)} />;
-  }
 
   if (!isReady) {
     return (

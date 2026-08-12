@@ -107,17 +107,13 @@ export default function TeacherExamDashboard() {
                     const exam = examStatus.find(e => e.type === type);
                     const exists = exam?.exists;
                     const complete = exam?.marksComplete;
-                    const published = exam?.marksPublished;
 
                     let bgColor = colors.surfaceContainerHighest;
                     let icon = 'radio-button-unchecked';
 
-                    if (published) {
+                    if (complete) {
                         bgColor = '#4CAF50';
                         icon = 'check-circle';
-                    } else if (complete) {
-                        bgColor = '#03A9F4';
-                        icon = 'check-circle-outline';
                     } else if (exists) {
                         bgColor = '#FF9800';
                         icon = 'circle';
