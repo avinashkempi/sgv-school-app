@@ -119,7 +119,7 @@ export default function StudentExamScheduleScreen() {
                         colors={[colors.primary]}
                     />
                 }
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={{ paddingBottom: 24 }}
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
                     <Header

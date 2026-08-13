@@ -298,12 +298,12 @@ function createGlobalStyles(COLORS, mode) {
       backgroundColor: COLORS.background,
     },
     contentPaddingBottom: {
-      paddingBottom: 180,
+      paddingBottom: 24,
     },
 
     fab: {
       position: 'absolute',
-      bottom: 140,
+      bottom: 24,
       right: 20,
       width: 56,
       height: 56,

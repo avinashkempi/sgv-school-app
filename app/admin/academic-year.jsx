@@ -368,7 +368,7 @@ export default function AcademicYearScreen() {
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <ScrollView
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={{ paddingBottom: 24 }}
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
                     <Header title="Academic Years" subtitle="Manage & Reports" showBack />
@@ -425,7 +425,7 @@ export default function AcademicYearScreen() {
                     onPress={() => setShowModal(true)}
                     style={({ pressed }) => ({
                         position: "absolute",
-                        bottom: 130,
+                        bottom: 24,
                         right: 24,
                         backgroundColor: pressed ? colors.primary + 'DD' : colors.primary,
                         width: 56,

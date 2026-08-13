@@ -126,7 +126,7 @@ export default function ImportDataScreen() {
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <Header title="Direct Data Sync" back={true} />
 
-            <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 150 }}>
+            <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
 
                 {/* 1. Static Source Info */}
                 <Card variant="elevated" style={{ marginBottom: 16 }}>

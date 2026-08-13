@@ -404,7 +404,7 @@ export default function AdminExamScheduleScreen() {
             </View>
 
             <ScrollView 
-                contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+                contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
                 refreshControl={
                     <RefreshControl 
                         refreshing={refreshing} 

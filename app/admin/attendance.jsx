@@ -496,7 +496,7 @@ export default function AdminAttendance() {
             ) : (
                 <View style={{ flex: 1 }}>
                     {activeTab === 'summary' && schoolSummary && (
-                        <ScrollView style={{ flex: 1, padding: 16 }} contentContainerStyle={{ paddingBottom: 120 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+                        <ScrollView style={{ flex: 1, padding: 16 }} contentContainerStyle={{ paddingBottom: 24 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
                             {/* Summary Cards */}
                             <View style={{ flexDirection: 'row', gap: 12, marginBottom: 24 }}>
                                 <View style={[styles.summaryCardSmall, { backgroundColor: colors.primary + '15', alignItems: 'flex-start', padding: 20 }]}>
@@ -670,7 +670,7 @@ export default function AdminAttendance() {
                                             );
                                         }}
                                         ListEmptyComponent={<Text style={styles.emptyText}>No students found.</Text>}
-                                        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 160 }}
+                                        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
                                     />
                                     {/* Sticky Bottom Action Bar */}
                                     <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: colors.cardBackground, borderTopWidth: 1, borderTopColor: colors.textSecondary + '15', paddingHorizontal: 16, paddingVertical: 10, paddingBottom: 20, elevation: 10 }}>
@@ -748,7 +748,7 @@ export default function AdminAttendance() {
                             <Text style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 16, fontFamily: 'DMSans-Regular' }}>
                                 Shows days where classes missed marking attendance.
                             </Text>
-                            <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />} contentContainerStyle={{ paddingBottom: 100 }}>
+                            <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />} contentContainerStyle={{ paddingBottom: 24 }}>
                                 {trackerData.length === 0 ? (
                                     <EmptyState title="No Tracking Data" message="There is no attendance tracking data for the selected period." icon="event-busy" />
                                 ) : (
@@ -848,14 +848,14 @@ const createStyles = (colors) => StyleSheet.create({
     dateSelector: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
     dateText: { marginLeft: 8, fontWeight: '600' },
     loader: { marginTop: 20 },
-    listContent: { padding: 16, paddingBottom: 100 },
+    listContent: { padding: 16, paddingBottom: 24 },
     staffCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.cardBackground, padding: 16, borderRadius: 12, marginBottom: 12, elevation: 1 },
     staffInfo: { flex: 1 },
     staffName: { fontSize: 16, fontWeight: 'bold', color: colors.textPrimary },
     staffRole: { fontSize: 12, color: colors.textSecondary },
     statusIndicator: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, minWidth: 80, alignItems: 'center' },
     statusText: { color: '#fff', fontWeight: 'bold', fontSize: 12 },
-    footer: { padding: 16, paddingBottom: 110, backgroundColor: colors.cardBackground, borderTopWidth: 1, borderTopColor: colors.border },
+    footer: { padding: 16, paddingBottom: 16, backgroundColor: colors.cardBackground, borderTopWidth: 1, borderTopColor: colors.border },
     saveButton: { padding: 16, borderRadius: 12, alignItems: 'center' },
     saveButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
     summaryCard: { flexDirection: 'row', justifyContent: 'space-around', backgroundColor: colors.cardBackground, margin: 16, padding: 16, borderRadius: 12, elevation: 2 },

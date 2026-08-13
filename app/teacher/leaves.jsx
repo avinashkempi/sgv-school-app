@@ -362,7 +362,7 @@ export default function TeacherLeaves() {
                     data={activeTab === 'requests' ? requests : myLeaves}
                     renderItem={activeTab === 'requests' ? renderRequestItem : renderMyLeaveItem}
                     keyExtractor={(item) => item._id}
-                    contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+                    contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
                     ListEmptyComponent={
                         <EmptyState
@@ -648,7 +648,7 @@ const styles_internal = StyleSheet.create({
     },
     fab: {
         position: 'absolute',
-        bottom: 140,
+        bottom: 24,
         right: 20,
         flexDirection: 'row',
         alignItems: 'center',

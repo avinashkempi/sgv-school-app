@@ -219,7 +219,7 @@ export default function StudentLeaves() {
                     data={leaves}
                     renderItem={renderItem}
                     keyExtractor={(item) => item._id}
-                    contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+                    contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
                     ListEmptyComponent={
                         <View style={{ alignItems: 'center', marginTop: 40, opacity: 0.6 }}>

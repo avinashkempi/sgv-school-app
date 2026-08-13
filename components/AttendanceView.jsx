@@ -236,7 +236,7 @@ export default function AttendanceView({
     };
 
     const ListFooter = (
-        <View style={{ paddingBottom: 100 }}>
+        <View style={{ paddingBottom: 24 }}>
             {loadingMore && (
                 <ActivityIndicator size="small" color={colors.primary} style={{ marginVertical: 16 }} />
             )}

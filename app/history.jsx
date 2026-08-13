@@ -165,7 +165,7 @@ export default function HistoryScreen() {
 
             <ScrollView
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
-                contentContainerStyle={{ padding: 16, paddingTop: 0, paddingBottom: 100 }}
+                contentContainerStyle={{ padding: 16, paddingTop: 0, paddingBottom: 24 }}
             >
                 {renderExams()}
             </ScrollView>

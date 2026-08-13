@@ -92,7 +92,7 @@ export default function SubjectDetailScreen() {
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <ScrollView
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={{ paddingBottom: 24 }}
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
                     <AppHeader
@@ -200,7 +200,7 @@ export default function SubjectDetailScreen() {
                 onPress={() => setShowPostModal(true)}
                 style={({ pressed }) => ({
                     position: "absolute",
-                    bottom: 130,
+                    bottom: 24,
                     right: 24,
                     backgroundColor: colors.primary,
                     width: 56,

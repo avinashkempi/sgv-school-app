@@ -375,7 +375,7 @@ export default function StudentAttendanceScreen() {
     };
 
     const ListFooter = (
-        <View style={{ paddingBottom: 100 }}>
+        <View style={{ paddingBottom: 24 }}>
             {loadingMore && <ActivityIndicator size="small" color={colors.primary} style={{ marginVertical: 16 }} />}
             {!hasMore && allHistory.length > 0 && (
                 <Text style={{ textAlign: 'center', color: colors.onSurfaceVariant, fontSize: 13, fontFamily: 'DMSans-Regular', marginVertical: 16 }}>

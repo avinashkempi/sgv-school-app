@@ -403,7 +403,7 @@ export default function AdminTimetableScreen() {
                 <Header title="Manage Timetable" subtitle="Set class schedules" showBack />
             </View>
 
-            <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+            <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
                 {/* Class Selector - Horizontal Scroll */}
                 <View style={{ marginBottom: 20 }}>
                     <Text style={{ fontSize: 14, color: colors.textSecondary, marginLeft: 16, marginBottom: 8, fontFamily: "DMSans-Medium" }}>

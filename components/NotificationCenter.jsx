@@ -263,7 +263,7 @@ const NotificationCenter = () => {
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <ScrollView
                 style={{ flex: 1 }}
-                contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 20, paddingBottom: 100 }}
+                contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 20, paddingBottom: 24 }}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
                 showsVerticalScrollIndicator={false}
             >

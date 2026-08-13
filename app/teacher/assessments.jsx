@@ -100,7 +100,7 @@ export default function AssessmentDashboard() {
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <AppHeader title="Assessments" subtitle="Manage Standardized Exams" />
 
-            <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
+            <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
 
                 {/* Class Selection */}
                 <Text style={[localStyles.label, { color: colors.textPrimary }]}>Select Class</Text>

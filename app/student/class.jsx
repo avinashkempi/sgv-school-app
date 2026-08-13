@@ -63,7 +63,7 @@ export default function StudentClassScreen() {
         <View style={styles.container}>
             <ScrollView
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} />}
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={{ paddingBottom: 24 }}
                 showsVerticalScrollIndicator={false}
             >
                 <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>

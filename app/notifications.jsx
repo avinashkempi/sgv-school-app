@@ -235,7 +235,7 @@ export default function NotificationsScreen() {
                 data={notifications}
                 keyExtractor={(item) => item._id}
                 renderItem={renderItem}
-                contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+                contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
                 refreshControl={
                     <RefreshControl
                         refreshing={refreshing}

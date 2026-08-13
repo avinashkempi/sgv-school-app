@@ -99,7 +99,7 @@ export default function StudentTimetableScreen() {
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <ScrollView
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={{ paddingBottom: 24 }}
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
                     <AppHeader title="My Timetable" subtitle="Class Schedule" showBack />

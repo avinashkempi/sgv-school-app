@@ -150,7 +150,7 @@ export default function ClassesScreen() {
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <ScrollView
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={{ paddingBottom: 24 }}
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
                     <AppHeader title="Classes" subtitle="Manage classes and sections" showBack />
@@ -245,7 +245,7 @@ export default function ClassesScreen() {
                     }}
                     style={{
                         position: "absolute",
-                        bottom: 130,
+                        bottom: 24,
                         right: 24,
                         backgroundColor: colors.primary,
                         width: 56,

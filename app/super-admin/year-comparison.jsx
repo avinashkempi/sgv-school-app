@@ -274,7 +274,7 @@ export default function YearComparisonScreen() {
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
-            <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 24, paddingBottom: 100 }}>
+            <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 24, paddingBottom: 24 }}>
                 <Header
                     title="Compare Years"
                     subtitle="Multi-year analytics & insights"

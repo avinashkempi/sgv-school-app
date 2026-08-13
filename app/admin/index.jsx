@@ -170,7 +170,7 @@ export default function AdminScreen() {
   };
 
   const renderFooter = () => (
-    <View style={{ paddingHorizontal: 20, paddingBottom: 100, alignItems: 'center', paddingTop: 16 }}>
+    <View style={{ paddingHorizontal: 20, paddingBottom: 24, alignItems: 'center', paddingTop: 16 }}>
       {isFetchingNextPage && <ActivityIndicator size="small" color={colors.primary} />}
     </View>
   );

@@ -264,7 +264,7 @@ export default function ClassDetailsScreen() {
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <ScrollView
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={{ paddingBottom: 24 }}
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
                     <AppHeader
@@ -501,7 +501,7 @@ export default function ClassDetailsScreen() {
                         }}
                         style={({ pressed }) => ({
                             position: "absolute",
-                            bottom: 140,
+                            bottom: 24,
                             right: 24,
                             backgroundColor: colors.primaryContainer,
                             width: 56,

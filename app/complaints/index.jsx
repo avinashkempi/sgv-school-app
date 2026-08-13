@@ -474,7 +474,7 @@ export default function ComplaintsScreen() {
                         return renderComplaintItem(item);
                     }}
                     keyExtractor={item => item._id}
-                    contentContainerStyle={{ paddingBottom: 100 }}
+                    contentContainerStyle={{ paddingBottom: 24 }}
                     keyboardShouldPersistTaps="handled"
                     keyboardDismissMode="on-drag"
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
@@ -522,7 +522,7 @@ export default function ComplaintsScreen() {
             {userRole === 'teacher' && (
                 <>
                     {showFabOptions && (
-                        <View style={{ position: "absolute", bottom: 200, right: 20, alignItems: "flex-end", gap: 14, zIndex: 10 }}>
+                        <View style={{ position: "absolute", bottom: 94, right: 20, alignItems: "flex-end", gap: 14, zIndex: 10 }}>
                             <Pressable
                                 onPress={() => { setShowFabOptions(false); router.push("/complaints/give-feedback"); }}
                                 style={({ pressed }) => [secondaryFabPill(colors), { opacity: pressed ? 0.85 : 1 }]}
@@ -558,7 +558,7 @@ export default function ComplaintsScreen() {
             {(userRole === 'admin' || userRole === 'super admin') && (
                 <>
                     {showFabOptions && (
-                        <View style={{ position: "absolute", bottom: 200, right: 20, alignItems: "flex-end", gap: 14, zIndex: 10 }}>
+                        <View style={{ position: "absolute", bottom: 94, right: 20, alignItems: "flex-end", gap: 14, zIndex: 10 }}>
                             <Pressable
                                 onPress={() => { setShowFabOptions(false); router.push("/complaints/give-feedback"); }}
                                 style={({ pressed }) => [secondaryFabPill(colors), { opacity: pressed ? 0.85 : 1 }]}
@@ -767,7 +767,7 @@ export default function ComplaintsScreen() {
 
 const fabStyle = (colors) => ({
     position: "absolute",
-    bottom: 130,
+    bottom: 24,
     right: 20,
     backgroundColor: colors.primary,
     width: 64,

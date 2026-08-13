@@ -145,7 +145,7 @@ export default function ManageSubjectsScreen() {
 
             <ScrollView
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
-                contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+                contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
             >
                 {loading ? (
                     <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 40 }} />
@@ -231,7 +231,7 @@ export default function ManageSubjectsScreen() {
                 }}
                 style={{
                     position: "absolute",
-                    bottom: 130,
+                    bottom: 24,
                     right: 24,
                     backgroundColor: colors.primary,
                     width: 56,

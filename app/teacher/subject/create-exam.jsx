@@ -543,7 +543,7 @@ export default function QuickExamWizard() {
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
-            <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+            <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
                 <View style={{ padding: 16, paddingTop: 24 }}>
                     <Header
                         title="Quick Exam Setup"

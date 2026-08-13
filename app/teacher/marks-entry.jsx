@@ -139,7 +139,7 @@ export default function MarksEntryScreen() {
                     keyExtractor={(item) => item._id}
                     scrollEnabled={true}
                     bounces={false}
-                    contentContainerStyle={{ padding: 16, paddingBottom: 180 }}
+                    contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
                     ListHeaderComponent={
                         <View style={localStyles.headerRow}>
                             <Text style={[localStyles.headerText, { color: colors.textSecondary, flex: 2 }]}>Student</Text>
@@ -239,10 +239,6 @@ const localStyles = StyleSheet.create({
         textAlign: "center",
     },
     footer: {
-        position: "absolute",
-        bottom: 130,
-        left: 0,
-        right: 0,
         padding: 16,
         borderTopWidth: 1,
         elevation: 10
