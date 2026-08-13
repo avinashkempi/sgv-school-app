@@ -17,12 +17,14 @@ export const CACHE_TIERS = {
   STATIC: {
     staleTime: 24 * 60 * 60 * 1000,      // 24 hours
     gcTime: Infinity,                     // Never automatically delete
+    refetchOnMount: false,
   },
 
   /** 30 min stale, permanent offline storage */
   STABLE: {
     staleTime: 30 * 60 * 1000,            // 30 minutes
     gcTime: Infinity,                     // Never automatically delete
+    refetchOnMount: false,
   },
 
   /** 5 min stale, permanent offline storage */

@@ -27,7 +27,6 @@ let appStateSubscription = null;
 function handleAppStateChange(nextAppState) {
   if (nextAppState === 'background' || nextAppState === 'inactive') {
     lastBackgroundTimestamp = Date.now();
-    focusManager.setFocused(false);
   } else if (nextAppState === 'active') {
     const wasInBackground = lastBackgroundTimestamp !== null;
     const backgroundDuration = wasInBackground
@@ -35,13 +34,11 @@ function handleAppStateChange(nextAppState) {
       : 0;
 
     if (!wasInBackground || backgroundDuration >= MIN_BACKGROUND_DURATION_MS) {
-      // Enough time has passed — tell React Query to refetch stale queries
-      focusManager.setFocused(true);
-    } else {
-      // Quick switch — just mark as focused without triggering refetch
-      // (focusManager already handles this internally when focus was never lost)
+      // Enough time has passed (2+ mins) — tell React Query the app regained focus to refetch stale queries
+      focusManager.setFocused(false);
       focusManager.setFocused(true);
     }
+    // Quick switch (< 2 min): do nothing — focus was never lost, zero unnecessary API calls
 
     lastBackgroundTimestamp = null;
   }

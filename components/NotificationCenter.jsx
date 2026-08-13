@@ -1,22 +1,25 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter } from 'expo-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../theme';
 import { LoadingState, EmptyState } from './StateComponents';
 import apiFetch from '../utils/apiFetch';
 import apiConfig from '../config/apiConfig';
+import { useApiQuery } from '../hooks/useApi';
+import { CACHE_TIERS } from '../utils/cacheConfig';
+import { useAuth } from '../context/AuthContext';
 import Card from './Card';
 
 const NotificationCenter = () => {
     const router = useRouter();
+    const queryClient = useQueryClient();
     const { colors, styles } = useTheme();
-    const [notifications, setNotifications] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { userId, isAuthenticated } = useAuth();
     const [refreshing, setRefreshing] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [filterRead, setFilterRead] = useState('all'); // 'all', 'read', 'unread'
-    const [unreadCount, setUnreadCount] = useState(0);
 
     const categories = [
         { id: 'all', label: 'All', icon: 'notifications' },
@@ -28,38 +31,30 @@ const NotificationCenter = () => {
         { id: 'announcement', label: 'News', icon: 'campaign' },
     ];
 
-    const fetchNotifications = async () => {
-        try {
-            const categoryParam = selectedCategory === 'all' ? '' : `&category=${selectedCategory}`;
-            const readParam = filterRead === 'all' ? '' : `&isRead=${filterRead === 'read'}`;
+    const categoryParam = selectedCategory === 'all' ? '' : `&category=${selectedCategory}`;
+    const readParam = filterRead === 'all' ? '' : `&isRead=${filterRead === 'read'}`;
+    const url = `${apiConfig.baseUrl}/notifications?${categoryParam}${readParam}&limit=50`;
 
-            const response = await apiFetch(
-                `${apiConfig.baseUrl}/notifications?${categoryParam}${readParam}&limit=50`
-            );
-
-            if (response.ok) {
-                const data = await response.json();
-                setNotifications(data.notifications || []);
-                setUnreadCount(data.unreadCount || 0);
-            }
-        } catch (error) {
-            console.error('Failed to fetch notifications:', error);
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
+    const {
+        data: notificationData,
+        isLoading: loading,
+        refetch,
+    } = useApiQuery(
+        ['notificationCenter', userId, selectedCategory, filterRead],
+        url,
+        {
+            ...CACHE_TIERS.REAL_TIME,
+            enabled: isAuthenticated && !!userId,
         }
-    };
-
-    useFocusEffect(
-        useCallback(() => {
-            fetchNotifications();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [selectedCategory, filterRead])
     );
 
-    const onRefresh = () => {
+    const notifications = notificationData?.notifications || [];
+    const unreadCount = notificationData?.unreadCount || 0;
+
+    const onRefresh = async () => {
         setRefreshing(true);
-        fetchNotifications();
+        await refetch();
+        setRefreshing(false);
     };
 
     const markAsRead = async (id, currentReadStatus) => {
@@ -74,7 +69,8 @@ const NotificationCenter = () => {
             );
 
             if (response.ok) {
-                fetchNotifications();
+                queryClient.invalidateQueries({ queryKey: ['notificationCenter'] });
+                queryClient.invalidateQueries({ queryKey: ['notifications'] });
             }
         } catch (error) {
             console.error('Failed to mark notification:', error);
@@ -89,7 +85,8 @@ const NotificationCenter = () => {
             );
 
             if (response.ok) {
-                fetchNotifications();
+                queryClient.invalidateQueries({ queryKey: ['notificationCenter'] });
+                queryClient.invalidateQueries({ queryKey: ['notifications'] });
             }
         } catch (error) {
             console.error('Failed to mark all as read:', error);
@@ -108,7 +105,8 @@ const NotificationCenter = () => {
             );
 
             if (response.ok) {
-                setNotifications(prev => prev.filter(n => n._id !== id));
+                queryClient.invalidateQueries({ queryKey: ['notificationCenter'] });
+                queryClient.invalidateQueries({ queryKey: ['notifications'] });
             }
         } catch (error) {
             console.error('Failed to archive notification:', error);

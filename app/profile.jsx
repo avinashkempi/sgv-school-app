@@ -22,7 +22,7 @@ export default function ProfileScreen() {
   const { styles, colors, mode } = useTheme();
   const { showToast } = useToast();
   const router = useRouter();
-  const { logout } = useAuth();
+  const { user: authUser, logout } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
 
   const { data: user, refetch, isLoading } = useApiQuery(
@@ -30,6 +30,7 @@ export default function ProfileScreen() {
     `${apiConfig.baseUrl}/auth/me`,
     {
       ...CACHE_TIERS.MODERATE,
+      placeholderData: authUser ? { user: authUser } : undefined,
       select: (data) => data.user
     }
   );
