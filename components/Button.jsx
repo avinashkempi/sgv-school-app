@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, Pressable, ActivityIndicator } from 'react-native';
+import { Text, Pressable, ActivityIndicator, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../theme';
 
@@ -38,18 +38,37 @@ const Button = ({
         }
 
         switch (variant) {
-            case 'filled':
-                return { bg: colors.primary, text: colors.onPrimary, border: 'transparent' };
-            case 'tonal':
-                return { bg: colors.secondaryContainer, text: colors.onSecondaryContainer, border: 'transparent' };
-            case 'outlined':
-                return { bg: 'transparent', text: colors.primary, border: colors.outline };
-            case 'text':
-                return { bg: 'transparent', text: colors.primary, border: 'transparent' };
             case 'elevated':
-                return { bg: colors.surfaceContainerLow, text: colors.primary, border: 'transparent', elevation: 1 };
+                return {
+                    bg: colors.surfaceContainerLow,
+                    text: colors.primary,
+                    border: 'transparent',
+                };
+            case 'tonal':
+                return {
+                    bg: colors.secondaryContainer,
+                    text: colors.onSecondaryContainer,
+                    border: 'transparent',
+                };
+            case 'outlined':
+                return {
+                    bg: 'transparent',
+                    text: colors.primary,
+                    border: colors.outline,
+                };
+            case 'text':
+                return {
+                    bg: 'transparent',
+                    text: colors.primary,
+                    border: 'transparent',
+                };
+            case 'filled':
             default:
-                return { bg: colors.primary, text: colors.onPrimary, border: 'transparent' };
+                return {
+                    bg: colors.primary,
+                    text: colors.onPrimary,
+                    border: 'transparent',
+                };
         }
     };
 
@@ -68,13 +87,18 @@ const Button = ({
             borderColor: themeColors.border,
             minHeight: 40,
         },
-        variant === 'elevated' && !disabled && {
-            elevation: 1,
-            shadowColor: colors.shadow,
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.15,
-            shadowRadius: 2
-        },
+        variant === 'elevated' && !disabled && Platform.select({
+            web: {
+                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.12)',
+            },
+            default: {
+                elevation: 1,
+                shadowColor: colors.shadow,
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.15,
+                shadowRadius: 2,
+            },
+        }),
         style,
     ];
 

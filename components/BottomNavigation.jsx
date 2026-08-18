@@ -99,10 +99,17 @@ function BottomNavigation() {
         borderTopColor: colors.outlineVariant,
         borderTopWidth: StyleSheet.hairlineWidth, // Crisp glass edge
         elevation: 0, // Elevation on Android breaks BlurView transparency
-        shadowColor: colors.shadow,
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
-        shadowOffset: { width: 0, height: -4 }
+        ...Platform.select({
+          web: {
+            boxShadow: '0 -4px 10px rgba(0, 0, 0, 0.05)',
+          },
+          default: {
+            shadowColor: colors.shadow,
+            shadowOpacity: 0.1,
+            shadowRadius: 10,
+            shadowOffset: { width: 0, height: -4 },
+          },
+        }),
       }
     ]}>
       {navigationItems.map((item) => {

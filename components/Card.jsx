@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Pressable } from 'react-native';
+import { View, Pressable, Platform } from 'react-native';
 import { useTheme } from '../theme';
 
 /**
@@ -44,13 +44,18 @@ const Card = ({
 
     const getElevation = () => {
         if (variant === 'elevated') {
-            return {
-                elevation: 1,
-                shadowColor: colors.shadow,
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.15,
-                shadowRadius: 3,
-            };
+            return Platform.select({
+                web: {
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12)',
+                },
+                default: {
+                    elevation: 1,
+                    shadowColor: colors.shadow,
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.15,
+                    shadowRadius: 3,
+                },
+            });
         }
         return { elevation: 0 };
     };

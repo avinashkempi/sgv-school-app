@@ -152,12 +152,18 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderRadius: 16,
     overflow: 'hidden',
-    // Shadow
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 8,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+      },
+      default: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 8,
+      },
+    }),
   },
   blurContainer: {
     paddingHorizontal: 16,
