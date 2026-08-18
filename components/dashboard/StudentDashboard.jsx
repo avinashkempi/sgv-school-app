@@ -4,7 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../theme';
 import StatCard from './StatCard';
-import ChartCard from './ChartCard';
+import PerformanceTrendCard from './PerformanceTrendCard';
 import { LoadingState, EmptyState } from '../StateComponents';
 import apiConfig from '../../config/apiConfig';
 import { useApiQuery } from '../../hooks/useApi';
@@ -40,20 +40,32 @@ const StudentDashboard = () => {
 
     return (
         <ScrollView
-            contentContainerStyle={{ paddingBottom: 20 }}
+            contentContainerStyle={{ paddingBottom: 24 }}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
             showsVerticalScrollIndicator={false}
         >
             <Text style={[styles.titleLarge, { marginBottom: 16, marginTop: 8 }]}>My Progress</Text>
 
             {/* Quick Actions */}
-            <View style={{ marginBottom: 24 }}>
+            <View style={{ marginBottom: 20 }}>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
                     <QuickActionButton
                         title="Past Reports"
                         icon="history"
                         color={colors.primary}
                         onPress={() => router.push('/student/history')}
+                    />
+                    <QuickActionButton
+                        title="Report Card"
+                        icon="assignment"
+                        color={colors.tertiary || colors.primary}
+                        onPress={() => router.push('/student/report-card')}
+                    />
+                    <QuickActionButton
+                        title="Exam Schedule"
+                        icon="event-note"
+                        color={colors.secondary || colors.primary}
+                        onPress={() => router.push('/student/exam-schedule')}
                     />
                 </ScrollView>
             </View>
@@ -90,15 +102,14 @@ const StudentDashboard = () => {
                 />
             </View>
 
-            <Text style={[styles.titleLarge, { marginBottom: 16, marginTop: 24 }]}>Performance</Text>
+            <Text style={[styles.titleLarge, { marginBottom: 16, marginTop: 24 }]}>Academic Performance</Text>
 
             {data.charts?.performanceTrend && data.charts.performanceTrend.length > 0 ? (
-                <ChartCard
+                <PerformanceTrendCard
                     title="Performance Trend (Academic Year)"
                     subtitle="Avg % across all subjects per exam"
-                    chartType="line"
-                    labels={data.charts.performanceTrend.map(d => d.examType || 'N/A')}
-                    data={data.charts.performanceTrend.map(d => typeof d.percentage === 'number' ? d.percentage : 0)}
+                    data={data.charts.performanceTrend}
+                    onViewReport={() => router.push('/student/report-card')}
                 />
             ) : (
                 <EmptyState

@@ -1,49 +1,83 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Dimensions } from 'react-native';
 import { useTheme } from '../../theme';
 import { LineChart, BarChart, PieChart } from 'react-native-chart-kit';
 
-const ChartCard = ({ title, chartType, data, labels, height = 220, secondary = false }) => {
-    const { colors, styles } = useTheme();
-    const screenWidth = Dimensions.get("window").width;
+const ChartCard = ({
+    title,
+    subtitle,
+    chartType,
+    data,
+    labels,
+    height = 220,
+    secondary = false,
+    yAxisSuffix = '',
+    showValues = true,
+}) => {
+    const { colors, styles, mode } = useTheme();
+    const [containerWidth, setContainerWidth] = useState(0);
+    const isDark = mode === 'dark';
+
+    const screenWidth = Dimensions.get('window').width;
+    const effectiveWidth = containerWidth > 0 ? containerWidth - 32 : screenWidth - 64;
+
+    const chartColor = secondary ? (colors.tertiary || '#7D5260') : (colors.primary || '#6750A4');
+    const surfaceColor = colors.surface || (isDark ? '#2B2832' : '#FFFFFF');
 
     const chartConfig = {
-        backgroundGradientFrom: colors.surfaceContainer,
-        backgroundGradientTo: colors.surfaceContainer,
+        backgroundColor: surfaceColor,
+        backgroundGradientFrom: surfaceColor,
+        backgroundGradientTo: surfaceColor,
         decimalPlaces: 0,
-        // eslint-disable-next-line no-unused-vars
-        color: (opacity = 1) => secondary ? colors.tertiary : colors.primary,
-        // eslint-disable-next-line no-unused-vars
-        labelColor: (opacity = 1) => colors.onSurfaceVariant,
+        color: (_opacity = 1) => chartColor,
+        labelColor: (_opacity = 1) => colors.onSurfaceVariant || (isDark ? '#CAC4D0' : '#49454F'),
         style: {
-            borderRadius: 16
+            borderRadius: 16,
         },
         propsForDots: {
-            r: "4",
-            strokeWidth: "2",
-            stroke: secondary ? colors.tertiary : colors.primary
+            r: '5',
+            strokeWidth: '2',
+            stroke: chartColor,
         },
         propsForLabels: {
-            fontSize: 10,
-        }
+            fontSize: 11,
+            fontFamily: 'DMSans-Medium',
+        },
+        propsForBackgroundLines: {
+            strokeDasharray: '4,4',
+            stroke: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+        },
     };
 
     const renderChart = () => {
+        const hasData = Array.isArray(data) && data.length > 0;
+        if (!hasData) {
+            return (
+                <View style={{ height: 120, alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ fontSize: 13, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant, opacity: 0.7 }}>
+                        No chart data available
+                    </Text>
+                </View>
+            );
+        }
+
         switch (chartType) {
             case 'line':
                 return (
                     <LineChart
                         data={{
                             labels: labels || [],
-                            datasets: [{ data: data || [] }]
+                            datasets: [{ data: data || [] }],
                         }}
-                        width={screenWidth - 70} // adjusted for padding
+                        width={effectiveWidth}
                         height={height}
                         chartConfig={chartConfig}
-                        bezier
+                        yAxisSuffix={yAxisSuffix}
+                        bezier={data && data.length > 1}
                         style={{ marginVertical: 8, borderRadius: 16 }}
-                        withInnerLines={false}
+                        withInnerLines
                         withOuterLines={false}
+                        fromZero
                     />
                 );
             case 'bar':
@@ -51,15 +85,20 @@ const ChartCard = ({ title, chartType, data, labels, height = 220, secondary = f
                     <BarChart
                         data={{
                             labels: labels || [],
-                            datasets: [{ data: data || [] }]
+                            datasets: [{ data: data || [] }],
                         }}
-                        width={screenWidth - 80}
+                        width={effectiveWidth}
                         height={height}
                         yAxisLabel=""
-                        chartConfig={chartConfig}
+                        yAxisSuffix={yAxisSuffix}
+                        chartConfig={{
+                            ...chartConfig,
+                            barPercentage: 0.65,
+                        }}
                         style={{ marginVertical: 8, borderRadius: 16 }}
-                        showValuesOnTopOfBars
-                        withInnerLines={false}
+                        showValuesOnTopOfBars={showValues}
+                        withInnerLines
+                        fromZero
                     />
                 );
             case 'pie': {
@@ -68,17 +107,18 @@ const ChartCard = ({ title, chartType, data, labels, height = 220, secondary = f
                     population: item.value,
                     color: index === 0 ? colors.primary : (index === 1 ? colors.secondary : colors.tertiary),
                     legendFontColor: colors.onSurfaceVariant,
-                    legendFontSize: 12
+                    legendFontSize: 12,
+                    legendFontFamily: 'DMSans-Medium',
                 }));
                 return (
                     <PieChart
                         data={pieData}
-                        width={screenWidth - 60}
+                        width={effectiveWidth}
                         height={height}
                         chartConfig={chartConfig}
-                        accessor={"population"}
-                        backgroundColor={"transparent"}
-                        paddingLeft={"15"}
+                        accessor="population"
+                        backgroundColor="transparent"
+                        paddingLeft="15"
                         absolute
                     />
                 );
@@ -89,8 +129,47 @@ const ChartCard = ({ title, chartType, data, labels, height = 220, secondary = f
     };
 
     return (
-        <View style={[{ backgroundColor: colors.surfaceContainer, borderRadius: 24, padding: 20 }]}>
-            <Text style={[styles.titleMedium, { marginBottom: 16 }]}>{title}</Text>
+        <View
+            onLayout={(e) => {
+                const w = e.nativeEvent.layout.width;
+                if (w > 0 && Math.abs(w - containerWidth) > 5) {
+                    setContainerWidth(w);
+                }
+            }}
+            style={{
+                backgroundColor: colors.surfaceContainer || (isDark ? '#1E1B24' : '#F7F3FB'),
+                borderRadius: 24,
+                padding: 20,
+                marginBottom: 16,
+                borderWidth: 1,
+                borderColor: colors.outlineVariant ? colors.outlineVariant + '35' : 'rgba(0,0,0,0.06)',
+            }}
+        >
+            <View style={{ marginBottom: subtitle ? 12 : 16 }}>
+                <Text
+                    style={[
+                        styles.titleMedium,
+                        {
+                            color: colors.onSurface || (isDark ? '#FFFFFF' : '#1D1B20'),
+                            fontFamily: 'DMSans-Bold',
+                        },
+                    ]}
+                >
+                    {title}
+                </Text>
+                {subtitle && (
+                    <Text
+                        style={{
+                            fontSize: 12,
+                            fontFamily: 'DMSans-Medium',
+                            color: colors.onSurfaceVariant || (isDark ? '#CAC4D0' : '#49454F'),
+                            marginTop: 2,
+                        }}
+                    >
+                        {subtitle}
+                    </Text>
+                )}
+            </View>
             <View style={{ alignItems: 'center', overflow: 'hidden' }}>
                 {renderChart()}
             </View>
@@ -99,3 +178,4 @@ const ChartCard = ({ title, chartType, data, labels, height = 220, secondary = f
 };
 
 export default ChartCard;
+
