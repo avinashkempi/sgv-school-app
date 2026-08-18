@@ -27,6 +27,7 @@ export default function TeacherDashboard() {
     const { _showToast } = useToast();
     // eslint-disable-next-line no-unused-vars
     const { user, userId } = useAuth();
+    const isStaff = user?.role === 'staff' || user?.role === 'support_staff';
 
     const [refreshing, setRefreshing] = useState(false);
     const [activeTab, setActiveTab] = useState('classTeacher'); // 'classTeacher' or 'mySubjects'
@@ -34,8 +35,67 @@ export default function TeacherDashboard() {
     const { data: dashboardData, isLoading: loading, refetch } = useApiQuery(
         ['teacherDashboard', userId],
         `${apiConfig.baseUrl}/teachers/my-classes-and-subjects`,
-        CACHE_TIERS.MODERATE
+        {
+            ...CACHE_TIERS.MODERATE,
+            enabled: !isStaff && !!userId,
+        }
     );
+
+    if (isStaff) {
+        return (
+            <View style={{ flex: 1, backgroundColor: colors.background }}>
+                <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 24, paddingBottom: 32 }}>
+                    <AppHeader title="Dashboard" subtitle="Staff quick actions" />
+
+                    <View style={{ marginTop: 12 }}>
+                        <Card
+                            variant="elevated"
+                            onPress={() => router.push('/teacher/timetable')}
+                            contentStyle={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: 20
+                            }}
+                            style={{ marginBottom: 16 }}
+                        >
+                            <View style={{ flexDirection: "row", alignItems: "center", gap: 16, flex: 1 }}>
+                                <View style={{
+                                    backgroundColor: "#2196F315",
+                                    padding: 12,
+                                    borderRadius: 14,
+                                    width: 52,
+                                    height: 52,
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}>
+                                    <MaterialIcons name="schedule" size={26} color="#2196F3" />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={{
+                                        fontSize: 17,
+                                        fontFamily: "DMSans-Bold",
+                                        color: colors.onSurface,
+                                        marginBottom: 4
+                                    }}>
+                                        School Timetable
+                                    </Text>
+                                    <Text style={{
+                                        fontSize: 13,
+                                        color: colors.onSurfaceVariant,
+                                        fontFamily: "DMSans-Regular"
+                                    }}>
+                                        View all classes and period schedules
+                                    </Text>
+                                </View>
+                            </View>
+                            <MaterialIcons name="chevron-right" size={24} color={colors.onSurfaceVariant} />
+                        </Card>
+                    </View>
+                </ScrollView>
+            </View>
+        );
+    }
 
     const asClassTeacher = dashboardData?.asClassTeacher || [];
     const allMySubjects = dashboardData?.allMySubjects || [];

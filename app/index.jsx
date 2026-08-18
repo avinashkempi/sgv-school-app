@@ -62,7 +62,7 @@ export default function HomeScreen() {
         refresh(true),
         refetchUser()
       ]);
-    // eslint-disable-next-line no-unused-vars
+      // eslint-disable-next-line no-unused-vars
     } catch (err) {
       // Suppress error
     } finally {

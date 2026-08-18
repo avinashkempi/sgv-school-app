@@ -40,7 +40,7 @@ function BottomNavigation() {
       icon: "school",
       inactiveIcon: "school", // outlined version if available
     }] : []),
-    ...(user && user.role === 'teacher' ? [{
+    ...(user && (user.role === 'teacher' || user.role === 'staff') ? [{
       route: ROUTES.TEACHER_CLASSES,
       label: "Dashboard",
       icon: "dashboard",
