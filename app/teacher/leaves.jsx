@@ -22,7 +22,8 @@ export default function TeacherLeaves() {
     const { colors, styles } = useTheme();
     const { user, userId: authUserId } = useAuth();
     const userId = user?.id || user?._id || authUserId;
-    const [activeTab, setActiveTab] = useState('requests'); // 'requests' or 'my_leaves'
+    const isStaff = user?.role === 'staff';
+    const [activeTab, setActiveTab] = useState(isStaff ? 'my_leaves' : 'requests'); // 'requests' or 'my_leaves'
 
     // Data State
     const [refreshing, setRefreshing] = useState(false);
@@ -49,7 +50,7 @@ export default function TeacherLeaves() {
     const { data: requestsData, isLoading: requestsLoading, refetch: refetchRequests } = useApiQuery(
         ['teacherLeaveRequests', userId],
         `${apiConfig.baseUrl}/leaves/pending`,
-        { enabled: activeTab === 'requests' && !!userId }
+        { enabled: activeTab === 'requests' && !!userId && !isStaff }
     );
     const requests = requestsData?.data || [];
 
@@ -189,7 +190,7 @@ export default function TeacherLeaves() {
                         {item.applicant?.name || 'Unknown'}
                     </Text>
                     <Text style={{ fontSize: 13, color: colors.onSurfaceVariant, fontFamily: "DMSans-Medium" }}>
-                        {item.applicantRole === 'student' ? `Class: ${formatClassName(item.class?.name)} ${item.class?.section || ''}` : 'Teacher'}
+                        {item.applicantRole === 'student' ? `Class: ${formatClassName(item.class?.name)} ${item.class?.section || ''}` : item.applicantRole === 'staff' ? 'Staff' : 'Teacher'}
                     </Text>
                 </View>
                 <View style={{ alignItems: 'flex-end' }}>
@@ -312,18 +313,20 @@ export default function TeacherLeaves() {
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <View style={{ padding: 16, paddingBottom: 0 }}>
-                <Header title="Leave Management" showBack={true} />
+                <Header title={isStaff ? 'My Leaves' : 'Leave Management'} showBack={true} />
             </View>
 
-            <SegmentedControl
-                tabs={[
-                    { key: 'requests', label: 'Requests' },
-                    { key: 'my_leaves', label: 'My Leaves' },
-                ]}
-                activeTab={activeTab}
-                onTabChange={setActiveTab}
-                style={{ marginHorizontal: 16, marginBottom: 16 }}
-            />
+            {!isStaff && (
+                <SegmentedControl
+                    tabs={[
+                        { key: 'requests', label: 'Requests' },
+                        { key: 'my_leaves', label: 'My Leaves' },
+                    ]}
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
+                    style={{ marginHorizontal: 16, marginBottom: 16 }}
+                />
+            )}
 
             {activeTab === 'my_leaves' && leaveBalance && (
                 <View style={{

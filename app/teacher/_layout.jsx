@@ -3,7 +3,7 @@ import RoleGuard from '../../components/RoleGuard';
 
 export default function TeacherLayout() {
   return (
-    <RoleGuard allowedRoles={['teacher', 'admin', 'super admin']}>
+    <RoleGuard allowedRoles={['teacher', 'staff', 'admin', 'super admin']}>
       <Stack screenOptions={{
         headerShown: false,
         animation: 'fade_from_bottom',

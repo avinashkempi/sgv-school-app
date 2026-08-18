@@ -68,7 +68,7 @@ export default function AdminFeesScreen() {
     const [selectedStudents, setSelectedStudents] = useState([]);
 
     // Fetch Analytics
-    const { data: analytics = { collectedToday: 0, collectedThisMonth: 0, totalCollected: 0, totalExpectedFees: 0, totalPending: 0, totalArrears: 0 }, isLoading: analyticsLoading } = useApiQuery(
+    const { data: analytics = { collectedToday: 0, collectedThisMonth: 0, totalCollected: 0, totalExpectedFees: 0, totalPending: 0, totalArrears: 0, totalConcession: 0, totalGrossFees: 0 }, isLoading: analyticsLoading } = useApiQuery(
         ['feeAnalytics'],
         `${apiConfig.baseUrl}/fees/analytics`
     );
@@ -382,20 +382,97 @@ export default function AdminFeesScreen() {
                                 <Text style={{ color: colors.error, fontSize: 12, fontFamily: "DMSans-Bold", textTransform: "uppercase" }}>Total Pending</Text>
                                 <Text style={{ color: colors.error, fontSize: 20, fontFamily: "DMSans-Bold", marginTop: 8 }}>₹{analytics.totalPending.toLocaleString()}</Text>
                             </View>
-                            <View style={{ flex: 1, backgroundColor: (colors.warning || "#FFB020") + "15", padding: 16, borderRadius: 16 }}>
-                                <Text style={{ color: colors.warning || "#FFB020", fontSize: 12, fontFamily: "DMSans-Bold", textTransform: "uppercase" }}>Arrears</Text>
-                                <Text style={{ color: colors.warning || "#FFB020", fontSize: 20, fontFamily: "DMSans-Bold", marginTop: 8 }}>₹{analytics.totalArrears.toLocaleString()}</Text>
+                            <View style={{ flex: 1, backgroundColor: "#FF980015", padding: 16, borderRadius: 16 }}>
+                                <Text style={{ color: "#FF9800", fontSize: 12, fontFamily: "DMSans-Bold", textTransform: "uppercase" }}>Concessions</Text>
+                                <Text style={{ color: "#FF9800", fontSize: 20, fontFamily: "DMSans-Bold", marginTop: 8 }}>₹{(analytics.totalConcession || 0).toLocaleString()}</Text>
                             </View>
                         </View>
+                        {analytics.totalArrears > 0 && (
+                            <View style={{ backgroundColor: (colors.warning || "#FFB020") + "15", padding: 16, borderRadius: 16, marginBottom: 16 }}>
+                                <Text style={{ color: colors.warning || "#FFB020", fontSize: 12, fontFamily: "DMSans-Bold", textTransform: "uppercase" }}>Arrears / Previous Dues</Text>
+                                <Text style={{ color: colors.warning || "#FFB020", fontSize: 20, fontFamily: "DMSans-Bold", marginTop: 4 }}>₹{analytics.totalArrears.toLocaleString()}</Text>
+                            </View>
+                        )}
                         <View style={{ backgroundColor: colors.cardBackground, padding: 16, borderRadius: 16, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                             <View>
-                                <Text style={{ color: colors.textSecondary, fontSize: 13, fontFamily: "DMSans-Medium" }}>Total Expected Revenue</Text>
+                                <Text style={{ color: colors.textSecondary, fontSize: 13, fontFamily: "DMSans-Medium" }}>Total Expected Revenue (To Pay)</Text>
                                 <Text style={{ color: colors.textPrimary, fontSize: 24, fontFamily: "DMSans-Bold", marginTop: 4 }}>₹{analytics.totalExpectedFees.toLocaleString()}</Text>
                             </View>
                             <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: colors.primary + "15", justifyContent: "center", alignItems: "center" }}>
                                 <MaterialIcons name="account-balance-wallet" size={24} color={colors.primary} />
                             </View>
                         </View>
+
+                        {/* Class-wise Fee Collection Breakdown */}
+                        {analytics.classBreakdown && analytics.classBreakdown.length > 0 && (
+                            <View style={{ marginTop: 24 }}>
+                                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                                    <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>Class-wise Collection</Text>
+                                    <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>
+                                        {analytics.classBreakdown.length} Classes
+                                    </Text>
+                                </View>
+
+                                <View style={{ gap: 12 }}>
+                                    {analytics.classBreakdown.map((item, idx) => {
+                                        const rate = item.collectionRate || 0;
+                                        const rateColor = rate >= 75 ? colors.success : rate >= 40 ? (colors.warning || "#FFB020") : colors.error;
+
+                                        return (
+                                            <Pressable
+                                                key={item.classId || idx}
+                                                onPress={() => {
+                                                    setStudentSearchQuery(item.className === 'Unassigned' ? '' : item.className);
+                                                    setActiveTab('students');
+                                                }}
+                                                style={{
+                                                    backgroundColor: colors.cardBackground,
+                                                    borderRadius: 16,
+                                                    padding: 16,
+                                                    shadowColor: "#000",
+                                                    shadowOffset: { width: 0, height: 1 },
+                                                    shadowOpacity: 0.05,
+                                                    shadowRadius: 4,
+                                                    elevation: 1
+                                                }}
+                                            >
+                                                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                                                    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                                                        <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: rateColor }} />
+                                                        <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary, fontSize: 15 }}>
+                                                            {formatClassName(item.className, item.section)}
+                                                        </Text>
+                                                        <Text style={{ color: colors.textSecondary, fontSize: 12, fontFamily: "DMSans-Regular" }}>
+                                                            ({item.studentCount} {item.studentCount === 1 ? 'student' : 'students'})
+                                                        </Text>
+                                                    </View>
+                                                    <View style={{ backgroundColor: rateColor + "15", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 }}>
+                                                        <Text style={{ color: rateColor, fontFamily: "DMSans-Bold", fontSize: 12 }}>
+                                                            {rate}%
+                                                        </Text>
+                                                    </View>
+                                                </View>
+
+                                                {/* Progress Bar */}
+                                                <View style={{ height: 6, backgroundColor: colors.background, borderRadius: 3, overflow: "hidden", marginBottom: 10 }}>
+                                                    <View style={{ width: `${Math.min(100, Math.max(0, rate))}%`, height: "100%", backgroundColor: rateColor, borderRadius: 3 }} />
+                                                </View>
+
+                                                {/* Row stats */}
+                                                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                                                    <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>
+                                                        Collected: <Text style={{ color: colors.success, fontFamily: "DMSans-Bold" }}>₹{(item.totalPaid || 0).toLocaleString()}</Text>
+                                                    </Text>
+                                                    <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>
+                                                        Pending: <Text style={{ color: colors.error, fontFamily: "DMSans-Bold" }}>₹{(item.totalPending || 0).toLocaleString()}</Text>
+                                                    </Text>
+                                                </View>
+                                            </Pressable>
+                                        );
+                                    })}
+                                </View>
+                            </View>
+                        )}
 
                     </View>
                 )}
@@ -735,21 +812,67 @@ export default function AdminFeesScreen() {
                                             <Text style={{ color: colors.textSecondary }}>• {selectedStudent.phone}</Text>
                                         </View>
 
-                                        <View style={{ flexDirection: "row", width: "100%", gap: 12 }}>
-                                            <View style={{ flex: 1, backgroundColor: colors.background, padding: 16, borderRadius: 16, alignItems: "center" }}>
-                                                <Text style={{ color: colors.textSecondary, fontSize: 12, marginBottom: 4 }}>Total Fees</Text>
-                                                <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary, fontSize: 18 }}>₹{feeDetails?.totalFees || 0}</Text>
+                                        <View style={{ flexDirection: "row", width: "100%", gap: 8, flexWrap: "wrap" }}>
+                                            <View style={{ flex: 1, minWidth: "22%", backgroundColor: colors.background, padding: 12, borderRadius: 16, alignItems: "center" }}>
+                                                <Text style={{ color: colors.textSecondary, fontSize: 11, marginBottom: 4 }}>Total Fees</Text>
+                                                <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary, fontSize: 16 }}>₹{(feeDetails?.totalFees || 0).toLocaleString()}</Text>
                                             </View>
-                                            <View style={{ flex: 1, backgroundColor: colors.success + "10", padding: 16, borderRadius: 16, alignItems: "center" }}>
-                                                <Text style={{ color: colors.success, fontSize: 12, marginBottom: 4 }}>Paid</Text>
-                                                <Text style={{ fontFamily: "DMSans-Bold", color: colors.success, fontSize: 18 }}>₹{feeDetails?.paidAmount || 0}</Text>
+                                            {feeDetails?.concession > 0 && (
+                                                <View style={{ flex: 1, minWidth: "22%", backgroundColor: "#FF980015", padding: 12, borderRadius: 16, alignItems: "center" }}>
+                                                    <Text style={{ color: "#FF9800", fontSize: 11, marginBottom: 4 }}>Concession</Text>
+                                                    <Text style={{ fontFamily: "DMSans-Bold", color: "#FF9800", fontSize: 16 }}>₹{feeDetails.concession.toLocaleString()}</Text>
+                                                </View>
+                                            )}
+                                            <View style={{ flex: 1, minWidth: "22%", backgroundColor: colors.success + "10", padding: 12, borderRadius: 16, alignItems: "center" }}>
+                                                <Text style={{ color: colors.success, fontSize: 11, marginBottom: 4 }}>Paid</Text>
+                                                <Text style={{ fontFamily: "DMSans-Bold", color: colors.success, fontSize: 16 }}>₹{(feeDetails?.paidAmount || 0).toLocaleString()}</Text>
                                             </View>
-                                            <View style={{ flex: 1, backgroundColor: colors.error + "10", padding: 16, borderRadius: 16, alignItems: "center" }}>
-                                                <Text style={{ color: colors.error, fontSize: 12, marginBottom: 4 }}>Pending</Text>
-                                                <Text style={{ fontFamily: "DMSans-Bold", color: colors.error, fontSize: 18 }}>₹{feeDetails?.pendingAmount || 0}</Text>
+                                            <View style={{ flex: 1, minWidth: "22%", backgroundColor: colors.error + "10", padding: 12, borderRadius: 16, alignItems: "center" }}>
+                                                <Text style={{ color: colors.error, fontSize: 11, marginBottom: 4 }}>Pending</Text>
+                                                <Text style={{ fontFamily: "DMSans-Bold", color: colors.error, fontSize: 16 }}>₹{(feeDetails?.pendingAmount || 0).toLocaleString()}</Text>
                                             </View>
                                         </View>
                                     </View>
+
+                                    {/* Installment Schedule & Overdue Status */}
+                                    {feeDetails?.installmentSchedule && feeDetails.installmentSchedule.length > 0 && (
+                                        <View style={{ marginBottom: 24 }}>
+                                            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 12 }}>Installment Schedule</Text>
+                                            <View style={{ backgroundColor: colors.cardBackground, borderRadius: 20, padding: 16 }}>
+                                                {feeDetails.installmentSchedule.map((inst, index) => {
+                                                    const isPaid = inst.status === 'paid';
+                                                    const isOverdue = inst.status === 'overdue';
+                                                    const isDueSoon = inst.status === 'due_soon';
+                                                    const isPartial = inst.status === 'partial';
+
+                                                    const badgeColor = isPaid ? colors.success : isOverdue ? colors.error : isDueSoon ? (colors.warning || "#FFB020") : isPartial ? colors.primary : colors.textSecondary;
+                                                    const badgeBg = badgeColor + "15";
+                                                    const badgeText = isPaid ? "PAID" : isOverdue ? "OVERDUE" : isDueSoon ? "DUE SOON" : isPartial ? "PARTIAL" : "UPCOMING";
+
+                                                    return (
+                                                        <View key={index} style={{
+                                                            paddingVertical: 12,
+                                                            borderBottomWidth: index === feeDetails.installmentSchedule.length - 1 ? 0 : 1,
+                                                            borderBottomColor: colors.textSecondary + "10",
+                                                            flexDirection: "row",
+                                                            justifyContent: "space-between",
+                                                            alignItems: "center"
+                                                        }}>
+                                                            <View style={{ flex: 1, marginRight: 12 }}>
+                                                                <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary, fontSize: 15 }}>{inst.description}</Text>
+                                                                <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2 }}>
+                                                                    Target: ₹{inst.amount.toLocaleString()} • {inst.dueDate ? `Due ${new Date(inst.dueDate).toLocaleDateString()}` : "No due date"}
+                                                                </Text>
+                                                            </View>
+                                                            <View style={{ backgroundColor: badgeBg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
+                                                                <Text style={{ color: badgeColor, fontSize: 11, fontFamily: "DMSans-Bold" }}>{badgeText}</Text>
+                                                            </View>
+                                                        </View>
+                                                    );
+                                                })}
+                                            </View>
+                                        </View>
+                                    )}
 
                                     <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 16 }}>Payment History</Text>
 

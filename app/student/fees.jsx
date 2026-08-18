@@ -116,6 +116,48 @@ export default function StudentFeesScreen() {
                         </View>
                     </View>
 
+                    {/* Installment Schedule & Overdue Status */}
+                    {feeData?.installmentSchedule && feeData.installmentSchedule.length > 0 && (
+                        <View style={{ marginTop: 24 }}>
+                            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 16 }}>
+                                Installment Schedule
+                            </Text>
+                            <View style={{ backgroundColor: colors.cardBackground, borderRadius: 16, padding: 16 }}>
+                                {feeData.installmentSchedule.map((inst, index) => {
+                                    const isPaid = inst.status === 'paid';
+                                    const isOverdue = inst.status === 'overdue';
+                                    const isDueSoon = inst.status === 'due_soon';
+                                    const isPartial = inst.status === 'partial';
+
+                                    const badgeColor = isPaid ? colors.success : isOverdue ? colors.error : isDueSoon ? (colors.warning || "#FFB020") : isPartial ? colors.primary : colors.textSecondary;
+                                    const badgeBg = badgeColor + "15";
+                                    const badgeText = isPaid ? "PAID" : isOverdue ? "OVERDUE" : isDueSoon ? "DUE SOON" : isPartial ? "PARTIAL" : "UPCOMING";
+
+                                    return (
+                                        <View key={index} style={{
+                                            paddingVertical: 12,
+                                            borderBottomWidth: index === feeData.installmentSchedule.length - 1 ? 0 : 1,
+                                            borderBottomColor: colors.textSecondary + "10",
+                                            flexDirection: "row",
+                                            justifyContent: "space-between",
+                                            alignItems: "center"
+                                        }}>
+                                            <View style={{ flex: 1, marginRight: 12 }}>
+                                                <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary, fontSize: 15 }}>{inst.description}</Text>
+                                                <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2 }}>
+                                                    Target: ₹{inst.amount.toLocaleString()} • {inst.dueDate ? `Due ${new Date(inst.dueDate).toLocaleDateString()}` : "No due date"}
+                                                </Text>
+                                            </View>
+                                            <View style={{ backgroundColor: badgeBg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
+                                                <Text style={{ color: badgeColor, fontSize: 11, fontFamily: "DMSans-Bold" }}>{badgeText}</Text>
+                                            </View>
+                                        </View>
+                                    );
+                                })}
+                            </View>
+                        </View>
+                    )}
+
                     {/* Payment History */}
                     <View style={{ marginTop: 24 }}>
                         <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 16 }}>

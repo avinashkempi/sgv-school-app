@@ -147,7 +147,7 @@ export default function RequestsScreen() {
                     {/* Leave Requests Card */}
                     {renderActionItem({
                         title: "Leave Requests",
-                        subtitle: user?.role === 'student'
+                        subtitle: user?.role === 'student' || user?.role === 'staff'
                             ? 'Apply for leave and track status'
                             : 'Approve or reject leave requests',
                         icon: "event-note",

@@ -6,6 +6,7 @@ import { CACHE_TIERS } from '../../utils/cacheConfig';
 import apiFetch from '../../utils/apiFetch';
 import apiConfig from '../../config/apiConfig';
 import { useTheme } from '../../theme';
+import { useAuth } from '../../context/AuthContext';
 import AttendanceView from '../../components/AttendanceView';
 
 const PAGE_SIZE = 30;
@@ -13,6 +14,8 @@ const PAGE_SIZE = 30;
 export default function TeacherAttendance() {
     const _router = useRouter();
     const { colors } = useTheme();
+    const { user } = useAuth();
+    const isStaff = user?.role === 'staff';
 
     const [refreshing, setRefreshing] = useState(false);
     const [page, setPage] = useState(1);
@@ -80,7 +83,7 @@ export default function TeacherAttendance() {
                 loadingMore={loadingMore}
                 hasMore={hasMore}
                 title="My Attendance"
-                subtitle="Track your teaching attendance"
+                subtitle={isStaff ? 'Track your attendance' : 'Track your teaching attendance'}
             />
         </View>
     );
