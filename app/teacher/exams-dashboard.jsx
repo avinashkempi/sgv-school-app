@@ -28,7 +28,7 @@ export default function TeacherExamDashboard() {
     const [selectedTab, setSelectedTab] = useState('overview'); // 'overview', 'reports'
 
     // Fetch dashboard data
-    const { data: dashboardData, isLoading, refetch } = useApiQuery(
+    const { data: dashboardData, isLoading, isFetching, refetch } = useApiQuery(
         ['teacherExamDashboard'],
         `${apiConfig.baseUrl}/exams/teacher/dashboard`
     );
@@ -349,44 +349,43 @@ export default function TeacherExamDashboard() {
                         fontSize: 18,
                         fontFamily: 'DMSans-Bold',
                         color: colors.onSurface,
-                        marginBottom: 12
+                        marginBottom: 16
                     }}>
-                        Performance Reports
+                        Class Reports
                     </Text>
                     {dashboard.length === 0 ? (
                         <View style={{
-                            alignItems: 'center',
-                            paddingVertical: 40,
-                            backgroundColor: colors.surfaceContainerHighest,
-                            borderRadius: 16
+                            backgroundColor: colors.surfaceContainerLow,
+                            borderRadius: 16,
+                            padding: 32,
+                            alignItems: 'center'
                         }}>
                             <MaterialIcons name="analytics" size={48} color={colors.onSurfaceVariant} style={{ opacity: 0.5 }} />
                             <Text style={{
-                                color: colors.onSurfaceVariant,
-                                fontSize: 15,
+                                fontSize: 16,
                                 fontFamily: 'DMSans-Medium',
-                                marginTop: 12,
-                                textAlign: 'center'
+                                color: colors.onSurfaceVariant,
+                                marginTop: 12
                             }}>
-                                No reports available
+                                No classes assigned
                             </Text>
                         </View>
                     ) : (
-                        dashboard.map((item, index) => (
+                        dashboard.map(item => (
                             <Pressable
-                                key={`${item.classId}-${item.subjectId}-${index}`}
+                                key={`${item.classId}-${item.subjectId}`}
                                 onPress={() => handleViewReports(item.classId, item.subjectId)}
                                 style={({ pressed }) => ({
                                     backgroundColor: colors.surfaceContainerLow,
-                                    borderRadius: 12,
-                                    padding: 14,
-                                    marginBottom: 10,
+                                    borderRadius: 16,
+                                    padding: 16,
+                                    marginBottom: 12,
                                     borderWidth: 1,
                                     borderColor: colors.outlineVariant,
-                                    opacity: pressed ? 0.7 : 1
+                                    opacity: pressed ? 0.9 : 1
                                 })}
                             >
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                                     <View>
                                         <Text style={{ fontSize: 15, fontFamily: 'DMSans-Bold', color: colors.onSurface }}>
                                             {item.className}
@@ -405,14 +404,6 @@ export default function TeacherExamDashboard() {
         }
         return null;
     };
-
-    if (isLoading) {
-        return (
-            <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }}>
-                <ActivityIndicator size="large" color={colors.primary} />
-            </View>
-        );
-    }
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -469,7 +460,7 @@ export default function TeacherExamDashboard() {
                                     color={selectedTab === tab.id ? '#FFFFFF' : colors.onSurfaceVariant}
                                 />
                                 <Text style={{
-                                    fontSize: 13,
+                                    fontSize: 14,
                                     fontFamily: 'DMSans-Bold',
                                     color: selectedTab === tab.id ? '#FFFFFF' : colors.onSurfaceVariant
                                 }}>
@@ -479,11 +470,25 @@ export default function TeacherExamDashboard() {
                         ))}
                     </View>
 
-                    {renderContent()}
+                    {isLoading && !dashboardData ? (
+                        <View style={{ paddingVertical: 48, alignItems: 'center', justifyContent: 'center' }}>
+                            <ActivityIndicator size="large" color={colors.primary} />
+                            <Text style={{
+                                fontSize: 14,
+                                fontFamily: 'DMSans-Medium',
+                                color: colors.onSurfaceVariant,
+                                marginTop: 12
+                            }}>
+                                Loading exam dashboard...
+                            </Text>
+                        </View>
+                    ) : (
+                        <View style={{ opacity: isFetching && !isLoading ? 0.85 : 1 }}>
+                            {renderContent()}
+                        </View>
+                    )}
                 </View>
             </ScrollView>
-
-
         </View>
     );
 }

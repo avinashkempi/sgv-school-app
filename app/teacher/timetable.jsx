@@ -38,7 +38,7 @@ export default function SchoolTimetableScreen() {
     }, []);
 
     // Fetch all timetables
-    const { data: timetables, isLoading: loading, refetch } = useApiQuery(
+    const { data: timetables, isLoading: loading, isFetching, refetch } = useApiQuery(
         ['schoolTimetable'],
         `${apiConfig.baseUrl}/timetable/all`,
         CACHE_TIERS.STABLE
@@ -87,15 +87,6 @@ export default function SchoolTimetableScreen() {
     };
 
     const dayPeriods = getSchedule();
-
-    if (loading) {
-        return (
-            <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: "center", alignItems: "center" }}>
-                <ActivityIndicator size="large" color={colors.primary} />
-            </View>
-        );
-    }
-
     const classes = (timetables || []).map(t => t.class).filter(Boolean);
 
     return (
@@ -187,76 +178,87 @@ export default function SchoolTimetableScreen() {
                             )}
                         </View>
 
-                        {dayPeriods.length === 0 ? (
-                            <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
-                                <MaterialIcons name="event-busy" size={48} color={colors.textSecondary} />
-                                <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16 }}>
-                                    No classes scheduled
+                        {loading && !timetables ? (
+                            <View style={{ paddingVertical: 48, alignItems: 'center', justifyContent: 'center' }}>
+                                <ActivityIndicator size="large" color={colors.primary} />
+                                <Text style={{ color: colors.textSecondary, marginTop: 12, fontSize: 14, fontFamily: 'DMSans-Medium' }}>
+                                    Loading timetable...
                                 </Text>
                             </View>
                         ) : (
-                            dayPeriods.map((period, index) => (
-                                <Card
-                                    key={index}
-                                    variant="elevated"
-                                    style={{
-                                        marginBottom: 12,
-                                    }}
-                                    contentStyle={{
-                                        flexDirection: "row",
-                                        gap: 16,
-                                    }}
-                                >
-                                    {/* Time Column */}
-                                    <View style={{ alignItems: "center", justifyContent: "center", width: 60 }}>
-                                        <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
-                                            {period.startTime}
-                                        </Text>
-                                        <View style={{ width: 1, height: 10, backgroundColor: colors.textSecondary + "40", marginVertical: 2 }} />
-                                        <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-                                            {period.endTime}
+                            <View style={{ opacity: isFetching && !loading ? 0.85 : 1 }}>
+                                {dayPeriods.length === 0 ? (
+                                    <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
+                                        <MaterialIcons name="event-busy" size={48} color={colors.textSecondary} />
+                                        <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16 }}>
+                                            No classes scheduled
                                         </Text>
                                     </View>
-
-                                    {/* Divider */}
-                                    <View style={{ width: 1, backgroundColor: colors.textSecondary + "20" }} />
-
-                                    {/* Details */}
-                                    <View style={{ flex: 1, justifyContent: "center" }}>
-                                        <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 4 }}>
-                                            {period.subject?.name || "Subject"}
-                                        </Text>
-                                        <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                                            <MaterialIcons name="person" size={14} color={colors.textSecondary} />
-                                            <Text style={{ fontSize: 13, color: colors.textSecondary }}>
-                                                {period.teacher?.name || "Teacher"}
-                                            </Text>
-                                        </View>
-                                        {period.roomNumber && (
-                                            <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
-                                                <MaterialIcons name="room" size={14} color={colors.textSecondary} />
-                                                <Text style={{ fontSize: 13, color: colors.textSecondary }}>
-                                                    Room {period.roomNumber}
+                                ) : (
+                                    dayPeriods.map((period, index) => (
+                                        <Card
+                                            key={index}
+                                            variant="elevated"
+                                            style={{
+                                                marginBottom: 12,
+                                            }}
+                                            contentStyle={{
+                                                flexDirection: "row",
+                                                gap: 16,
+                                            }}
+                                        >
+                                            {/* Time Column */}
+                                            <View style={{ alignItems: "center", justifyContent: "center", width: 60 }}>
+                                                <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
+                                                    {period.startTime}
+                                                </Text>
+                                                <View style={{ width: 1, height: 10, backgroundColor: colors.textSecondary + "40", marginVertical: 2 }} />
+                                                <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                                                    {period.endTime}
                                                 </Text>
                                             </View>
-                                        )}
-                                    </View>
 
-                                    {/* Period badge */}
-                                    <View style={{
-                                        width: 32, height: 32,
-                                        borderRadius: 10,
-                                        backgroundColor: colors.primary + "15",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        alignSelf: "center"
-                                    }}>
-                                        <Text style={{ fontFamily: "DMSans-Bold", color: colors.primary, fontSize: 14 }}>
-                                            {period.periodNumber}
-                                        </Text>
-                                    </View>
-                                </Card>
-                            ))
+                                            {/* Divider */}
+                                            <View style={{ width: 1, backgroundColor: colors.textSecondary + "20" }} />
+
+                                            {/* Details */}
+                                            <View style={{ flex: 1, justifyContent: "center" }}>
+                                                <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 4 }}>
+                                                    {period.subject?.name || "Subject"}
+                                                </Text>
+                                                <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                                                    <MaterialIcons name="person" size={14} color={colors.textSecondary} />
+                                                    <Text style={{ fontSize: 13, color: colors.textSecondary }}>
+                                                        {period.teacher?.name || "Teacher"}
+                                                    </Text>
+                                                </View>
+                                                {period.roomNumber && (
+                                                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
+                                                        <MaterialIcons name="room" size={14} color={colors.textSecondary} />
+                                                        <Text style={{ fontSize: 13, color: colors.textSecondary }}>
+                                                            Room {period.roomNumber}
+                                                        </Text>
+                                                    </View>
+                                                )}
+                                            </View>
+
+                                            {/* Period badge */}
+                                            <View style={{
+                                                width: 32, height: 32,
+                                                borderRadius: 10,
+                                                backgroundColor: colors.primary + "15",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                alignSelf: "center"
+                                            }}>
+                                                <Text style={{ fontFamily: "DMSans-Bold", color: colors.primary, fontSize: 14 }}>
+                                                    {period.periodNumber}
+                                                </Text>
+                                            </View>
+                                        </Card>
+                                    ))
+                                )}
+                            </View>
                         )}
                     </View>
                 </View>

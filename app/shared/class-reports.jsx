@@ -8,6 +8,7 @@ import {
     RefreshControl
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '../../theme';
 import { useApiQuery } from '../../hooks/useApi';
@@ -31,8 +32,8 @@ export default function ClassReportsDashboard() {
     // eslint-disable-next-line no-unused-vars
     const [selectedClass, setSelectedClass] = useState(params.classId || null);
 
-    // Fetch class analytics
-    const { data: analyticsData, isLoading, refetch } = useApiQuery(
+    // Fetch class analytics with keepPreviousData
+    const { data: analyticsData, isLoading, isFetching, refetch } = useApiQuery(
         ['classAnalytics', selectedClass, selectedExamType],
         `${apiConfig.baseUrl}/marks/analytics/class/${selectedClass}${selectedExamType ? `?examType=${selectedExamType}` : ''}`,
         { enabled: !!selectedClass }
@@ -49,6 +50,11 @@ export default function ClassReportsDashboard() {
         setRefreshing(true);
         await refetch();
         setRefreshing(false);
+    };
+
+    const handleSelectExamType = (type) => {
+        Haptics.selectionAsync();
+        setSelectedExamType(type);
     };
 
     // Grade color mapping helper
@@ -107,6 +113,8 @@ export default function ClassReportsDashboard() {
         };
     }, [analyticsData]);
 
+    const [expandedStudentId, setExpandedStudentId] = useState(null);
+
     const renderOverview = () => {
         if (!analyticsData) return null;
 
@@ -141,6 +149,14 @@ export default function ClassReportsDashboard() {
                         variant="compact"
                     />
                     <StatCard
+                        label="Total Marks"
+                        value={`${analyticsData?.totalMarksObtained || 0}/${analyticsData?.totalMarksEvaluated || 0}`}
+                        icon="assignment"
+                        color="#9C27B0"
+                        gradient
+                        variant="compact"
+                    />
+                    <StatCard
                         label="Highest"
                         value={stats?.highest != null ? `${stats.highest.toFixed(1)}%` : 'N/A'}
                         icon="arrow-upward"
@@ -154,164 +170,257 @@ export default function ClassReportsDashboard() {
     };
 
     const renderGradeDistribution = () => {
-        if (!gradeDistributionData || gradeDistributionData.length === 0) return null;
+        if (!gradeDistributionData) return null;
 
         return (
-            <PerformanceChart
-                type="pie"
-                data={gradeDistributionData}
-                title="Grade Distribution"
-                height={240}
-            />
+            <View style={{ marginBottom: 20 }}>
+                <PerformanceChart
+                    type="pie"
+                    data={gradeDistributionData}
+                    title="Grade Distribution"
+                    subtitle="Distribution across performance bands"
+                />
+            </View>
         );
     };
 
     const renderPerformanceTrends = () => {
-        if (!trendChartData) return null;
+        if (!trendChartData || trendChartData.labels.length === 0) return null;
 
         return (
-            <PerformanceChart
-                type="line"
-                data={trendChartData}
-                title="Performance Trend Across Exams"
-                height={220}
-            />
+            <View style={{ marginBottom: 20 }}>
+                <PerformanceChart
+                    type="line"
+                    data={trendChartData}
+                    title="Performance Trends"
+                    subtitle="Exam-wise average progression"
+                    yAxisSuffix="%"
+                />
+            </View>
         );
     };
 
     const renderTopPerformers = () => {
-        if (!topPerformersData) return null;
+        if (!topPerformersData || topPerformersData.labels.length === 0) return null;
 
         return (
-            <PerformanceChart
-                type="bar"
-                data={topPerformersData}
-                title="Top 5 Performers"
-                height={220}
-            />
+            <View style={{ marginBottom: 20 }}>
+                <PerformanceChart
+                    type="bar"
+                    data={topPerformersData}
+                    title="Top Performers"
+                    subtitle="Top 5 students in the class"
+                    yAxisSuffix="%"
+                />
+            </View>
         );
     };
 
     const renderStudentRankings = () => {
-        if (!analyticsData?.studentRankings) return null;
+        const rankings = analyticsData?.studentRankings || [];
+        if (rankings.length === 0) return null;
 
         return (
-            <View>
-                <Text style={{
-                    fontSize: 18,
-                    fontFamily: 'DMSans-Bold',
-                    color: colors.onSurface,
-                    marginBottom: 16
+            <View style={{ marginBottom: 20 }}>
+                <View style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: 12
                 }}>
-                    Student Rankings
-                </Text>
+                    <Text style={{
+                        fontSize: 18,
+                        fontFamily: 'DMSans-Bold',
+                        color: colors.onSurface
+                    }}>
+                        Student Rankings
+                    </Text>
+                    <Text style={{
+                        fontSize: 13,
+                        fontFamily: 'DMSans-Medium',
+                        color: colors.onSurfaceVariant
+                    }}>
+                        {rankings.length} Students
+                    </Text>
+                </View>
 
-                {analyticsData.studentRankings.map((student, index) => (
-                    <View
-                        key={student.studentId}
-                        style={{
-                            backgroundColor: index < 3
-                                ? colors.primaryContainer
-                                : colors.surfaceContainerLow,
-                            borderRadius: 12,
-                            padding: 14,
-                            marginBottom: 10,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            borderLeftWidth: 3,
-                            borderLeftColor: index < 3 ? colors.primary : colors.outlineVariant
-                        }}
-                    >
-                        <View style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: 16,
-                            backgroundColor: index < 3 ? colors.primary : colors.surfaceContainerHigh,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            marginRight: 12
-                        }}>
-                            <Text style={{
-                                fontSize: 14,
-                                fontFamily: 'DMSans-Bold',
-                                color: index < 3 ? '#FFFFFF' : colors.onSurface
-                            }}>
-                                {student.rank}
-                            </Text>
-                        </View>
+                {rankings.map((student) => {
+                    const isTop3 = student.rank <= 3;
+                    const rankColors = {
+                        1: '#FFD700',
+                        2: '#C0C0C0',
+                        3: '#CD7F32'
+                    };
 
-                        <View style={{ flex: 1 }}>
-                            <Text style={{
-                                fontSize: 15,
-                                fontFamily: 'DMSans-Bold',
-                                color: colors.onSurface
-                            }}>
-                                {student.studentName}
-                            </Text>
-                            <Text style={{
-                                fontSize: 12,
-                                fontFamily: 'DMSans-Regular',
-                                color: colors.onSurfaceVariant,
-                                marginTop: 2
-                            }}>
-                                {student.examsAttempted}/{student.totalExams} exams
-                            </Text>
-                        </View>
+                    const isExpanded = expandedStudentId === (student.studentId || student._id);
+                    const subjectScores = student.subjectScores || [];
 
-                        <View style={{ alignItems: 'flex-end' }}>
-                            <Text style={{
-                                fontSize: 20,
-                                fontFamily: 'DMSans-Bold',
-                                color: colors.primary
-                            }}>
-                                {student.percentage.toFixed(1)}%
-                            </Text>
+                    return (
+                        <Pressable
+                            key={student.studentId || student._id}
+                            onPress={() => setExpandedStudentId(isExpanded ? null : (student.studentId || student._id))}
+                            style={({ pressed }) => ({
+                                backgroundColor: colors.surfaceContainerLow,
+                                borderRadius: 16,
+                                padding: 16,
+                                marginBottom: 10,
+                                opacity: pressed ? 0.95 : 1,
+                                borderWidth: 1,
+                                borderColor: isExpanded ? colors.primary + '60' : colors.outlineVariant + '40',
+                                elevation: isExpanded ? 2 : 0
+                            })}
+                        >
                             <View style={{
-                                backgroundColor: getGradeColor(student.grade) + '20',
-                                paddingHorizontal: 8,
-                                paddingVertical: 2,
-                                borderRadius: 6,
-                                marginTop: 4
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'space-between'
                             }}>
-                                <Text style={{
-                                    fontSize: 12,
-                                    fontFamily: 'DMSans-Bold',
-                                    color: getGradeColor(student.grade)
-                                }}>
-                                    {student.grade}
-                                </Text>
+                                {/* Rank & Info */}
+                                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, gap: 12 }}>
+                                    <View style={{
+                                        width: 36,
+                                        height: 36,
+                                        borderRadius: 18,
+                                        backgroundColor: isTop3 ? rankColors[student.rank] + '20' : colors.surfaceContainerHighest,
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        borderWidth: isTop3 ? 2 : 0,
+                                        borderColor: rankColors[student.rank]
+                                    }}>
+                                        {isTop3 ? (
+                                            <MaterialIcons
+                                                name="emoji-events"
+                                                size={18}
+                                                color={rankColors[student.rank]}
+                                            />
+                                        ) : (
+                                            <Text style={{
+                                                fontSize: 14,
+                                                fontFamily: 'DMSans-Bold',
+                                                color: colors.onSurface
+                                            }}>
+                                                {student.rank}
+                                            </Text>
+                                        )}
+                                    </View>
+
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={{
+                                            fontSize: 15,
+                                            fontFamily: 'DMSans-Bold',
+                                            color: colors.onSurface
+                                        }}>
+                                            {student.studentName}
+                                        </Text>
+                                        <Text style={{
+                                            fontSize: 12,
+                                            fontFamily: 'DMSans-Medium',
+                                            color: colors.primary,
+                                            marginTop: 2
+                                        }}>
+                                            Scored: {student.totalObtained} / {student.totalMax} Marks ({student.percentage}%)
+                                        </Text>
+                                    </View>
+                                </View>
+
+                                {/* Grade & Percentage */}
+                                <View style={{ alignItems: 'flex-end', marginLeft: 12 }}>
+                                    <View style={{
+                                        backgroundColor: getGradeColor(student.grade) + '20',
+                                        paddingHorizontal: 10,
+                                        paddingVertical: 4,
+                                        borderRadius: 8,
+                                        marginBottom: 4
+                                    }}>
+                                        <Text style={{
+                                            fontSize: 12,
+                                            fontFamily: 'DMSans-Bold',
+                                            color: getGradeColor(student.grade)
+                                        }}>
+                                            {student.grade}
+                                        </Text>
+                                    </View>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                                        <Text style={{
+                                            fontSize: 11,
+                                            fontFamily: 'DMSans-Medium',
+                                            color: colors.onSurfaceVariant
+                                        }}>
+                                            {subjectScores.length} subjects
+                                        </Text>
+                                        <MaterialIcons
+                                            name={isExpanded ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+                                            size={16}
+                                            color={colors.onSurfaceVariant}
+                                        />
+                                    </View>
+                                </View>
                             </View>
-                        </View>
-                    </View>
-                ))}
+
+                            {/* Expandable Subject-wise Score Chips */}
+                            {isExpanded && subjectScores.length > 0 && (
+                                <View style={{
+                                    marginTop: 12,
+                                    paddingTop: 12,
+                                    borderTopWidth: 1,
+                                    borderTopColor: colors.outlineVariant + '30'
+                                }}>
+                                    <Text style={{
+                                        fontSize: 11,
+                                        fontFamily: 'DMSans-Bold',
+                                        color: colors.onSurfaceVariant,
+                                        textTransform: 'uppercase',
+                                        letterSpacing: 0.5,
+                                        marginBottom: 8
+                                    }}>
+                                        Subject Breakdown
+                                    </Text>
+                                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                                        {subjectScores.map((subj, sIdx) => (
+                                            <View
+                                                key={subj.examId || sIdx}
+                                                style={{
+                                                    backgroundColor: colors.surfaceContainerHighest,
+                                                    paddingHorizontal: 10,
+                                                    paddingVertical: 5,
+                                                    borderRadius: 8,
+                                                    flexDirection: 'row',
+                                                    alignItems: 'center',
+                                                    gap: 6
+                                                }}
+                                            >
+                                                <Text style={{
+                                                    fontSize: 12,
+                                                    fontFamily: 'DMSans-Bold',
+                                                    color: colors.onSurface
+                                                }}>
+                                                    {subj.subjectName}:
+                                                </Text>
+                                                <Text style={{
+                                                    fontSize: 12,
+                                                    fontFamily: 'DMSans-Bold',
+                                                    color: getGradeColor(subj.grade)
+                                                }}>
+                                                    {subj.marksObtained}/{subj.totalMarks}
+                                                </Text>
+                                                <Text style={{
+                                                    fontSize: 10,
+                                                    fontFamily: 'DMSans-Medium',
+                                                    color: colors.onSurfaceVariant
+                                                }}>
+                                                    ({subj.percentage}%)
+                                                </Text>
+                                            </View>
+                                        ))}
+                                    </View>
+                                </View>
+                            )}
+                        </Pressable>
+                    );
+                })}
             </View>
         );
     };
-
-    if (isLoading) {
-        return (
-            <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }}>
-                <ActivityIndicator size="large" color={colors.primary} />
-            </View>
-        );
-    }
-
-    if (!selectedClass || !analyticsData) {
-        return (
-            <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-                <MaterialIcons name="insert-chart" size={64} color={colors.onSurfaceVariant} style={{ opacity: 0.5 }} />
-                <Text style={{
-                    fontSize: 16,
-                    fontFamily: 'DMSans-Medium',
-                    color: colors.onSurfaceVariant,
-                    marginTop: 16,
-                    textAlign: 'center'
-                }}>
-                    {!selectedClass ? 'Select a class to view reports' : 'No data available'}
-                </Text>
-            </View>
-        );
-    }
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -334,18 +443,27 @@ export default function ClassReportsDashboard() {
 
                     {/* Exam Type Filter */}
                     <View style={{ marginTop: 20, marginBottom: 20 }}>
-                        <Text style={{
-                            fontSize: 13,
-                            fontFamily: 'DMSans-Medium',
-                            color: colors.onSurfaceVariant,
-                            marginBottom: 10
-                        }}>
-                            Filter by Exam Type
-                        </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                            <Text style={{
+                                fontSize: 13,
+                                fontFamily: 'DMSans-Medium',
+                                color: colors.onSurfaceVariant
+                            }}>
+                                Filter by Exam Type
+                            </Text>
+                            {isFetching && !isLoading && (
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                    <ActivityIndicator size="small" color={colors.primary} />
+                                    <Text style={{ fontSize: 11, fontFamily: 'DMSans-Medium', color: colors.primary }}>
+                                        Updating...
+                                    </Text>
+                                </View>
+                            )}
+                        </View>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                             <View style={{ flexDirection: 'row', gap: 8 }}>
                                 <Pressable
-                                    onPress={() => setSelectedExamType(null)}
+                                    onPress={() => handleSelectExamType(null)}
                                     style={({ pressed }) => ({
                                         backgroundColor: !selectedExamType
                                             ? colors.primary
@@ -367,7 +485,7 @@ export default function ClassReportsDashboard() {
                                 {['FA1', 'FA2', 'SA1', 'FA3', 'FA4', 'SA2'].map(type => (
                                     <Pressable
                                         key={type}
-                                        onPress={() => setSelectedExamType(type)}
+                                        onPress={() => handleSelectExamType(type)}
                                         style={({ pressed }) => ({
                                             backgroundColor: selectedExamType === type
                                                 ? colors.primary
@@ -390,11 +508,41 @@ export default function ClassReportsDashboard() {
                         </ScrollView>
                     </View>
 
-                    {renderOverview()}
-                    {renderGradeDistribution()}
-                    {renderPerformanceTrends()}
-                    {renderTopPerformers()}
-                    {renderStudentRankings()}
+                    {/* Content area: initial loading, empty, or loaded data */}
+                    {isLoading && !analyticsData ? (
+                        <View style={{ paddingVertical: 40, alignItems: 'center', justifyContent: 'center' }}>
+                            <ActivityIndicator size="large" color={colors.primary} />
+                            <Text style={{
+                                fontSize: 14,
+                                fontFamily: 'DMSans-Medium',
+                                color: colors.onSurfaceVariant,
+                                marginTop: 12
+                            }}>
+                                Loading class analytics...
+                            </Text>
+                        </View>
+                    ) : !selectedClass || !analyticsData ? (
+                        <View style={{ paddingVertical: 40, alignItems: 'center', justifyContent: 'center' }}>
+                            <MaterialIcons name="insert-chart" size={56} color={colors.onSurfaceVariant} style={{ opacity: 0.4 }} />
+                            <Text style={{
+                                fontSize: 15,
+                                fontFamily: 'DMSans-Medium',
+                                color: colors.onSurfaceVariant,
+                                marginTop: 12,
+                                textAlign: 'center'
+                            }}>
+                                {!selectedClass ? 'Select a class to view reports' : 'No data available'}
+                            </Text>
+                        </View>
+                    ) : (
+                        <View style={{ opacity: isFetching && !isLoading ? 0.85 : 1 }}>
+                            {renderOverview()}
+                            {renderGradeDistribution()}
+                            {renderPerformanceTrends()}
+                            {renderTopPerformers()}
+                            {renderStudentRankings()}
+                        </View>
+                    )}
                 </View>
             </ScrollView>
 

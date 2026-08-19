@@ -17,6 +17,7 @@ import ModernCalendar from "../../components/ModernCalendar";
 import { LoadingState } from "../../components/StateComponents";
 import apiConfig from "../../config/apiConfig";
 import { useAuth } from "../../context/AuthContext";
+import { getISTDateString, getISTToday } from "../../utils/date";
 
 const PAGE_SIZE = 30;
 const MONTHLY_PAGE_SIZE = 3;
@@ -37,7 +38,7 @@ export default function StudentAttendanceScreen() {
     // Monthly summary pagination
     const [monthlyVisible, setMonthlyVisible] = useState(MONTHLY_PAGE_SIZE);
     
-    const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().split('T')[0]);
+    const [selectedMonth, setSelectedMonth] = useState(getISTToday());
 
     const userId = user?.id || user?._id || authUserId;
 
@@ -130,7 +131,7 @@ export default function StudentAttendanceScreen() {
     const markedDates = useMemo(() => {
         const marks = {};
         allHistory.forEach(record => {
-            const dateStr = new Date(record.date).toISOString().split('T')[0];
+            const dateStr = getISTDateString(record.date);
             const color = getStatusColor(record.status);
             marks[dateStr] = {
                 customStyles: {
@@ -151,7 +152,7 @@ export default function StudentAttendanceScreen() {
     const monthlyBreakdown = summary?.monthlyBreakdown || [];
     const visibleMonths = monthlyBreakdown.slice(0, monthlyVisible);
 
-    const loading = loadingSummary || historyLoading;
+    const loading = (loadingSummary || historyLoading) && !summary;
 
     if (loading) {
         return (

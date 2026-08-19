@@ -36,8 +36,7 @@ export default function ClassPerformanceScreen() {
 
     const [refreshing, setRefreshing] = useState(false);
 
-    // Fetch class performance data
-    const { data: performanceData, isLoading, refetch } = useApiQuery(
+    const { data: performanceData, isLoading, isFetching, refetch } = useApiQuery(
         ['classPerformance', classId],
         `${apiConfig.baseUrl}/exams/performance/class/${classId}`,
         { enabled: !!classId }
@@ -57,26 +56,7 @@ export default function ClassPerformanceScreen() {
         return colors.error;
     };
 
-    if (isLoading) {
-        return (
-            <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }}>
-                <ActivityIndicator size="large" color={colors.primary} />
-            </View>
-        );
-    }
-
-    if (!performanceData) {
-        return (
-            <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-                <MaterialIcons name="info-outline" size={64} color={colors.textSecondary} />
-                <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16, textAlign: 'center' }}>
-                    No performance data available
-                </Text>
-            </View>
-        );
-    }
-
-    const { performance = [], totalStudents = 0 } = performanceData;
+    const { performance = [], totalStudents = 0 } = performanceData || {};
 
     // Prepare chart data
     const completedExams = performance.filter(p => p.avgPercentage > 0);
@@ -92,9 +72,26 @@ export default function ClassPerformanceScreen() {
                 <View style={{ padding: 16, paddingTop: 24 }}>
                     <AppHeader
                         title="Class Performance"
-                        subtitle={`Exam-wise analytics for ${totalStudents} students`}
+                        subtitle={totalStudents > 0 ? `Exam-wise analytics for ${totalStudents} students` : "Exam-wise analytics"}
                         showBack
                     />
+
+                    {isLoading && !performanceData ? (
+                        <View style={{ paddingVertical: 48, alignItems: 'center', justifyContent: 'center' }}>
+                            <ActivityIndicator size="large" color={colors.primary} />
+                            <Text style={{ color: colors.textSecondary, marginTop: 12, fontSize: 14, fontFamily: 'DMSans-Medium' }}>
+                                Loading class performance...
+                            </Text>
+                        </View>
+                    ) : !performanceData ? (
+                        <View style={{ paddingVertical: 48, alignItems: 'center', justifyContent: 'center' }}>
+                            <MaterialIcons name="info-outline" size={56} color={colors.textSecondary} style={{ opacity: 0.5 }} />
+                            <Text style={{ color: colors.textSecondary, marginTop: 12, fontSize: 15, fontFamily: 'DMSans-Medium', textAlign: 'center' }}>
+                                No performance data available
+                            </Text>
+                        </View>
+                    ) : (
+                        <View style={{ opacity: isFetching && !isLoading ? 0.85 : 1 }}>
 
                     {/* Overall Stats */}
                     <Card
@@ -261,6 +258,8 @@ export default function ClassPerformanceScreen() {
                             <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16, textAlign: 'center' }}>
                                 No exam data available yet.{'\n'}Initialize exams to see performance.
                             </Text>
+                        </View>
+                    )}
                         </View>
                     )}
                 </View>

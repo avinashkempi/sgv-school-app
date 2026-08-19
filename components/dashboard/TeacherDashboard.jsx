@@ -10,6 +10,7 @@ import { LoadingState, EmptyState } from '../StateComponents';
 import apiConfig from '../../config/apiConfig';
 import { useApiQuery } from '../../hooks/useApi';
 import { formatClassName } from '../../utils/formatClassName';
+import { getISTDateString, getISTToday } from '../../utils/date';
 
 const TeacherDashboard = () => {
     const router = useRouter();
@@ -26,14 +27,14 @@ const TeacherDashboard = () => {
     );
 
     // Missing Attendance Query
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getISTToday();
     const { data: missingData, refetch: refetchMissing } = useApiQuery(
         ['teacherMissingAttendance', todayStr],
         (() => {
             const endDate = new Date();
             const startDate = new Date();
             startDate.setDate(endDate.getDate() - 14);
-            return `${apiConfig.baseUrl}/attendance/missing-tracker?startDate=${startDate.toISOString().split('T')[0]}&endDate=${endDate.toISOString().split('T')[0]}`;
+            return `${apiConfig.baseUrl}/attendance/missing-tracker?startDate=${getISTDateString(startDate)}&endDate=${getISTDateString(endDate)}`;
         })(),
         { staleTime: 1000 * 60 * 5 }
     );

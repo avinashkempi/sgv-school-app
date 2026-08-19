@@ -29,8 +29,7 @@ export default function AcademicYearsScreen() {
     const [refreshing, setRefreshing] = useState(false);
     const [activating, setActivating] = useState(false);
 
-    // Fetch dashboard data
-    const { data: dashboardData, isLoading, refetch } = useApiQuery(
+    const { data: dashboardData, isLoading, isFetching, refetch } = useApiQuery(
         ['academicYearsDashboard'],
         `${apiConfig.baseUrl}/academic-year/dashboard`
     );
@@ -321,14 +320,6 @@ export default function AcademicYearsScreen() {
         );
     };
 
-    if (isLoading) {
-        return (
-            <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }}>
-                <ActivityIndicator size="large" color={colors.primary} />
-            </View>
-        );
-    }
-
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <ScrollView
@@ -388,70 +379,81 @@ export default function AcademicYearsScreen() {
                         </Pressable>
                     </View>
 
-                    {/* Current Year */}
-                    {currentYear && (
-                        <View style={{ marginBottom: 24 }}>
-                            {renderYearCard(currentYear, 'current')}
+                    {isLoading && !dashboardData ? (
+                        <View style={{ paddingVertical: 48, alignItems: 'center', justifyContent: 'center' }}>
+                            <ActivityIndicator size="large" color={colors.primary} />
+                            <Text style={{ fontSize: 14, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant, marginTop: 12 }}>
+                                Loading academic years...
+                            </Text>
                         </View>
-                    )}
+                    ) : (
+                        <View style={{ opacity: isFetching && !isLoading ? 0.85 : 1 }}>
+                            {/* Current Year */}
+                            {currentYear && (
+                                <View style={{ marginBottom: 24 }}>
+                                    {renderYearCard(currentYear, 'current')}
+                                </View>
+                            )}
 
-                    {/* Upcoming Years */}
-                    {upcomingYears.length > 0 && (
-                        <View style={{ marginBottom: 24 }}>
-                            <Text style={{
-                                fontSize: 18,
-                                fontFamily: 'DMSans-Bold',
-                                color: colors.onSurface,
-                                marginBottom: 16
-                            }}>
-                                Upcoming Years ({upcomingYears.length})
-                            </Text>
-                            {upcomingYears.map(year => renderYearCard(year, 'upcoming'))}
-                        </View>
-                    )}
+                            {/* Upcoming Years */}
+                            {upcomingYears.length > 0 && (
+                                <View style={{ marginBottom: 24 }}>
+                                    <Text style={{
+                                        fontSize: 18,
+                                        fontFamily: 'DMSans-Bold',
+                                        color: colors.onSurface,
+                                        marginBottom: 16
+                                    }}>
+                                        Upcoming Years ({upcomingYears.length})
+                                    </Text>
+                                    {upcomingYears.map(year => renderYearCard(year, 'upcoming'))}
+                                </View>
+                            )}
 
-                    {/* Archived Years */}
-                    {archivedYears.length > 0 && (
-                        <View>
-                            <Text style={{
-                                fontSize: 18,
-                                fontFamily: 'DMSans-Bold',
-                                color: colors.onSurface,
-                                marginBottom: 16
-                            }}>
-                                Archived Years ({archivedYears.length})
-                            </Text>
-                            {archivedYears.map(year => renderYearCard(year, 'archived'))}
-                        </View>
-                    )}
+                            {/* Archived Years */}
+                            {archivedYears.length > 0 && (
+                                <View>
+                                    <Text style={{
+                                        fontSize: 18,
+                                        fontFamily: 'DMSans-Bold',
+                                        color: colors.onSurface,
+                                        marginBottom: 16
+                                    }}>
+                                        Archived Years ({archivedYears.length})
+                                    </Text>
+                                    {archivedYears.map(year => renderYearCard(year, 'archived'))}
+                                </View>
+                            )}
 
-                    {/* Empty State */}
-                    {!currentYear && upcomingYears.length === 0 && archivedYears.length === 0 && (
-                        <View style={{
-                            alignItems: 'center',
-                            paddingVertical: 60,
-                            backgroundColor: colors.surfaceContainerHighest,
-                            borderRadius: 16
-                        }}>
-                            <MaterialIcons name="event" size={64} color={colors.onSurfaceVariant} style={{ opacity: 0.5 }} />
-                            <Text style={{
-                                fontSize: 16,
-                                fontFamily: 'DMSans-Bold',
-                                color: colors.onSurface,
-                                marginTop: 16
-                            }}>
-                                No Academic Years Yet
-                            </Text>
-                            <Text style={{
-                                fontSize: 14,
-                                fontFamily: 'DMSans-Regular',
-                                color: colors.onSurfaceVariant,
-                                marginTop: 8,
-                                textAlign: 'center',
-                                paddingHorizontal: 32
-                            }}>
-                                Create your first academic year to start managing your school calendar
-                            </Text>
+                            {/* Empty State */}
+                            {!currentYear && upcomingYears.length === 0 && archivedYears.length === 0 && (
+                                <View style={{
+                                    alignItems: 'center',
+                                    paddingVertical: 60,
+                                    backgroundColor: colors.surfaceContainerHighest,
+                                    borderRadius: 16
+                                }}>
+                                    <MaterialIcons name="event" size={64} color={colors.onSurfaceVariant} style={{ opacity: 0.5 }} />
+                                    <Text style={{
+                                        fontSize: 16,
+                                        fontFamily: 'DMSans-Bold',
+                                        color: colors.onSurface,
+                                        marginTop: 16
+                                    }}>
+                                        No Academic Years Yet
+                                    </Text>
+                                    <Text style={{
+                                        fontSize: 14,
+                                        fontFamily: 'DMSans-Regular',
+                                        color: colors.onSurfaceVariant,
+                                        marginTop: 8,
+                                        textAlign: 'center',
+                                        paddingHorizontal: 32
+                                    }}>
+                                        Create your first academic year to start managing your school calendar
+                                    </Text>
+                                </View>
+                            )}
                         </View>
                     )}
                 </View>

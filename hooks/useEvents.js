@@ -15,12 +15,14 @@ import { CACHE_TIERS } from '../utils/cacheConfig';
  * and provides CRUD helpers that do optimistic updates via queryClient.setQueryData.
  */
 
+import { getISTDateString } from '../utils/date';
+
 const DEFAULT_QUERY_KEY = 'events';
 
 function getDefaultDateRange() {
   const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
-  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0).toISOString();
+  const startOfMonth = getISTDateString(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+  const endOfMonth = getISTDateString(new Date(now.getFullYear(), now.getMonth() + 2, 0));
   return { startDate: startOfMonth, endDate: endOfMonth };
 }
 

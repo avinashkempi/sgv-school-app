@@ -11,6 +11,7 @@ import { useTheme } from "../theme";
 import Header from "./Header";
 import ModernCalendar from "./ModernCalendar";
 import Button from "./Button";
+import { getISTDateString, getISTToday } from "../utils/date";
 
 const { width } = Dimensions.get('window');
 const _cellSize = (width - 80) / 7;
@@ -30,7 +31,7 @@ export default function AttendanceView({
     subtitle = "Track your attendance record"
 }) {
     const { colors, styles } = useTheme();
-    const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().split('T')[0]);
+    const [selectedMonth, setSelectedMonth] = useState(getISTToday());
     const [monthlyVisible, setMonthlyVisible] = useState(MONTHLY_PAGE_SIZE);
 
     const getStatusColor = (status) => {
@@ -46,7 +47,7 @@ export default function AttendanceView({
     const markedDates = useMemo(() => {
         const marks = {};
         attendanceHistory.forEach(record => {
-            const dateStr = new Date(record.date).toISOString().split('T')[0];
+            const dateStr = getISTDateString(record.date);
             const color = getStatusColor(record.status);
             marks[dateStr] = {
                 customStyles: {

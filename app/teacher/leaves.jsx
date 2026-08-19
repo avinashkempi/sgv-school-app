@@ -13,6 +13,7 @@ import formatClassName from '../../utils/formatClassName';
 import SegmentedControl from '../../components/SegmentedControl';
 import { EmptyState } from '../../components/StateComponents';
 import { useAuth } from '../../context/AuthContext';
+import { getISTDateString } from '../../utils/date';
 
 export default function TeacherLeaves() {
     // eslint-disable-next-line no-unused-vars
@@ -152,8 +153,8 @@ export default function TeacherLeaves() {
         if (isHalfDay) finalEndDate = startDate;
 
         const payload = {
-            startDate: startDate.toISOString().split('T')[0],
-            endDate: finalEndDate.toISOString().split('T')[0],
+            startDate: getISTDateString(startDate),
+            endDate: getISTDateString(finalEndDate),
             reason,
             leaveType: isHalfDay ? 'half' : 'full',
             halfDaySlot: isHalfDay ? halfDaySlot : undefined
@@ -555,7 +556,7 @@ export default function TeacherLeaves() {
                                         style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.surfaceContainer, borderRadius: 12, padding: 14 }}
                                         onPress={() => setShowStartPicker(true)}
                                     >
-                                        <Text style={{ fontSize: 16, color: colors.onSurface, fontFamily: "DMSans-Regular" }}>{formatDate(startDate.toISOString())}</Text>
+                                        <Text style={{ fontSize: 16, color: colors.onSurface, fontFamily: "DMSans-Regular" }}>{formatDate(startDate)}</Text>
                                         <Ionicons name="calendar-outline" size={20} color={colors.primary} />
                                     </TouchableOpacity>
                                     {showStartPicker && (
@@ -582,7 +583,7 @@ export default function TeacherLeaves() {
                                             style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.surfaceContainer, borderRadius: 12, padding: 14 }}
                                             onPress={() => setShowEndPicker(true)}
                                         >
-                                            <Text style={{ fontSize: 16, color: colors.onSurface, fontFamily: "DMSans-Regular" }}>{formatDate(endDate.toISOString())}</Text>
+                                            <Text style={{ fontSize: 16, color: colors.onSurface, fontFamily: "DMSans-Regular" }}>{formatDate(endDate)}</Text>
                                             <Ionicons name="calendar-outline" size={20} color={colors.primary} />
                                         </TouchableOpacity>
                                         {showEndPicker && (

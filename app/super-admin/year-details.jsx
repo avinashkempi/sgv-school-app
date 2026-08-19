@@ -34,7 +34,7 @@ export default function YearDetailsScreen() {
     const yearId = params.yearId;
 
     // Fetch year details
-    const { data: yearData, isLoading, refetch } = useApiQuery(
+    const { data: yearData, isLoading, isFetching, refetch } = useApiQuery(
         ['yearDetails', yearId],
         `${apiConfig.baseUrl}/academic-year/${yearId}/comprehensive-report`,
         { enabled: !!yearId }
@@ -98,6 +98,12 @@ export default function YearDetailsScreen() {
                         color={colors.tertiary}
                     />
                     <MetricCard
+                        icon="payments"
+                        label="Fee Collection"
+                        value={`${((snapshot.totalFeeCollected / (snapshot.totalFeeExpected || 1)) * 100).toFixed(0)}%`}
+                        color={colors.success}
+                    />
+                    <MetricCard
                         icon="book"
                         label="Subjects"
                         value={snapshot.totalSubjects}
@@ -137,11 +143,12 @@ export default function YearDetailsScreen() {
     const renderTabs = () => (
         <View style={{
             flexDirection: 'row',
-            backgroundColor: colors.surfaceContainerHighest,
-            borderRadius: 12,
-            padding: 4,
+            gap: 8,
             marginTop: 20,
-            marginBottom: 20
+            marginBottom: 20,
+            backgroundColor: colors.surfaceContainerHighest,
+            padding: 4,
+            borderRadius: 12
         }}>
             {[
                 { id: 'overview', label: 'Overview', icon: 'dashboard' },
@@ -159,17 +166,10 @@ export default function YearDetailsScreen() {
                         backgroundColor: selectedTab === tab.id
                             ? (pressed ? colors.primary + 'DD' : colors.primary)
                             : (pressed ? colors.surfaceContainerHigh : 'transparent'),
-                        flexDirection: 'row',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 6
+                        justifyContent: 'center'
                     })}
                 >
-                    <MaterialIcons
-                        name={tab.icon}
-                        size={16}
-                        color={selectedTab === tab.id ? '#FFFFFF' : colors.onSurfaceVariant}
-                    />
                     <Text style={{
                         fontSize: 12,
                         fontFamily: 'DMSans-Bold',
@@ -181,25 +181,6 @@ export default function YearDetailsScreen() {
             ))}
         </View>
     );
-
-    if (isLoading) {
-        return (
-            <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }}>
-                <ActivityIndicator size="large" color={colors.primary} />
-            </View>
-        );
-    }
-
-    if (!year) {
-        return (
-            <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-                <MaterialIcons name="error-outline" size={64} color={colors.error} style={{ opacity: 0.5 }} />
-                <Text style={{ fontSize: 16, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginTop: 16 }}>
-                    Year not found
-                </Text>
-            </View>
-        );
-    }
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -215,10 +196,27 @@ export default function YearDetailsScreen() {
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
                     <Header
-                        title={year.name}
+                        title={year?.name || 'Academic Year'}
                         subtitle="Academic Year Details"
                         showBack
                     />
+
+                    {isLoading && !yearData ? (
+                        <View style={{ paddingVertical: 48, alignItems: 'center', justifyContent: 'center' }}>
+                            <ActivityIndicator size="large" color={colors.primary} />
+                            <Text style={{ fontSize: 14, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant, marginTop: 12 }}>
+                                Loading academic year details...
+                            </Text>
+                        </View>
+                    ) : !year ? (
+                        <View style={{ paddingVertical: 48, alignItems: 'center', justifyContent: 'center' }}>
+                            <MaterialIcons name="error-outline" size={56} color={colors.error} style={{ opacity: 0.5 }} />
+                            <Text style={{ fontSize: 16, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginTop: 16 }}>
+                                Year not found
+                            </Text>
+                        </View>
+                    ) : (
+                        <View style={{ opacity: isFetching && !isLoading ? 0.85 : 1 }}>
 
                     {/* Year Info Card */}
                     <View style={{
@@ -308,6 +306,8 @@ export default function YearDetailsScreen() {
                     )}
                     {selectedTab === 'reports' && (
                         <ComingSoonPlaceholder icon="description" text="Report generation coming soon" />
+                    )}
+                        </View>
                     )}
                 </View>
             </ScrollView>

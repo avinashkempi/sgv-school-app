@@ -15,7 +15,7 @@ import { useAuth } from "../context/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import apiConfig from "../config/apiConfig";
 
-import { formatDate } from "../utils/date";
+import { formatDate, getISTDateString, getISTToday } from "../utils/date";
 
 import Card from "../components/Card";
 
@@ -188,7 +188,7 @@ EventCard.displayName = 'EventCard';
 
 export default function EventsScreen() {
   const _navigation = useNavigation();
-  const today = new Date().toISOString().split('T')[0];
+  const today = getISTToday();
   const [selectedDate, setSelectedDate] = useState(today);
   const [isEventFormVisible, setIsEventFormVisible] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
@@ -277,7 +277,7 @@ export default function EventsScreen() {
           .filter((event) => {
             if (!event || !event.date) return false;
             try {
-              return new Date(event.date).toISOString().split('T')[0] === selectedDate;
+              return getISTDateString(event.date) === selectedDate;
             // eslint-disable-next-line no-unused-vars
             } catch (e) {
               return false;
@@ -298,7 +298,7 @@ export default function EventsScreen() {
     const dates = allEvents.reduce((acc, curr) => {
       if (!curr || !curr.date) return acc;
       try {
-        const date = new Date(curr.date).toISOString().split('T')[0];
+        const date = getISTDateString(curr.date);
         if (!acc[date]) {
           acc[date] = {
             marked: true,

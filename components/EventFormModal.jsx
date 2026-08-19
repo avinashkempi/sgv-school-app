@@ -197,7 +197,7 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
           </Pressable>
 
           <Pressable
-            style={{ marginBottom: 16, flexDirection: 'row', alignItems: 'center' }}
+            style={{ marginBottom: isHoliday ? 6 : 16, flexDirection: 'row', alignItems: 'center' }}
             onPress={() => setIsHoliday(!isHoliday)}
           >
             <MaterialIcons
@@ -208,6 +208,12 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
             />
             <Text style={[globalStyles.cardText, { color: colors.textPrimary }]}>Mark as Holiday (Skips Attendance)</Text>
           </Pressable>
+
+          {isHoliday && (
+            <Text style={{ fontSize: 12, color: colors.error || '#EF4444', marginBottom: 16, marginLeft: 32 }}>
+              ⚠️ Marking as holiday will disable attendance and clear any existing records for this date.
+            </Text>
+          )}
 
           <Pressable
             style={[globalStyles.buttonLarge, { width: "100%", backgroundColor: colors.primary }, isLoading && { opacity: 0.6 }]}

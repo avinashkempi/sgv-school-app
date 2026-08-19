@@ -36,7 +36,7 @@ export default function AdminPerformanceScreen() {
     const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'classes' | 'subjects'
 
     // Fetch school-wide performance data
-    const { data: performanceData, isLoading, refetch } = useApiQuery(
+    const { data: performanceData, isLoading, isFetching, refetch } = useApiQuery(
         ['schoolPerformance'],
         `${apiConfig.baseUrl}/exams/performance/school`
     );
@@ -55,26 +55,7 @@ export default function AdminPerformanceScreen() {
         return colors.error;
     };
 
-    if (isLoading) {
-        return (
-            <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }}>
-                <ActivityIndicator size="large" color={colors.primary} />
-            </View>
-        );
-    }
-
-    if (!performanceData) {
-        return (
-            <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-                <MaterialIcons name="info-outline" size={64} color={colors.textSecondary} />
-                <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16, textAlign: 'center' }}>
-                    No performance data available
-                </Text>
-            </View>
-        );
-    }
-
-    const { examwisePerformance = [], classwiseSummary = [], subjectwiseSummary = [] } = performanceData;
+    const { examwisePerformance = [], classwiseSummary = [], subjectwiseSummary = [] } = performanceData || {};
 
     // Calculate school average
     const completedExams = examwisePerformance.filter(e => e.marksEntered > 0);
@@ -411,9 +392,27 @@ export default function AdminPerformanceScreen() {
                     </View>
 
                     {/* Tab Content */}
-                    {activeTab === 'overview' && renderOverview()}
-                    {activeTab === 'classes' && renderClasses()}
-                    {activeTab === 'subjects' && renderSubjects()}
+                    {isLoading && !performanceData ? (
+                        <View style={{ paddingVertical: 48, alignItems: 'center', justifyContent: 'center' }}>
+                            <ActivityIndicator size="large" color={colors.primary} />
+                            <Text style={{ color: colors.textSecondary, marginTop: 12, fontSize: 14, fontFamily: 'DMSans-Medium' }}>
+                                Loading performance overview...
+                            </Text>
+                        </View>
+                    ) : !performanceData ? (
+                        <View style={{ paddingVertical: 48, alignItems: 'center', justifyContent: 'center' }}>
+                            <MaterialIcons name="info-outline" size={56} color={colors.textSecondary} style={{ opacity: 0.5 }} />
+                            <Text style={{ color: colors.textSecondary, marginTop: 12, fontSize: 15, fontFamily: 'DMSans-Medium', textAlign: 'center' }}>
+                                No performance data available
+                            </Text>
+                        </View>
+                    ) : (
+                        <View style={{ opacity: isFetching && !isLoading ? 0.85 : 1 }}>
+                            {activeTab === 'overview' && renderOverview()}
+                            {activeTab === 'classes' && renderClasses()}
+                            {activeTab === 'subjects' && renderSubjects()}
+                        </View>
+                    )}
                 </View>
             </ScrollView>
         </View>

@@ -17,6 +17,7 @@ import { useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useToast } from "../../../components/ToastProvider";
 import AppHeader from "../../../components/Header";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { getISTDateString, isISTSunday, formatISTDisplayDate } from "../../../utils/date";
 
 export default function MarkAttendanceScreen() {
     const _router = useRouter();
@@ -34,7 +35,7 @@ export default function MarkAttendanceScreen() {
     // eslint-disable-next-line no-unused-vars
     const [originalStatuses, setOriginalStatuses] = useState({});
 
-    const dateStr = useMemo(() => selectedDate.toISOString().split('T')[0], [selectedDate]);
+    const dateStr = useMemo(() => getISTDateString(selectedDate), [selectedDate]);
 
     // ─── Cached queries for class & subject (fetched once) ───
     const { data: classData } = useApiQuery(
@@ -182,7 +183,7 @@ export default function MarkAttendanceScreen() {
         CACHE_TIERS.MODERATE
     );
     const holidayEvent = (holidayData?.event && holidayData.event.length > 0) ? holidayData.event[0] : null;
-    const isSunday = selectedDate.getDay() === 0;
+    const isSunday = isISTSunday(selectedDate);
     const isHoliday = isSunday || !!holidayEvent;
     const holidayReason = isSunday ? 'Sunday (Weekend)' : holidayEvent?.title;
 
@@ -235,7 +236,7 @@ export default function MarkAttendanceScreen() {
                                     Selected Date
                                 </Text>
                                 <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginTop: 2 }}>
-                                    {selectedDate.toLocaleDateString('en-GB', {
+                                    {formatISTDisplayDate(selectedDate, {
                                         day: '2-digit',
                                         month: 'short',
                                         year: 'numeric'

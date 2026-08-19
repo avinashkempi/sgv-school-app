@@ -37,7 +37,7 @@ export default function SubjectPerformanceScreen() {
     const [refreshing, setRefreshing] = useState(false);
 
     // Fetch subject performance data
-    const { data: performanceData, isLoading, refetch } = useApiQuery(
+    const { data: performanceData, isLoading, isFetching, refetch } = useApiQuery(
         ['subjectPerformance', subjectId],
         `${apiConfig.baseUrl}/exams/performance/subject/${subjectId}`,
         { enabled: !!subjectId }
@@ -57,26 +57,7 @@ export default function SubjectPerformanceScreen() {
         return colors.error;
     };
 
-    if (isLoading) {
-        return (
-            <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }}>
-                <ActivityIndicator size="large" color={colors.primary} />
-            </View>
-        );
-    }
-
-    if (!performanceData) {
-        return (
-            <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-                <MaterialIcons name="info-outline" size={64} color={colors.textSecondary} />
-                <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16, textAlign: 'center' }}>
-                    No performance data available
-                </Text>
-            </View>
-        );
-    }
-
-    const { performance = [] } = performanceData;
+    const { performance = [] } = performanceData || {};
 
     // Calculate overall stats
     const totalExamsWithData = performance.filter(p => p.overallAvgPercentage > 0).length;
@@ -97,71 +78,87 @@ export default function SubjectPerformanceScreen() {
                         showBack
                     />
 
-                    {/* Overall Subject Stats */}
-                    <View style={{
-                        backgroundColor: colors.primary,
-                        borderRadius: 20,
-                        padding: 24,
-                        marginTop: 20,
-                        elevation: 4
-                    }}>
-                        <Text style={{ fontSize: 16, color: "#fff", opacity: 0.9, fontFamily: "DMSans-Medium", textAlign: "center" }}>
-                            Overall Subject Average
-                        </Text>
-                        <Text style={{ fontSize: 56, fontFamily: "DMSans-Bold", color: "#fff", marginTop: 8, textAlign: "center" }}>
-                            {overallAvg}%
-                        </Text>
-                        <Text style={{ fontSize: 14, fontFamily: "DMSans-Regular", color: "#fff", marginTop: 4, textAlign: "center", opacity: 0.8 }}>
-                            Across {totalExamsWithData} completed assessments
-                        </Text>
-                    </View>
-
-                    {/* Exam-wise Performance */}
-                    <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginTop: 28, marginBottom: 12 }}>
-                        Assessment Performance
-                    </Text>
-
-                    {performance.map((exam) => (
-                        <Card
-                            key={exam.examType}
-                            variant="elevated"
-                            style={{ marginBottom: 16 }}
-                            contentStyle={{ padding: 18 }}
-                        >
-                            {/* Exam Header */}
-                            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16 }}>
-                                <View style={{
-                                    width: 48,
-                                    height: 48,
-                                    borderRadius: 12,
-                                    backgroundColor: EXAM_COLORS[exam.examType] + '20',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    marginRight: 12
-                                }}>
-                                    <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: EXAM_COLORS[exam.examType] }}>
-                                        {exam.examType}
-                                    </Text>
-                                </View>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
-                                        {exam.examType === 'FA1' && 'Formative Assessment 1'}
-                                        {exam.examType === 'FA2' && 'Formative Assessment 2'}
-                                        {exam.examType === 'SA1' && 'Summative Assessment 1'}
-                                        {exam.examType === 'FA3' && 'Formative Assessment 3'}
-                                        {exam.examType === 'FA4' && 'Formative Assessment 4'}
-                                        {exam.examType === 'SA2' && 'Summative Assessment 2'}
-                                    </Text>
-                                    <Text style={{
-                                        fontSize: 20,
-                                        fontFamily: "DMSans-Bold",
-                                        color: getGradeColor(exam.overallAvgPercentage),
-                                        marginTop: 4
-                                    }}>
-                                        {exam.overallAvgPercentage?.toFixed(1) || '0.0'}% avg
-                                    </Text>
-                                </View>
+                    {isLoading && !performanceData ? (
+                        <View style={{ paddingVertical: 48, alignItems: 'center', justifyContent: 'center' }}>
+                            <ActivityIndicator size="large" color={colors.primary} />
+                            <Text style={{ color: colors.textSecondary, marginTop: 12, fontSize: 14, fontFamily: 'DMSans-Medium' }}>
+                                Loading subject performance...
+                            </Text>
+                        </View>
+                    ) : !performanceData ? (
+                        <View style={{ paddingVertical: 48, alignItems: 'center', justifyContent: 'center' }}>
+                            <MaterialIcons name="info-outline" size={56} color={colors.textSecondary} style={{ opacity: 0.5 }} />
+                            <Text style={{ color: colors.textSecondary, marginTop: 12, fontSize: 15, fontFamily: 'DMSans-Medium', textAlign: 'center' }}>
+                                No performance data available
+                            </Text>
+                        </View>
+                    ) : (
+                        <View style={{ opacity: isFetching && !isLoading ? 0.85 : 1 }}>
+                            {/* Overall Subject Stats */}
+                            <View style={{
+                                backgroundColor: colors.primary,
+                                borderRadius: 20,
+                                padding: 24,
+                                marginTop: 20,
+                                elevation: 4
+                            }}>
+                                <Text style={{ fontSize: 16, color: "#fff", opacity: 0.9, fontFamily: "DMSans-Medium", textAlign: "center" }}>
+                                    Overall Subject Average
+                                </Text>
+                                <Text style={{ fontSize: 56, fontFamily: "DMSans-Bold", color: "#fff", marginTop: 8, textAlign: "center" }}>
+                                    {overallAvg}%
+                                </Text>
+                                <Text style={{ fontSize: 14, fontFamily: "DMSans-Regular", color: "#fff", marginTop: 4, textAlign: "center", opacity: 0.8 }}>
+                                    Across {totalExamsWithData} completed assessments
+                                </Text>
                             </View>
+
+                            {/* Exam-wise Performance */}
+                            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginTop: 28, marginBottom: 12 }}>
+                                Assessment Breakdown
+                            </Text>
+
+                            {performance.map((exam) => (
+                                <Card
+                                    key={exam.examType}
+                                    variant="elevated"
+                                    style={{ marginBottom: 16 }}
+                                    contentStyle={{ padding: 18 }}
+                                >
+                                    {/* Exam Header */}
+                                    <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16 }}>
+                                        <View style={{
+                                            width: 48,
+                                            height: 48,
+                                            borderRadius: 12,
+                                            backgroundColor: EXAM_COLORS[exam.examType] + '20',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            marginRight: 12
+                                        }}>
+                                            <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: EXAM_COLORS[exam.examType] }}>
+                                                {exam.examType}
+                                            </Text>
+                                        </View>
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
+                                                {exam.examType === 'FA1' && 'Formative Assessment 1'}
+                                                {exam.examType === 'FA2' && 'Formative Assessment 2'}
+                                                {exam.examType === 'SA1' && 'Summative Assessment 1'}
+                                                {exam.examType === 'FA3' && 'Formative Assessment 3'}
+                                                {exam.examType === 'FA4' && 'Formative Assessment 4'}
+                                                {exam.examType === 'SA2' && 'Summative Assessment 2'}
+                                            </Text>
+                                            <Text style={{
+                                                fontSize: 20,
+                                                fontFamily: "DMSans-Bold",
+                                                color: getGradeColor(exam.overallAvgPercentage),
+                                                marginTop: 4
+                                            }}>
+                                                {exam.overallAvgPercentage?.toFixed(1) || '0.0'}% avg
+                                            </Text>
+                                        </View>
+                                    </View>
 
                             {/* Class-wise Breakdown */}
                             {exam.classwiseData && exam.classwiseData.length > 0 && (
@@ -230,6 +227,8 @@ export default function SubjectPerformanceScreen() {
                             <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16, textAlign: 'center' }}>
                                 No exam data available yet.{'\n'}Initialize exams to see performance.
                             </Text>
+                        </View>
+                    )}
                         </View>
                     )}
                 </View>

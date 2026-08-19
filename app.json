@@ -22,6 +22,7 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      "./plugins/withR8Optimizations",
       "expo-router",
       "expo-notifications",
       [
@@ -40,7 +41,8 @@
             "targetSdkVersion": 36,
             "buildToolsVersion": "36.0.0",
             "enableMinifyInReleaseBuilds": true,
-            "enableShrinkResourcesInReleaseBuilds": true
+            "enableShrinkResourcesInReleaseBuilds": true,
+            "extraProguardRules": "\n# React Native, JNI & Hermes Reflection Protection\n-keepclassmembers class * {\n    @com.facebook.react.uimanager.annotations.ReactProp <methods>;\n    @com.facebook.react.uimanager.annotations.ReactPropGroup <methods>;\n}\n-keep class com.facebook.react.** { *; }\n-keep class com.facebook.jni.** { *; }\n-keepclasseswithmembernames class * {\n    native <methods>;\n}\n-keep class com.facebook.react.turbomodule.** { *; }\n-keep class com.facebook.react.bridge.** { *; }\n-keep class com.facebook.react.fabric.** { *; }\n-keep class com.facebook.react.views.** { *; }\n-keep class com.facebook.react.uimanager.** { *; }\n\n# Animations & Gestures\n-keep class com.swmansion.reanimated.** { *; }\n-keep class com.swmansion.gesturehandler.** { *; }\n-keep class com.swmansion.rnscreens.** { *; }\n\n# SVG & UI Components\n-keep class com.horcrux.svg.** { *; }\n\n# Storage & Firebase Notifications\n-keep class com.reactnativecommunity.asyncstorage.** { *; }\n-keep class expo.modules.notifications.** { *; }\n-keep class com.google.firebase.** { *; }\n"
           }
         }
       ],

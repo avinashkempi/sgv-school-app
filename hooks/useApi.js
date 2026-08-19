@@ -1,10 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery, keepPreviousData } from '@tanstack/react-query';
 import apiFetch from '../utils/apiFetch';
 
-/**
- * Wrapper around useInfiniteQuery for API fetching with pagination
- */
-import { useInfiniteQuery } from '@tanstack/react-query';
+export { keepPreviousData };
 
 /**
  * Custom error class to track auth vs network errors
@@ -24,8 +21,11 @@ class ApiError extends Error {
  * @param {Object} options - Additional useQuery options
  */
 export function useApiQuery(key, url, options = {}) {
+    const { placeholderData = keepPreviousData, ...restOptions } = options;
+
     return useQuery({
         queryKey: key,
+        placeholderData,
         queryFn: async () => {
             try {
                 const response = await apiFetch(url);
@@ -74,7 +74,7 @@ export function useApiQuery(key, url, options = {}) {
             // Default retry 2 times for non-auth errors
             return failureCount < 2;
         },
-        ...options,
+        ...restOptions,
     });
 }
 

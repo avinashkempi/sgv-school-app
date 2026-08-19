@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Pressable, ActivityIndicator, ScrollView, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Pressable, ActivityIndicator, ScrollView, RefreshControl, Alert, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 
@@ -15,6 +15,7 @@ import { EmptyState } from '../../components/StateComponents';
 
 import AttendanceView from '../../components/AttendanceView';
 import { formatClassName } from '../../utils/formatClassName';
+import { getISTDateString, getISTToday, isISTSunday, formatISTDisplayDate } from '../../utils/date';
 
 export default function AdminAttendance() {
     const router = useRouter();
@@ -58,41 +59,117 @@ export default function AdminAttendance() {
     // Fetch School Summary
     // eslint-disable-next-line no-unused-vars
     const { data: schoolSummary, isLoading: summaryLoading, isFetching: summaryFetching, refetch: refetchSummary } = useApiQuery(
-        ['attendanceSummary', date.toISOString().split('T')[0]],
-        `${apiConfig.baseUrl}/attendance/school-summary?date=${date.toISOString().split('T')[0]}`,
+        ['attendanceSummary', getISTDateString(date)],
+        `${apiConfig.baseUrl}/attendance/school-summary?date=${getISTDateString(date)}`,
         { enabled: activeTab === 'summary', select: (d) => d.data, ...CACHE_TIERS.MODERATE }
     );
 
     // Fetch if current date is holiday
     const { data: holidayData, refetch: refetchHoliday } = useApiQuery(
-        ['holidayStatus', date.toISOString().split('T')[0]],
-        `${apiConfig.baseUrl}/events?startDate=${date.toISOString().split('T')[0]}&endDate=${date.toISOString().split('T')[0]}&isHoliday=true`,
+        ['holidayStatus', getISTDateString(date)],
+        `${apiConfig.baseUrl}/events?startDate=${getISTDateString(date)}&endDate=${getISTDateString(date)}&isHoliday=true`,
         { enabled: activeTab !== 'my_attendance' && activeTab !== 'tracker', ...CACHE_TIERS.MODERATE }
     );
     const holidayEvent = (holidayData?.event && holidayData.event.length > 0) ? holidayData.event[0] : null;
-    const isSunday = date.getDay() === 0;
+    const isSunday = isISTSunday(date);
     const isHoliday = isSunday || !!holidayEvent;
     const holidayReason = isSunday ? 'Sunday (Weekend)' : holidayEvent?.title;
 
     // Mutation to mark as holiday
     const toggleHolidayMutation = useApiMutation({
         mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/events`, 'POST'),
-        onSuccess: () => {
+        onSuccess: async () => {
             showToast('Holiday marked successfully', 'success');
+            await queryClient.invalidateQueries({ queryKey: ['holidayStatus'] });
+            await queryClient.invalidateQueries({ queryKey: ['events'] });
+            await queryClient.invalidateQueries({ queryKey: ['attendanceSummary'] });
+            await queryClient.invalidateQueries({ queryKey: ['studentAttendance'] });
+            await queryClient.invalidateQueries({ queryKey: ['staffList'] });
             refetchHoliday();
             refetchSummary();
         },
-        onError: () => showToast('Failed to mark holiday', 'error')
+        onError: (err) => {
+            console.error('Failed to mark holiday:', err);
+            showToast(err?.message || 'Failed to mark holiday', 'error');
+        }
     });
 
-    const handleMarkAsHoliday = () => {
-        toggleHolidayMutation.mutate({
-            title: 'School Holiday',
-            date: date.toISOString().split('T')[0],
-            isSchoolEvent: true,
-            isHoliday: true,
-            description: 'Manually marked as a holiday from attendance dashboard'
-        });
+    // Mutation to remove/unmark holiday
+    const removeHolidayMutation = useApiMutation({
+        mutationFn: (eventId) => createApiMutationFn(`${apiConfig.baseUrl}/events/${eventId}`, 'DELETE')(),
+        onSuccess: async () => {
+            showToast('Holiday removed successfully', 'success');
+            await queryClient.invalidateQueries({ queryKey: ['holidayStatus'] });
+            await queryClient.invalidateQueries({ queryKey: ['events'] });
+            await queryClient.invalidateQueries({ queryKey: ['attendanceSummary'] });
+            await queryClient.invalidateQueries({ queryKey: ['studentAttendance'] });
+            await queryClient.invalidateQueries({ queryKey: ['staffList'] });
+            refetchHoliday();
+            refetchSummary();
+        },
+        onError: (err) => {
+            console.error('Failed to remove holiday:', err);
+            showToast(err?.message || 'Failed to remove holiday', 'error');
+        }
+    });
+
+    const handleMarkAsHoliday = async () => {
+        const formattedDate = formatISTDisplayDate(date);
+
+        const confirmMsg = `Are you sure you want to mark ${formattedDate} as a school holiday?\n\n⚠️ Note: Taking attendance will be disabled for this day, and any attendance records already taken for this date will be cleared.`;
+
+        let confirmed = false;
+        if (Platform.OS === 'web') {
+            confirmed = window.confirm(`Mark as Holiday?\n\n${confirmMsg}`);
+        } else {
+            confirmed = await new Promise(resolve => {
+                Alert.alert(
+                    'Mark as Holiday?',
+                    confirmMsg,
+                    [
+                        { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+                        { text: 'Mark as Holiday', style: 'destructive', onPress: () => resolve(true) }
+                    ]
+                );
+            });
+        }
+
+        if (confirmed) {
+            toggleHolidayMutation.mutate({
+                title: 'School Holiday',
+                date: getISTDateString(date),
+                isSchoolEvent: true,
+                isHoliday: true,
+                description: 'Manually marked as a holiday from attendance dashboard'
+            });
+        }
+    };
+
+    const handleRemoveHoliday = async () => {
+        if (!holidayEvent?._id) return;
+        const formattedDate = formatISTDisplayDate(date);
+
+        const confirmMsg = `Are you sure you want to remove the holiday "${holidayEvent.title || 'School Holiday'}" on ${formattedDate}?\n\nThis will re-enable attendance marking for this day.`;
+
+        let confirmed = false;
+        if (Platform.OS === 'web') {
+            confirmed = window.confirm(`Remove Holiday?\n\n${confirmMsg}`);
+        } else {
+            confirmed = await new Promise(resolve => {
+                Alert.alert(
+                    'Remove Holiday?',
+                    confirmMsg,
+                    [
+                        { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+                        { text: 'Remove Holiday', style: 'destructive', onPress: () => resolve(true) }
+                    ]
+                );
+            });
+        }
+
+        if (confirmed) {
+            removeHolidayMutation.mutate(holidayEvent._id);
+        }
     };
 
     // Fetch Classes
@@ -105,15 +182,15 @@ export default function AdminAttendance() {
 
     // Fetch Student Attendance
     const { data: studentAttendance, isLoading: studentLoading, refetch: refetchStudent } = useApiQuery(
-        ['studentAttendance', selectedClass?._id, date.toISOString().split('T')[0]],
-        `${apiConfig.baseUrl}/attendance/class/${selectedClass?._id}/date/${date.toISOString().split('T')[0]}`,
+        ['studentAttendance', selectedClass?._id, getISTDateString(date)],
+        `${apiConfig.baseUrl}/attendance/class/${selectedClass?._id}/date/${getISTDateString(date)}`,
         { enabled: activeTab === 'student' && !!selectedClass, ...CACHE_TIERS.REAL_TIME }
     );
 
     // Fetch Staff List
     const { data: staffListResponse, isLoading: staffLoading, refetch: refetchStaff } = useApiQuery(
-        ['staffList', date.toISOString().split('T')[0]],
-        `${apiConfig.baseUrl}/attendance/staff-list?date=${date.toISOString().split('T')[0]}`,
+        ['staffList', getISTDateString(date)],
+        `${apiConfig.baseUrl}/attendance/staff-list?date=${getISTDateString(date)}`,
         { enabled: activeTab === 'staff', ...CACHE_TIERS.REAL_TIME }
     );
     const staffList = staffListResponse?.data;
@@ -160,8 +237,8 @@ export default function AdminAttendance() {
 
     // Fetch Classes Marked
     const { data: classesMarkedResponse } = useApiQuery(
-        ['classesMarked', date.toISOString().split('T')[0]],
-        `${apiConfig.baseUrl}/attendance/classes-marked?date=${date.toISOString().split('T')[0]}`,
+        ['classesMarked', getISTDateString(date)],
+        `${apiConfig.baseUrl}/attendance/classes-marked?date=${getISTDateString(date)}`,
         { enabled: activeTab === 'student' || activeTab === 'summary', ...CACHE_TIERS.MODERATE }
     );
     const classesMarked = classesMarkedResponse?.markedClasses || [];
@@ -172,8 +249,8 @@ export default function AdminAttendance() {
     // eslint-disable-next-line no-unused-vars
     const [trackerEndDate, setTrackerEndDate] = useState(new Date());
     const { data: trackerDataResponse, isLoading: trackerLoading, refetch: refetchTracker } = useApiQuery(
-        ['missingTracker', trackerStartDate.toISOString().split('T')[0], trackerEndDate.toISOString().split('T')[0]],
-        `${apiConfig.baseUrl}/attendance/missing-tracker?startDate=${trackerStartDate.toISOString().split('T')[0]}&endDate=${trackerEndDate.toISOString().split('T')[0]}`,
+        ['missingTracker', getISTDateString(trackerStartDate), getISTDateString(trackerEndDate)],
+        `${apiConfig.baseUrl}/attendance/missing-tracker?startDate=${getISTDateString(trackerStartDate)}&endDate=${getISTDateString(trackerEndDate)}`,
         { enabled: activeTab === 'tracker', ...CACHE_TIERS.MODERATE }
     );
     const trackerData = trackerDataResponse?.missingData || [];
@@ -262,7 +339,7 @@ export default function AdminAttendance() {
 
         saveStudentAttendanceMutation.mutate({
             classId: selectedClass._id,
-            date: date.toISOString().split('T')[0],
+            date: getISTDateString(date),
             attendanceRecords: records
         });
     };
@@ -298,7 +375,7 @@ export default function AdminAttendance() {
         }
 
         saveStaffAttendanceMutation.mutate({
-            date: date.toISOString().split('T')[0],
+            date: getISTDateString(date),
             attendanceRecords: records
         });
     };
@@ -439,7 +516,7 @@ export default function AdminAttendance() {
 
             {/* Date Picker for Student/Staff/Summary tabs */}
             {activeTab !== 'my_attendance' && activeTab !== 'tracker' && (
-                <View style={[styles.dateBar, { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }]}>
+                <View style={[styles.dateBar, { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: 10 }]}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary + '15', borderRadius: 24, paddingHorizontal: 4 }}>
                         <TouchableOpacity
                             onPress={() => { const d = new Date(date); d.setDate(d.getDate() - 1); setDate(d); }}
@@ -450,7 +527,7 @@ export default function AdminAttendance() {
 
                         <TouchableOpacity onPress={() => setShowDatePicker(true)} style={{ paddingHorizontal: 16, paddingVertical: 8, flexDirection: 'row', alignItems: 'center' }}>
                             <Ionicons name="calendar" size={20} color={colors.primary} />
-                            <Text style={[styles.dateText, { color: colors.primary }]}>{date.toDateString()}</Text>
+                            <Text style={[styles.dateText, { color: colors.primary }]}>{formatISTDisplayDate(date)}</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
@@ -463,10 +540,28 @@ export default function AdminAttendance() {
                     
                     {!isHoliday && (user?.role === 'admin' || user?.role === 'super admin') && (
                         <TouchableOpacity 
-                            style={{ marginLeft: 12, backgroundColor: colors.primary + '15', padding: 10, borderRadius: 24, justifyContent: 'center', alignItems: 'center' }}
+                            style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                backgroundColor: (colors.error || '#EF4444') + '15',
+                                paddingHorizontal: 12,
+                                paddingVertical: 8,
+                                borderRadius: 20,
+                                borderWidth: 1,
+                                borderColor: (colors.error || '#EF4444') + '40',
+                                gap: 6
+                            }}
                             onPress={handleMarkAsHoliday}
+                            disabled={toggleHolidayMutation.isPending}
                         >
-                            <MaterialIcons name="event-busy" size={20} color={colors.primary} />
+                            {toggleHolidayMutation.isPending ? (
+                                <ActivityIndicator size="small" color={colors.error || '#EF4444'} />
+                            ) : (
+                                <>
+                                    <MaterialIcons name="event-busy" size={18} color={colors.error || '#EF4444'} />
+                                    <Text style={{ fontSize: 13, fontWeight: '600', color: colors.error || '#EF4444' }}>Mark Holiday</Text>
+                                </>
+                            )}
                         </TouchableOpacity>
                     )}
 
@@ -485,9 +580,51 @@ export default function AdminAttendance() {
             )}
 
             {isHoliday && activeTab !== 'my_attendance' && activeTab !== 'tracker' && (
-                <View style={{ backgroundColor: colors.primary + '15', marginHorizontal: 16, marginBottom: 16, padding: 16, borderRadius: 12, alignItems: 'center', borderColor: colors.primary, borderWidth: 1 }}>
+                <View style={{
+                    backgroundColor: colors.primary + '12',
+                    marginHorizontal: 16,
+                    marginBottom: 16,
+                    padding: 16,
+                    borderRadius: 16,
+                    alignItems: 'center',
+                    borderColor: colors.primary + '30',
+                    borderWidth: 1
+                }}>
                     <Text style={{ fontSize: 18, fontWeight: 'bold', color: colors.primary }}>🌴 Holiday</Text>
                     <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: 4, textAlign: 'center' }}>{holidayReason}</Text>
+                    
+                    {!isSunday && holidayEvent && (user?.role === 'admin' || user?.role === 'super admin') && (
+                        <TouchableOpacity
+                            style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                backgroundColor: colors.cardBackground || '#FFF',
+                                marginTop: 12,
+                                paddingHorizontal: 16,
+                                paddingVertical: 8,
+                                borderRadius: 20,
+                                borderWidth: 1,
+                                borderColor: colors.error || '#EF4444',
+                                gap: 6,
+                                elevation: 1,
+                                shadowColor: '#000',
+                                shadowOffset: { width: 0, height: 1 },
+                                shadowOpacity: 0.1,
+                                shadowRadius: 2
+                            }}
+                            onPress={handleRemoveHoliday}
+                            disabled={removeHolidayMutation.isPending}
+                        >
+                            {removeHolidayMutation.isPending ? (
+                                <ActivityIndicator size="small" color={colors.error || '#EF4444'} />
+                            ) : (
+                                <>
+                                    <MaterialIcons name="delete-outline" size={18} color={colors.error || '#EF4444'} />
+                                    <Text style={{ fontSize: 13, fontWeight: '600', color: colors.error || '#EF4444' }}>Unmark / Remove Holiday</Text>
+                                </>
+                            )}
+                        </TouchableOpacity>
+                    )}
                 </View>
             )}
 

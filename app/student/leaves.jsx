@@ -11,6 +11,7 @@ import { useTheme } from '../../theme';
 import Header from '../../components/Header';
 import Card from '../../components/Card';
 import { useAuth } from '../../context/AuthContext';
+import { getISTDateString } from '../../utils/date';
 
 export default function StudentLeaves() {
     // eslint-disable-next-line no-unused-vars
@@ -75,8 +76,8 @@ export default function StudentLeaves() {
         }
 
         applyLeaveMutation.mutate({
-            startDate: startDate.toISOString().split('T')[0],
-            endDate: finalEndDate.toISOString().split('T')[0],
+            startDate: getISTDateString(startDate),
+            endDate: getISTDateString(finalEndDate),
             reason,
             leaveType: isHalfDay ? 'half' : 'full',
             halfDaySlot: isHalfDay ? halfDaySlot : undefined
