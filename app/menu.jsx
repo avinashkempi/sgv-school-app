@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, Pressable, Switch, Linking, StatusBar, } from 'react-native';
+import { View, Text, ScrollView, Pressable, Switch, Linking, } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons, FontAwesome, } from '@expo/vector-icons';
 import { useTheme } from '../theme';
@@ -13,7 +13,6 @@ import Button from '../components/Button';
 export default function MenuScreen() {
     const router = useRouter();
     const { styles, colors, mode, toggle, _gradients } = useTheme();
-    const statusBarStyle = mode === 'dark' ? 'light-content' : 'dark-content';
     const { showToast } = useToast();
     const { user, logout } = useAuth();
 
@@ -67,7 +66,6 @@ export default function MenuScreen() {
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
-            <StatusBar barStyle={statusBarStyle} backgroundColor={colors.background} />
             <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
                 <Header title="Menu" subtitle="Settings & More" />
             </View>

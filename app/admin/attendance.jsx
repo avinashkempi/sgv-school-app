@@ -15,7 +15,7 @@ import { EmptyState } from '../../components/StateComponents';
 
 import AttendanceView from '../../components/AttendanceView';
 import { formatClassName } from '../../utils/formatClassName';
-import { getISTDateString, getISTToday, isISTSunday, formatISTDisplayDate } from '../../utils/date';
+import { getISTDateString, isISTSunday, formatISTDisplayDate } from '../../utils/date';
 
 export default function AdminAttendance() {
     const router = useRouter();

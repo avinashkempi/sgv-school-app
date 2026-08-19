@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemeProvider, useTheme } from "../theme";
 import { ToastProvider, useToast } from "../components/ToastProvider";
+import { StatusBar } from "expo-status-bar";
 
 import NetworkStatusProvider from "../components/NetworkStatusProvider";
 import BottomNavigation from "../components/BottomNavigation";
@@ -33,7 +34,7 @@ Notifications.setNotificationHandler({
 
 // separate component so we can use useTheme inside ThemeProvider
 function Inner() {
-  const { styles, colors } = useTheme();
+  const { styles, colors, mode } = useTheme();
   const segments = useSegments();
   const router = useRouter();
   const { syncYear } = useAcademicYear();
@@ -139,6 +140,7 @@ function Inner() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
+      <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
       <NetworkStatusProvider>
         <NavigationProvider>
           <NotificationProvider>

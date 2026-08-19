@@ -1,5 +1,5 @@
 import React, { useState, } from "react";
-import { View, Text, ScrollView, RefreshControl, Modal, Pressable, StatusBar } from "react-native";
+import { View, Text, ScrollView, RefreshControl, Modal, Pressable } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import storage from "../utils/storage";
 import { useTheme } from "../theme";
@@ -19,7 +19,7 @@ import { LoadingState } from "../components/StateComponents";
 import Header from "../components/Header";
 
 export default function ProfileScreen() {
-  const { styles, colors, mode } = useTheme();
+  const { styles, colors } = useTheme();
   const { showToast } = useToast();
   const router = useRouter();
   const { user: authUser, logout } = useAuth();
@@ -111,7 +111,6 @@ export default function ProfileScreen() {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
       }
     >
-      <StatusBar barStyle={mode === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
       <View style={{ alignItems: "center", marginTop: 20, marginBottom: 40 }}>
         <View style={{
           width: 100,

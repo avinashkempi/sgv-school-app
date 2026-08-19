@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, StatusBar, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../theme';
 import { useRouter } from 'expo-router';
@@ -75,11 +75,6 @@ export default function Login() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ flex: 1, backgroundColor: colors.background }}
     >
-      <StatusBar
-        barStyle={mode === "dark" ? "light-content" : "dark-content"}
-        backgroundColor={colors.background}
-      />
-
       <ScrollView
         contentContainerStyle={{ flexGrow: 1, padding: 24, justifyContent: 'center' }}
         showsVerticalScrollIndicator={false}

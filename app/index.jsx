@@ -1,5 +1,5 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import { View, Text, ScrollView, StatusBar, RefreshControl, } from "react-native";
+import { View, Text, ScrollView, RefreshControl, } from "react-native";
 import Animated from "react-native-reanimated";
 import { useState, useRef } from "react";
 import { useRouter } from "expo-router";
@@ -25,7 +25,7 @@ export default function HomeScreen() {
   // eslint-disable-next-line no-unused-vars
   const router = useRouter();
   const fadeStyle = useFade();
-  const { styles, colors, mode } = useTheme();
+  const { styles, colors } = useTheme();
   const { schoolInfo: SCHOOL, refresh } = useSchoolInfo();
   const [refreshing, setRefreshing] = useState(false);
   // eslint-disable-next-line no-unused-vars
@@ -81,11 +81,6 @@ export default function HomeScreen() {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
       }
     >
-      <StatusBar
-        barStyle={mode === "dark" ? "light-content" : "dark-content"}
-        backgroundColor={colors.background}
-      />
-
       {/* Large M3 Header */}
       <Header
         title={SCHOOL.name}
