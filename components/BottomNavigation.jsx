@@ -16,6 +16,7 @@ import { useTheme } from "../theme";
 import { ROUTES } from "../constants/routes";
 import { useAuth } from '../context/AuthContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useLabel } from '../context/LabelsContext';
 
 // eslint-disable-next-line no-unused-vars
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -26,50 +27,51 @@ function BottomNavigation() {
   const { colors, mode } = useTheme();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
+  const { t } = useLabel();
 
   const navigationItems = useMemo(() => [
     {
       route: ROUTES.HOME,
-      label: "Home",
+      label: t('nav.home'),
       icon: "home-filled", // M3 uses filled icons for active state usually, but consistent icons are fine
       inactiveIcon: "home",
     },
     ...(user && user.role === 'student' ? [{
       route: ROUTES.STUDENT_CLASS,
-      label: "Class",
+      label: t('nav.class'),
       icon: "school",
       inactiveIcon: "school", // outlined version if available
     }] : []),
     ...(user && (user.role === 'teacher' || user.role === 'staff') ? [{
       route: ROUTES.TEACHER_CLASSES,
-      label: "Dashboard",
+      label: t('nav.dashboard'),
       icon: "dashboard",
       inactiveIcon: "dashboard",
     }] : []),
     ...(user && (user.role === 'admin' || user.role === 'super admin') ? [{
       route: ROUTES.ADMIN,
-      label: "Admin",
+      label: t('nav.admin'),
       icon: "admin-panel-settings",
       inactiveIcon: "admin-panel-settings",
     }, {
       route: "/admin/classes",
-      label: "Classes",
+      label: t('nav.classes'),
       icon: "class",
       inactiveIcon: "class",
     }] : []),
     ...(user && (user.role === 'student' || user.role === 'teacher' || user.role === 'staff' || user.role === 'admin' || user.role === 'super admin') ? [{
       route: "/requests",
-      label: "Attendance",
+      label: t('nav.attendance'),
       icon: "assignment",
       inactiveIcon: "assignment",
     }] : []),
     {
       route: "/menu",
-      label: "Menu",
+      label: t('nav.menu'),
       icon: "grid-view",
       inactiveIcon: "grid-view",
     },
-  ], [user]);
+  ], [user, t]);
 
   // Derive active route from pathname
   const activeRoute = useMemo(() => {

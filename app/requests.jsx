@@ -8,11 +8,13 @@ import Header from "../components/Header";
 import Card from "../components/Card";
 import apiConfig from "../config/apiConfig";
 import { useApiQuery } from "../hooks/useApi";
+import { useLabel } from "../context/LabelsContext";
 
 export default function RequestsScreen() {
     const router = useRouter();
     const { styles, colors } = useTheme();
     const { user } = useAuth();
+    const { t } = useLabel();
     const [refreshing, setRefreshing] = useState(false);
 
     // Fetch Teacher Classes (for teachers)
@@ -119,15 +121,15 @@ export default function RequestsScreen() {
                 contentContainerStyle={[styles.contentPaddingBottom, { padding: 16 }]}
             >
                 <Header
-                    title="Attendance"
-                    subtitle="Manage attendance and requests"
+                    title={t('requests.title')}
+                    subtitle={t('requests.subtitle')}
                 />
 
                 <View style={{ marginTop: 8 }}>
                     {/* My Attendance Card - For All */}
                     {renderActionItem({
-                        title: "My Attendance",
-                        subtitle: "View your attendance history",
+                        title: t('requests.myAttendance'),
+                        subtitle: t('requests.myAttendanceSubtitle'),
                         icon: "person",
                         color: "#4CAF50",
                         onPress: navigateToMyAttendance
@@ -135,10 +137,10 @@ export default function RequestsScreen() {
 
                     {/* Mark Attendance Card - For Teachers & Admins */}
                     {['teacher', 'admin', 'super admin'].includes(user?.role) && renderActionItem({
-                        title: "Mark Attendance",
+                        title: t('requests.markAttendance'),
                         subtitle: user?.role === 'admin' || user?.role === 'super admin'
-                            ? 'Mark staff and student attendance'
-                            : 'Mark student attendance',
+                            ? t('requests.markAttendanceAdminSubtitle')
+                            : t('requests.markAttendanceTeacherSubtitle'),
                         icon: "edit-calendar",
                         color: "#2196F3",
                         onPress: navigateToMarkAttendance
@@ -146,10 +148,10 @@ export default function RequestsScreen() {
 
                     {/* Leave Requests Card */}
                     {renderActionItem({
-                        title: "Leave Requests",
+                        title: t('requests.leaveRequests'),
                         subtitle: user?.role === 'student' || user?.role === 'staff'
-                            ? 'Apply for leave and track status'
-                            : 'Approve or reject leave requests',
+                            ? t('requests.leaveRequestsStudentSubtitle')
+                            : t('requests.leaveRequestsAdminSubtitle'),
                         icon: "event-note",
                         color: "#FF9800",
                         onPress: navigateToLeaves

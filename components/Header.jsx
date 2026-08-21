@@ -9,12 +9,14 @@ import { useApiQuery } from "../hooks/useApi";
 import apiConfig from "../config/apiConfig";
 
 import { useAcademicYear } from "../context/AcademicYearContext";
+import { useLabel } from "../context/LabelsContext";
 
 const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
   const router = useRouter();
   const { colors, styles } = useTheme();
   const { unreadCount } = useNotifications();
   const { selectedYear } = useAcademicYear();
+  const { t } = useLabel();
 
   // Fetch user to check if Super Admin for Time Travel UI
   const { data: userData } = useApiQuery(
@@ -79,7 +81,7 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
             marginBottom: 8,
             textTransform: 'uppercase'
           }]}>
-            Welcome to
+            {t('header.welcomeTo', 'Welcome to')}
           </Text>
           <Text style={[styles.headlineLarge, { color: colors.onBackground }]}>
             {title}
@@ -88,7 +90,7 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
 
         {/* Notification Bell */}
         <Pressable
-          accessibilityLabel="Notifications"
+          accessibilityLabel={t('header.notifications', 'Notifications')}
           onPress={() => router.push("/notifications")}
           style={({ pressed }) => ({
             padding: 12,
@@ -129,7 +131,7 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
     <View style={{ marginBottom: 24, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
       {showBack && (
         <Pressable
-          accessibilityLabel="Go back"
+          accessibilityLabel={t('header.goBack', 'Go back')}
           onPress={() => {
             if (router.canGoBack()) {
               router.back();

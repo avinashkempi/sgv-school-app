@@ -21,6 +21,7 @@ import { useToast } from "../../components/ToastProvider";
 import { useApiQuery, useApiMutation, createApiMutationFn, useApiInfiniteQuery } from "../../hooks/useApi";
 import { useQueryClient } from "@tanstack/react-query";
 import Header from "../../components/Header";
+import { useLabel } from "../../context/LabelsContext";
 import UserDetailModal from "../../components/UserDetailModal";
 import UserCard from "../../components/UserCard";
 import UserFormModal from "../../components/UserFormModal";
@@ -28,6 +29,7 @@ import UserFormModal from "../../components/UserFormModal";
 export default function AdminScreen() {
   const router = useRouter();
   const { styles, colors } = useTheme();
+  const { t } = useLabel();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
@@ -82,29 +84,29 @@ export default function AdminScreen() {
     mutationFn: createApiMutationFn(apiConfig.url(apiConfig.endpoints.users.create), 'POST'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      showToast("User created successfully", "success");
+      showToast(t('admin.userCreatedSuccess', 'User created successfully'), "success");
       setShowUserModal(false);
     },
-    onError: (error) => showToast(error.message || "Failed to create user", "error")
+    onError: (error) => showToast(error.message || t('admin.userCreatedFailure', 'Failed to create user'), "error")
   });
 
   const updateUserMutation = useApiMutation({
     mutationFn: (data) => createApiMutationFn(apiConfig.url(apiConfig.endpoints.users.update(data._id)), 'PUT')(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      showToast("User updated successfully", "success");
+      showToast(t('admin.userUpdatedSuccess', 'User updated successfully'), "success");
       setShowUserModal(false);
     },
-    onError: (error) => showToast(error.message || "Failed to update user", "error")
+    onError: (error) => showToast(error.message || t('admin.userUpdatedFailure', 'Failed to update user'), "error")
   });
 
   const deleteUserMutation = useApiMutation({
     mutationFn: (id) => createApiMutationFn(apiConfig.url(apiConfig.endpoints.users.delete(id)), 'DELETE')(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      showToast("User deleted successfully", "success");
+      showToast(t('admin.userDeletedSuccess', 'User deleted successfully'), "success");
     },
-    onError: (error) => showToast(error.message || "Failed to delete user", "error")
+    onError: (error) => showToast(error.message || t('admin.userDeletedFailure', 'Failed to delete user'), "error")
   });
 
   // eslint-disable-next-line no-unused-vars
@@ -112,9 +114,9 @@ export default function AdminScreen() {
     mutationFn: (id) => createApiMutationFn(`${apiConfig.baseUrl}/users/${id}/revert-promotion`, 'PUT')(),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      showToast(data.message || "Promotion reverted successfully", "success");
+      showToast(data.message || t('admin.promotionRevertedSuccess', 'Promotion reverted successfully'), "success");
     },
-    onError: (error) => showToast(error.message || "Failed to revert promotion", "error")
+    onError: (error) => showToast(error.message || t('admin.promotionRevertedFailure', 'Failed to revert promotion'), "error")
   });
 
   // eslint-disable-next-line no-unused-vars
@@ -156,7 +158,7 @@ export default function AdminScreen() {
     if (user.role !== 'student' && user.designation) {
       return user.designation;
     }
-    return user.role === 'support_staff' ? 'Support Staff' : user.role;
+    return user.role === 'support_staff' ? t('common.supportStaff', 'Support Staff') : user.role;
   };
 
   const saving = createUserMutation.isPending || updateUserMutation.isPending;
@@ -180,7 +182,7 @@ export default function AdminScreen() {
       return (
         <View style={{ padding: 40, alignItems: 'center' }}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={{ marginTop: 16, color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>Loading users...</Text>
+          <Text style={{ marginTop: 16, color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>{t('admin.loadingUsers', 'Loading users...')}</Text>
         </View>
       );
     }
@@ -188,7 +190,7 @@ export default function AdminScreen() {
       return (
         <View style={{ padding: 20, marginHorizontal: 20, alignItems: 'center', backgroundColor: colors.error + '10', borderRadius: 12 }}>
           <MaterialIcons name="error-outline" size={40} color={colors.error} />
-          <Text style={{ marginTop: 8, color: colors.error, fontFamily: "DMSans-Bold" }}>Failed to load user profile</Text>
+          <Text style={{ marginTop: 8, color: colors.error, fontFamily: "DMSans-Bold" }}>{t('admin.failedToLoadProfile', 'Failed to load user profile')}</Text>
           <Text style={{ marginTop: 4, color: colors.textSecondary, textAlign: 'center' }}>{userError.message}</Text>
         </View>
       );
@@ -197,9 +199,9 @@ export default function AdminScreen() {
       return (
         <View style={{ padding: 20, marginHorizontal: 20, alignItems: 'center', backgroundColor: colors.warning + '10', borderRadius: 12 }}>
           <MaterialIcons name="warning" size={40} color={colors.warning} />
-          <Text style={{ marginTop: 8, color: colors.warning, fontFamily: "DMSans-Bold" }}>Access Denied</Text>
-          <Text style={{ marginTop: 4, color: colors.textSecondary, textAlign: 'center' }}>You do not have permission to view this list.</Text>
-          <Text style={{ marginTop: 4, color: colors.textSecondary, fontSize: 12 }}>Current Role: {user?.role || 'Unknown'}</Text>
+          <Text style={{ marginTop: 8, color: colors.warning, fontFamily: "DMSans-Bold" }}>{t('common.accessDenied', 'Access Denied')}</Text>
+          <Text style={{ marginTop: 4, color: colors.textSecondary, textAlign: 'center' }}>{t('common.accessDeniedDesc', 'You do not have permission to view this list.')}</Text>
+          <Text style={{ marginTop: 4, color: colors.textSecondary, fontSize: 12 }}>${t('common.currentRole', 'Current Role')}: {user?.role || t('common.unknown', 'Unknown')}</Text>
         </View>
       );
     }
@@ -207,10 +209,10 @@ export default function AdminScreen() {
       return (
         <View style={{ padding: 20, marginHorizontal: 20, alignItems: 'center', backgroundColor: colors.error + '10', borderRadius: 12 }}>
           <MaterialIcons name="error-outline" size={40} color={colors.error} />
-          <Text style={{ marginTop: 8, color: colors.error, fontFamily: "DMSans-Bold" }}>Failed to load users</Text>
+          <Text style={{ marginTop: 8, color: colors.error, fontFamily: "DMSans-Bold" }}>{t('admin.failedToLoadUsers', 'Failed to load users')}</Text>
           <Text style={{ marginTop: 4, color: colors.textSecondary, textAlign: 'center' }}>{usersError.message}</Text>
           <Pressable onPress={refetch} style={{ marginTop: 12, paddingHorizontal: 16, paddingVertical: 8, backgroundColor: colors.primary, borderRadius: 8 }}>
-            <Text style={{ color: '#fff', fontFamily: "DMSans-Bold" }}>Retry</Text>
+            <Text style={{ color: '#fff', fontFamily: "DMSans-Bold" }}>{t('common.retry', 'Retry')}</Text>
           </Pressable>
         </View>
       );
@@ -219,7 +221,7 @@ export default function AdminScreen() {
       <View style={{ alignItems: "center", padding: 40, opacity: 0.6 }}>
         <MaterialIcons name="search-off" size={64} color={colors.textSecondary} />
         <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16, fontFamily: "DMSans-Medium" }}>
-          No users found
+          {t('admin.noUsersFound', 'No users found')}
         </Text>
       </View>
     );
@@ -362,10 +364,11 @@ const AdminHeader = React.memo(function AdminHeader({
   setRoleFilter,
   onAddUser,
 }) {
+  const { t } = useLabel();
   return (
     <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
       {/* Minimal Header */}
-      <Header title="Admin" subtitle="Manage users and permissions" />
+      <Header title={t('admin.admin', 'Admin')} subtitle={t('admin.manageUsersDesc', 'Manage users and permissions')} />
 
       {/* Admin Actions - Organized by Category */}
       <View style={{ gap: 24 }}>
@@ -373,17 +376,17 @@ const AdminHeader = React.memo(function AdminHeader({
         {user?.role === 'super admin' && (
           <View>
             <Text style={styles.titleMedium}>
-              Academic Management
+              {t('admin.academicManagement', 'Academic Management')}
             </Text>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
               <MenuCard
-                title="Academic Year"
+                title={t('admin.academicYear', 'Academic Year')}
                 icon="calendar-today"
                 color={colors.primary}
                 onPress={() => router.push("/admin/academic-year")}
               />
               <MenuCard
-                title="Subjects"
+                title={t('admin.subjects', 'Subjects')}
                 icon="menu-book"
                 color="#673AB7"
                 onPress={() => router.push("/admin/subjects")}
@@ -395,11 +398,11 @@ const AdminHeader = React.memo(function AdminHeader({
         {/* Teaching Management Section - Admin & Super Admin */}
         <View>
           <Text style={styles.titleMedium}>
-            Teaching Management
+            {t('admin.teachingManagement', 'Teaching Management')}
           </Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
             <MenuCard
-              title="Teacher Subjects"
+              title={t('admin.teacherSubjects', 'Teacher Subjects')}
               icon="assignment-ind"
               color="#4CAF50"
               onPress={() => router.push("/admin/teacher-subjects")}
@@ -410,23 +413,23 @@ const AdminHeader = React.memo(function AdminHeader({
         {/* Class Operations Section */}
         <View>
           <Text style={styles.titleMedium}>
-            Class Operations
+            {t('admin.classOperations', 'Class Operations')}
           </Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
             <MenuCard
-              title="Timetable"
+              title={t('admin.timetable', 'Timetable')}
               icon="schedule"
               color="#9C27B0"
               onPress={() => router.push("/admin/timetable")}
             />
             <MenuCard
-              title="Exams"
+              title={t('admin.exams', 'Exams')}
               icon="event"
               color="#E91E63"
               onPress={() => router.push("/admin/exam-schedule")}
             />
             <MenuCard
-              title="Exam Analytics"
+              title={t('admin.examAnalytics', 'Exam Analytics')}
               icon="analytics"
               color="#9C27B0"
               onPress={() => router.push("/admin/exam-analytics")}
@@ -437,11 +440,11 @@ const AdminHeader = React.memo(function AdminHeader({
         {/* Financial Section */}
         <View>
           <Text style={styles.titleMedium}>
-            Financial
+            {t('admin.financial', 'Financial')}
           </Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
             <MenuCard
-              title="Fees"
+              title={t('admin.fees', 'Fees')}
               icon="attach-money"
               color="#FF5722"
               onPress={() => router.push("/admin/fees")}
@@ -452,17 +455,17 @@ const AdminHeader = React.memo(function AdminHeader({
         {/* Communication & Requests Section */}
         <View>
           <Text style={styles.titleMedium}>
-            Communication
+            {t('admin.communication', 'Communication')}
           </Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
             <MenuCard
-              title="Complaints"
+              title={t('admin.complaints', 'Complaints')}
               icon="feedback"
               color="#607D8B"
               onPress={() => router.push("/complaints")}
             />
             <MenuCard
-              title="Broadcast"
+              title={t('admin.broadcast', 'Broadcast')}
               icon="campaign"
               color="#3F51B5"
               onPress={() => router.push("/admin/send-notification")}
@@ -475,7 +478,7 @@ const AdminHeader = React.memo(function AdminHeader({
       <View style={{ marginTop: 32 }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <Text style={styles.titleMedium}>
-            User Management
+            {t('admin.userManagement', 'User Management')}
           </Text>
           <Pressable
             onPress={onAddUser}
@@ -496,7 +499,7 @@ const AdminHeader = React.memo(function AdminHeader({
           >
             <MaterialIcons name="add" size={20} color="#fff" style={{ marginRight: 4 }} />
             <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: "#fff" }}>
-              Add User
+              {t('admin.addUser', 'Add User')}
             </Text>
           </Pressable>
         </View>
@@ -520,7 +523,7 @@ const AdminHeader = React.memo(function AdminHeader({
                 fontFamily: "DMSans-Regular",
                 paddingVertical: 0
               }}
-              placeholder="Search users..."
+              placeholder={t('admin.searchUsersPlaceholder', 'Search users...')}
               placeholderTextColor={colors.textSecondary}
               value={searchQuery}
               onChangeText={(text) => {
@@ -565,7 +568,7 @@ const AdminHeader = React.memo(function AdminHeader({
                   textTransform: "capitalize",
                   fontSize: 14
                 }}>
-                  {role === "all" ? "All Roles" : role === "support_staff" ? "Support Staff" : role}
+                  {role === "all" ? t('admin.allRoles', 'All Roles') : role === "support_staff" ? t('common.supportStaff', 'Support Staff') : role}
                 </Text>
               </Pressable>
             ))}

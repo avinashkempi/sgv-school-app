@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import apiConfig from "../config/apiConfig";
 import { useApiMutation, createApiMutationFn } from "../hooks/useApi";
+import { useLabel } from '../context/LabelsContext';
 import { useAuth } from '../context/AuthContext';
 
 // UI Components
@@ -23,6 +24,7 @@ export default function Login() {
   const router = useRouter();
   const { showToast } = useToast();
   const { login: authLogin } = useAuth();
+  const { t } = useLabel();
 
   const loginMutation = useApiMutation({
     mutationFn: createApiMutationFn(apiConfig.url(apiConfig.endpoints.auth.login), 'POST'),
@@ -33,17 +35,17 @@ export default function Login() {
         // Use AuthContext.login — handles cache clearing, FCM, state
         await authLogin(data.token, data.user);
 
-        showToast('Logged in successfully', 'success', 2000);
+        showToast(t('toasts.loggedInSuccessfully'), 'success', 2000);
         router.replace('/');
       } else {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-        showToast(data.message || 'Login failed', 'error');
+        showToast(data.message || t('toasts.loginFailed'), 'error');
       }
     },
     onError: (error) => {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       console.error('Login error:', error);
-      showToast(error.message || 'Network error. Please try again.', 'error');
+      showToast(error.message || t('toasts.networkError'), 'error');
     }
   });
 
@@ -51,7 +53,7 @@ export default function Login() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (!phone || !password) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      showToast('Please enter both phone number and password.', 'error');
+      showToast(t('toasts.enterBothFields'), 'error');
       return;
     }
     loginMutation.mutate({ phone, password });
@@ -101,7 +103,7 @@ export default function Login() {
             textAlign: 'center',
             letterSpacing: -1
           }}>
-            Welcome Back
+            {t('login.title')}
           </Text>
           <Text style={{
             fontSize: 16,
@@ -109,18 +111,18 @@ export default function Login() {
             color: colors.onSurfaceVariant,
             textAlign: 'center'
           }}>
-            Sign in to continue to School App
+            {t('login.subtitle')}
           </Text>
         </View>
 
         {/* Form Section */}
         <View style={{ gap: 24 }}>
           <TextInput
-            label="Phone Number"
+            label={t('login.phoneLabel')}
             icon="phone"
             value={phone}
             onChangeText={setPhone}
-            placeholder="Enter phone number"
+            placeholder={t('login.phonePlaceholder')}
             keyboardType="number-pad"
             maxLength={10}
             editable={!loading}
@@ -128,11 +130,11 @@ export default function Login() {
           />
 
           <TextInput
-            label="Password"
+            label={t('login.passwordLabel')}
             icon="lock"
             value={password}
             onChangeText={setPassword}
-            placeholder="Enter password"
+            placeholder={t('login.passwordPlaceholder')}
             secureTextEntry={!showPassword}
             rightIcon={showPassword ? "visibility" : "visibility-off"}
             onRightIconPress={() => setShowPassword(!showPassword)}
@@ -147,12 +149,12 @@ export default function Login() {
               variant="filled"
               size="large"
             >
-              Sign In
+              {t('login.signInButton')}
             </Button>
 
             <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 8 }}>
               <View style={{ flex: 1, height: 1, backgroundColor: colors.outlineVariant }} />
-              <Text style={{ marginHorizontal: 16, color: colors.onSurfaceVariant, fontSize: 14 }}>OR</Text>
+              <Text style={{ marginHorizontal: 16, color: colors.onSurfaceVariant, fontSize: 14 }}>{t('common.or')}</Text>
               <View style={{ flex: 1, height: 1, backgroundColor: colors.outlineVariant }} />
             </View>
 
@@ -160,7 +162,7 @@ export default function Login() {
               variant="outlined"
               onPress={handleDemoLogin}
             >
-              View as Guest
+              {t('login.viewAsGuestButton')}
             </Button>
           </View>
         </View>

@@ -16,6 +16,7 @@ import { useApiQuery } from "../hooks/useApi";
 import { CACHE_TIERS } from "../utils/cacheConfig";
 import { useAuth } from "../context/AuthContext";
 import { useEffect } from "react";
+import { useLabel } from '../context/LabelsContext';
 
 import AdminDashboard from "../components/dashboard/AdminDashboard";
 import TeacherDashboard from "../components/dashboard/TeacherDashboard";
@@ -33,6 +34,7 @@ export default function HomeScreen() {
   // eslint-disable-next-line no-unused-vars
   const { isConnected } = useNetworkStatus();
   const { updateUser, isAuthenticated } = useAuth();
+  const { t } = useLabel();
 
   // eslint-disable-next-line no-unused-vars
   const { data: userData, isError, error, refetch: refetchUser } = useApiQuery(
@@ -118,7 +120,7 @@ export default function HomeScreen() {
               <MaterialIcons name="apartment" size={24} color={colors.onPrimaryContainer} />
             </View>
             <Text style={[styles.titleLarge, { marginBottom: 0 }]}>
-              About Us
+              {t('home.aboutUs')}
             </Text>
           </View>
           <Text style={[styles.bodyLarge, { marginBottom: 0 }]}>{SCHOOL.about}</Text>
@@ -141,7 +143,7 @@ export default function HomeScreen() {
               <MaterialIcons name="school" size={24} color={colors.onSecondaryContainer} />
             </View>
             <Text style={[styles.titleLarge, { marginBottom: 0 }]}>
-              Branches
+              {t('home.branches')}
             </Text>
           </View>
 
@@ -156,8 +158,8 @@ export default function HomeScreen() {
                 marginRight: 10
               }} />
               <Text style={[styles.bodyLarge, { flex: 1, marginBottom: 0 }]}>
-                <Text style={styles.titleMedium}>Renuka Nagar, Mangasuli</Text>
-                {"\n"}Kindergarten to 10th Standard.
+                <Text style={styles.titleMedium}>{t('home.branchMangasuli')}</Text>
+                {"\n"}{t('home.branchMangasuliDesc')}
               </Text>
             </View>
 
@@ -171,8 +173,8 @@ export default function HomeScreen() {
                 marginRight: 10
               }} />
               <Text style={[styles.bodyLarge, { flex: 1, marginBottom: 0 }]}>
-                <Text style={styles.titleMedium}>Meenatai Nagar, Ugar Khurd</Text>
-                {"\n"}Kindergarten.
+                <Text style={styles.titleMedium}>{t('home.branchUgarKhurd')}</Text>
+                {"\n"}{t('home.branchUgarKhurdDesc')}
               </Text>
             </View>
           </View>
@@ -195,7 +197,7 @@ export default function HomeScreen() {
               <MaterialIcons name="flag" size={24} color={colors.onTertiaryContainer} />
             </View>
             <Text style={[styles.titleLarge, { marginBottom: 0 }]}>
-              Our Mission
+              {t('home.ourMission')}
             </Text>
           </View>
           <Text style={[styles.bodyLarge, { marginBottom: 0 }]}>{SCHOOL.mission}</Text>

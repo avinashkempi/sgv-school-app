@@ -1,6 +1,6 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { Image } from 'expo-image';
-import { View, FlatList, Dimensions, StyleSheet } from 'react-native';
+import { View, FlatList, Dimensions, StyleSheet, PixelRatio } from 'react-native';
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
@@ -17,12 +17,16 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
-// Carousel Item Component with Lazy Loading and Caching
-const CarouselItem = React.memo(({ item, width, height }) => {
+// Carousel Item Component with Lazy Loading, Server Downsampling, and Caching
+const CarouselItem = React.memo(({ item, index, width, height }) => {
     const { colors } = useTheme();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
-    const imageUrl = getGoogleDriveEmbedUrl(item);
+
+    // Compute optimal pixel width based on device pixel ratio (capped for memory efficiency)
+    const pixelRatio = PixelRatio.get();
+    const targetWidth = Math.min(1200, Math.max(600, Math.round(width * Math.min(pixelRatio, 2.5))));
+    const imageUrl = useMemo(() => getGoogleDriveEmbedUrl(item, { width: targetWidth }), [item, targetWidth]);
 
     if (!imageUrl) return null;
 
@@ -40,11 +44,13 @@ const CarouselItem = React.memo(({ item, width, height }) => {
                     </View>
                 ) : (
                     <Image
-                        source={imageUrl}
+                        source={{ uri: imageUrl }}
                         style={styles.image}
-                        contentFit="contain"
+                        contentFit="cover"
                         transition={200}
                         cachePolicy="memory-disk"
+                        priority={index === 0 ? "high" : "medium"}
+                        allowDownscaling={true}
                         recyclingKey={`carousel-${item}`}
                         onLoadStart={() => setLoading(true)}
                         onLoad={() => setLoading(false)}
@@ -162,8 +168,8 @@ export default function SchoolPhotoCarousel({ photos }) {
                 <AnimatedFlatList
                     ref={flatListRef}
                     data={photos}
-                    renderItem={({ item }) => (
-                        <CarouselItem item={item} width={ITEM_WIDTH} height={ITEM_HEIGHT} />
+                    renderItem={({ item, index }) => (
+                        <CarouselItem item={item} index={index} width={ITEM_WIDTH} height={ITEM_HEIGHT} />
                     )}
                     keyExtractor={(item, index) => `school-photo-${index}`}
                     horizontal

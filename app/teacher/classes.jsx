@@ -16,6 +16,7 @@ import { useToast } from "../../components/ToastProvider";
 import AppHeader from "../../components/Header";
 import { formatClassName } from "../../utils/formatClassName";
 import { useAuth } from "../../context/AuthContext";
+import { useLabel } from "../../context/LabelsContext";
 
 export default function TeacherClassesScreen() {
     const router = useRouter();
@@ -25,6 +26,7 @@ export default function TeacherClassesScreen() {
     const { _showToast } = useToast();
     const { user, userId: authUserId } = useAuth();
     const userId = user?.id || user?._id || authUserId;
+    const { t } = useLabel();
     const [refreshing, setRefreshing] = useState(false);
 
     const { data: classesData, isLoading: loading, refetch } = useApiQuery(
@@ -47,7 +49,7 @@ export default function TeacherClassesScreen() {
                 showsVerticalScrollIndicator={false}
             >
                 <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
-                    <AppHeader title="My Classes" subtitle="Manage your assigned classes" />
+                    <AppHeader title={t('teacher.classesTitle', 'My Classes')} subtitle={t('teacher.classesSubtitle', 'Manage your assigned classes')} />
 
                     {loading ? (
                         <View style={{ flex: 1, justifyContent: "center", alignItems: "center", marginTop: 100 }}>
@@ -57,13 +59,13 @@ export default function TeacherClassesScreen() {
                         <View style={{ gap: 24 }}>
                             <View>
                                 <Text style={styles.titleMedium}>
-                                    My Classes
+                                    {t('teacher.classesTitle', 'My Classes')}
                                 </Text>
                                 {classes.length === 0 ? (
                                     <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
                                         <MaterialIcons name="class" size={48} color={colors.textSecondary} />
                                         <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16, fontFamily: "DMSans-Medium" }}>
-                                            No classes assigned to you yet.
+                                            {t('teacher.noClassesAssigned', 'No classes assigned to you yet.')}
                                         </Text>
                                     </View>
                                 ) : (
@@ -107,7 +109,7 @@ export default function TeacherClassesScreen() {
                                                         borderRadius: 8,
                                                         marginTop: 10
                                                     }}>
-                                                        <Text style={{ color: colors.primary, fontSize: 11, fontFamily: "DMSans-Bold" }}>CLASS TEACHER</Text>
+                                                        <Text style={{ color: colors.primary, fontSize: 11, fontFamily: "DMSans-Bold" }}>{t('teacher.classTeacher', 'CLASS TEACHER')}</Text>
                                                     </View>
                                                 </View>
                                                 <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />

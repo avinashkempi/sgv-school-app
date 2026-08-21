@@ -8,6 +8,7 @@ import apiConfig from '../../config/apiConfig';
 import { useTheme } from '../../theme';
 import { useAuth } from '../../context/AuthContext';
 import AttendanceView from '../../components/AttendanceView';
+import { useLabel } from '../../context/LabelsContext';
 
 const PAGE_SIZE = 30;
 
@@ -15,6 +16,7 @@ export default function TeacherAttendance() {
     const _router = useRouter();
     const { colors } = useTheme();
     const { user } = useAuth();
+    const { t } = useLabel();
     const isStaff = user?.role === 'staff';
 
     const [refreshing, setRefreshing] = useState(false);
@@ -82,8 +84,8 @@ export default function TeacherAttendance() {
                 onLoadMore={loadMore}
                 loadingMore={loadingMore}
                 hasMore={hasMore}
-                title="My Attendance"
-                subtitle={isStaff ? 'Track your attendance' : 'Track your teaching attendance'}
+                title={t('teacher.myAttendanceTitle', 'My Attendance')}
+                subtitle={isStaff ? t('teacher.myAttendanceStaffSubtitle', 'Track your attendance') : t('teacher.myAttendanceSubtitle', 'Track your teaching attendance')}
             />
         </View>
     );

@@ -19,6 +19,7 @@ import apiConfig from "../../config/apiConfig";
 import { useApiMutation, createApiMutationFn, useApiQuery } from "../../hooks/useApi";
 import { useQueryClient } from "@tanstack/react-query";
 import Header from "../../components/Header";
+import { useLabel } from "../../context/LabelsContext";
 import { useToast } from "../../components/ToastProvider";
 import { formatClassName } from "../../utils/formatClassName";
 import { useAuth } from "../../context/AuthContext";
@@ -26,6 +27,7 @@ import { useAuth } from "../../context/AuthContext";
 export default function GiveFeedbackScreen() {
     const router = useRouter();
     const { _styles, colors } = useTheme();
+    const { t } = useLabel();
     const { showToast } = useToast();
     const queryClient = useQueryClient();
     const { user, userId } = useAuth();
@@ -118,24 +120,24 @@ export default function GiveFeedbackScreen() {
     const submitMutation = useApiMutation({
         mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/feedback`, 'POST'),
         onSuccess: () => {
-            showToast("Feedback sent successfully", "success");
+            showToast(t('feedback.sentSuccess', 'Feedback sent successfully'), "success");
             queryClient.invalidateQueries(['complaintsData']);
             router.back();
         },
-        onError: (err) => showToast(err.message || "Failed to send feedback", "error")
+        onError: (err) => showToast(err.message || t('feedback.sentFailure', 'Failed to send feedback'), "error")
     });
 
     const handleSubmit = () => {
         if (!selectedClass) {
-            showToast("Please select a class", "error");
+            showToast(t('feedback.selectClassError', 'Please select a class'), "error");
             return;
         }
         if (!selectedStudent) {
-            showToast("Please select a student", "error");
+            showToast(t('feedback.selectStudentError', 'Please select a student'), "error");
             return;
         }
         if (!message.trim()) {
-            showToast("Please enter a feedback message", "error");
+            showToast(t('feedback.enterFeedbackMessageError', 'Please enter a feedback message'), "error");
             return;
         }
 
@@ -163,7 +165,7 @@ export default function GiveFeedbackScreen() {
             <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
                 <View style={{ flex: 1 }}>
                     <View style={{ padding: 16, paddingTop: 24 }}>
-                        <Header title="Give Feedback" showBack />
+                        <Header title={t('feedback.giveFeedback', 'Give Feedback')} showBack />
                     </View>
 
                     <ScrollView
@@ -174,7 +176,7 @@ export default function GiveFeedbackScreen() {
 
                         {/* Class Selection */}
                         <View style={{ marginBottom: 20 }}>
-                            <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>Class *</Text>
+                            <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>{t('common.classRequired', 'Class *')}</Text>
                             <Pressable
                                 onPress={() => setShowClassModal(true)}
                                 style={{
@@ -194,8 +196,8 @@ export default function GiveFeedbackScreen() {
                                     fontSize: 16
                                 }}>
                                     {selectedClass
-                                        ? `${formatClassName(selectedClass.name, selectedClass.section)}${selectedClass.role === 'admin' ? '' : selectedClass.role === 'class_teacher' ? ' (Class Teacher)' : ' (Subject Teacher)'}`
-                                        : "Select Class"}
+                                        ? `${formatClassName(selectedClass.name, selectedClass.section)}${selectedClass.role === 'admin' ? '' : selectedClass.role === 'class_teacher' ? t('common.roleClassTeacher', ' (Class Teacher)') : t('common.roleSubjectTeacher', ' (Subject Teacher)')}`
+                                        : t('feedback.selectClassPlaceholder', 'Select Class')}
                                 </Text>
                                 <MaterialIcons name="arrow-drop-down" size={24} color={colors.textSecondary} />
                             </Pressable>
@@ -205,7 +207,7 @@ export default function GiveFeedbackScreen() {
                         {selectedClass && (availableSubjects.length > 0 || selectedClass.role === 'subject_teacher') && (
                             <View style={{ marginBottom: 20 }}>
                                 <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>
-                                    Subject {selectedClass.role === 'subject_teacher' ? "*" : "(Optional)"}
+                                    ${t('common.subject', 'Subject')} {selectedClass.role === 'subject_teacher' ? "*" : t('common.optional', '(Optional)')}
                                 </Text>
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                                     <View style={{ flexDirection: "row", gap: 10 }}>
@@ -224,7 +226,7 @@ export default function GiveFeedbackScreen() {
                                                 <Text style={{
                                                     color: !selectedSubject ? "#fff" : colors.textPrimary,
                                                     fontFamily: "DMSans-Medium"
-                                                }}>General</Text>
+                                                }}>${t('common.general', 'General')}</Text>
                                             </Pressable>
                                         )}
                                         {availableSubjects.map(sub => (
@@ -253,11 +255,11 @@ export default function GiveFeedbackScreen() {
 
                         {/* Student Selection */}
                         <View style={{ marginBottom: 20 }}>
-                            <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>Student *</Text>
+                            <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>{t('common.studentRequired', 'Student *')}</Text>
                             <Pressable
                                 onPress={() => {
                                     if (!selectedClass) {
-                                        showToast("Please select a class first", "error");
+                                        showToast(t('feedback.selectClassFirstError', 'Please select a class first'), "error");
                                         return;
                                     }
                                     setShowStudentModal(true);
@@ -279,7 +281,7 @@ export default function GiveFeedbackScreen() {
                                     fontFamily: selectedStudent ? "DMSans-SemiBold" : "DMSans-Regular",
                                     fontSize: 16
                                 }}>
-                                    {selectedStudent ? selectedStudent.name : "Select Student"}
+                                    {selectedStudent ? selectedStudent.name : t('feedback.selectStudentPlaceholder', 'Select Student')}
                                 </Text>
                                 {loadingStudents ? (
                                     <ActivityIndicator size="small" color={colors.primary} />
@@ -291,11 +293,11 @@ export default function GiveFeedbackScreen() {
 
                         {/* Feedback Message */}
                         <View style={{ marginBottom: 30 }}>
-                            <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>Feedback Message *</Text>
+                            <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>{t('feedback.feedbackMessageRequired', 'Feedback Message *')}</Text>
                             <TextInput
                                 value={message}
                                 onChangeText={setMessage}
-                                placeholder="Write your feedback here..."
+                                placeholder={t('feedback.feedbackPlaceholder', 'Write your feedback here...')}
                                 placeholderTextColor={colors.textSecondary}
                                 multiline
                                 numberOfLines={6}
@@ -335,7 +337,7 @@ export default function GiveFeedbackScreen() {
                             {submitMutation.isPending ? (
                                 <ActivityIndicator color="#fff" />
                             ) : (
-                                <Text style={{ color: "#fff", fontFamily: "DMSans-Bold", fontSize: 18 }}>Send Feedback</Text>
+                                <Text style={{ color: "#fff", fontFamily: "DMSans-Bold", fontSize: 18 }}>${t('feedback.sendFeedback', 'Send Feedback')}</Text>
                             )}
                         </Pressable>
 
@@ -347,9 +349,9 @@ export default function GiveFeedbackScreen() {
                             <Pressable style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }} onPress={Keyboard.dismiss}>
                                 <Pressable style={{ backgroundColor: colors.background, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: "80%" }} onPress={(e) => e.stopPropagation()}>
                                     <View style={{ padding: 20, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-                                        <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>Select Class</Text>
+                                        <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>${t('feedback.selectClassTitle', 'Select Class')}</Text>
                                         <TextInput
-                                            placeholder="Search class..."
+                                            placeholder={t('feedback.searchClassPlaceholder', 'Search class...')}
                                             value={classSearch}
                                             onChangeText={setClassSearch}
                                             style={{
@@ -365,7 +367,7 @@ export default function GiveFeedbackScreen() {
                                         {loadingClasses ? (
                                             <ActivityIndicator size="large" color={colors.primary} />
                                         ) : filteredClasses.length === 0 ? (
-                                            <Text style={{ textAlign: "center", color: colors.textSecondary, padding: 20 }}>No classes found</Text>
+                                            <Text style={{ textAlign: "center", color: colors.textSecondary, padding: 20 }}>{t('feedback.noClassesFound', 'No classes found')}</Text>
                                         ) : (
                                             filteredClasses.map(cls => (
                                                 <Pressable
@@ -385,7 +387,7 @@ export default function GiveFeedbackScreen() {
                                                             {formatClassName(cls.name, cls.section)}
                                                         </Text>
                                                         <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 4 }}>
-                                                            {cls.role === 'admin' ? `${cls.students?.length || ''} students` : 'Class Teacher'}
+                                                            {cls.role === 'admin' ? `${cls.students?.length || ''} ${t('common.studentsCount', 'students')}` : t('common.classTeacherRole', 'Class Teacher')}
                                                         </Text>
                                                     </View>
                                                     {selectedClass?._id === cls._id && selectedClass?.role === cls.role && (
@@ -396,7 +398,7 @@ export default function GiveFeedbackScreen() {
                                         )}
                                     </ScrollView>
                                     <Pressable onPress={() => setShowClassModal(false)} style={{ padding: 20, alignItems: "center" }}>
-                                        <Text style={{ color: colors.error, fontFamily: "DMSans-Bold" }}>Cancel</Text>
+                                        <Text style={{ color: colors.error, fontFamily: "DMSans-Bold" }}>${t('common.cancel', 'Cancel')}</Text>
                                     </Pressable>
                                 </Pressable>
                             </Pressable>
@@ -409,9 +411,9 @@ export default function GiveFeedbackScreen() {
                             <Pressable style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }} onPress={Keyboard.dismiss}>
                                 <Pressable style={{ backgroundColor: colors.background, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: "80%" }} onPress={(e) => e.stopPropagation()}>
                                     <View style={{ padding: 20, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-                                        <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>Select Student</Text>
+                                        <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>${t('feedback.selectStudentTitle', 'Select Student')}</Text>
                                         <TextInput
-                                            placeholder="Search student..."
+                                            placeholder={t('feedback.searchStudentPlaceholder', 'Search student...')}
                                             value={studentSearch}
                                             onChangeText={setStudentSearch}
                                             style={{
@@ -425,7 +427,7 @@ export default function GiveFeedbackScreen() {
                                     </View>
                                     <ScrollView contentContainerStyle={{ padding: 20 }} keyboardShouldPersistTaps="handled">
                                         {filteredStudents.length === 0 ? (
-                                            <Text style={{ textAlign: "center", color: colors.textSecondary, padding: 20 }}>No students found</Text>
+                                            <Text style={{ textAlign: "center", color: colors.textSecondary, padding: 20 }}>{t('feedback.noStudentsFound', 'No students found')}</Text>
                                         ) : (
                                             filteredStudents.map(student => (
                                                 <Pressable

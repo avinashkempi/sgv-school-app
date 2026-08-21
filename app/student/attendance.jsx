@@ -13,6 +13,7 @@ import { useApiQuery } from "../../hooks/useApi";
 import { CACHE_TIERS } from "../../utils/cacheConfig";
 import apiFetch from "../../utils/apiFetch";
 import Header from "../../components/Header";
+import { useLabel } from "../../context/LabelsContext";
 import ModernCalendar from "../../components/ModernCalendar";
 import { LoadingState } from "../../components/StateComponents";
 import apiConfig from "../../config/apiConfig";
@@ -25,6 +26,7 @@ const MONTHLY_PAGE_SIZE = 3;
 export default function StudentAttendanceScreen() {
     const _router = useRouter();
     const { _styles, colors } = useTheme();
+    const { t } = useLabel();
     const { user, userId: authUserId } = useAuth();
     const [refreshing, setRefreshing] = useState(false);
 
@@ -158,10 +160,10 @@ export default function StudentAttendanceScreen() {
         return (
             <View style={{ flex: 1, backgroundColor: colors.background }}>
                 <View style={{ padding: 16, paddingTop: 24 }}>
-                    <Header title="My Attendance" subtitle="Track your attendance record" />
+                    <Header title={t('student.myAttendance', 'My Attendance')} subtitle={t('student.trackAttendanceRecord', 'Track your attendance record')} />
                 </View>
                 <View style={{ flex: 1, justifyContent: "center" }}>
-                    <LoadingState message="Loading attendance records..." />
+                    <LoadingState message={t('student.loadingAttendance', 'Loading attendance records...')} />
                 </View>
             </View>
         );
@@ -181,7 +183,7 @@ export default function StudentAttendanceScreen() {
                 elevation: 4
             }}>
                 <Text style={{ fontSize: 16, color: "#fff", opacity: 0.9, fontFamily: "DMSans-Medium" }}>
-                    Overall Attendance
+                    {t('student.overallAttendance', 'Overall Attendance')}
                 </Text>
                 <Text style={{ fontSize: 64, fontFamily: "DMSans-Bold", color: "#fff", marginTop: 8 }}>
                     {displayStats.percentage}%
@@ -189,11 +191,11 @@ export default function StudentAttendanceScreen() {
                 <View style={{ flexDirection: "row", gap: 24, marginTop: 16 }}>
                     <View style={{ alignItems: "center" }}>
                         <Text style={{ fontSize: 28, fontFamily: "DMSans-Bold", color: "#fff" }}>{displayStats.present}</Text>
-                        <Text style={{ fontSize: 12, color: "#fff", opacity: 0.8, fontFamily: "DMSans-Regular" }}>Present</Text>
+                        <Text style={{ fontSize: 12, color: "#fff", opacity: 0.8, fontFamily: "DMSans-Regular" }}>{t('common.present', 'Present')}</Text>
                     </View>
                     <View style={{ alignItems: "center" }}>
                         <Text style={{ fontSize: 28, fontFamily: "DMSans-Bold", color: "#fff" }}>{displayStats.total}</Text>
-                        <Text style={{ fontSize: 12, color: "#fff", opacity: 0.8, fontFamily: "DMSans-Regular" }}>Total Days</Text>
+                        <Text style={{ fontSize: 12, color: "#fff", opacity: 0.8, fontFamily: "DMSans-Regular" }}>{t('student.totalDays', 'Total Days')}</Text>
                     </View>
                 </View>
             </View>
@@ -202,7 +204,7 @@ export default function StudentAttendanceScreen() {
             {summary?.subjectWise && summary.subjectWise.length > 0 && (
                 <View style={{ marginTop: 24 }}>
                     <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 12 }}>
-                        Subject-wise Attendance
+                        {t('student.subjectWiseAttendance', 'Subject-wise Attendance')}
                     </Text>
                     {summary.subjectWise.map((subject) => (
                         <View
@@ -221,7 +223,7 @@ export default function StudentAttendanceScreen() {
                                         {subject.name}
                                     </Text>
                                     <Text style={{ fontSize: 13, color: colors.onSurfaceVariant, marginTop: 4, fontFamily: "DMSans-Regular" }}>
-                                        {subject.present} / {subject.total} classes
+                                        {subject.present} / {subject.total} {t('student.classesCount', 'classes')}
                                     </Text>
                                 </View>
                                 <View style={{ alignItems: "flex-end" }}>
@@ -234,7 +236,7 @@ export default function StudentAttendanceScreen() {
                                     </Text>
                                     {parseFloat(subject.percentage) < 75 && (
                                         <View style={{ backgroundColor: colors.error + "20", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, marginTop: 4 }}>
-                                            <Text style={{ fontSize: 10, color: colors.error, fontFamily: "DMSans-Bold" }}>LOW</Text>
+                                            <Text style={{ fontSize: 10, color: colors.error, fontFamily: "DMSans-Bold" }}>{t('student.lowStatus', 'LOW')}</Text>
                                         </View>
                                     )}
                                 </View>
@@ -253,7 +255,7 @@ export default function StudentAttendanceScreen() {
                 elevation: 2
             }}>
                 <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 4 }}>
-                    Attendance Calendar
+                    {t('student.attendanceCalendar', 'Attendance Calendar')}
                 </Text>
                 <ModernCalendar
                     current={selectedMonth}
@@ -266,10 +268,10 @@ export default function StudentAttendanceScreen() {
                 />
                 <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, marginTop: 16, justifyContent: "center" }}>
                     {[
-                        { label: 'Present', color: colors.success },
-                        { label: 'Absent', color: colors.error },
-                        { label: 'Late', color: '#FF9800' },
-                        { label: 'Excused', color: '#2196F3' },
+                        { label: t('common.present', 'Present'), color: colors.success },
+                        { label: t('common.absent', 'Absent'), color: colors.error },
+                        { label: t('common.late', 'Late'), color: '#FF9800' },
+                        { label: t('common.excused', 'Excused'), color: '#2196F3' },
                     ].map(({ label, color }) => (
                         <View key={label} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                             <View style={{ width: 16, height: 16, borderRadius: 4, backgroundColor: color + "40" }} />
@@ -279,7 +281,7 @@ export default function StudentAttendanceScreen() {
                 </View>
             </View>
 
-            {/* Monthly Summary */}
+            {/* {t('student.monthlySummary', 'Monthly Summary')} */}
             {visibleMonths.length > 0 && (
                 <View style={{ marginTop: 24 }}>
                     <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 12 }}>
@@ -302,7 +304,7 @@ export default function StudentAttendanceScreen() {
                             <View>
                                 <Text style={{ fontSize: 15, fontFamily: "DMSans-SemiBold", color: colors.onSurface }}>{month.month}</Text>
                                 <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginTop: 2, fontFamily: "DMSans-Regular" }}>
-                                    {month.present} / {month.total} days
+                                    {month.present} / {month.total} {t('common.days', 'days')}
                                 </Text>
                             </View>
                             <Text style={{
@@ -327,7 +329,7 @@ export default function StudentAttendanceScreen() {
                             }}
                         >
                             <Text style={{ fontSize: 14, fontFamily: 'DMSans-SemiBold', color: colors.primary }}>
-                                Show More Months
+                                {t('student.showMoreMonths', 'Show More Months')}
                             </Text>
                         </TouchableOpacity>
                     )}
@@ -336,7 +338,7 @@ export default function StudentAttendanceScreen() {
 
             {allHistory.length > 0 && (
                 <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.onSurface, marginTop: 24, marginBottom: 12 }}>
-                    Attendance History
+                    {t('student.attendanceHistory', 'Attendance History')}
                 </Text>
             )}
         </View>
@@ -369,7 +371,7 @@ export default function StudentAttendanceScreen() {
                     ) : null}
                 </View>
                 <View style={{ backgroundColor: color + '20', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 10 }}>
-                    <Text style={{ fontSize: 12, fontFamily: 'DMSans-Bold', color, textTransform: 'capitalize' }}>{item.status}</Text>
+                    <Text style={{ fontSize: 12, fontFamily: 'DMSans-Bold', color, textTransform: 'capitalize' }}>{t('common.' + item.status, item.status)}</Text>
                 </View>
             </View>
         );
@@ -380,7 +382,7 @@ export default function StudentAttendanceScreen() {
             {loadingMore && <ActivityIndicator size="small" color={colors.primary} style={{ marginVertical: 16 }} />}
             {!hasMore && allHistory.length > 0 && (
                 <Text style={{ textAlign: 'center', color: colors.onSurfaceVariant, fontSize: 13, fontFamily: 'DMSans-Regular', marginVertical: 16 }}>
-                    All records loaded
+                    {t('student.allRecordsLoaded', 'All records loaded')}
                 </Text>
             )}
         </View>

@@ -23,6 +23,7 @@ import UserDetailModal from "../../../components/UserDetailModal";
 import Button from "../../../components/Button";
 import SegmentedControl from "../../../components/SegmentedControl";
 import { EmptyState } from "../../../components/StateComponents";
+import { useLabel } from "../../../context/LabelsContext";
 
 export default function ClassDetailsScreen() {
     const { id } = useLocalSearchParams();
@@ -32,6 +33,7 @@ export default function ClassDetailsScreen() {
     const { showToast } = useToast();
     const { user } = useAuth();
     const queryClient = useQueryClient();
+    const { t } = useLabel();
 
     const [refreshing, setRefreshing] = useState(false);
 
@@ -101,33 +103,33 @@ export default function ClassDetailsScreen() {
     const removeSubjectMutation = useApiMutation({
         mutationFn: (subjectId) => createApiMutationFn(`${apiConfig.baseUrl}/classes/${id}/subjects/${subjectId}`, 'DELETE')(),
         onSuccess: () => {
-            showToast("Subject removed successfully", "success");
+            showToast(t('toasts.subjectRemoved', "Subject removed successfully"), "success");
             queryClient.invalidateQueries({ queryKey: ['classDetails', id] });
         },
-        onError: (error) => showToast(error.message || "Failed to remove subject", "error")
+        onError: (error) => showToast(error.message || t('toasts.failedToRemoveSubject', "Failed to remove subject"), "error")
     });
 
     const addStudentsMutation = useApiMutation({
         mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/classes/${id}/students`, 'POST'),
         onSuccess: (data) => {
-            showToast(data.message || "Students added successfully", "success");
+            showToast(data.message || t('toasts.studentsAdded', "Students added successfully"), "success");
             setShowAddStudentModal(false);
             setSearchQuery("");
             setSelectedStudentIds([]);
             queryClient.invalidateQueries({ queryKey: ['classDetails', id] });
             queryClient.invalidateQueries({ queryKey: ['availableStudents'] });
         },
-        onError: (error) => showToast(error.message || "Failed to add students", "error")
+        onError: (error) => showToast(error.message || t('toasts.failedToAddStudents', "Failed to add students"), "error")
     });
 
     const removeStudentMutation = useApiMutation({
         mutationFn: (studentId) => createApiMutationFn(`${apiConfig.baseUrl}/classes/${id}/students/${studentId}`, 'DELETE')(),
         onSuccess: () => {
-            showToast("Student removed successfully", "success");
+            showToast(t('toasts.studentRemoved', "Student removed successfully"), "success");
             queryClient.invalidateQueries({ queryKey: ['classDetails', id] });
             queryClient.invalidateQueries({ queryKey: ['availableStudents'] });
         },
-        onError: (error) => showToast(error.message || "Failed to remove student", "error")
+        onError: (error) => showToast(error.message || t('toasts.failedToRemoveStudent', "Failed to remove student"), "error")
     });
 
     const toggleSubjectSelection = (subjectId) => {
@@ -142,7 +144,7 @@ export default function ClassDetailsScreen() {
 
     const handleAddSubject = async () => {
         if (selectedGlobalSubjectIds.length === 0) {
-            showToast("Please select at least one subject", "error");
+            showToast(t('toasts.selectOneSubject', "Please select at least one subject"), "error");
             return;
         }
 
@@ -162,10 +164,10 @@ export default function ClassDetailsScreen() {
             }));
 
             if (successCount > 0) {
-                showToast(`${successCount} subject(s) added successfully`, "success");
+                showToast(`${successCount} ${t('toasts.subjectsAddedSuccessfully', "subject(s) added successfully")}`, "success");
             }
             if (failCount > 0) {
-                showToast(`${failCount} subject(s) failed to add`, "error");
+                showToast(`${failCount} ${t('toasts.subjectsFailedToAdd', "subject(s) failed to add")}`, "error");
             }
 
             setShowAddSubjectModal(false);
@@ -174,26 +176,24 @@ export default function ClassDetailsScreen() {
             queryClient.invalidateQueries({ queryKey: ['classDetails', id] });
         } catch (error) {
             console.error(error);
-            showToast("Error adding subjects", "error");
+            showToast(t('toasts.errorAddingSubjects', "Error adding subjects"), "error");
         }
     };
 
     const handleRemoveSubject = (subjectId, subjectName) => {
         Alert.alert(
-            "Remove Subject",
-            `Are you sure you want to remove ${subjectName}?`,
+            t('teacher.removeSubject', "Remove Subject"),
+            `${t('teacher.removeSubjectConfirm', 'Are you sure you want to remove')} ${subjectName}?`,
             [
-                { text: "Cancel", style: "cancel" },
+                { text: t('common.cancel', "Cancel"), style: "cancel" },
                 {
-                    text: "Remove",
+                    text: t('common.remove', "Remove"),
                     style: "destructive",
                     onPress: () => removeSubjectMutation.mutate(subjectId),
                 },
             ]
         );
     };
-
-
 
     const toggleStudentSelection = (studentId) => {
         setSelectedStudentIds(prev => {
@@ -207,7 +207,7 @@ export default function ClassDetailsScreen() {
 
     const handleBulkAddStudents = () => {
         if (selectedStudentIds.length === 0) {
-            showToast("Please select at least one student", "error");
+            showToast(t('toasts.selectOneStudent', "Please select at least one student"), "error");
             return;
         }
 
@@ -216,12 +216,12 @@ export default function ClassDetailsScreen() {
 
     const handleRemoveStudent = (studentId, studentName) => {
         Alert.alert(
-            "Remove Student",
-            `Are you sure you want to remove ${studentName} from this class?`,
+            t('teacher.removeStudent', "Remove Student"),
+            `${t('teacher.removeStudentConfirm', 'Are you sure you want to remove')} ${studentName} ${t('teacher.fromThisClass', 'from this class?')}`,
             [
-                { text: "Cancel", style: "cancel" },
+                { text: t('common.cancel', "Cancel"), style: "cancel" },
                 {
-                    text: "Remove",
+                    text: t('common.remove', "Remove"),
                     style: "destructive",
                     onPress: () => removeStudentMutation.mutate(studentId),
                 },
@@ -249,12 +249,6 @@ export default function ClassDetailsScreen() {
         return user.role === 'admin' || user.role === 'super admin';
     })();
 
-
-
-
-
-
-
     const filteredAvailableStudents = availableStudents.filter(s =>
         s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         s.phone.includes(searchQuery)
@@ -268,8 +262,8 @@ export default function ClassDetailsScreen() {
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
                     <AppHeader
-                        title={classData ? `${classData.name} ${classData.section || ''}` : "Class Details"}
-                        subtitle="Manage subjects and students"
+                        title={classData ? `${classData.name} ${classData.section || ''}` : t('teacher.classDetails', "Class Details")}
+                        subtitle={t('teacher.manageSubjectsStudents', "Manage subjects and students")}
                         showBack
                     />
 
@@ -293,7 +287,7 @@ export default function ClassDetailsScreen() {
                             >
                                 <MaterialIcons name="how-to-reg" size={28} color={colors.primary} />
                                 <Text style={{ fontSize: 13, fontFamily: "DMSans-SemiBold", color: colors.onSurface, marginTop: 8 }}>
-                                    Attendance
+                                    {t('common.attendance', 'Attendance')}
                                 </Text>
                             </Pressable>
                             <Pressable
@@ -313,19 +307,17 @@ export default function ClassDetailsScreen() {
                             >
                                 <MaterialIcons name="insights" size={28} color={colors.success} />
                                 <Text style={{ fontSize: 13, fontFamily: "DMSans-SemiBold", color: colors.onSurface, marginTop: 8 }}>
-                                    Performance
+                                    {t('teacher.performance', 'Performance')}
                                 </Text>
                             </Pressable>
                         </View>
                     )}
 
-
-
                     {/* Tabs */}
                     <SegmentedControl
                         tabs={[
-                            { key: 'subjects', label: 'Subjects' },
-                            { key: 'students', label: `Students (${students.length})` },
+                            { key: 'subjects', label: t('teacher.subjects', 'Subjects') },
+                            { key: 'students', label: `${t('common.students', 'Students')} (${students.length})` },
                         ]}
                         activeTab={activeTab}
                         onTabChange={setActiveTab}
@@ -337,8 +329,8 @@ export default function ClassDetailsScreen() {
                             {subjects.length === 0 ? (
                                 <EmptyState
                                     icon="library-books"
-                                    title="No Subjects Yet"
-                                    message="No subjects have been added to this class yet."
+                                    title={t('teacher.noSubjectsYet', "No Subjects Yet")}
+                                    message={t('teacher.noSubjectsAddedYet', "No subjects have been added to this class yet.")}
                                 />
                             ) : (
                                 subjects.map((subject) => (
@@ -378,7 +370,7 @@ export default function ClassDetailsScreen() {
                                                     </Text>
                                                 ) : (
                                                     <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginTop: 2, fontStyle: "italic" }}>
-                                                        No teachers assigned
+                                                        {t('teacher.noTeachersAssigned', "No teachers assigned")}
                                                     </Text>
                                                 )}
                                             </View>
@@ -408,8 +400,8 @@ export default function ClassDetailsScreen() {
                             {students.length === 0 ? (
                                 <EmptyState
                                     icon="people-outline"
-                                    title="No Students Yet"
-                                    message="No students have been added to this class yet."
+                                    title={t('teacher.noStudentsYet', "No Students Yet")}
+                                    message={t('teacher.noStudentsAddedYet', "No students have been added to this class yet.")}
                                 />
                             ) : (
                                 students.map((student) => (
@@ -456,13 +448,13 @@ export default function ClassDetailsScreen() {
                                                 )}
                                                 {student.guardianName && (
                                                     <Text style={{ fontSize: 13, color: colors.onSurfaceVariant, marginTop: 6 }}>
-                                                        Guardian: {student.guardianName}
+                                                        {t('teacher.guardian', 'Guardian')}: {student.guardianName}
                                                         {student.guardianPhone && ` (${student.guardianPhone})`}
                                                     </Text>
                                                 )}
                                                 {student.admissionDate && (
                                                     <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginTop: 4 }}>
-                                                        Admitted: {formatDate(student.admissionDate)}
+                                                        {t('teacher.admitted', 'Admitted')}: {formatDate(student.admissionDate)}
                                                     </Text>
                                                 )}
                                             </View>
@@ -480,56 +472,52 @@ export default function ClassDetailsScreen() {
                                 ))
                             )}
                         </View>
-                    )
-                    }
-
+                    )}
                 </View >
             </ScrollView >
 
             {/* FAB for Add Subject or Add Student */}
-            {
-                canManageClass && (
-                    <Pressable
-                        onPress={() => {
-                            if (activeTab === "subjects") {
-                                setSelectedGlobalSubjectIds([]);
-                                setShowAddSubjectModal(true);
-                                setSearchQuery("");
-                            } else {
-                                setShowAddStudentModal(true);
-                            }
-                        }}
-                        style={({ pressed }) => ({
-                            position: "absolute",
-                            bottom: 24,
-                            right: 24,
-                            backgroundColor: colors.primaryContainer,
-                            width: 56,
-                            height: 56,
-                            borderRadius: 16,
-                            justifyContent: "center",
-                            alignItems: "center",
-                            elevation: 6,
-                            shadowColor: colors.shadow,
-                            shadowOffset: { width: 0, height: 3 },
-                            shadowOpacity: 0.3,
-                            shadowRadius: 6,
-                            zIndex: 9999,
-                            opacity: pressed ? 0.9 : 1,
-                        })}
-                        accessibilityLabel={activeTab === 'subjects' ? 'Add subject' : 'Add student'}
-                    >
-                        <MaterialIcons name="add" size={28} color={colors.onPrimaryContainer} />
-                    </Pressable>
-                )
-            }
+            {canManageClass && (
+                <Pressable
+                    onPress={() => {
+                        if (activeTab === "subjects") {
+                            setSelectedGlobalSubjectIds([]);
+                            setShowAddSubjectModal(true);
+                            setSearchQuery("");
+                        } else {
+                            setShowAddStudentModal(true);
+                        }
+                    }}
+                    style={({ pressed }) => ({
+                        position: "absolute",
+                        bottom: 24,
+                        right: 24,
+                        backgroundColor: colors.primaryContainer,
+                        width: 56,
+                        height: 56,
+                        borderRadius: 16,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        elevation: 6,
+                        shadowColor: colors.shadow,
+                        shadowOffset: { width: 0, height: 3 },
+                        shadowOpacity: 0.3,
+                        shadowRadius: 6,
+                        zIndex: 9999,
+                        opacity: pressed ? 0.9 : 1,
+                    })}
+                    accessibilityLabel={activeTab === 'subjects' ? 'Add subject' : 'Add student'}
+                >
+                    <MaterialIcons name="add" size={28} color={colors.onPrimaryContainer} />
+                </Pressable>
+            )}
 
             {/* Add Subject Modal */}
             <Modal visible={showAddSubjectModal} animationType="slide" transparent>
                 <View style={{ flex: 1, justifyContent: "center", backgroundColor: "rgba(0,0,0,0.5)", padding: 20 }}>
                     <View style={{ backgroundColor: colors.surfaceContainerLow, borderRadius: 16, padding: 24, maxHeight: "80%" }}>
                         <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 16 }}>
-                            Add Subjects to Class
+                            {t('teacher.addSubjectsToClass', 'Add Subjects to Class')}
                         </Text>
 
                         <View style={{
@@ -542,7 +530,7 @@ export default function ClassDetailsScreen() {
                         }}>
                             <MaterialIcons name="search" size={20} color={colors.onSurfaceVariant} style={{ marginRight: 8 }} />
                             <RNTextInput
-                                placeholder="Search subjects..."
+                                placeholder={t('teacher.searchSubjectsPlaceholder', 'Search subjects...')}
                                 placeholderTextColor={colors.onSurfaceVariant}
                                 style={{
                                     flex: 1,
@@ -560,8 +548,8 @@ export default function ClassDetailsScreen() {
                             {globalSubjects.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 ? (
                                 <EmptyState
                                     icon="library-books"
-                                    title={searchQuery ? "No Subjects Found" : "No Subjects Available"}
-                                    message={searchQuery ? "Try a different search term." : "Please ask admin to add subjects to the master list."}
+                                    title={searchQuery ? t('teacher.noSubjectsFound', "No Subjects Found") : t('teacher.noSubjectsAvailable', "No Subjects Available")}
+                                    message={searchQuery ? t('teacher.tryDifferentSearch', "Try a different search term.") : t('teacher.askAdminAddSubjects', "Please ask admin to add subjects to the master list.")}
                                 />
                             ) : (
                                 globalSubjects.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase())).map((item) => {
@@ -615,13 +603,13 @@ export default function ClassDetailsScreen() {
                                                     </Text>
                                                     {isAlreadyAdded && (
                                                         <View style={{ backgroundColor: colors.success + "20", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 }}>
-                                                            <Text style={{ fontSize: 11, color: colors.success, fontWeight: "600" }}>ADDED</Text>
+                                                            <Text style={{ fontSize: 11, color: colors.success, fontWeight: "600" }}>{t('common.added', 'ADDED')}</Text>
                                                         </View>
                                                     )}
                                                 </View>
                                                 {item.code && (
                                                     <Text style={{ fontSize: 14, color: colors.onSurfaceVariant, marginTop: 2, fontFamily: 'DMSans-Regular' }}>
-                                                        Code: {item.code}
+                                                        {t('common.code', 'Code')}: {item.code}
                                                     </Text>
                                                 )}
                                             </View>
@@ -640,7 +628,7 @@ export default function ClassDetailsScreen() {
                                     setSearchQuery("");
                                 }}
                             >
-                                Cancel
+                                {t('common.cancel', 'Cancel')}
                             </Button>
 
                             <Button
@@ -649,7 +637,7 @@ export default function ClassDetailsScreen() {
                                 disabled={selectedGlobalSubjectIds.length === 0}
                                 loading={addSubjectMutation.isPending}
                             >
-                                {addSubjectMutation.isPending ? "Adding..." : `Add ${selectedGlobalSubjectIds.length > 0 ? `${selectedGlobalSubjectIds.length} ` : ""}Selected`}
+                                {addSubjectMutation.isPending ? t('common.adding', 'Adding...') : `${t('common.add', 'Add')} ${selectedGlobalSubjectIds.length > 0 ? `${selectedGlobalSubjectIds.length} ` : ""}${t('common.selected', 'Selected')}`}
                             </Button>
                         </View>
                     </View>
@@ -661,7 +649,7 @@ export default function ClassDetailsScreen() {
                 <View style={{ flex: 1, justifyContent: "center", backgroundColor: "rgba(0,0,0,0.5)", padding: 20 }}>
                     <View style={{ backgroundColor: colors.surfaceContainerLow, borderRadius: 16, padding: 24, maxHeight: "80%" }}>
                         <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 16 }}>
-                            Add Students to Class
+                            {t('teacher.addStudentsToClass', 'Add Students to Class')}
                         </Text>
 
                         <View style={{
@@ -674,7 +662,7 @@ export default function ClassDetailsScreen() {
                         }}>
                             <MaterialIcons name="search" size={20} color={colors.onSurfaceVariant} style={{ marginRight: 8 }} />
                             <RNTextInput
-                                placeholder="Search by name or phone..."
+                                placeholder={t('teacher.searchStudentsPlaceholder', 'Search by name or phone...')}
                                 placeholderTextColor={colors.onSurfaceVariant}
                                 style={{
                                     flex: 1,
@@ -692,8 +680,8 @@ export default function ClassDetailsScreen() {
                             {filteredAvailableStudents.length === 0 ? (
                                 <EmptyState
                                     icon="person-off"
-                                    title={searchQuery ? "No Students Found" : "No Unassigned Students"}
-                                    message={searchQuery ? "Try a different search term." : "All students are already assigned to classes."}
+                                    title={searchQuery ? t('teacher.noStudentsFound', "No Students Found") : t('teacher.noUnassignedStudents', "No Unassigned Students")}
+                                    message={searchQuery ? t('teacher.tryDifferentSearch', "Try a different search term.") : t('teacher.allStudentsAssigned', "All students are already assigned to classes.")}
                                 />
                             ) : (
                                 filteredAvailableStudents.map((student) => {
@@ -735,7 +723,7 @@ export default function ClassDetailsScreen() {
                                                 </Text>
                                                 {student.admissionDate && (
                                                     <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginTop: 4, fontFamily: 'DMSans-Regular' }}>
-                                                        Admitted: {formatDate(student.admissionDate)}
+                                                        {t('teacher.admitted', 'Admitted')}: {formatDate(student.admissionDate)}
                                                     </Text>
                                                 )}
                                             </View>
@@ -754,7 +742,7 @@ export default function ClassDetailsScreen() {
                                     setSelectedStudentIds([]);
                                 }}
                             >
-                                Cancel
+                                {t('common.cancel', 'Cancel')}
                             </Button>
 
                             <Button
@@ -763,7 +751,7 @@ export default function ClassDetailsScreen() {
                                 disabled={selectedStudentIds.length === 0}
                                 loading={addStudentsMutation.isPending}
                             >
-                                {addStudentsMutation.isPending ? "Adding..." : `Add ${selectedStudentIds.length > 0 ? `${selectedStudentIds.length} ` : ""}Selected`}
+                                {addStudentsMutation.isPending ? t('common.adding', 'Adding...') : `${t('common.add', 'Add')} ${selectedStudentIds.length > 0 ? `${selectedStudentIds.length} ` : ""}${t('common.selected', 'Selected')}`}
                             </Button>
                         </View>
                     </View>

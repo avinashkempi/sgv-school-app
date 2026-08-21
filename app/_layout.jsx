@@ -15,6 +15,7 @@ import { NavigationProvider } from "../context/NavigationContext";
 import { NotificationProvider } from "../context/NotificationContext";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import { AcademicYearProvider, useAcademicYear } from "../context/AcademicYearContext";
+import { LabelsProvider } from "../context/LabelsContext";
 
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { queryClient, persister, setGlobalAuthHandler } from '../utils/queryClient';
@@ -208,7 +209,9 @@ export default function RootLayout() {
           <ErrorBoundary>
             <AuthProvider>
               <AcademicYearProvider>
-                <Inner />
+                <LabelsProvider>
+                  <Inner />
+                </LabelsProvider>
               </AcademicYearProvider>
             </AuthProvider>
           </ErrorBoundary>

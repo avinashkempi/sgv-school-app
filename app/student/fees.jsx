@@ -9,6 +9,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { useAuth } from "../../context/AuthContext";
 import Header from "../../components/Header";
+import { useLabel } from "../../context/LabelsContext";
 import Card from "../../components/Card";
 import apiConfig from "../../config/apiConfig";
 import { useToast } from "../../components/ToastProvider";
@@ -20,6 +21,7 @@ import { CACHE_TIERS } from "../../utils/cacheConfig";
 export default function StudentFeesScreen() {
     const _router = useRouter();
     const { _styles, colors } = useTheme();
+    const { t } = useLabel();
     const { _showToast } = useToast();
 
     const [refreshing, setRefreshing] = useState(false);
@@ -55,12 +57,12 @@ export default function StudentFeesScreen() {
                 contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
             >
                 <View>
-                    <Header title="My Fees" subtitle="Payment Status & History" showBack />
+                    <Header title={t('student.myFees', 'My Fees')} subtitle={t('student.paymentStatusHistory', 'Payment Status & History')} showBack />
 
                     {/* Summary Cards */}
                     <View style={{ flexDirection: "row", gap: 8, marginTop: 24, flexWrap: 'wrap' }}>
                         <Card style={{ flex: 1, minWidth: '45%' }} contentStyle={{ alignItems: "center", padding: 16 }}>
-                            <Text style={{ color: colors.onSurfaceVariant, fontSize: 12, marginBottom: 4 }}>Total Fees</Text>
+                            <Text style={{ color: colors.onSurfaceVariant, fontSize: 12, marginBottom: 4 }}>{t('student.totalFees', 'Total Fees')}</Text>
                             <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
                                 ₹{feeData?.totalFees?.toLocaleString() || 0}
                             </Text>
@@ -68,20 +70,20 @@ export default function StudentFeesScreen() {
                         {/* Concession Card - Only if > 0 */}
                         {feeData?.concession > 0 && (
                             <Card style={{ flex: 1, minWidth: '45%' }} contentStyle={{ alignItems: "center", padding: 16 }}>
-                                <Text style={{ color: colors.onSurfaceVariant, fontSize: 12, marginBottom: 4 }}>Concession</Text>
+                                <Text style={{ color: colors.onSurfaceVariant, fontSize: 12, marginBottom: 4 }}>{t('student.concession', 'Concession')}</Text>
                                 <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: "#FF9800" }}>
                                     ₹{feeData.concession.toLocaleString()}
                                 </Text>
                             </Card>
                         )}
                         <Card style={{ flex: 1, minWidth: '45%' }} contentStyle={{ alignItems: "center", padding: 16 }}>
-                            <Text style={{ color: colors.onSurfaceVariant, fontSize: 12, marginBottom: 4 }}>Paid</Text>
+                            <Text style={{ color: colors.onSurfaceVariant, fontSize: 12, marginBottom: 4 }}>{t('student.paid', 'Paid')}</Text>
                             <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.success }}>
                                 ₹{feeData?.paidAmount?.toLocaleString() || 0}
                             </Text>
                         </Card>
                         <Card style={{ flex: 1, minWidth: '45%' }} contentStyle={{ alignItems: "center", padding: 16 }}>
-                            <Text style={{ color: colors.onSurfaceVariant, fontSize: 12, marginBottom: 4 }}>Pending</Text>
+                            <Text style={{ color: colors.onSurfaceVariant, fontSize: 12, marginBottom: 4 }}>{t('student.pending', 'Pending')}</Text>
                             <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.error }}>
                                 ₹{feeData?.pendingAmount?.toLocaleString() || 0}
                             </Text>
@@ -91,7 +93,7 @@ export default function StudentFeesScreen() {
                     {/* Fee Breakdown */}
                     <View style={{ marginTop: 24 }}>
                         <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 16 }}>
-                            Fee Breakdown
+                            {t('student.feeBreakdown', 'Fee Breakdown')}
                         </Text>
                         <View style={{ backgroundColor: colors.cardBackground, borderRadius: 16, padding: 16 }}>
                             {feeData?.feeStructure?.components?.map((comp, index) => (
@@ -102,13 +104,13 @@ export default function StudentFeesScreen() {
                             ))}
                             {feeData?.concession > 0 && (
                                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 12 }}>
-                                    <Text style={{ color: colors.textPrimary, fontFamily: "DMSans-Medium" }}>Less: Concession</Text>
+                                    <Text style={{ color: colors.textPrimary, fontFamily: "DMSans-Medium" }}>{t('student.lessConcession', 'Less: Concession')}</Text>
                                     <Text style={{ color: "#FF9800", fontFamily: "DMSans-Bold" }}>-₹{feeData.concession}</Text>
                                 </View>
                             )}
                             <View style={{ height: 1, backgroundColor: colors.textSecondary + "20", marginVertical: 8 }} />
                             <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                                <Text style={{ color: colors.textPrimary, fontFamily: "DMSans-Bold" }}>Net Payable</Text>
+                                <Text style={{ color: colors.textPrimary, fontFamily: "DMSans-Bold" }}>{t('student.netPayable', 'Net Payable')}</Text>
                                 <Text style={{ color: colors.primary, fontFamily: "DMSans-Bold" }}>
                                     ₹{((feeData?.totalFees || 0) - (feeData?.concession || 0)).toLocaleString()}
                                 </Text>
@@ -120,7 +122,7 @@ export default function StudentFeesScreen() {
                     {feeData?.installmentSchedule && feeData.installmentSchedule.length > 0 && (
                         <View style={{ marginTop: 24 }}>
                             <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 16 }}>
-                                Installment Schedule
+                                {t('student.installmentSchedule', 'Installment Schedule')}
                             </Text>
                             <View style={{ backgroundColor: colors.cardBackground, borderRadius: 16, padding: 16 }}>
                                 {feeData.installmentSchedule.map((inst, index) => {
@@ -131,7 +133,7 @@ export default function StudentFeesScreen() {
 
                                     const badgeColor = isPaid ? colors.success : isOverdue ? colors.error : isDueSoon ? (colors.warning || "#FFB020") : isPartial ? colors.primary : colors.textSecondary;
                                     const badgeBg = badgeColor + "15";
-                                    const badgeText = isPaid ? "PAID" : isOverdue ? "OVERDUE" : isDueSoon ? "DUE SOON" : isPartial ? "PARTIAL" : "UPCOMING";
+                                    const badgeText = isPaid ? t('common.paidUppercase', 'PAID') : isOverdue ? t('student.overdueUppercase', 'OVERDUE') : isDueSoon ? t('student.dueSoonUppercase', 'DUE SOON') : isPartial ? t('student.partialUppercase', 'PARTIAL') : t('student.upcomingUppercase', 'UPCOMING');
 
                                     return (
                                         <View key={index} style={{
@@ -145,7 +147,7 @@ export default function StudentFeesScreen() {
                                             <View style={{ flex: 1, marginRight: 12 }}>
                                                 <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary, fontSize: 15 }}>{inst.description}</Text>
                                                 <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2 }}>
-                                                    Target: ₹{inst.amount.toLocaleString()} • {inst.dueDate ? `Due ${new Date(inst.dueDate).toLocaleDateString()}` : "No due date"}
+                                                    ${t('student.target', 'Target')}: ₹{inst.amount.toLocaleString()} • {inst.dueDate ? `${t('student.due', 'Due')} ${new Date(inst.dueDate).toLocaleDateString()}` : t('student.noDueDate', 'No due date')}
                                                 </Text>
                                             </View>
                                             <View style={{ backgroundColor: badgeBg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
@@ -161,12 +163,12 @@ export default function StudentFeesScreen() {
                     {/* Payment History */}
                     <View style={{ marginTop: 24 }}>
                         <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 16 }}>
-                            Payment History
+                            {t('student.paymentHistory', 'Payment History')}
                         </Text>
                         {(!feeData?.payments || feeData.payments.length === 0) ? (
                             <View style={{ alignItems: "center", padding: 24, opacity: 0.6 }}>
                                 <MaterialIcons name="receipt-long" size={48} color={colors.textSecondary} />
-                                <Text style={{ color: colors.textSecondary, marginTop: 12 }}>No payments recorded yet</Text>
+                                <Text style={{ color: colors.textSecondary, marginTop: 12 }}>{t('student.noPaymentsYet', 'No payments recorded yet')}</Text>
                             </View>
                         ) : (
                             feeData.payments.map((payment) => (
@@ -191,24 +193,24 @@ export default function StudentFeesScreen() {
                                         {/* Display Installment Number if available */}
                                         {payment.installmentNumber && (
                                             <Text style={{ color: colors.primary, fontSize: 12, marginTop: 2, fontWeight: '600' }}>
-                                                Installment {payment.installmentNumber}
+                                                ${t('student.installment', 'Installment')} ${payment.installmentNumber}
                                             </Text>
                                         )}
                                         <Text style={{ color: colors.onSurfaceVariant, fontSize: 12, marginTop: 2 }}>
-                                            {payment.receiptNumber ? `Invoice: ${payment.receiptNumber}` : `Receipt: ${payment._id.toString().substr(-6).toUpperCase()}`}
+                                            {payment.receiptNumber ? `${t('student.invoice', 'Invoice')}: ${payment.receiptNumber}` : `${t('student.receipt', 'Receipt')}: ${payment._id.toString().substr(-6).toUpperCase()}`}
                                         </Text>
                                         {(payment.bookNumber || payment.manualReceiptNumber) && (
                                             <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginTop: 2 }}>
-                                                {payment.bookNumber ? `Book: ${payment.bookNumber}` : ''}
+                                                {payment.bookNumber ? `${t('student.book', 'Book')}: ${payment.bookNumber}` : ''}
                                                 {payment.bookNumber && payment.manualReceiptNumber ? ' | ' : ''}
-                                                {payment.manualReceiptNumber ? `Receipt: ${payment.manualReceiptNumber}` : ''}
+                                                {payment.manualReceiptNumber ? `${t('student.receipt', 'Receipt')}: ${payment.manualReceiptNumber}` : ''}
                                             </Text>
                                         )}
                                     </View>
                                     <View style={{ alignItems: "flex-end" }}>
                                         <View style={{ backgroundColor: colors.success + "20", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 }}>
                                             <Text style={{ color: colors.success, fontSize: 10, fontFamily: "DMSans-Bold", textTransform: "uppercase" }}>
-                                                {payment.status}
+                                                {t('common.' + payment.status, payment.status)}
                                             </Text>
                                         </View>
                                     </View>

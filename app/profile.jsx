@@ -7,6 +7,7 @@ import { useToast } from "../components/ToastProvider";
 import { formatDate } from "../utils/date";
 import { useRouter } from "expo-router";
 import { useAuth } from "../context/AuthContext";
+import { useLabel } from '../context/LabelsContext';
 
 import { useApiQuery, useApiMutation, createApiMutationFn } from "../hooks/useApi";
 import { CACHE_TIERS } from "../utils/cacheConfig";
@@ -23,6 +24,7 @@ export default function ProfileScreen() {
   const { showToast } = useToast();
   const router = useRouter();
   const { user: authUser, logout } = useAuth();
+  const { t } = useLabel();
   const [refreshing, setRefreshing] = useState(false);
 
   const { data: user, refetch, isLoading } = useApiQuery(
@@ -48,28 +50,28 @@ export default function ProfileScreen() {
       if (data?.token) {
         await storage.setItem('@auth_token', data.token);
       }
-      showToast("Password reset successfully", "success");
+      showToast(t('toasts.passwordResetSuccessfully'), "success");
       setShowChangePasswordModal(false);
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     },
     onError: (error) => {
-      showToast(error.message || "Failed to reset password", "error");
+      showToast(error.message || t('toasts.failedToResetPassword'), "error");
     }
   });
 
   const handleChangePasswordSubmit = () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
-      showToast("All fields are mandatory", "error");
+      showToast(t('toasts.allFieldsMandatory'), "error");
       return;
     }
     if (newPassword.length < 8) {
-      showToast("New password must be at least 8 characters long", "error");
+      showToast(t('toasts.passwordMinLength'), "error");
       return;
     }
     if (newPassword !== confirmPassword) {
-      showToast("Passwords do not match", "error");
+      showToast(t('toasts.passwordsDoNotMatch'), "error");
       return;
     }
     changePasswordMutation.mutate({
@@ -95,9 +97,9 @@ export default function ProfileScreen() {
   if (isLoading) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
-        <Header title="Profile" />
+        <Header title={t('profile.title')} />
         <View style={{ flex: 1, justifyContent: "center" }}>
-          <LoadingState message="Loading profile..." />
+          <LoadingState message={t('profile.loadingProfile')} />
         </View>
       </View>
     );
@@ -145,14 +147,14 @@ export default function ProfileScreen() {
                 marginBottom: 24
               }}>
                 <Text style={{ color: colors.onPrimaryContainer, fontFamily: "DMSans-Bold", fontSize: 12, textTransform: 'uppercase' }}>
-                  {user.role !== 'student' && user.designation ? user.designation : user.role === 'support_staff' ? 'Support Staff' : user.role}
+                  {user.role !== 'student' && user.designation ? user.designation : user.role === 'support_staff' ? t('profile.supportStaff') : user.role}
                 </Text>
               </View>
             )}
 
             <View style={{ width: '100%', paddingHorizontal: 4 }}>
               <Card variant="filled" style={{ marginBottom: 16 }}>
-                <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.onSurfaceVariant, marginBottom: 16 }}>CONTACT INFO</Text>
+                <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.onSurfaceVariant, marginBottom: 16 }}>{t('profile.contactInfo')}</Text>
 
                 {user.phone && (
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
@@ -172,7 +174,7 @@ export default function ProfileScreen() {
               {(user.role === 'student' || user.role === 'teacher' || user.role === 'staff' || user.role === 'admin' || user.role === 'super admin' || user.role === 'support_staff') && (
                 <Card variant="filled" style={{ marginBottom: 16 }}>
                   <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.onSurfaceVariant, marginBottom: 16 }}>
-                    {user.role === 'student' ? 'STUDENT DETAILS' : 'STAFF DETAILS'}
+                    {user.role === 'student' ? t('profile.studentDetails') : t('profile.staffDetails')}
                   </Text>
 
                   {user.role === 'student' && (
@@ -181,7 +183,7 @@ export default function ProfileScreen() {
                       <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 8 }}>
                         {user.currentClass && (
                           <View style={{ width: '50%', marginBottom: 16 }}>
-                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Class</Text>
+                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>{t('common.class')}</Text>
                             <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>
                               {typeof user.currentClass === 'string' ? user.currentClass : user.currentClass?.name || user.currentClass?.label || 'N/A'}
                             </Text>
@@ -189,7 +191,7 @@ export default function ProfileScreen() {
                         )}
                         {user.currentClass?.branch && (
                           <View style={{ width: '50%', marginBottom: 16 }}>
-                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Branch</Text>
+                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>{t('common.branch')}</Text>
                             <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.currentClass.branch}</Text>
                           </View>
                         )}
@@ -197,42 +199,42 @@ export default function ProfileScreen() {
 
                       {user.guardianName && (
                         <View style={{ marginBottom: 16 }}>
-                          <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Guardian Name</Text>
+                          <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>{t('common.guardianName')}</Text>
                           <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.guardianName}</Text>
                         </View>
                       )}
                       {user.guardianPhone && (
                         <View style={{ marginBottom: 16 }}>
-                          <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Guardian Phone</Text>
+                          <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>{t('common.guardianPhone')}</Text>
                           <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.guardianPhone}</Text>
                         </View>
                       )}
 
                       {/* Personal Details */}
-                      <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.onSurfaceVariant, marginBottom: 12, marginTop: 8 }}>PERSONAL DETAILS</Text>
+                      <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.onSurfaceVariant, marginBottom: 12, marginTop: 8 }}>{t('profile.personalDetails')}</Text>
 
                       <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 8 }}>
                         {user.gender && (
                           <View style={{ width: '50%', marginBottom: 16 }}>
-                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Gender</Text>
+                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>{t('common.gender')}</Text>
                             <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.gender}</Text>
                           </View>
                         )}
                         {user.bloodGroup && (
                           <View style={{ width: '50%', marginBottom: 16 }}>
-                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Blood Group</Text>
+                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>{t('common.bloodGroup')}</Text>
                             <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.bloodGroup}</Text>
                           </View>
                         )}
                         {user.dateOfBirth && (
                           <View style={{ width: '50%', marginBottom: 16 }}>
-                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Date of Birth</Text>
+                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>{t('common.dateOfBirth')}</Text>
                             <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{formatDate(user.dateOfBirth)}</Text>
                           </View>
                         )}
                         {user.phone2 && (
                           <View style={{ width: '50%', marginBottom: 16 }}>
-                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Alt Phone</Text>
+                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>{t('common.altPhone')}</Text>
                             <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.phone2}</Text>
                           </View>
                         )}
@@ -240,43 +242,43 @@ export default function ProfileScreen() {
 
                       {user.address && (
                         <View style={{ marginBottom: 16 }}>
-                          <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Address</Text>
+                          <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>{t('common.address')}</Text>
                           <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.address}</Text>
                         </View>
                       )}
 
                       {/* Academic Identifiers */}
-                      <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.onSurfaceVariant, marginBottom: 12, marginTop: 8 }}>ACADEMIC IDs</Text>
+                      <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.onSurfaceVariant, marginBottom: 12, marginTop: 8 }}>{t('profile.academicIds')}</Text>
 
                       <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
                         {user.regNo && (
                           <View style={{ width: '50%', marginBottom: 16 }}>
-                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Reg No</Text>
+                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>{t('common.regNo')}</Text>
                             <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.regNo}</Text>
                           </View>
                         )}
                         {user.satsNumber && (
                           <View style={{ width: '50%', marginBottom: 16 }}>
-                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>SATS No</Text>
+                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>{t('common.satsNo')}</Text>
                             <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.satsNumber}</Text>
                           </View>
                         )}
                         {user.penNumber && (
                           <View style={{ width: '50%', marginBottom: 16 }}>
-                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>PEN No</Text>
+                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>{t('common.penNo')}</Text>
                             <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.penNumber}</Text>
                           </View>
                         )}
                         {user.apaarId && (
                           <View style={{ width: '50%', marginBottom: 16 }}>
-                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>APAAR ID</Text>
+                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>{t('common.apaarId')}</Text>
                             <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.apaarId}</Text>
                           </View>
                         )}
                       </View>
                       {user.admissionDate && (
                         <View>
-                          <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Admission Date</Text>
+                          <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>{t('common.admissionDate')}</Text>
                           <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{formatDate(user.admissionDate)}</Text>
                         </View>
                       )}
@@ -287,7 +289,7 @@ export default function ProfileScreen() {
                     <>
                       {user.designation && (
                         <View style={{ marginBottom: 16 }}>
-                          <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Designation</Text>
+                          <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>{t('common.designation')}</Text>
                           <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.designation}</Text>
                         </View>
                       )}
@@ -295,13 +297,13 @@ export default function ProfileScreen() {
                       <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 8 }}>
                         {user.dateOfBirth && (
                           <View style={{ width: '50%', marginBottom: 16 }}>
-                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Date of Birth</Text>
+                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>{t('common.dateOfBirth')}</Text>
                             <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{formatDate(user.dateOfBirth)}</Text>
                           </View>
                         )}
                         {user.bloodGroup && (
                           <View style={{ width: '50%', marginBottom: 16 }}>
-                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Blood Group</Text>
+                            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>{t('common.bloodGroup')}</Text>
                             <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.bloodGroup}</Text>
                           </View>
                         )}
@@ -309,14 +311,14 @@ export default function ProfileScreen() {
 
                       {user.address && (
                         <View style={{ marginBottom: 16 }}>
-                          <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Address</Text>
+                          <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>{t('common.address')}</Text>
                           <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{user.address}</Text>
                         </View>
                       )}
 
                       {user.joiningDate && (
                         <View>
-                          <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>Joining Date</Text>
+                          <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 }}>{t('common.joiningDate')}</Text>
                           <Text style={{ fontSize: 16, fontFamily: "DMSans-Medium", color: colors.onSurface }}>{formatDate(user.joiningDate)}</Text>
                         </View>
                       )}
@@ -329,10 +331,10 @@ export default function ProfileScreen() {
         ) : (
           <>
             <Text style={{ fontSize: 24, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 4 }}>
-              Guest User
+              {t('profile.guestUser')}
             </Text>
             <Text style={{ fontSize: 14, fontFamily: "DMSans-Regular", color: colors.onSurfaceVariant }}>
-              Login to access all features
+              {t('profile.loginToAccess')}
             </Text>
           </>
         )}
@@ -347,7 +349,7 @@ export default function ProfileScreen() {
             style={{ borderColor: colors.primary }}
             textStyle={{ color: colors.primary }}
           >
-            Reset Password
+            {t('profile.resetPassword')}
           </Button>
         )}
         {user ? (
@@ -358,7 +360,7 @@ export default function ProfileScreen() {
             textStyle={{ color: colors.onErrorContainer }}
             icon="logout"
           >
-            Log Out
+            {t('common.logOut')}
           </Button>
         ) : (
           <Button
@@ -366,7 +368,7 @@ export default function ProfileScreen() {
             onPress={handleLogin}
             icon="login"
           >
-            Log In
+            {t('common.logIn')}
           </Button>
         )}
       </View>
@@ -383,7 +385,7 @@ export default function ProfileScreen() {
             <View style={{ backgroundColor: colors.background, borderRadius: 24, padding: 24, width: '100%', maxWidth: 400, borderWidth: 1, borderColor: colors.border }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                 <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
-                  Reset Password
+                  {t('profile.resetPassword')}
                 </Text>
                 <Pressable onPress={() => {
                   setShowChangePasswordModal(false);
@@ -398,8 +400,8 @@ export default function ProfileScreen() {
               {/* Current Password Field */}
               <View style={{ marginBottom: 16 }}>
                 <AppTextInput
-                  label="CURRENT PASSWORD"
-                  placeholder="Enter current password"
+                  label={t('profile.currentPasswordLabel')}
+                  placeholder={t('profile.currentPasswordPlaceholder')}
                   value={currentPassword}
                   onChangeText={setCurrentPassword}
                   secureTextEntry={!showCurrentPassword}
@@ -412,8 +414,8 @@ export default function ProfileScreen() {
               {/* New Password Field */}
               <View style={{ marginBottom: 16 }}>
                 <AppTextInput
-                  label="NEW PASSWORD"
-                  placeholder="At least 8 characters"
+                  label={t('profile.newPasswordLabel')}
+                  placeholder={t('profile.newPasswordPlaceholder')}
                   value={newPassword}
                   onChangeText={setNewPassword}
                   secureTextEntry={!showNewPassword}
@@ -426,8 +428,8 @@ export default function ProfileScreen() {
               {/* Confirm New Password Field */}
               <View style={{ marginBottom: 24 }}>
                 <AppTextInput
-                  label="CONFIRM NEW PASSWORD"
-                  placeholder="Re-enter new password"
+                  label={t('profile.confirmPasswordLabel')}
+                  placeholder={t('profile.confirmPasswordPlaceholder')}
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
                   secureTextEntry={!showNewPassword}
@@ -447,7 +449,7 @@ export default function ProfileScreen() {
                   }}
                   style={{ flex: 1 }}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
                 <Button
                   variant="filled"
@@ -456,7 +458,7 @@ export default function ProfileScreen() {
                   disabled={!currentPassword || !newPassword || !confirmPassword}
                   style={{ flex: 1 }}
                 >
-                  Save
+                  {t('common.save')}
                 </Button>
               </View>
             </View>

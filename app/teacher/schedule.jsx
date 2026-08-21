@@ -15,6 +15,7 @@ import apiConfig from "../../config/apiConfig";
 import { useApiQuery } from "../../hooks/useApi";
 import { useToast } from "../../components/ToastProvider";
 import AppHeader from "../../components/Header";
+import { useLabel } from "../../context/LabelsContext";
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -22,6 +23,7 @@ export default function TeacherScheduleScreen() {
     const _router = useRouter();
     const { _styles, colors } = useTheme();
     const { _showToast } = useToast();
+    const { t } = useLabel();
 
     const [refreshing, setRefreshing] = useState(false);
     const [selectedDay, setSelectedDay] = useState('Monday');
@@ -87,7 +89,7 @@ export default function TeacherScheduleScreen() {
                         marginBottom: 10
                     }}>
                         <View style={{ flex: 1 }}>
-                            <AppHeader title="My Schedule" subtitle="Teaching Timetable" showBack />
+                            <AppHeader title={t('teacher.mySchedule', 'My Schedule')} subtitle={t('teacher.teachingTimetable', 'Teaching Timetable')} showBack />
                         </View>
                         <Pressable
                             onPress={() => _router.push('/teacher/timetable')}
@@ -114,7 +116,7 @@ export default function TeacherScheduleScreen() {
                                 fontFamily: 'DMSans-Bold',
                                 fontSize: 13
                             }}>
-                                All Classes
+                                {t('teacher.allClasses', 'All Classes')}
                             </Text>
                         </Pressable>
                     </View>
@@ -156,7 +158,7 @@ export default function TeacherScheduleScreen() {
                             </Text>
                             {selectedDay === currentDay && (
                                 <View style={{ backgroundColor: colors.success + "20", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 }}>
-                                    <Text style={{ fontSize: 12, color: colors.success, fontFamily: "DMSans-Bold" }}>TODAY</Text>
+                                    <Text style={{ fontSize: 12, color: colors.success, fontFamily: "DMSans-Bold" }}>{t('common.today', 'TODAY')}</Text>
                                 </View>
                             )}
                         </View>
@@ -165,7 +167,7 @@ export default function TeacherScheduleScreen() {
                             <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
                                 <MaterialIcons name="free-breakfast" size={48} color={colors.textSecondary} />
                                 <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16 }}>
-                                    No classes scheduled
+                                    {t('teacher.noClassesScheduled', 'No classes scheduled')}
                                 </Text>
                             </View>
                         ) : (
@@ -208,14 +210,14 @@ export default function TeacherScheduleScreen() {
                                             {period.className}
                                         </Text>
                                         <Text style={{ fontSize: 14, color: colors.primary, fontFamily: "DMSans-Medium", marginBottom: 4 }}>
-                                            {period.subject?.name || "Subject"}
+                                            {period.subject?.name || t('common.subject', 'Subject')}
                                         </Text>
 
                                         {period.roomNumber && (
                                             <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
                                                 <MaterialIcons name="room" size={14} color={colors.textSecondary} />
                                                 <Text style={{ fontSize: 13, color: colors.textSecondary }}>
-                                                    Room {period.roomNumber}
+                                                    {t('common.room', 'Room')} {period.roomNumber}
                                                 </Text>
                                             </View>
                                         )}

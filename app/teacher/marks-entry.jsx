@@ -17,6 +17,7 @@ import { useApiQuery, useApiMutation } from "../../hooks/useApi";
 import { useToast } from "../../components/ToastProvider";
 import AppHeader from "../../components/Header";
 import apiConfig from "../../config/apiConfig";
+import { useLabel } from "../../context/LabelsContext";
 
 export default function MarksEntryScreen() {
     const router = useRouter();
@@ -24,6 +25,7 @@ export default function MarksEntryScreen() {
     const { examId, examName, className, subjectName } = params;
     const { _styles, colors } = useTheme();
     const { showToast } = useToast();
+    const { t } = useLabel();
 
     const [marksData, setMarksData] = useState({});
     const [saving, setSaving] = useState(false);
@@ -36,8 +38,6 @@ export default function MarksEntryScreen() {
     );
 
     // Fetch Students in Class
-    // We need to fetch students of the class associated with the exam
-    // Assuming examDetails has class info or we use the classId from params if we passed it (we didn't pass classId explicitly but we can get it from examDetails)
     const classId = examDetails?.class?._id || examDetails?.class;
 
     const { data: students, isLoading: loadingStudents } = useApiQuery(
@@ -104,10 +104,10 @@ export default function MarksEntryScreen() {
             };
 
             await bulkMarksMutation.mutateAsync(payload);
-            showToast("Marks saved successfully", "success");
+            showToast(t('toasts.marksSavedSuccessfully', "Marks saved successfully"), "success");
             router.back();
         } catch (error) {
-            showToast(error.message || "Failed to save marks", "error");
+            showToast(error.message || t('toasts.failedToSaveMarks', "Failed to save marks"), "error");
         } finally {
             setSaving(false);
         }
@@ -126,8 +126,8 @@ export default function MarksEntryScreen() {
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <AppHeader
-                title={`${examName} Marks`}
-                subtitle={`${className} - ${subjectName} (Max: ${totalMarks})`}
+                title={examName ? `${examName} ${t('teacher.marks', 'Marks')}` : t('teacher.marksEntry', 'Marks Entry')}
+                subtitle={`${className} - ${subjectName} (${t('common.max', 'Max')}: ${totalMarks})`}
             />
 
             <KeyboardAvoidingView
@@ -142,8 +142,8 @@ export default function MarksEntryScreen() {
                     contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
                     ListHeaderComponent={
                         <View style={localStyles.headerRow}>
-                            <Text style={[localStyles.headerText, { color: colors.textSecondary, flex: 2 }]}>Student</Text>
-                            <Text style={[localStyles.headerText, { color: colors.textSecondary, flex: 1, textAlign: "center" }]}>Marks</Text>
+                            <Text style={[localStyles.headerText, { color: colors.textSecondary, flex: 2 }]}>{t('common.student', 'Student')}</Text>
+                            <Text style={[localStyles.headerText, { color: colors.textSecondary, flex: 1, textAlign: "center" }]}>{t('teacher.marks', 'Marks')}</Text>
                         </View>
                     }
                     renderItem={({ item: student }) => (
@@ -156,7 +156,7 @@ export default function MarksEntryScreen() {
                                     {student.name}
                                 </Text>
                                 <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-                                    Roll: {student.rollNumber || "-"}
+                                    {t('common.roll', 'Roll')}: {student.rollNumber || "-"}
                                 </Text>
                             </View>
 
@@ -199,10 +199,10 @@ export default function MarksEntryScreen() {
                     {saving ? (
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                             <ActivityIndicator color="#fff" />
-                            <Text style={localStyles.saveButtonText}>Saving...</Text>
+                            <Text style={localStyles.saveButtonText}>{t('common.saving', 'Saving...')}</Text>
                         </View>
                     ) : (
-                        <Text style={localStyles.saveButtonText}>Save Marks</Text>
+                        <Text style={localStyles.saveButtonText}>{t('teacher.saveMarks', 'Save Marks')}</Text>
                     )}
                 </TouchableOpacity>
             </View>

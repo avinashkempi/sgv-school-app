@@ -6,9 +6,11 @@ import { useTheme } from '../theme';
 import apiFetch from '../utils/apiFetch';
 import apiConfig from '../config/apiConfig';
 import formatClassName from '../utils/formatClassName';
+import { useLabel } from '../context/LabelsContext';
 
 const GlobalSearch = ({ visible, onClose }) => {
     const router = useRouter();
+    const { t } = useLabel();
     // eslint-disable-next-line no-unused-vars
     const { colors, styles } = useTheme();
     const [query, setQuery] = useState('');
@@ -95,7 +97,7 @@ const GlobalSearch = ({ visible, onClose }) => {
                 break;
             case 'classes':
                 title = `${formatClassName(item.name)} ${item.section || ''}`;
-                subtitle = `Class Teacher: ${item.classTeacher?.name || 'Not assigned'}`;
+                subtitle = `Class Teacher: ${item.classTeacher?.name || t('common.notAssigned', 'Not assigned')}`;
                 icon = 'class';
                 break;
             case 'subjects':
@@ -213,7 +215,7 @@ const GlobalSearch = ({ visible, onClose }) => {
                                 marginLeft: 12,
                                 marginRight: 8
                             }}
-                            placeholder="Search students, exams, complaints..."
+                            placeholder={t('search.placeholder', 'Search students, exams, complaints...')}
                             placeholderTextColor={colors.onSurfaceVariant}
                             value={query}
                             onChangeText={setQuery}
@@ -226,7 +228,7 @@ const GlobalSearch = ({ visible, onClose }) => {
                         )}
                         <Pressable onPress={onClose} style={{ marginLeft: 12 }}>
                             <Text style={{ fontSize: 14, fontFamily: 'DMSans-Bold', color: colors.primary }}>
-                                Cancel
+                                {t('common.cancel', 'Cancel')}
                             </Text>
                         </Pressable>
                     </View>
@@ -237,7 +239,7 @@ const GlobalSearch = ({ visible, onClose }) => {
                     {loading ? (
                         <View style={{ alignItems: 'center', padding: 40 }}>
                             <ActivityIndicator size="large" color={colors.primary} />
-                            <Text style={{ marginTop: 16, color: colors.onSurfaceVariant }}>Searching...</Text>
+                            <Text style={{ marginTop: 16, color: colors.onSurfaceVariant }}>{t('common.searching', 'Searching...')}</Text>
                         </View>
                     ) : results ? (
                         <>
@@ -245,20 +247,20 @@ const GlobalSearch = ({ visible, onClose }) => {
                                 <View style={{ alignItems: 'center', padding: 40 }}>
                                     <MaterialIcons name="search-off" size={64} color={colors.onSurfaceVariant} />
                                     <Text style={{ marginTop: 16, fontSize: 16, fontFamily: 'DMSans-Medium', color: colors.onSurface }}>
-                                        No results found
+                                        {t('search.noResults', 'No results found')}
                                     </Text>
                                     <Text style={{ marginTop: 8, color: colors.onSurfaceVariant, textAlign: 'center' }}>
-                                        Try different keywords
+                                        {t('search.tryDifferentKeywords', 'Try different keywords')}
                                     </Text>
                                 </View>
                             ) : (
                                 <>
-                                    {renderCategoryResults('users', results.results.users, 'People')}
-                                    {renderCategoryResults('classes', results.results.classes, 'Classes')}
-                                    {renderCategoryResults('subjects', results.results.subjects, 'Subjects')}
-                                    {renderCategoryResults('exams', results.results.exams, 'Exams')}
-                                    {renderCategoryResults('complaints', results.results.complaints, 'Complaints')}
-                                    {renderCategoryResults('events', results.results.events, 'Events')}
+                                    {renderCategoryResults('users', results.results.users, t('search.categoryPeople', 'People'))}
+                                    {renderCategoryResults('classes', results.results.classes, t('search.categoryClasses', 'Classes'))}
+                                    {renderCategoryResults('subjects', results.results.subjects, t('search.categorySubjects', 'Subjects'))}
+                                    {renderCategoryResults('exams', results.results.exams, t('search.categoryExams', 'Exams'))}
+                                    {renderCategoryResults('complaints', results.results.complaints, t('search.categoryComplaints', 'Complaints'))}
+                                    {renderCategoryResults('events', results.results.events, t('search.categoryEvents', 'Events'))}
                                 </>
                             )}
                         </>
@@ -271,7 +273,7 @@ const GlobalSearch = ({ visible, onClose }) => {
                                 textTransform: 'uppercase',
                                 marginBottom: 12
                             }}>
-                                Recent Searches
+                                {t('search.recentSearches', 'Recent Searches')}
                             </Text>
                             {recentSearches.map((search, index) => (
                                 <Pressable
@@ -302,7 +304,7 @@ const GlobalSearch = ({ visible, onClose }) => {
                         <View style={{ alignItems: 'center', padding: 40 }}>
                             <MaterialIcons name="search" size={64} color={colors.onSurfaceVariant} style={{ opacity: 0.5 }} />
                             <Text style={{ marginTop: 16, color: colors.onSurfaceVariant, textAlign: 'center' }}>
-                                Start typing to search
+                                {t('search.startTypingToSearch', 'Start typing to search')}
                             </Text>
                         </View>
                     )}

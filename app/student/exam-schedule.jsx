@@ -17,6 +17,7 @@ import { useApiQuery } from '../../hooks/useApi';
 import { CACHE_TIERS } from '../../utils/cacheConfig';
 import apiConfig from '../../config/apiConfig';
 import Header from '../../components/Header';
+import { useLabel } from '../../context/LabelsContext';
 import ExamTimeline from '../../components/ExamTimeline';
 
 /**
@@ -26,6 +27,7 @@ import ExamTimeline from '../../components/ExamTimeline';
 export default function StudentExamScheduleScreen() {
     const router = useRouter();
     const { colors } = useTheme();
+    const { t } = useLabel();
     const { user, userId: authUserId } = useAuth();
     const userId = user?.id || user?._id || authUserId;
     const [refreshing, setRefreshing] = useState(false);
@@ -95,10 +97,10 @@ export default function StudentExamScheduleScreen() {
         const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
         const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 
-        if (days === 0 && hours <= 0) return { text: 'Today!', urgent: true };
-        if (days === 0) return { text: `${hours}h left`, urgent: true };
-        if (days === 1) return { text: 'Tomorrow', urgent: true };
-        return { text: `${days} days`, urgent: days <= 3 };
+        if (days === 0 && hours <= 0) return { text: t('common.todayUrgent', 'Today!'), unit: '', urgent: true };
+        if (days === 0) return { text: `${hours}`, unit: t('common.hoursLeft', 'h left'), urgent: true };
+        if (days === 1) return { text: t('common.tomorrow', 'Tomorrow'), unit: '', urgent: true };
+        return { text: `${days}`, unit: t('common.days', 'days'), urgent: days <= 3 };
     };
 
     if (isLoading) {
@@ -123,8 +125,8 @@ export default function StudentExamScheduleScreen() {
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
                     <Header
-                        title="Exam Schedule"
-                        subtitle="Stay on top of your exams"
+                        title={t('student.examSchedule', 'Exam Schedule')}
+                        subtitle={t('student.stayOnTopExams', 'Stay on top of your exams')}
                         showBack
                     />
 
@@ -159,7 +161,7 @@ export default function StudentExamScheduleScreen() {
                                             letterSpacing: 1.5,
                                             marginBottom: 8
                                         }}>
-                                            Next Exam
+                                            {t('student.nextExam', 'Next Exam')}
                                         </Text>
                                         <Text style={{
                                             fontSize: 22,
@@ -195,7 +197,7 @@ export default function StudentExamScheduleScreen() {
                                             color: colors.onPrimary,
                                             lineHeight: 32,
                                         }}>
-                                            {getCountdown(nextExam.date).text.split(' ')[0]}
+                                            {getCountdown(nextExam.date).text}
                                         </Text>
                                         <Text style={{
                                             fontSize: 11,
@@ -204,7 +206,7 @@ export default function StudentExamScheduleScreen() {
                                             opacity: 0.8,
                                             marginTop: 2,
                                         }}>
-                                            {getCountdown(nextExam.date).text.split(' ').slice(1).join(' ') || 'Exam'}
+                                            {getCountdown(nextExam.date).unit || t('student.exam', 'Exam')}
                                         </Text>
                                     </View>
                                 </View>
@@ -221,14 +223,14 @@ export default function StudentExamScheduleScreen() {
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                                         <MaterialIcons name="assignment" size={16} color={colors.onPrimary} style={{ opacity: 0.8 }} />
                                         <Text style={{ fontSize: 13, fontFamily: 'DMSans-Medium', color: colors.onPrimary, opacity: 0.9 }}>
-                                            {nextExam.totalMarks} marks
+                                            {nextExam.totalMarks} {t('student.marks', 'marks')}
                                         </Text>
                                     </View>
                                     {nextExam.duration && (
                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                                             <MaterialIcons name="schedule" size={16} color={colors.onPrimary} style={{ opacity: 0.8 }} />
                                             <Text style={{ fontSize: 13, fontFamily: 'DMSans-Medium', color: colors.onPrimary, opacity: 0.9 }}>
-                                                {nextExam.duration} min
+                                                {nextExam.duration} {t('student.min', 'min')}
                                             </Text>
                                         </View>
                                     )}
@@ -246,9 +248,9 @@ export default function StudentExamScheduleScreen() {
                     {/* Stats Row */}
                     <View style={{ flexDirection: 'row', gap: 10, marginTop: 20, marginBottom: 20 }}>
                         {[
-                            { label: 'Total', value: exams.length, color: colors.primary, bg: colors.primaryContainer },
-                            { label: 'Upcoming', value: upcomingExams.length, color: '#FF9800', bg: '#FF980012' },
-                            { label: 'Done', value: pastExams.length, color: colors.success, bg: colors.success + '12' },
+                            { label: t('common.total', 'Total'), value: exams.length, color: colors.primary, bg: colors.primaryContainer },
+                            { label: t('student.upcoming', 'Upcoming'), value: upcomingExams.length, color: '#FF9800', bg: '#FF980012' },
+                            { label: t('common.done', 'Done'), value: pastExams.length, color: colors.success, bg: colors.success + '12' },
                         ].map((stat, i) => (
                             <View key={i} style={{
                                 flex: 1,
@@ -295,7 +297,7 @@ export default function StudentExamScheduleScreen() {
                                 color: colors.onSurfaceVariant,
                                 marginBottom: 10
                             }}>
-                                Filter by Subject
+                                {t('student.filterBySubject', 'Filter by Subject')}
                             </Text>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                                 <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -315,7 +317,7 @@ export default function StudentExamScheduleScreen() {
                                             fontFamily: 'DMSans-Bold',
                                             color: !filterSubject ? '#FFFFFF' : colors.onSurface
                                         }}>
-                                            All
+                                            {t('common.all', 'All')}
                                         </Text>
                                     </Pressable>
 
@@ -356,7 +358,7 @@ export default function StudentExamScheduleScreen() {
                                     fontFamily: 'DMSans-Bold',
                                     color: colors.onSurface
                                 }}>
-                                    Upcoming Exams
+                                    {t('student.upcomingExams', 'Upcoming Exams')}
                                 </Text>
                                 <View style={{
                                     backgroundColor: colors.primaryContainer,
@@ -396,7 +398,7 @@ export default function StudentExamScheduleScreen() {
                                     fontFamily: 'DMSans-Bold',
                                     color: colors.onSurface
                                 }}>
-                                    Past Exams
+                                    {t('student.pastExams', 'Past Exams')}
                                 </Text>
                                 <View style={{
                                     backgroundColor: colors.surfaceContainerHigh,
@@ -451,7 +453,7 @@ export default function StudentExamScheduleScreen() {
                                 fontFamily: 'DMSans-Bold',
                                 color: colors.onSurface,
                             }}>
-                                No exams yet
+                                {t('student.noExamsYet', 'No exams yet')}
                             </Text>
                             <Text style={{
                                 fontSize: 14,
@@ -460,7 +462,7 @@ export default function StudentExamScheduleScreen() {
                                 textAlign: 'center',
                                 paddingHorizontal: 40,
                             }}>
-                                Your exam schedule will appear here once your school sets up exams
+                                {t('student.examScheduleSetupTip', 'Your exam schedule will appear here once your school sets up exams')}
                             </Text>
                         </View>
                     )}

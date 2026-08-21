@@ -15,6 +15,7 @@ import { useTheme } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 import { useApiQuery } from "../../hooks/useApi";
 import Header from "../../components/Header";
+import { useLabel } from "../../context/LabelsContext";
 import apiConfig from "../../config/apiConfig";
 import { LineChart } from "react-native-chart-kit";
 import { LinearGradient } from 'expo-linear-gradient';
@@ -62,6 +63,7 @@ export default function StudentReportCardScreen() {
     // eslint-disable-next-line no-unused-vars
     const { styles, colors, mode } = useTheme();
     const { user, userId: authUserId } = useAuth();
+    const { t } = useLabel();
     const [refreshing, setRefreshing] = useState(false);
     const [activeTab, setActiveTab] = useState('overview'); // overview | subjects | attendance | remarks
 
@@ -135,7 +137,7 @@ export default function StudentReportCardScreen() {
                             letterSpacing: 1.5,
                             marginBottom: 4
                         }}>
-                            Overall Performance
+                            {t('student.overallPerformance', 'Overall Performance')}
                         </Text>
 
                         <AnimatedPercentage
@@ -158,7 +160,7 @@ export default function StudentReportCardScreen() {
                                 }}>
                                     <MaterialIcons name="grade" size={16} color={colors.onPrimary} />
                                     <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 14 }}>
-                                        Grade {reportCard?.overall?.grade}
+                                        {t('common.grade', 'Grade')} {reportCard?.overall?.grade}
                                     </Text>
                                 </View>
                             )}
@@ -176,7 +178,7 @@ export default function StudentReportCardScreen() {
                                 }}>
                                     <MaterialIcons name="emoji-events" size={16} color={colors.onPrimary} />
                                     <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 14 }}>
-                                        Rank {reportCard.overall.classRank}
+                                        {t('common.rank', 'Rank')} {reportCard.overall.classRank}
                                         {reportCard.overall.totalInClass && (
                                             <Text style={{ opacity: 0.7, fontFamily: "DMSans-Medium" }}>
                                                 {' '}/ {reportCard.overall.totalInClass}
@@ -193,11 +195,11 @@ export default function StudentReportCardScreen() {
             {/* Exam Wise Summary */}
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 32, marginBottom: 16, paddingHorizontal: 4 }}>
                 <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.onBackground }}>
-                    Exam Results
+                    {t('student.examResults', 'Exam Results')}
                 </Text>
                 <View style={{ backgroundColor: colors.surfaceContainerHigh, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 }}>
                     <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, fontFamily: "DMSans-Medium" }}>
-                        {reportCard?.exams?.length || 0} Exams
+                        {reportCard?.exams?.length || 0} {t('student.exams', 'Exams')}
                     </Text>
                 </View>
             </View>
@@ -217,7 +219,7 @@ export default function StudentReportCardScreen() {
                             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
                                 <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: exam.isCompleted ? colors.success : colors.outline, marginRight: 6 }} />
                                 <Text style={{ fontSize: 13, color: colors.onSurfaceVariant, fontFamily: "DMSans-Medium" }}>
-                                    {exam.isCompleted ? "Completed" : "Results Pending"}
+                                    {exam.isCompleted ? t('common.completed', 'Completed') : t('student.resultsPending', 'Results Pending')}
                                 </Text>
                             </View>
                         </View>
@@ -226,7 +228,7 @@ export default function StudentReportCardScreen() {
                                 {exam.classRank && (
                                     <View style={{ backgroundColor: colors.primary + '15', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12 }}>
                                         <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.primary }}>
-                                            Rank {exam.classRank}
+                                            {t('common.rank', 'Rank')} {exam.classRank}
                                         </Text>
                                     </View>
                                 )}
@@ -285,7 +287,7 @@ export default function StudentReportCardScreen() {
                 <View style={{ marginTop: 60, alignItems: 'center', gap: 16 }}>
                     <ActivityIndicator size="large" color={colors.primary} />
                     <Text style={{ color: colors.onSurfaceVariant, fontFamily: 'DMSans-Medium', letterSpacing: 1 }}>
-                        GATHERING INSIGHTS...
+                        {t('student.gatheringInsights', 'GATHERING INSIGHTS...')}
                     </Text>
                 </View>
             );
@@ -303,7 +305,7 @@ export default function StudentReportCardScreen() {
         return (
             <View>
                 <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.onBackground, marginTop: 24, marginBottom: 16 }}>
-                    Performance Trend
+                    {t('student.performanceTrend', 'Performance Trend')}
                 </Text>
 
                 <Card variant="filled" style={{ padding: 16 }}>
@@ -335,7 +337,7 @@ export default function StudentReportCardScreen() {
                 </Card>
 
                 <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.onBackground, marginTop: 32, marginBottom: 16 }}>
-                    Subject Analysis
+                    {t('student.subjectAnalysis', 'Subject Analysis')}
                 </Text>
 
                 {Object.entries(insights.subjectTrends).map(([subject, trends]) => (
@@ -394,8 +396,8 @@ export default function StudentReportCardScreen() {
                 contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
             >
                 <Header
-                    title="My Report Card"
-                    subtitle="Academic Performance"
+                    title={t('student.myReportCard', 'My Report Card')}
+                    subtitle={t('student.academicPerformance', 'Academic Performance')}
                     showBack
                 />
 
@@ -426,7 +428,7 @@ export default function StudentReportCardScreen() {
                                 fontSize: 14,
                                 color: activeTab === 'overview' ? "#fff" : colors.onSurfaceVariant
                             }}>
-                                Overview
+                                {t('common.overview', 'Overview')}
                             </Text>
                         </View>
                     </TouchableOpacity>
@@ -448,7 +450,7 @@ export default function StudentReportCardScreen() {
                                 fontSize: 14,
                                 color: activeTab === 'insights' ? "#fff" : colors.onSurfaceVariant
                             }}>
-                                Insights
+                                {t('student.insights', 'Insights')}
                             </Text>
                         </View>
                     </TouchableOpacity>

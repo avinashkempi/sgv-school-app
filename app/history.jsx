@@ -17,11 +17,13 @@ import { useToast } from "../components/ToastProvider";
 import AppHeader from "../components/Header";
 import { formatDate } from "../utils/date";
 import { formatClassName } from "../utils/formatClassName";
+import { useLabel } from "../context/LabelsContext";
 
 export default function HistoryScreen() {
     const router = useRouter();
     const { _styles, colors } = useTheme();
     const { _showToast } = useToast();
+    const { t } = useLabel();
 
     const [refreshing, setRefreshing] = useState(false);
 
@@ -56,7 +58,7 @@ export default function HistoryScreen() {
                 <View style={{ alignItems: "center", marginTop: 60, paddingHorizontal: 20 }}>
                     <MaterialIcons name="info-outline" size={64} color={colors.textSecondary} />
                     <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16, textAlign: "center" }}>
-                        Exam history is available in the Reports section of Academic Year or per class in Exam Schedule.
+                        {t('historyScreen.examHistoryInfo')}
                     </Text>
                     <Pressable
                         onPress={() => router.push("/admin/academic-year")}
@@ -68,7 +70,7 @@ export default function HistoryScreen() {
                             borderRadius: 8
                         }}
                     >
-                        <Text style={{ color: "#fff", fontWeight: "600" }}>Go to Academic Year</Text>
+                        <Text style={{ color: "#fff", fontWeight: "600" }}>{t('historyScreen.goToAcademicYear')}</Text>
                     </Pressable>
                 </View>
             );
@@ -80,7 +82,7 @@ export default function HistoryScreen() {
                     <View style={{ alignItems: "center", marginTop: 60, opacity: 0.6 }}>
                         <MaterialIcons name="event-note" size={64} color={colors.textSecondary} />
                         <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16 }}>
-                            No past exams found
+                            {t('historyScreen.noPastExams')}
                         </Text>
                     </View>
                 ) : (
@@ -122,7 +124,7 @@ export default function HistoryScreen() {
                                     <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
                                         <MaterialIcons name="meeting-room" size={14} color={colors.textSecondary} />
                                         <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-                                            Room: {item.room}
+                                            {t('common.room')}: {item.room}
                                         </Text>
                                     </View>
                                 )}
@@ -160,7 +162,7 @@ export default function HistoryScreen() {
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <View style={{ padding: 16, paddingTop: 24 }}>
-                <AppHeader title="History" subtitle={userRole === 'student' ? "Past exams" : "Reports"} showBack />
+                <AppHeader title={t('historyScreen.title')} subtitle={userRole === 'student' ? t('historyScreen.pastExams') : t('historyScreen.reports')} showBack />
             </View>
 
             <ScrollView

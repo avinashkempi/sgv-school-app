@@ -14,6 +14,7 @@ import SegmentedControl from '../../components/SegmentedControl';
 import { EmptyState } from '../../components/StateComponents';
 import { useAuth } from '../../context/AuthContext';
 import { getISTDateString } from '../../utils/date';
+import { useLabel } from '../../context/LabelsContext';
 
 export default function TeacherLeaves() {
     // eslint-disable-next-line no-unused-vars
@@ -24,6 +25,7 @@ export default function TeacherLeaves() {
     const { user, userId: authUserId } = useAuth();
     const userId = user?.id || user?._id || authUserId;
     const isStaff = user?.role === 'staff';
+    const { t } = useLabel();
     const [activeTab, setActiveTab] = useState(isStaff ? 'my_leaves' : 'requests'); // 'requests' or 'my_leaves'
 
     // Data State
@@ -89,24 +91,24 @@ export default function TeacherLeaves() {
             return createApiMutationFn(`${apiConfig.baseUrl}/leaves/${requestId}/action`, 'PUT')(payload);
         },
         onSuccess: (_data) => {
-            showToast(`Leave ${actionType} successfully`, 'success');
+            showToast(t('toasts.leaveUpdated', 'Leave updated successfully'), 'success');
             setActionModalVisible(false);
             queryClient.invalidateQueries({ queryKey: ['teacherLeaveRequests'] });
         },
-        onError: (error) => showToast(error.message || 'Error updating status', 'error')
+        onError: (error) => showToast(error.message || t('toasts.errorUpdatingStatus', 'Error updating status'), 'error')
     });
 
     const applyLeaveMutation = useApiMutation({
         mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/leaves/apply`, 'POST'),
         onSuccess: (_data) => {
-            showToast('Leave applied successfully', 'success');
+            showToast(t('toasts.leaveApplied', 'Leave applied successfully'), 'success');
             setApplyModalVisible(false);
             setReason('');
             setIsHalfDay(false);
             queryClient.invalidateQueries({ queryKey: ['teacherMyLeaves'] });
             queryClient.invalidateQueries({ queryKey: ['teacherLeaveBalance'] });
         },
-        onError: (error) => showToast(error.message || 'Error applying leave', 'error')
+        onError: (error) => showToast(error.message || t('toasts.errorApplyingLeave', 'Error applying leave'), 'error')
     });
 
     // --- Action Handlers ---
@@ -122,7 +124,7 @@ export default function TeacherLeaves() {
 
     const handleAction = () => {
         if (actionType === 'rejected' && (!rejectionReason || !rejectionComments)) {
-            showToast('Rejection reason and comments are required', 'error');
+            showToast(t('toasts.rejectionReasonRequired', 'Rejection reason and comments are required'), 'error');
             return;
         }
 
@@ -140,12 +142,12 @@ export default function TeacherLeaves() {
 
     const handleApplyLeave = () => {
         if (!reason.trim()) {
-            showToast('Please enter a reason', 'error');
+            showToast(t('toasts.pleaseEnterReason', 'Please enter a reason'), 'error');
             return;
         }
 
         if (!isHalfDay && endDate < startDate) {
-            showToast('End date cannot be before start date', 'error');
+            showToast(t('toasts.endDateBeforeStart', 'End date cannot be before start date'), 'error');
             return;
         }
 
@@ -191,7 +193,7 @@ export default function TeacherLeaves() {
                         {item.applicant?.name || 'Unknown'}
                     </Text>
                     <Text style={{ fontSize: 13, color: colors.onSurfaceVariant, fontFamily: "DMSans-Medium" }}>
-                        {item.applicantRole === 'student' ? `Class: ${formatClassName(item.class?.name)} ${item.class?.section || ''}` : item.applicantRole === 'staff' ? 'Staff' : 'Teacher'}
+                        {item.applicantRole === 'student' ? `${t('common.class', 'Class')}: ${formatClassName(item.class?.name)} ${item.class?.section || ''}` : item.applicantRole === 'staff' ? t('profile.supportStaff', 'Staff') : t('common.teacher', 'Teacher')}
                     </Text>
                 </View>
                 <View style={{ alignItems: 'flex-end' }}>
@@ -203,13 +205,13 @@ export default function TeacherLeaves() {
                         </Text>
                     </View>
                     <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginTop: 2, fontStyle: 'italic' }}>
-                        {item.leaveType === 'half' ? `Half Day (${item.halfDaySlot})` : 'Full Day'}
+                        {item.leaveType === 'half' ? `${t('teacher.halfDay', 'Half Day')} (${item.halfDaySlot})` : t('teacher.fullDay', 'Full Day')}
                     </Text>
                 </View>
             </View>
 
             <View style={{ backgroundColor: colors.surface, padding: 12, borderRadius: 8, marginBottom: 12 }}>
-                <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4, fontFamily: "DMSans-Medium" }}>Reason</Text>
+                <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4, fontFamily: "DMSans-Medium" }}>{t('common.reason', 'Reason')}</Text>
                 <Text style={{ fontSize: 14, color: colors.onSurface, fontFamily: "DMSans-Regular", lineHeight: 20 }}>{item.reason}</Text>
             </View>
 
@@ -225,7 +227,7 @@ export default function TeacherLeaves() {
                     }}
                     onPress={() => openActionModal(item, 'rejected')}
                 >
-                    <Text style={{ color: colors.error, fontFamily: "DMSans-Bold", fontSize: 14 }}>Reject</Text>
+                    <Text style={{ color: colors.error, fontFamily: "DMSans-Bold", fontSize: 14 }}>{t('common.reject', 'Reject')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={{
@@ -237,7 +239,7 @@ export default function TeacherLeaves() {
                     }}
                     onPress={() => openActionModal(item, 'approved')}
                 >
-                    <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 14 }}>Approve</Text>
+                    <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 14 }}>{t('common.approve', 'Approve')}</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -267,7 +269,7 @@ export default function TeacherLeaves() {
                             </Text>
                         </View>
                         <Text style={{ fontSize: 13, color: colors.onSurfaceVariant, fontFamily: "DMSans-Medium" }}>
-                            {item.leaveType === 'half' ? `Half Day (${item.halfDaySlot})` : 'Full Day'}
+                            {item.leaveType === 'half' ? `${t('teacher.halfDay', 'Half Day')} (${item.halfDaySlot})` : t('teacher.fullDay', 'Full Day')}
                         </Text>
                     </View>
                     <View style={{
@@ -285,7 +287,7 @@ export default function TeacherLeaves() {
                 </View>
 
                 <View style={{ backgroundColor: colors.surface, padding: 12, borderRadius: 8, marginBottom: isRejected ? 12 : 0 }}>
-                    <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4, fontFamily: "DMSans-Medium" }}>Reason</Text>
+                    <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4, fontFamily: "DMSans-Medium" }}>{t('common.reason', 'Reason')}</Text>
                     <Text style={{ fontSize: 14, color: colors.onSurface, fontFamily: "DMSans-Regular", lineHeight: 20 }}>{item.reason}</Text>
                 </View>
 
@@ -298,12 +300,12 @@ export default function TeacherLeaves() {
                         borderLeftWidth: 3,
                         borderLeftColor: colors.error
                     }}>
-                        <Text style={{ fontSize: 13, fontFamily: "DMSans-Bold", color: colors.error, marginBottom: 4 }}>Rejection Details</Text>
+                        <Text style={{ fontSize: 13, fontFamily: "DMSans-Bold", color: colors.error, marginBottom: 4 }}>{t('teacher.rejectionDetails', 'Rejection Details')}</Text>
                         <Text style={{ fontSize: 13, color: colors.onSurface, marginBottom: 2, fontFamily: "DMSans-Regular" }}>
-                            <Text style={{ fontFamily: "DMSans-Bold" }}>Reason: </Text>{item.rejectionReason}
+                            <Text style={{ fontFamily: "DMSans-Bold" }}>{t('common.reason', 'Reason')}: </Text>{item.rejectionReason}
                         </Text>
                         <Text style={{ fontSize: 13, color: colors.onSurface, fontFamily: "DMSans-Regular" }}>
-                            <Text style={{ fontFamily: "DMSans-Bold" }}>Note: </Text>{item.rejectionComments}
+                            <Text style={{ fontFamily: "DMSans-Bold" }}>{t('teacher.note', 'Note')}: </Text>{item.rejectionComments}
                         </Text>
                     </View>
                 )}
@@ -314,14 +316,14 @@ export default function TeacherLeaves() {
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <View style={{ padding: 16, paddingBottom: 0 }}>
-                <Header title={isStaff ? 'My Leaves' : 'Leave Management'} showBack={true} />
+                <Header title={isStaff ? t('teacher.myLeaves', 'My Leaves') : t('teacher.leaveManagement', 'Leave Management')} showBack={true} />
             </View>
 
             {!isStaff && (
                 <SegmentedControl
                     tabs={[
-                        { key: 'requests', label: 'Requests' },
-                        { key: 'my_leaves', label: 'My Leaves' },
+                        { key: 'requests', label: t('teacher.requests', 'Requests') },
+                        { key: 'my_leaves', label: t('teacher.myLeaves', 'My Leaves') },
                     ]}
                     activeTab={activeTab}
                     onTabChange={setActiveTab}
@@ -341,17 +343,17 @@ export default function TeacherLeaves() {
                     alignItems: 'center'
                 }}>
                     <View style={{ alignItems: 'center', flex: 1 }}>
-                        <Text style={{ fontSize: 12, color: colors.onPrimaryContainer, fontFamily: "DMSans-Medium", marginBottom: 4 }}>Total</Text>
+                        <Text style={{ fontSize: 12, color: colors.onPrimaryContainer, fontFamily: "DMSans-Medium", marginBottom: 4 }}>{t('common.total', 'Total')}</Text>
                         <Text style={{ fontSize: 20, color: colors.onPrimaryContainer, fontFamily: "DMSans-Bold" }}>{leaveBalance.total}</Text>
                     </View>
                     <View style={{ width: 1, height: 24, backgroundColor: colors.onPrimaryContainer, opacity: 0.2 }} />
                     <View style={{ alignItems: 'center', flex: 1 }}>
-                        <Text style={{ fontSize: 12, color: colors.onPrimaryContainer, fontFamily: "DMSans-Medium", marginBottom: 4 }}>Used</Text>
+                        <Text style={{ fontSize: 12, color: colors.onPrimaryContainer, fontFamily: "DMSans-Medium", marginBottom: 4 }}>{t('common.used', 'Used')}</Text>
                         <Text style={{ fontSize: 20, color: colors.onPrimaryContainer, fontFamily: "DMSans-Bold" }}>{leaveBalance.used}</Text>
                     </View>
                     <View style={{ width: 1, height: 24, backgroundColor: colors.onPrimaryContainer, opacity: 0.2 }} />
                     <View style={{ alignItems: 'center', flex: 1 }}>
-                        <Text style={{ fontSize: 12, color: colors.onPrimaryContainer, fontFamily: "DMSans-Medium", marginBottom: 4 }}>Remaining</Text>
+                        <Text style={{ fontSize: 12, color: colors.onPrimaryContainer, fontFamily: "DMSans-Medium", marginBottom: 4 }}>{t('common.remaining', 'Remaining')}</Text>
                         <Text style={{ fontSize: 20, color: colors.primary, fontFamily: "DMSans-Bold" }}>{leaveBalance.remaining}</Text>
                     </View>
                 </View>
@@ -371,8 +373,8 @@ export default function TeacherLeaves() {
                     ListEmptyComponent={
                         <EmptyState
                             icon="event-busy"
-                            title="No Records"
-                            message="No leave records found."
+                            title={t('common.noData', 'No Records')}
+                            message={t('teacher.noLeavesFound', 'No leave records found.')}
                         />
                     }
                 />
@@ -398,29 +400,29 @@ export default function TeacherLeaves() {
                 <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 }}>
                     <View style={{ backgroundColor: colors.surface, borderRadius: 24, padding: 24, elevation: 5 }}>
                         <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 20 }}>
-                            {actionType === 'approved' ? 'Approve Leave' : 'Reject Leave'}
+                            {actionType === 'approved' ? t('teacher.approveLeave', 'Approve Leave') : t('teacher.rejectLeave', 'Reject Leave')}
                         </Text>
 
                         {actionType === 'rejected' && (
                             <>
-                                <Text style={styles.labelMedium}>Rejection Reason *</Text>
+                                <Text style={styles.labelMedium}>{t('teacher.rejectionReason', 'Rejection Reason')} *</Text>
                                 <TextInput
                                     style={{
                                         borderWidth: 1, borderColor: colors.outline, borderRadius: 8, padding: 12,
                                         color: colors.onSurface, fontFamily: "DMSans-Regular", marginBottom: 16
                                     }}
-                                    placeholder="e.g., Exam Period, Staff Shortage"
+                                    placeholder={t('teacher.rejectionReasonPlaceholder', 'e.g., Exam Period, Staff Shortage')}
                                     placeholderTextColor={colors.onSurfaceVariant}
                                     value={rejectionReason}
                                     onChangeText={setRejectionReason}
                                 />
-                                <Text style={styles.labelMedium}>Comments *</Text>
+                                <Text style={styles.labelMedium}>{t('teacher.comments', 'Comments')} *</Text>
                                 <TextInput
                                     style={{
                                         borderWidth: 1, borderColor: colors.outline, borderRadius: 8, padding: 12,
                                         color: colors.onSurface, fontFamily: "DMSans-Regular", minHeight: 80, textAlignVertical: 'top'
                                     }}
-                                    placeholder="Add detailed comments..."
+                                    placeholder={t('teacher.commentPlaceholder', 'Add detailed comments...')}
                                     placeholderTextColor={colors.onSurfaceVariant}
                                     value={rejectionComments}
                                     onChangeText={setRejectionComments}
@@ -432,13 +434,13 @@ export default function TeacherLeaves() {
 
                         {actionType === 'approved' && (
                             <>
-                                <Text style={styles.labelMedium}>Note (Optional)</Text>
+                                <Text style={styles.labelMedium}>{t('teacher.noteOptional', 'Note (Optional)')}</Text>
                                 <TextInput
                                     style={{
                                         borderWidth: 1, borderColor: colors.outline, borderRadius: 8, padding: 12,
                                         color: colors.onSurface, fontFamily: "DMSans-Regular", minHeight: 80, textAlignVertical: 'top'
                                     }}
-                                    placeholder="Add a note..."
+                                    placeholder={t('teacher.notePlaceholder', 'Add a note...')}
                                     placeholderTextColor={colors.onSurfaceVariant}
                                     value={actionReason}
                                     onChangeText={setActionReason}
@@ -453,7 +455,7 @@ export default function TeacherLeaves() {
                                 style={{ paddingVertical: 10, paddingHorizontal: 20 }}
                                 onPress={() => setActionModalVisible(false)}
                             >
-                                <Text style={{ color: colors.onSurfaceVariant, fontFamily: "DMSans-Bold", fontSize: 16 }}>Cancel</Text>
+                                <Text style={{ color: colors.onSurfaceVariant, fontFamily: "DMSans-Bold", fontSize: 16 }}>{t('common.cancel', 'Cancel')}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={{
@@ -467,7 +469,7 @@ export default function TeacherLeaves() {
                                     <ActivityIndicator color={colors.onPrimary} size="small" />
                                 ) : (
                                     <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 16 }}>
-                                        {actionType === 'approved' ? 'Approve' : 'Reject'}
+                                        {actionType === 'approved' ? t('common.approve', 'Approve') : t('common.reject', 'Reject')}
                                     </Text>
                                 )}
                             </TouchableOpacity>
@@ -486,7 +488,7 @@ export default function TeacherLeaves() {
                 <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
                     <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, maxHeight: '90%' }}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                            <Text style={{ fontSize: 24, fontFamily: "DMSans-Bold", color: colors.onSurface }}>Apply for Leave</Text>
+                            <Text style={{ fontSize: 24, fontFamily: "DMSans-Bold", color: colors.onSurface }}>{t('teacher.applyForLeave', 'Apply for Leave')}</Text>
                             <TouchableOpacity onPress={() => setApplyModalVisible(false)}>
                                 <Ionicons name="close" size={24} color={colors.onSurfaceVariant} />
                             </TouchableOpacity>
@@ -494,7 +496,7 @@ export default function TeacherLeaves() {
 
                         <ScrollView showsVerticalScrollIndicator={false}>
                             <View style={{ marginBottom: 24 }}>
-                                <Text style={styles.labelMedium}>LEAVE TYPE</Text>
+                                <Text style={styles.labelMedium}>{t('teacher.leaveType', 'LEAVE TYPE')}</Text>
                                 <View style={{ flexDirection: 'row', backgroundColor: colors.surfaceContainer, borderRadius: 12, padding: 4 }}>
                                     <Pressable
                                         style={{
@@ -504,7 +506,7 @@ export default function TeacherLeaves() {
                                         }}
                                         onPress={() => setIsHalfDay(false)}
                                     >
-                                        <Text style={{ fontFamily: !isHalfDay ? "DMSans-Bold" : "DMSans-Medium", color: !isHalfDay ? colors.primary : colors.onSurfaceVariant }}>Full Day</Text>
+                                        <Text style={{ fontFamily: !isHalfDay ? "DMSans-Bold" : "DMSans-Medium", color: !isHalfDay ? colors.primary : colors.onSurfaceVariant }}>{t('teacher.fullDay', 'Full Day')}</Text>
                                     </Pressable>
                                     <Pressable
                                         style={{
@@ -514,14 +516,14 @@ export default function TeacherLeaves() {
                                         }}
                                         onPress={() => setIsHalfDay(true)}
                                     >
-                                        <Text style={{ fontFamily: isHalfDay ? "DMSans-Bold" : "DMSans-Medium", color: isHalfDay ? colors.primary : colors.onSurfaceVariant }}>Half Day</Text>
+                                        <Text style={{ fontFamily: isHalfDay ? "DMSans-Bold" : "DMSans-Medium", color: isHalfDay ? colors.primary : colors.onSurfaceVariant }}>{t('teacher.halfDay', 'Half Day')}</Text>
                                     </Pressable>
                                 </View>
                             </View>
 
                             {isHalfDay && (
                                 <View style={{ marginBottom: 24 }}>
-                                    <Text style={styles.labelMedium}>SLOT</Text>
+                                    <Text style={styles.labelMedium}>{t('teacher.slot', 'SLOT')}</Text>
                                     <View style={{ flexDirection: 'row', gap: 12 }}>
                                         <Pressable
                                             style={{
@@ -532,7 +534,7 @@ export default function TeacherLeaves() {
                                             }}
                                             onPress={() => setHalfDaySlot('morning')}
                                         >
-                                            <Text style={{ fontFamily: "DMSans-Medium", color: halfDaySlot === 'morning' ? colors.onSecondaryContainer : colors.onSurfaceVariant }}>Morning</Text>
+                                            <Text style={{ fontFamily: "DMSans-Medium", color: halfDaySlot === 'morning' ? colors.onSecondaryContainer : colors.onSurfaceVariant }}>{t('teacher.morning', 'Morning')}</Text>
                                         </Pressable>
                                         <Pressable
                                             style={{
@@ -543,7 +545,7 @@ export default function TeacherLeaves() {
                                             }}
                                             onPress={() => setHalfDaySlot('afternoon')}
                                         >
-                                            <Text style={{ fontFamily: "DMSans-Medium", color: halfDaySlot === 'afternoon' ? colors.onSecondaryContainer : colors.onSurfaceVariant }}>Afternoon</Text>
+                                            <Text style={{ fontFamily: "DMSans-Medium", color: halfDaySlot === 'afternoon' ? colors.onSecondaryContainer : colors.onSurfaceVariant }}>{t('teacher.afternoon', 'Afternoon')}</Text>
                                         </Pressable>
                                     </View>
                                 </View>
@@ -551,7 +553,7 @@ export default function TeacherLeaves() {
 
                             <View style={{ flexDirection: 'row', gap: 16 }}>
                                 <View style={{ flex: 1, marginBottom: 24 }}>
-                                    <Text style={styles.labelMedium}>START DATE</Text>
+                                    <Text style={styles.labelMedium}>{t('teacher.startDate', 'START DATE')}</Text>
                                     <TouchableOpacity
                                         style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.surfaceContainer, borderRadius: 12, padding: 14 }}
                                         onPress={() => setShowStartPicker(true)}
@@ -578,7 +580,7 @@ export default function TeacherLeaves() {
 
                                 {!isHalfDay && (
                                     <View style={{ flex: 1, marginBottom: 24 }}>
-                                        <Text style={styles.labelMedium}>END DATE</Text>
+                                        <Text style={styles.labelMedium}>{t('teacher.endDate', 'END DATE')}</Text>
                                         <TouchableOpacity
                                             style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.surfaceContainer, borderRadius: 12, padding: 14 }}
                                             onPress={() => setShowEndPicker(true)}
@@ -603,13 +605,13 @@ export default function TeacherLeaves() {
                             </View>
 
                             <View style={{ marginBottom: 32 }}>
-                                <Text style={styles.labelMedium}>REASON</Text>
+                                <Text style={styles.labelMedium}>{t('common.reason', 'REASON')}</Text>
                                 <TextInput
                                     style={{
                                         backgroundColor: colors.surfaceContainer, borderRadius: 12, padding: 14, fontSize: 16,
                                         color: colors.onSurface, fontFamily: "DMSans-Regular", minHeight: 120, textAlignVertical: 'top'
                                     }}
-                                    placeholder="Enter reason for leave..."
+                                    placeholder={t('teacher.reasonPlaceholder', 'Enter reason for leave...')}
                                     placeholderTextColor={colors.onSurfaceVariant}
                                     value={reason}
                                     onChangeText={setReason}
@@ -629,7 +631,7 @@ export default function TeacherLeaves() {
                                 {applyLeaveMutation.isPending ? (
                                     <ActivityIndicator color={colors.onPrimary} />
                                 ) : (
-                                    <Text style={{ color: colors.onPrimary, fontSize: 16, fontFamily: "DMSans-Bold", letterSpacing: 0.5 }}>Submit Application</Text>
+                                    <Text style={{ color: colors.onPrimary, fontSize: 16, fontFamily: "DMSans-Bold", letterSpacing: 0.5 }}>{t('teacher.submitApplication', 'Submit Application')}</Text>
                                 )}
                             </TouchableOpacity>
                         </ScrollView>

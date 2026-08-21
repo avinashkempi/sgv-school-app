@@ -17,6 +17,7 @@ import PostContentModal from "../../../../components/PostContentModal";
 import apiConfig from "../../../../config/apiConfig";
 import { useToast } from "../../../../components/ToastProvider";
 import AppHeader from "../../../../components/Header";
+import { useLabel } from "../../../../context/LabelsContext";
 import { formatDate } from "../../../../utils/date";
 
 export default function SubjectDetailScreen() {
@@ -24,6 +25,7 @@ export default function SubjectDetailScreen() {
     const router = useRouter();
     const queryClient = useQueryClient();
     const { _styles, colors } = useTheme();
+    const { t } = useLabel();
     const { showToast } = useToast();
 
     const [refreshing, setRefreshing] = useState(false);
@@ -59,11 +61,11 @@ export default function SubjectDetailScreen() {
     const postContentMutation = useApiMutation({
         mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/classes/${id}/content`, 'POST'),
         onSuccess: () => {
-            showToast("Content posted successfully", "success");
+            showToast(t('teacher.contentPostedSuccess', 'Content posted successfully'), "success");
             setShowPostModal(false);
             queryClient.invalidateQueries({ queryKey: ['subjectContent', subjectId] });
         },
-        onError: (error) => showToast(error.message || "Failed to post content", "error")
+        onError: (error) => showToast(error.message || t('teacher.contentPostedFailure', 'Failed to post content'), "error")
     });
 
     const handlePostContent = (data) => {
@@ -96,8 +98,8 @@ export default function SubjectDetailScreen() {
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
                     <AppHeader
-                        title={subjectName || "Subject Details"}
-                        subtitle={subjectTeachers.length > 0 ? `Teachers: ${subjectTeachers.map(t => t.name).join(", ")}` : "Class Content"}
+                        title={subjectName || t('teacher.subjectDetails', 'Subject Details')}
+                        subtitle={subjectTeachers.length > 0 ? `${t('teacher.teachersLabel', 'Teachers')}: ${subjectTeachers.map(t => t.name).join(", ")}` : t('teacher.classContent', 'Class Content')}
                         showBack
                     />
 
@@ -123,7 +125,7 @@ export default function SubjectDetailScreen() {
                         >
                             <MaterialIcons name="leaderboard" size={20} color="#fff" />
                             <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: "#fff" }}>
-                                Performance
+                                {t('teacher.performance', 'Performance')}
                             </Text>
                         </Pressable>
                     </View>
@@ -138,7 +140,7 @@ export default function SubjectDetailScreen() {
                                 <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
                                     <MaterialIcons name="article" size={48} color={colors.textSecondary} />
                                     <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16 }}>
-                                        No content posted yet.
+                                        {t('teacher.noContentPostedYet', 'No content posted yet.')}
                                     </Text>
                                 </View>
                             ) : (
@@ -179,11 +181,11 @@ export default function SubjectDetailScreen() {
 
                                         <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 12, alignItems: "center" }}>
                                             <Text style={{ fontSize: 12, color: colors.textSecondary, fontWeight: "500" }}>
-                                                By: {item.author?.name || item.teacher?.name || "Teacher"}
+                                                ${t('common.by', 'By')}: {item.author?.name || item.teacher?.name || t('common.teacher', 'Teacher')}
                                             </Text>
                                             <View style={{ backgroundColor: colors.background, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 }}>
                                                 <Text style={{ fontSize: 10, fontWeight: "600", color: colors.textSecondary, textTransform: "uppercase" }}>
-                                                    {item.type}
+                                                    {t('teacher.contentType_' + item.type, item.type)}
                                                 </Text>
                                             </View>
                                         </View>

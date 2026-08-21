@@ -15,11 +15,13 @@ import AppHeader from "../../components/Header";
 import Card from "../../components/Card";
 import apiConfig from "../../config/apiConfig";
 import formatClassName from '../../utils/formatClassName';
+import { useLabel } from "../../context/LabelsContext";
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export default function SchoolTimetableScreen() {
     const { colors } = useTheme();
+    const { t } = useLabel();
 
     const [refreshing, setRefreshing] = useState(false);
     const [selectedClassId, setSelectedClassId] = useState(null);
@@ -96,12 +98,12 @@ export default function SchoolTimetableScreen() {
                 contentContainerStyle={{ paddingBottom: 24 }}
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
-                    <AppHeader title="School Timetable" subtitle="All classes schedule" showBack />
+                    <AppHeader title={t('teacher.timetableTitle', 'School Timetable')} subtitle={t('teacher.timetableSubtitle', 'All classes schedule')} showBack />
 
                     {/* Class Selector */}
                     <View style={{ marginTop: 20 }}>
                         <Text style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>
-                            Select Class
+                            {t('teacher.selectClass', 'Select Class')}
                         </Text>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                             <View style={{ flexDirection: "row", gap: 8 }}>
@@ -173,7 +175,7 @@ export default function SchoolTimetableScreen() {
                             </Text>
                             {selectedDay === currentDay && (
                                 <View style={{ backgroundColor: colors.success + "20", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 }}>
-                                    <Text style={{ fontSize: 12, color: colors.success, fontFamily: "DMSans-Bold" }}>TODAY</Text>
+                                    <Text style={{ fontSize: 12, color: colors.success, fontFamily: "DMSans-Bold" }}>{t('common.today', 'TODAY')}</Text>
                                 </View>
                             )}
                         </View>
@@ -182,7 +184,7 @@ export default function SchoolTimetableScreen() {
                             <View style={{ paddingVertical: 48, alignItems: 'center', justifyContent: 'center' }}>
                                 <ActivityIndicator size="large" color={colors.primary} />
                                 <Text style={{ color: colors.textSecondary, marginTop: 12, fontSize: 14, fontFamily: 'DMSans-Medium' }}>
-                                    Loading timetable...
+                                    {t('teacher.loadingTimetable', 'Loading timetable...')}
                                 </Text>
                             </View>
                         ) : (
@@ -191,7 +193,7 @@ export default function SchoolTimetableScreen() {
                                     <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
                                         <MaterialIcons name="event-busy" size={48} color={colors.textSecondary} />
                                         <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16 }}>
-                                            No classes scheduled
+                                            {t('teacher.noClassesScheduled', 'No classes scheduled')}
                                         </Text>
                                     </View>
                                 ) : (
@@ -224,19 +226,19 @@ export default function SchoolTimetableScreen() {
                                             {/* Details */}
                                             <View style={{ flex: 1, justifyContent: "center" }}>
                                                 <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 4 }}>
-                                                    {period.subject?.name || "Subject"}
+                                                    {period.subject?.name || t('common.subject', 'Subject')}
                                                 </Text>
                                                 <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
                                                     <MaterialIcons name="person" size={14} color={colors.textSecondary} />
                                                     <Text style={{ fontSize: 13, color: colors.textSecondary }}>
-                                                        {period.teacher?.name || "Teacher"}
+                                                        {period.teacher?.name || t('common.teacher', 'Teacher')}
                                                     </Text>
                                                 </View>
                                                 {period.roomNumber && (
                                                     <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
                                                         <MaterialIcons name="room" size={14} color={colors.textSecondary} />
                                                         <Text style={{ fontSize: 13, color: colors.textSecondary }}>
-                                                            Room {period.roomNumber}
+                                                            {t('common.room', 'Room')} {period.roomNumber}
                                                         </Text>
                                                     </View>
                                                 )}

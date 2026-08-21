@@ -15,6 +15,7 @@ import apiConfig from '../../config/apiConfig';
 import Header from '../../components/Header';
 import StatCard from '../../components/StatCard';
 import { useToast } from '../../components/ToastProvider';
+import { useLabel } from '../../context/LabelsContext';
 
 /**
  * Teacher Exam Dashboard
@@ -24,6 +25,7 @@ export default function TeacherExamDashboard() {
     const router = useRouter();
     const { colors } = useTheme();
     const { showToast } = useToast();
+    const { t } = useLabel();
     const [refreshing, setRefreshing] = useState(false);
     const [selectedTab, setSelectedTab] = useState('overview'); // 'overview', 'reports'
 
@@ -61,7 +63,7 @@ export default function TeacherExamDashboard() {
         if (examId) {
             router.push(`/teacher/exam/enter-marks?examId=${examId}`);
         } else {
-            showToast('Exam not created yet', 'error');
+            showToast(t('toasts.examNotCreatedYet', 'Exam not created yet'), 'error');
         }
     };
 
@@ -72,7 +74,7 @@ export default function TeacherExamDashboard() {
     const renderSummaryCards = () => (
         <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
             <StatCard
-                label="Exams Created"
+                label={t('teacher.examsCreated', 'Exams Created')}
                 value={overallSummary.examsCreated}
                 icon="school"
                 color="#2196F3"
@@ -80,7 +82,7 @@ export default function TeacherExamDashboard() {
                 variant="compact"
             />
             <StatCard
-                label="Marks Entered"
+                label={t('teacher.marksEntered', 'Marks Entered')}
                 value={overallSummary.marksEntered}
                 icon="check-circle"
                 color="#4CAF50"
@@ -88,7 +90,7 @@ export default function TeacherExamDashboard() {
                 variant="compact"
             />
             <StatCard
-                label="Pending"
+                label={t('common.pending', 'Pending')}
                 value={overallSummary.pending}
                 icon="pending-actions"
                 color="#FF9800"
@@ -187,7 +189,7 @@ export default function TeacherExamDashboard() {
                     color: colors.onSurfaceVariant,
                     marginTop: 4
                 }}>
-                    {item.studentCount} students
+                    {item.studentCount} {t('common.students', 'students')}
                 </Text>
             </View>
 
@@ -208,7 +210,7 @@ export default function TeacherExamDashboard() {
                         {item.summary?.examsCreated || 0}/6
                     </Text>
                     <Text style={{ fontSize: 11, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant }}>
-                        Created
+                        {t('teacher.created', 'Created')}
                     </Text>
                 </View>
                 <View style={{ flex: 1 }}>
@@ -216,7 +218,7 @@ export default function TeacherExamDashboard() {
                         {item.summary?.marksEntered || 0}
                     </Text>
                     <Text style={{ fontSize: 11, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant }}>
-                        Marks Entered
+                        {t('teacher.marksEntered', 'Marks Entered')}
                     </Text>
                 </View>
                 <View style={{ flex: 1 }}>
@@ -224,7 +226,7 @@ export default function TeacherExamDashboard() {
                         {item.summary?.pending || 0}
                     </Text>
                     <Text style={{ fontSize: 11, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant }}>
-                        Pending
+                        {t('common.pending', 'Pending')}
                     </Text>
                 </View>
             </View>
@@ -236,7 +238,7 @@ export default function TeacherExamDashboard() {
                     return (
                         <View style={{ marginTop: 14, padding: 12, backgroundColor: colors.surfaceContainerHighest, borderRadius: 10 }}>
                             <Text style={{ textAlign: 'center', color: colors.onSurfaceVariant, fontFamily: 'DMSans-Medium', fontSize: 13 }}>
-                                No exams created yet — admin must create exams first
+                                {t('teacher.noExamsCreated', 'No exams created yet — admin must create exams first')}
                             </Text>
                         </View>
                     );
@@ -244,7 +246,7 @@ export default function TeacherExamDashboard() {
                 return (
                     <View style={{ marginTop: 14 }}>
                         <Text style={{ fontSize: 12, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                            Enter Marks
+                            {t('teacher.enterMarks', 'Enter Marks')}
                         </Text>
                         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                             {existingExams.map(exam => (
@@ -294,7 +296,7 @@ export default function TeacherExamDashboard() {
                 })}
             >
                 <MaterialIcons name="analytics" size={18} color={colors.onSurface} />
-                <Text style={{ color: colors.onSurface, fontSize: 13, fontFamily: 'DMSans-Bold' }}>Reports</Text>
+                <Text style={{ color: colors.onSurface, fontSize: 13, fontFamily: 'DMSans-Bold' }}>{t('common.reports', 'Reports')}</Text>
             </Pressable>
         </View>
     );
@@ -311,7 +313,7 @@ export default function TeacherExamDashboard() {
                     color: colors.onSurface,
                     marginBottom: 16
                 }}>
-                    Your Classes
+                    {t('teacher.yourClasses', 'Your Classes')}
                 </Text>
 
                 {dashboard.length === 0 ? (
@@ -329,7 +331,7 @@ export default function TeacherExamDashboard() {
                             marginTop: 16,
                             textAlign: 'center'
                         }}>
-                            No classes assigned yet
+                            {t('teacher.noClassesAssignedYet', 'No classes assigned yet')}
                         </Text>
                     </View>
                 ) : (
@@ -351,7 +353,7 @@ export default function TeacherExamDashboard() {
                         color: colors.onSurface,
                         marginBottom: 16
                     }}>
-                        Class Reports
+                        {t('teacher.classReports', 'Class Reports')}
                     </Text>
                     {dashboard.length === 0 ? (
                         <View style={{
@@ -367,7 +369,7 @@ export default function TeacherExamDashboard() {
                                 color: colors.onSurfaceVariant,
                                 marginTop: 12
                             }}>
-                                No classes assigned
+                                {t('teacher.noClassesAssigned', 'No classes assigned')}
                             </Text>
                         </View>
                     ) : (
@@ -419,8 +421,8 @@ export default function TeacherExamDashboard() {
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
                     <Header
-                        title="Exam Management"
-                        subtitle={academicYear?.name || 'Current Academic Year'}
+                        title={t('teacher.examManagement', 'Exam Management')}
+                        subtitle={academicYear?.name || t('teacher.currentAcademicYear', 'Current Academic Year')}
                         showBack
                     />
 
@@ -435,8 +437,8 @@ export default function TeacherExamDashboard() {
                         borderRadius: 12
                     }}>
                         {[
-                            { id: 'overview', label: 'Overview', icon: 'dashboard' },
-                            { id: 'reports', label: 'Reports', icon: 'analytics' }
+                            { id: 'overview', label: t('common.overview', 'Overview'), icon: 'dashboard' },
+                            { id: 'reports', label: t('common.reports', 'Reports'), icon: 'analytics' }
                         ].map(tab => (
                             <Pressable
                                 key={tab.id}
@@ -479,7 +481,7 @@ export default function TeacherExamDashboard() {
                                 color: colors.onSurfaceVariant,
                                 marginTop: 12
                             }}>
-                                Loading exam dashboard...
+                                {t('teacher.loadingExams', 'Loading exam dashboard...')}
                             </Text>
                         </View>
                     ) : (

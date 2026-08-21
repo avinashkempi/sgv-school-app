@@ -17,6 +17,7 @@ import { useTheme } from "../../theme";
 import apiConfig from "../../config/apiConfig";
 import { useApiMutation, createApiMutationFn } from "../../hooks/useApi";
 import Header from "../../components/Header";
+import { useLabel } from "../../context/LabelsContext";
 import { useToast } from "../../components/ToastProvider";
 import { useAuth } from "../../context/AuthContext";
 
@@ -24,6 +25,7 @@ export default function RaiseComplaintScreen() {
     const router = useRouter();
     // eslint-disable-next-line no-unused-vars
     const { styles, colors } = useTheme();
+    const { t } = useLabel();
     const { showToast } = useToast();
     const { user } = useAuth();
     const userRole = user?.role;
@@ -47,15 +49,15 @@ export default function RaiseComplaintScreen() {
     const raiseComplaintMutation = useApiMutation({
         mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/complaints`, 'POST'),
         onSuccess: () => {
-            showToast("Complaint raised successfully", "success");
+            showToast(t('complaints.raisedSuccess', 'Complaint raised successfully'), "success");
             router.back();
         },
-        onError: (error) => showToast(error.message || "Failed to raise complaint", "error")
+        onError: (error) => showToast(error.message || t('complaints.raisedFailure', 'Failed to raise complaint'), "error")
     });
 
     const handleSubmit = () => {
         if (!title.trim() || !description.trim()) {
-            showToast("Please fill all fields", "error");
+            showToast(t('common.fillAllFields', 'Please fill all fields'), "error");
             return;
         }
 
@@ -80,7 +82,7 @@ export default function RaiseComplaintScreen() {
             <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
                 <View style={{ flex: 1 }}>
                     <View style={{ padding: 16, paddingTop: 24 }}>
-                        <Header title="Raise Complaint" showBack />
+                        <Header title={t('complaints.raiseComplaint', 'Raise Complaint')} showBack />
                     </View>
 
                     <ScrollView
@@ -91,7 +93,7 @@ export default function RaiseComplaintScreen() {
                         {/* Visibility Selection (For Students) */}
                         {userRole === 'student' && (
                             <View style={{ marginBottom: 24 }}>
-                                <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>To</Text>
+                                <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>{t('common.to', 'To')}</Text>
                                 <View style={{ flexDirection: "row", gap: 12 }}>
                                     <Pressable
                                         onPress={() => setVisibility('teacher')}
@@ -110,7 +112,7 @@ export default function RaiseComplaintScreen() {
                                             marginTop: 8,
                                             fontFamily: "DMSans-Bold",
                                             color: visibility === 'teacher' ? colors.primary : colors.textSecondary
-                                        }}>Class Teacher</Text>
+                                        }}>${t('common.classTeacher', 'Class Teacher')}</Text>
                                     </Pressable>
 
                                     <Pressable
@@ -130,7 +132,7 @@ export default function RaiseComplaintScreen() {
                                             marginTop: 8,
                                             fontFamily: "DMSans-Bold",
                                             color: visibility === 'admin' ? colors.primary : colors.textSecondary
-                                        }}>Headmaster</Text>
+                                        }}>${t('common.headmaster', 'Headmaster')}</Text>
                                     </Pressable>
                                 </View>
                             </View>
@@ -149,14 +151,14 @@ export default function RaiseComplaintScreen() {
                                     gap: 12
                                 }}>
                                     <MaterialIcons name="business" size={24} color={colors.primary} />
-                                    <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary }}>Management (Super Admin)</Text>
+                                    <Text style={{ fontFamily: "DMSans-Bold", color: colors.textPrimary }}>${t('common.managementSuperAdmin', 'Management (Super Admin)')}</Text>
                                 </View>
                             </View>
                         )}
 
                         {/* Category */}
                         <View style={{ marginBottom: 24 }}>
-                            <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>Category</Text>
+                            <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>{t('common.category', 'Category')}</Text>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                                 <View style={{ flexDirection: "row", gap: 8 }}>
                                     {categories.map(cat => (
@@ -173,7 +175,7 @@ export default function RaiseComplaintScreen() {
                                             <Text style={{
                                                 color: category === cat ? "#fff" : colors.textPrimary,
                                                 fontFamily: "DMSans-Medium"
-                                            }}>{cat}</Text>
+                                            }}>{t('complaints.category_' + cat, cat)}</Text>
                                         </Pressable>
                                     ))}
                                 </View>
@@ -182,11 +184,11 @@ export default function RaiseComplaintScreen() {
 
                         {/* Title */}
                         <View style={{ marginBottom: 24 }}>
-                            <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>Subject</Text>
+                            <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>{t('common.subjectLabel', 'Subject')}</Text>
                             <TextInput
                                 value={title}
                                 onChangeText={setTitle}
-                                placeholder="Brief subject of the complaint"
+                                placeholder={t('complaints.subjectPlaceholder', 'Brief subject of the complaint')}
                                 placeholderTextColor={colors.textSecondary}
                                 style={{
                                     backgroundColor: colors.cardBackground,
@@ -201,11 +203,11 @@ export default function RaiseComplaintScreen() {
 
                         {/* Description */}
                         <View style={{ marginBottom: 32 }}>
-                            <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>Description</Text>
+                            <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>{t('common.description', 'Description')}</Text>
                             <TextInput
                                 value={description}
                                 onChangeText={setDescription}
-                                placeholder="Detailed description..."
+                                placeholder={t('common.detailedDescriptionPlaceholder', 'Detailed description...')}
                                 placeholderTextColor={colors.textSecondary}
                                 multiline
                                 numberOfLines={6}
@@ -242,7 +244,7 @@ export default function RaiseComplaintScreen() {
                             {raiseComplaintMutation.isPending ? (
                                 <ActivityIndicator color="#fff" />
                             ) : (
-                                <Text style={{ color: "#fff", fontFamily: "DMSans-Bold", fontSize: 18 }}>Submit Complaint</Text>
+                                <Text style={{ color: "#fff", fontFamily: "DMSans-Bold", fontSize: 18 }}>${t('complaints.submitComplaint', 'Submit Complaint')}</Text>
                             )}
                         </Pressable>
 

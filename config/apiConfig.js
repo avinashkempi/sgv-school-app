@@ -21,6 +21,9 @@ const endpoints = {
   schoolInfo: {
     get: '/school-info',
   },
+  labels: {
+    get: '/labels',
+  },
   users: {
     list: '/users',
     create: '/users',

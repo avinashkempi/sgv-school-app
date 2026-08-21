@@ -14,6 +14,7 @@ import { useTheme } from '../../theme';
 import { useApiQuery } from '../../hooks/useApi';
 import apiConfig from '../../config/apiConfig';
 import Header from '../../components/Header';
+import { useLabel } from '../../context/LabelsContext';
 import StatCard from '../../components/StatCard';
 import PerformanceChart from '../../components/PerformanceChart';
 
@@ -26,6 +27,7 @@ export default function ClassReportsDashboard() {
     const router = useRouter();
     const params = useLocalSearchParams();
     const { colors } = useTheme();
+    const { t } = useLabel();
 
     const [refreshing, setRefreshing] = useState(false);
     const [selectedExamType, setSelectedExamType] = useState(null); // null = all exams
@@ -128,12 +130,12 @@ export default function ClassReportsDashboard() {
                     color: colors.onSurface,
                     marginBottom: 16
                 }}>
-                    Overview
+                    {t('common.overview', 'Overview')}
                 </Text>
 
                 <View style={{ flexDirection: 'row', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
                     <StatCard
-                        label="Students"
+                        label={t('common.students', 'Students')}
                         value={analyticsData?.totalStudents ?? 0}
                         icon="people"
                         color="#2196F3"
@@ -141,15 +143,15 @@ export default function ClassReportsDashboard() {
                         variant="compact"
                     />
                     <StatCard
-                        label="Avg Score"
-                        value={stats?.average != null ? `${stats.average.toFixed(1)}%` : 'N/A'}
+                        label={t('reports.avgScore', 'Avg Score')}
+                        value={stats?.average != null ? `${stats.average.toFixed(1)}%` : t('common.na', 'N/A')}
                         icon="insights"
                         color="#4CAF50"
                         gradient
                         variant="compact"
                     />
                     <StatCard
-                        label="Total Marks"
+                        label={t('reports.totalMarks', 'Total Marks')}
                         value={`${analyticsData?.totalMarksObtained || 0}/${analyticsData?.totalMarksEvaluated || 0}`}
                         icon="assignment"
                         color="#9C27B0"
@@ -157,8 +159,8 @@ export default function ClassReportsDashboard() {
                         variant="compact"
                     />
                     <StatCard
-                        label="Highest"
-                        value={stats?.highest != null ? `${stats.highest.toFixed(1)}%` : 'N/A'}
+                        label={t('common.highest', 'Highest')}
+                        value={stats?.highest != null ? `${stats.highest.toFixed(1)}%` : t('common.na', 'N/A')}
                         icon="arrow-upward"
                         color="#FF9800"
                         gradient
@@ -177,8 +179,8 @@ export default function ClassReportsDashboard() {
                 <PerformanceChart
                     type="pie"
                     data={gradeDistributionData}
-                    title="Grade Distribution"
-                    subtitle="Distribution across performance bands"
+                    title={t('reports.gradeDistributionTitle', 'Grade Distribution')}
+                    subtitle={t('reports.gradeDistributionSubtitle', 'Distribution across performance bands')}
                 />
             </View>
         );
@@ -192,8 +194,8 @@ export default function ClassReportsDashboard() {
                 <PerformanceChart
                     type="line"
                     data={trendChartData}
-                    title="Performance Trends"
-                    subtitle="Exam-wise average progression"
+                    title={t('reports.performanceTrendsTitle', 'Performance Trends')}
+                    subtitle={t('reports.performanceTrendsSubtitle', 'Exam-wise average progression')}
                     yAxisSuffix="%"
                 />
             </View>
@@ -208,8 +210,8 @@ export default function ClassReportsDashboard() {
                 <PerformanceChart
                     type="bar"
                     data={topPerformersData}
-                    title="Top Performers"
-                    subtitle="Top 5 students in the class"
+                    title={t('reports.topPerformersTitle', 'Top Performers')}
+                    subtitle={t('reports.topPerformersSubtitle', 'Top 5 students in the class')}
                     yAxisSuffix="%"
                 />
             </View>
@@ -233,14 +235,14 @@ export default function ClassReportsDashboard() {
                         fontFamily: 'DMSans-Bold',
                         color: colors.onSurface
                     }}>
-                        Student Rankings
+                        {t('reports.studentRankingsTitle', 'Student Rankings')}
                     </Text>
                     <Text style={{
                         fontSize: 13,
                         fontFamily: 'DMSans-Medium',
                         color: colors.onSurfaceVariant
                     }}>
-                        {rankings.length} Students
+                        {rankings.length} {t('common.students', 'Students')}
                     </Text>
                 </View>
 
@@ -318,7 +320,7 @@ export default function ClassReportsDashboard() {
                                             color: colors.primary,
                                             marginTop: 2
                                         }}>
-                                            Scored: {student.totalObtained} / {student.totalMax} Marks ({student.percentage}%)
+                                            {t('reports.scored', 'Scored')}: {student.totalObtained} / {student.totalMax} {t('reports.marks', 'Marks')} ({student.percentage}%)
                                         </Text>
                                     </View>
                                 </View>
@@ -346,7 +348,7 @@ export default function ClassReportsDashboard() {
                                             fontFamily: 'DMSans-Medium',
                                             color: colors.onSurfaceVariant
                                         }}>
-                                            {subjectScores.length} subjects
+                                            {subjectScores.length} {t('reports.subjectsCount', 'subjects')}
                                         </Text>
                                         <MaterialIcons
                                             name={isExpanded ? "keyboard-arrow-up" : "keyboard-arrow-down"}
@@ -373,7 +375,7 @@ export default function ClassReportsDashboard() {
                                         letterSpacing: 0.5,
                                         marginBottom: 8
                                     }}>
-                                        Subject Breakdown
+                                        {t('reports.subjectBreakdown', 'Subject Breakdown')}
                                     </Text>
                                     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
                                         {subjectScores.map((subj, sIdx) => (
@@ -436,8 +438,8 @@ export default function ClassReportsDashboard() {
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
                     <Header
-                        title="Class Reports"
-                        subtitle="Performance analytics and insights"
+                        title={t('reports.classReports', 'Class Reports')}
+                        subtitle={t('reports.performanceAnalyticsInsights', 'Performance analytics and insights')}
                         showBack
                     />
 
@@ -449,13 +451,13 @@ export default function ClassReportsDashboard() {
                                 fontFamily: 'DMSans-Medium',
                                 color: colors.onSurfaceVariant
                             }}>
-                                Filter by Exam Type
+                                {t('reports.filterByExamType', 'Filter by Exam Type')}
                             </Text>
                             {isFetching && !isLoading && (
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                                     <ActivityIndicator size="small" color={colors.primary} />
                                     <Text style={{ fontSize: 11, fontFamily: 'DMSans-Medium', color: colors.primary }}>
-                                        Updating...
+                                        {t('common.updating', 'Updating...')}
                                     </Text>
                                 </View>
                             )}
@@ -478,7 +480,7 @@ export default function ClassReportsDashboard() {
                                         fontFamily: 'DMSans-Bold',
                                         color: !selectedExamType ? '#FFFFFF' : colors.onSurface
                                     }}>
-                                        All Exams
+                                        {t('reports.allExams', 'All Exams')}
                                     </Text>
                                 </Pressable>
 
@@ -518,7 +520,7 @@ export default function ClassReportsDashboard() {
                                 color: colors.onSurfaceVariant,
                                 marginTop: 12
                             }}>
-                                Loading class analytics...
+                                {t('reports.loadingClassAnalytics', 'Loading class analytics...')}
                             </Text>
                         </View>
                     ) : !selectedClass || !analyticsData ? (
@@ -531,7 +533,7 @@ export default function ClassReportsDashboard() {
                                 marginTop: 12,
                                 textAlign: 'center'
                             }}>
-                                {!selectedClass ? 'Select a class to view reports' : 'No data available'}
+                                {!selectedClass ? t('reports.selectClassToView', 'Select a class to view reports') : t('common.noDataAvailable', 'No data available')}
                             </Text>
                         </View>
                     ) : (

@@ -21,6 +21,7 @@ import Header from "../components/Header";
 import Card from "../components/Card";
 import { useNotifications } from "../hooks/useNotifications";
 import { EmptyState } from "../components/StateComponents";
+import { useLabel } from '../context/LabelsContext';
 
 const getIcon = (type) => {
     switch (type) {
@@ -111,6 +112,7 @@ export default function NotificationsScreen() {
     const { showToast } = useToast();
     const [showSettings, setShowSettings] = useState(false);
     const queryClient = useQueryClient();
+    const { t } = useLabel();
 
     const {
         notifications,
@@ -146,25 +148,25 @@ export default function NotificationsScreen() {
             queryClient.invalidateQueries({ queryKey: ['currentUser'] });
         },
         onError: () => {
-            showToast("Failed to update settings", "error");
+            showToast(t('toasts.failedToUpdateSettings'), "error");
         }
     });
 
     const handleDelete = useCallback((id) => {
         Alert.alert(
-            "Delete Notification",
-            "Are you sure you want to delete this notification? This action cannot be undone.",
+            t('alerts.deleteNotificationTitle'),
+            t('alerts.deleteNotificationMessage'),
             [
-                { text: "Cancel", style: "cancel" },
+                { text: t('common.cancel'), style: "cancel" },
                 { 
-                    text: "Delete", 
+                    text: t('common.delete'), 
                     style: "destructive",
                     onPress: async () => {
                         const success = await deleteNotification(id);
                         if (success) {
-                            showToast("Notification deleted", "success");
+                            showToast(t('toasts.notificationDeleted'), "success");
                         } else {
-                            showToast("Failed to delete notification", "error");
+                            showToast(t('toasts.failedToDeleteNotification'), "error");
                         }
                     }
                 }
@@ -209,7 +211,7 @@ export default function NotificationsScreen() {
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <Header
-                title="Notifications"
+                title={t('notifications.title')}
                 showBack
                 rightElement={
                     <View style={{ flexDirection: 'row', gap: 12 }}>
@@ -247,8 +249,8 @@ export default function NotificationsScreen() {
                     <View style={{ marginTop: 60 }}>
                         <EmptyState
                             icon="notifications-none"
-                            title="All caught up!"
-                            message="No notifications to show at the moment."
+                            title={t('notifications.allCaughtUp')}
+                            message={t('notifications.noNotificationsMessage')}
                         />
                     </View>
                 }
@@ -282,7 +284,7 @@ export default function NotificationsScreen() {
 
                             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
                                 <Text style={{ fontSize: 22, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
-                                    Notifications
+                                    {t('notifications.settingsTitle')}
                                 </Text>
                                 <Pressable
                                     onPress={() => setShowSettings(false)}
@@ -293,7 +295,7 @@ export default function NotificationsScreen() {
                             </View>
 
                             <Text style={{ color: colors.onSurfaceVariant, marginBottom: 24, fontSize: 15 }}>
-                                Choose what you would like to be notified about.
+                                {t('notifications.settingsSubtitle')}
                             </Text>
 
                             {Object.keys(preferences).map((key) => (

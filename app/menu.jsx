@@ -6,6 +6,7 @@ import { useTheme } from '../theme';
 import { useToast } from '../components/ToastProvider';
 import Header from '../components/Header';
 import { useAuth } from '../context/AuthContext';
+import { useLabel } from '../context/LabelsContext';
 import { SCHOOL } from '../constants/basic-info';
 import Card from '../components/Card';
 import Button from '../components/Button';
@@ -15,6 +16,7 @@ export default function MenuScreen() {
     const { styles, colors, mode, toggle, _gradients } = useTheme();
     const { showToast } = useToast();
     const { user, logout } = useAuth();
+    const { t } = useLabel();
 
     const handleLogout = async () => {
         await logout(router, null, showToast);
@@ -39,15 +41,15 @@ export default function MenuScreen() {
 
     const menuItems = [
         {
-            title: "Profile",
-            subtitle: "View & edit your profile",
+            title: t('menu.profile'),
+            subtitle: t('menu.profileSubtitle'),
             icon: "person",
             route: "/profile",
             color: colors.primary
         },
         {
-            title: "Events",
-            subtitle: "School calendar & upcoming",
+            title: t('menu.events'),
+            subtitle: t('menu.eventsSubtitle'),
             icon: "event",
             route: "/events",
             color: colors.tertiary
@@ -55,8 +57,8 @@ export default function MenuScreen() {
 
         // Only show Complaints if user is logged in
         ...(user ? [{
-            title: "Complaints",
-            subtitle: "Raise issues or feedback",
+            title: t('menu.complaints'),
+            subtitle: t('menu.complaintsSubtitle'),
             icon: "feedback",
             action: navigateToComplaints,
             color: colors.error
@@ -67,7 +69,7 @@ export default function MenuScreen() {
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
-                <Header title="Menu" subtitle="Settings & More" />
+                <Header title={t('menu.title')} subtitle={t('menu.subtitle')} />
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.contentPaddingBottom, { paddingHorizontal: 20 }]}>
@@ -106,7 +108,7 @@ export default function MenuScreen() {
                 </View>
 
                 {/* Settings Section */}
-                <Text style={[styles.titleMedium, { marginTop: 24, marginBottom: 12 }]}>Preferences</Text>
+                <Text style={[styles.titleMedium, { marginTop: 24, marginBottom: 12 }]}>{t('menu.preferences')}</Text>
 
                 <Card variant="filled" style={{ padding: 0, overflow: 'hidden' }}>
                     <View style={{
@@ -128,10 +130,10 @@ export default function MenuScreen() {
                             </View>
                             <View>
                                 <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
-                                    Dark Mode
+                                    {t('menu.darkMode')}
                                 </Text>
                                 <Text style={{ fontSize: 13, color: colors.onSurfaceVariant, fontFamily: "DMSans-Regular" }}>
-                                    {mode === 'dark' ? 'Easy on the eyes' : 'Bright and clear'}
+                                    {mode === 'dark' ? t('menu.darkModeOnSubtitle') : t('menu.darkModeOffSubtitle')}
                                 </Text>
                             </View>
                         </View>
@@ -145,7 +147,7 @@ export default function MenuScreen() {
                 </Card>
 
                 {/* Socials Section */}
-                <Text style={[styles.titleMedium, { marginTop: 24, marginBottom: 12 }]}>Follow Us</Text>
+                <Text style={[styles.titleMedium, { marginTop: 24, marginBottom: 12 }]}>{t('menu.followUs')}</Text>
                 <Card variant="outlined" contentStyle={{ flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 24 }}>
                     <Pressable
                         onPress={() => handlePress(SCHOOL.socials.youtubeAppUrl, SCHOOL.socials.youtube)}
@@ -154,7 +156,7 @@ export default function MenuScreen() {
                         <View style={{ width: 56, height: 56, borderRadius: 18, backgroundColor: '#FF000015', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
                             <FontAwesome name="youtube-play" size={28} color="#FF0000" />
                         </View>
-                        <Text style={{ fontSize: 12, fontFamily: "DMSans-Medium", color: colors.onSurfaceVariant }}>YouTube</Text>
+                        <Text style={{ fontSize: 12, fontFamily: "DMSans-Medium", color: colors.onSurfaceVariant }}>{t('menu.youtube')}</Text>
                     </Pressable>
 
                     <Pressable
@@ -164,7 +166,7 @@ export default function MenuScreen() {
                         <View style={{ width: 56, height: 56, borderRadius: 18, backgroundColor: '#E1306C15', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
                             <FontAwesome name="instagram" size={28} color="#E1306C" />
                         </View>
-                        <Text style={{ fontSize: 12, fontFamily: "DMSans-Medium", color: colors.onSurfaceVariant }}>Instagram</Text>
+                        <Text style={{ fontSize: 12, fontFamily: "DMSans-Medium", color: colors.onSurfaceVariant }}>{t('menu.instagram')}</Text>
                     </Pressable>
 
                     <Pressable
@@ -174,7 +176,7 @@ export default function MenuScreen() {
                         <View style={{ width: 56, height: 56, borderRadius: 18, backgroundColor: colors.primary + '15', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
                             <MaterialIcons name="location-on" size={28} color={colors.primary} />
                         </View>
-                        <Text style={{ fontSize: 12, fontFamily: "DMSans-Medium", color: colors.onSurfaceVariant }}>Location</Text>
+                        <Text style={{ fontSize: 12, fontFamily: "DMSans-Medium", color: colors.onSurfaceVariant }}>{t('menu.location')}</Text>
                     </Pressable>
                 </Card>
 
@@ -187,7 +189,7 @@ export default function MenuScreen() {
                         textStyle={{ color: colors.onErrorContainer }}
                         icon="logout"
                     >
-                        Log Out
+                        {t('common.logOut')}
                     </Button>
                 ) : (
                     <Button
@@ -196,7 +198,7 @@ export default function MenuScreen() {
                         style={{ marginTop: 24 }}
                         icon="login"
                     >
-                        Log In
+                        {t('common.logIn')}
                     </Button>
                 )}
             </ScrollView>

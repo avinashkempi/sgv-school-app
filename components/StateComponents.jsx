@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, ActivityIndicator, Pressable } from 'react-native';
 import { useTheme } from '../theme';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useLabel } from '../context/LabelsContext';
 
 const EmptyState = ({ icon = "inbox", title, message, actionLabel, onAction }) => {
     const { colors, styles } = useTheme();
@@ -50,8 +51,10 @@ const EmptyState = ({ icon = "inbox", title, message, actionLabel, onAction }) =
     );
 };
 
-const LoadingState = ({ message = "Loading..." }) => {
+const LoadingState = ({ message }) => {
     const { colors, styles } = useTheme();
+    const { t } = useLabel();
+    const displayMessage = message ?? t('states.loadingDefault', 'Loading...');
 
     return (
         <View style={{
@@ -62,14 +65,16 @@ const LoadingState = ({ message = "Loading..." }) => {
         }}>
             <ActivityIndicator size="large" color={colors.primary} />
             <Text style={[styles.bodyMedium, { color: colors.onSurfaceVariant, marginTop: 16 }]}>
-                {message}
+                {displayMessage}
             </Text>
         </View>
     );
 };
 
-const ErrorState = ({ title = "Something went wrong", message, onRetry }) => {
+const ErrorState = ({ title, message, onRetry }) => {
     const { colors, styles } = useTheme();
+    const { t } = useLabel();
+    const displayTitle = title ?? t('states.errorDefault', 'Something went wrong');
 
     return (
         <View style={{
@@ -90,7 +95,7 @@ const ErrorState = ({ title = "Something went wrong", message, onRetry }) => {
                 <MaterialIcons name="error-outline" size={40} color={colors.error} />
             </View>
             <Text style={[styles.titleMedium, { color: colors.error, marginBottom: 8, textAlign: 'center' }]}>
-                {title}
+                {displayTitle}
             </Text>
             {message && (
                 <Text style={[styles.bodyMedium, { color: colors.onSurfaceVariant, textAlign: 'center', marginBottom: 16 }]}>
@@ -109,7 +114,7 @@ const ErrorState = ({ title = "Something went wrong", message, onRetry }) => {
                     })}
                 >
                     <Text style={{ fontSize: 14, fontFamily: 'DMSans-Bold', color: colors.onPrimary }}>
-                        Try Again
+                        {t('states.retryButton', 'Try Again')}
                     </Text>
                 </Pressable>
             )}

@@ -18,6 +18,7 @@ import { useToast } from "../../../components/ToastProvider";
 import AppHeader from "../../../components/Header";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { getISTDateString, isISTSunday, formatISTDisplayDate } from "../../../utils/date";
+import { useLabel } from "../../../context/LabelsContext";
 
 export default function MarkAttendanceScreen() {
     const _router = useRouter();
@@ -25,6 +26,7 @@ export default function MarkAttendanceScreen() {
     const { _styles, colors } = useTheme();
     const { showToast } = useToast();
     const queryClient = useQueryClient();
+    const { t } = useLabel();
 
     const { classId, subjectId, date: initialDate } = params;
 
@@ -91,13 +93,13 @@ export default function MarkAttendanceScreen() {
     const saveMutation = useApiMutation({
         mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/attendance/mark`, 'POST'),
         onSuccess: () => {
-            showToast("Attendance saved successfully", "success");
+            showToast(t('toasts.attendanceSaved', "Attendance saved successfully"), "success");
             setHasUnsavedChanges(false);
             // Invalidate this date's cache so it refetches fresh data
             queryClient.invalidateQueries({ queryKey: ['attendance', classId || subjectId, dateStr] });
         },
         onError: (error) => {
-            showToast(error.message || "Failed to save attendance", "error");
+            showToast(error.message || t('toasts.failedToSaveAttendance', "Failed to save attendance"), "error");
         }
     });
     const saving = saveMutation.isPending;
@@ -137,7 +139,7 @@ export default function MarkAttendanceScreen() {
             }));
 
         if (attendanceRecords.length === 0) {
-            showToast("Please mark attendance for at least one student", "warning");
+            showToast(t('toasts.markAttendanceAtLeastOne', "Please mark attendance for at least one student"), "warning");
             return;
         }
 
@@ -185,7 +187,7 @@ export default function MarkAttendanceScreen() {
     const holidayEvent = (holidayData?.event && holidayData.event.length > 0) ? holidayData.event[0] : null;
     const isSunday = isISTSunday(selectedDate);
     const isHoliday = isSunday || !!holidayEvent;
-    const holidayReason = isSunday ? 'Sunday (Weekend)' : holidayEvent?.title;
+    const holidayReason = isSunday ? t('teacher.sundayWeekend', 'Sunday (Weekend)') : holidayEvent?.title;
 
     // Computed counts
     const presentCount = useMemo(() => students.filter(s => s.status === 'present').length, [students]);
@@ -201,7 +203,7 @@ export default function MarkAttendanceScreen() {
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
                     <AppHeader
-                        title="Mark Attendance"
+                        title={t('teacher.markAttendance', "Mark Attendance")}
                         subtitle={subjectData ? `${subjectData.name} - ${classData?.name}` : classData?.name}
                     />
 
@@ -233,7 +235,7 @@ export default function MarkAttendanceScreen() {
                             <MaterialIcons name="calendar-today" size={24} color={colors.primary} />
                             <View style={{ alignItems: 'center' }}>
                                 <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: "DMSans-Medium" }}>
-                                    Selected Date
+                                    {t('teacher.selectedDate', "Selected Date")}
                                 </Text>
                                 <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginTop: 2 }}>
                                     {formatISTDisplayDate(selectedDate, {
@@ -253,6 +255,7 @@ export default function MarkAttendanceScreen() {
                         </Pressable>
                     </View>
 
+                    {/* Date Picker */}
                     {showDatePicker && (
                         <DateTimePicker
                             value={selectedDate}
@@ -272,7 +275,7 @@ export default function MarkAttendanceScreen() {
 
                     {isHoliday && (
                         <View style={{ backgroundColor: colors.primary + '15', marginVertical: 16, padding: 16, borderRadius: 12, alignItems: 'center', borderColor: colors.primary, borderWidth: 1 }}>
-                            <Text style={{ fontSize: 18, fontWeight: 'bold', color: colors.primary }}>🌴 Holiday</Text>
+                            <Text style={{ fontSize: 18, fontWeight: 'bold', color: colors.primary }}>{t('teacher.holiday', "🌴 Holiday")}</Text>
                             <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: 4, textAlign: 'center' }}>{holidayReason}</Text>
                         </View>
                     )}
@@ -297,7 +300,7 @@ export default function MarkAttendanceScreen() {
                                 })}
                             >
                                 <MaterialIcons name="check-circle" size={18} color={colors.success} />
-                                <Text style={{ fontSize: 13, fontFamily: 'DMSans-Bold', color: colors.success }}>All Present</Text>
+                                <Text style={{ fontSize: 13, fontFamily: 'DMSans-Bold', color: colors.success }}>{t('teacher.allPresent', "All Present")}</Text>
                             </Pressable>
 
                             <Pressable
@@ -321,7 +324,7 @@ export default function MarkAttendanceScreen() {
                                 ) : (
                                     <>
                                         <MaterialIcons name="save" size={18} color="#fff" />
-                                        <Text style={{ fontSize: 13, fontFamily: 'DMSans-Bold', color: '#fff' }}>Save Attendance</Text>
+                                        <Text style={{ fontSize: 13, fontFamily: 'DMSans-Bold', color: '#fff' }}>{t('teacher.saveAttendance', "Save Attendance")}</Text>
                                         {hasUnsavedChanges && (
                                             <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#FF9800', marginLeft: 2 }} />
                                         )}
@@ -363,7 +366,7 @@ export default function MarkAttendanceScreen() {
                         <>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, marginBottom: 12 }}>
                             <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
-                                Students ({students.length})
+                                {t('common.students', 'Students')} ({students.length})
                             </Text>
                         </View>
 
@@ -401,7 +404,7 @@ export default function MarkAttendanceScreen() {
                                             </Text>
                                             {studentData.onLeave && (
                                                 <View style={{ backgroundColor: '#FF9800' + '20', paddingHorizontal: 6, paddingVertical: 1, borderRadius: 6 }}>
-                                                    <Text style={{ fontSize: 10, fontFamily: "DMSans-Bold", color: '#FF9800' }}>ON LEAVE</Text>
+                                                    <Text style={{ fontSize: 10, fontFamily: "DMSans-Bold", color: '#FF9800' }}>{t('teacher.onLeave', 'ON LEAVE')}</Text>
                                                 </View>
                                             )}
                                         </View>
@@ -430,14 +433,14 @@ export default function MarkAttendanceScreen() {
                                                 </Text>
                                             </View>
                                         ) : (
-                                            <Text style={{ fontSize: 12, fontFamily: "DMSans-Medium", color: colors.textSecondary }}>Tap to mark</Text>
+                                            <Text style={{ fontSize: 12, fontFamily: "DMSans-Medium", color: colors.textSecondary }}>{t('teacher.tapToMark', 'Tap to mark')}</Text>
                                         )}
                                     </View>
 
                                     {/* Leave reason */}
                                     {studentData.onLeave && studentData.leaveReason && (
                                         <Text style={{ fontSize: 11, color: '#FF9800', marginTop: 4, fontFamily: "DMSans-Medium" }}>
-                                            Reason: {studentData.leaveReason}
+                                            {t('common.reason', 'Reason')}: {studentData.leaveReason}
                                         </Text>
                                     )}
 
@@ -501,7 +504,7 @@ export default function MarkAttendanceScreen() {
                                 })}
                             >
                                 <MaterialIcons name="check-circle" size={18} color={colors.success} />
-                                <Text style={{ fontSize: 13, fontFamily: 'DMSans-Bold', color: colors.success }}>All Present</Text>
+                                <Text style={{ fontSize: 13, fontFamily: 'DMSans-Bold', color: colors.success }}>{t('teacher.allPresent', 'All Present')}</Text>
                             </Pressable>
 
                             <Pressable
@@ -525,7 +528,7 @@ export default function MarkAttendanceScreen() {
                                 ) : (
                                     <>
                                         <MaterialIcons name="save" size={18} color="#fff" />
-                                        <Text style={{ fontSize: 13, fontFamily: 'DMSans-Bold', color: '#fff' }}>Save Attendance</Text>
+                                        <Text style={{ fontSize: 13, fontFamily: 'DMSans-Bold', color: '#fff' }}>{t('teacher.saveAttendance', 'Save Attendance')}</Text>
                                     </>
                                 )}
                             </Pressable>

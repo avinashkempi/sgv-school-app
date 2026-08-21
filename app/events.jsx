@@ -3,8 +3,6 @@ import { FlatList, View, Text, Pressable, Alert, RefreshControl, ActivityIndicat
 import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
 
-
-
 import { useTheme } from "../theme";
 import { useToast } from "../components/ToastProvider";
 import Header from "../components/Header";
@@ -18,6 +16,7 @@ import apiConfig from "../config/apiConfig";
 import { formatDate, getISTDateString, getISTToday } from "../utils/date";
 
 import Card from "../components/Card";
+import { useLabel } from "../context/LabelsContext";
 
 // Memoized day renderer component for performance
 const DayRenderer = React.memo(({ date, state, marking, onDayPress, colors }) => {
@@ -104,16 +103,15 @@ const DayRenderer = React.memo(({ date, state, marking, onDayPress, colors }) =>
 
 DayRenderer.displayName = 'DayRenderer';
 
-// ... inside component
 // Helper to format dates for display in Indian format (DD-MM-YYYY)
 const formatIndianDate = (dateInput) => {
   return formatDate(dateInput);
 };
 
 // Memoized EventCard component with custom comparison for optimal performance
-const EventCard = React.memo(({ event, colors, isAdmin, onEdit, onDelete }) => {
+const EventCard = React.memo(({ event, colors, isAdmin, onEdit, onDelete, t }) => {
   // Sanitize event data to prevent rendering issues
-  const title = event.title?.trim() || 'Untitled Event';
+  const title = event.title?.trim() || t('events.untitledEvent', 'Untitled Event');
   const description = event.description?.trim();
   const hasValidDescription = description && description.length > 1;
 
@@ -140,7 +138,7 @@ const EventCard = React.memo(({ event, colors, isAdmin, onEdit, onDelete }) => {
               alignItems: 'center'
             }}>
               <MaterialIcons name="school" size={14} color="#F59E0B" style={{ marginRight: 4 }} />
-              <Text style={{ fontSize: 12, fontFamily: "DMSans-Bold", color: "#F59E0B" }}>School Event</Text>
+              <Text style={{ fontSize: 12, fontFamily: "DMSans-Bold", color: "#F59E0B" }}>{t('events.schoolEvent', 'School Event')}</Text>
             </View>
           )}
         </View>
@@ -193,6 +191,7 @@ export default function EventsScreen() {
   const [isEventFormVisible, setIsEventFormVisible] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const queryClient = useQueryClient();
+  const { t } = useLabel();
   const { data: allEvents = [], isLoading: loading, refetch } = useApiQuery(
     ['events'],
     apiConfig.url(apiConfig.endpoints.events.list),
@@ -210,30 +209,30 @@ export default function EventsScreen() {
     mutationFn: createApiMutationFn(apiConfig.url(apiConfig.endpoints.events.create), 'POST'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
-      showToast('Event created successfully');
+      showToast(t('toasts.eventCreated', 'Event created successfully'));
       setIsEventFormVisible(false);
     },
-    onError: (error) => showToast(error.message || 'Failed to create event')
+    onError: (error) => showToast(error.message || t('toasts.failedToCreateEvent', 'Failed to create event'))
   });
 
   const updateEventMutation = useApiMutation({
     mutationFn: (data) => createApiMutationFn(apiConfig.url(apiConfig.endpoints.events.update(data._id)), 'PUT')(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
-      showToast('Event updated successfully');
+      showToast(t('toasts.eventUpdated', 'Event updated successfully'));
       setIsEventFormVisible(false);
       setEditingEvent(null);
     },
-    onError: (error) => showToast(error.message || 'Failed to update event')
+    onError: (error) => showToast(error.message || t('toasts.failedToUpdateEvent', 'Failed to update event'))
   });
 
   const deleteEventMutation = useApiMutation({
     mutationFn: (id) => createApiMutationFn(apiConfig.url(apiConfig.endpoints.events.delete(id)), 'DELETE')(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
-      showToast('Event deleted successfully');
+      showToast(t('toasts.eventDeleted', 'Event deleted successfully'));
     },
-    onError: (error) => showToast(error.message || 'Failed to delete event')
+    onError: (error) => showToast(error.message || t('toasts.failedToDeleteEvent', 'Failed to delete event'))
   });
 
   const [refreshFlag, _setRefreshFlag] = useState(false);
@@ -347,21 +346,22 @@ export default function EventsScreen() {
             onEdit={() => handleEditEvent(item)}
             onDelete={() => {
               Alert.alert(
-                "Delete Event",
-                `Are you sure you want to delete "${item.title}"? This action cannot be undone.`,
+                t('alerts.deleteEventTitle', 'Delete Event'),
+                t('alerts.deleteEventMessage', `Are you sure you want to delete "${item.title}"? This action cannot be undone.`),
                 [
-                  { text: "Cancel", style: "cancel" },
-                  { text: "Delete", style: "destructive", onPress: () => handleDeleteEvent(item._id, item.title) },
+                  { text: t('common.cancel'), style: "cancel" },
+                  { text: t('common.delete'), style: "destructive", onPress: () => handleDeleteEvent(item._id, item.title) },
                 ]
               );
             }}
+            t={t}
           />
         )}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
         ListHeaderComponent={
           <>
             <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
-              <Header title="Events" subtitle="View and manage events" />
+              <Header title={t('events.title')} subtitle={t('events.subtitle')} />
 
               <View style={[{ backgroundColor: colors.surfaceContainer, borderRadius: 16 }, { padding: 0, overflow: 'hidden', marginBottom: 24 }]}>
                 <ModernCalendar
@@ -398,7 +398,7 @@ export default function EventsScreen() {
 
               {selectedDate && (
                 <Text style={[styles.titleMedium, { marginBottom: 16 }]}>
-                  Events on {formatIndianDate(selectedDate)}
+                  {t('events.eventsOn', 'Events on')} {formatIndianDate(selectedDate)}
                 </Text>
               )}
             </View>
@@ -409,13 +409,13 @@ export default function EventsScreen() {
             loading && filteredEvents.length === 0 ? (
               <View style={{ alignItems: 'center', padding: 20 }}>
                 <ActivityIndicator size="small" color={colors.primary} />
-                <Text style={{ color: colors.textSecondary, marginTop: 8, fontFamily: "DMSans-Regular" }}>Loading events...</Text>
+                <Text style={{ color: colors.textSecondary, marginTop: 8, fontFamily: "DMSans-Regular" }}>{t('common.loading')}</Text>
               </View>
             ) : (
               <View style={{ alignItems: 'center', padding: 40, opacity: 0.6 }}>
                 <MaterialIcons name="event-busy" size={48} color={colors.textSecondary} />
                 <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16, fontFamily: "DMSans-Medium" }}>
-                  No events on this day
+                  {t('events.noEventsMessage', 'No events on this date.')}
                 </Text>
               </View>
             )

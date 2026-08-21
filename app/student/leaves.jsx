@@ -9,6 +9,7 @@ import { useToast } from '../../components/ToastProvider';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../theme';
 import Header from '../../components/Header';
+import { useLabel } from '../../context/LabelsContext';
 import Card from '../../components/Card';
 import { useAuth } from '../../context/AuthContext';
 import { getISTDateString } from '../../utils/date';
@@ -19,6 +20,7 @@ export default function StudentLeaves() {
     const queryClient = useQueryClient();
     const { showToast } = useToast();
     const { colors, styles } = useTheme();
+    const { t } = useLabel();
     const { user, userId: authUserId } = useAuth();
     const userId = user?.id || user?._id || authUserId;
     const [refreshing, setRefreshing] = useState(false);
@@ -44,13 +46,13 @@ export default function StudentLeaves() {
     const applyLeaveMutation = useApiMutation({
         mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/leaves/apply`, 'POST'),
         onSuccess: () => {
-            showToast('Leave applied successfully', 'success');
+            showToast(t('student.leaveAppliedSuccess', 'Leave applied successfully'), 'success');
             setModalVisible(false);
             setReason('');
             setIsHalfDay(false);
             queryClient.invalidateQueries({ queryKey: ['studentLeaves'] });
         },
-        onError: (error) => showToast(error.message || 'Failed to apply leave', 'error')
+        onError: (error) => showToast(error.message || t('student.leaveAppliedFailure', 'Failed to apply leave'), 'error')
     });
 
     const onRefresh = async () => {
@@ -61,12 +63,12 @@ export default function StudentLeaves() {
 
     const handleApplyLeave = () => {
         if (!reason.trim()) {
-            showToast('Please enter a reason', 'error');
+            showToast(t('student.enterReasonError', 'Please enter a reason'), 'error');
             return;
         }
 
         if (!isHalfDay && endDate < startDate) {
-            showToast('End date cannot be before start date', 'error');
+            showToast(t('student.endDateBeforeStartDateError', 'End date cannot be before start date'), 'error');
             return;
         }
 
@@ -133,7 +135,7 @@ export default function StudentLeaves() {
                             color: colors.onSurfaceVariant,
                             fontFamily: "DMSans-Medium",
                         }}>
-                            {item.leaveType === 'half' ? `Half Day (${item.halfDaySlot})` : 'Full Day'}
+                            {item.leaveType === 'half' ? t('student.halfDay', 'Half Day') + ` (${t('student.' + item.halfDaySlot, item.halfDaySlot)})` : t('student.fullDay', 'Full Day')}
                         </Text>
                     </View>
                     <View style={{
@@ -149,7 +151,7 @@ export default function StudentLeaves() {
                             fontSize: 12,
                             fontFamily: "DMSans-Bold",
                             textTransform: 'uppercase'
-                        }}>{item.status || 'pending'}</Text>
+                        }}>{item.status ? t('common.' + item.status, item.status) : t('common.pending', 'pending')}</Text>
                     </View>
                 </View>
 
@@ -164,7 +166,7 @@ export default function StudentLeaves() {
                         color: colors.onSurfaceVariant,
                         marginBottom: 4,
                         fontFamily: "DMSans-Medium"
-                    }}>Reason</Text>
+                    }}>{t('student.reasonLabel', 'Reason')}</Text>
                     <Text style={{
                         fontSize: 14,
                         color: colors.onSurface,
@@ -187,16 +189,16 @@ export default function StudentLeaves() {
                             fontFamily: "DMSans-Bold",
                             color: colors.error,
                             marginBottom: 4
-                        }}>Rejection Details</Text>
+                        }}>{t('student.rejectionDetails', 'Rejection Details')}</Text>
 
                         {item.rejectionReason && (
                             <Text style={{ fontSize: 13, color: colors.onErrorContainer, marginBottom: 2, fontFamily: "DMSans-Regular" }}>
-                                <Text style={{ fontFamily: "DMSans-Bold" }}>Reason: </Text>{item.rejectionReason}
+                                <Text style={{ fontFamily: "DMSans-Bold" }}>{t('common.reason', 'Reason')}: </Text>{item.rejectionReason}
                             </Text>
                         )}
                         {item.rejectionComments && (
                             <Text style={{ fontSize: 13, color: colors.onErrorContainer, fontFamily: "DMSans-Regular" }}>
-                                <Text style={{ fontFamily: "DMSans-Bold" }}>Note: </Text>{item.rejectionComments}
+                                <Text style={{ fontFamily: "DMSans-Bold" }}>{t('common.note', 'Note')}: </Text>{item.rejectionComments}
                             </Text>
                         )}
                     </View>
@@ -208,7 +210,7 @@ export default function StudentLeaves() {
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <View style={{ padding: 16, paddingBottom: 0 }}>
-                <Header title="My Leaves" showBack={true} />
+                <Header title={t('student.myLeaves', 'My Leaves')} showBack={true} />
             </View>
 
             {loading ? (
@@ -225,7 +227,7 @@ export default function StudentLeaves() {
                     ListEmptyComponent={
                         <View style={{ alignItems: 'center', marginTop: 40, opacity: 0.6 }}>
                             <MaterialIcons name="event-busy" size={64} color={colors.onSurfaceVariant} />
-                            <Text style={{ marginTop: 16, fontSize: 16, color: colors.onSurfaceVariant, fontFamily: "DMSans-Medium" }}>No leave history found.</Text>
+                            <Text style={{ marginTop: 16, fontSize: 16, color: colors.onSurfaceVariant, fontFamily: "DMSans-Medium" }}>{t('student.noLeaveHistory', 'No leave history found.')}</Text>
                         </View>
                     }
                 />
@@ -272,7 +274,7 @@ export default function StudentLeaves() {
                                 fontSize: 24,
                                 fontFamily: "DMSans-Bold",
                                 color: colors.onSurface,
-                            }}>Apply for Leave</Text>
+                            }}>{t('student.applyLeave', 'Apply for Leave')}</Text>
                             <TouchableOpacity onPress={() => setModalVisible(false)} style={{ padding: 4 }}>
                                 <Ionicons name="close" size={24} color={colors.onSurfaceVariant} />
                             </TouchableOpacity>
@@ -281,7 +283,7 @@ export default function StudentLeaves() {
                         <ScrollView showsVerticalScrollIndicator={false}>
                             {/* Leave Type Toggle */}
                             <View style={{ marginBottom: 24 }}>
-                                <Text style={styles.labelMedium}>LEAVE TYPE</Text>
+                                <Text style={styles.labelMedium}>{t('student.leaveTypeLabel', 'LEAVE TYPE')}</Text>
                                 <View style={{
                                     flexDirection: 'row',
                                     backgroundColor: colors.surfaceContainer,
@@ -304,7 +306,7 @@ export default function StudentLeaves() {
                                         <Text style={{
                                             fontFamily: !isHalfDay ? "DMSans-Bold" : "DMSans-Medium",
                                             color: !isHalfDay ? colors.primary : colors.onSurfaceVariant
-                                        }}>Full Day</Text>
+                                        }}>${t('student.fullDay', 'Full Day')}</Text>
                                     </Pressable>
                                     <Pressable
                                         style={{
@@ -322,14 +324,14 @@ export default function StudentLeaves() {
                                         <Text style={{
                                             fontFamily: isHalfDay ? "DMSans-Bold" : "DMSans-Medium",
                                             color: isHalfDay ? colors.primary : colors.onSurfaceVariant
-                                        }}>Half Day</Text>
+                                        }}>${t('student.halfDay', 'Half Day')}</Text>
                                     </Pressable>
                                 </View>
                             </View>
 
                             {isHalfDay && (
                                 <View style={{ marginBottom: 24 }}>
-                                    <Text style={styles.labelMedium}>SLOT</Text>
+                                    <Text style={styles.labelMedium}>{t('student.slotLabel', 'SLOT')}</Text>
                                     <View style={{ flexDirection: 'row', gap: 12 }}>
                                         <Pressable
                                             style={{
@@ -346,7 +348,7 @@ export default function StudentLeaves() {
                                             <Text style={{
                                                 fontFamily: "DMSans-Medium",
                                                 color: halfDaySlot === 'morning' ? colors.onSecondaryContainer : colors.onSurfaceVariant
-                                            }}>Morning</Text>
+                                            }}>${t('student.morning', 'Morning')}</Text>
                                         </Pressable>
                                         <Pressable
                                             style={{
@@ -363,7 +365,7 @@ export default function StudentLeaves() {
                                             <Text style={{
                                                 fontFamily: "DMSans-Medium",
                                                 color: halfDaySlot === 'afternoon' ? colors.onSecondaryContainer : colors.onSurfaceVariant
-                                            }}>Afternoon</Text>
+                                            }}>${t('student.afternoon', 'Afternoon')}</Text>
                                         </Pressable>
                                     </View>
                                 </View>
@@ -371,7 +373,7 @@ export default function StudentLeaves() {
 
                             <View style={{ flexDirection: 'row', gap: 16 }}>
                                 <View style={{ flex: 1, marginBottom: 24 }}>
-                                    <Text style={styles.labelMedium}>START DATE</Text>
+                                    <Text style={styles.labelMedium}>{t('student.startDateLabel', 'START DATE')}</Text>
                                     <TouchableOpacity
                                         style={{
                                             flexDirection: 'row',
@@ -409,7 +411,7 @@ export default function StudentLeaves() {
 
                                 {!isHalfDay && (
                                     <View style={{ flex: 1, marginBottom: 24 }}>
-                                        <Text style={styles.labelMedium}>END DATE</Text>
+                                        <Text style={styles.labelMedium}>{t('student.endDateLabel', 'END DATE')}</Text>
                                         <TouchableOpacity
                                             style={{
                                                 flexDirection: 'row',
@@ -443,7 +445,7 @@ export default function StudentLeaves() {
                             </View>
 
                             <View style={{ marginBottom: 32 }}>
-                                <Text style={styles.labelMedium}>REASON</Text>
+                                <Text style={styles.labelMedium}>{t('student.reasonLabel', 'REASON')}</Text>
                                 <TextInput
                                     style={{
                                         backgroundColor: colors.surfaceContainer,
@@ -455,7 +457,7 @@ export default function StudentLeaves() {
                                         minHeight: 120,
                                         textAlignVertical: 'top'
                                     }}
-                                    placeholder="Enter reason for leave..."
+                                    placeholder={t('student.enterReasonPlaceholder', 'Enter reason for leave...')}
                                     placeholderTextColor={colors.onSurfaceVariant}
                                     value={reason}
                                     onChangeText={setReason}
@@ -488,7 +490,7 @@ export default function StudentLeaves() {
                                         fontSize: 16,
                                         fontFamily: "DMSans-Bold",
                                         letterSpacing: 0.5
-                                    }}>Submit Application</Text>
+                                    }}>${t('student.submitApplication', 'Submit Application')}</Text>
                                 )}
                             </TouchableOpacity>
                         </ScrollView>

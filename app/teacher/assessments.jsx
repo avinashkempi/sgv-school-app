@@ -17,11 +17,13 @@ import AppHeader from "../../components/Header";
 import apiConfig from "../../config/apiConfig";
 import { formatClassName } from "../../utils/formatClassName";
 import { useAuth } from "../../context/AuthContext";
+import { useLabel } from "../../context/LabelsContext";
 
 export default function AssessmentDashboard() {
     const router = useRouter();
     const { _styles, colors } = useTheme();
     const { showToast } = useToast();
+    const { t } = useLabel();
     // eslint-disable-next-line no-unused-vars
     const { user, userId } = useAuth();
 
@@ -58,12 +60,12 @@ export default function AssessmentDashboard() {
         if (!selectedClass || !selectedSubject) return;
 
         Alert.alert(
-            "Initialize Exam",
-            `Are you sure you want to initialize ${type} for ${selectedClass.name} - ${selectedSubject.name}?`,
+            t('teacher.initializeExam', 'Initialize Exam'),
+            `${t('teacher.initializeExamConfirm', 'Are you sure you want to initialize')} ${type} for ${selectedClass.name} - ${selectedSubject.name}?`,
             [
-                { text: "Cancel", style: "cancel" },
+                { text: t('common.cancel', 'Cancel'), style: "cancel" },
                 {
-                    text: "Create",
+                    text: t('common.create', 'Create'),
                     onPress: async () => {
                         try {
                             await createExamMutation.mutateAsync({
@@ -73,10 +75,10 @@ export default function AssessmentDashboard() {
                                 totalMarks: type.startsWith('SA') ? 80 : 20, // Default marks, can be editable later
                                 instructions: `Standardized ${type} Assessment`
                             });
-                            showToast(`${type} created successfully`, "success");
+                            showToast(`${type} ${t('toasts.createdSuccessfully', 'created successfully')}`, "success");
                             refetchExams();
                         } catch (error) {
-                            showToast(error.message || "Failed to create exam", "error");
+                            showToast(error.message || t('toasts.failedToCreateExam', 'Failed to create exam'), "error");
                         }
                     }
                 }
@@ -98,12 +100,12 @@ export default function AssessmentDashboard() {
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
-            <AppHeader title="Assessments" subtitle="Manage Standardized Exams" />
+            <AppHeader title={t('teacher.assessmentsTitle', 'Assessments')} subtitle={t('teacher.assessmentsSubtitle', 'Manage Standardized Exams')} />
 
             <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
 
                 {/* Class Selection */}
-                <Text style={[localStyles.label, { color: colors.textPrimary }]}>Select Class</Text>
+                <Text style={[localStyles.label, { color: colors.textPrimary }]}>{t('teacher.selectClass', 'Select Class')}</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }}>
                     {loadingClasses ? (
                         <ActivityIndicator color={colors.primary} />
@@ -137,7 +139,7 @@ export default function AssessmentDashboard() {
                 {/* Subject Selection */}
                 {selectedClass && (
                     <>
-                        <Text style={[localStyles.label, { color: colors.textPrimary }]}>Select Subject</Text>
+                        <Text style={[localStyles.label, { color: colors.textPrimary }]}>{t('teacher.selectSubject', 'Select Subject')}</Text>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }}>
                             {loadingSubjects ? (
                                 <ActivityIndicator color={colors.primary} />
@@ -193,31 +195,31 @@ export default function AssessmentDashboard() {
                                         <>
                                             <View style={{ marginBottom: 16 }}>
                                                 <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: "DMSans-Regular" }}>
-                                                    Status: {item.marksEntered ? "Marks Entered" : "Pending Entry"}
+                                                    {t('common.status', 'Status')}: {item.marksEntered ? t('teacher.marksEntered', 'Marks Entered') : t('teacher.pendingEntry', 'Pending Entry')}
                                                 </Text>
                                                 <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: "DMSans-Regular", marginTop: 4 }}>
-                                                    Students Graded: {item.marksCount}
+                                                    {t('teacher.studentsGraded', 'Students Graded')}: {item.marksCount}
                                                 </Text>
                                             </View>
                                             <TouchableOpacity
                                                 style={[localStyles.button, { backgroundColor: colors.primary }]}
                                                 onPress={() => handleEnterMarks(item.exam)}
                                             >
-                                                <Text style={localStyles.buttonText}>Manage Marks</Text>
+                                                <Text style={localStyles.buttonText}>{t('teacher.manageMarks', 'Manage Marks')}</Text>
                                             </TouchableOpacity>
                                         </>
                                     ) : (
                                         <>
                                             <View style={{ marginBottom: 16 }}>
                                                 <Text style={{ fontSize: 12, color: colors.textSecondary, fontFamily: "DMSans-Regular" }}>
-                                                    Not Created Yet
+                                                    {t('teacher.notCreatedYet', 'Not Created Yet')}
                                                 </Text>
                                             </View>
                                             <TouchableOpacity
                                                 style={[localStyles.button, { backgroundColor: colors.cardBackground, borderWidth: 1, borderColor: colors.primary }]}
                                                 onPress={() => handleCreateExam(item.type)}
                                             >
-                                                <Text style={[localStyles.buttonText, { color: colors.primary }]}>Initialize</Text>
+                                                <Text style={[localStyles.buttonText, { color: colors.primary }]}>{t('teacher.initialize', 'Initialize')}</Text>
                                             </TouchableOpacity>
                                         </>
                                     )}
@@ -229,7 +231,7 @@ export default function AssessmentDashboard() {
                     <View style={{ alignItems: "center", marginTop: 60 }}>
                         <MaterialIcons name="assignment" size={60} color={colors.textSecondary + "40"} />
                         <Text style={{ color: colors.textSecondary, marginTop: 16, fontFamily: "DMSans-Medium" }}>
-                            Select a Class and Subject to view exams
+                            {t('teacher.selectClassSubjectToViewExams', 'Select a Class and Subject to view exams')}
                         </Text>
                     </View>
                 )}

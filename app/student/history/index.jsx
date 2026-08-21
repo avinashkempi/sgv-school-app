@@ -4,6 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme } from '../../../theme';
 import Header from '../../../components/Header';
+import { useLabel } from '../../../context/LabelsContext';
 import Card from '../../../components/Card';
 import { LoadingState, EmptyState, ErrorState } from '../../../components/StateComponents';
 import apiFetch from '../../../utils/apiFetch';
@@ -14,6 +15,7 @@ export default function StudentHistoryScreen() {
     const router = useRouter();
     // eslint-disable-next-line no-unused-vars
     const { colors, styles } = useTheme();
+    const { t } = useLabel();
 
     const [historyData, setHistoryData] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -62,7 +64,7 @@ export default function StudentHistoryScreen() {
     };
 
     if (loading && !refreshing) {
-        return <LoadingState message="Retrieving your academic history..." />;
+        return <LoadingState message={t('student.retrievingAcademicHistory', 'Retrieving your academic history...')} />;
     }
 
     if (error && historyData.length === 0) {
@@ -76,16 +78,16 @@ export default function StudentHistoryScreen() {
                 contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
             >
                 <Header
-                    title="Past Reports"
-                    subtitle="Your Academic Journey"
+                    title={t('student.pastReports', 'Past Reports')}
+                    subtitle={t('student.academicJourney', 'Your Academic Journey')}
                     showBack
                 />
 
                 {historyData.length === 0 ? (
                     <EmptyState
                         icon="history"
-                        title="No History Found"
-                        message="Looks like you don't have any archived academic records yet."
+                        title={t('student.noHistoryFound', 'No History Found')}
+                        message={t('student.noArchivedRecords', "Looks like you don't have any archived academic records yet.")}
                     />
                 ) : (
                     <View style={{ gap: 16, marginTop: 8 }}>
@@ -96,12 +98,12 @@ export default function StudentHistoryScreen() {
                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                                             <MaterialIcons name="school" size={24} color={colors.primary} />
                                             <Text style={{ fontSize: 18, fontFamily: 'DMSans-Bold', color: colors.onSurface }}>
-                                                Class {record.class?.label || record.class?.name || 'Unknown'}
+                                                ${t('common.class', 'Class')} ${record.class?.label || record.class?.name || t('common.unknown', 'Unknown')}
                                             </Text>
                                         </View>
                                         <View style={{ backgroundColor: colors.surfaceContainerHigh, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
                                             <Text style={{ fontSize: 12, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant }}>
-                                                {record.academicYear?.name || 'Unknown Year'}
+                                                {record.academicYear?.name || t('student.unknownYear', 'Unknown Year')}
                                             </Text>
                                         </View>
                                     </View>
@@ -109,7 +111,7 @@ export default function StudentHistoryScreen() {
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
                                         <View>
                                             <Text style={{ fontSize: 13, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Regular', marginBottom: 4 }}>
-                                                Final Status
+                                                {t('student.finalStatus', 'Final Status')}
                                             </Text>
                                             <Text style={{
                                                 fontSize: 15,
@@ -118,23 +120,23 @@ export default function StudentHistoryScreen() {
                                                     record.finalStatus === 'graduated' ? colors.primary : colors.error,
                                                 textTransform: 'capitalize'
                                             }}>
-                                                {record.finalStatus}
+                                                {t('student.status_' + record.finalStatus, record.finalStatus)}
                                             </Text>
                                         </View>
 
                                         <View>
                                             <Text style={{ fontSize: 13, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Regular', marginBottom: 4 }}>
-                                                Attendance
+                                                {t('common.attendance', 'Attendance')}
                                             </Text>
                                             <Text style={{ fontSize: 15, fontFamily: 'DMSans-Bold', color: colors.onSurface }}>
-                                                {record.totalAttendancePercentage ? `${record.totalAttendancePercentage}%` : 'N/A'}
+                                                {record.totalAttendancePercentage ? `${record.totalAttendancePercentage}%` : t('common.na', 'N/A')}
                                             </Text>
                                         </View>
 
                                         {record.examsAvailable && (
                                             <View>
                                                 <Text style={{ fontSize: 13, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Regular', marginBottom: 4 }}>
-                                                    Overall
+                                                    {t('common.overall', 'Overall')}
                                                 </Text>
                                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                                                     <Text style={{ fontSize: 15, fontFamily: 'DMSans-Bold', color: getGradeColor(record.grade) }}>

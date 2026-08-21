@@ -19,6 +19,7 @@ import SegmentedControl from "../../../components/SegmentedControl";
 import UserDetailModal from "../../../components/UserDetailModal";
 import apiConfig from "../../../config/apiConfig";
 import { LineChart } from "react-native-chart-kit";
+import { useLabel } from "../../../context/LabelsContext";
 
 const { width } = Dimensions.get('window');
 
@@ -44,6 +45,7 @@ export default function ClassPerformanceScreen() {
     const _router = useRouter();
     const params = useLocalSearchParams();
     const { colors } = useTheme();
+    const { t } = useLabel();
     const { classId } = params;
 
     const [refreshing, setRefreshing] = useState(false);
@@ -159,8 +161,8 @@ export default function ClassPerformanceScreen() {
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
                     <AppHeader
-                        title={className ? `${className} • Performance` : "Class Performance"}
-                        subtitle={totalStudents > 0 ? `Comprehensive analytics for ${totalStudents} students` : "Performance & Marks Analytics"}
+                        title={className ? `${className} • ${t('teacher.performance', 'Performance')}` : t('teacher.classPerformance', "Class Performance")}
+                        subtitle={totalStudents > 0 ? t('teacher.performanceAnalyticsWithCount', 'Comprehensive analytics for {{count}} students').replace('{{count}}', totalStudents) : t('teacher.performanceMarksAnalytics', "Performance & Marks Analytics")}
                         showBack
                     />
 
@@ -168,14 +170,14 @@ export default function ClassPerformanceScreen() {
                         <View style={{ paddingVertical: 64, alignItems: 'center', justifyContent: 'center' }}>
                             <ActivityIndicator size="large" color={colors.primary} />
                             <Text style={{ color: colors.onSurfaceVariant, marginTop: 16, fontSize: 14, fontFamily: 'DMSans-Medium' }}>
-                                Loading class performance analytics...
+                                {t('teacher.loadingPerformanceAnalytics', 'Loading class performance analytics...')}
                             </Text>
                         </View>
                     ) : !performanceData ? (
                         <View style={{ paddingVertical: 64, alignItems: 'center', justifyContent: 'center' }}>
                             <MaterialIcons name="info-outline" size={56} color={colors.onSurfaceVariant} style={{ opacity: 0.5 }} />
                             <Text style={{ color: colors.onSurfaceVariant, marginTop: 16, fontSize: 15, fontFamily: 'DMSans-Medium', textAlign: 'center' }}>
-                                No performance data available for this class
+                                {t('teacher.noPerformanceData', 'No performance data available for this class')}
                             </Text>
                         </View>
                     ) : (
@@ -183,7 +185,7 @@ export default function ClassPerformanceScreen() {
 
                             {/* Top Executive KPI Row */}
                             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 16 }}>
-                                {/* Class Avg Card */}
+                                {/* Class {t('common.avg', 'Avg')} Card */}
                                 <Card
                                     variant="elevated"
                                     style={{ flex: 1, minWidth: '47%' }}
@@ -191,7 +193,7 @@ export default function ClassPerformanceScreen() {
                                 >
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Medium' }}>
-                                            Class Average
+                                            {t('teacher.classAverage', 'Class Average')}
                                         </Text>
                                         <View style={{
                                             backgroundColor: (insights.grade ? (GRADE_COLORS[insights.grade] || colors.primary) : colors.primary) + '20',
@@ -217,11 +219,11 @@ export default function ClassPerformanceScreen() {
                                         {insights.classAverage !== undefined ? `${insights.classAverage}%` : '0%'}
                                     </Text>
                                     <Text style={{ fontSize: 11, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Regular', marginTop: 2 }}>
-                                        Across completed exams
+                                        {t('teacher.acrossCompletedExams', 'Across completed exams')}
                                     </Text>
                                 </Card>
 
-                                {/* Pass Rate Card */}
+                                {/* {t('teacher.passRate', 'Pass Rate')} Card */}
                                 <Card
                                     variant="elevated"
                                     style={{ flex: 1, minWidth: '47%' }}
@@ -229,7 +231,7 @@ export default function ClassPerformanceScreen() {
                                 >
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Medium' }}>
-                                            Pass Rate (≥35%)
+                                            {t('teacher.passRateLimit', 'Pass Rate (≥35%)')}
                                         </Text>
                                         <MaterialIcons name="verified" size={16} color={colors.success} />
                                     </View>
@@ -242,7 +244,7 @@ export default function ClassPerformanceScreen() {
                                         {insights.passingRate !== undefined ? `${insights.passingRate}%` : '0%'}
                                     </Text>
                                     <Text style={{ fontSize: 11, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Regular', marginTop: 2 }}>
-                                        {students.filter(s => s.overallPercentage >= 35).length} of {totalStudents} students
+                                        {students.filter(s => s.overallPercentage >= 35).length} {t('common.of', 'of')} {totalStudents} {t('common.students', 'students')}
                                     </Text>
                                 </Card>
 
@@ -254,7 +256,7 @@ export default function ClassPerformanceScreen() {
                                 >
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Medium' }}>
-                                            Top Performer
+                                            {t('teacher.topPerformer', 'Top Performer')}
                                         </Text>
                                         <Text style={{ fontSize: 16 }}>🥇</Text>
                                     </View>
@@ -267,10 +269,10 @@ export default function ClassPerformanceScreen() {
                                             marginTop: 6
                                         }}
                                     >
-                                        {insights.topPerformer?.name || 'N/A'}
+                                        {insights.topPerformer?.name || t('common.na', 'N/A')}
                                     </Text>
                                     <Text style={{ fontSize: 12, color: colors.success, fontFamily: 'DMSans-Bold', marginTop: 2 }}>
-                                        {insights.topPerformer?.percentage ? `${insights.topPerformer.percentage}%` : '0%'} (Grade {insights.topPerformer?.grade || '-'})
+                                        {insights.topPerformer?.percentage ? `${insights.topPerformer.percentage}%` : '0%'} ({t('common.grade', 'Grade')} {insights.topPerformer?.grade || '-'})
                                     </Text>
                                 </Card>
 
@@ -282,7 +284,7 @@ export default function ClassPerformanceScreen() {
                                 >
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Medium' }}>
-                                            Subjects & Exams
+                                            {t('teacher.subjectsAndExams', 'Subjects & Exams')}
                                         </Text>
                                         <MaterialIcons name="menu-book" size={16} color={colors.primary} />
                                     </View>
@@ -295,7 +297,7 @@ export default function ClassPerformanceScreen() {
                                         {subjectWise.length}
                                     </Text>
                                     <Text style={{ fontSize: 11, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Regular', marginTop: 2 }}>
-                                        {performance.filter(p => p.isComplete).length}/6 Exam Cycles Done
+                                        {performance.filter(p => p.isComplete).length}/6 {t('teacher.examCyclesDone', 'Exam Cycles Done')}
                                     </Text>
                                 </Card>
                             </View>
@@ -303,9 +305,9 @@ export default function ClassPerformanceScreen() {
                             {/* Main Navigation Segmented Control */}
                             <SegmentedControl
                                 tabs={[
-                                    { key: "overview", label: "📊 Overview" },
-                                    { key: "subjects", label: `📚 Subjects (${subjectWise.length})` },
-                                    { key: "students", label: `🎓 Students (${students.length})` }
+                                    { key: "overview", label: "📊 " + t('common.overview', 'Overview') },
+                                    { key: "subjects", label: "📚 " + t('teacher.subjects', 'Subjects') + ` (${subjectWise.length})` },
+                                    { key: "students", label: "🎓 " + t('common.students', 'Students') + ` (${students.length})` }
                                 ]}
                                 activeTab={activeTab}
                                 onTabChange={setActiveTab}
@@ -315,7 +317,7 @@ export default function ClassPerformanceScreen() {
                             {/* TAB 1: OVERVIEW & EXAMS */}
                             {activeTab === "overview" && (
                                 <View>
-                                    {/* Performance Trend Chart */}
+                                    {/* {t('teacher.performanceTrend', 'Performance Trend')} Chart */}
                                     {completedExams.length > 0 && (
                                         <Card
                                             variant="elevated"
@@ -328,7 +330,7 @@ export default function ClassPerformanceScreen() {
                                                         Performance Trend
                                                     </Text>
                                                     <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Regular', marginTop: 2 }}>
-                                                        Average score progression across standardized exams
+                                                        {t('teacher.averageScoreProgression', 'Average score progression across standardized exams')}
                                                     </Text>
                                                 </View>
                                                 <MaterialIcons name="show-chart" size={22} color={colors.primary} />
@@ -361,7 +363,7 @@ export default function ClassPerformanceScreen() {
                                         </Card>
                                     )}
 
-                                    {/* Grade Distribution Breakdown */}
+                                    {/* {t('teacher.gradeDistribution', 'Grade Distribution')} Breakdown */}
                                     {insights.gradeDistribution && (
                                         <Card
                                             variant="elevated"
@@ -407,10 +409,10 @@ export default function ClassPerformanceScreen() {
                                     {/* Exam-wise Breakdown Cards with Expandable Subjects */}
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, marginBottom: 12 }}>
                                         <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
-                                            Standardized Exam Cycles
+                                            {t('teacher.standardizedExamCycles', 'Standardized Exam Cycles')}
                                         </Text>
                                         <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Medium' }}>
-                                            Tap card for subjects
+                                            {t('teacher.tapCardForSubjects', 'Tap card for subjects')}
                                         </Text>
                                     </View>
 
@@ -442,10 +444,10 @@ export default function ClassPerformanceScreen() {
                                                             </View>
                                                             <View>
                                                                 <Text style={{ fontSize: 17, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
-                                                                    {exam.examType} Examination
+                                                                    {exam.examType} {t('teacher.examination', 'Examination')}
                                                                 </Text>
                                                                 <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, fontFamily: "DMSans-Regular", marginTop: 2 }}>
-                                                                    {exam.subjectsCount} subject{exam.subjectsCount !== 1 ? 's' : ''} • {exam.studentsWithMarks}/{totalStudents} evaluated
+                                                                    {exam.subjectsCount} {exam.subjectsCount !== 1 ? t('common.subjects', 'subjects') : t('common.subject', 'subject')} • {exam.studentsWithMarks}/{totalStudents} {t('teacher.evaluated', 'evaluated')}
                                                                 </Text>
                                                             </View>
                                                         </View>
@@ -459,7 +461,7 @@ export default function ClassPerformanceScreen() {
                                                                     borderRadius: 8
                                                                 }}>
                                                                     <Text style={{ color: colors.success, fontFamily: "DMSans-Bold", fontSize: 11 }}>
-                                                                        COMPLETE
+                                                                        {t('common.complete', 'COMPLETE')}
                                                                     </Text>
                                                                 </View>
                                                             ) : (
@@ -470,7 +472,7 @@ export default function ClassPerformanceScreen() {
                                                                     borderRadius: 8
                                                                 }}>
                                                                     <Text style={{ color: colors.onSurfaceVariant, fontFamily: "DMSans-Bold", fontSize: 11 }}>
-                                                                        PENDING
+                                                                        {t('common.pending', 'PENDING')}
                                                                     </Text>
                                                                 </View>
                                                             )}
@@ -521,7 +523,7 @@ export default function ClassPerformanceScreen() {
                                                 {isExpanded && exam.subjects && exam.subjects.length > 0 && (
                                                     <View style={{ marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.outlineVariant }}>
                                                         <Text style={{ fontSize: 13, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginBottom: 8 }}>
-                                                            Subject Breakdown for {exam.examType}
+                                                            {t('teacher.subjectBreakdownFor', 'Subject Breakdown for')} {exam.examType}
                                                         </Text>
                                                         {exam.subjects.map((sub) => (
                                                             <View
@@ -547,10 +549,10 @@ export default function ClassPerformanceScreen() {
                                                                 </View>
                                                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
                                                                     <Text style={{ fontSize: 11, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Regular' }}>
-                                                                        Max: {sub.totalMarks} marks • Evaluated: {sub.marksEntered}/{sub.totalStudents}
+                                                                        {t('common.max', 'Max')}: {sub.totalMarks} {t('teacher.marks', 'marks')} • {t('teacher.evaluated', 'Evaluated')}: {sub.marksEntered}/{sub.totalStudents}
                                                                     </Text>
                                                                     <Text style={{ fontSize: 11, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Regular' }}>
-                                                                        High: <Text style={{ color: colors.success, fontFamily: 'DMSans-Bold' }}>{sub.highest}%</Text> • Low: <Text style={{ color: colors.error, fontFamily: 'DMSans-Bold' }}>{sub.lowest}%</Text>
+                                                                        {t('common.high', 'High')}: <Text style={{ color: colors.success, fontFamily: 'DMSans-Bold' }}>{sub.highest}%</Text> • {t('common.low', 'Low')}: <Text style={{ color: colors.error, fontFamily: 'DMSans-Bold' }}>{sub.lowest}%</Text>
                                                                     </Text>
                                                                 </View>
                                                             </View>
@@ -565,7 +567,7 @@ export default function ClassPerformanceScreen() {
                                         <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
                                             <MaterialIcons name="assessment" size={64} color={colors.onSurfaceVariant} />
                                             <Text style={{ color: colors.onSurfaceVariant, marginTop: 16, fontSize: 15, textAlign: 'center' }}>
-                                                No exam cycles available yet.
+                                                {t('teacher.noExamCyclesYet', 'No exam cycles available yet.')}
                                             </Text>
                                         </View>
                                     )}
@@ -587,14 +589,14 @@ export default function ClassPerformanceScreen() {
                                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                                                         <Text style={{ fontSize: 14 }}>🌟</Text>
                                                         <Text style={{ fontSize: 11, fontFamily: 'DMSans-Bold', color: colors.success }}>
-                                                            TOP SUBJECT
+                                                            {t('teacher.topSubject', 'TOP SUBJECT')}
                                                         </Text>
                                                     </View>
                                                     <Text style={{ fontSize: 15, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginTop: 4 }}>
                                                         {insights.bestSubject.name}
                                                     </Text>
                                                     <Text style={{ fontSize: 12, color: colors.success, fontFamily: 'DMSans-Medium', marginTop: 2 }}>
-                                                        {insights.bestSubject.avgPercentage}% Class Avg
+                                                        {insights.bestSubject.avgPercentage}% {t('teacher.classAvg', 'Class Avg')}
                                                     </Text>
                                                 </Card>
                                             )}
@@ -608,7 +610,7 @@ export default function ClassPerformanceScreen() {
                                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                                                         <Text style={{ fontSize: 14 }}>⚠️</Text>
                                                         <Text style={{ fontSize: 11, fontFamily: 'DMSans-Bold', color: colors.error }}>
-                                                            NEEDS FOCUS
+                                                            {t('teacher.needsFocus', 'NEEDS FOCUS')}
                                                         </Text>
                                                     </View>
                                                     <Text style={{ fontSize: 15, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginTop: 4 }}>
@@ -625,10 +627,10 @@ export default function ClassPerformanceScreen() {
                                     {/* Subjects List */}
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                                         <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
-                                            Subject Analytics ({subjectWise.length})
+                                            {t('teacher.subjectAnalytics', 'Subject Analytics')} ({subjectWise.length})
                                         </Text>
                                         <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, fontFamily: "DMSans-Medium" }}>
-                                            Ranked by Average
+                                            {t('teacher.rankedByAverage', 'Ranked by Average')}
                                         </Text>
                                     </View>
 
@@ -661,7 +663,7 @@ export default function ClassPerformanceScreen() {
                                                                     {subject.subjectName}
                                                                 </Text>
                                                                 <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, fontFamily: "DMSans-Regular", marginTop: 2 }}>
-                                                                    {subject.examsConducted} Exams Conducted • {subject.passPercentage}% Pass Rate
+                                                                    {subject.examsConducted} {t('teacher.examsConducted', 'Exams Conducted')} • {subject.passPercentage}% Pass Rate
                                                                 </Text>
                                                             </View>
                                                         </View>
@@ -674,7 +676,7 @@ export default function ClassPerformanceScreen() {
                                                                 borderRadius: 6
                                                             }}>
                                                                 <Text style={{ fontSize: 12, fontFamily: 'DMSans-Bold', color: gradeColor }}>
-                                                                    Grade {subject.grade}
+                                                                    {t('common.grade', 'Grade')} {subject.grade}
                                                                 </Text>
                                                             </View>
                                                             <Text style={{
@@ -706,14 +708,14 @@ export default function ClassPerformanceScreen() {
                                                     {/* Quick Stats Footnote */}
                                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
                                                         <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Regular' }}>
-                                                            Highest: <Text style={{ color: colors.success, fontFamily: 'DMSans-Bold' }}>{subject.highest}%</Text>
+                                                            {t('common.highest', 'Highest')}: <Text style={{ color: colors.success, fontFamily: 'DMSans-Bold' }}>{subject.highest}%</Text>
                                                         </Text>
                                                         <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Regular' }}>
-                                                            Lowest: <Text style={{ color: colors.error, fontFamily: 'DMSans-Bold' }}>{subject.lowest}%</Text>
+                                                            {t('common.lowest', 'Lowest')}: <Text style={{ color: colors.error, fontFamily: 'DMSans-Bold' }}>{subject.lowest}%</Text>
                                                         </Text>
                                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
                                                             <Text style={{ fontSize: 11, color: colors.primary, fontFamily: 'DMSans-Bold' }}>
-                                                                {isExpanded ? "Hide Cycle History" : "View Cycle History"}
+                                                                {isExpanded ? t('teacher.hideCycleHistory', 'Hide Cycle History') : t('teacher.viewCycleHistory', 'View Cycle History')}
                                                             </Text>
                                                             <MaterialIcons
                                                                 name={isExpanded ? "keyboard-arrow-up" : "keyboard-arrow-down"}
@@ -728,7 +730,7 @@ export default function ClassPerformanceScreen() {
                                                 {isExpanded && subject.examScores && (
                                                     <View style={{ marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.outlineVariant }}>
                                                         <Text style={{ fontSize: 13, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginBottom: 8 }}>
-                                                            Exam Progression for {subject.subjectName}
+                                                            {t('teacher.examProgressionFor', 'Exam Progression for')} {subject.subjectName}
                                                         </Text>
                                                         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                                                             {subject.examScores.map((es) => (
@@ -755,7 +757,7 @@ export default function ClassPerformanceScreen() {
                                                                         {es.conducted && es.avgPercentage !== null ? `${es.avgPercentage}%` : '-'}
                                                                     </Text>
                                                                     <Text style={{ fontSize: 9, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Regular', marginTop: 1 }}>
-                                                                        {es.conducted ? `${es.marksEntered} evaluated` : 'Not Held'}
+                                                                        {es.conducted ? `${es.marksEntered} ${t('teacher.evaluated', 'evaluated')}` : t('teacher.notHeld', 'Not Held')}
                                                                     </Text>
                                                                 </View>
                                                             ))}
@@ -770,7 +772,7 @@ export default function ClassPerformanceScreen() {
                                         <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
                                             <MaterialIcons name="menu-book" size={64} color={colors.onSurfaceVariant} />
                                             <Text style={{ color: colors.onSurfaceVariant, marginTop: 16, fontSize: 15, textAlign: 'center' }}>
-                                                No subjects found for this class.
+                                                {t('teacher.noSubjectsFoundClass', 'No subjects found for this class.')}
                                             </Text>
                                         </View>
                                     )}
@@ -794,7 +796,7 @@ export default function ClassPerformanceScreen() {
                                         <RNTextInput
                                             value={searchQuery}
                                             onChangeText={setSearchQuery}
-                                            placeholder="Search student name, roll or reg no..."
+                                            placeholder={t('teacher.searchStudentsPlaceholder', 'Search student name, roll or reg no...')}
                                             placeholderTextColor={colors.onSurfaceVariant + '80'}
                                             style={{
                                                 flex: 1,
@@ -815,10 +817,10 @@ export default function ClassPerformanceScreen() {
                                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
                                         <View style={{ flexDirection: 'row', gap: 8 }}>
                                             {[
-                                                { id: "all", label: `All (${students.length})` },
-                                                { id: "top", label: `🌟 Top (>80%)` },
-                                                { id: "average", label: `📈 Average (50-80%)` },
-                                                { id: "attention", label: `⚠️ Needs Help (<50%)` }
+                                                { id: "all", label: `${t('common.all', 'All')} (${students.length})` },
+                                                { id: "top", label: `🌟 ${t('teacher.topPercent', 'Top (>80%)')}` },
+                                                { id: "average", label: `📈 ${t('teacher.averagePercent', 'Average (50-80%)')}` },
+                                                { id: "attention", label: `⚠️ ${t('teacher.needsHelpPercent', 'Needs Help (<50%)')}` }
                                             ].map(chip => {
                                                 const isActive = studentFilter === chip.id;
                                                 return (
@@ -849,7 +851,7 @@ export default function ClassPerformanceScreen() {
                                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
                                         <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
                                             <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Medium', marginRight: 4 }}>
-                                                Exam Cycle:
+                                                {t('teacher.examCycleLabel', 'Exam Cycle:')}
                                             </Text>
                                             {examTypes.map(type => {
                                                 const isActive = selectedExamFilter === type;
@@ -882,7 +884,7 @@ export default function ClassPerformanceScreen() {
                                     {/* Sort Selector and Result Count */}
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                                         <Text style={{ fontSize: 13, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Medium' }}>
-                                            Showing {filteredStudents.length} of {students.length} students
+                                            {t('common.showing', 'Showing')} {filteredStudents.length} {t('common.of', 'of')} {students.length} {t('common.students', 'students')}
                                         </Text>
                                         <View style={{ flexDirection: 'row', gap: 6 }}>
                                             <Pressable
@@ -899,7 +901,7 @@ export default function ClassPerformanceScreen() {
                                             >
                                                 <MaterialIcons name="sort" size={16} color={colors.primary} />
                                                 <Text style={{ fontSize: 11, fontFamily: 'DMSans-Bold', color: colors.primary }}>
-                                                    Sort: {sortBy === 'rank' ? 'Class Rank' : sortBy === 'name' ? 'Name (A-Z)' : 'Score'}
+                                                    {t('common.sort', 'Sort')}: {sortBy === 'rank' ? t('teacher.classRank', 'Class Rank') : sortBy === 'name' ? t('common.name', 'Name (A-Z)') : t('teacher.score', 'Score')}
                                                 </Text>
                                             </Pressable>
                                         </View>
@@ -948,7 +950,7 @@ export default function ClassPerformanceScreen() {
                                                                     {student.name}
                                                                 </Text>
                                                                 <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, fontFamily: "DMSans-Regular", marginTop: 2 }}>
-                                                                    {student.rollNumber ? `Roll: ${student.rollNumber}` : (student.regNo ? `Reg: ${student.regNo}` : '')}
+                                                                    {student.rollNumber ? `${t('common.roll', 'Roll')}: ${student.rollNumber}` : (student.regNo ? `${t('common.reg', 'Reg')}: ${student.regNo}` : '')}
                                                                     {student.gender ? ` • ${student.gender}` : ''}
                                                                 </Text>
 
@@ -991,7 +993,7 @@ export default function ClassPerformanceScreen() {
                                                                 borderRadius: 6
                                                             }}>
                                                                 <Text style={{ fontSize: 12, fontFamily: 'DMSans-Bold', color: gradeColor }}>
-                                                                    Grade {student.grade}
+                                                                    {t('common.grade', 'Grade')} {student.grade}
                                                                 </Text>
                                                             </View>
                                                             <Text style={{
@@ -1014,11 +1016,11 @@ export default function ClassPerformanceScreen() {
                                                         borderTopColor: colors.outlineVariant
                                                     }}>
                                                         <Text style={{ fontSize: 11, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Regular' }}>
-                                                            {student.examsAttempted} exams evaluated • Total: {student.totalObtained}/{student.totalMax} marks
+                                                            {student.examsAttempted} {t('teacher.examsEvaluated', 'exams evaluated')} • {t('common.total', 'Total')}: {student.totalObtained}/{student.totalMax} {t('teacher.marks', 'marks')}
                                                         </Text>
                                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
                                                             <Text style={{ fontSize: 11, color: colors.primary, fontFamily: 'DMSans-Bold' }}>
-                                                                {isExpanded ? "Hide Details" : "View Subject Breakdown"}
+                                                                {isExpanded ? t('common.hideDetails', 'Hide Details') : t('teacher.viewSubjectBreakdown', 'View Subject Breakdown')}
                                                             </Text>
                                                             <MaterialIcons
                                                                 name={isExpanded ? "keyboard-arrow-up" : "keyboard-arrow-down"}
@@ -1034,7 +1036,7 @@ export default function ClassPerformanceScreen() {
                                                     <View style={{ marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: colors.outlineVariant }}>
                                                         {/* Subject wise marks table */}
                                                         <Text style={{ fontSize: 13, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginBottom: 8 }}>
-                                                            Subject-wise Performance
+                                                            {t('teacher.subjectWisePerformance', 'Subject-wise Performance')}
                                                         </Text>
                                                         {student.subjectBreakdown && student.subjectBreakdown.length > 0 ? (
                                                             student.subjectBreakdown.map(sub => (
@@ -1056,7 +1058,7 @@ export default function ClassPerformanceScreen() {
                                                                             {sub.subjectName}
                                                                         </Text>
                                                                         <Text style={{ fontSize: 11, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Regular' }}>
-                                                                            Obtained: {sub.obtainedMarks}/{sub.maxMarks} marks
+                                                                            {t('teacher.obtained', 'Obtained')}: {sub.obtainedMarks}/{sub.maxMarks} {t('teacher.marks', 'marks')}
                                                                         </Text>
                                                                     </View>
                                                                     <View style={{ alignItems: 'flex-end' }}>
@@ -1068,14 +1070,14 @@ export default function ClassPerformanceScreen() {
                                                                             {sub.percentage !== null ? `${sub.percentage}%` : '-'}
                                                                         </Text>
                                                                         <Text style={{ fontSize: 10, color: GRADE_COLORS[sub.grade] || colors.onSurfaceVariant, fontFamily: 'DMSans-Bold' }}>
-                                                                            Grade {sub.grade}
+                                                                            {t('common.grade', 'Grade')} {sub.grade}
                                                                         </Text>
                                                                     </View>
                                                                 </View>
                                                             ))
                                                         ) : (
                                                             <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, fontStyle: 'italic' }}>
-                                                                No subject marks recorded yet.
+                                                                {t('teacher.noSubjectMarksYet', 'No subject marks recorded yet.')}
                                                             </Text>
                                                         )}
 
@@ -1111,7 +1113,7 @@ export default function ClassPerformanceScreen() {
                                                                             {pct !== null ? `${pct}%` : '-'}
                                                                         </Text>
                                                                         <Text style={{ fontSize: 8, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Regular' }}>
-                                                                            {examData ? `${examData.marksEntered}/${examData.totalSubjects} done` : '-'}
+                                                                            {examData ? `${examData.marksEntered}/${examData.totalSubjects} ${t('common.done', 'done')}` : '-'}
                                                                         </Text>
                                                                     </View>
                                                                 );
@@ -1134,7 +1136,7 @@ export default function ClassPerformanceScreen() {
                                                         >
                                                             <MaterialIcons name="person" size={16} color={colors.onPrimaryContainer} />
                                                             <Text style={{ fontSize: 12, fontFamily: 'DMSans-Bold', color: colors.onPrimaryContainer }}>
-                                                                View Student Profile
+                                                                {t('teacher.viewStudentProfile', 'View Student Profile')}
                                                             </Text>
                                                         </Pressable>
                                                     </View>
@@ -1147,7 +1149,7 @@ export default function ClassPerformanceScreen() {
                                         <View style={{ alignItems: "center", marginTop: 32, padding: 16 }}>
                                             <MaterialIcons name="person-search" size={56} color={colors.onSurfaceVariant} style={{ opacity: 0.5 }} />
                                             <Text style={{ color: colors.onSurfaceVariant, marginTop: 12, fontSize: 15, fontFamily: 'DMSans-Medium', textAlign: 'center' }}>
-                                                No students match your search or filter criteria.
+                                                {t('teacher.noStudentsMatchCriteria', 'No students match your search or filter criteria.')}
                                             </Text>
                                         </View>
                                     )}

@@ -20,6 +20,7 @@ import { formatClassName } from "../../utils/formatClassName";
 import { useAuth } from "../../context/AuthContext";
 import SegmentedControl from "../../components/SegmentedControl";
 import { EmptyState, LoadingState } from "../../components/StateComponents";
+import { useLabel } from '../../context/LabelsContext';
 
 export default function TeacherDashboard() {
     const router = useRouter();
@@ -33,6 +34,7 @@ export default function TeacherDashboard() {
 
     const [refreshing, setRefreshing] = useState(false);
     const [activeTab, setActiveTab] = useState('classTeacher'); // 'classTeacher' or 'mySubjects'
+    const { t } = useLabel();
 
     const { data: dashboardData, isLoading: loading, refetch } = useApiQuery(
         ['teacherDashboard', userId],
@@ -73,7 +75,7 @@ export default function TeacherDashboard() {
                     alwaysBounceVertical={true}
                     showsVerticalScrollIndicator={false}
                 >
-                    <AppHeader title="Dashboard" subtitle="Staff quick actions" />
+                    <AppHeader title={t('nav.dashboard')} subtitle={t('teacher.staffDashboardSubtitle')} />
 
                     <View style={{ marginTop: 12 }}>
                         <Card
@@ -106,14 +108,14 @@ export default function TeacherDashboard() {
                                         color: colors.onSurface,
                                         marginBottom: 4
                                     }}>
-                                        School Timetable
+                                        {t('teacher.schoolTimetable')}
                                     </Text>
                                     <Text style={{
                                         fontSize: 13,
                                         color: colors.onSurfaceVariant,
                                         fontFamily: "DMSans-Regular"
                                     }}>
-                                        View all classes and period schedules
+                                        {t('teacher.viewAllSchedules')}
                                     </Text>
                                 </View>
                             </View>
@@ -142,8 +144,8 @@ export default function TeacherDashboard() {
             {asClassTeacher.length === 0 ? (
                 <EmptyState
                     icon="class"
-                    title="Not a Class Teacher"
-                    message={'You are not a class teacher of any class. Check "My Subjects" tab to see subjects you teach.'}
+                    title={t('teacher.notClassTeacherTitle')}
+                    message={t('teacher.notClassTeacherMessage')}
                 />
             ) : (
                 asClassTeacher.map((cls) => (
@@ -177,7 +179,7 @@ export default function TeacherDashboard() {
                                         color: colors.onSurfaceVariant,
                                         fontFamily: "DMSans-Medium"
                                     }}>
-                                        {cls.studentCount} students
+                                        {cls.studentCount} {t('common.students')}
                                     </Text>
                                 </View>
 
@@ -190,7 +192,7 @@ export default function TeacherDashboard() {
                                             fontFamily: "DMSans-Medium",
                                             flex: 1
                                         }}>
-                                            Teaching: {cls.mySubjects.join(", ")}
+                                            {t('common.teaching')}: {cls.mySubjects.join(", ")}
                                         </Text>
                                     </View>
                                 )}
@@ -210,7 +212,7 @@ export default function TeacherDashboard() {
                                     fontFamily: "DMSans-Bold",
                                     textTransform: "uppercase"
                                 }}>
-                                    CLASS TEACHER
+                                    {t('teacher.classTeacher')}
                                 </Text>
                             </View>
                         </View>
@@ -227,8 +229,8 @@ export default function TeacherDashboard() {
             {Object.keys(groupedSubjects).length === 0 ? (
                 <EmptyState
                     icon="library-books"
-                    title="No Subjects Assigned"
-                    message={'No subjects have been assigned to you yet. Check "As Class Teacher" tab to see your class.'}
+                    title={t('teacher.noSubjectsTitle')}
+                    message={t('teacher.noSubjectsMessage')}
                 />
             ) : (
                 allMySubjects.map((subj) => (
@@ -271,7 +273,7 @@ export default function TeacherDashboard() {
                                             color: colors.success,
                                             fontFamily: "DMSans-Bold"
                                         }}>
-                                            MY CLASS
+                                            {t('teacher.myClass')}
                                         </Text>
                                     </View>
                                 )}
@@ -300,7 +302,7 @@ export default function TeacherDashboard() {
                 showsVerticalScrollIndicator={false}
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
-                    <AppHeader title="My Teaching" subtitle="Manage your classes and subjects" />
+                    <AppHeader title={t('teacher.dashboardTitle')} subtitle={t('teacher.dashboardSubtitle')} />
 
                     {/* Quick action tiles — admin-style compact grid */}
                     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
@@ -326,7 +328,7 @@ export default function TeacherDashboard() {
                             <View style={{ backgroundColor: '#E91E6315', padding: 16, borderRadius: 20, marginBottom: 12, alignItems: 'center', justifyContent: 'center' }}>
                                 <MaterialIcons name="assignment" size={28} color="#E91E63" />
                             </View>
-                            <Text style={{ fontSize: 14, fontFamily: 'DMSans-Bold', color: colors.onSurface, textAlign: 'center' }}>Manage Exams</Text>
+                            <Text style={{ fontSize: 14, fontFamily: 'DMSans-Bold', color: colors.onSurface, textAlign: 'center' }}>{t('teacher.manageExams')}</Text>
                         </Pressable>
 
                         <Pressable
@@ -351,22 +353,22 @@ export default function TeacherDashboard() {
                             <View style={{ backgroundColor: '#2196F315', padding: 16, borderRadius: 20, marginBottom: 12, alignItems: 'center', justifyContent: 'center' }}>
                                 <MaterialIcons name="schedule" size={28} color="#2196F3" />
                             </View>
-                            <Text style={{ fontSize: 14, fontFamily: 'DMSans-Bold', color: colors.onSurface, textAlign: 'center' }}>View Timetable</Text>
+                            <Text style={{ fontSize: 14, fontFamily: 'DMSans-Bold', color: colors.onSurface, textAlign: 'center' }}>{t('teacher.viewTimetable')}</Text>
                         </Pressable>
                     </View>
 
 
                     {loading ? (
                         <View style={{ marginTop: 60 }}>
-                            <LoadingState message="Loading dashboard..." />
+                            <LoadingState message={t('teacher.loadingDashboard')} />
                         </View>
                     ) : (
                         <>
                             {/* Tab Switcher */}
                             <SegmentedControl
                                 tabs={[
-                                    { key: 'classTeacher', label: 'As Class Teacher' },
-                                    { key: 'mySubjects', label: 'My Subjects' },
+                                    { key: 'classTeacher', label: t('teacher.asClassTeacher') },
+                                    { key: 'mySubjects', label: t('teacher.mySubjects') },
                                 ]}
                                 activeTab={activeTab}
                                 onTabChange={setActiveTab}

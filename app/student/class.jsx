@@ -13,6 +13,7 @@ import { useTheme } from "../../theme";
 import apiConfig from "../../config/apiConfig";
 import { useToast } from "../../components/ToastProvider";
 import Header from "../../components/Header";
+import { useLabel } from "../../context/LabelsContext";
 import { useApiQuery } from "../../hooks/useApi";
 import { formatClassName } from "../../utils/formatClassName";
 import { useAuth } from "../../context/AuthContext";
@@ -20,6 +21,7 @@ import { useAuth } from "../../context/AuthContext";
 export default function StudentClassScreen() {
     const router = useRouter();
     const { styles, colors } = useTheme();
+    const { t } = useLabel();
     const { _showToast } = useToast();
     const [refreshing, setRefreshing] = useState(false);
     const { user } = useAuth();
@@ -50,10 +52,10 @@ export default function StudentClassScreen() {
             >
                 <MaterialIcons name="school" size={64} color={colors.textSecondary} />
                 <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginTop: 16, textAlign: "center" }}>
-                    No Class Assigned
+                    {t('student.noClassAssigned', 'No Class Assigned')}
                 </Text>
                 <Text style={{ fontSize: 14, color: colors.textSecondary, marginTop: 8, textAlign: "center", fontFamily: "DMSans-Regular" }}>
-                    Please contact your administrator to be assigned to a class.
+                    {t('student.contactAdminForClass', 'Please contact your administrator to be assigned to a class.')}
                 </Text>
             </ScrollView>
         );
@@ -69,7 +71,7 @@ export default function StudentClassScreen() {
                 <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
                     <Header
                         title={formatClassName(classData.name)}
-                        subtitle={`Section ${classData.section || 'N/A'} • ${classData.academicYear?.name || ''}`}
+                        subtitle={`${t('common.section', 'Section')} ${classData.section || t('common.na', 'N/A')} • ${classData.academicYear?.name || ''}`}
                     />
 
                     {loading ? (
@@ -83,25 +85,25 @@ export default function StudentClassScreen() {
 
                                 <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
                                     <MenuCard
-                                        title="Report Card"
+                                        title={t('student.reportCard', 'Report Card')}
                                         icon="assessment"
                                         color="#FF9800"
                                         onPress={() => router.push("/student/report-card")}
                                     />
                                     <MenuCard
-                                        title="Timetable"
+                                        title={t('student.timetable', 'Timetable')}
                                         icon="calendar-today"
                                         color="#009688"
                                         onPress={() => router.push("/student/timetable")}
                                     />
                                     <MenuCard
-                                        title="Fees"
+                                        title={t('student.fees', 'Fees')}
                                         icon="attach-money"
                                         color="#FF5722"
                                         onPress={() => router.push("/student/fees")}
                                     />
                                     <MenuCard
-                                        title="Exams"
+                                        title={t('student.exams', 'Exams')}
                                         icon="event"
                                         color="#E91E63"
                                         onPress={() => router.push("/student/exam-schedule")}
@@ -116,7 +118,7 @@ export default function StudentClassScreen() {
                                     <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
                                         <MaterialIcons name="library-books" size={48} color={colors.textSecondary} />
                                         <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16, fontFamily: "DMSans-Medium" }}>
-                                            No subjects added yet.
+                                            {t('student.noSubjectsYet', 'No subjects added yet.')}
                                         </Text>
                                     </View>
                                 ) : (
@@ -174,7 +176,7 @@ export default function StudentClassScreen() {
                                                                 fontStyle: "italic",
                                                                 fontFamily: "DMSans-Regular"
                                                             }}>
-                                                                No teacher assigned
+                                                                {t('student.noTeacherAssigned', 'No teacher assigned')}
                                                             </Text>
                                                         )}
                                                     </View>

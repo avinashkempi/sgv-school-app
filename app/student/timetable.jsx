@@ -13,6 +13,7 @@ import { useTheme } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
 import { CACHE_TIERS } from "../../utils/cacheConfig";
 import AppHeader from "../../components/Header";
+import { useLabel } from "../../context/LabelsContext";
 import Card from "../../components/Card";
 import apiConfig from "../../config/apiConfig";
 import { useToast } from "../../components/ToastProvider";
@@ -24,6 +25,7 @@ const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 export default function StudentTimetableScreen() {
     const _router = useRouter();
     const { colors } = useTheme();
+    const { t } = useLabel();
     const { _showToast } = useToast();
     const { userId } = useAuth();
 
@@ -87,9 +89,9 @@ export default function StudentTimetableScreen() {
     if (loading) {
         return (
             <View style={{ flex: 1, backgroundColor: colors.background }}>
-                <AppHeader title="My Timetable" subtitle="Class Schedule" showBack />
+                <AppHeader title={t('student.myTimetable', 'My Timetable')} subtitle={t('student.classSchedule', 'Class Schedule')} showBack />
                 <View style={{ flex: 1, justifyContent: "center" }}>
-                    <LoadingState message="Loading timetable..." />
+                    <LoadingState message={t('student.loadingTimetable', 'Loading timetable...')} />
                 </View>
             </View>
         );
@@ -125,7 +127,7 @@ export default function StudentTimetableScreen() {
                                             color: selectedDay === day ? colors.onSecondaryContainer : colors.onSurfaceVariant,
                                             fontFamily: selectedDay === day ? "DMSans-Bold" : "DMSans-Medium"
                                         }}>
-                                            {day.slice(0, 3)}
+                                            {t('common.dayShort' + day, day.slice(0, 3))}
                                         </Text>
                                         {day === currentDay && (
                                             <View style={{
@@ -147,11 +149,11 @@ export default function StudentTimetableScreen() {
                     <View style={{ marginTop: 24 }}>
                         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                             <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
-                                {selectedDay}
+                                {t('common.day' + selectedDay, selectedDay)}
                             </Text>
                             {selectedDay === currentDay && (
                                 <View style={{ backgroundColor: colors.success + "20", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 }}>
-                                    <Text style={{ fontSize: 12, color: colors.success, fontFamily: "DMSans-Bold" }}>TODAY</Text>
+                                    <Text style={{ fontSize: 12, color: colors.success, fontFamily: "DMSans-Bold" }}>{t('common.todayUppercase', 'TODAY')}</Text>
                                 </View>
                             )}
                         </View>
@@ -159,8 +161,8 @@ export default function StudentTimetableScreen() {
                         {(!schedule[selectedDay] || schedule[selectedDay].length === 0) ? (
                             <EmptyState
                                 icon="event-busy"
-                                title="No Classes"
-                                message={error?.message || "No classes scheduled for this day."}
+                                title={t('student.noClasses', 'No Classes')}
+                                message={error?.message || t('student.noClassesScheduledDay', 'No classes scheduled for this day.')}
                             />
                         ) : (
                             schedule[selectedDay].map((period, index) => (
@@ -191,20 +193,20 @@ export default function StudentTimetableScreen() {
                                     {/* Details Column */}
                                     <View style={{ flex: 1, justifyContent: "center" }}>
                                         <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 4 }}>
-                                            {period.subject?.name || "Subject"}
+                                            {period.subject?.name || t('common.subject', 'Subject')}
                                         </Text>
                                         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
                                             <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
                                                 <MaterialIcons name="person" size={14} color={colors.onSurfaceVariant} />
                                                 <Text style={{ fontSize: 13, color: colors.onSurfaceVariant }}>
-                                                    {period.teacher?.name || "Teacher"}
+                                                    {period.teacher?.name || t('common.teacher', 'Teacher')}
                                                 </Text>
                                             </View>
                                             {period.roomNumber && (
                                                 <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
                                                     <MaterialIcons name="room" size={14} color={colors.onSurfaceVariant} />
                                                     <Text style={{ fontSize: 13, color: colors.onSurfaceVariant }}>
-                                                        Room {period.roomNumber}
+                                                        {t('common.room', 'Room')} {period.roomNumber}
                                                     </Text>
                                                 </View>
                                             )}
