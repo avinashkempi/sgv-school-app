@@ -158,8 +158,8 @@ function Inner() {
                 animationDuration: 200,
                 // Freeze off-screen screens to save CPU/GPU cycles
                 freezeOnBlur: true,
-                // Detach inactive screens for better memory usage
-                detachInactiveScreens: true,
+                // Prevent Android view hierarchy synchronization crash during screen transitions
+                detachInactiveScreens: false,
               }}
             />
             {!isLogin && <BottomNavigation />}

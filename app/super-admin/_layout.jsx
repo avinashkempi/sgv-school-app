@@ -4,7 +4,7 @@ import RoleGuard from '../../components/RoleGuard';
 export default function SuperAdminLayout() {
   return (
     <RoleGuard allowedRoles={['super admin']}>
-      <Stack screenOptions={{ headerShown: false }} />
+      <Stack screenOptions={{ headerShown: false, detachInactiveScreens: false }} />
     </RoleGuard>
   );
 }

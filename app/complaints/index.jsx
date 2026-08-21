@@ -520,11 +520,19 @@ export default function ComplaintsScreen() {
                 </Pressable>
             )}
 
+            {/* Overlay for FAB Options - placed before FAB buttons in JSX order */}
+            {showFabOptions && (
+                <Pressable
+                    style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.4)" }}
+                    onPress={() => setShowFabOptions(false)}
+                />
+            )}
+
             {/* Teacher: Expandable FAB with feedback + complaint options */}
             {userRole === 'teacher' && (
                 <>
                     {showFabOptions && (
-                        <View style={{ position: "absolute", bottom: 94, right: 20, alignItems: "flex-end", gap: 14, zIndex: 10 }}>
+                        <View style={{ position: "absolute", bottom: 94, right: 20, alignItems: "flex-end", gap: 14 }}>
                             <Pressable
                                 onPress={() => { setShowFabOptions(false); router.push("/complaints/give-feedback"); }}
                                 style={({ pressed }) => [secondaryFabPill(colors), { opacity: pressed ? 0.85 : 1 }]}
@@ -560,7 +568,7 @@ export default function ComplaintsScreen() {
             {(userRole === 'admin' || userRole === 'super admin') && (
                 <>
                     {showFabOptions && (
-                        <View style={{ position: "absolute", bottom: 94, right: 20, alignItems: "flex-end", gap: 14, zIndex: 10 }}>
+                        <View style={{ position: "absolute", bottom: 94, right: 20, alignItems: "flex-end", gap: 14 }}>
                             <Pressable
                                 onPress={() => { setShowFabOptions(false); router.push("/complaints/give-feedback"); }}
                                 style={({ pressed }) => [secondaryFabPill(colors), { opacity: pressed ? 0.85 : 1 }]}
@@ -580,14 +588,6 @@ export default function ComplaintsScreen() {
                         <MaterialIcons name={showFabOptions ? "add" : "rate-review"} size={26} color="#fff" />
                     </Pressable>
                 </>
-            )}
-
-            {/* Overlay for FAB Options */}
-            {showFabOptions && (
-                <Pressable
-                    style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.4)", zIndex: 9 }}
-                    onPress={() => setShowFabOptions(false)}
-                />
             )}
 
             {/* Edit Feedback Modal */}
@@ -782,7 +782,6 @@ const fabStyle = (colors) => ({
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.4,
     shadowRadius: 12,
-    zIndex: 11
 });
 
 const secondaryFabPill = (colors) => ({

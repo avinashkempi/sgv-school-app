@@ -144,7 +144,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: 'center',
-    zIndex: 9999,
   },
   toastWrapper: {
     width: '90%',

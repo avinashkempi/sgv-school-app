@@ -61,7 +61,6 @@ const ExamTimelineItem = React.memo(({ exam, index, isLast, colors, onExamPress,
           borderColor: today
             ? colors.error + '30'
             : (past ? colors.surfaceContainerHighest : examColor + '30'),
-          zIndex: 1,
           ...(today ? {
             shadowColor: colors.error,
             shadowOffset: { width: 0, height: 0 },

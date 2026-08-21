@@ -503,7 +503,6 @@ export default function ClassDetailsScreen() {
                         shadowOffset: { width: 0, height: 3 },
                         shadowOpacity: 0.3,
                         shadowRadius: 6,
-                        zIndex: 9999,
                         opacity: pressed ? 0.9 : 1,
                     })}
                     accessibilityLabel={activeTab === 'subjects' ? 'Add subject' : 'Add student'}

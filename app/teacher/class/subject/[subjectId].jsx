@@ -211,7 +211,6 @@ export default function SubjectDetailScreen() {
                     justifyContent: "center",
                     alignItems: "center",
                     elevation: 4,
-                    zIndex: 9999,
                     shadowColor: "#000",
                     shadowOffset: { width: 0, height: 2 },
                     shadowOpacity: 0.25,

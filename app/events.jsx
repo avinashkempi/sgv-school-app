@@ -69,7 +69,6 @@ const DayRenderer = React.memo(({ date, state, marking, onDayPress, colors }) =>
           fontSize: 16,
           fontWeight: isSelected ? '600' : isToday ? '600' : '400',
           color: isSelected ? colors.white : state === 'disabled' ? colors.textSecondary : colors.textPrimary,
-          zIndex: 1,
         }}
       >
         {date.day}

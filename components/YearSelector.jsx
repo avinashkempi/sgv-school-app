@@ -67,7 +67,7 @@ export default function YearSelector({
     }
 
     return (
-        <View style={{ position: 'relative', zIndex: 1000 }}>
+        <View style={{ position: 'relative' }}>
             {/* Selector Button */}
             <Pressable
                 onPress={() => setIsOpen(!isOpen)}
@@ -113,6 +113,20 @@ export default function YearSelector({
                     color={colors.onSurface}
                 />
             </Pressable>
+
+            {/* Overlay to close dropdown - placed before dropdown menu in JSX */}
+            {isOpen && (
+                <Pressable
+                    onPress={() => setIsOpen(false)}
+                    style={{
+                        position: 'absolute',
+                        top: -1000,
+                        left: -1000,
+                        right: -1000,
+                        bottom: -1000,
+                    }}
+                />
+            )}
 
             {/* Dropdown Menu */}
             {isOpen && (
@@ -256,21 +270,6 @@ export default function YearSelector({
                         })}
                     </ScrollView>
                 </View>
-            )}
-
-            {/* Overlay to close dropdown */}
-            {isOpen && (
-                <Pressable
-                    onPress={() => setIsOpen(false)}
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        zIndex: -1
-                    }}
-                />
             )}
         </View>
     );

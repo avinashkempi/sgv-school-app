@@ -16,7 +16,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 1000,
     },
     text: {
         color: '#fff',

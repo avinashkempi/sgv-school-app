@@ -33,11 +33,6 @@ const CarouselItem = React.memo(({ item, index, width, height }) => {
     return (
         <View style={[styles.itemContainer, { width, height }]}>
             <View style={[styles.imageContainer, { backgroundColor: 'transparent' }]}>
-                {loading && (
-                    <View style={styles.loadingContainer}>
-                        <SkeletonLoader width={width} height={height} borderRadius={0} />
-                    </View>
-                )}
                 {error ? (
                     <View style={[styles.errorContainer, { backgroundColor: colors.cardBackground }]}>
                         <MaterialIcons name="broken-image" size={40} color={colors.textSecondary} />
@@ -59,6 +54,11 @@ const CarouselItem = React.memo(({ item, index, width, height }) => {
                             setError(true);
                         }}
                     />
+                )}
+                {loading && (
+                    <View style={styles.loadingContainer}>
+                        <SkeletonLoader width={width} height={height} borderRadius={0} />
+                    </View>
                 )}
             </View>
         </View>
@@ -234,7 +234,6 @@ const styles = StyleSheet.create({
         ...StyleSheet.absoluteFillObject,
         justifyContent: 'center',
         alignItems: 'center',
-        zIndex: 1,
     },
     errorContainer: {
         ...StyleSheet.absoluteFillObject,
