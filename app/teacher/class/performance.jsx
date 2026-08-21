@@ -547,7 +547,7 @@ export default function ClassPerformanceScreen() {
                                                                 </View>
                                                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
                                                                     <Text style={{ fontSize: 11, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Regular' }}>
-                                                                        Max: {sub.totalMarks}M • Evaluated: {sub.marksEntered}/{sub.totalStudents}
+                                                                        Max: {sub.totalMarks} marks • Evaluated: {sub.marksEntered}/{sub.totalStudents}
                                                                     </Text>
                                                                     <Text style={{ fontSize: 11, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Regular' }}>
                                                                         High: <Text style={{ color: colors.success, fontFamily: 'DMSans-Bold' }}>{sub.highest}%</Text> • Low: <Text style={{ color: colors.error, fontFamily: 'DMSans-Bold' }}>{sub.lowest}%</Text>
@@ -1014,7 +1014,7 @@ export default function ClassPerformanceScreen() {
                                                         borderTopColor: colors.outlineVariant
                                                     }}>
                                                         <Text style={{ fontSize: 11, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Regular' }}>
-                                                            {student.examsAttempted} exams evaluated • Total: {student.totalObtained}/{student.totalMax}M
+                                                            {student.examsAttempted} exams evaluated • Total: {student.totalObtained}/{student.totalMax} marks
                                                         </Text>
                                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
                                                             <Text style={{ fontSize: 11, color: colors.primary, fontFamily: 'DMSans-Bold' }}>
@@ -1056,7 +1056,7 @@ export default function ClassPerformanceScreen() {
                                                                             {sub.subjectName}
                                                                         </Text>
                                                                         <Text style={{ fontSize: 11, color: colors.onSurfaceVariant, fontFamily: 'DMSans-Regular' }}>
-                                                                            Obtained: {sub.obtainedMarks}/{sub.maxMarks}M
+                                                                            Obtained: {sub.obtainedMarks}/{sub.maxMarks} marks
                                                                         </Text>
                                                                     </View>
                                                                     <View style={{ alignItems: 'flex-end' }}>

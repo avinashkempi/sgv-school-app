@@ -4,7 +4,8 @@ import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import StatCard from './StatCard';
-import ChartCard from './ChartCard';
+import TeacherAttendanceTrendCard from './TeacherAttendanceTrendCard';
+import TeacherPerformanceCard from './TeacherPerformanceCard';
 import DateRangePicker from '../DateRangePicker';
 import { LoadingState, EmptyState } from '../StateComponents';
 import apiConfig from '../../config/apiConfig';
@@ -310,15 +311,35 @@ const TeacherDashboard = () => {
                 />
             </View>
 
-            <Text style={[styles.titleLarge, { marginBottom: 16, marginTop: 24 }]}>Insights</Text>
+            {/* Insights Section Header */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, marginTop: 28 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <View style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: 10,
+                        backgroundColor: (colors.primary || '#6750A4') + '1A',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}>
+                        <MaterialIcons name="insights" size={20} color={colors.primary || '#6750A4'} />
+                    </View>
+                    <View>
+                        <Text style={[styles.titleLarge, { marginBottom: 0, fontSize: 19, letterSpacing: 0.1 }]}>Insights & Analytics</Text>
+                        <Text style={{ fontSize: 12, fontFamily: 'DMSans-Medium', color: colors.textSecondary, marginTop: 2 }}>
+                            Class presence trends & academic performance
+                        </Text>
+                    </View>
+                </View>
+            </View>
 
             {data.charts?.attendanceTrend && data.charts.attendanceTrend.data?.length > 0 ? (
-                <ChartCard
-                    title="Attendance Trend (Last 7 Days)"
-                    chartType="line"
+                <TeacherAttendanceTrendCard
+                    title="Attendance Trend (7 Days)"
+                    subtitle="Daily student presence rate"
                     labels={data.charts.attendanceTrend.labels}
                     data={data.charts.attendanceTrend.data}
-                    secondary
+                    classId={missingClassId}
                 />
             ) : (
                 <EmptyState
@@ -329,9 +350,9 @@ const TeacherDashboard = () => {
             )}
 
             {data.charts?.performance && data.charts.performance.data?.length > 0 ? (
-                <ChartCard
-                    title="Class Performance (Avg Marks)"
-                    chartType="bar"
+                <TeacherPerformanceCard
+                    title="Subject Performance"
+                    subtitle="Average marks scored by subject"
                     labels={data.charts.performance.labels}
                     data={data.charts.performance.data}
                 />
