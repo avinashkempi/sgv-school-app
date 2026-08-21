@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useTheme } from "../../theme";
 import apiConfig from "../../config/apiConfig";
 import { useApiQuery } from "../../hooks/useApi";
@@ -22,6 +23,7 @@ import { EmptyState, LoadingState } from "../../components/StateComponents";
 
 export default function TeacherDashboard() {
     const router = useRouter();
+    const queryClient = useQueryClient();
     // eslint-disable-next-line no-unused-vars
     const { styles, colors } = useTheme();
     const { _showToast } = useToast();
@@ -41,10 +43,36 @@ export default function TeacherDashboard() {
         }
     );
 
+    const onRefresh = async () => {
+        setRefreshing(true);
+        try {
+            await Promise.all([
+                refetch(),
+                queryClient.invalidateQueries({ queryKey: ['teacherDashboard'] }),
+            ]);
+        } catch (err) {
+            console.error("Teacher dashboard refresh error:", err);
+        } finally {
+            setRefreshing(false);
+        }
+    };
+
     if (isStaff) {
         return (
             <View style={{ flex: 1, backgroundColor: colors.background }}>
-                <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 24, paddingBottom: 32 }}>
+                <ScrollView
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            colors={[colors.primary]}
+                            tintColor={colors.primary}
+                        />
+                    }
+                    contentContainerStyle={{ flexGrow: 1, padding: 16, paddingTop: 24, paddingBottom: 32 }}
+                    alwaysBounceVertical={true}
+                    showsVerticalScrollIndicator={false}
+                >
                     <AppHeader title="Dashboard" subtitle="Staff quick actions" />
 
                     <View style={{ marginTop: 12 }}>
@@ -99,12 +127,6 @@ export default function TeacherDashboard() {
 
     const asClassTeacher = dashboardData?.asClassTeacher || [];
     const allMySubjects = dashboardData?.allMySubjects || [];
-
-    const onRefresh = async () => {
-        setRefreshing(true);
-        await refetch();
-        setRefreshing(false);
-    };
 
     // Group subjects by subject name for display
     const groupedSubjects = allMySubjects.reduce((acc, subj) => {
@@ -265,8 +287,17 @@ export default function TeacherDashboard() {
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <ScrollView
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
-                contentContainerStyle={{ paddingBottom: 24 }}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        colors={[colors.primary]}
+                        tintColor={colors.primary}
+                    />
+                }
+                contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}
+                alwaysBounceVertical={true}
+                showsVerticalScrollIndicator={false}
             >
                 <View style={{ padding: 16, paddingTop: 24 }}>
                     <AppHeader title="My Teaching" subtitle="Manage your classes and subjects" />
@@ -324,39 +355,6 @@ export default function TeacherDashboard() {
                         </Pressable>
                     </View>
 
-                    <Pressable
-                        onPress={() => router.push("/history")}
-                        style={({ pressed }) => ({
-                            backgroundColor: colors.surfaceContainer,
-                            borderRadius: 16,
-                            padding: 16,
-                            marginBottom: 24,
-                            shadowColor: colors.shadow,
-                            shadowOffset: { width: 0, height: 1 },
-                            shadowOpacity: 0.05,
-                            shadowRadius: 4,
-                            elevation: 1,
-                            opacity: pressed ? 0.9 : 1,
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            alignItems: "center"
-                        })}
-                    >
-                        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                            <View style={{ backgroundColor: "#795548" + "20", padding: 10, borderRadius: 10 }}>
-                                <MaterialIcons name="history" size={24} color="#795548" />
-                            </View>
-                            <View>
-                                <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
-                                    History
-                                </Text>
-                                <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginTop: 2, fontFamily: "DMSans-Regular" }}>
-                                    View past exams
-                                </Text>
-                            </View>
-                        </View>
-                        <MaterialIcons name="chevron-right" size={24} color={colors.onSurfaceVariant} />
-                    </Pressable>
 
                     {loading ? (
                         <View style={{ marginTop: 60 }}>

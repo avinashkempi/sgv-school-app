@@ -48,8 +48,13 @@ const TeacherDashboard = () => {
 
     const onRefresh = async () => {
         setRefreshing(true);
-        await Promise.all([refetchStats(), refetchMissing()]);
-        setRefreshing(false);
+        try {
+            await Promise.all([refetchStats(), refetchMissing()]);
+        } catch (err) {
+            console.error("TeacherDashboard refresh error:", err);
+        } finally {
+            setRefreshing(false);
+        }
     };
 
     const handleDateRangeChange = (range) => {
@@ -79,8 +84,16 @@ const TeacherDashboard = () => {
 
     return (
         <ScrollView
-            contentContainerStyle={{ paddingBottom: 20 }}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
+            contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
+            refreshControl={
+                <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    colors={[colors.primary]}
+                    tintColor={colors.primary}
+                />
+            }
+            alwaysBounceVertical={true}
             showsVerticalScrollIndicator={false}
         >
             {/* Date Range Selector */}
