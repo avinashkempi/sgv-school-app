@@ -1,6 +1,7 @@
 import React from 'react';
 import { Text, Pressable, ActivityIndicator, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useTheme } from '../theme';
 
 /**
@@ -116,12 +117,23 @@ const Button = ({
         textStyle,
     ];
 
+    const handlePress = (e) => {
+        if (!disabled && !loading && onPress) {
+            try {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            } catch {
+                // Fallback for non-supported platforms
+            }
+            onPress(e);
+        }
+    };
+
     return (
         <Pressable
-            onPress={!disabled && !loading ? onPress : null}
+            onPress={!disabled && !loading ? handlePress : null}
             style={({ pressed }) => [
                 containerStyle,
-                pressed && !disabled && { opacity: 0.85, transform: [{ scale: 0.98 }] }
+                pressed && !disabled && { opacity: 0.88, transform: [{ scale: 0.97 }] }
             ]}
             android_ripple={{ color: themeColors.text, opacity: 0.12, borderless: false }}
             {...props}

@@ -3,6 +3,7 @@ import { useFonts } from "expo-font";
 import { Text, Platform, ActivityIndicator } from "react-native";
 import { useEffect, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ThemeProvider, useTheme } from "../theme";
 import { ToastProvider, useToast } from "../components/ToastProvider";
 import { StatusBar } from "expo-status-bar";
@@ -200,23 +201,25 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
-    <PersistQueryClientProvider
-      client={queryClient}
-      persistOptions={{ persister, maxAge: Infinity }}
-    >
-      <ThemeProvider>
-        <ToastProvider>
-          <ErrorBoundary>
-            <AuthProvider>
-              <AcademicYearProvider>
-                <LabelsProvider>
-                  <Inner />
-                </LabelsProvider>
-              </AcademicYearProvider>
-            </AuthProvider>
-          </ErrorBoundary>
-        </ToastProvider>
-      </ThemeProvider>
-    </PersistQueryClientProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <PersistQueryClientProvider
+        client={queryClient}
+        persistOptions={{ persister, maxAge: Infinity }}
+      >
+        <ThemeProvider>
+          <ToastProvider>
+            <ErrorBoundary>
+              <AuthProvider>
+                <AcademicYearProvider>
+                  <LabelsProvider>
+                    <Inner />
+                  </LabelsProvider>
+                </AcademicYearProvider>
+              </AuthProvider>
+            </ErrorBoundary>
+          </ToastProvider>
+        </ThemeProvider>
+      </PersistQueryClientProvider>
+    </GestureHandlerRootView>
   );
 }

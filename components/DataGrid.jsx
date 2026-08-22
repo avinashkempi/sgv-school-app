@@ -4,11 +4,11 @@ import {
     Text,
     TextInput,
     ScrollView,
-    FlatList,
     Pressable,
     Platform,
     Keyboard
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../theme';
 
@@ -389,22 +389,14 @@ export default function DataGrid({
             <ScrollView horizontal showsHorizontalScrollIndicator={true} keyboardShouldPersistTaps="handled">
                 <View>
                     {renderHeader()}
-                    <FlatList
+                    <FlashList
                         data={localData}
                         keyExtractor={(_, index) => index.toString()}
                         renderItem={({ item, index }) => renderRow(item, index)}
                         showsVerticalScrollIndicator={true}
                         keyboardShouldPersistTaps="handled"
                         contentContainerStyle={{ paddingBottom: keyboardHeight }}
-                        initialNumToRender={15}
-                        maxToRenderPerBatch={10}
-                        windowSize={5}
-                        removeClippedSubviews={true}
-                        getItemLayout={(_, index) => ({
-                            length: 50, // Approximate row height
-                            offset: 50 * index,
-                            index,
-                        })}
+                        estimatedItemSize={50}
                     />
                 </View>
             </ScrollView>

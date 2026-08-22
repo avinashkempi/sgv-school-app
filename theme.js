@@ -288,11 +288,55 @@ function createGlobalStyles(COLORS, mode) {
       backgroundColor: COLORS.outlineVariant,
       marginVertical: 16,
     },
+    // Elevations (Level 0 - 5 for Material 3 depth without expensive shadow calculations)
+    elevation0: { elevation: 0, shadowOpacity: 0 },
+    elevation1: {
+      elevation: 1,
+      shadowColor: COLORS.shadow,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.08,
+      shadowRadius: 2,
+    },
+    elevation2: {
+      elevation: 2,
+      shadowColor: COLORS.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.12,
+      shadowRadius: 4,
+    },
+    elevation3: {
+      elevation: 3,
+      shadowColor: COLORS.shadow,
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.16,
+      shadowRadius: 6,
+    },
+    elevation4: {
+      elevation: 4,
+      shadowColor: COLORS.shadow,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+    },
+    elevation5: {
+      elevation: 6,
+      shadowColor: COLORS.shadow,
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.24,
+      shadowRadius: 12,
+    },
+
+    // Fast Frosted Surface (1px outline + high opacity background to prevent GPU overdraw)
+    glassSurface: {
+      backgroundColor: mode === 'dark' ? 'rgba(33, 31, 38, 0.88)' : 'rgba(254, 247, 255, 0.88)',
+      borderWidth: 1,
+      borderColor: COLORS.outlineVariant,
+    },
     glass: {
       backgroundColor: mode === 'dark' ? 'rgba(33, 33, 33, 0.8)' : 'rgba(243, 246, 252, 0.8)',
     },
 
-    // Components (Legacy definitions for backwards compatibility until refactor is complete)
+    // Layout Helpers
     safeArea: {
       flex: 1,
       backgroundColor: COLORS.background,
@@ -317,7 +361,6 @@ function createGlobalStyles(COLORS, mode) {
       shadowOpacity: 0.3,
       shadowRadius: 6,
     },
-
   });
 }
 

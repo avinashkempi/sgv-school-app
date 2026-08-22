@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import Animated, {
     useSharedValue,
@@ -6,32 +6,54 @@ import Animated, {
     withRepeat,
     withTiming,
     interpolate,
+    Easing,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../theme';
 
-export default function SkeletonLoader({ width = '100%', height = 20, style, borderRadius = 8 }) {
-    // eslint-disable-next-line no-unused-vars
+/**
+ * SkeletonLoader - GPU-accelerated shimmer placeholder
+ * 
+ * @param {string|number} width
+ * @param {string|number} height
+ * @param {number} borderRadius
+ * @param {object} style
+ */
+export default function SkeletonLoader({
+    width = '100%',
+    height = 20,
+    style,
+    borderRadius = 8,
+}) {
     const { colors, mode } = useTheme();
     const animatedValue = useSharedValue(0);
+    const [containerWidth, setContainerWidth] = useState(200);
 
     useEffect(() => {
         animatedValue.value = withRepeat(
-            withTiming(1, { duration: 1200 }),
+            withTiming(1, {
+                duration: 1100,
+                easing: Easing.bezier(0.4, 0, 0.6, 1),
+            }),
             -1,
             false
         );
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const baseColor = mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.08)';
-    const highlightColor = mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.5)';
+    const baseColor = mode === 'dark'
+        ? colors.surfaceContainerHigh || 'rgba(255,255,255,0.06)'
+        : colors.surfaceContainer || 'rgba(0,0,0,0.06)';
+
+    const highlightColor = mode === 'dark'
+        ? 'rgba(255,255,255,0.12)'
+        : 'rgba(255,255,255,0.6)';
 
     const animatedStyle = useAnimatedStyle(() => {
         const translateX = interpolate(
             animatedValue.value,
             [0, 1],
-            [-500, 500] // Arbitrary large pixel values to ensure gradient completely passes
+            [-containerWidth, containerWidth]
         );
 
         return {
@@ -41,6 +63,10 @@ export default function SkeletonLoader({ width = '100%', height = 20, style, bor
 
     return (
         <View
+            onLayout={(e) => {
+                const w = e.nativeEvent.layout.width;
+                if (w > 0) setContainerWidth(w);
+            }}
             style={[
                 {
                     width,

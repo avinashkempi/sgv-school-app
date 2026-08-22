@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
     View,
     Text,
-    FlatList,
     Pressable,
     ActivityIndicator,
     RefreshControl,
@@ -14,6 +13,7 @@ import {
     KeyboardAvoidingView,
     Keyboard
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../../theme";
@@ -465,7 +465,7 @@ export default function ComplaintsScreen() {
             {loading ? (
                 <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 40 }} />
             ) : (
-                <FlatList
+                <FlashList
                     data={listData ? (
                         activeTab === 'inbox' && adminFilter !== 'All'
                             ? listData.filter(c => c.status === adminFilter)
@@ -479,6 +479,7 @@ export default function ComplaintsScreen() {
                     contentContainerStyle={{ paddingBottom: 24 }}
                     keyboardShouldPersistTaps="handled"
                     keyboardDismissMode="on-drag"
+                    estimatedItemSize={130}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
                     ListEmptyComponent={() => (
                         <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6, paddingHorizontal: 20 }}>
