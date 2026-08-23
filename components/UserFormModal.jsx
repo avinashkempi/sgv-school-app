@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, ScrollView, TextInput, Pressable, ActivityIndicator } from "react-native";
+import { View, Text, Modal, ScrollView, TextInput, Pressable, ActivityIndicator, KeyboardAvoidingView, Platform } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../theme";
 import { useForm, Controller } from "react-hook-form";
@@ -124,7 +124,10 @@ export default function UserFormModal({
             transparent={true}
             onRequestClose={onClose}
         >
-            <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.6)" }}>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : undefined}
+                style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.6)" }}
+            >
                 <View style={[{ backgroundColor: colors.surfaceContainer, borderRadius: 16, padding: 16, marginBottom: 16 }, {
                     width: "90%",
                     maxWidth: 400,
@@ -145,6 +148,7 @@ export default function UserFormModal({
 
                     <ScrollView
                         showsVerticalScrollIndicator={false}
+                        keyboardShouldPersistTaps="handled"
                         contentContainerStyle={{ padding: 24 }}
                     >
                         {/* Common Fields: Name, Phone, Email, Password */}
@@ -689,7 +693,7 @@ export default function UserFormModal({
                         </Pressable>
                     </View>
                 </View>
-            </View>
+            </KeyboardAvoidingView>
         </Modal>
     );
 }

@@ -7,7 +7,9 @@ import {
     TextInput as RNTextInput,
     RefreshControl,
     Modal,
-    Alert
+    Alert,
+    KeyboardAvoidingView,
+    Platform
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -512,12 +514,20 @@ export default function ClassDetailsScreen() {
             )}
 
             {/* Add Subject Modal */}
-            <Modal visible={showAddSubjectModal} animationType="slide" transparent>
-                <View style={{ flex: 1, justifyContent: "center", backgroundColor: "rgba(0,0,0,0.5)", padding: 20 }}>
-                    <View style={{ backgroundColor: colors.surfaceContainerLow, borderRadius: 16, padding: 24, maxHeight: "80%" }}>
-                        <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 16 }}>
-                            {t('teacher.addSubjectsToClass', 'Add Subjects to Class')}
-                        </Text>
+            <Modal visible={showAddSubjectModal} animationType="slide" transparent onRequestClose={() => setShowAddSubjectModal(false)}>
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : undefined}
+                    style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)" }}
+                >
+                    <ScrollView
+                        contentContainerStyle={{ flexGrow: 1, justifyContent: "center", alignItems: "center", padding: 20 }}
+                        keyboardShouldPersistTaps="handled"
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={{ backgroundColor: colors.surfaceContainerLow, borderRadius: 16, padding: 24, width: "100%", maxWidth: 440, maxHeight: "90%" }}>
+                            <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 16 }}>
+                                {t('teacher.addSubjectsToClass', 'Add Subjects to Class')}
+                            </Text>
 
                         <View style={{
                             flexDirection: 'row',
@@ -640,16 +650,25 @@ export default function ClassDetailsScreen() {
                             </Button>
                         </View>
                     </View>
-                </View>
+                </ScrollView>
+                </KeyboardAvoidingView>
             </Modal>
 
             {/* Add Student Modal */}
-            <Modal visible={showAddStudentModal} animationType="slide" transparent>
-                <View style={{ flex: 1, justifyContent: "center", backgroundColor: "rgba(0,0,0,0.5)", padding: 20 }}>
-                    <View style={{ backgroundColor: colors.surfaceContainerLow, borderRadius: 16, padding: 24, maxHeight: "80%" }}>
-                        <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 16 }}>
-                            {t('teacher.addStudentsToClass', 'Add Students to Class')}
-                        </Text>
+            <Modal visible={showAddStudentModal} animationType="slide" transparent onRequestClose={() => setShowAddStudentModal(false)}>
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : undefined}
+                    style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)" }}
+                >
+                    <ScrollView
+                        contentContainerStyle={{ flexGrow: 1, justifyContent: "center", alignItems: "center", padding: 20 }}
+                        keyboardShouldPersistTaps="handled"
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={{ backgroundColor: colors.surfaceContainerLow, borderRadius: 16, padding: 24, width: "100%", maxWidth: 440, maxHeight: "90%" }}>
+                            <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 16 }}>
+                                {t('teacher.addStudentsToClass', 'Add Students to Class')}
+                            </Text>
 
                         <View style={{
                             flexDirection: 'row',
@@ -754,7 +773,8 @@ export default function ClassDetailsScreen() {
                             </Button>
                         </View>
                     </View>
-                </View>
+                </ScrollView>
+                </KeyboardAvoidingView>
             </Modal>
 
             <UserDetailModal

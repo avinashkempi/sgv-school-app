@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Modal, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, Modal, Pressable, StyleSheet, ActivityIndicator, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { useTheme } from '../theme';
@@ -122,12 +122,20 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
       animationType="fade"
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
-        <View style={[styles.container, { backgroundColor: colors.cardBackground }]}>
-          <View style={styles.header}>
-            <Text style={[globalStyles.title, { fontSize: 20, color: colors.textPrimary }]}>
-              {isEditing ? 'Edit Event' : 'New Event'}
-            </Text>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={styles.overlay}
+      >
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center', width: '100%' }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={[styles.container, { backgroundColor: colors.cardBackground }]}>
+            <View style={styles.header}>
+              <Text style={[globalStyles.title, { fontSize: 20, color: colors.textPrimary }]}>
+                {isEditing ? 'Edit Event' : 'New Event'}
+              </Text>
             <Pressable onPress={onClose} hitSlop={8}>
               <MaterialIcons name="close" size={24} color={colors.textSecondary} />
             </Pressable>
@@ -234,8 +242,9 @@ export default function EventFormModal({ isVisible, onClose, selectedDate, onSuc
             )}
           </Pressable>
         </View>
-      </View>
-    </Modal>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  </Modal>
   );
 }
 

@@ -8,6 +8,8 @@ import {
     TextInput,
     Modal,
     Alert,
+    KeyboardAvoidingView,
+    Platform,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -592,14 +594,18 @@ export default function AdminTimetableScreen() {
                 animationType="slide"
                 onRequestClose={() => setModalVisible(false)}
             >
-                <Pressable
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : undefined}
                     style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}
-                    onPress={() => setModalVisible(false)}
                 >
                     <Pressable
-                        style={{ backgroundColor: colors.cardBackground, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: "85%" }}
-                        onPress={(e) => e.stopPropagation()}
+                        style={{ flex: 1, justifyContent: "flex-end" }}
+                        onPress={() => setModalVisible(false)}
                     >
+                        <Pressable
+                            style={{ backgroundColor: colors.cardBackground, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: "85%" }}
+                            onPress={(e) => e.stopPropagation()}
+                        >
                         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
                             <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
                                 {editingPeriod ? "Edit Period" : "Add Period"}
@@ -609,7 +615,7 @@ export default function AdminTimetableScreen() {
                             </Pressable>
                         </View>
 
-                        <ScrollView showsVerticalScrollIndicator={false}>
+                        <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                             {/* Period Number */}
                             <Text style={{ color: colors.textSecondary, marginBottom: 8, fontFamily: "DMSans-Medium" }}>Period Number</Text>
                             <TextInput
@@ -763,6 +769,7 @@ export default function AdminTimetableScreen() {
                         </ScrollView>
                     </Pressable>
                 </Pressable>
+                </KeyboardAvoidingView>
             </Modal>
 
             {/* Clone Timings Modal */}

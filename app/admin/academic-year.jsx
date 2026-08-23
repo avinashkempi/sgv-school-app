@@ -8,7 +8,9 @@ import {
     Alert,
     RefreshControl,
     ActivityIndicator,
-    Modal
+    Modal,
+    KeyboardAvoidingView,
+    Platform
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -904,97 +906,106 @@ export default function AcademicYearScreen() {
                 </Pressable>
             )}
 
-            <Modal visible={showModal} animationType="slide" transparent>
-                <View style={{ flex: 1, justifyContent: "center", backgroundColor: "rgba(0,0,0,0.5)", padding: 20 }}>
-                    <View style={{ backgroundColor: colors.surfaceContainerLow, borderRadius: 20, padding: 24 }}>
-                        <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 20 }}>
-                            New Academic Year
-                        </Text>
+            <Modal visible={showModal} animationType="slide" transparent onRequestClose={() => setShowModal(false)}>
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : undefined}
+                    style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)" }}
+                >
+                    <ScrollView
+                        contentContainerStyle={{ flexGrow: 1, justifyContent: "center", alignItems: "center", padding: 20 }}
+                        keyboardShouldPersistTaps="handled"
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={{ backgroundColor: colors.surfaceContainerLow, borderRadius: 20, padding: 24, width: "100%", maxWidth: 400 }}>
+                            <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 20 }}>
+                                New Academic Year
+                            </Text>
 
-                        <TextInput
-                            placeholder="Name (e.g. 2025-2026)"
-                            placeholderTextColor={colors.onSurfaceVariant}
-                            style={{
-                                backgroundColor: colors.surfaceContainerHighest,
-                                padding: 14,
-                                borderRadius: 12,
-                                color: colors.onSurface,
-                                fontFamily: "DMSans-Medium",
-                                marginBottom: 12,
-                                borderWidth: 1,
-                                borderColor: colors.outlineVariant
-                            }}
-                            value={form.name}
-                            onChangeText={(t) => setForm({ ...form, name: t })}
-                        />
-
-                        <TextInput
-                            placeholder="Start Date (DD-MM-YYYY)"
-                            placeholderTextColor={colors.onSurfaceVariant}
-                            style={{
-                                backgroundColor: colors.surfaceContainerHighest,
-                                padding: 14,
-                                borderRadius: 12,
-                                color: colors.onSurface,
-                                fontFamily: "DMSans-Medium",
-                                marginBottom: 12,
-                                borderWidth: 1,
-                                borderColor: colors.outlineVariant
-                            }}
-                            value={form.startDate}
-                            onChangeText={(t) => setForm({ ...form, startDate: t })}
-                        />
-
-                        <TextInput
-                            placeholder="End Date (DD-MM-YYYY)"
-                            placeholderTextColor={colors.onSurfaceVariant}
-                            style={{
-                                backgroundColor: colors.surfaceContainerHighest,
-                                padding: 14,
-                                borderRadius: 12,
-                                color: colors.onSurface,
-                                fontFamily: "DMSans-Medium",
-                                marginBottom: 24,
-                                borderWidth: 1,
-                                borderColor: colors.outlineVariant
-                            }}
-                            value={form.endDate}
-                            onChangeText={(t) => setForm({ ...form, endDate: t })}
-                        />
-
-                        <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: 12 }}>
-                            <Pressable
-                                onPress={() => setShowModal(false)}
-                                style={({ pressed }) => ({
-                                    padding: 12,
-                                    borderRadius: 10,
-                                    backgroundColor: pressed ? colors.surfaceContainerHigh : 'transparent'
-                                })}
-                            >
-                                <Text style={{ color: colors.onSurfaceVariant, fontFamily: "DMSans-Bold" }}>Cancel</Text>
-                            </Pressable>
-                            <Pressable
-                                onPress={handleCreate}
-                                disabled={createYearMutation.isPending}
-                                style={({ pressed }) => ({
-                                    backgroundColor: pressed ? colors.primary + 'DD' : colors.primary,
-                                    paddingHorizontal: 24,
-                                    paddingVertical: 12,
+                            <TextInput
+                                placeholder="Name (e.g. 2025-2026)"
+                                placeholderTextColor={colors.onSurfaceVariant}
+                                style={{
+                                    backgroundColor: colors.surfaceContainerHighest,
+                                    padding: 14,
                                     borderRadius: 12,
-                                    opacity: createYearMutation.isPending ? 0.7 : 1,
-                                    minWidth: 80,
-                                    alignItems: 'center'
-                                })}
-                            >
-                                {createYearMutation.isPending ? (
-                                    <ActivityIndicator size="small" color="#fff" />
-                                ) : (
-                                    <Text style={{ color: "#fff", fontFamily: "DMSans-Bold" }}>Create</Text>
-                                )}
-                            </Pressable>
+                                    color: colors.onSurface,
+                                    fontFamily: "DMSans-Medium",
+                                    marginBottom: 12,
+                                    borderWidth: 1,
+                                    borderColor: colors.outlineVariant
+                                }}
+                                value={form.name}
+                                onChangeText={(t) => setForm({ ...form, name: t })}
+                            />
+
+                            <TextInput
+                                placeholder="Start Date (DD-MM-YYYY)"
+                                placeholderTextColor={colors.onSurfaceVariant}
+                                style={{
+                                    backgroundColor: colors.surfaceContainerHighest,
+                                    padding: 14,
+                                    borderRadius: 12,
+                                    color: colors.onSurface,
+                                    fontFamily: "DMSans-Medium",
+                                    marginBottom: 12,
+                                    borderWidth: 1,
+                                    borderColor: colors.outlineVariant
+                                }}
+                                value={form.startDate}
+                                onChangeText={(t) => setForm({ ...form, startDate: t })}
+                            />
+
+                            <TextInput
+                                placeholder="End Date (DD-MM-YYYY)"
+                                placeholderTextColor={colors.onSurfaceVariant}
+                                style={{
+                                    backgroundColor: colors.surfaceContainerHighest,
+                                    padding: 14,
+                                    borderRadius: 12,
+                                    color: colors.onSurface,
+                                    fontFamily: "DMSans-Medium",
+                                    marginBottom: 24,
+                                    borderWidth: 1,
+                                    borderColor: colors.outlineVariant
+                                }}
+                                value={form.endDate}
+                                onChangeText={(t) => setForm({ ...form, endDate: t })}
+                            />
+
+                            <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: 12 }}>
+                                <Pressable
+                                    onPress={() => setShowModal(false)}
+                                    style={({ pressed }) => ({
+                                        padding: 12,
+                                        borderRadius: 10,
+                                        backgroundColor: pressed ? colors.surfaceContainerHigh : 'transparent'
+                                    })}
+                                >
+                                    <Text style={{ color: colors.onSurfaceVariant, fontFamily: "DMSans-Bold" }}>Cancel</Text>
+                                </Pressable>
+                                <Pressable
+                                    onPress={handleCreate}
+                                    disabled={createYearMutation.isPending}
+                                    style={({ pressed }) => ({
+                                        backgroundColor: pressed ? colors.primary + 'DD' : colors.primary,
+                                        paddingHorizontal: 24,
+                                        paddingVertical: 12,
+                                        borderRadius: 12,
+                                        opacity: createYearMutation.isPending ? 0.7 : 1,
+                                        minWidth: 80,
+                                        alignItems: 'center'
+                                    })}
+                                >
+                                    {createYearMutation.isPending ? (
+                                        <ActivityIndicator size="small" color="#fff" />
+                                    ) : (
+                                        <Text style={{ color: "#fff", fontFamily: "DMSans-Bold" }}>Create</Text>
+                                    )}
+                                </Pressable>
+                            </View>
                         </View>
-                    </View>
-                </View>
+                    </ScrollView>
+                </KeyboardAvoidingView>
             </Modal>
 
             {/* Academic Year Selector Modal */}

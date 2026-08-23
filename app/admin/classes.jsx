@@ -8,7 +8,9 @@ import {
     RefreshControl,
     ActivityIndicator,
     Modal,
-    Alert
+    Alert,
+    KeyboardAvoidingView,
+    Platform
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -260,96 +262,103 @@ export default function ClassesScreen() {
                 </Pressable>
             )}
 
-            <Modal visible={showModal} animationType="slide" transparent>
-                <View style={{ flex: 1, justifyContent: "center", backgroundColor: "rgba(0,0,0,0.5)", padding: 20 }}>
-                    <View style={{ backgroundColor: colors.cardBackground, borderRadius: 16, padding: 24 }}>
-                        <Text style={{ fontSize: 20, fontWeight: "700", color: colors.textPrimary, marginBottom: 16 }}>
-                            {modalMode === "create" ? "New Class" : "Edit Class"}
-                        </Text>
+            <Modal visible={showModal} animationType="slide" transparent onRequestClose={() => setShowModal(false)}>
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : undefined}
+                    style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)" }}
+                >
+                    <ScrollView
+                        contentContainerStyle={{ flexGrow: 1, justifyContent: "center", alignItems: "center", padding: 20 }}
+                        keyboardShouldPersistTaps="handled"
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={{ backgroundColor: colors.cardBackground, borderRadius: 16, padding: 24, width: "100%", maxWidth: 400 }}>
+                            <Text style={{ fontSize: 20, fontWeight: "700", color: colors.textPrimary, marginBottom: 16 }}>
+                                {modalMode === "create" ? "New Class" : "Edit Class"}
+                            </Text>
 
-                        <TextInput
-                            placeholder="Class Name (e.g. 1st Standard)"
-                            placeholderTextColor={colors.textSecondary}
-                            style={{
-                                backgroundColor: colors.background,
-                                padding: 12,
-                                borderRadius: 8,
-                                color: colors.textPrimary,
-                                marginBottom: 12
-                            }}
-                            value={form.name}
-                            onChangeText={(t) => setForm({ ...form, name: t })}
-                        />
-
-                        <TextInput
-                            placeholder="Section (Optional, e.g. A)"
-                            placeholderTextColor={colors.textSecondary}
-                            style={{
-                                backgroundColor: colors.background,
-                                padding: 12,
-                                borderRadius: 8,
-                                color: colors.textPrimary,
-                                marginBottom: 12
-                            }}
-                            value={form.section}
-                            onChangeText={(t) => setForm({ ...form, section: t })}
-                        />
-
-
-
-                        {/* Simple Dropdown for Teacher */}
-                        <View style={{ marginBottom: 24 }}>
-                            <Text style={{ color: colors.textSecondary, marginBottom: 4, fontSize: 12 }}>Class Teacher (Optional)</Text>
-                            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                                {teachers.map(teacher => (
-                                    <Pressable
-                                        key={teacher._id}
-                                        onPress={() => setForm({ ...form, classTeacher: teacher._id })}
-                                        style={{
-                                            paddingHorizontal: 12,
-                                            paddingVertical: 8,
-                                            backgroundColor: form.classTeacher === teacher._id ? colors.primary : colors.background,
-                                            borderRadius: 8,
-                                            marginRight: 8,
-                                            borderWidth: 1,
-                                            borderColor: form.classTeacher === teacher._id ? colors.primary : colors.border
-                                        }}
-                                    >
-                                        <Text style={{ color: form.classTeacher === teacher._id ? '#fff' : colors.textPrimary }}>
-                                            {teacher.name}
-                                        </Text>
-                                    </Pressable>
-                                ))}
-                            </ScrollView>
-                        </View>
-
-                        <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: 12 }}>
-                            <Pressable onPress={() => setShowModal(false)} style={{ padding: 12 }}>
-                                <Text style={{ color: colors.textSecondary, fontWeight: "600" }}>Cancel</Text>
-                            </Pressable>
-                            <Pressable
-                                onPress={handleSubmit}
-                                disabled={createClassMutation.isPending || updateClassMutation.isPending}
+                            <TextInput
+                                placeholder="Class Name (e.g. 1st Standard)"
+                                placeholderTextColor={colors.textSecondary}
                                 style={{
-                                    backgroundColor: colors.primary,
-                                    opacity: (createClassMutation.isPending || updateClassMutation.isPending) ? 0.5 : 1,
-                                    paddingHorizontal: 20,
-                                    paddingVertical: 12,
+                                    backgroundColor: colors.background,
+                                    padding: 12,
                                     borderRadius: 8,
-                                    flexDirection: "row",
-                                    alignItems: "center",
-                                    gap: 8
+                                    color: colors.textPrimary,
+                                    marginBottom: 12
                                 }}
-                            >
-                                {(createClassMutation.isPending || updateClassMutation.isPending) && <ActivityIndicator size="small" color="#fff" />}
-                                <Text style={{ color: "#fff", fontWeight: "600" }}>
-                                    {(createClassMutation.isPending || updateClassMutation.isPending) ? "Saving..." : (modalMode === "create" ? "Create" : "Update")}
-                                </Text>
-                            </Pressable>
+                                value={form.name}
+                                onChangeText={(t) => setForm({ ...form, name: t })}
+                            />
+
+                            <TextInput
+                                placeholder="Section (Optional, e.g. A)"
+                                placeholderTextColor={colors.textSecondary}
+                                style={{
+                                    backgroundColor: colors.background,
+                                    padding: 12,
+                                    borderRadius: 8,
+                                    color: colors.textPrimary,
+                                    marginBottom: 12
+                                }}
+                                value={form.section}
+                                onChangeText={(t) => setForm({ ...form, section: t })}
+                            />
+
+                            {/* Simple Dropdown for Teacher */}
+                            <View style={{ marginBottom: 24 }}>
+                                <Text style={{ color: colors.textSecondary, marginBottom: 4, fontSize: 12 }}>Class Teacher (Optional)</Text>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                                    {teachers.map(teacher => (
+                                        <Pressable
+                                            key={teacher._id}
+                                            onPress={() => setForm({ ...form, classTeacher: teacher._id })}
+                                            style={{
+                                                paddingHorizontal: 12,
+                                                paddingVertical: 8,
+                                                backgroundColor: form.classTeacher === teacher._id ? colors.primary : colors.background,
+                                                borderRadius: 8,
+                                                marginRight: 8,
+                                                borderWidth: 1,
+                                                borderColor: form.classTeacher === teacher._id ? colors.primary : colors.border
+                                            }}
+                                        >
+                                            <Text style={{ color: form.classTeacher === teacher._id ? '#fff' : colors.textPrimary }}>
+                                                {teacher.name}
+                                            </Text>
+                                        </Pressable>
+                                    ))}
+                                </ScrollView>
+                            </View>
+
+                            <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: 12 }}>
+                                <Pressable onPress={() => setShowModal(false)} style={{ padding: 12 }}>
+                                    <Text style={{ color: colors.textSecondary, fontWeight: "600" }}>Cancel</Text>
+                                </Pressable>
+                                <Pressable
+                                    onPress={handleSubmit}
+                                    disabled={createClassMutation.isPending || updateClassMutation.isPending}
+                                    style={{
+                                        backgroundColor: colors.primary,
+                                        opacity: (createClassMutation.isPending || updateClassMutation.isPending) ? 0.5 : 1,
+                                        paddingHorizontal: 20,
+                                        paddingVertical: 12,
+                                        borderRadius: 8,
+                                        flexDirection: "row",
+                                        alignItems: "center",
+                                        gap: 8
+                                    }}
+                                >
+                                    {(createClassMutation.isPending || updateClassMutation.isPending) && <ActivityIndicator size="small" color="#fff" />}
+                                    <Text style={{ color: "#fff", fontWeight: "600" }}>
+                                        {(createClassMutation.isPending || updateClassMutation.isPending) ? "Saving..." : (modalMode === "create" ? "Create" : "Update")}
+                                    </Text>
+                                </Pressable>
+                            </View>
                         </View>
-                    </View >
-                </View >
-            </Modal >
-        </View >
+                    </ScrollView>
+                </KeyboardAvoidingView>
+            </Modal>
+        </View>
     );
 }

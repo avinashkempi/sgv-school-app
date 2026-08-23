@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, RefreshControl, ActivityIndicator, ScrollView, SectionList, Pressable } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, RefreshControl, ActivityIndicator, ScrollView, SectionList, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -709,7 +709,10 @@ export default function AdminLeaves() {
                 transparent={true}
                 onRequestClose={() => setApplyModalVisible(false)}
             >
-                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : undefined}
+                    style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}
+                >
                     <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, maxHeight: '90%' }}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                             <Text style={{ fontSize: 24, fontFamily: "DMSans-Bold", color: colors.onSurface }}>Apply for Leave</Text>
@@ -718,7 +721,7 @@ export default function AdminLeaves() {
                             </TouchableOpacity>
                         </View>
 
-                        <ScrollView showsVerticalScrollIndicator={false}>
+                        <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                             <View style={{ marginBottom: 24 }}>
                                 <Text style={styles_internal.label(colors)}>LEAVE TYPE</Text>
                                 <View style={{ flexDirection: 'row', backgroundColor: colors.surfaceContainer, borderRadius: 12, padding: 4 }}>
@@ -860,7 +863,7 @@ export default function AdminLeaves() {
                             </TouchableOpacity>
                         </ScrollView>
                     </View>
-                </View>
+                </KeyboardAvoidingView>
             </Modal>
         </View>
     );

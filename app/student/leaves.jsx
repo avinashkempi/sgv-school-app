@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, RefreshControl, ActivityIndicator, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, RefreshControl, ActivityIndicator, ScrollView, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -247,11 +247,14 @@ export default function StudentLeaves() {
                 transparent={true}
                 onRequestClose={() => setModalVisible(false)}
             >
-                <View style={{
-                    flex: 1,
-                    backgroundColor: 'rgba(0,0,0,0.5)',
-                    justifyContent: 'flex-end',
-                }}>
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : undefined}
+                    style={{
+                        flex: 1,
+                        backgroundColor: 'rgba(0,0,0,0.5)',
+                        justifyContent: 'flex-end',
+                    }}
+                >
                     <View style={{
                         backgroundColor: colors.surface,
                         borderTopLeftRadius: 28,
@@ -280,7 +283,7 @@ export default function StudentLeaves() {
                             </TouchableOpacity>
                         </View>
 
-                        <ScrollView showsVerticalScrollIndicator={false}>
+                        <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                             {/* Leave Type Toggle */}
                             <View style={{ marginBottom: 24 }}>
                                 <Text style={styles.labelMedium}>{t('student.leaveTypeLabel', 'LEAVE TYPE')}</Text>
@@ -490,12 +493,12 @@ export default function StudentLeaves() {
                                         fontSize: 16,
                                         fontFamily: "DMSans-Bold",
                                         letterSpacing: 0.5
-                                    }}>${t('student.submitApplication', 'Submit Application')}</Text>
+                                    }}>{t('student.submitApplication', 'Submit Application')}</Text>
                                 )}
                             </TouchableOpacity>
                         </ScrollView>
                     </View>
-                </View>
+                </KeyboardAvoidingView>
             </Modal>
         </View>
     );

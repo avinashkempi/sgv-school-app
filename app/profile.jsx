@@ -1,5 +1,5 @@
-import React, { useState, } from "react";
-import { View, Text, ScrollView, RefreshControl, Modal, Pressable } from "react-native";
+import React, { useState, useMemo } from "react";
+import { View, Text, ScrollView, RefreshControl, Modal, Pressable, KeyboardAvoidingView, Platform } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import storage from "../utils/storage";
 import { useTheme } from "../theme";
@@ -45,12 +45,33 @@ export default function ProfileScreen() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const hasMinLength = newPassword.length >= 8;
+  const hasLetters = /[a-zA-Z]/.test(newPassword);
+  const hasNumbersOrSpecial = /[0-9!@#$%^&*(),.?":{}|<>]/.test(newPassword);
+  const isDifferentFromCurrent = !currentPassword || (newPassword !== currentPassword);
+  const passwordsMatch = Boolean(confirmPassword && newPassword === confirmPassword);
+
+  const strengthScore = useMemo(() => {
+    if (!newPassword) return 0;
+    let score = 0;
+    if (hasMinLength) score += 1;
+    if (hasLetters && hasNumbersOrSpecial) score += 1;
+    if (newPassword.length >= 10 && /[A-Z]/.test(newPassword) && /[0-9]/.test(newPassword) && /[^A-Za-z0-9]/.test(newPassword)) score += 1;
+    return Math.min(score, 3);
+  }, [newPassword, hasMinLength, hasLetters, hasNumbersOrSpecial]);
+
+  const strengthDetails = useMemo(() => {
+    if (!newPassword) return { label: '', color: 'transparent' };
+    if (strengthScore <= 1) return { label: 'Weak', color: colors.error };
+    if (strengthScore === 2) return { label: 'Good', color: colors.roleStudent || '#E27200' };
+    return { label: 'Strong', color: colors.success };
+  }, [strengthScore, newPassword, colors]);
+
   const isPasswordFormValid = Boolean(
     currentPassword?.trim() &&
-    newPassword &&
-    newPassword.length >= 8 &&
-    confirmPassword &&
-    newPassword === confirmPassword
+    hasMinLength &&
+    isDifferentFromCurrent &&
+    passwordsMatch
   );
 
   const resetPasswordForm = () => {
@@ -84,6 +105,10 @@ export default function ProfileScreen() {
     }
     if (newPassword.length < 8) {
       showToast(t('toasts.passwordMinLength'), "error");
+      return;
+    }
+    if (currentPassword === newPassword) {
+      showToast('New password must be different from current password', 'error');
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -393,84 +418,136 @@ export default function ProfileScreen() {
       {showChangePasswordModal && (
         <Modal
           visible={showChangePasswordModal}
-          animationType="slide"
+          animationType="fade"
           transparent={true}
-          onRequestClose={() => setShowChangePasswordModal(false)}
+          onRequestClose={resetPasswordForm}
         >
-          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-            <View style={{ backgroundColor: colors.background, borderRadius: 24, padding: 24, width: '100%', maxWidth: 400, borderWidth: 1, borderColor: colors.border }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
-                  {t('profile.resetPassword')}
-                </Text>
-                <Pressable onPress={resetPasswordForm}>
-                  <MaterialIcons name="close" size={24} color={colors.textSecondary} />
-                </Pressable>
-              </View>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.55)" }}
+          >
+            <ScrollView
+              contentContainerStyle={{ flexGrow: 1, justifyContent: "center", alignItems: "center", padding: 20 }}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              <View style={{ backgroundColor: colors.background, borderRadius: 24, padding: 24, width: '100%', maxWidth: 420, borderWidth: 1, borderColor: colors.border, elevation: 5, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 12 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primaryContainer || `${colors.primary}15`, justifyContent: 'center', alignItems: 'center' }}>
+                      <MaterialIcons name="lock-reset" size={22} color={colors.primary} />
+                    </View>
+                    <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
+                      {t('profile.resetPassword')}
+                    </Text>
+                  </View>
+                  <Pressable onPress={resetPasswordForm} hitSlop={8}>
+                    <MaterialIcons name="close" size={24} color={colors.textSecondary} />
+                  </Pressable>
+                </View>
 
-              {/* Current Password Field */}
-              <View style={{ marginBottom: 16 }}>
-                <AppTextInput
-                  label={t('profile.currentPasswordLabel')}
-                  placeholder={t('profile.currentPasswordPlaceholder')}
-                  value={currentPassword}
-                  onChangeText={setCurrentPassword}
-                  secureTextEntry={!showCurrentPassword}
-                  autoCapitalize="none"
-                  rightIcon={showCurrentPassword ? "visibility-off" : "visibility"}
-                  onRightIconPress={() => setShowCurrentPassword(!showCurrentPassword)}
-                />
-              </View>
+                {/* Current Password Field */}
+                <View style={{ marginBottom: 14 }}>
+                  <AppTextInput
+                    label={t('profile.currentPasswordLabel')}
+                    placeholder={t('profile.currentPasswordPlaceholder')}
+                    value={currentPassword}
+                    onChangeText={setCurrentPassword}
+                    secureTextEntry={!showCurrentPassword}
+                    autoCapitalize="none"
+                    rightIcon={showCurrentPassword ? "visibility-off" : "visibility"}
+                    onRightIconPress={() => setShowCurrentPassword(!showCurrentPassword)}
+                  />
+                </View>
 
-              {/* New Password Field */}
-              <View style={{ marginBottom: 16 }}>
-                <AppTextInput
-                  label={t('profile.newPasswordLabel')}
-                  placeholder={t('profile.newPasswordPlaceholder')}
-                  value={newPassword}
-                  onChangeText={setNewPassword}
-                  secureTextEntry={!showNewPassword}
-                  autoCapitalize="none"
-                  rightIcon={showNewPassword ? "visibility-off" : "visibility"}
-                  onRightIconPress={() => setShowNewPassword(!showNewPassword)}
-                />
-              </View>
+                {/* New Password Field */}
+                <View style={{ marginBottom: 10 }}>
+                  <AppTextInput
+                    label={t('profile.newPasswordLabel')}
+                    placeholder={t('profile.newPasswordPlaceholder')}
+                    value={newPassword}
+                    onChangeText={setNewPassword}
+                    secureTextEntry={!showNewPassword}
+                    autoCapitalize="none"
+                    rightIcon={showNewPassword ? "visibility-off" : "visibility"}
+                    onRightIconPress={() => setShowNewPassword(!showNewPassword)}
+                    error={currentPassword && newPassword && currentPassword === newPassword ? "New password must be different from current password" : undefined}
+                  />
+                </View>
 
-              {/* Confirm New Password Field */}
-              <View style={{ marginBottom: 24 }}>
-                <AppTextInput
-                  label={t('profile.confirmPasswordLabel')}
-                  placeholder={t('profile.confirmPasswordPlaceholder')}
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  secureTextEntry={!showConfirmPassword}
-                  autoCapitalize="none"
-                  rightIcon={showConfirmPassword ? "visibility-off" : "visibility"}
-                  onRightIconPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                />
-              </View>
+                {/* Password Strength Meter & Live Checklist */}
+                {newPassword.length > 0 && (
+                  <View style={{ marginBottom: 14, backgroundColor: colors.surfaceContainerLow || colors.surfaceContainer, borderRadius: 12, padding: 12 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                      <Text style={{ fontSize: 12, fontFamily: 'DMSans-Medium', color: colors.textSecondary }}>
+                        Password Strength
+                      </Text>
+                      <Text style={{ fontSize: 12, fontFamily: 'DMSans-Bold', color: strengthDetails.color }}>
+                        {strengthDetails.label}
+                      </Text>
+                    </View>
+                    {/* Progress Bar Segments */}
+                    <View style={{ flexDirection: 'row', gap: 6, marginBottom: 10 }}>
+                      <View style={{ flex: 1, height: 4, borderRadius: 2, backgroundColor: strengthScore >= 1 ? strengthDetails.color : colors.outlineVariant }} />
+                      <View style={{ flex: 1, height: 4, borderRadius: 2, backgroundColor: strengthScore >= 2 ? strengthDetails.color : colors.outlineVariant }} />
+                      <View style={{ flex: 1, height: 4, borderRadius: 2, backgroundColor: strengthScore >= 3 ? strengthDetails.color : colors.outlineVariant }} />
+                    </View>
 
-              {/* Actions */}
-              <View style={{ flexDirection: 'row', gap: 12 }}>
-                <Button
-                  variant="outlined"
-                  onPress={resetPasswordForm}
-                  style={{ flex: 1 }}
-                >
-                  {t('common.cancel')}
-                </Button>
-                <Button
-                  variant="filled"
-                  onPress={handleChangePasswordSubmit}
-                  loading={changePasswordMutation.isPending}
-                  disabled={!isPasswordFormValid || changePasswordMutation.isPending}
-                  style={{ flex: 1 }}
-                >
-                  {t('common.save')}
-                </Button>
+                    {/* Requirement Checklist */}
+                    <View style={{ gap: 4 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <MaterialIcons name={hasMinLength ? "check-circle" : "radio-button-unchecked"} size={14} color={hasMinLength ? colors.success : colors.textSecondary} />
+                        <Text style={{ fontSize: 12, fontFamily: 'DMSans-Regular', color: hasMinLength ? colors.textPrimary : colors.textSecondary }}>
+                          At least 8 characters
+                        </Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <MaterialIcons name={hasLetters && hasNumbersOrSpecial ? "check-circle" : "radio-button-unchecked"} size={14} color={hasLetters && hasNumbersOrSpecial ? colors.success : colors.textSecondary} />
+                        <Text style={{ fontSize: 12, fontFamily: 'DMSans-Regular', color: hasLetters && hasNumbersOrSpecial ? colors.textPrimary : colors.textSecondary }}>
+                          Letters & numbers or symbols
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                )}
+
+                {/* Confirm New Password Field */}
+                <View style={{ marginBottom: 20 }}>
+                  <AppTextInput
+                    label={t('profile.confirmPasswordLabel')}
+                    placeholder={t('profile.confirmPasswordPlaceholder')}
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    secureTextEntry={!showConfirmPassword}
+                    autoCapitalize="none"
+                    rightIcon={showConfirmPassword ? "visibility-off" : "visibility"}
+                    onRightIconPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                    error={confirmPassword.length > 0 && confirmPassword !== newPassword ? t('toasts.passwordsDoNotMatch') : undefined}
+                  />
+                </View>
+
+                {/* Actions */}
+                <View style={{ flexDirection: 'row', gap: 12 }}>
+                  <Button
+                    variant="outlined"
+                    onPress={resetPasswordForm}
+                    style={{ flex: 1 }}
+                  >
+                    {t('common.cancel')}
+                  </Button>
+                  <Button
+                    variant="filled"
+                    onPress={handleChangePasswordSubmit}
+                    loading={changePasswordMutation.isPending}
+                    disabled={!isPasswordFormValid || changePasswordMutation.isPending}
+                    style={{ flex: 1 }}
+                  >
+                    {t('common.save')}
+                  </Button>
+                </View>
               </View>
-            </View>
-          </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
         </Modal>
       )}
     </ScrollView>
