@@ -43,6 +43,25 @@ export default function ProfileScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const isPasswordFormValid = Boolean(
+    currentPassword?.trim() &&
+    newPassword &&
+    newPassword.length >= 8 &&
+    confirmPassword &&
+    newPassword === confirmPassword
+  );
+
+  const resetPasswordForm = () => {
+    setShowChangePasswordModal(false);
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setShowCurrentPassword(false);
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
+  };
 
   const changePasswordMutation = useApiMutation({
     mutationFn: (data) => createApiMutationFn(`${apiConfig.baseUrl}/auth/change-password`, 'POST')(data),
@@ -51,10 +70,7 @@ export default function ProfileScreen() {
         await storage.setItem('@auth_token', data.token);
       }
       showToast(t('toasts.passwordResetSuccessfully'), "success");
-      setShowChangePasswordModal(false);
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
+      resetPasswordForm();
     },
     onError: (error) => {
       showToast(error.message || t('toasts.failedToResetPassword'), "error");
@@ -62,7 +78,7 @@ export default function ProfileScreen() {
   });
 
   const handleChangePasswordSubmit = () => {
-    if (!currentPassword || !newPassword || !confirmPassword) {
+    if (!currentPassword?.trim() || !newPassword?.trim() || !confirmPassword?.trim()) {
       showToast(t('toasts.allFieldsMandatory'), "error");
       return;
     }
@@ -387,12 +403,7 @@ export default function ProfileScreen() {
                 <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
                   {t('profile.resetPassword')}
                 </Text>
-                <Pressable onPress={() => {
-                  setShowChangePasswordModal(false);
-                  setCurrentPassword('');
-                  setNewPassword('');
-                  setConfirmPassword('');
-                }}>
+                <Pressable onPress={resetPasswordForm}>
                   <MaterialIcons name="close" size={24} color={colors.textSecondary} />
                 </Pressable>
               </View>
@@ -432,8 +443,10 @@ export default function ProfileScreen() {
                   placeholder={t('profile.confirmPasswordPlaceholder')}
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
-                  secureTextEntry={!showNewPassword}
+                  secureTextEntry={!showConfirmPassword}
                   autoCapitalize="none"
+                  rightIcon={showConfirmPassword ? "visibility-off" : "visibility"}
+                  onRightIconPress={() => setShowConfirmPassword(!showConfirmPassword)}
                 />
               </View>
 
@@ -441,12 +454,7 @@ export default function ProfileScreen() {
               <View style={{ flexDirection: 'row', gap: 12 }}>
                 <Button
                   variant="outlined"
-                  onPress={() => {
-                    setShowChangePasswordModal(false);
-                    setCurrentPassword('');
-                    setNewPassword('');
-                    setConfirmPassword('');
-                  }}
+                  onPress={resetPasswordForm}
                   style={{ flex: 1 }}
                 >
                   {t('common.cancel')}
@@ -455,7 +463,7 @@ export default function ProfileScreen() {
                   variant="filled"
                   onPress={handleChangePasswordSubmit}
                   loading={changePasswordMutation.isPending}
-                  disabled={!currentPassword || !newPassword || !confirmPassword}
+                  disabled={!isPasswordFormValid || changePasswordMutation.isPending}
                   style={{ flex: 1 }}
                 >
                   {t('common.save')}
