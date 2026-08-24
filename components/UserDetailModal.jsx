@@ -7,7 +7,12 @@ import {
     Modal
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { useTheme } from "../theme";
+import { useApiQuery } from "../hooks/useApi";
+import apiConfig from "../config/apiConfig";
+import { CACHE_TIERS } from "../utils/cacheConfig";
+import { getGridThumbnailUrl } from "../utils/cloudinaryUpload";
 
 export default function UserDetailModal({ visible, onClose, user }) {
     const { colors } = useTheme();
@@ -145,6 +150,9 @@ export default function UserDetailModal({ visible, onClose, user }) {
                                 <Text style={{ fontFamily: "DMSans-Regular", color: colors.textPrimary }}>{user.remarks}</Text>
                             </DetailSection>
                         )}
+
+                        {/* User's Vibes Portfolio */}
+                        <UserVibesSection userId={user._id || user.id} />
                     </ScrollView>
                 </View>
             </View>
@@ -176,5 +184,65 @@ const DetailRow = ({ icon, label, value, style }) => {
                 <Text style={{ fontSize: 15, fontFamily: "DMSans-Medium", color: colors.textPrimary }}>{value || "N/A"}</Text>
             </View>
         </View>
+    );
+};
+
+const UserVibesSection = ({ userId }) => {
+    const { colors } = useTheme();
+    const { data: vibesData } = useApiQuery(
+        ['userVibes', userId],
+        `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.userVibes(userId)}`,
+        {
+            ...CACHE_TIERS.MODERATE,
+            enabled: !!userId,
+            select: (data) => data?.data || [],
+        }
+    );
+
+    const vibes = vibesData || [];
+    if (vibes.length === 0) return null;
+
+    return (
+        <DetailSection title={`CAMPUS VIBES (${vibes.length})`}>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                {vibes.slice(0, 6).map((vibe, idx) => {
+                    const imgUrl = vibe.images?.[0]?.thumbnailUrl || vibe.images?.[0]?.url;
+                    const optimizedUrl = imgUrl ? getGridThumbnailUrl(imgUrl) : null;
+                    const isVideo = vibe.images?.[0]?.type === 'video';
+
+                    return (
+                        <View
+                            key={vibe._id || idx}
+                            style={{
+                                width: '31%',
+                                aspectRatio: 1,
+                                borderRadius: 10,
+                                overflow: 'hidden',
+                                backgroundColor: colors.surfaceContainerHighest || '#eee',
+                                position: 'relative',
+                            }}
+                        >
+                            {optimizedUrl ? (
+                                <Image
+                                    source={{ uri: optimizedUrl }}
+                                    style={{ width: '100%', height: '100%' }}
+                                    contentFit="cover"
+                                    transition={200}
+                                />
+                            ) : (
+                                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                                    <MaterialIcons name="image" size={20} color={colors.textSecondary} />
+                                </View>
+                            )}
+                            {isVideo && (
+                                <View style={{ position: 'absolute', top: 4, right: 4, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 10, padding: 2 }}>
+                                    <MaterialIcons name="play-arrow" size={12} color="#fff" />
+                                </View>
+                            )}
+                        </View>
+                    );
+                })}
+            </View>
+        </DetailSection>
     );
 };

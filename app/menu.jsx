@@ -48,8 +48,8 @@ export default function MenuScreen() {
             color: colors.primary
         },
         {
-            title: "Vibes",
-            subtitle: "Community photo feed",
+            title: "SGV Vibes",
+            subtitle: "Community feed",
             icon: "auto-awesome",
             route: "/vibes",
             color: "#FF9800"

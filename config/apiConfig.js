@@ -66,9 +66,13 @@ const endpoints = {
     toggleBookmark: (id) => `/vibes/${id}/bookmark`,
     myVibes: '/vibes/user/my-vibes',
     saved: '/vibes/user/saved',
+    highlights: '/vibes/highlights',
+    spotlight: '/vibes/spotlight',
+    userVibes: (userId) => `/vibes/user/${userId}`,
     adminPending: '/vibes/admin/pending',
     adminReview: (id) => `/vibes/admin/${id}/review`,
     adminPin: (id) => `/vibes/admin/${id}/pin`,
+    adminSpotlight: (id) => `/vibes/admin/${id}/spotlight`,
   },
 };
 

@@ -79,6 +79,8 @@ export default function VibeApprovalsScreen() {
       queryClient.invalidateQueries({ queryKey });
       queryClient.invalidateQueries({ queryKey: ['pendingVibesCount'] });
       queryClient.invalidateQueries({ queryKey: ['vibes'] });
+      queryClient.invalidateQueries({ queryKey: ['vibeHighlights'] });
+      queryClient.invalidateQueries({ queryKey: ['vibeSpotlight'] });
       setRejectingVibe(null);
       setCustomReason('');
     },

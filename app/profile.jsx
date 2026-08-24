@@ -18,6 +18,8 @@ import Button from "../components/Button";
 import AppTextInput from "../components/TextInput";
 import { LoadingState } from "../components/StateComponents";
 import Header from "../components/Header";
+import { Image } from 'expo-image';
+import { getGridThumbnailUrl } from '../utils/cloudinaryUpload';
 
 export default function ProfileScreen() {
   const { styles, colors } = useTheme();
@@ -36,6 +38,20 @@ export default function ProfileScreen() {
       select: (data) => data.user
     }
   );
+
+  // Fetch user's approved vibes
+  const userId = user?._id || authUser?._id;
+  const { data: userVibesData, refetch: refetchVibes } = useApiQuery(
+    ['userVibes', userId],
+    `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.userVibes(userId)}`,
+    {
+      ...CACHE_TIERS.MODERATE,
+      enabled: !!userId,
+      select: (data) => data?.data || [],
+    }
+  );
+
+  const userVibes = userVibesData || [];
 
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
@@ -123,7 +139,10 @@ export default function ProfileScreen() {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await refetch();
+    await Promise.all([
+      refetch(),
+      refetchVibes ? refetchVibes() : Promise.resolve()
+    ]);
     setRefreshing(false);
   };
 
@@ -367,6 +386,93 @@ export default function ProfileScreen() {
                   )}
                 </Card>
               )}
+
+              {/* ═══════════ My SGV Vibes Showcase ═══════════ */}
+              <Card variant="filled" style={{ marginBottom: 16 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <MaterialIcons name="auto-awesome" size={18} color="#FF9800" />
+                    <Text style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
+                      My SGV Vibes
+                    </Text>
+                  </View>
+                  <Pressable
+                    onPress={() => router.push('/vibes')}
+                    hitSlop={8}
+                  >
+                    <Text style={{ fontSize: 12, fontFamily: "DMSans-Bold", color: colors.primary }}>
+                      {userVibes.length > 0 ? `View All (${userVibes.length})` : 'Explore'}
+                    </Text>
+                  </Pressable>
+                </View>
+
+                {userVibes.length > 0 ? (
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                    {userVibes.slice(0, 6).map((vibe, idx) => {
+                      const imgUrl = vibe.images?.[0]?.thumbnailUrl || vibe.images?.[0]?.url;
+                      const optimizedUrl = imgUrl ? getGridThumbnailUrl(imgUrl) : null;
+                      const isVideo = vibe.images?.[0]?.type === 'video';
+
+                      return (
+                        <Pressable
+                          key={vibe._id || idx}
+                          onPress={() => router.push('/vibes')}
+                          style={({ pressed }) => ({
+                            width: '31%',
+                            aspectRatio: 1,
+                            borderRadius: 12,
+                            overflow: 'hidden',
+                            backgroundColor: colors.surfaceContainerHighest,
+                            position: 'relative',
+                            opacity: pressed ? 0.8 : 1,
+                          })}
+                        >
+                          {optimizedUrl ? (
+                            <Image
+                              source={{ uri: optimizedUrl }}
+                              style={{ width: '100%', height: '100%' }}
+                              contentFit="cover"
+                              transition={200}
+                            />
+                          ) : (
+                            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                              <MaterialIcons name="image" size={24} color={colors.onSurfaceVariant} />
+                            </View>
+                          )}
+                          {isVideo && (
+                            <View style={{ position: 'absolute', top: 4, right: 4, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 10, padding: 2 }}>
+                              <MaterialIcons name="play-arrow" size={12} color="#fff" />
+                            </View>
+                          )}
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                ) : (
+                  <View style={{ alignItems: 'center', paddingVertical: 16, gap: 8 }}>
+                    <Text style={{ fontSize: 13, fontFamily: 'DMSans-Regular', color: colors.onSurfaceVariant, textAlign: 'center' }}>
+                      You haven't posted any vibes yet.
+                    </Text>
+                    <Pressable
+                      onPress={() => router.push('/vibes')}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 4,
+                        paddingHorizontal: 14,
+                        paddingVertical: 6,
+                        borderRadius: 16,
+                        backgroundColor: colors.primaryContainer,
+                      }}
+                    >
+                      <MaterialIcons name="add" size={16} color={colors.onPrimaryContainer} />
+                      <Text style={{ fontSize: 12, fontFamily: 'DMSans-Bold', color: colors.onPrimaryContainer }}>
+                        Share a Vibe
+                      </Text>
+                    </Pressable>
+                  </View>
+                )}
+              </Card>
             </View>
           </>
         ) : (

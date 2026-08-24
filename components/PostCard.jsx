@@ -12,7 +12,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useTheme } from '../theme';
 import { getOptimizedCloudinaryUrl } from '../utils/cloudinaryUpload';
-import { getGoogleDriveEmbedUrl } from '../utils/googleDrive';
 import SkeletonLoader from './SkeletonLoader';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -22,14 +21,11 @@ const IMAGE_HEIGHT = 200;
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
 /**
- * Optimizes an image URL for display, supporting both Cloudinary and Google Drive.
+ * Optimizes an image URL for display via Cloudinary.
  */
 const getDisplayUrl = (url) => {
   if (!url) return null;
-  if (url.includes('cloudinary.com')) {
-    return getOptimizedCloudinaryUrl(url, { width: CARD_WIDTH * 2 });
-  }
-  return getGoogleDriveEmbedUrl(url);
+  return getOptimizedCloudinaryUrl(url, { width: Math.round(CARD_WIDTH * 2) });
 };
 
 /**

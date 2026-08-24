@@ -354,6 +354,8 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: ['vibes'] });
       queryClient.invalidateQueries({ queryKey: ['myVibes'] });
+      queryClient.invalidateQueries({ queryKey: ['vibeHighlights'] });
+      queryClient.invalidateQueries({ queryKey: ['vibeSpotlight'] });
       if (isAdmin) {
         queryClient.invalidateQueries({ queryKey: ['pendingVibes'] });
       }

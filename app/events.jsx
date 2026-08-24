@@ -1,6 +1,7 @@
 import React, { useState, useMemo, } from "react";
 import { FlatList, View, Text, Pressable, Alert, RefreshControl, ActivityIndicator } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 
 import { useTheme } from "../theme";
@@ -109,6 +110,7 @@ const formatIndianDate = (dateInput) => {
 
 // Memoized EventCard component with custom comparison for optimal performance
 const EventCard = React.memo(({ event, colors, isAdmin, onEdit, onDelete, t }) => {
+  const router = useRouter();
   // Sanitize event data to prevent rendering issues
   const title = event.title?.trim() || t('events.untitledEvent', 'Untitled Event');
   const description = event.description?.trim();
@@ -126,20 +128,42 @@ const EventCard = React.memo(({ event, colors, isAdmin, onEdit, onDelete, t }) =
               {description}
             </Text>
           )}
-          {event.isSchoolEvent && (
-            <View style={{
-              backgroundColor: '#FFD700' + '20',
-              paddingVertical: 4,
-              paddingHorizontal: 12,
-              borderRadius: 20,
-              alignSelf: 'flex-start',
-              flexDirection: 'row',
-              alignItems: 'center'
-            }}>
-              <MaterialIcons name="school" size={14} color="#F59E0B" style={{ marginRight: 4 }} />
-              <Text style={{ fontSize: 12, fontFamily: "DMSans-Bold", color: "#F59E0B" }}>{t('events.schoolEvent', 'School Event')}</Text>
-            </View>
-          )}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            {event.isSchoolEvent && (
+              <View style={{
+                backgroundColor: '#FFD700' + '20',
+                paddingVertical: 4,
+                paddingHorizontal: 12,
+                borderRadius: 20,
+                alignSelf: 'flex-start',
+                flexDirection: 'row',
+                alignItems: 'center'
+              }}>
+                <MaterialIcons name="school" size={14} color="#F59E0B" style={{ marginRight: 4 }} />
+                <Text style={{ fontSize: 12, fontFamily: "DMSans-Bold", color: "#F59E0B" }}>{t('events.schoolEvent', 'School Event')}</Text>
+              </View>
+            )}
+
+            {/* Event Vibes Memories button */}
+            <Pressable
+              onPress={() => router.push('/vibes')}
+              style={({ pressed }) => ({
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: colors.surfaceContainerHighest,
+                paddingVertical: 4,
+                paddingHorizontal: 10,
+                borderRadius: 20,
+                gap: 4,
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <MaterialIcons name="auto-awesome" size={13} color="#FF9800" />
+              <Text style={{ fontSize: 11, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
+                Event Vibes
+              </Text>
+            </Pressable>
+          </View>
         </View>
         {isAdmin && (
           <View style={{ flexDirection: 'row', gap: 8 }}>

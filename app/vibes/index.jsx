@@ -187,6 +187,8 @@ export default function VibesScreen() {
       queryClient.invalidateQueries({ queryKey: ['vibes'] });
       queryClient.invalidateQueries({ queryKey: ['myVibes'] });
       queryClient.invalidateQueries({ queryKey: ['savedVibes'] });
+      queryClient.invalidateQueries({ queryKey: ['vibeHighlights'] });
+      queryClient.invalidateQueries({ queryKey: ['vibeSpotlight'] });
     },
   });
 
@@ -200,6 +202,8 @@ export default function VibesScreen() {
     onSuccess: (res) => {
       showToast(res.message || 'Updated pin status', 'success');
       queryClient.invalidateQueries({ queryKey: ['vibes'] });
+      queryClient.invalidateQueries({ queryKey: ['vibeHighlights'] });
+      queryClient.invalidateQueries({ queryKey: ['vibeSpotlight'] });
     },
   });
 

@@ -471,11 +471,72 @@ export const getVideoPosterUrl = (videoUrl, thumbnailUrl) => {
  * @returns {string} Transformed URL
  */
 export const getOptimizedCloudinaryUrl = (url, { width = 800, quality = 'auto' } = {}) => {
-  if (!url || !url.includes('cloudinary.com')) return url;
+  if (!url || typeof url !== 'string') return url || '';
+  if (!url.includes('cloudinary.com')) return url;
 
-  // Insert transformation before /upload/ path
+  // If already transformed, don't duplicate
+  if (url.includes('/upload/w_') || url.includes('/upload/c_') || url.includes('/upload/q_')) {
+    return url;
+  }
+
   return url.replace(
     '/upload/',
     `/upload/w_${width},q_${quality},f_auto,c_limit/`
+  );
+};
+
+/**
+ * Optimized circular story preview thumbnail (200x200 smart face/auto crop)
+ */
+export const getStoryThumbnailUrl = (url) => {
+  if (!url || typeof url !== 'string') return url || '';
+  if (!url.includes('cloudinary.com')) return url;
+  if (url.includes('/upload/w_200')) return url;
+
+  return url.replace(
+    '/upload/',
+    '/upload/w_200,h_200,c_fill,g_auto,q_auto,f_auto/'
+  );
+};
+
+/**
+ * Optimized 1080x600 Hero Spotlight banner
+ */
+export const getHeroBannerUrl = (url) => {
+  if (!url || typeof url !== 'string') return url || '';
+  if (!url.includes('cloudinary.com')) return url;
+  if (url.includes('/upload/w_1080,h_600')) return url;
+
+  return url.replace(
+    '/upload/',
+    '/upload/w_1080,h_600,c_fill,g_auto,q_auto,f_auto/'
+  );
+};
+
+/**
+ * Optimized 360x360 Square Grid thumbnail (for Profile / Gallery)
+ */
+export const getGridThumbnailUrl = (url) => {
+  if (!url || typeof url !== 'string') return url || '';
+  if (!url.includes('cloudinary.com')) return url;
+  if (url.includes('/upload/w_360')) return url;
+
+  return url.replace(
+    '/upload/',
+    '/upload/w_360,h_360,c_fill,g_auto,q_auto,f_auto/'
+  );
+};
+
+/**
+ * Optimized Feed Image URL (max 1080px wide with auto quality and format)
+ */
+export const getFeedImageUrl = (url) => {
+  if (!url || typeof url !== 'string') return url || '';
+  if (!url.includes('cloudinary.com')) return url;
+  if (url.includes('/upload/w_1080')) return url;
+
+  return url.replace(
+    '/upload/',
+    '/upload/w_1080,q_auto,f_auto,c_limit/'
   );
 };
