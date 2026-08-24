@@ -36,6 +36,12 @@ function BottomNavigation() {
       icon: "home-filled", // M3 uses filled icons for active state usually, but consistent icons are fine
       inactiveIcon: "home",
     },
+    {
+      route: ROUTES.VIBES,
+      label: "Vibes",
+      icon: "auto-awesome",
+      inactiveIcon: "auto-awesome",
+    },
     ...(user && user.role === 'student' ? [{
       route: ROUTES.STUDENT_CLASS,
       label: t('nav.class'),

@@ -48,13 +48,26 @@ export default function MenuScreen() {
             color: colors.primary
         },
         {
+            title: "Vibes",
+            subtitle: "Community photo feed",
+            icon: "auto-awesome",
+            route: "/vibes",
+            color: "#FF9800"
+        },
+        {
             title: t('menu.events'),
             subtitle: t('menu.eventsSubtitle'),
             icon: "event",
             route: "/events",
             color: colors.tertiary
         },
-
+        ...(user && (user.role === 'admin' || user.role === 'super admin') ? [{
+            title: "Vibes Approvals",
+            subtitle: "Review community posts",
+            icon: "verified-user",
+            route: "/admin/vibe-approvals",
+            color: "#2E7D32"
+        }] : []),
         // Only show Complaints if user is logged in
         ...(user ? [{
             title: t('menu.complaints'),
@@ -63,7 +76,6 @@ export default function MenuScreen() {
             action: navigateToComplaints,
             color: colors.error
         }] : []),
-
     ];
 
     return (

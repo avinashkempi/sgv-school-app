@@ -26,7 +26,14 @@ const CarouselItem = React.memo(({ item, index, width, height }) => {
     // Compute optimal pixel width based on device pixel ratio (capped for memory efficiency)
     const pixelRatio = PixelRatio.get();
     const targetWidth = Math.min(1200, Math.max(600, Math.round(width * Math.min(pixelRatio, 2.5))));
-    const imageUrl = useMemo(() => getGoogleDriveEmbedUrl(item, { width: targetWidth }), [item, targetWidth]);
+    const rawUrl = typeof item === 'string' ? item : (item?.url || '');
+    const imageUrl = useMemo(() => getGoogleDriveEmbedUrl(rawUrl, { width: targetWidth }), [rawUrl, targetWidth]);
+
+    // Reset loading and error states whenever the URL changes
+    useEffect(() => {
+        setLoading(true);
+        setError(false);
+    }, [imageUrl]);
 
     if (!imageUrl) return null;
 
@@ -46,7 +53,7 @@ const CarouselItem = React.memo(({ item, index, width, height }) => {
                         cachePolicy="memory-disk"
                         priority={index === 0 ? "high" : "medium"}
                         allowDownscaling={true}
-                        recyclingKey={`carousel-${item}`}
+                        recyclingKey={`carousel-${rawUrl}`}
                         onLoadStart={() => setLoading(true)}
                         onLoad={() => setLoading(false)}
                         onError={() => {
@@ -114,6 +121,13 @@ export default function SchoolPhotoCarousel({ photos }) {
     // get recreated every time the index changes (fixes interval churn)
     const activeIndexRef = useRef(0);
 
+    const photoList = useMemo(() => {
+        if (!photos) return [];
+        if (Array.isArray(photos)) return photos.filter(Boolean);
+        if (typeof photos === 'string' && photos.trim()) return [photos.trim()];
+        return [];
+    }, [photos]);
+
     const handleViewableItemsChanged = useCallback(({ viewableItems }) => {
         if (viewableItems.length > 0) {
             activeIndexRef.current = viewableItems[0].index || 0;
@@ -133,12 +147,12 @@ export default function SchoolPhotoCarousel({ photos }) {
 
     // Auto-scroll logic — stable interval, no churn
     useEffect(() => {
-        if (!photos || photos.length <= 1) return;
+        if (!photoList || photoList.length <= 1) return;
 
         const interval = global.setInterval(() => {
             if (flatListRef.current) {
                 let nextIndex = activeIndexRef.current + 1;
-                if (nextIndex >= photos.length) {
+                if (nextIndex >= photoList.length) {
                     nextIndex = 0; // Loop back to start
                 }
 
@@ -151,10 +165,10 @@ export default function SchoolPhotoCarousel({ photos }) {
         }, 4000); // Slower auto-scroll for better UX
 
         return () => global.clearInterval(interval);
-    }, [photos]); // Only re-create interval when photo count changes
+    }, [photoList]); // Only re-create interval when photo count changes
 
     // If no photos, collapse gracefully
-    if (!photos || photos.length === 0) {
+    if (!photoList || photoList.length === 0) {
         return null;
     }
 
@@ -167,11 +181,11 @@ export default function SchoolPhotoCarousel({ photos }) {
             <View style={[styles.carouselWrapper, { height: ITEM_HEIGHT, width: ITEM_WIDTH, backgroundColor: 'transparent' }]}>
                 <AnimatedFlatList
                     ref={flatListRef}
-                    data={photos}
+                    data={photoList}
                     renderItem={({ item, index }) => (
                         <CarouselItem item={item} index={index} width={ITEM_WIDTH} height={ITEM_HEIGHT} />
                     )}
-                    keyExtractor={(item, index) => `school-photo-${index}`}
+                    keyExtractor={(item, index) => `school-photo-${index}-${typeof item === 'string' ? item : (item?.url || index)}`}
                     horizontal
                     pagingEnabled
                     showsHorizontalScrollIndicator={false}
@@ -191,9 +205,9 @@ export default function SchoolPhotoCarousel({ photos }) {
             </View>
 
             {/* Pagination Dots — fully Reanimated, UI-thread driven */}
-            {photos.length > 1 && (
+            {photoList.length > 1 && (
                 <View style={styles.pagination}>
-                    {photos.map((_, index) => (
+                    {photoList.map((_, index) => (
                         <PaginationDot
                             key={index}
                             index={index}

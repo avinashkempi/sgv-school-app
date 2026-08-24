@@ -1,0 +1,629 @@
+import React, { useState, useCallback } from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  Pressable,
+  ActivityIndicator,
+  RefreshControl,
+  StyleSheet,
+  Modal,
+  TextInput,
+  Dimensions,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { MaterialIcons } from '@expo/vector-icons';
+import { useQueryClient } from '@tanstack/react-query';
+import { useTheme } from '../../theme';
+import { useToast } from '../../components/ToastProvider';
+import { useApiInfiniteQuery, useApiMutation, createApiMutationFn } from '../../hooks/useApi';
+import apiConfig from '../../config/apiConfig';
+import { CACHE_TIERS } from '../../utils/cacheConfig';
+import VibeImageCarousel from '../../components/vibes/VibeImageCarousel';
+import RoleGuard from '../../components/RoleGuard';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+const REJECT_REASONS = [
+  'Does not meet school community guidelines',
+  'Blurry or low-quality photo',
+  'Duplicate or redundant submission',
+  'Inappropriate or unverified content',
+  'Incorrect category selected',
+];
+
+export default function VibeApprovalsScreen() {
+  const router = useRouter();
+  const { colors, styles: themeStyles } = useTheme();
+  const { showToast } = useToast();
+  const queryClient = useQueryClient();
+
+  const [rejectingVibe, setRejectingVibe] = useState(null);
+  const [selectedReason, setSelectedReason] = useState(REJECT_REASONS[0]);
+  const [customReason, setCustomReason] = useState('');
+  const [processingId, setProcessingId] = useState(null);
+
+  const queryKey = ['pendingVibes'];
+
+  const {
+    data,
+    isLoading,
+    isRefetching,
+    refetch,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useApiInfiniteQuery(
+    queryKey,
+    (page) => `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.adminPending}?page=${page}&limit=10`,
+    {
+      ...CACHE_TIERS.REAL_TIME,
+      getNextPageParam: (lastPage) => lastPage?.pagination?.hasMore ? lastPage.pagination.page + 1 : undefined,
+      initialPageParam: 1,
+    }
+  );
+
+  const pendingVibes = data?.pages?.flatMap(p => p?.data || []) || [];
+  const totalPending = data?.pages?.[0]?.pendingCount ?? pendingVibes.length;
+
+  // Review mutation
+  const reviewMutation = useApiMutation({
+    mutationFn: async ({ vibeId, action, reason }) => {
+      return createApiMutationFn(
+        `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.adminReview(vibeId)}`,
+        'PATCH'
+      )({ action, reason });
+    },
+    onSuccess: (res) => {
+      showToast(res.message || 'Updated vibe', 'success');
+      queryClient.invalidateQueries({ queryKey });
+      queryClient.invalidateQueries({ queryKey: ['pendingVibesCount'] });
+      queryClient.invalidateQueries({ queryKey: ['vibes'] });
+      setRejectingVibe(null);
+      setCustomReason('');
+    },
+    onError: (err) => {
+      showToast(err.message || 'Failed to review vibe', 'error');
+    },
+  });
+
+  const handleApprove = useCallback(async (vibe) => {
+    setProcessingId(vibe._id);
+    try {
+      await reviewMutation.mutateAsync({
+        vibeId: vibe._id,
+        action: 'approve',
+      });
+    } finally {
+      setProcessingId(null);
+    }
+  }, [reviewMutation]);
+
+  const handleConfirmReject = useCallback(async () => {
+    if (!rejectingVibe) return;
+
+    const finalReason = customReason.trim() || selectedReason;
+    setProcessingId(rejectingVibe._id);
+    try {
+      await reviewMutation.mutateAsync({
+        vibeId: rejectingVibe._id,
+        action: 'reject',
+        reason: finalReason,
+      });
+    } finally {
+      setProcessingId(null);
+    }
+  }, [rejectingVibe, customReason, selectedReason, reviewMutation]);
+
+  const renderItem = useCallback(({ item }) => {
+    const isProcessing = processingId === item._id;
+
+    return (
+      <View style={[styles.reviewCard, { backgroundColor: colors.surfaceContainer }]}>
+        {/* Author Header */}
+        <View style={styles.authorHeader}>
+          <View style={[styles.avatarCircle, { backgroundColor: colors.primaryContainer }]}>
+            <Text style={[styles.avatarText, { color: colors.onPrimaryContainer }]}>
+              {item.author?.name ? item.author.name[0].toUpperCase() : 'U'}
+            </Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.authorName, { color: colors.onSurface }]}>
+              {item.author?.name || 'Community Member'}
+            </Text>
+            <Text style={[styles.authorRole, { color: colors.onSurfaceVariant }]}>
+              {item.author?.role === 'student'
+                ? `Student • ${item.author?.currentClass?.name || 'Class Student'}`
+                : item.author?.role === 'teacher'
+                ? `Teacher • ${item.author?.designation || 'Staff'}`
+                : item.author?.role}
+              {item.author?.phone ? ` • ${item.author.phone}` : ''}
+            </Text>
+          </View>
+          <View style={[styles.categoryBadge, { backgroundColor: colors.surfaceContainerHighest }]}>
+            <Text style={[styles.categoryBadgeText, { color: colors.onSurfaceVariant }]}>
+              {item.category}
+            </Text>
+          </View>
+        </View>
+
+        {/* Media Preview */}
+        {item.images && item.images.length > 0 && (
+          <VibeImageCarousel
+            images={item.images}
+            width={SCREEN_WIDTH}
+            isVisible={true}
+          />
+        )}
+
+        {/* Caption */}
+        {item.caption ? (
+          <View style={styles.captionBox}>
+            <Text style={[styles.captionText, { color: colors.onSurface }]}>
+              {item.caption}
+            </Text>
+          </View>
+        ) : null}
+
+        {/* Submitted timestamp */}
+        <View style={styles.timeRow}>
+          <MaterialIcons name="schedule" size={14} color={colors.onSurfaceVariant} />
+          <Text style={[styles.timeText, { color: colors.onSurfaceVariant }]}>
+            Submitted on {new Date(item.createdAt).toLocaleString('en-IN', {
+              dateStyle: 'medium',
+              timeStyle: 'short'
+            })}
+          </Text>
+        </View>
+
+        {/* Action Buttons */}
+        <View style={[styles.actionRow, { borderTopColor: colors.outlineVariant }]}>
+          <Pressable
+            onPress={() => setRejectingVibe(item)}
+            disabled={isProcessing}
+            style={[styles.rejectBtn, { borderColor: colors.error }]}
+          >
+            <MaterialIcons name="close" size={18} color={colors.error} />
+            <Text style={[styles.rejectBtnText, { color: colors.error }]}>Reject</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => handleApprove(item)}
+            disabled={isProcessing}
+            style={[styles.approveBtn, { backgroundColor: '#2E7D32' }]}
+          >
+            {isProcessing ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <>
+                <MaterialIcons name="check" size={18} color="#fff" />
+                <Text style={styles.approveBtnText}>Approve & Publish</Text>
+              </>
+            )}
+          </Pressable>
+        </View>
+      </View>
+    );
+  }, [colors, processingId, handleApprove]);
+
+  return (
+    <RoleGuard allowedRoles={['admin', 'super admin']}>
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
+        {/* Header */}
+        <View style={[styles.header, { borderBottomColor: colors.outlineVariant }]}>
+          <Pressable onPress={() => router.back()} hitSlop={12} style={styles.backButton}>
+            <MaterialIcons name="arrow-back" size={24} color={colors.onSurface} />
+          </Pressable>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.headerTitle, { color: colors.onSurface }]}>
+              Vibes Approvals
+            </Text>
+            <Text style={[styles.headerSubtitle, { color: colors.onSurfaceVariant }]}>
+              Review community submissions before publishing
+            </Text>
+          </View>
+          {totalPending > 0 && (
+            <View style={[styles.pendingPill, { backgroundColor: colors.errorContainer }]}>
+              <Text style={[styles.pendingPillText, { color: colors.onErrorContainer }]}>
+                {totalPending} Pending
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Content */}
+        {isLoading && pendingVibes.length === 0 ? (
+          <View style={styles.centerContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={[styles.loadingText, { color: colors.onSurfaceVariant }]}>
+              Loading pending vibes...
+            </Text>
+          </View>
+        ) : pendingVibes.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <MaterialIcons name="check-circle-outline" size={64} color="#2E7D32" />
+            <Text style={[styles.emptyTitle, { color: colors.onSurface }]}>
+              All Caught Up!
+            </Text>
+            <Text style={[styles.emptySubtitle, { color: colors.onSurfaceVariant }]}>
+              There are no pending vibes awaiting approval right now.
+            </Text>
+            <Pressable
+              onPress={() => refetch()}
+              style={[styles.refreshBtn, { borderColor: colors.outline }]}
+            >
+              <MaterialIcons name="refresh" size={18} color={colors.primary} />
+              <Text style={[styles.refreshBtnText, { color: colors.primary }]}>Refresh</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <FlatList
+            data={pendingVibes}
+            renderItem={renderItem}
+            keyExtractor={(item) => item._id}
+            contentContainerStyle={[themeStyles.contentPaddingBottom, styles.listContent]}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl refreshing={isRefetching} onRefresh={refetch} colors={[colors.primary]} />
+            }
+            onEndReached={() => {
+              if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+            }}
+            onEndReachedThreshold={0.4}
+            ListFooterComponent={
+              isFetchingNextPage ? (
+                <View style={styles.loadingMore}>
+                  <ActivityIndicator size="small" color={colors.primary} />
+                </View>
+              ) : null
+            }
+          />
+        )}
+
+        {/* ──── Reject Feedback Modal ──── */}
+        {rejectingVibe && (
+          <Modal visible={!!rejectingVibe} transparent animationType="slide">
+            <View style={styles.modalOverlay}>
+              <View style={[styles.modalCard, { backgroundColor: colors.surface }]}>
+                <View style={styles.modalHeader}>
+                  <Text style={[styles.modalTitle, { color: colors.onSurface }]}>
+                    Reject Vibe Submission
+                  </Text>
+                  <Pressable onPress={() => setRejectingVibe(null)} hitSlop={10}>
+                    <MaterialIcons name="close" size={22} color={colors.onSurface} />
+                  </Pressable>
+                </View>
+
+                <Text style={[styles.modalHint, { color: colors.onSurfaceVariant }]}>
+                  Select a reason or write custom feedback. The author will be notified.
+                </Text>
+
+                {/* Reasons Radio / Pills */}
+                <View style={styles.reasonsContainer}>
+                  {REJECT_REASONS.map((r) => (
+                    <Pressable
+                      key={r}
+                      onPress={() => { setSelectedReason(r); setCustomReason(''); }}
+                      style={[
+                        styles.reasonOption,
+                        {
+                          backgroundColor: selectedReason === r && !customReason
+                            ? colors.primaryContainer
+                            : colors.surfaceContainerHighest,
+                          borderColor: selectedReason === r && !customReason
+                            ? colors.primary
+                            : 'transparent',
+                        }
+                      ]}
+                    >
+                      <MaterialIcons
+                        name={selectedReason === r && !customReason ? "radio-button-checked" : "radio-button-unchecked"}
+                        size={18}
+                        color={selectedReason === r && !customReason ? colors.primary : colors.onSurfaceVariant}
+                      />
+                      <Text style={[
+                        styles.reasonOptionText,
+                        {
+                          color: selectedReason === r && !customReason ? colors.onPrimaryContainer : colors.onSurface,
+                          fontFamily: selectedReason === r && !customReason ? 'DMSans-Bold' : 'DMSans-Regular'
+                        }
+                      ]}>
+                        {r}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+
+                {/* Custom Note */}
+                <TextInput
+                  placeholder="Or write custom feedback reason..."
+                  placeholderTextColor={colors.onSurfaceVariant}
+                  value={customReason}
+                  onChangeText={setCustomReason}
+                  style={[
+                    styles.customReasonInput,
+                    {
+                      backgroundColor: colors.surfaceContainerHighest,
+                      color: colors.onSurface,
+                      borderColor: colors.outlineVariant,
+                    }
+                  ]}
+                />
+
+                {/* Modal Buttons */}
+                <View style={styles.modalActions}>
+                  <Pressable
+                    onPress={() => setRejectingVibe(null)}
+                    style={[styles.modalCancelBtn, { borderColor: colors.outline }]}
+                  >
+                    <Text style={[styles.modalCancelText, { color: colors.onSurface }]}>Cancel</Text>
+                  </Pressable>
+
+                  <Pressable
+                    onPress={handleConfirmReject}
+                    style={[styles.modalRejectBtn, { backgroundColor: colors.error }]}
+                  >
+                    <Text style={styles.modalRejectText}>Confirm Rejection</Text>
+                  </Pressable>
+                </View>
+              </View>
+            </View>
+          </Modal>
+        )}
+      </View>
+    </RoleGuard>
+  );
+}
+
+const styles = StyleSheet.create({
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    gap: 12,
+  },
+  backButton: {
+    padding: 4,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontFamily: 'DMSans-Bold',
+  },
+  headerSubtitle: {
+    fontSize: 12,
+    fontFamily: 'DMSans-Regular',
+  },
+  pendingPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  pendingPillText: {
+    fontSize: 11,
+    fontFamily: 'DMSans-Bold',
+  },
+  listContent: {
+    paddingTop: 12,
+    paddingBottom: 40,
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
+  },
+  loadingText: {
+    fontSize: 14,
+    fontFamily: 'DMSans-Regular',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+    gap: 10,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontFamily: 'DMSans-Bold',
+  },
+  emptySubtitle: {
+    fontSize: 13,
+    fontFamily: 'DMSans-Regular',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  refreshBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    marginTop: 10,
+  },
+  refreshBtnText: {
+    fontSize: 13,
+    fontFamily: 'DMSans-Medium',
+  },
+  reviewCard: {
+    marginBottom: 24,
+    overflow: 'hidden',
+  },
+  authorHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 10,
+  },
+  avatarCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: {
+    fontSize: 16,
+    fontFamily: 'DMSans-Bold',
+  },
+  authorName: {
+    fontSize: 14,
+    fontFamily: 'DMSans-Bold',
+  },
+  authorRole: {
+    fontSize: 12,
+    fontFamily: 'DMSans-Regular',
+  },
+  categoryBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  categoryBadgeText: {
+    fontSize: 11,
+    fontFamily: 'DMSans-Bold',
+    textTransform: 'uppercase',
+  },
+  captionBox: {
+    paddingHorizontal: 14,
+    paddingTop: 10,
+    paddingBottom: 4,
+  },
+  captionText: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontFamily: 'DMSans-Regular',
+  },
+  timeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  timeText: {
+    fontSize: 12,
+    fontFamily: 'DMSans-Regular',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  rejectBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    gap: 6,
+  },
+  rejectBtnText: {
+    fontSize: 14,
+    fontFamily: 'DMSans-Bold',
+  },
+  approveBtn: {
+    flex: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 14,
+    gap: 6,
+  },
+  approveBtnText: {
+    color: '#fff',
+    fontSize: 14,
+    fontFamily: 'DMSans-Bold',
+  },
+  loadingMore: {
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalCard: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+    paddingBottom: 36,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  modalTitle: {
+    fontSize: 17,
+    fontFamily: 'DMSans-Bold',
+  },
+  modalHint: {
+    fontSize: 13,
+    fontFamily: 'DMSans-Regular',
+    marginBottom: 16,
+  },
+  reasonsContainer: {
+    gap: 8,
+    marginBottom: 14,
+  },
+  reasonOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 10,
+  },
+  reasonOptionText: {
+    fontSize: 13,
+    flex: 1,
+  },
+  customReasonInput: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    fontSize: 14,
+    fontFamily: 'DMSans-Regular',
+    marginBottom: 16,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalCancelBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  modalCancelText: {
+    fontSize: 14,
+    fontFamily: 'DMSans-Bold',
+  },
+  modalRejectBtn: {
+    flex: 2,
+    paddingVertical: 12,
+    borderRadius: 14,
+    alignItems: 'center',
+  },
+  modalRejectText: {
+    color: '#fff',
+    fontSize: 14,
+    fontFamily: 'DMSans-Bold',
+  },
+});

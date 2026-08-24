@@ -16,8 +16,29 @@ import { useQueryClient } from '@tanstack/react-query';
  *  - Survives app restarts (30-day gcTime via STATIC tier)
  */
 
+const normalizePhotos = (data) => {
+  if (!data) return [];
+  const raw = data.photoUrl ?? data.photoUrls ?? data.photourls ?? [];
+  if (Array.isArray(raw)) {
+    return raw.map(p => (typeof p === 'string' ? p.trim() : (p?.url || ''))).filter(Boolean);
+  }
+  if (typeof raw === 'string' && raw.trim()) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return parsed.map(p => (typeof p === 'string' ? p.trim() : (p?.url || ''))).filter(Boolean);
+      }
+    } catch {
+      // Not JSON, continue to delimiter split
+    }
+    return raw.split(',').map(s => s.trim()).filter(Boolean);
+  }
+  return [];
+};
+
 const transformSchoolData = (result) => {
   if (result?.success && result?.data) {
+    const photos = normalizePhotos(result.data);
     return {
       name: result.data.name,
       address: result.data.address,
@@ -29,14 +50,14 @@ const transformSchoolData = (result) => {
       about: result.data.about,
       socials: result.data.socials,
       news: result.data.news || [],
-      photoUrl: result.data.photoUrl || [],
+      photoUrl: photos,
+      photoUrls: photos,
     };
   }
   return null;
 };
 
 export default function useSchoolInfo() {
-  // eslint-disable-next-line no-unused-vars
   const queryClient = useQueryClient();
 
   const {
@@ -57,6 +78,7 @@ export default function useSchoolInfo() {
 
   const refresh = useCallback(async (silent = false) => {
     try {
+      await queryClient.invalidateQueries({ queryKey: ['schoolInfo'] });
       await refetch();
     } catch (err) {
       // Suppress errors on silent refresh
@@ -64,7 +86,7 @@ export default function useSchoolInfo() {
         console.warn('[useSchoolInfo] Refresh failed:', err);
       }
     }
-  }, [refetch]);
+  }, [queryClient, refetch]);
 
   return {
     schoolInfo: schoolInfo || FALLBACK_SCHOOL,

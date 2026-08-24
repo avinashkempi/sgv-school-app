@@ -43,7 +43,33 @@ const endpoints = {
     update: (id) => `/subjects/${id}`,
     delete: (id) => `/subjects/${id}`,
     usage: (id) => `/subjects/${id}/usage`,
-  }
+  },
+  posts: {
+    list: '/posts',
+    create: '/posts',
+    getById: (id) => `/posts/${id}`,
+    update: (id) => `/posts/${id}`,
+    delete: (id) => `/posts/${id}`,
+    togglePin: (id) => `/posts/${id}/pin`,
+  },
+  vibes: {
+    list: '/vibes',
+    getById: (id) => `/vibes/${id}`,
+    create: '/vibes',
+    update: (id) => `/vibes/${id}`,
+    delete: (id) => `/vibes/${id}`,
+    toggleLike: (id) => `/vibes/${id}/like`,
+    getLikes: (id) => `/vibes/${id}/likes`,
+    getComments: (id) => `/vibes/${id}/comments`,
+    addComment: (id) => `/vibes/${id}/comments`,
+    deleteComment: (commentId) => `/vibes/comments/${commentId}`,
+    toggleBookmark: (id) => `/vibes/${id}/bookmark`,
+    myVibes: '/vibes/user/my-vibes',
+    saved: '/vibes/user/saved',
+    adminPending: '/vibes/admin/pending',
+    adminReview: (id) => `/vibes/admin/${id}/review`,
+    adminPin: (id) => `/vibes/admin/${id}/pin`,
+  },
 };
 
 const url = (path) => `${BASE_URL}${path}`;

@@ -102,6 +102,12 @@ const AdminDashboard = () => {
                 <Text style={[styles.titleMedium, { marginBottom: 12 }]}>Quick Actions</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
                     <QuickActionButton
+                        title="Vibes Approvals"
+                        icon="verified-user"
+                        color="#2E7D32"
+                        onPress={() => router.push('/admin/vibe-approvals')}
+                    />
+                    <QuickActionButton
                         title="Import Data"
                         icon="cloud-upload"
                         color={colors.primary}

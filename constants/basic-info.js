@@ -22,4 +22,5 @@ export const SCHOOL = {
     youtubeAppUrl: "vnd.youtube://user/SgvSchoolMangasuli",
   },
   photoUrl: [],
+  photoUrls: [],
 };
