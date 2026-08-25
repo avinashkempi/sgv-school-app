@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -11,15 +11,20 @@ import {
   Alert,
   ActivityIndicator,
   StyleSheet,
-} from 'react-native';
-import { Image } from 'expo-image';
-import { MaterialIcons } from '@expo/vector-icons';
-import { useQueryClient } from '@tanstack/react-query';
-import { useTheme } from '../theme';
-import { useToast } from './ToastProvider';
-import { createApiMutationFn } from '../hooks/useApi';
-import apiConfig from '../config/apiConfig';
-import { pickImage, compressImage, uploadToCloudinary, CLOUDINARY_FOLDERS } from '../utils/cloudinaryUpload';
+} from "react-native";
+import { Image } from "expo-image";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
+import { useTheme } from "../theme";
+import { useToast } from "./ToastProvider";
+import { createApiMutationFn } from "../hooks/useApi";
+import apiConfig from "../config/apiConfig";
+import {
+  pickImage,
+  compressImage,
+  uploadToCloudinary,
+  CLOUDINARY_FOLDERS,
+} from "../utils/cloudinaryUpload";
 
 const MAX_IMAGES = 5;
 const MAX_TITLE_LENGTH = 200;
@@ -38,19 +43,24 @@ export default function CreatePostModal({ visible, onClose, editPost = null }) {
   const queryClient = useQueryClient();
   const isEditing = !!editPost;
 
-  const [category, setCategory] = useState(editPost?.category || 'general');
-  const [title, setTitle] = useState(editPost?.title || '');
-  const [description, setDescription] = useState(editPost?.description || '');
+  const [category, setCategory] = useState(editPost?.category || "general");
+  const [title, setTitle] = useState(editPost?.title || "");
+  const [description, setDescription] = useState(editPost?.description || "");
   const [images, setImages] = useState(
-    editPost?.imageUrls?.map(url => ({ url, localUri: null, uploading: false, progress: 0 })) || []
+    editPost?.imageUrls?.map((url) => ({
+      url,
+      localUri: null,
+      uploading: false,
+      progress: 0,
+    })) || []
   );
   const [submitting, setSubmitting] = useState(false);
 
   // Reset form on open/close
   const resetForm = useCallback(() => {
-    setCategory('general');
-    setTitle('');
-    setDescription('');
+    setCategory("general");
+    setTitle("");
+    setDescription("");
     setImages([]);
     setSubmitting(false);
   }, []);
@@ -58,9 +68,16 @@ export default function CreatePostModal({ visible, onClose, editPost = null }) {
   const handleClose = useCallback(() => {
     if (submitting) return;
     if (title || description || images.length > 0) {
-      Alert.alert('Discard Post?', 'Your draft will be lost.', [
-        { text: 'Keep Editing', style: 'cancel' },
-        { text: 'Discard', style: 'destructive', onPress: () => { resetForm(); onClose(); } },
+      Alert.alert("Discard Post?", "Your draft will be lost.", [
+        { text: "Keep Editing", style: "cancel" },
+        {
+          text: "Discard",
+          style: "destructive",
+          onPress: () => {
+            resetForm();
+            onClose();
+          },
+        },
       ]);
     } else {
       resetForm();
@@ -69,65 +86,84 @@ export default function CreatePostModal({ visible, onClose, editPost = null }) {
   }, [submitting, title, description, images, resetForm, onClose]);
 
   // Image picking
-  const handleAddImage = useCallback(async (source) => {
-    if (images.length >= MAX_IMAGES) {
-      showToast(`Maximum ${MAX_IMAGES} images allowed`, 'warning');
-      return;
-    }
+  const handleAddImage = useCallback(
+    async (source) => {
+      if (images.length >= MAX_IMAGES) {
+        showToast(`Maximum ${MAX_IMAGES} images allowed`, "warning");
+        return;
+      }
 
-    try {
-      const picked = await pickImage(source);
-      if (!picked) return;
+      try {
+        const picked = await pickImage(source);
+        if (!picked) return;
 
-      const imageId = Date.now().toString();
-      const newImage = { id: imageId, localUri: picked.uri, url: null, uploading: true, progress: 0 };
-      setImages(prev => [...prev, newImage]);
+        const imageId = Date.now().toString();
+        const newImage = {
+          id: imageId,
+          localUri: picked.uri,
+          url: null,
+          uploading: true,
+          progress: 0,
+        };
+        setImages((prev) => [...prev, newImage]);
 
-      // Compress
-      const compressedUri = await compressImage(picked.uri);
+        // Compress
+        const compressedUri = await compressImage(picked.uri);
 
-      // Upload to Cloudinary
-      const result = await uploadToCloudinary(compressedUri, (progress) => {
-        setImages(prev => prev.map(img =>
-          img.id === imageId ? { ...img, progress } : img
-        ));
-      }, { folder: CLOUDINARY_FOLDERS.POSTS, fileNamePrefix: 'post' });
+        // Upload to Cloudinary
+        const result = await uploadToCloudinary(
+          compressedUri,
+          (progress) => {
+            setImages((prev) =>
+              prev.map((img) =>
+                img.id === imageId ? { ...img, progress } : img
+              )
+            );
+          },
+          { folder: CLOUDINARY_FOLDERS.POSTS, fileNamePrefix: "post" }
+        );
 
-      // Update with the final URL
-      setImages(prev => prev.map(img =>
-        img.id === imageId ? { ...img, url: result.url, uploading: false, progress: 100 } : img
-      ));
-    } catch (error) {
-      showToast(error.message || 'Failed to upload image', 'error');
-      // Remove the failed image
-      setImages(prev => prev.filter(img => img.url || !img.uploading));
-    }
-  }, [images.length, showToast]);
+        // Update with the final URL
+        setImages((prev) =>
+          prev.map((img) =>
+            img.id === imageId
+              ? { ...img, url: result.url, uploading: false, progress: 100 }
+              : img
+          )
+        );
+      } catch (error) {
+        showToast(error.message || "Failed to upload image", "error");
+        // Remove the failed image
+        setImages((prev) => prev.filter((img) => img.url || !img.uploading));
+      }
+    },
+    [images.length, showToast]
+  );
 
   const handleRemoveImage = useCallback((index) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
+    setImages((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
   const showImageSourcePicker = useCallback(() => {
-    Alert.alert('Add Photo', 'Choose a source', [
-      { text: 'Camera', onPress: () => handleAddImage('camera') },
-      { text: 'Gallery', onPress: () => handleAddImage('gallery') },
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert("Add Photo", "Choose a source", [
+      { text: "Camera", onPress: () => handleAddImage("camera") },
+      { text: "Gallery", onPress: () => handleAddImage("gallery") },
+      { text: "Cancel", style: "cancel" },
     ]);
   }, [handleAddImage]);
 
   // Submit
   const handleSubmit = useCallback(async () => {
     if (!title.trim()) {
-      showToast('Please add a title', 'warning');
+      showToast("Please add a title", "warning");
       return;
     }
 
-    const uploadedUrls = images.filter(img => img.url).map(img => img.url);
-    const stillUploading = images.some(img => img.uploading);
+    const uploadedUrls = images.filter((img) => img.url).map((img) => img.url);
+    const stillUploading = images.some((img) => img.uploading);
 
     if (stillUploading) {
-      showToast('Please wait for images to finish uploading', 'warning');
+      showToast("Please wait for images to finish uploading", "warning");
       return;
     }
 
@@ -142,40 +178,66 @@ export default function CreatePostModal({ visible, onClose, editPost = null }) {
       };
 
       const url = isEditing
-        ? `${apiConfig.baseUrl}${apiConfig.endpoints.posts.update(editPost._id)}`
+        ? `${apiConfig.baseUrl}${apiConfig.endpoints.posts.update(
+            editPost._id
+          )}`
         : `${apiConfig.baseUrl}${apiConfig.endpoints.posts.create}`;
-      const method = isEditing ? 'PUT' : 'POST';
+      const method = isEditing ? "PUT" : "POST";
 
       const mutationFn = createApiMutationFn(url, method);
       await mutationFn(postData);
 
-      showToast(isEditing ? 'Post updated!' : 'Post published!', 'success');
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      showToast(isEditing ? "Post updated!" : "Post published!", "success");
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
       resetForm();
       onClose();
     } catch (error) {
-      showToast(error.message || 'Failed to save post', 'error');
+      showToast(error.message || "Failed to save post", "error");
     } finally {
       setSubmitting(false);
     }
-  }, [title, description, category, images, isEditing, editPost, showToast, queryClient, resetForm, onClose]);
+  }, [
+    title,
+    description,
+    category,
+    images,
+    isEditing,
+    editPost,
+    showToast,
+    queryClient,
+    resetForm,
+    onClose,
+  ]);
 
-  const canSubmit = title.trim().length > 0 && !submitting && !images.some(img => img.uploading);
+  const canSubmit =
+    title.trim().length > 0 &&
+    !submitting &&
+    !images.some((img) => img.uploading);
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={handleClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={handleClose}
+    >
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.overlay}
       >
         <View style={[styles.container, { backgroundColor: colors.surface }]}>
           {/* Header */}
-          <View style={[styles.header, { borderBottomColor: colors.outlineVariant }]}>
+          <View
+            style={[
+              styles.header,
+              { borderBottomColor: colors.outlineVariant },
+            ]}
+          >
             <Pressable onPress={handleClose} disabled={submitting} hitSlop={12}>
               <MaterialIcons name="close" size={24} color={colors.onSurface} />
             </Pressable>
             <Text style={[styles.headerTitle, { color: colors.onSurface }]}>
-              {isEditing ? 'Edit Post' : 'New Post'}
+              {isEditing ? "Edit Post" : "New Post"}
             </Text>
             <Pressable
               onPress={handleSubmit}
@@ -183,15 +245,22 @@ export default function CreatePostModal({ visible, onClose, editPost = null }) {
               style={[
                 styles.publishButton,
                 {
-                  backgroundColor: canSubmit ? colors.primary : colors.surfaceContainerHighest,
-                }
+                  backgroundColor: canSubmit
+                    ? colors.primary
+                    : colors.surfaceContainerHighest,
+                },
               ]}
             >
               {submitting ? (
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
-                <Text style={[styles.publishText, { color: canSubmit ? '#fff' : colors.onSurfaceVariant }]}>
-                  {isEditing ? 'Save' : 'Publish'}
+                <Text
+                  style={[
+                    styles.publishText,
+                    { color: canSubmit ? "#fff" : colors.onSurfaceVariant },
+                  ]}
+                >
+                  {isEditing ? "Save" : "Publish"}
                 </Text>
               )}
             </Pressable>
@@ -204,33 +273,46 @@ export default function CreatePostModal({ visible, onClose, editPost = null }) {
           >
             {/* Category Selector */}
             <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: colors.onSurfaceVariant }]}>CATEGORY</Text>
+              <Text
+                style={[
+                  styles.sectionLabel,
+                  { color: colors.onSurfaceVariant },
+                ]}
+              >
+                CATEGORY
+              </Text>
               <View style={styles.categoryRow}>
                 <CategoryPill
                   label="General"
                   icon="campaign"
-                  isActive={category === 'general'}
+                  isActive={category === "general"}
                   activeColor={colors.primary}
                   activeTextColor="#fff"
                   inactiveColor={colors.surfaceContainerHighest}
                   inactiveTextColor={colors.onSurfaceVariant}
-                  onPress={() => setCategory('general')}
+                  onPress={() => setCategory("general")}
                 />
                 <CategoryPill
                   label="Achievement"
                   icon="emoji-events"
-                  isActive={category === 'achievement'}
+                  isActive={category === "achievement"}
                   activeColor="#E65100"
                   activeTextColor="#fff"
                   inactiveColor={colors.surfaceContainerHighest}
                   inactiveTextColor={colors.onSurfaceVariant}
-                  onPress={() => setCategory('achievement')}
+                  onPress={() => setCategory("achievement")}
                 />
               </View>
-              {category === 'achievement' && (
-                <View style={[styles.notifHint, { backgroundColor: '#FFF3E0' }]}>
-                  <MaterialIcons name="notifications-active" size={14} color="#E65100" />
-                  <Text style={[styles.notifHintText, { color: '#BF360C' }]}>
+              {category === "achievement" && (
+                <View
+                  style={[styles.notifHint, { backgroundColor: "#FFF3E0" }]}
+                >
+                  <MaterialIcons
+                    name="notifications-active"
+                    size={14}
+                    color="#E65100"
+                  />
+                  <Text style={[styles.notifHintText, { color: "#BF360C" }]}>
                     Students will receive a push notification for achievements
                   </Text>
                 </View>
@@ -239,23 +321,37 @@ export default function CreatePostModal({ visible, onClose, editPost = null }) {
 
             {/* Images Section */}
             <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: colors.onSurfaceVariant }]}>
+              <Text
+                style={[
+                  styles.sectionLabel,
+                  { color: colors.onSurfaceVariant },
+                ]}
+              >
                 PHOTOS ({images.length}/{MAX_IMAGES})
               </Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.imageScroll}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.imageScroll}
+              >
                 {/* Existing images */}
                 {images.map((img, index) => (
                   <View key={img.id || index} style={styles.imageThumbWrapper}>
                     <Image
                       source={{ uri: img.localUri || img.url }}
-                      style={[styles.imageThumb, { backgroundColor: colors.surfaceContainerHighest }]}
+                      style={[
+                        styles.imageThumb,
+                        { backgroundColor: colors.surfaceContainerHighest },
+                      ]}
                       contentFit="cover"
                       transition={150}
                     />
                     {img.uploading && (
                       <View style={styles.uploadOverlay}>
                         <ActivityIndicator size="small" color="#fff" />
-                        <Text style={styles.uploadPercent}>{img.progress}%</Text>
+                        <Text style={styles.uploadPercent}>
+                          {img.progress}%
+                        </Text>
                       </View>
                     )}
                     {!img.uploading && (
@@ -274,10 +370,27 @@ export default function CreatePostModal({ visible, onClose, editPost = null }) {
                 {images.length < MAX_IMAGES && (
                   <Pressable
                     onPress={showImageSourcePicker}
-                    style={[styles.addImageButton, { backgroundColor: colors.surfaceContainerHighest, borderColor: colors.outlineVariant }]}
+                    style={[
+                      styles.addImageButton,
+                      {
+                        backgroundColor: colors.surfaceContainerHighest,
+                        borderColor: colors.outlineVariant,
+                      },
+                    ]}
                   >
-                    <MaterialIcons name="add-photo-alternate" size={28} color={colors.onSurfaceVariant} />
-                    <Text style={[styles.addImageText, { color: colors.onSurfaceVariant }]}>Add</Text>
+                    <MaterialIcons
+                      name="add-photo-alternate"
+                      size={28}
+                      color={colors.onSurfaceVariant}
+                    />
+                    <Text
+                      style={[
+                        styles.addImageText,
+                        { color: colors.onSurfaceVariant },
+                      ]}
+                    >
+                      Add
+                    </Text>
                   </Pressable>
                 )}
               </ScrollView>
@@ -285,7 +398,14 @@ export default function CreatePostModal({ visible, onClose, editPost = null }) {
 
             {/* Title Input */}
             <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: colors.onSurfaceVariant }]}>TITLE *</Text>
+              <Text
+                style={[
+                  styles.sectionLabel,
+                  { color: colors.onSurfaceVariant },
+                ]}
+              >
+                TITLE *
+              </Text>
               <TextInput
                 placeholder="What's this about?"
                 placeholderTextColor={colors.onSurfaceVariant}
@@ -298,17 +418,26 @@ export default function CreatePostModal({ visible, onClose, editPost = null }) {
                     backgroundColor: colors.surfaceContainerHighest,
                     color: colors.onSurface,
                     borderColor: colors.outlineVariant,
-                  }
+                  },
                 ]}
               />
-              <Text style={[styles.charCount, { color: colors.onSurfaceVariant }]}>
+              <Text
+                style={[styles.charCount, { color: colors.onSurfaceVariant }]}
+              >
                 {title.length}/{MAX_TITLE_LENGTH}
               </Text>
             </View>
 
             {/* Description Input */}
             <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: colors.onSurfaceVariant }]}>DESCRIPTION</Text>
+              <Text
+                style={[
+                  styles.sectionLabel,
+                  { color: colors.onSurfaceVariant },
+                ]}
+              >
+                DESCRIPTION
+              </Text>
               <TextInput
                 placeholder="Add more details (optional)"
                 placeholderTextColor={colors.onSurfaceVariant}
@@ -323,10 +452,12 @@ export default function CreatePostModal({ visible, onClose, editPost = null }) {
                     backgroundColor: colors.surfaceContainerHighest,
                     color: colors.onSurface,
                     borderColor: colors.outlineVariant,
-                  }
+                  },
                 ]}
               />
-              <Text style={[styles.charCount, { color: colors.onSurfaceVariant }]}>
+              <Text
+                style={[styles.charCount, { color: colors.onSurfaceVariant }]}
+              >
                 {description.length}/{MAX_DESC_LENGTH}
               </Text>
             </View>
@@ -340,16 +471,34 @@ export default function CreatePostModal({ visible, onClose, editPost = null }) {
 }
 
 // Category pill button
-const CategoryPill = ({ label, icon, isActive, activeColor, activeTextColor, inactiveColor, inactiveTextColor, onPress }) => (
+const CategoryPill = ({
+  label,
+  icon,
+  isActive,
+  activeColor,
+  activeTextColor,
+  inactiveColor,
+  inactiveTextColor,
+  onPress,
+}) => (
   <Pressable
     onPress={onPress}
     style={[
       styles.categoryPill,
-      { backgroundColor: isActive ? activeColor : inactiveColor }
+      { backgroundColor: isActive ? activeColor : inactiveColor },
     ]}
   >
-    <MaterialIcons name={icon} size={16} color={isActive ? activeTextColor : inactiveTextColor} />
-    <Text style={[styles.categoryPillText, { color: isActive ? activeTextColor : inactiveTextColor }]}>
+    <MaterialIcons
+      name={icon}
+      size={16}
+      color={isActive ? activeTextColor : inactiveTextColor}
+    />
+    <Text
+      style={[
+        styles.categoryPillText,
+        { color: isActive ? activeTextColor : inactiveTextColor },
+      ]}
+    >
       {label}
     </Text>
   </Pressable>
@@ -358,37 +507,37 @@ const CategoryPill = ({ label, icon, isActive, activeColor, activeTextColor, ina
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0,0,0,0.3)",
+    justifyContent: "flex-end",
   },
   container: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: '92%',
-    minHeight: '70%',
+    maxHeight: "92%",
+    minHeight: "70%",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
   },
   headerTitle: {
     fontSize: 18,
-    fontFamily: 'DMSans-Bold',
+    fontFamily: "DMSans-Bold",
   },
   publishButton: {
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 20,
     minWidth: 80,
-    alignItems: 'center',
+    alignItems: "center",
   },
   publishText: {
     fontSize: 14,
-    fontFamily: 'DMSans-Bold',
+    fontFamily: "DMSans-Bold",
   },
   scrollContent: {
     flex: 1,
@@ -399,17 +548,17 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 11,
-    fontFamily: 'DMSans-Bold',
+    fontFamily: "DMSans-Bold",
     letterSpacing: 1,
     marginBottom: 10,
   },
   categoryRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 10,
   },
   categoryPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -417,11 +566,11 @@ const styles = StyleSheet.create({
   },
   categoryPillText: {
     fontSize: 14,
-    fontFamily: 'DMSans-Bold',
+    fontFamily: "DMSans-Bold",
   },
   notifHint: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -430,7 +579,7 @@ const styles = StyleSheet.create({
   },
   notifHintText: {
     fontSize: 12,
-    fontFamily: 'DMSans-Medium',
+    fontFamily: "DMSans-Medium",
     flex: 1,
   },
   imageScroll: {
@@ -441,58 +590,58 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 14,
-    overflow: 'hidden',
-    position: 'relative',
+    overflow: "hidden",
+    position: "relative",
   },
   imageThumb: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
     borderRadius: 14,
   },
   uploadOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
     borderRadius: 14,
     gap: 4,
   },
   uploadPercent: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 11,
-    fontFamily: 'DMSans-Bold',
+    fontFamily: "DMSans-Bold",
   },
   removeButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 4,
     right: 4,
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   addImageButton: {
     width: 100,
     height: 100,
     borderRadius: 14,
     borderWidth: 1.5,
-    borderStyle: 'dashed',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderStyle: "dashed",
+    justifyContent: "center",
+    alignItems: "center",
     gap: 4,
   },
   addImageText: {
     fontSize: 12,
-    fontFamily: 'DMSans-Medium',
+    fontFamily: "DMSans-Medium",
   },
   titleInput: {
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 12,
     fontSize: 16,
-    fontFamily: 'DMSans-Medium',
+    fontFamily: "DMSans-Medium",
     borderWidth: 1,
   },
   descInput: {
@@ -500,15 +649,15 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 12,
     fontSize: 14,
-    fontFamily: 'DMSans-Regular',
+    fontFamily: "DMSans-Regular",
     borderWidth: 1,
     minHeight: 100,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   charCount: {
     fontSize: 11,
-    fontFamily: 'DMSans-Regular',
-    textAlign: 'right',
+    fontFamily: "DMSans-Regular",
+    textAlign: "right",
     marginTop: 4,
   },
 });

@@ -1,1 +1,1 @@
-export { useNotifications } from '../context/NotificationContext';
+export { useNotifications } from "../context/NotificationContext";

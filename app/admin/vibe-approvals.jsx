@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,29 +10,37 @@ import {
   Modal,
   TextInput,
   Dimensions,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
-import { useQueryClient } from '@tanstack/react-query';
-import { useTheme } from '../../theme';
-import { useToast } from '../../components/ToastProvider';
-import { useApiInfiniteQuery, useApiMutation, createApiMutationFn } from '../../hooks/useApi';
-import apiConfig from '../../config/apiConfig';
-import { CACHE_TIERS } from '../../utils/cacheConfig';
-import VibeImageCarousel from '../../components/vibes/VibeImageCarousel';
-import RoleGuard from '../../components/RoleGuard';
+} from "react-native";
+import { useRouter } from "expo-router";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
+import { useTheme } from "../../theme";
+import { useToast } from "../../components/ToastProvider";
+import {
+  useApiInfiniteQuery,
+  useApiMutation,
+  createApiMutationFn,
+} from "../../hooks/useApi";
+import apiConfig from "../../config/apiConfig";
+import { CACHE_TIERS } from "../../utils/cacheConfig";
+import VibeImageCarousel from "../../components/vibes/VibeImageCarousel";
+import RoleGuard from "../../components/RoleGuard";
+import UserAvatar from "../../components/ui/UserAvatar";
 
-import { getAvatarUrl, getBlurPlaceholderUrl } from '../../utils/cloudinaryUpload';
-import { Image } from 'expo-image';
+import {
+  getAvatarUrl,
+  getBlurPlaceholderUrl,
+} from "../../utils/cloudinaryUpload";
+import { Image } from "expo-image";
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 const REJECT_REASONS = [
-  'Does not meet school community guidelines',
-  'Blurry or low-quality photo',
-  'Duplicate or redundant submission',
-  'Inappropriate or unverified content',
-  'Incorrect category selected',
+  "Does not meet school community guidelines",
+  "Blurry or low-quality photo",
+  "Duplicate or redundant submission",
+  "Inappropriate or unverified content",
+  "Incorrect category selected",
 ];
 
 export default function VibeApprovalsScreen() {
@@ -43,10 +51,10 @@ export default function VibeApprovalsScreen() {
 
   const [rejectingVibe, setRejectingVibe] = useState(null);
   const [selectedReason, setSelectedReason] = useState(REJECT_REASONS[0]);
-  const [customReason, setCustomReason] = useState('');
+  const [customReason, setCustomReason] = useState("");
   const [processingId, setProcessingId] = useState(null);
 
-  const queryKey = ['pendingVibes'];
+  const queryKey = ["pendingVibes"];
 
   const {
     data,
@@ -58,15 +66,23 @@ export default function VibeApprovalsScreen() {
     isFetchingNextPage,
   } = useApiInfiniteQuery(
     queryKey,
-    (page) => `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.adminPending}?page=${page}&limit=10`,
+    (page) =>
+      `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.adminPending}?page=${page}&limit=10`,
     {
       ...CACHE_TIERS.REAL_TIME,
-      getNextPageParam: (lastPage) => lastPage?.pagination?.hasMore ? lastPage.pagination.page + 1 : undefined,
+      getNextPageParam: (lastPage, allPages) => {
+        if (lastPage?.pagination?.hasMore) {
+          const pageNum = Number(lastPage?.pagination?.page);
+          if (!isNaN(pageNum) && pageNum > 0) return pageNum + 1;
+          return (Array.isArray(allPages) ? allPages.length : 1) + 1;
+        }
+        return undefined;
+      },
       initialPageParam: 1,
     }
   );
 
-  const pendingVibes = data?.pages?.flatMap(p => p?.data || []) || [];
+  const pendingVibes = data?.pages?.flatMap((p) => p?.data || []) || [];
   const totalPending = data?.pages?.[0]?.pendingCount ?? pendingVibes.length;
 
   // Review mutation with optimistic removal
@@ -74,7 +90,7 @@ export default function VibeApprovalsScreen() {
     mutationFn: async ({ vibeId, action, reason }) => {
       return createApiMutationFn(
         `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.adminReview(vibeId)}`,
-        'PATCH'
+        "PATCH"
       )({ action, reason });
     },
     onMutate: async ({ vibeId }) => {
@@ -85,9 +101,9 @@ export default function VibeApprovalsScreen() {
         if (!old?.pages) return old;
         return {
           ...old,
-          pages: old.pages.map(page => ({
+          pages: old.pages.map((page) => ({
             ...page,
-            data: (page.data || []).filter(v => v._id !== vibeId),
+            data: (page.data || []).filter((v) => v._id !== vibeId),
             pendingCount: Math.max((page.pendingCount || 1) - 1, 0),
           })),
         };
@@ -96,34 +112,37 @@ export default function VibeApprovalsScreen() {
       return { prevData };
     },
     onSuccess: (res) => {
-      showToast(res.message || 'Updated vibe', 'success');
+      showToast(res.message || "Updated vibe", "success");
       queryClient.invalidateQueries({ queryKey });
-      queryClient.invalidateQueries({ queryKey: ['pendingVibesCount'] });
-      queryClient.invalidateQueries({ queryKey: ['vibes'] });
-      queryClient.invalidateQueries({ queryKey: ['vibeHighlights'] });
-      queryClient.invalidateQueries({ queryKey: ['vibeSpotlight'] });
+      queryClient.invalidateQueries({ queryKey: ["pendingVibesCount"] });
+      queryClient.invalidateQueries({ queryKey: ["vibes"] });
+      queryClient.invalidateQueries({ queryKey: ["vibeHighlights"] });
+      queryClient.invalidateQueries({ queryKey: ["vibeSpotlight"] });
       setRejectingVibe(null);
-      setCustomReason('');
+      setCustomReason("");
     },
     onError: (err, _vars, context) => {
       if (context?.prevData) {
         queryClient.setQueryData(queryKey, context.prevData);
       }
-      showToast(err.message || 'Failed to review vibe', 'error');
+      showToast(err.message || "Failed to review vibe", "error");
     },
   });
 
-  const handleApprove = useCallback(async (vibe) => {
-    setProcessingId(vibe._id);
-    try {
-      await reviewMutation.mutateAsync({
-        vibeId: vibe._id,
-        action: 'approve',
-      });
-    } finally {
-      setProcessingId(null);
-    }
-  }, [reviewMutation]);
+  const handleApprove = useCallback(
+    async (vibe) => {
+      setProcessingId(vibe._id);
+      try {
+        await reviewMutation.mutateAsync({
+          vibeId: vibe._id,
+          action: "approve",
+        });
+      } finally {
+        setProcessingId(null);
+      }
+    },
+    [reviewMutation]
+  );
 
   const handleConfirmReject = useCallback(async () => {
     if (!rejectingVibe) return;
@@ -133,7 +152,7 @@ export default function VibeApprovalsScreen() {
     try {
       await reviewMutation.mutateAsync({
         vibeId: rejectingVibe._id,
-        action: 'reject',
+        action: "reject",
         reason: finalReason,
       });
     } finally {
@@ -141,129 +160,182 @@ export default function VibeApprovalsScreen() {
     }
   }, [rejectingVibe, customReason, selectedReason, reviewMutation]);
 
-  const renderItem = useCallback(({ item }) => {
-    const isProcessing = processingId === item._id;
-    const authorAvatarUri = item.author?.profilePhoto ? getAvatarUrl(item.author.profilePhoto, 80) : null;
-    const authorAvatarBlur = authorAvatarUri ? getBlurPlaceholderUrl(authorAvatarUri) : null;
+  const renderItem = useCallback(
+    ({ item }) => {
+      const isProcessing = processingId === item._id;
+      const authorAvatarUri = item.author?.profilePhoto
+        ? getAvatarUrl(item.author.profilePhoto, 80)
+        : null;
+      const authorAvatarBlur = authorAvatarUri
+        ? getBlurPlaceholderUrl(authorAvatarUri)
+        : null;
 
-    return (
-      <View style={[styles.reviewCard, { backgroundColor: colors.surfaceContainer }]}>
-        {/* Author Header */}
-        <View style={styles.authorHeader}>
-          <View style={[styles.avatarCircle, { backgroundColor: colors.primaryContainer, overflow: 'hidden' }]}>
-            {authorAvatarUri ? (
-              <Image
-                source={{ uri: authorAvatarUri }}
-                placeholder={authorAvatarBlur ? { uri: authorAvatarBlur } : undefined}
-                style={{ width: '100%', height: '100%' }}
-                contentFit="cover"
-                transition={150}
-              />
-            ) : (
-              <Text style={[styles.avatarText, { color: colors.onPrimaryContainer }]}>
-                {item.author?.name ? item.author.name[0].toUpperCase() : 'U'}
+      return (
+        <View
+          style={[
+            styles.reviewCard,
+            { backgroundColor: colors.surfaceContainer },
+          ]}
+        >
+          {/* Author Header */}
+          <View style={styles.authorHeader}>
+            <UserAvatar
+              photoUrl={item.author?.profilePhoto}
+              name={item.author?.name || "Community Member"}
+              role={item.author?.role}
+              size={40}
+            />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.authorName, { color: colors.onSurface }]}>
+                {item.author?.name || "Community Member"}
               </Text>
-            )}
+              <Text
+                style={[styles.authorRole, { color: colors.onSurfaceVariant }]}
+              >
+                {item.author?.role === "student"
+                  ? `Student • ${
+                      item.author?.currentClass?.name || "Class Student"
+                    }`
+                  : item.author?.role === "teacher"
+                  ? `Teacher • ${item.author?.designation || "Staff"}`
+                  : item.author?.role}
+                {item.author?.phone ? ` • ${item.author.phone}` : ""}
+              </Text>
+            </View>
+            <View
+              style={[
+                styles.categoryBadge,
+                { backgroundColor: colors.surfaceContainerHighest },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.categoryBadgeText,
+                  { color: colors.onSurfaceVariant },
+                ]}
+              >
+                {item.category}
+              </Text>
+            </View>
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.authorName, { color: colors.onSurface }]}>
-              {item.author?.name || 'Community Member'}
-            </Text>
-            <Text style={[styles.authorRole, { color: colors.onSurfaceVariant }]}>
-              {item.author?.role === 'student'
-                ? `Student • ${item.author?.currentClass?.name || 'Class Student'}`
-                : item.author?.role === 'teacher'
-                ? `Teacher • ${item.author?.designation || 'Staff'}`
-                : item.author?.role}
-              {item.author?.phone ? ` • ${item.author.phone}` : ''}
-            </Text>
-          </View>
-          <View style={[styles.categoryBadge, { backgroundColor: colors.surfaceContainerHighest }]}>
-            <Text style={[styles.categoryBadgeText, { color: colors.onSurfaceVariant }]}>
-              {item.category}
-            </Text>
-          </View>
-        </View>
 
-        {/* Media Preview */}
-        {item.images && item.images.length > 0 && (
-          <VibeImageCarousel
-            images={item.images}
-            width={SCREEN_WIDTH}
-            isVisible={true}
-          />
-        )}
+          {/* Media Preview */}
+          {item.images && item.images.length > 0 && (
+            <VibeImageCarousel
+              images={item.images}
+              width={SCREEN_WIDTH}
+              isVisible={true}
+            />
+          )}
 
+          {/* Caption */}
+          {item.caption ? (
+            <View style={styles.captionBox}>
+              <Text style={[styles.captionText, { color: colors.onSurface }]}>
+                {item.caption}
+              </Text>
+            </View>
+          ) : null}
 
-        {/* Caption */}
-        {item.caption ? (
-          <View style={styles.captionBox}>
-            <Text style={[styles.captionText, { color: colors.onSurface }]}>
-              {item.caption}
+          {/* Submitted timestamp */}
+          <View style={styles.timeRow}>
+            <MaterialIcons
+              name="schedule"
+              size={14}
+              color={colors.onSurfaceVariant}
+            />
+            <Text style={[styles.timeText, { color: colors.onSurfaceVariant }]}>
+              Submitted on{" "}
+              {new Date(item.createdAt).toLocaleString("en-IN", {
+                dateStyle: "medium",
+                timeStyle: "short",
+              })}
             </Text>
           </View>
-        ) : null}
 
-        {/* Submitted timestamp */}
-        <View style={styles.timeRow}>
-          <MaterialIcons name="schedule" size={14} color={colors.onSurfaceVariant} />
-          <Text style={[styles.timeText, { color: colors.onSurfaceVariant }]}>
-            Submitted on {new Date(item.createdAt).toLocaleString('en-IN', {
-              dateStyle: 'medium',
-              timeStyle: 'short'
-            })}
-          </Text>
-        </View>
-
-        {/* Action Buttons */}
-        <View style={[styles.actionRow, { borderTopColor: colors.outlineVariant }]}>
-          <Pressable
-            onPress={() => setRejectingVibe(item)}
-            disabled={isProcessing}
-            style={[styles.rejectBtn, { borderColor: colors.error }]}
+          {/* Action Buttons */}
+          <View
+            style={[
+              styles.actionRow,
+              { borderTopColor: colors.outlineVariant },
+            ]}
           >
-            <MaterialIcons name="close" size={18} color={colors.error} />
-            <Text style={[styles.rejectBtnText, { color: colors.error }]}>Reject</Text>
-          </Pressable>
+            <Pressable
+              onPress={() => setRejectingVibe(item)}
+              disabled={isProcessing}
+              style={[styles.rejectBtn, { borderColor: colors.error }]}
+            >
+              <MaterialIcons name="close" size={18} color={colors.error} />
+              <Text style={[styles.rejectBtnText, { color: colors.error }]}>
+                Reject
+              </Text>
+            </Pressable>
 
-          <Pressable
-            onPress={() => handleApprove(item)}
-            disabled={isProcessing}
-            style={[styles.approveBtn, { backgroundColor: '#2E7D32' }]}
-          >
-            {isProcessing ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <>
-                <MaterialIcons name="check" size={18} color="#fff" />
-                <Text style={styles.approveBtnText}>Approve & Publish</Text>
-              </>
-            )}
-          </Pressable>
+            <Pressable
+              onPress={() => handleApprove(item)}
+              disabled={isProcessing}
+              style={[styles.approveBtn, { backgroundColor: "#2E7D32" }]}
+            >
+              {isProcessing ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <>
+                  <MaterialIcons name="check" size={18} color="#fff" />
+                  <Text style={styles.approveBtnText}>Approve & Publish</Text>
+                </>
+              )}
+            </Pressable>
+          </View>
         </View>
-      </View>
-    );
-  }, [colors, processingId, handleApprove]);
+      );
+    },
+    [colors, processingId, handleApprove]
+  );
 
   return (
-    <RoleGuard allowedRoles={['admin', 'super admin']}>
+    <RoleGuard allowedRoles={["admin", "super admin"]}>
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         {/* Header */}
-        <View style={[styles.header, { borderBottomColor: colors.outlineVariant }]}>
-          <Pressable onPress={() => router.back()} hitSlop={12} style={styles.backButton}>
-            <MaterialIcons name="arrow-back" size={24} color={colors.onSurface} />
+        <View
+          style={[styles.header, { borderBottomColor: colors.outlineVariant }]}
+        >
+          <Pressable
+            onPress={() => router.back()}
+            hitSlop={12}
+            style={styles.backButton}
+          >
+            <MaterialIcons
+              name="arrow-back"
+              size={24}
+              color={colors.onSurface}
+            />
           </Pressable>
           <View style={{ flex: 1 }}>
             <Text style={[styles.headerTitle, { color: colors.onSurface }]}>
               Vibes Approvals
             </Text>
-            <Text style={[styles.headerSubtitle, { color: colors.onSurfaceVariant }]}>
+            <Text
+              style={[
+                styles.headerSubtitle,
+                { color: colors.onSurfaceVariant },
+              ]}
+            >
               Review community submissions before publishing
             </Text>
           </View>
           {totalPending > 0 && (
-            <View style={[styles.pendingPill, { backgroundColor: colors.errorContainer }]}>
-              <Text style={[styles.pendingPillText, { color: colors.onErrorContainer }]}>
+            <View
+              style={[
+                styles.pendingPill,
+                { backgroundColor: colors.errorContainer },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.pendingPillText,
+                  { color: colors.onErrorContainer },
+                ]}
+              >
                 {totalPending} Pending
               </Text>
             </View>
@@ -274,17 +346,25 @@ export default function VibeApprovalsScreen() {
         {isLoading && pendingVibes.length === 0 ? (
           <View style={styles.centerContainer}>
             <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={[styles.loadingText, { color: colors.onSurfaceVariant }]}>
+            <Text
+              style={[styles.loadingText, { color: colors.onSurfaceVariant }]}
+            >
               Loading pending vibes...
             </Text>
           </View>
         ) : pendingVibes.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <MaterialIcons name="check-circle-outline" size={64} color="#2E7D32" />
+            <MaterialIcons
+              name="check-circle-outline"
+              size={64}
+              color="#2E7D32"
+            />
             <Text style={[styles.emptyTitle, { color: colors.onSurface }]}>
               All Caught Up!
             </Text>
-            <Text style={[styles.emptySubtitle, { color: colors.onSurfaceVariant }]}>
+            <Text
+              style={[styles.emptySubtitle, { color: colors.onSurfaceVariant }]}
+            >
               There are no pending vibes awaiting approval right now.
             </Text>
             <Pressable
@@ -292,7 +372,9 @@ export default function VibeApprovalsScreen() {
               style={[styles.refreshBtn, { borderColor: colors.outline }]}
             >
               <MaterialIcons name="refresh" size={18} color={colors.primary} />
-              <Text style={[styles.refreshBtnText, { color: colors.primary }]}>Refresh</Text>
+              <Text style={[styles.refreshBtnText, { color: colors.primary }]}>
+                Refresh
+              </Text>
             </Pressable>
           </View>
         ) : (
@@ -300,10 +382,17 @@ export default function VibeApprovalsScreen() {
             data={pendingVibes}
             renderItem={renderItem}
             keyExtractor={(item) => item._id}
-            contentContainerStyle={[themeStyles.contentPaddingBottom, styles.listContent]}
+            contentContainerStyle={[
+              themeStyles.contentPaddingBottom,
+              styles.listContent,
+            ]}
             showsVerticalScrollIndicator={false}
             refreshControl={
-              <RefreshControl refreshing={isRefetching} onRefresh={refetch} colors={[colors.primary]} />
+              <RefreshControl
+                refreshing={isRefetching}
+                onRefresh={refetch}
+                colors={[colors.primary]}
+              />
             }
             onEndReached={() => {
               if (hasNextPage && !isFetchingNextPage) fetchNextPage();
@@ -323,18 +412,32 @@ export default function VibeApprovalsScreen() {
         {rejectingVibe && (
           <Modal visible={!!rejectingVibe} transparent animationType="slide">
             <View style={styles.modalOverlay}>
-              <View style={[styles.modalCard, { backgroundColor: colors.surface }]}>
+              <View
+                style={[styles.modalCard, { backgroundColor: colors.surface }]}
+              >
                 <View style={styles.modalHeader}>
-                  <Text style={[styles.modalTitle, { color: colors.onSurface }]}>
+                  <Text
+                    style={[styles.modalTitle, { color: colors.onSurface }]}
+                  >
                     Reject Vibe Submission
                   </Text>
-                  <Pressable onPress={() => setRejectingVibe(null)} hitSlop={10}>
-                    <MaterialIcons name="close" size={22} color={colors.onSurface} />
+                  <Pressable
+                    onPress={() => setRejectingVibe(null)}
+                    hitSlop={10}
+                  >
+                    <MaterialIcons
+                      name="close"
+                      size={22}
+                      color={colors.onSurface}
+                    />
                   </Pressable>
                 </View>
 
-                <Text style={[styles.modalHint, { color: colors.onSurfaceVariant }]}>
-                  Select a reason or write custom feedback. The author will be notified.
+                <Text
+                  style={[styles.modalHint, { color: colors.onSurfaceVariant }]}
+                >
+                  Select a reason or write custom feedback. The author will be
+                  notified.
                 </Text>
 
                 {/* Reasons Radio / Pills */}
@@ -342,31 +445,52 @@ export default function VibeApprovalsScreen() {
                   {REJECT_REASONS.map((r) => (
                     <Pressable
                       key={r}
-                      onPress={() => { setSelectedReason(r); setCustomReason(''); }}
+                      onPress={() => {
+                        setSelectedReason(r);
+                        setCustomReason("");
+                      }}
                       style={[
                         styles.reasonOption,
                         {
-                          backgroundColor: selectedReason === r && !customReason
-                            ? colors.primaryContainer
-                            : colors.surfaceContainerHighest,
-                          borderColor: selectedReason === r && !customReason
-                            ? colors.primary
-                            : 'transparent',
-                        }
+                          backgroundColor:
+                            selectedReason === r && !customReason
+                              ? colors.primaryContainer
+                              : colors.surfaceContainerHighest,
+                          borderColor:
+                            selectedReason === r && !customReason
+                              ? colors.primary
+                              : "transparent",
+                        },
                       ]}
                     >
                       <MaterialIcons
-                        name={selectedReason === r && !customReason ? "radio-button-checked" : "radio-button-unchecked"}
-                        size={18}
-                        color={selectedReason === r && !customReason ? colors.primary : colors.onSurfaceVariant}
-                      />
-                      <Text style={[
-                        styles.reasonOptionText,
-                        {
-                          color: selectedReason === r && !customReason ? colors.onPrimaryContainer : colors.onSurface,
-                          fontFamily: selectedReason === r && !customReason ? 'DMSans-Bold' : 'DMSans-Regular'
+                        name={
+                          selectedReason === r && !customReason
+                            ? "radio-button-checked"
+                            : "radio-button-unchecked"
                         }
-                      ]}>
+                        size={18}
+                        color={
+                          selectedReason === r && !customReason
+                            ? colors.primary
+                            : colors.onSurfaceVariant
+                        }
+                      />
+                      <Text
+                        style={[
+                          styles.reasonOptionText,
+                          {
+                            color:
+                              selectedReason === r && !customReason
+                                ? colors.onPrimaryContainer
+                                : colors.onSurface,
+                            fontFamily:
+                              selectedReason === r && !customReason
+                                ? "DMSans-Bold"
+                                : "DMSans-Regular",
+                          },
+                        ]}
+                      >
                         {r}
                       </Text>
                     </Pressable>
@@ -385,7 +509,7 @@ export default function VibeApprovalsScreen() {
                       backgroundColor: colors.surfaceContainerHighest,
                       color: colors.onSurface,
                       borderColor: colors.outlineVariant,
-                    }
+                    },
                   ]}
                 />
 
@@ -393,16 +517,31 @@ export default function VibeApprovalsScreen() {
                 <View style={styles.modalActions}>
                   <Pressable
                     onPress={() => setRejectingVibe(null)}
-                    style={[styles.modalCancelBtn, { borderColor: colors.outline }]}
+                    style={[
+                      styles.modalCancelBtn,
+                      { borderColor: colors.outline },
+                    ]}
                   >
-                    <Text style={[styles.modalCancelText, { color: colors.onSurface }]}>Cancel</Text>
+                    <Text
+                      style={[
+                        styles.modalCancelText,
+                        { color: colors.onSurface },
+                      ]}
+                    >
+                      Cancel
+                    </Text>
                   </Pressable>
 
                   <Pressable
                     onPress={handleConfirmReject}
-                    style={[styles.modalRejectBtn, { backgroundColor: colors.error }]}
+                    style={[
+                      styles.modalRejectBtn,
+                      { backgroundColor: colors.error },
+                    ]}
                   >
-                    <Text style={styles.modalRejectText}>Confirm Rejection</Text>
+                    <Text style={styles.modalRejectText}>
+                      Confirm Rejection
+                    </Text>
                   </Pressable>
                 </View>
               </View>
@@ -416,8 +555,8 @@ export default function VibeApprovalsScreen() {
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -428,11 +567,11 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
-    fontFamily: 'DMSans-Bold',
+    fontFamily: "DMSans-Bold",
   },
   headerSubtitle: {
     fontSize: 12,
-    fontFamily: 'DMSans-Regular',
+    fontFamily: "DMSans-Regular",
   },
   pendingPill: {
     paddingHorizontal: 10,
@@ -441,7 +580,7 @@ const styles = StyleSheet.create({
   },
   pendingPillText: {
     fontSize: 11,
-    fontFamily: 'DMSans-Bold',
+    fontFamily: "DMSans-Bold",
   },
   listContent: {
     paddingTop: 12,
@@ -449,34 +588,34 @@ const styles = StyleSheet.create({
   },
   centerContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     gap: 10,
   },
   loadingText: {
     fontSize: 14,
-    fontFamily: 'DMSans-Regular',
+    fontFamily: "DMSans-Regular",
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 32,
     gap: 10,
   },
   emptyTitle: {
     fontSize: 18,
-    fontFamily: 'DMSans-Bold',
+    fontFamily: "DMSans-Bold",
   },
   emptySubtitle: {
     fontSize: 13,
-    fontFamily: 'DMSans-Regular',
-    textAlign: 'center',
+    fontFamily: "DMSans-Regular",
+    textAlign: "center",
     lineHeight: 18,
   },
   refreshBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -486,15 +625,15 @@ const styles = StyleSheet.create({
   },
   refreshBtnText: {
     fontSize: 13,
-    fontFamily: 'DMSans-Medium',
+    fontFamily: "DMSans-Medium",
   },
   reviewCard: {
     marginBottom: 24,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   authorHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 14,
     paddingVertical: 12,
     gap: 10,
@@ -503,20 +642,20 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   avatarText: {
     fontSize: 16,
-    fontFamily: 'DMSans-Bold',
+    fontFamily: "DMSans-Bold",
   },
   authorName: {
     fontSize: 14,
-    fontFamily: 'DMSans-Bold',
+    fontFamily: "DMSans-Bold",
   },
   authorRole: {
     fontSize: 12,
-    fontFamily: 'DMSans-Regular',
+    fontFamily: "DMSans-Regular",
   },
   categoryBadge: {
     paddingHorizontal: 8,
@@ -525,8 +664,8 @@ const styles = StyleSheet.create({
   },
   categoryBadgeText: {
     fontSize: 11,
-    fontFamily: 'DMSans-Bold',
-    textTransform: 'uppercase',
+    fontFamily: "DMSans-Bold",
+    textTransform: "uppercase",
   },
   captionBox: {
     paddingHorizontal: 14,
@@ -536,21 +675,21 @@ const styles = StyleSheet.create({
   captionText: {
     fontSize: 14,
     lineHeight: 20,
-    fontFamily: 'DMSans-Regular',
+    fontFamily: "DMSans-Regular",
   },
   timeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
     paddingHorizontal: 14,
     paddingVertical: 8,
   },
   timeText: {
     fontSize: 12,
-    fontFamily: 'DMSans-Regular',
+    fontFamily: "DMSans-Regular",
   },
   actionRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingHorizontal: 14,
     paddingVertical: 12,
     gap: 12,
@@ -558,9 +697,9 @@ const styles = StyleSheet.create({
   },
   rejectBtn: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 10,
     borderRadius: 14,
     borderWidth: 1.5,
@@ -568,30 +707,30 @@ const styles = StyleSheet.create({
   },
   rejectBtnText: {
     fontSize: 14,
-    fontFamily: 'DMSans-Bold',
+    fontFamily: "DMSans-Bold",
   },
   approveBtn: {
     flex: 2,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 10,
     borderRadius: 14,
     gap: 6,
   },
   approveBtnText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 14,
-    fontFamily: 'DMSans-Bold',
+    fontFamily: "DMSans-Bold",
   },
   loadingMore: {
     paddingVertical: 16,
-    alignItems: 'center',
+    alignItems: "center",
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
   },
   modalCard: {
     borderTopLeftRadius: 24,
@@ -600,18 +739,18 @@ const styles = StyleSheet.create({
     paddingBottom: 36,
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 8,
   },
   modalTitle: {
     fontSize: 17,
-    fontFamily: 'DMSans-Bold',
+    fontFamily: "DMSans-Bold",
   },
   modalHint: {
     fontSize: 13,
-    fontFamily: 'DMSans-Regular',
+    fontFamily: "DMSans-Regular",
     marginBottom: 16,
   },
   reasonsContainer: {
@@ -619,8 +758,8 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   reasonOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 12,
     borderRadius: 12,
     borderWidth: 1,
@@ -636,11 +775,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     fontSize: 14,
-    fontFamily: 'DMSans-Regular',
+    fontFamily: "DMSans-Regular",
     marginBottom: 16,
   },
   modalActions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
   },
   modalCancelBtn: {
@@ -648,21 +787,21 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 14,
     borderWidth: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   modalCancelText: {
     fontSize: 14,
-    fontFamily: 'DMSans-Bold',
+    fontFamily: "DMSans-Bold",
   },
   modalRejectBtn: {
     flex: 2,
     paddingVertical: 12,
     borderRadius: 14,
-    alignItems: 'center',
+    alignItems: "center",
   },
   modalRejectText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 14,
-    fontFamily: 'DMSans-Bold',
+    fontFamily: "DMSans-Bold",
   },
 });

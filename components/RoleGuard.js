@@ -1,10 +1,10 @@
-import React from 'react';
-import { View, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../theme';
-import { useToast } from './ToastProvider';
-import { useEffect, useRef } from 'react';
+import React from "react";
+import { View, ActivityIndicator } from "react-native";
+import { useRouter } from "expo-router";
+import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../theme";
+import { useToast } from "./ToastProvider";
+import { useEffect, useRef } from "react";
 
 /**
  * RoleGuard — wraps route groups to enforce role-based access.
@@ -33,31 +33,46 @@ export default function RoleGuard({ allowedRoles = [], children }) {
     // Demo users shouldn't access role-restricted routes
     if (isDemo) {
       hasRedirected.current = true;
-      showToast('This feature is not available in demo mode', 'info', 2000);
-      router.replace('/');
+      showToast("This feature is not available in demo mode", "info", 2000);
+      router.replace("/");
       return;
     }
 
     // Not authenticated
     if (!isAuthenticated) {
       hasRedirected.current = true;
-      router.replace('/login');
+      router.replace("/login");
       return;
     }
 
     // Wrong role
     if (userRole && !hasAccess) {
       hasRedirected.current = true;
-      showToast('You do not have access to this section', 'error', 2500);
-      router.replace('/');
+      showToast("You do not have access to this section", "error", 2500);
+      router.replace("/");
       return;
     }
-  }, [isReady, isAuthenticated, isDemo, userRole, hasAccess, router, showToast]);
+  }, [
+    isReady,
+    isAuthenticated,
+    isDemo,
+    userRole,
+    hasAccess,
+    router,
+    showToast,
+  ]);
 
   // While auth is loading, show spinner
   if (!isReady) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: colors.background,
+        }}
+      >
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
@@ -70,7 +85,14 @@ export default function RoleGuard({ allowedRoles = [], children }) {
 
   // If we're about to redirect, show spinner
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: colors.background,
+      }}
+    >
       <ActivityIndicator size="large" color={colors.primary} />
     </View>
   );

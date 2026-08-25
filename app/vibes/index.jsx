@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from "react";
 import {
   View,
   Text,
@@ -7,36 +7,42 @@ import {
   Pressable,
   StyleSheet,
   Platform,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
-import { useQueryClient } from '@tanstack/react-query';
-import { useTheme } from '../../theme';
-import { useAuth } from '../../context/AuthContext';
-import { useToast } from '../../components/ToastProvider';
-import { useApiInfiniteQuery, useApiQuery, useApiMutation, createApiMutationFn } from '../../hooks/useApi';
-import apiConfig from '../../config/apiConfig';
-import { CACHE_TIERS } from '../../utils/cacheConfig';
-import useTabScrollToTop from '../../hooks/useTabScrollToTop';
-import useDoubleBackToExit from '../../hooks/useDoubleBackToExit';
-import useNetworkQuality from '../../hooks/useNetworkQuality';
-import AppRefreshControl from '../../components/ui/AppRefreshControl';
-import { ROUTES } from '../../constants/routes';
-import VibeCard from '../../components/vibes/VibeCard';
-import CreateVibeModal from '../../components/vibes/CreateVibeModal';
-import VibeCommentsModal from '../../components/vibes/VibeCommentsModal';
-import VibeLikesModal from '../../components/vibes/VibeLikesModal';
-import SkeletonLoader from '../../components/SkeletonLoader';
+} from "react-native";
+import { useRouter } from "expo-router";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
+import { useTheme } from "../../theme";
+import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../components/ToastProvider";
+import {
+  useApiInfiniteQuery,
+  useApiQuery,
+  useApiMutation,
+  createApiMutationFn,
+} from "../../hooks/useApi";
+import apiConfig from "../../config/apiConfig";
+import { CACHE_TIERS } from "../../utils/cacheConfig";
+import useTabScrollToTop from "../../hooks/useTabScrollToTop";
+import useDoubleBackToExit from "../../hooks/useDoubleBackToExit";
+import useNetworkQuality from "../../hooks/useNetworkQuality";
+import AppRefreshControl from "../../components/ui/AppRefreshControl";
+import { ROUTES } from "../../constants/routes";
+import VibeCard from "../../components/vibes/VibeCard";
+import VibeStoriesTray from "../../components/vibes/VibeStoriesTray";
+import CreateVibeModal from "../../components/vibes/CreateVibeModal";
+import VibeCommentsModal from "../../components/vibes/VibeCommentsModal";
+import VibeLikesModal from "../../components/vibes/VibeLikesModal";
+import SkeletonLoader from "../../components/SkeletonLoader";
 
 const VIBES_PER_PAGE = 10;
 
 const CATEGORIES = [
-  { key: 'all', label: 'All', icon: 'auto-awesome' },
-  { key: 'official', label: 'Official', icon: 'school' },
-  { key: 'achievement', label: 'Achievements', icon: 'emoji-events' },
-  { key: 'sports', label: 'Sports', icon: 'sports-soccer' },
-  { key: 'arts', label: 'Arts & Events', icon: 'palette' },
-  { key: 'life', label: 'Campus Life', icon: 'local-florist' },
+  { key: "all", label: "All", icon: "auto-awesome" },
+  { key: "official", label: "Official", icon: "school" },
+  { key: "achievement", label: "Achievements", icon: "emoji-events" },
+  { key: "sports", label: "Sports", icon: "sports-soccer" },
+  { key: "arts", label: "Arts & Culture", icon: "palette" },
+  { key: "life", label: "Campus Life", icon: "local-florist" },
 ];
 
 export default function VibesScreen() {
@@ -46,17 +52,17 @@ export default function VibesScreen() {
   const { showToast } = useToast();
   const { isConnected, isSlow } = useNetworkQuality();
   const queryClient = useQueryClient();
-  const isAdmin = user?.role === 'admin' || user?.role === 'super admin';
+  const isAdmin = user?.role === "admin" || user?.role === "super admin";
   const scrollRef = useRef(null);
 
   // Mobile standard gestures
-  useTabScrollToTop(scrollRef, '/vibes');
+  useTabScrollToTop(scrollRef, "/vibes");
   useTabScrollToTop(scrollRef, ROUTES.VIBES);
   useDoubleBackToExit(true);
 
   // Navigation / View Tabs: 'feed' | 'my-vibes' | 'saved'
-  const [activeTab, setActiveTab] = useState('feed');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [activeTab, setActiveTab] = useState("feed");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedTag, setSelectedTag] = useState(null);
 
   // Modals state
@@ -67,7 +73,7 @@ export default function VibesScreen() {
 
   // Admin pending count query
   const { data: pendingData } = useApiQuery(
-    ['pendingVibesCount'],
+    ["pendingVibesCount"],
     `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.adminPending}?limit=1`,
     {
       ...CACHE_TIERS.REAL_TIME,
@@ -80,7 +86,9 @@ export default function VibesScreen() {
   const [visibleItemIds, setVisibleItemIds] = useState(new Set());
 
   const onViewableItemsChanged = useRef(({ viewableItems }) => {
-    const ids = new Set(viewableItems.map(vi => vi.item?._id).filter(Boolean));
+    const ids = new Set(
+      viewableItems.map((vi) => vi.item?._id).filter(Boolean)
+    );
     setVisibleItemIds(ids);
   }).current;
 
@@ -89,7 +97,10 @@ export default function VibesScreen() {
   }).current;
 
   // ──── Main Feed Infinite Query ────
-  const feedQueryKey = useMemo(() => ['vibes', selectedCategory, selectedTag], [selectedCategory, selectedTag]);
+  const feedQueryKey = useMemo(
+    () => ["vibes", selectedCategory, selectedTag],
+    [selectedCategory, selectedTag]
+  );
 
   const {
     data: feedData,
@@ -103,7 +114,7 @@ export default function VibesScreen() {
     feedQueryKey,
     (page) => {
       let url = `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.list}?page=${page}&limit=${VIBES_PER_PAGE}`;
-      if (selectedCategory && selectedCategory !== 'all') {
+      if (selectedCategory && selectedCategory !== "all") {
         url += `&category=${selectedCategory}`;
       }
       if (selectedTag) {
@@ -113,10 +124,12 @@ export default function VibesScreen() {
     },
     {
       ...CACHE_TIERS.VIBES_FEED,
-      enabled: activeTab === 'feed',
-      getNextPageParam: (lastPage) => {
+      enabled: activeTab === "feed",
+      getNextPageParam: (lastPage, allPages) => {
         if (lastPage?.pagination?.hasMore) {
-          return lastPage.pagination.page + 1;
+          const pageNum = Number(lastPage?.pagination?.page);
+          if (!isNaN(pageNum) && pageNum > 0) return pageNum + 1;
+          return (Array.isArray(allPages) ? allPages.length : 1) + 1;
         }
         return undefined;
       },
@@ -133,12 +146,20 @@ export default function VibesScreen() {
     refetch: refetchMyVibes,
     isRefetching: isMyVibesRefetching,
   } = useApiInfiniteQuery(
-    ['myVibes'],
-    (page) => `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.myVibes}?page=${page}&limit=${VIBES_PER_PAGE}`,
+    ["myVibes"],
+    (page) =>
+      `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.myVibes}?page=${page}&limit=${VIBES_PER_PAGE}`,
     {
       ...CACHE_TIERS.REAL_TIME,
-      enabled: activeTab === 'my-vibes' && isAuthenticated,
-      getNextPageParam: (lastPage) => lastPage?.pagination?.hasMore ? lastPage.pagination.page + 1 : undefined,
+      enabled: activeTab === "my-vibes" && isAuthenticated,
+      getNextPageParam: (lastPage, allPages) => {
+        if (lastPage?.pagination?.hasMore) {
+          const pageNum = Number(lastPage?.pagination?.page);
+          if (!isNaN(pageNum) && pageNum > 0) return pageNum + 1;
+          return (Array.isArray(allPages) ? allPages.length : 1) + 1;
+        }
+        return undefined;
+      },
       initialPageParam: 1,
     }
   );
@@ -152,28 +173,47 @@ export default function VibesScreen() {
     refetch: refetchSaved,
     isRefetching: isSavedRefetching,
   } = useApiInfiniteQuery(
-    ['savedVibes'],
-    (page) => `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.saved}?page=${page}&limit=${VIBES_PER_PAGE}`,
+    ["savedVibes"],
+    (page) =>
+      `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.saved}?page=${page}&limit=${VIBES_PER_PAGE}`,
     {
       ...CACHE_TIERS.VIBES_FEED,
-      enabled: activeTab === 'saved' && isAuthenticated,
-      getNextPageParam: (lastPage) => lastPage?.pagination?.hasMore ? lastPage.pagination.page + 1 : undefined,
+      enabled: activeTab === "saved" && isAuthenticated,
+      getNextPageParam: (lastPage, allPages) => {
+        if (lastPage?.pagination?.hasMore) {
+          const pageNum = Number(lastPage?.pagination?.page);
+          if (!isNaN(pageNum) && pageNum > 0) return pageNum + 1;
+          return (Array.isArray(allPages) ? allPages.length : 1) + 1;
+        }
+        return undefined;
+      },
       initialPageParam: 1,
     }
   );
 
-  const feedVibes = useMemo(() => feedData?.pages?.flatMap(p => p?.data || []) || [], [feedData]);
-  const myVibes = useMemo(() => myVibesData?.pages?.flatMap(p => p?.data || []) || [], [myVibesData]);
-  const savedVibes = useMemo(() => savedData?.pages?.flatMap(p => p?.data || []) || [], [savedData]);
+  const feedVibes = useMemo(
+    () => feedData?.pages?.flatMap((p) => p?.data || []) || [],
+    [feedData]
+  );
+  const myVibes = useMemo(
+    () => myVibesData?.pages?.flatMap((p) => p?.data || []) || [],
+    [myVibesData]
+  );
+  const savedVibes = useMemo(
+    () => savedData?.pages?.flatMap((p) => p?.data || []) || [],
+    [savedData]
+  );
 
   // Helper to update vibe across infinite query pages
   const updateVibeInPages = useCallback((oldData, vibeId, updater) => {
     if (!oldData?.pages) return oldData;
     return {
       ...oldData,
-      pages: oldData.pages.map(page => ({
+      pages: oldData.pages.map((page) => ({
         ...page,
-        data: (page.data || []).map(vibe => vibe._id === vibeId ? updater(vibe) : vibe),
+        data: (page.data || []).map((vibe) =>
+          vibe._id === vibeId ? updater(vibe) : vibe
+        ),
       })),
     };
   }, []);
@@ -183,73 +223,95 @@ export default function VibesScreen() {
     mutationFn: async ({ vibeId }) => {
       return createApiMutationFn(
         `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.toggleLike(vibeId)}`,
-        'POST'
+        "POST"
       )({});
     },
     onMutate: async ({ vibeId, nextLiked }) => {
       await queryClient.cancelQueries({ queryKey: feedQueryKey });
 
       const prevFeed = queryClient.getQueryData(feedQueryKey);
-      const prevMy = queryClient.getQueryData(['myVibes']);
-      const prevSaved = queryClient.getQueryData(['savedVibes']);
+      const prevMy = queryClient.getQueryData(["myVibes"]);
+      const prevSaved = queryClient.getQueryData(["savedVibes"]);
 
       const updater = (vibe) => ({
         ...vibe,
         isLiked: nextLiked,
-        likesCount: nextLiked ? (vibe.likesCount || 0) + 1 : Math.max((vibe.likesCount || 1) - 1, 0),
+        likesCount: nextLiked
+          ? Math.max(0, (Number(vibe.likesCount) || 0) + 1)
+          : Math.max((Number(vibe.likesCount) || 1) - 1, 0),
       });
 
-      queryClient.setQueryData(feedQueryKey, old => updateVibeInPages(old, vibeId, updater));
-      queryClient.setQueryData(['myVibes'], old => updateVibeInPages(old, vibeId, updater));
-      queryClient.setQueryData(['savedVibes'], old => updateVibeInPages(old, vibeId, updater));
+      queryClient.setQueryData(feedQueryKey, (old) =>
+        updateVibeInPages(old, vibeId, updater)
+      );
+      queryClient.setQueryData(["myVibes"], (old) =>
+        updateVibeInPages(old, vibeId, updater)
+      );
+      queryClient.setQueryData(["savedVibes"], (old) =>
+        updateVibeInPages(old, vibeId, updater)
+      );
 
       return { prevFeed, prevMy, prevSaved };
     },
     onError: (_err, _vars, context) => {
-      if (context?.prevFeed) queryClient.setQueryData(feedQueryKey, context.prevFeed);
-      if (context?.prevMy) queryClient.setQueryData(['myVibes'], context.prevMy);
-      if (context?.prevSaved) queryClient.setQueryData(['savedVibes'], context.prevSaved);
-      showToast('Network error updating like', 'error');
+      if (context?.prevFeed)
+        queryClient.setQueryData(feedQueryKey, context.prevFeed);
+      if (context?.prevMy)
+        queryClient.setQueryData(["myVibes"], context.prevMy);
+      if (context?.prevSaved)
+        queryClient.setQueryData(["savedVibes"], context.prevSaved);
+      showToast("Network error updating like", "error");
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['vibeHighlights'] });
-      queryClient.invalidateQueries({ queryKey: ['vibeSpotlight'] });
+      queryClient.invalidateQueries({ queryKey: ["vibeHighlights"] });
+      queryClient.invalidateQueries({ queryKey: ["vibeSpotlight"] });
     },
   });
 
   const bookmarkMutation = useApiMutation({
     mutationFn: async ({ vibeId }) => {
       return createApiMutationFn(
-        `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.toggleBookmark(vibeId)}`,
-        'POST'
+        `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.toggleBookmark(
+          vibeId
+        )}`,
+        "POST"
       )({});
     },
     onMutate: async ({ vibeId, nextBookmarked }) => {
       await queryClient.cancelQueries({ queryKey: feedQueryKey });
 
       const prevFeed = queryClient.getQueryData(feedQueryKey);
-      const prevMy = queryClient.getQueryData(['myVibes']);
-      const prevSaved = queryClient.getQueryData(['savedVibes']);
+      const prevMy = queryClient.getQueryData(["myVibes"]);
+      const prevSaved = queryClient.getQueryData(["savedVibes"]);
 
       const updater = (vibe) => ({
         ...vibe,
         isBookmarked: nextBookmarked,
       });
 
-      queryClient.setQueryData(feedQueryKey, old => updateVibeInPages(old, vibeId, updater));
-      queryClient.setQueryData(['myVibes'], old => updateVibeInPages(old, vibeId, updater));
-      queryClient.setQueryData(['savedVibes'], old => updateVibeInPages(old, vibeId, updater));
+      queryClient.setQueryData(feedQueryKey, (old) =>
+        updateVibeInPages(old, vibeId, updater)
+      );
+      queryClient.setQueryData(["myVibes"], (old) =>
+        updateVibeInPages(old, vibeId, updater)
+      );
+      queryClient.setQueryData(["savedVibes"], (old) =>
+        updateVibeInPages(old, vibeId, updater)
+      );
 
       return { prevFeed, prevMy, prevSaved };
     },
     onError: (_err, _vars, context) => {
-      if (context?.prevFeed) queryClient.setQueryData(feedQueryKey, context.prevFeed);
-      if (context?.prevMy) queryClient.setQueryData(['myVibes'], context.prevMy);
-      if (context?.prevSaved) queryClient.setQueryData(['savedVibes'], context.prevSaved);
-      showToast('Network error updating saved status', 'error');
+      if (context?.prevFeed)
+        queryClient.setQueryData(feedQueryKey, context.prevFeed);
+      if (context?.prevMy)
+        queryClient.setQueryData(["myVibes"], context.prevMy);
+      if (context?.prevSaved)
+        queryClient.setQueryData(["savedVibes"], context.prevSaved);
+      showToast("Network error updating saved status", "error");
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['savedVibes'] });
+      queryClient.invalidateQueries({ queryKey: ["savedVibes"] });
     },
   });
 
@@ -257,16 +319,16 @@ export default function VibesScreen() {
     mutationFn: async (vibeId) => {
       return createApiMutationFn(
         `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.delete(vibeId)}`,
-        'DELETE'
+        "DELETE"
       )({});
     },
     onSuccess: () => {
-      showToast('Vibe deleted', 'info');
-      queryClient.invalidateQueries({ queryKey: ['vibes'] });
-      queryClient.invalidateQueries({ queryKey: ['myVibes'] });
-      queryClient.invalidateQueries({ queryKey: ['savedVibes'] });
-      queryClient.invalidateQueries({ queryKey: ['vibeHighlights'] });
-      queryClient.invalidateQueries({ queryKey: ['vibeSpotlight'] });
+      showToast("Vibe deleted", "info");
+      queryClient.invalidateQueries({ queryKey: ["vibes"] });
+      queryClient.invalidateQueries({ queryKey: ["myVibes"] });
+      queryClient.invalidateQueries({ queryKey: ["savedVibes"] });
+      queryClient.invalidateQueries({ queryKey: ["vibeHighlights"] });
+      queryClient.invalidateQueries({ queryKey: ["vibeSpotlight"] });
     },
   });
 
@@ -274,41 +336,53 @@ export default function VibesScreen() {
     mutationFn: async (vibeId) => {
       return createApiMutationFn(
         `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.adminPin(vibeId)}`,
-        'PATCH'
+        "PATCH"
       )({});
     },
     onSuccess: (res) => {
-      showToast(res.message || 'Updated pin status', 'success');
-      queryClient.invalidateQueries({ queryKey: ['vibes'] });
-      queryClient.invalidateQueries({ queryKey: ['vibeHighlights'] });
-      queryClient.invalidateQueries({ queryKey: ['vibeSpotlight'] });
+      showToast(res.message || "Updated pin status", "success");
+      queryClient.invalidateQueries({ queryKey: ["vibes"] });
+      queryClient.invalidateQueries({ queryKey: ["vibeHighlights"] });
+      queryClient.invalidateQueries({ queryKey: ["vibeSpotlight"] });
     },
   });
 
   // Action handlers with instant optimistic invocation
-  const handleLike = useCallback((vibeId, nextLiked) => {
-    if (!isAuthenticated) {
-      showToast('Please log in to like vibes', 'info');
-      return;
-    }
-    likeMutation.mutate({ vibeId, nextLiked });
-  }, [isAuthenticated, showToast, likeMutation]);
+  const handleLike = useCallback(
+    (vibeId, nextLiked) => {
+      if (!isAuthenticated) {
+        showToast("Please log in to like vibes", "info");
+        return;
+      }
+      likeMutation.mutate({ vibeId, nextLiked });
+    },
+    [isAuthenticated, showToast, likeMutation]
+  );
 
-  const handleBookmark = useCallback((vibeId, nextBookmarked) => {
-    if (!isAuthenticated) {
-      showToast('Please log in to save vibes', 'info');
-      return;
-    }
-    bookmarkMutation.mutate({ vibeId, nextBookmarked });
-  }, [isAuthenticated, showToast, bookmarkMutation]);
+  const handleBookmark = useCallback(
+    (vibeId, nextBookmarked) => {
+      if (!isAuthenticated) {
+        showToast("Please log in to save vibes", "info");
+        return;
+      }
+      bookmarkMutation.mutate({ vibeId, nextBookmarked });
+    },
+    [isAuthenticated, showToast, bookmarkMutation]
+  );
 
-  const handleDelete = useCallback((vibe) => {
-    deleteMutation.mutate(vibe._id);
-  }, [deleteMutation]);
+  const handleDelete = useCallback(
+    (vibe) => {
+      deleteMutation.mutate(vibe._id);
+    },
+    [deleteMutation]
+  );
 
-  const handleTogglePin = useCallback((vibe) => {
-    pinMutation.mutate(vibe._id);
-  }, [pinMutation]);
+  const handleTogglePin = useCallback(
+    (vibe) => {
+      pinMutation.mutate(vibe._id);
+    },
+    [pinMutation]
+  );
 
   const handleEdit = useCallback((vibe) => {
     setEditingVibe(vibe);
@@ -316,218 +390,208 @@ export default function VibesScreen() {
   }, []);
 
   const handleTagPress = useCallback((tag) => {
-    setSelectedTag(tag);
-    setSelectedCategory('all');
-    setActiveTab('feed');
+    setSelectedTag(tag.toLowerCase().replace("#", ""));
+    setSelectedCategory("all");
+    setActiveTab("feed");
   }, []);
 
   const onRefresh = useCallback(async () => {
-    if (activeTab === 'feed') await refetchFeed();
-    else if (activeTab === 'my-vibes') await refetchMyVibes();
-    else if (activeTab === 'saved') await refetchSaved();
+    if (activeTab === "feed") await refetchFeed();
+    else if (activeTab === "my-vibes") await refetchMyVibes();
+    else if (activeTab === "saved") await refetchSaved();
   }, [activeTab, refetchFeed, refetchMyVibes, refetchSaved]);
 
-  const renderFeedItem = useCallback(({ item }) => (
-    <VibeCard
-      vibe={item}
-      currentUserId={user?.id || user?._id}
-      isAdmin={isAdmin}
-      isVisible={visibleItemIds.has(item._id)}
-      onLike={handleLike}
-      onBookmark={handleBookmark}
-      onOpenComments={setActiveCommentVibe}
-      onOpenLikes={setActiveLikesVibeId}
-      onEdit={handleEdit}
-      onDelete={handleDelete}
-      onTogglePin={handleTogglePin}
-      onTagPress={handleTagPress}
-    />
-  ), [user, isAdmin, visibleItemIds, handleLike, handleBookmark, handleEdit, handleDelete, handleTogglePin, handleTagPress]);
+  const renderFeedItem = useCallback(
+    ({ item }) => (
+      <VibeCard
+        vibe={item}
+        currentUserId={user?.id || user?._id}
+        isAdmin={isAdmin}
+        isVisible={visibleItemIds.has(item._id)}
+        onLike={handleLike}
+        onBookmark={handleBookmark}
+        onOpenComments={setActiveCommentVibe}
+        onOpenLikes={setActiveLikesVibeId}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onTogglePin={handleTogglePin}
+        onTagPress={handleTagPress}
+      />
+    ),
+    [
+      user,
+      isAdmin,
+      visibleItemIds,
+      handleLike,
+      handleBookmark,
+      handleEdit,
+      handleDelete,
+      handleTogglePin,
+      handleTagPress,
+    ]
+  );
 
-  const renderMyVibeItem = useCallback(({ item }) => {
-    const statusMeta = item.status === 'approved'
-      ? { label: 'Approved & Live', bg: '#E8F5E9', text: '#2E7D32', icon: 'check-circle' }
-      : item.status === 'rejected'
-        ? { label: 'Not Approved', bg: '#FFEBEE', text: '#C62828', icon: 'cancel' }
-        : { label: 'Pending Review', bg: '#FFF8E1', text: '#F57F17', icon: 'schedule' };
+  const renderMyVibeItem = useCallback(
+    ({ item }) => {
+      const statusMeta =
+        item.status === "approved"
+          ? {
+              label: "Approved & Live",
+              bg: "#ECFDF5",
+              text: "#059669",
+              icon: "check-circle",
+            }
+          : item.status === "rejected"
+          ? {
+              label: "Not Approved",
+              bg: "#FEF2F2",
+              text: "#DC2626",
+              icon: "cancel",
+            }
+          : {
+              label: "Pending Review",
+              bg: "#FFFBEB",
+              text: "#D97706",
+              icon: "schedule",
+            };
 
-    return (
-      <View style={[styles.myVibeCard, { backgroundColor: colors.surfaceContainer }]}>
-        {/* Status Header */}
-        <View style={styles.myVibeStatusRow}>
-          <View style={[styles.myVibeStatusBadge, { backgroundColor: statusMeta.bg }]}>
-            <MaterialIcons name={statusMeta.icon} size={14} color={statusMeta.text} />
-            <Text style={[styles.myVibeStatusText, { color: statusMeta.text }]}>
-              {statusMeta.label}
+      return (
+        <View
+          style={[
+            styles.myVibeCardWrapper,
+            { backgroundColor: colors.surfaceContainer, borderColor: colors.outlineVariant || "rgba(0,0,0,0.06)" },
+          ]}
+        >
+          {/* Status Header */}
+          <View style={styles.myVibeStatusRow}>
+            <View
+              style={[
+                styles.myVibeStatusBadge,
+                { backgroundColor: statusMeta.bg },
+              ]}
+            >
+              <MaterialIcons
+                name={statusMeta.icon}
+                size={14}
+                color={statusMeta.text}
+              />
+              <Text
+                style={[styles.myVibeStatusText, { color: statusMeta.text }]}
+              >
+                {statusMeta.label}
+              </Text>
+            </View>
+            <Text
+              style={[styles.myVibeDate, { color: colors.onSurfaceVariant }]}
+            >
+              {new Date(item.createdAt).toLocaleDateString("en-IN", {
+                month: "short",
+                day: "numeric",
+              })}
             </Text>
           </View>
-          <Text style={[styles.myVibeDate, { color: colors.onSurfaceVariant }]}>
-            {new Date(item.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
-          </Text>
+
+          {/* Rejection Note */}
+          {item.status === "rejected" && item.rejectionReason && (
+            <View style={[styles.rejectionBox, { backgroundColor: "#FEF2F2" }]}>
+              <Text style={styles.rejectionTitle}>Admin Feedback:</Text>
+              <Text style={styles.rejectionReason}>{item.rejectionReason}</Text>
+            </View>
+          )}
+
+          {/* Vibe Render */}
+          <VibeCard
+            vibe={item}
+            currentUserId={user?.id || user?._id}
+            isAdmin={isAdmin}
+            onLike={handleLike}
+            onBookmark={handleBookmark}
+            onOpenComments={setActiveCommentVibe}
+            onOpenLikes={setActiveLikesVibeId}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onTogglePin={handleTogglePin}
+            onTagPress={handleTagPress}
+          />
         </View>
+      );
+    },
+    [
+      colors,
+      user,
+      isAdmin,
+      handleLike,
+      handleBookmark,
+      handleEdit,
+      handleDelete,
+      handleTogglePin,
+      handleTagPress,
+    ]
+  );
 
-        {/* Rejection Note */}
-        {item.status === 'rejected' && item.rejectionReason && (
-          <View style={[styles.rejectionBox, { backgroundColor: '#FFEBEE' }]}>
-            <Text style={styles.rejectionTitle}>Admin Feedback:</Text>
-            <Text style={styles.rejectionReason}>{item.rejectionReason}</Text>
-          </View>
-        )}
-
-        {/* Vibe Render */}
-        <VibeCard
-          vibe={item}
-          currentUserId={user?.id || user?._id}
-          isAdmin={isAdmin}
-          onLike={handleLike}
-          onBookmark={handleBookmark}
-          onOpenComments={setActiveCommentVibe}
-          onOpenLikes={setActiveLikesVibeId}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onTogglePin={handleTogglePin}
-          onTagPress={handleTagPress}
-        />
-      </View>
-    );
-  }, [colors, user, isAdmin, handleLike, handleBookmark, handleEdit, handleDelete, handleTogglePin, handleTagPress]);
-
-  const currentList = activeTab === 'feed'
-    ? feedVibes
-    : activeTab === 'my-vibes'
+  const currentList =
+    activeTab === "feed"
+      ? feedVibes
+      : activeTab === "my-vibes"
       ? myVibes
       : savedVibes;
 
-  const currentLoading = activeTab === 'feed'
-    ? isFeedLoading
-    : activeTab === 'my-vibes'
+  const currentLoading =
+    activeTab === "feed"
+      ? isFeedLoading
+      : activeTab === "my-vibes"
       ? isMyVibesLoading
       : isSavedLoading;
 
-  const isRefreshing = activeTab === 'feed'
-    ? isFeedRefetching
-    : activeTab === 'my-vibes'
+  const isRefreshing =
+    activeTab === "feed"
+      ? isFeedRefetching
+      : activeTab === "my-vibes"
       ? isMyVibesRefetching
       : isSavedRefetching;
 
-  return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
-      {/* ──── Offline / Slow Network Hint Banner ──── */}
-      {!isConnected ? (
-        <View style={styles.offlineBanner}>
-          <MaterialIcons name="cloud-off" size={14} color="#fff" />
-          <Text style={styles.offlineBannerText}>You're offline. Browsing cached vibes.</Text>
-        </View>
-      ) : isSlow ? (
-        <View style={[styles.offlineBanner, { backgroundColor: '#1E293B' }]}>
-          <MaterialIcons name="speed" size={14} color="#38BDF8" />
-          <Text style={[styles.offlineBannerText, { color: '#E0F2FE' }]}>Slow connection • Low-data mode active</Text>
-        </View>
-      ) : null}
+  // Header Component for Feed FlatList: Stories Tray + Category Filter Pills
+  const renderListHeader = useCallback(() => {
+    if (activeTab !== "feed") return null;
 
+    return (
+      <View style={styles.feedHeaderContainer}>
+        {/* Top Stories Tray */}
+        <VibeStoriesTray
+          onOpenCreate={() => {
+            if (!isAuthenticated) {
+              showToast("Please log in to post Vibes", "info");
+              return;
+            }
+            setEditingVibe(null);
+            setShowCreateModal(true);
+          }}
+        />
 
-      {/* ──── Top App Bar ──── */}
-      <View style={[styles.topBar, { borderBottomColor: colors.outlineVariant }]}>
-        <View style={styles.brandRow}>
-          <View style={styles.titleWrapper}>
-            <Text style={[styles.brandTitle, { color: colors.onSurface }]}>Vibes</Text>
-            <View style={styles.sparkleBadge}>
-              <MaterialIcons name="auto-awesome" size={14} color="#FF9800" />
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.topActions}>
-          {/* Admin Approvals Shortcut with Pending Badge */}
-          {isAdmin && (
-            <Pressable
-              onPress={() => router.push('/admin/vibe-approvals')}
-              style={[styles.actionIconBtn, { backgroundColor: colors.surfaceContainerHighest }]}
-            >
-              <MaterialIcons name="admin-panel-settings" size={22} color={colors.primary} />
-              {pendingCount > 0 && (
-                <View style={styles.pendingBadgeCircle}>
-                  <Text style={styles.pendingBadgeText}>{pendingCount > 9 ? '9+' : pendingCount}</Text>
-                </View>
-              )}
-            </Pressable>
-          )}
-
-          {/* Create Vibe Action */}
-          <Pressable
-            onPress={() => {
-              if (!isAuthenticated) {
-                showToast('Please log in to post Vibes', 'info');
-                return;
-              }
-              setEditingVibe(null);
-              setShowCreateModal(true);
-            }}
-            style={[styles.createButton, { backgroundColor: colors.primary }]}
-          >
-            <MaterialIcons name="add" size={20} color="#fff" />
-            <Text style={styles.createButtonText}>Post</Text>
-          </Pressable>
-        </View>
-      </View>
-
-      {/* ──── Navigation Tabs: Feed / My Submissions / Saved ──── */}
-      <View style={[styles.tabBar, { borderBottomColor: colors.outlineVariant }]}>
-        <Pressable
-          onPress={() => { setActiveTab('feed'); setSelectedTag(null); }}
-          style={[styles.tabItem, activeTab === 'feed' && { borderBottomColor: colors.primary, borderBottomWidth: 2 }]}
-        >
-          <Text style={[
-            styles.tabText,
-            { color: activeTab === 'feed' ? colors.primary : colors.onSurfaceVariant, fontFamily: activeTab === 'feed' ? 'DMSans-Bold' : 'DMSans-Medium' }
-          ]}>
-            Feed
-          </Text>
-        </Pressable>
-
-        {isAuthenticated && (
-          <Pressable
-            onPress={() => setActiveTab('my-vibes')}
-            style={[styles.tabItem, activeTab === 'my-vibes' && { borderBottomColor: colors.primary, borderBottomWidth: 2 }]}
-          >
-            <Text style={[
-              styles.tabText,
-              { color: activeTab === 'my-vibes' ? colors.primary : colors.onSurfaceVariant, fontFamily: activeTab === 'my-vibes' ? 'DMSans-Bold' : 'DMSans-Medium' }
-            ]}>
-              Mine
-            </Text>
-          </Pressable>
-        )}
-
-        {isAuthenticated && (
-          <Pressable
-            onPress={() => setActiveTab('saved')}
-            style={[styles.tabItem, activeTab === 'saved' && { borderBottomColor: colors.primary, borderBottomWidth: 2 }]}
-          >
-            <Text style={[
-              styles.tabText,
-              { color: activeTab === 'saved' ? colors.primary : colors.onSurfaceVariant, fontFamily: activeTab === 'saved' ? 'DMSans-Bold' : 'DMSans-Medium' }
-            ]}>
-              Saved
-            </Text>
-          </Pressable>
-        )}
-      </View>
-
-      {/* ──── Category Filter Pills (When on Feed tab) ──── */}
-      {activeTab === 'feed' && (
-        <View style={styles.categoriesContainer}>
-          {selectedTag && (
-            <View style={styles.activeTagBanner}>
+        {/* Active Tag Filter Indicator */}
+        {selectedTag && (
+          <View style={styles.activeTagBanner}>
+            <View style={styles.activeTagBadge}>
+              <MaterialIcons name="tag" size={14} color={colors.primary} />
               <Text style={[styles.activeTagText, { color: colors.primary }]}>
-                #{selectedTag}
+                {selectedTag}
               </Text>
-              <Pressable onPress={() => setSelectedTag(null)} hitSlop={8}>
-                <MaterialIcons name="close" size={16} color={colors.primary} />
-              </Pressable>
             </View>
-          )}
+            <Pressable
+              onPress={() => setSelectedTag(null)}
+              hitSlop={8}
+              style={styles.clearTagBtn}
+            >
+              <MaterialIcons name="close" size={14} color={colors.primary} />
+              <Text style={[styles.clearTagText, { color: colors.primary }]}>
+                Clear
+              </Text>
+            </Pressable>
+          </View>
+        )}
 
+        {/* Horizontal Category Filter Pills */}
+        <View style={styles.categoriesContainer}>
           <FlatList
             horizontal
             data={CATEGORIES}
@@ -545,20 +609,26 @@ export default function VibesScreen() {
                   style={[
                     styles.categoryChip,
                     {
-                      backgroundColor: isSelected ? colors.primary : colors.surfaceContainer,
-                      borderColor: isSelected ? colors.primary : colors.outlineVariant,
-                    }
+                      backgroundColor: isSelected
+                        ? colors.primary
+                        : colors.surfaceContainerHighest,
+                      borderColor: isSelected
+                        ? colors.primary
+                        : colors.outlineVariant || "transparent",
+                    },
                   ]}
                 >
                   <MaterialIcons
                     name={item.icon}
                     size={14}
-                    color={isSelected ? '#fff' : colors.onSurfaceVariant}
+                    color={isSelected ? "#fff" : colors.onSurfaceVariant}
                   />
-                  <Text style={[
-                    styles.categoryChipText,
-                    { color: isSelected ? '#fff' : colors.onSurfaceVariant }
-                  ]}>
+                  <Text
+                    style={[
+                      styles.categoryChipText,
+                      { color: isSelected ? "#fff" : colors.onSurfaceVariant },
+                    ]}
+                  >
                     {item.label}
                   </Text>
                 </Pressable>
@@ -566,51 +636,329 @@ export default function VibesScreen() {
             }}
           />
         </View>
-      )}
+      </View>
+    );
+  }, [
+    activeTab,
+    selectedTag,
+    selectedCategory,
+    colors,
+    isAuthenticated,
+    showToast,
+  ]);
+
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      {/* ──── Offline / Slow Network Hint Banner ──── */}
+      {!isConnected ? (
+        <View style={styles.offlineBanner}>
+          <MaterialIcons name="cloud-off" size={14} color="#fff" />
+          <Text style={styles.offlineBannerText}>
+            You're offline. Browsing cached vibes.
+          </Text>
+        </View>
+      ) : isSlow ? (
+        <View style={[styles.offlineBanner, { backgroundColor: "#1E293B" }]}>
+          <MaterialIcons name="speed" size={14} color="#38BDF8" />
+          <Text style={[styles.offlineBannerText, { color: "#E0F2FE" }]}>
+            Slow connection • Low-data mode active
+          </Text>
+        </View>
+      ) : null}
+
+      {/* ──── Top App Bar ──── */}
+      <View
+        style={[
+          styles.topBar,
+          {
+            backgroundColor: colors.surface,
+            borderBottomColor: colors.outlineVariant || "rgba(0,0,0,0.06)",
+          },
+        ]}
+      >
+        <View style={styles.brandRow}>
+          <View style={styles.titleWrapper}>
+            <Text style={[styles.brandTitle, { color: colors.onSurface }]}>
+              Vibes
+            </Text>
+            <View style={styles.sparkleBadge}>
+              <MaterialIcons name="auto-awesome" size={15} color="#F59E0B" />
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.topActions}>
+          {/* Admin Approvals Shortcut with Pending Badge */}
+          {isAdmin && (
+            <Pressable
+              onPress={() => router.push("/admin/vibe-approvals")}
+              style={[
+                styles.actionIconBtn,
+                { backgroundColor: colors.surfaceContainerHighest },
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel="Admin Vibe Approvals"
+            >
+              <MaterialIcons
+                name="admin-panel-settings"
+                size={20}
+                color={colors.primary}
+              />
+              {pendingCount > 0 && (
+                <View style={styles.pendingBadgeCircle}>
+                  <Text style={styles.pendingBadgeText}>
+                    {pendingCount > 9 ? "9+" : pendingCount}
+                  </Text>
+                </View>
+              )}
+            </Pressable>
+          )}
+
+          {/* Create Vibe Action */}
+          <Pressable
+            onPress={() => {
+              if (!isAuthenticated) {
+                showToast("Please log in to post Vibes", "info");
+                return;
+              }
+              setEditingVibe(null);
+              setShowCreateModal(true);
+            }}
+            style={[styles.createButton, { backgroundColor: colors.primary }]}
+            accessibilityRole="button"
+            accessibilityLabel="Create Vibe Post"
+          >
+            <MaterialIcons name="add" size={18} color="#fff" />
+            <Text style={styles.createButtonText}>Post</Text>
+          </Pressable>
+        </View>
+      </View>
+
+      {/* ──── Segmented Pill Navigation: Feed / My Posts / Saved ──── */}
+      <View style={[styles.segmentWrapper, { backgroundColor: colors.surface }]}>
+        <View
+          style={[
+            styles.segmentContainer,
+            { backgroundColor: colors.surfaceContainerHighest },
+          ]}
+        >
+          <Pressable
+            onPress={() => {
+              setActiveTab("feed");
+              setSelectedTag(null);
+            }}
+            style={[
+              styles.segmentItem,
+              activeTab === "feed" && [
+                styles.segmentItemActive,
+                {
+                  backgroundColor: colors.surface,
+                  shadowColor: colors.shadow || "#000",
+                },
+              ],
+            ]}
+          >
+            <MaterialIcons
+              name="dynamic-feed"
+              size={15}
+              color={
+                activeTab === "feed" ? colors.primary : colors.onSurfaceVariant
+              }
+            />
+            <Text
+              style={[
+                styles.segmentText,
+                {
+                  color:
+                    activeTab === "feed"
+                      ? colors.primary
+                      : colors.onSurfaceVariant,
+                  fontFamily:
+                    activeTab === "feed" ? "DMSans-Bold" : "DMSans-Medium",
+                },
+              ]}
+            >
+              Feed
+            </Text>
+          </Pressable>
+
+          {isAuthenticated && (
+            <Pressable
+              onPress={() => setActiveTab("my-vibes")}
+              style={[
+                styles.segmentItem,
+                activeTab === "my-vibes" && [
+                  styles.segmentItemActive,
+                  {
+                    backgroundColor: colors.surface,
+                    shadowColor: colors.shadow || "#000",
+                  },
+                ],
+              ]}
+            >
+              <MaterialIcons
+                name="person-outline"
+                size={15}
+                color={
+                  activeTab === "my-vibes"
+                    ? colors.primary
+                    : colors.onSurfaceVariant
+                }
+              />
+              <Text
+                style={[
+                  styles.segmentText,
+                  {
+                    color:
+                      activeTab === "my-vibes"
+                        ? colors.primary
+                        : colors.onSurfaceVariant,
+                    fontFamily:
+                      activeTab === "my-vibes"
+                        ? "DMSans-Bold"
+                        : "DMSans-Medium",
+                  },
+                ]}
+              >
+                My Posts
+              </Text>
+            </Pressable>
+          )}
+
+          {isAuthenticated && (
+            <Pressable
+              onPress={() => setActiveTab("saved")}
+              style={[
+                styles.segmentItem,
+                activeTab === "saved" && [
+                  styles.segmentItemActive,
+                  {
+                    backgroundColor: colors.surface,
+                    shadowColor: colors.shadow || "#000",
+                  },
+                ],
+              ]}
+            >
+              <MaterialIcons
+                name="bookmark-border"
+                size={15}
+                color={
+                  activeTab === "saved"
+                    ? colors.primary
+                    : colors.onSurfaceVariant
+                }
+              />
+              <Text
+                style={[
+                  styles.segmentText,
+                  {
+                    color:
+                      activeTab === "saved"
+                        ? colors.primary
+                        : colors.onSurfaceVariant,
+                    fontFamily:
+                      activeTab === "saved" ? "DMSans-Bold" : "DMSans-Medium",
+                  },
+                ]}
+              >
+                Saved
+              </Text>
+            </Pressable>
+          )}
+        </View>
+      </View>
 
       {/* ──── Vibes Content Feed ──── */}
       {currentLoading && currentList.length === 0 ? (
         <View style={styles.skeletonContainer}>
           {[1, 2].map((i) => (
-            <View key={i} style={[styles.skeletonCard, { backgroundColor: colors.surfaceContainer }]}>
-              <View style={{ flexDirection: 'row', padding: 14, alignItems: 'center', gap: 10 }}>
-                <SkeletonLoader width={38} height={38} borderRadius={19} />
-                <SkeletonLoader width={120} height={16} borderRadius={8} />
+            <View
+              key={i}
+              style={[
+                styles.skeletonCard,
+                { backgroundColor: colors.surfaceContainer },
+              ]}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  padding: 14,
+                  alignItems: "center",
+                  gap: 10,
+                }}
+              >
+                <SkeletonLoader width={40} height={40} borderRadius={20} />
+                <View style={{ gap: 4, flex: 1 }}>
+                  <SkeletonLoader width={130} height={14} borderRadius={7} />
+                  <SkeletonLoader width={80} height={10} borderRadius={5} />
+                </View>
               </View>
-              <SkeletonLoader width="100%" height={280} borderRadius={0} />
+              <SkeletonLoader width="100%" height={260} borderRadius={0} />
               <View style={{ padding: 14, gap: 8 }}>
-                <SkeletonLoader width="30%" height={16} borderRadius={8} />
-                <SkeletonLoader width="80%" height={14} borderRadius={8} />
+                <SkeletonLoader width="35%" height={16} borderRadius={8} />
+                <SkeletonLoader width="85%" height={14} borderRadius={7} />
               </View>
             </View>
           ))}
         </View>
       ) : currentList.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <MaterialIcons name="photo-camera" size={56} color={colors.onSurfaceVariant} />
+          <View
+            style={[
+              styles.emptyIconCircle,
+              { backgroundColor: colors.surfaceContainerHighest },
+            ]}
+          >
+            <MaterialIcons
+              name={
+                activeTab === "feed"
+                  ? "auto-awesome"
+                  : activeTab === "my-vibes"
+                  ? "photo-camera"
+                  : "bookmark-border"
+              }
+              size={36}
+              color={colors.primary}
+            />
+          </View>
           <Text style={[styles.emptyTitle, { color: colors.onSurface }]}>
-            {activeTab === 'feed'
-              ? 'No Vibes Yet'
-              : activeTab === 'my-vibes'
-                ? 'No Posts Yet'
-                : 'No Saved Vibes'}
+            {activeTab === "feed"
+              ? "No Vibes Yet"
+              : activeTab === "my-vibes"
+              ? "No Posts Yet"
+              : "No Saved Vibes"}
           </Text>
-          <Text style={[styles.emptySubtitle, { color: colors.onSurfaceVariant }]}>
-            {activeTab === 'feed'
-              ? 'Be the first to share a vibe with the school!'
-              : activeTab === 'my-vibes'
-                ? 'Your posts and approval status will appear here.'
-                : 'Tap the bookmark icon on any post to save it for later.'}
+          <Text
+            style={[styles.emptySubtitle, { color: colors.onSurfaceVariant }]}
+          >
+            {activeTab === "feed"
+              ? "Be the first to share a campus moment, achievement, or story!"
+              : activeTab === "my-vibes"
+              ? "Your submitted vibes and approval status will appear here."
+              : "Tap the bookmark icon on any post in the feed to save it."}
           </Text>
           <Pressable
             onPress={() => {
-              if (activeTab === 'feed') setShowCreateModal(true);
-              else onRefresh();
+              if (activeTab === "feed" || activeTab === "my-vibes") {
+                if (!isAuthenticated) {
+                  showToast("Please log in to post Vibes", "info");
+                  return;
+                }
+                setEditingVibe(null);
+                setShowCreateModal(true);
+              } else {
+                onRefresh();
+              }
             }}
-            style={[styles.emptyActionButton, { backgroundColor: colors.primary }]}
+            style={[
+              styles.emptyActionButton,
+              { backgroundColor: colors.primary },
+            ]}
           >
             <Text style={styles.emptyActionText}>
-              {activeTab === 'feed' ? 'Create Vibe' : 'Refresh'}
+              {activeTab === "feed" || activeTab === "my-vibes"
+                ? "Create Vibe"
+                : "Explore Feed"}
             </Text>
           </Pressable>
         </View>
@@ -618,29 +966,42 @@ export default function VibesScreen() {
         <FlatList
           ref={scrollRef}
           data={currentList}
-          renderItem={activeTab === 'my-vibes' ? renderMyVibeItem : renderFeedItem}
+          ListHeaderComponent={renderListHeader}
+          renderItem={
+            activeTab === "my-vibes" ? renderMyVibeItem : renderFeedItem
+          }
           keyExtractor={(item) => item._id}
           showsVerticalScrollIndicator={false}
           scrollsToTop={true}
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={[themeStyles.contentPaddingBottom, styles.listContent]}
+          contentContainerStyle={[
+            themeStyles.contentPaddingBottom,
+            styles.listContent,
+          ]}
           onViewableItemsChanged={onViewableItemsChanged}
           viewabilityConfig={viewabilityConfig}
           initialNumToRender={3}
           maxToRenderPerBatch={3}
           windowSize={5}
-          removeClippedSubviews={Platform.OS === 'android'}
+          removeClippedSubviews={Platform.OS === "android"}
           updateCellsBatchingPeriod={40}
           refreshControl={
-            <AppRefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+            <AppRefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+            />
           }
           onEndReached={() => {
-            if (activeTab === 'feed' && hasFeedNextPage && !isFeedFetchingNext) {
+            if (
+              activeTab === "feed" &&
+              hasFeedNextPage &&
+              !isFeedFetchingNext
+            ) {
               fetchFeedNextPage();
-            } else if (activeTab === 'my-vibes' && hasMyVibesNext) {
+            } else if (activeTab === "my-vibes" && hasMyVibesNext) {
               fetchMyVibesNext();
-            } else if (activeTab === 'saved' && hasSavedNext) {
+            } else if (activeTab === "saved" && hasSavedNext) {
               fetchSavedNext();
             }
           }}
@@ -649,7 +1010,14 @@ export default function VibesScreen() {
             isFeedFetchingNext ? (
               <View style={styles.loadingMore}>
                 <ActivityIndicator size="small" color={colors.primary} />
-                <Text style={[styles.loadingMoreText, { color: colors.onSurfaceVariant }]}>Loading more vibes...</Text>
+                <Text
+                  style={[
+                    styles.loadingMoreText,
+                    { color: colors.onSurfaceVariant },
+                  ]}
+                >
+                  Loading more vibes...
+                </Text>
               </View>
             ) : null
           }
@@ -685,203 +1053,256 @@ export default function VibesScreen() {
 
 const styles = StyleSheet.create({
   offlineBanner: {
-    backgroundColor: '#374151',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#374151",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 5,
     gap: 6,
   },
   offlineBannerText: {
-    color: '#F3F4F6',
+    color: "#F3F4F6",
     fontSize: 11,
-    fontFamily: 'DMSans-Medium',
+    fontFamily: "DMSans-Medium",
   },
   topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 12,
+    paddingTop: 10,
+    paddingBottom: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   brandRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   titleWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
   },
   brandTitle: {
     fontSize: 22,
-    fontFamily: 'DMSans-Bold',
-    letterSpacing: -0.5,
+    fontFamily: "DMSans-Bold",
+    letterSpacing: -0.6,
   },
   sparkleBadge: {
     marginTop: -2,
   },
   topActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 10,
   },
   actionIconBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    position: "relative",
   },
   pendingBadgeCircle: {
-    position: 'absolute',
+    position: "absolute",
     top: -2,
     right: -2,
-    backgroundColor: '#FF2D55',
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#EF4444",
+    width: 17,
+    height: 17,
+    borderRadius: 8.5,
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 1.5,
-    borderColor: '#fff',
+    borderColor: "#fff",
   },
   pendingBadgeText: {
-    color: '#fff',
-    fontSize: 10,
-    fontFamily: 'DMSans-Bold',
+    color: "#fff",
+    fontSize: 9.5,
+    fontFamily: "DMSans-Bold",
   },
   createButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
   createButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 13,
-    fontFamily: 'DMSans-Bold',
+    fontFamily: "DMSans-Bold",
   },
-  tabBar: {
-    flexDirection: 'row',
-    borderBottomWidth: StyleSheet.hairlineWidth,
+  segmentWrapper: {
     paddingHorizontal: 16,
+    paddingVertical: 8,
   },
-  tabItem: {
-    paddingVertical: 10,
-    marginRight: 20,
+  segmentContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 3,
+    borderRadius: 16,
   },
-  tabText: {
-    fontSize: 14,
+  segmentItem: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 5,
+    paddingVertical: 7,
+    borderRadius: 13,
+  },
+  segmentItemActive: {
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  segmentText: {
+    fontSize: 12.5,
+  },
+  feedHeaderContainer: {
+    paddingBottom: 4,
   },
   categoriesContainer: {
-    paddingVertical: 10,
+    paddingVertical: 8,
   },
   categoriesScroll: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     gap: 8,
   },
   categoryChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 5,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
   },
   categoryChipText: {
     fontSize: 12,
-    fontFamily: 'DMSans-Bold',
+    fontFamily: "DMSans-Bold",
   },
   activeTagBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    marginLeft: 16,
-    marginBottom: 8,
-    gap: 6,
-    backgroundColor: 'rgba(47, 108, 212, 0.1)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginHorizontal: 14,
+    marginTop: 4,
+    marginBottom: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 12,
+    backgroundColor: "rgba(37, 99, 235, 0.08)",
+  },
+  activeTagBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
   },
   activeTagText: {
     fontSize: 12,
-    fontFamily: 'DMSans-Bold',
+    fontFamily: "DMSans-Bold",
+  },
+  clearTagBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+  },
+  clearTagText: {
+    fontSize: 11.5,
+    fontFamily: "DMSans-Bold",
   },
   listContent: {
-    paddingTop: 8,
+    paddingTop: 4,
+    paddingBottom: 24,
   },
   skeletonContainer: {
     paddingTop: 12,
+    paddingHorizontal: 12,
     gap: 16,
   },
   skeletonCard: {
-    borderRadius: 0,
-    overflow: 'hidden',
+    borderRadius: 20,
+    overflow: "hidden",
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 32,
+    paddingVertical: 60,
     gap: 10,
+  },
+  emptyIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 4,
   },
   emptyTitle: {
     fontSize: 18,
-    fontFamily: 'DMSans-Bold',
+    fontFamily: "DMSans-Bold",
+    letterSpacing: -0.2,
   },
   emptySubtitle: {
     fontSize: 13,
-    fontFamily: 'DMSans-Regular',
-    textAlign: 'center',
+    fontFamily: "DMSans-Regular",
+    textAlign: "center",
     lineHeight: 18,
+    paddingHorizontal: 10,
   },
   emptyActionButton: {
-    marginTop: 12,
-    paddingHorizontal: 20,
+    marginTop: 10,
+    paddingHorizontal: 22,
     paddingVertical: 10,
     borderRadius: 20,
   },
   emptyActionText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 13,
-    fontFamily: 'DMSans-Bold',
+    fontFamily: "DMSans-Bold",
   },
   loadingMore: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 16,
     gap: 8,
   },
   loadingMoreText: {
     fontSize: 13,
-    fontFamily: 'DMSans-Regular',
+    fontFamily: "DMSans-Regular",
   },
-  myVibeCard: {
-    marginBottom: 20,
-    borderRadius: 0,
-    overflow: 'hidden',
+  myVibeCardWrapper: {
+    marginHorizontal: 12,
+    marginBottom: 16,
+    borderRadius: 20,
+    overflow: "hidden",
+    borderWidth: StyleSheet.hairlineWidth,
   },
   myVibeStatusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 14,
-    paddingTop: 10,
+    paddingTop: 12,
     paddingBottom: 4,
   },
   myVibeStatusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 5,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -889,31 +1310,32 @@ const styles = StyleSheet.create({
   },
   myVibeStatusText: {
     fontSize: 11,
-    fontFamily: 'DMSans-Bold',
-    textTransform: 'uppercase',
+    fontFamily: "DMSans-Bold",
+    textTransform: "uppercase",
   },
   myVibeDate: {
     fontSize: 12,
-    fontFamily: 'DMSans-Regular',
+    fontFamily: "DMSans-Regular",
   },
   rejectionBox: {
     marginHorizontal: 14,
     marginTop: 6,
-    marginBottom: 4,
+    marginBottom: 6,
     padding: 10,
     borderRadius: 10,
     borderLeftWidth: 3,
-    borderLeftColor: '#C62828',
+    borderLeftColor: "#DC2626",
   },
   rejectionTitle: {
     fontSize: 12,
-    fontFamily: 'DMSans-Bold',
-    color: '#C62828',
+    fontFamily: "DMSans-Bold",
+    color: "#DC2626",
   },
   rejectionReason: {
     fontSize: 12,
-    fontFamily: 'DMSans-Regular',
-    color: '#333',
+    fontFamily: "DMSans-Regular",
+    color: "#333",
     marginTop: 2,
   },
 });
+

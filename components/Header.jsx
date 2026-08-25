@@ -20,7 +20,7 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
 
   // Fetch user to check if Super Admin for Time Travel UI
   const { data: userData } = useApiQuery(
-    ['currentUser'],
+    ["currentUser"],
     `${apiConfig.baseUrl}/auth/me`,
     {
       staleTime: Infinity,
@@ -28,19 +28,21 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
     }
   );
 
-  const isSuperAdmin = userData?.role === 'super admin';
+  const isSuperAdmin = userData?.role === "super admin";
 
   // "welcome" is effectively a Large Top App Bar
   if (variant === "welcome") {
     return (
-      <View style={{
-        paddingTop: 12,
-        paddingBottom: 24,
-        paddingHorizontal: 4,
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "flex-start",
-      }}>
+      <View
+        style={{
+          paddingTop: 12,
+          paddingBottom: 24,
+          paddingHorizontal: 4,
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+        }}
+      >
         <View style={{ flex: 1 }}>
           {isSuperAdmin ? (
             <View style={{ marginBottom: 12 }}>
@@ -48,40 +50,63 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
             </View>
           ) : (
             selectedYear && (
-              <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: selectedYear.isActive ? colors.primaryContainer : colors.errorContainer,
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-                borderRadius: 16,
-                borderWidth: 1,
-                borderColor: selectedYear.isActive ? colors.primary : colors.error,
-                marginBottom: 12,
-                alignSelf: 'flex-start'
-              }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  backgroundColor: selectedYear.isActive
+                    ? colors.primaryContainer
+                    : colors.errorContainer,
+                  paddingHorizontal: 10,
+                  paddingVertical: 4,
+                  borderRadius: 16,
+                  borderWidth: 1,
+                  borderColor: selectedYear.isActive
+                    ? colors.primary
+                    : colors.error,
+                  marginBottom: 12,
+                  alignSelf: "flex-start",
+                }}
+              >
                 <MaterialIcons
-                  name={selectedYear.status === 'archived' ? 'history' : 'calendar-today'}
+                  name={
+                    selectedYear.status === "archived"
+                      ? "history"
+                      : "calendar-today"
+                  }
                   size={12}
-                  color={selectedYear.isActive ? colors.onPrimaryContainer : colors.onErrorContainer}
+                  color={
+                    selectedYear.isActive
+                      ? colors.onPrimaryContainer
+                      : colors.onErrorContainer
+                  }
                 />
-                <Text style={{
-                  fontSize: 11,
-                  fontFamily: 'DMSans-Bold',
-                  marginLeft: 4,
-                  color: selectedYear.isActive ? colors.onPrimaryContainer : colors.onErrorContainer
-                }}>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontFamily: "DMSans-Bold",
+                    marginLeft: 4,
+                    color: selectedYear.isActive
+                      ? colors.onPrimaryContainer
+                      : colors.onErrorContainer,
+                  }}
+                >
                   {selectedYear.name}
                 </Text>
               </View>
             )
           )}
-          <Text style={[styles.labelLarge, {
-            color: colors.onSurfaceVariant,
-            marginBottom: 8,
-            textTransform: 'uppercase'
-          }]}>
-            {t('header.welcomeTo', 'Welcome to')}
+          <Text
+            style={[
+              styles.labelLarge,
+              {
+                color: colors.onSurfaceVariant,
+                marginBottom: 8,
+                textTransform: "uppercase",
+              },
+            ]}
+          >
+            {t("header.welcomeTo", "Welcome to")}
           </Text>
           <Text style={[styles.headlineLarge, { color: colors.onBackground }]}>
             {title}
@@ -90,34 +115,50 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
 
         {/* Notification Bell */}
         <Pressable
-          accessibilityLabel={t('header.notifications', 'Notifications')}
+          accessibilityLabel={t("header.notifications", "Notifications")}
           onPress={() => router.push("/notifications")}
           style={({ pressed }) => ({
             padding: 12,
             marginTop: 4,
             marginLeft: 8,
-            backgroundColor: pressed ? colors.surfaceContainerHighest : 'transparent',
+            backgroundColor: pressed
+              ? colors.surfaceContainerHighest
+              : "transparent",
             borderRadius: 24, // Circle
-            position: 'relative'
+            position: "relative",
           })}
         >
-          <MaterialIcons name={unreadCount > 0 ? "notifications-active" : "notifications-none"} size={26} color={unreadCount > 0 ? colors.primary : colors.onSurfaceVariant} />
+          <MaterialIcons
+            name={
+              unreadCount > 0 ? "notifications-active" : "notifications-none"
+            }
+            size={26}
+            color={unreadCount > 0 ? colors.primary : colors.onSurfaceVariant}
+          />
           {unreadCount > 0 && (
-            <View style={{
-              position: 'absolute',
-              right: 8,
-              top: 8,
-              backgroundColor: colors.error,
-              borderRadius: 10,
-              minWidth: 18,
-              height: 18,
-              justifyContent: 'center',
-              alignItems: 'center',
-              borderWidth: 2,
-              borderColor: colors.background
-            }}>
-              <Text style={{ color: colors.onError, fontSize: 10, fontFamily: 'DMSans-Bold' }}>
-                {unreadCount > 9 ? '9+' : unreadCount}
+            <View
+              style={{
+                position: "absolute",
+                right: 8,
+                top: 8,
+                backgroundColor: colors.error,
+                borderRadius: 10,
+                minWidth: 18,
+                height: 18,
+                justifyContent: "center",
+                alignItems: "center",
+                borderWidth: 2,
+                borderColor: colors.background,
+              }}
+            >
+              <Text
+                style={{
+                  color: colors.onError,
+                  fontSize: 10,
+                  fontFamily: "DMSans-Bold",
+                }}
+              >
+                {unreadCount > 9 ? "9+" : unreadCount}
               </Text>
             </View>
           )}
@@ -128,10 +169,17 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
 
   // Default variant - standard Center/Small Top App Bar
   return (
-    <View style={{ marginBottom: 24, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+    <View
+      style={{
+        marginBottom: 24,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+      }}
+    >
       {showBack && (
         <Pressable
-          accessibilityLabel={t('header.goBack', 'Go back')}
+          accessibilityLabel={t("header.goBack", "Go back")}
           onPress={() => {
             if (router.canGoBack()) {
               router.back();
@@ -143,7 +191,9 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
             marginRight: 16,
             padding: 8,
             marginLeft: -8,
-            backgroundColor: pressed ? colors.surfaceContainerHighest : 'transparent',
+            backgroundColor: pressed
+              ? colors.surfaceContainerHighest
+              : "transparent",
             borderRadius: 24,
           })}
         >
@@ -158,29 +208,47 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
           </View>
         ) : (
           selectedYear && (
-            <View style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: selectedYear.isActive ? colors.primaryContainer : colors.errorContainer,
-              paddingHorizontal: 8,
-              paddingVertical: 2,
-              borderRadius: 12,
-              borderWidth: 1,
-              borderColor: selectedYear.isActive ? colors.primary : colors.error,
-              marginBottom: 4,
-              alignSelf: 'flex-start'
-            }}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                backgroundColor: selectedYear.isActive
+                  ? colors.primaryContainer
+                  : colors.errorContainer,
+                paddingHorizontal: 8,
+                paddingVertical: 2,
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: selectedYear.isActive
+                  ? colors.primary
+                  : colors.error,
+                marginBottom: 4,
+                alignSelf: "flex-start",
+              }}
+            >
               <MaterialIcons
-                name={selectedYear.status === 'archived' ? 'history' : 'calendar-today'}
+                name={
+                  selectedYear.status === "archived"
+                    ? "history"
+                    : "calendar-today"
+                }
                 size={10}
-                color={selectedYear.isActive ? colors.onPrimaryContainer : colors.onErrorContainer}
+                color={
+                  selectedYear.isActive
+                    ? colors.onPrimaryContainer
+                    : colors.onErrorContainer
+                }
               />
-              <Text style={{
-                fontSize: 10,
-                fontFamily: 'DMSans-Bold',
-                marginLeft: 4,
-                color: selectedYear.isActive ? colors.onPrimaryContainer : colors.onErrorContainer
-              }}>
+              <Text
+                style={{
+                  fontSize: 10,
+                  fontFamily: "DMSans-Bold",
+                  marginLeft: 4,
+                  color: selectedYear.isActive
+                    ? colors.onPrimaryContainer
+                    : colors.onErrorContainer,
+                }}
+              >
                 {selectedYear.name}
               </Text>
             </View>
@@ -190,10 +258,15 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
           {title}
         </Text>
         {subtitle && (
-          <Text style={[styles.titleSmall, {
-            color: colors.onSurfaceVariant,
-            marginTop: 2
-          }]}>
+          <Text
+            style={[
+              styles.titleSmall,
+              {
+                color: colors.onSurfaceVariant,
+                marginTop: 2,
+              },
+            ]}
+          >
             {subtitle}
           </Text>
         )}
@@ -204,28 +277,42 @@ const Header = ({ title, subtitle, variant = "default", showBack = false }) => {
         onPress={() => router.push("/notifications")}
         style={({ pressed }) => ({
           padding: 8,
-          backgroundColor: pressed ? colors.surfaceContainerHighest : 'transparent',
+          backgroundColor: pressed
+            ? colors.surfaceContainerHighest
+            : "transparent",
           borderRadius: 24,
-          position: 'relative'
+          position: "relative",
         })}
       >
-        <MaterialIcons name={unreadCount > 0 ? "notifications-active" : "notifications-none"} size={26} color={unreadCount > 0 ? colors.primary : colors.onSurfaceVariant} />
+        <MaterialIcons
+          name={unreadCount > 0 ? "notifications-active" : "notifications-none"}
+          size={26}
+          color={unreadCount > 0 ? colors.primary : colors.onSurfaceVariant}
+        />
         {unreadCount > 0 && (
-          <View style={{
-            position: 'absolute',
-            right: 4,
-            top: 4,
-            backgroundColor: colors.error,
-            borderRadius: 10,
-            minWidth: 18,
-            height: 18,
-            justifyContent: 'center',
-            alignItems: 'center',
-            borderWidth: 2,
-            borderColor: colors.background
-          }}>
-            <Text style={{ color: colors.onError, fontSize: 10, fontFamily: 'DMSans-Bold' }}>
-              {unreadCount > 9 ? '9+' : unreadCount}
+          <View
+            style={{
+              position: "absolute",
+              right: 4,
+              top: 4,
+              backgroundColor: colors.error,
+              borderRadius: 10,
+              minWidth: 18,
+              height: 18,
+              justifyContent: "center",
+              alignItems: "center",
+              borderWidth: 2,
+              borderColor: colors.background,
+            }}
+          >
+            <Text
+              style={{
+                color: colors.onError,
+                fontSize: 10,
+                fontFamily: "DMSans-Bold",
+              }}
+            >
+              {unreadCount > 9 ? "9+" : unreadCount}
             </Text>
           </View>
         )}

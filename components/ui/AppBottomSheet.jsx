@@ -1,17 +1,17 @@
-import React, { forwardRef, useCallback, useMemo } from 'react';
-import { StyleSheet } from 'react-native';
+import React, { forwardRef, useCallback, useMemo } from "react";
+import { StyleSheet } from "react-native";
 import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetView,
   BottomSheetScrollView,
-} from '@gorhom/bottom-sheet';
-import * as Haptics from 'expo-haptics';
-import { useTheme } from '../../theme';
+} from "@gorhom/bottom-sheet";
+import * as Haptics from "expo-haptics";
+import { useTheme } from "../../theme";
 
 /**
  * AppBottomSheet - High performance native bottom sheet primitive
  * Runs 100% on the UI thread via Reanimated & RNGH
- * 
+ *
  * @param {Array<string|number>} snapPoints - e.g. ['25%', '50%', '90%']
  * @param {boolean} enablePanDownToClose - allow swipe down to dismiss (default: true)
  * @param {boolean} scrollable - use BottomSheetScrollView instead of BottomSheetView
@@ -35,7 +35,7 @@ const AppBottomSheet = forwardRef((props, ref) => {
   const { colors, mode } = useTheme();
 
   const snapPoints = useMemo(
-    () => customSnapPoints || ['35%', '60%', '90%'],
+    () => customSnapPoints || ["35%", "60%", "90%"],
     [customSnapPoints]
   );
 
@@ -45,7 +45,7 @@ const AppBottomSheet = forwardRef((props, ref) => {
         {...backdropProps}
         appearsOnIndex={0}
         disappearsOnIndex={-1}
-        opacity={mode === 'dark' ? 0.65 : 0.45}
+        opacity={mode === "dark" ? 0.65 : 0.45}
         pressBehavior="close"
       />
     ),
@@ -71,7 +71,9 @@ const AppBottomSheet = forwardRef((props, ref) => {
     [onChange, onClose]
   );
 
-  const ContainerComponent = scrollable ? BottomSheetScrollView : BottomSheetView;
+  const ContainerComponent = scrollable
+    ? BottomSheetScrollView
+    : BottomSheetView;
 
   return (
     <BottomSheet
@@ -104,11 +106,11 @@ const AppBottomSheet = forwardRef((props, ref) => {
   );
 });
 
-AppBottomSheet.displayName = 'AppBottomSheet';
+AppBottomSheet.displayName = "AppBottomSheet";
 
 const styles = StyleSheet.create({
   sheetShadow: {
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.12,
     shadowRadius: 10,

@@ -1,13 +1,13 @@
-import React, { forwardRef, useCallback } from 'react';
-import { StyleSheet, View, Text, Pressable } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import AppBottomSheet from './AppBottomSheet';
-import { useTheme } from '../../theme';
+import React, { forwardRef, useCallback } from "react";
+import { StyleSheet, View, Text, Pressable } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+import AppBottomSheet from "./AppBottomSheet";
+import { useTheme } from "../../theme";
 
 /**
  * FilterBottomSheet - Standardized, accessible filter bottom sheet
- * 
+ *
  * @param {string} title - Title of the filter modal
  * @param {Array<{ label: string, value: string, icon?: string }>} options - Filter options
  * @param {string|Array<string>} selected - Currently selected value(s)
@@ -17,14 +17,14 @@ import { useTheme } from '../../theme';
  */
 const FilterBottomSheet = forwardRef((props, ref) => {
   const {
-    title = 'Filter',
+    title = "Filter",
     options = [],
     selected,
     onSelect,
     onReset,
     onApply,
     isMultiSelect = false,
-    snapPoints = ['45%', '70%'],
+    snapPoints = ["45%", "70%"],
   } = props;
 
   const { colors } = useTheme();
@@ -68,13 +68,17 @@ const FilterBottomSheet = forwardRef((props, ref) => {
         {onReset && (
           <Pressable
             onPress={() => {
-              try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch {}
+              try {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              } catch {}
               onReset();
             }}
             hitSlop={8}
             style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
           >
-            <Text style={[styles.resetText, { color: colors.primary }]}>Reset</Text>
+            <Text style={[styles.resetText, { color: colors.primary }]}>
+              Reset
+            </Text>
           </Pressable>
         )}
       </View>
@@ -93,9 +97,7 @@ const FilterBottomSheet = forwardRef((props, ref) => {
                   backgroundColor: active
                     ? colors.primaryContainer
                     : colors.surfaceContainerHigh,
-                  borderColor: active
-                    ? colors.primary
-                    : colors.outlineVariant,
+                  borderColor: active ? colors.primary : colors.outlineVariant,
                   opacity: pressed ? 0.8 : 1,
                 },
               ]}
@@ -104,7 +106,9 @@ const FilterBottomSheet = forwardRef((props, ref) => {
                 <MaterialIcons
                   name={opt.icon}
                   size={18}
-                  color={active ? colors.onPrimaryContainer : colors.onSurfaceVariant}
+                  color={
+                    active ? colors.onPrimaryContainer : colors.onSurfaceVariant
+                  }
                   style={{ marginRight: 6 }}
                 />
               )}
@@ -112,8 +116,10 @@ const FilterBottomSheet = forwardRef((props, ref) => {
                 style={[
                   styles.chipText,
                   {
-                    color: active ? colors.onPrimaryContainer : colors.onSurface,
-                    fontFamily: active ? 'DMSans-Bold' : 'DMSans-Medium',
+                    color: active
+                      ? colors.onPrimaryContainer
+                      : colors.onSurface,
+                    fontFamily: active ? "DMSans-Bold" : "DMSans-Medium",
                   },
                 ]}
               >
@@ -151,35 +157,35 @@ const FilterBottomSheet = forwardRef((props, ref) => {
   );
 });
 
-FilterBottomSheet.displayName = 'FilterBottomSheet';
+FilterBottomSheet.displayName = "FilterBottomSheet";
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 16,
     paddingBottom: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(150, 150, 150, 0.2)',
+    borderBottomColor: "rgba(150, 150, 150, 0.2)",
   },
   title: {
     fontSize: 18,
-    fontFamily: 'DMSans-Bold',
+    fontFamily: "DMSans-Bold",
   },
   resetText: {
     fontSize: 14,
-    fontFamily: 'DMSans-Medium',
+    fontFamily: "DMSans-Medium",
   },
   chipContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 10,
     marginBottom: 24,
   },
   chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 20,
@@ -189,20 +195,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   applyButton: {
-    width: '100%',
+    width: "100%",
     paddingVertical: 14,
     borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 4,
   },
   applyButtonText: {
     fontSize: 16,
-    fontFamily: 'DMSans-Bold',
+    fontFamily: "DMSans-Bold",
   },
 });
 

@@ -14,10 +14,10 @@ import * as Haptics from "expo-haptics";
 import { BlurView } from "expo-blur";
 import { useTheme } from "../theme";
 import { ROUTES } from "../constants/routes";
-import { useAuth } from '../context/AuthContext';
-import { useNavigationContext } from '../context/NavigationContext';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useLabel } from '../context/LabelsContext';
+import { useAuth } from "../context/AuthContext";
+import { useNavigationContext } from "../context/NavigationContext";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useLabel } from "../context/LabelsContext";
 
 // eslint-disable-next-line no-unused-vars
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -31,103 +31,137 @@ function BottomNavigation() {
   const insets = useSafeAreaInsets();
   const { t } = useLabel();
 
-  const navigationItems = useMemo(() => [
-    {
-      route: ROUTES.HOME,
-      label: t('nav.home'),
-      icon: "home-filled", // M3 uses filled icons for active state usually, but consistent icons are fine
-      inactiveIcon: "home",
-    },
-    {
-      route: ROUTES.VIBES,
-      label: "Vibes",
-      icon: "auto-awesome",
-      inactiveIcon: "auto-awesome",
-    },
-    ...(user && user.role === 'student' ? [{
-      route: ROUTES.STUDENT_CLASS,
-      label: t('nav.class'),
-      icon: "school",
-      inactiveIcon: "school", // outlined version if available
-    }] : []),
-    ...(user && (user.role === 'teacher' || user.role === 'staff') ? [{
-      route: ROUTES.TEACHER_CLASSES,
-      label: t('nav.dashboard'),
-      icon: "dashboard",
-      inactiveIcon: "dashboard",
-    }] : []),
-    ...(user && (user.role === 'admin' || user.role === 'super admin') ? [{
-      route: ROUTES.ADMIN,
-      label: t('nav.admin'),
-      icon: "admin-panel-settings",
-      inactiveIcon: "admin-panel-settings",
-    }, {
-      route: "/admin/classes",
-      label: t('nav.classes'),
-      icon: "class",
-      inactiveIcon: "class",
-    }] : []),
-    ...(user && (user.role === 'student' || user.role === 'teacher' || user.role === 'staff' || user.role === 'admin' || user.role === 'super admin') ? [{
-      route: "/requests",
-      label: t('nav.attendance'),
-      icon: "assignment",
-      inactiveIcon: "assignment",
-    }] : []),
-    {
-      route: "/menu",
-      label: t('nav.menu'),
-      icon: "grid-view",
-      inactiveIcon: "grid-view",
-    },
-  ], [user, t]);
+  const navigationItems = useMemo(
+    () => [
+      {
+        route: ROUTES.HOME,
+        label: t("nav.home"),
+        icon: "home-filled", // M3 uses filled icons for active state usually, but consistent icons are fine
+        inactiveIcon: "home",
+      },
+      {
+        route: ROUTES.VIBES,
+        label: "Vibes",
+        icon: "auto-awesome",
+        inactiveIcon: "auto-awesome",
+      },
+      ...(user && user.role === "student"
+        ? [
+            {
+              route: ROUTES.STUDENT_CLASS,
+              label: t("nav.class"),
+              icon: "school",
+              inactiveIcon: "school", // outlined version if available
+            },
+          ]
+        : []),
+      ...(user && (user.role === "teacher" || user.role === "staff")
+        ? [
+            {
+              route: ROUTES.TEACHER_CLASSES,
+              label: t("nav.dashboard"),
+              icon: "dashboard",
+              inactiveIcon: "dashboard",
+            },
+          ]
+        : []),
+      ...(user && (user.role === "admin" || user.role === "super admin")
+        ? [
+            {
+              route: ROUTES.ADMIN,
+              label: t("nav.admin"),
+              icon: "admin-panel-settings",
+              inactiveIcon: "admin-panel-settings",
+            },
+            {
+              route: "/admin/classes",
+              label: t("nav.classes"),
+              icon: "class",
+              inactiveIcon: "class",
+            },
+          ]
+        : []),
+      ...(user &&
+      (user.role === "student" ||
+        user.role === "teacher" ||
+        user.role === "staff" ||
+        user.role === "admin" ||
+        user.role === "super admin")
+        ? [
+            {
+              route: "/requests",
+              label: t("nav.attendance"),
+              icon: "assignment",
+              inactiveIcon: "assignment",
+            },
+          ]
+        : []),
+      {
+        route: "/menu",
+        label: t("nav.menu"),
+        icon: "grid-view",
+        inactiveIcon: "grid-view",
+      },
+    ],
+    [user, t]
+  );
 
   // Derive active route from pathname
   const activeRoute = useMemo(() => {
     const matchingItem = navigationItems
-      .filter(item => item.route === '/' ? pathname === '/' : pathname.startsWith(item.route))
+      .filter((item) =>
+        item.route === "/" ? pathname === "/" : pathname.startsWith(item.route)
+      )
       .sort((a, b) => b.route.length - a.route.length)[0];
     return matchingItem?.route || ROUTES.HOME;
   }, [pathname, navigationItems]);
 
-  const handleTabPress = useCallback((route) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
-    if (pathname === route || (route === ROUTES.HOME && pathname === '/')) {
-      // Standard mobile behavior: tapping active tab scrolls feed/screen to top
-      if (emitScrollToTop) {
-        emitScrollToTop(route);
+  const handleTabPress = useCallback(
+    (route) => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      if (pathname === route || (route === ROUTES.HOME && pathname === "/")) {
+        // Standard mobile behavior: tapping active tab scrolls feed/screen to top
+        if (emitScrollToTop) {
+          emitScrollToTop(route);
+        }
+        return;
       }
-      return;
-    }
 
-    requestAnimationFrame(() => {
-      router.replace(route);
-    });
-  }, [pathname, router, emitScrollToTop]);
+      requestAnimationFrame(() => {
+        router.replace(route);
+      });
+    },
+    [pathname, router, emitScrollToTop]
+  );
 
-  const Container = Platform.OS === 'android' ? View : BlurView;
+  const Container = Platform.OS === "android" ? View : BlurView;
 
   return (
-    <Container intensity={80} tint={mode === 'dark' ? 'dark' : 'light'} style={[
-      styles.container,
-      {
-        backgroundColor: colors.surfaceContainer + 'CC', // 80% opacity for frosted glass effect
-        paddingBottom: insets.bottom,
-        borderTopColor: colors.outlineVariant,
-        borderTopWidth: StyleSheet.hairlineWidth, // Crisp glass edge
-        elevation: 0, // Elevation on Android breaks BlurView transparency
-        ...Platform.select({
-          web: {
-            boxShadow: '0 -4px 10px rgba(0, 0, 0, 0.05)',
-          },
-          default: {
-            shadowColor: colors.shadow,
-            shadowOpacity: 0.1,
-            shadowRadius: 10,
-            shadowOffset: { width: 0, height: -4 },
-          },
-        }),
-      }
-    ]}>
+    <Container
+      intensity={80}
+      tint={mode === "dark" ? "dark" : "light"}
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.surfaceContainer + "CC", // 80% opacity for frosted glass effect
+          paddingBottom: insets.bottom,
+          borderTopColor: colors.outlineVariant,
+          borderTopWidth: StyleSheet.hairlineWidth, // Crisp glass edge
+          elevation: 0, // Elevation on Android breaks BlurView transparency
+          ...Platform.select({
+            web: {
+              boxShadow: "0 -4px 10px rgba(0, 0, 0, 0.05)",
+            },
+            default: {
+              shadowColor: colors.shadow,
+              shadowOpacity: 0.1,
+              shadowRadius: 10,
+              shadowOffset: { width: 0, height: -4 },
+            },
+          }),
+        },
+      ]}
+    >
       {navigationItems.map((item) => {
         const isActive = activeRoute === item.route;
         return (
@@ -176,7 +210,7 @@ const TabItem = memo(({ item, isActive, onPress, colors }) => {
           activeProgress.value,
           [0, 1],
           [0.4, 1],
-          Extrapolation.CLAMP,
+          Extrapolation.CLAMP
         ),
       },
       {
@@ -184,7 +218,7 @@ const TabItem = memo(({ item, isActive, onPress, colors }) => {
           activeProgress.value,
           [0, 1],
           [0.8, 1],
-          Extrapolation.CLAMP,
+          Extrapolation.CLAMP
         ),
       },
     ],
@@ -198,20 +232,24 @@ const TabItem = memo(({ item, isActive, onPress, colors }) => {
       style={styles.tabItem}
       hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
     >
-      <Animated.View style={[{ alignItems: 'center' }, containerStyle]}>
+      <Animated.View style={[{ alignItems: "center" }, containerStyle]}>
         <View style={styles.iconContainer}>
           {/* Active Pill */}
-          <Animated.View style={[
-            StyleSheet.absoluteFill,
-            styles.activePill,
-            { backgroundColor: colors.secondaryContainer },
-            pillStyle,
-          ]} />
+          <Animated.View
+            style={[
+              StyleSheet.absoluteFill,
+              styles.activePill,
+              { backgroundColor: colors.secondaryContainer },
+              pillStyle,
+            ]}
+          />
 
           <MaterialIcons
-            name={isActive ? item.icon : (item.inactiveIcon || item.icon)}
+            name={isActive ? item.icon : item.inactiveIcon || item.icon}
             size={24}
-            color={isActive ? colors.onSecondaryContainer : colors.onSurfaceVariant}
+            color={
+              isActive ? colors.onSecondaryContainer : colors.onSurfaceVariant
+            }
           />
         </View>
 
@@ -221,7 +259,7 @@ const TabItem = memo(({ item, isActive, onPress, colors }) => {
             {
               color: isActive ? colors.onSurface : colors.onSurfaceVariant,
               fontFamily: isActive ? "DMSans-Bold" : "DMSans-Medium",
-            }
+            },
           ]}
           numberOfLines={1}
         >
@@ -232,7 +270,7 @@ const TabItem = memo(({ item, isActive, onPress, colors }) => {
   );
 });
 
-TabItem.displayName = 'TabItem';
+TabItem.displayName = "TabItem";
 export default memo(BottomNavigation);
 
 const styles = StyleSheet.create({
@@ -253,11 +291,11 @@ const styles = StyleSheet.create({
     width: 64, // Standard M3 Pill Width
     height: 32, // Standard M3 Pill Height
     borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 4,
-    position: 'relative',
-    overflow: 'hidden', // Contain the pill background
+    position: "relative",
+    overflow: "hidden", // Contain the pill background
   },
   activePill: {
     borderRadius: 16,
@@ -265,7 +303,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 12,
     letterSpacing: 0.4,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 4,
   },
 });

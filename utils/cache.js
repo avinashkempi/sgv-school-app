@@ -7,14 +7,14 @@
  *
  * For query caching configuration, see utils/cacheConfig.js
  */
-import storage from './storage';
+import storage from "./storage";
 
 // Cache key constants — kept for reference and for cacheManager cleanup
 export const CACHE_KEYS = {
-  EVENTS: '@cached_events',
-  SCHOOL_INFO: '@cached_school_info',
-  NEWS: '@cached_news',
-  USERS: '@cached_users',
+  EVENTS: "@cached_events",
+  SCHOOL_INFO: "@cached_school_info",
+  NEWS: "@cached_news",
+  USERS: "@cached_users",
 };
 
 // ── Simple key-value helpers ──
@@ -31,7 +31,7 @@ export const getCachedData = async (key, expiryTime = 0) => {
     const parsed = JSON.parse(cached);
     if (!parsed.timestamp) return null;
 
-    if (expiryTime > 0 && (Date.now() - parsed.timestamp) > expiryTime) {
+    if (expiryTime > 0 && Date.now() - parsed.timestamp > expiryTime) {
       await storage.removeItem(key);
       return null;
     }
@@ -74,6 +74,6 @@ export const clearAllCaches = async () => {
     const keys = Object.values(CACHE_KEYS);
     await storage.multiRemove(keys);
   } catch (error) {
-    console.warn('[CACHE] Failed to clear all caches:', error);
+    console.warn("[CACHE] Failed to clear all caches:", error);
   }
 };

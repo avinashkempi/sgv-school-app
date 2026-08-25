@@ -1,7 +1,15 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import { View, Text, Pressable, StyleSheet, Dimensions, FlatList, Alert } from 'react-native';
-import { Image } from 'expo-image';
-import { MaterialIcons } from '@expo/vector-icons';
+import React, { useState, useMemo, useCallback } from "react";
+import {
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+  Dimensions,
+  FlatList,
+  Alert,
+} from "react-native";
+import { Image } from "expo-image";
+import { MaterialIcons } from "@expo/vector-icons";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -9,12 +17,13 @@ import Animated, {
   Extrapolation,
   useAnimatedScrollHandler,
   FadeIn,
-} from 'react-native-reanimated';
-import { useTheme } from '../theme';
-import { getOptimizedCloudinaryUrl } from '../utils/cloudinaryUpload';
-import SkeletonLoader from './SkeletonLoader';
+} from "react-native-reanimated";
+import { useTheme } from "../theme";
+import { getOptimizedCloudinaryUrl } from "../utils/cloudinaryUpload";
+import SkeletonLoader from "./SkeletonLoader";
+import UserAvatar from "./ui/UserAvatar";
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_WIDTH = SCREEN_WIDTH - 32;
 const IMAGE_HEIGHT = 200;
 
@@ -39,11 +48,15 @@ const formatTimeAgo = (dateString) => {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return 'Just now';
+  if (diffMins < 1) return "Just now";
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
-  return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: diffDays > 365 ? 'numeric' : undefined });
+  return date.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: diffDays > 365 ? "numeric" : undefined,
+  });
 };
 
 // Mini image carousel for post cards
@@ -51,7 +64,10 @@ const PostImageCarousel = React.memo(({ images, width }) => {
   const { colors } = useTheme();
   const scrollX = useSharedValue(0);
 
-  const displayUrls = useMemo(() => images.map(getDisplayUrl).filter(Boolean), [images]);
+  const displayUrls = useMemo(
+    () => images.map(getDisplayUrl).filter(Boolean),
+    [images]
+  );
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -62,9 +78,7 @@ const PostImageCarousel = React.memo(({ images, width }) => {
   if (displayUrls.length === 0) return null;
 
   if (displayUrls.length === 1) {
-    return (
-      <SingleImage url={displayUrls[0]} width={width} />
-    );
+    return <SingleImage url={displayUrls[0]} width={width} />;
   }
 
   return (
@@ -81,19 +95,29 @@ const PostImageCarousel = React.memo(({ images, width }) => {
         scrollEventThrottle={16}
         snapToInterval={width}
         decelerationRate="fast"
-        getItemLayout={(_, index) => ({ length: width, offset: width * index, index })}
+        getItemLayout={(_, index) => ({
+          length: width,
+          offset: width * index,
+          index,
+        })}
       />
       {/* Pagination dots */}
       <View style={styles.dotsContainer}>
         {displayUrls.map((_, index) => (
-          <MiniDot key={index} index={index} scrollX={scrollX} itemWidth={width} color={colors.primary} />
+          <MiniDot
+            key={index}
+            index={index}
+            scrollX={scrollX}
+            itemWidth={width}
+            color={colors.primary}
+          />
         ))}
       </View>
     </View>
   );
 });
 
-PostImageCarousel.displayName = 'PostImageCarousel';
+PostImageCarousel.displayName = "PostImageCarousel";
 
 const SingleImage = React.memo(({ url, width }) => {
   const { colors } = useTheme();
@@ -103,8 +127,17 @@ const SingleImage = React.memo(({ url, width }) => {
   return (
     <View style={[styles.imageWrapper, { width, height: IMAGE_HEIGHT }]}>
       {error ? (
-        <View style={[styles.errorContainer, { backgroundColor: colors.surfaceContainerHighest }]}>
-          <MaterialIcons name="broken-image" size={36} color={colors.onSurfaceVariant} />
+        <View
+          style={[
+            styles.errorContainer,
+            { backgroundColor: colors.surfaceContainerHighest },
+          ]}
+        >
+          <MaterialIcons
+            name="broken-image"
+            size={36}
+            color={colors.onSurfaceVariant}
+          />
         </View>
       ) : (
         <Image
@@ -115,19 +148,26 @@ const SingleImage = React.memo(({ url, width }) => {
           cachePolicy="memory-disk"
           onLoadStart={() => setLoading(true)}
           onLoad={() => setLoading(false)}
-          onError={() => { setLoading(false); setError(true); }}
+          onError={() => {
+            setLoading(false);
+            setError(true);
+          }}
         />
       )}
       {loading && (
         <View style={styles.loadingOverlay}>
-          <SkeletonLoader width={width} height={IMAGE_HEIGHT} borderRadius={0} />
+          <SkeletonLoader
+            width={width}
+            height={IMAGE_HEIGHT}
+            borderRadius={0}
+          />
         </View>
       )}
     </View>
   );
 });
 
-SingleImage.displayName = 'SingleImage';
+SingleImage.displayName = "SingleImage";
 
 const MiniDot = React.memo(({ index, scrollX, itemWidth, color }) => {
   const dotStyle = useAnimatedStyle(() => {
@@ -137,15 +177,27 @@ const MiniDot = React.memo(({ index, scrollX, itemWidth, color }) => {
       (index + 1) * itemWidth,
     ];
     return {
-      width: interpolate(scrollX.value, inputRange, [6, 18, 6], Extrapolation.CLAMP),
-      opacity: interpolate(scrollX.value, inputRange, [0.3, 1, 0.3], Extrapolation.CLAMP),
+      width: interpolate(
+        scrollX.value,
+        inputRange,
+        [6, 18, 6],
+        Extrapolation.CLAMP
+      ),
+      opacity: interpolate(
+        scrollX.value,
+        inputRange,
+        [0.3, 1, 0.3],
+        Extrapolation.CLAMP
+      ),
     };
   });
 
-  return <Animated.View style={[styles.dot, { backgroundColor: color }, dotStyle]} />;
+  return (
+    <Animated.View style={[styles.dot, { backgroundColor: color }, dotStyle]} />
+  );
 });
 
-MiniDot.displayName = 'MiniDot';
+MiniDot.displayName = "MiniDot";
 
 /**
  * PostCard — displays a single post with images, title, description, and metadata.
@@ -159,30 +211,47 @@ MiniDot.displayName = 'MiniDot';
 const PostCard = ({ post, isAdmin, onEdit, onDelete, onTogglePin }) => {
   const { colors } = useTheme();
   const [expanded, setExpanded] = useState(false);
-  const descriptionNeedsExpand = post.description && post.description.length > 120;
+  const descriptionNeedsExpand =
+    post.description && post.description.length > 120;
   const cardWidth = CARD_WIDTH;
 
-  const categoryColor = post.category === 'achievement'
-    ? { bg: '#FFF3E0', text: '#E65100', icon: 'emoji-events' }
-    : { bg: colors.primaryContainer, text: colors.onPrimaryContainer, icon: 'campaign' };
+  const categoryColor =
+    post.category === "achievement"
+      ? { bg: "#FFF3E0", text: "#E65100", icon: "emoji-events" }
+      : {
+          bg: colors.primaryContainer,
+          text: colors.onPrimaryContainer,
+          icon: "campaign",
+        };
 
   const handleLongPress = useCallback(() => {
     if (!isAdmin) return;
-    Alert.alert(
-      'Post Actions',
-      post.title,
-      [
-        { text: 'Edit', onPress: () => onEdit?.(post) },
-        { text: post.isPinned ? 'Unpin' : 'Pin to Top', onPress: () => onTogglePin?.(post) },
-        { text: 'Delete', style: 'destructive', onPress: () => {
-          Alert.alert('Delete Post', 'Are you sure you want to delete this post?', [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Delete', style: 'destructive', onPress: () => onDelete?.(post) },
-          ]);
-        }},
-        { text: 'Cancel', style: 'cancel' },
-      ]
-    );
+    Alert.alert("Post Actions", post.title, [
+      { text: "Edit", onPress: () => onEdit?.(post) },
+      {
+        text: post.isPinned ? "Unpin" : "Pin to Top",
+        onPress: () => onTogglePin?.(post),
+      },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => {
+          Alert.alert(
+            "Delete Post",
+            "Are you sure you want to delete this post?",
+            [
+              { text: "Cancel", style: "cancel" },
+              {
+                text: "Delete",
+                style: "destructive",
+                onPress: () => onDelete?.(post),
+              },
+            ]
+          );
+        },
+      },
+      { text: "Cancel", style: "cancel" },
+    ]);
   }, [isAdmin, post, onEdit, onDelete, onTogglePin]);
 
   return (
@@ -195,7 +264,7 @@ const PostCard = ({ post, isAdmin, onEdit, onDelete, onTogglePin }) => {
           {
             backgroundColor: colors.surfaceContainer,
             opacity: pressed ? 0.95 : 1,
-          }
+          },
         ]}
       >
         {/* Image carousel */}
@@ -204,9 +273,16 @@ const PostCard = ({ post, isAdmin, onEdit, onDelete, onTogglePin }) => {
             <PostImageCarousel images={post.imageUrls} width={cardWidth} />
             {/* Image count badge */}
             {post.imageUrls.length > 1 && (
-              <View style={[styles.imageCountBadge, { backgroundColor: 'rgba(0,0,0,0.6)' }]}>
+              <View
+                style={[
+                  styles.imageCountBadge,
+                  { backgroundColor: "rgba(0,0,0,0.6)" },
+                ]}
+              >
                 <MaterialIcons name="photo-library" size={12} color="#fff" />
-                <Text style={styles.imageCountText}>{post.imageUrls.length}</Text>
+                <Text style={styles.imageCountText}>
+                  {post.imageUrls.length}
+                </Text>
               </View>
             )}
           </View>
@@ -216,16 +292,43 @@ const PostCard = ({ post, isAdmin, onEdit, onDelete, onTogglePin }) => {
         <View style={styles.contentSection}>
           {/* Category badge + pin + time */}
           <View style={styles.metaRow}>
-            <View style={[styles.categoryBadge, { backgroundColor: categoryColor.bg }]}>
-              <MaterialIcons name={categoryColor.icon} size={12} color={categoryColor.text} />
-              <Text style={[styles.categoryText, { color: categoryColor.text }]}>
-                {post.category === 'achievement' ? 'Achievement' : 'General'}
+            <View
+              style={[
+                styles.categoryBadge,
+                { backgroundColor: categoryColor.bg },
+              ]}
+            >
+              <MaterialIcons
+                name={categoryColor.icon}
+                size={12}
+                color={categoryColor.text}
+              />
+              <Text
+                style={[styles.categoryText, { color: categoryColor.text }]}
+              >
+                {post.category === "achievement" ? "Achievement" : "General"}
               </Text>
             </View>
             {post.isPinned && (
-              <View style={[styles.pinBadge, { backgroundColor: colors.tertiaryContainer }]}>
-                <MaterialIcons name="push-pin" size={11} color={colors.onTertiaryContainer} />
-                <Text style={[styles.pinText, { color: colors.onTertiaryContainer }]}>Pinned</Text>
+              <View
+                style={[
+                  styles.pinBadge,
+                  { backgroundColor: colors.tertiaryContainer },
+                ]}
+              >
+                <MaterialIcons
+                  name="push-pin"
+                  size={11}
+                  color={colors.onTertiaryContainer}
+                />
+                <Text
+                  style={[
+                    styles.pinText,
+                    { color: colors.onTertiaryContainer },
+                  ]}
+                >
+                  Pinned
+                </Text>
               </View>
             )}
             <Text style={[styles.timeText, { color: colors.onSurfaceVariant }]}>
@@ -240,19 +343,28 @@ const PostCard = ({ post, isAdmin, onEdit, onDelete, onTogglePin }) => {
                 style={({ pressed }) => [
                   styles.adminMenuButton,
                   {
-                    backgroundColor: pressed ? colors.surfaceContainerHighest : 'transparent',
-                  }
+                    backgroundColor: pressed
+                      ? colors.surfaceContainerHighest
+                      : "transparent",
+                  },
                 ]}
                 accessibilityRole="button"
                 accessibilityLabel="Post options"
               >
-                <MaterialIcons name="more-vert" size={20} color={colors.onSurface} />
+                <MaterialIcons
+                  name="more-vert"
+                  size={20}
+                  color={colors.onSurface}
+                />
               </Pressable>
             )}
           </View>
 
           {/* Title */}
-          <Text style={[styles.title, { color: colors.onSurface }]} numberOfLines={2}>
+          <Text
+            style={[styles.title, { color: colors.onSurface }]}
+            numberOfLines={2}
+          >
             {post.title}
           </Text>
 
@@ -268,7 +380,7 @@ const PostCard = ({ post, isAdmin, onEdit, onDelete, onTogglePin }) => {
               {descriptionNeedsExpand && (
                 <Pressable onPress={() => setExpanded(!expanded)}>
                   <Text style={[styles.readMore, { color: colors.primary }]}>
-                    {expanded ? 'Show less' : 'Read more'}
+                    {expanded ? "Show less" : "Read more"}
                   </Text>
                 </Pressable>
               )}
@@ -278,8 +390,18 @@ const PostCard = ({ post, isAdmin, onEdit, onDelete, onTogglePin }) => {
           {/* Posted by */}
           {post.postedBy?.name && (
             <View style={styles.postedByRow}>
-              <MaterialIcons name="person" size={13} color={colors.onSurfaceVariant} />
-              <Text style={[styles.postedByText, { color: colors.onSurfaceVariant }]}>
+              <UserAvatar
+                photoUrl={post.postedBy.profilePhoto}
+                name={post.postedBy.name}
+                role={post.postedBy.role}
+                size={20}
+              />
+              <Text
+                style={[
+                  styles.postedByText,
+                  { color: colors.onSurfaceVariant },
+                ]}
+              >
                 {post.postedBy.name}
               </Text>
             </View>
@@ -293,49 +415,49 @@ const PostCard = ({ post, isAdmin, onEdit, onDelete, onTogglePin }) => {
 const styles = StyleSheet.create({
   card: {
     borderRadius: 20,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginBottom: 16,
   },
   imageSection: {
-    position: 'relative',
+    position: "relative",
   },
   imageWrapper: {
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   image: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
   },
   errorContainer: {
     ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   imageCountBadge: {
-    position: 'absolute',
+    position: "absolute",
     top: 12,
     right: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
     gap: 4,
   },
   imageCountText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 11,
-    fontFamily: 'DMSans-Bold',
+    fontFamily: "DMSans-Bold",
   },
   dotsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 8,
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
@@ -350,15 +472,15 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 8,
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
     gap: 8,
   },
   categoryBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
@@ -366,13 +488,13 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     fontSize: 11,
-    fontFamily: 'DMSans-Bold',
-    textTransform: 'uppercase',
+    fontFamily: "DMSans-Bold",
+    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   pinBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 6,
@@ -380,38 +502,38 @@ const styles = StyleSheet.create({
   },
   pinText: {
     fontSize: 10,
-    fontFamily: 'DMSans-Medium',
+    fontFamily: "DMSans-Medium",
   },
   timeText: {
     fontSize: 12,
-    fontFamily: 'DMSans-Regular',
-    marginLeft: 'auto',
+    fontFamily: "DMSans-Regular",
+    marginLeft: "auto",
   },
   title: {
     fontSize: 17,
-    fontFamily: 'DMSans-Bold',
+    fontFamily: "DMSans-Bold",
     lineHeight: 22,
     marginBottom: 4,
   },
   description: {
     fontSize: 14,
-    fontFamily: 'DMSans-Regular',
+    fontFamily: "DMSans-Regular",
     lineHeight: 20,
   },
   readMore: {
     fontSize: 13,
-    fontFamily: 'DMSans-Medium',
+    fontFamily: "DMSans-Medium",
     marginTop: 4,
   },
   postedByRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: 10,
     gap: 4,
   },
   postedByText: {
     fontSize: 12,
-    fontFamily: 'DMSans-Medium',
+    fontFamily: "DMSans-Medium",
   },
   adminMenuButton: {
     padding: 4,

@@ -1,23 +1,23 @@
-import { useCallback, useMemo } from 'react';
-import apiConfig from '../config/apiConfig';
-import LABELS from '../constants/labels/defaults';
-import { useApiQuery } from './useApi';
-import { CACHE_TIERS } from '../utils/cacheConfig';
+import { useCallback, useMemo } from "react";
+import apiConfig from "../config/apiConfig";
+import LABELS from "../constants/labels/defaults";
+import { useApiQuery } from "./useApi";
+import { CACHE_TIERS } from "../utils/cacheConfig";
 
 /**
  * Deep merge two objects. Server values override local defaults.
  * Missing server keys fall back to the default value.
  */
 function deepMerge(defaults, overrides) {
-  if (!overrides || typeof overrides !== 'object') return defaults;
+  if (!overrides || typeof overrides !== "object") return defaults;
   const result = { ...defaults };
   for (const key of Object.keys(overrides)) {
     if (
       overrides[key] &&
-      typeof overrides[key] === 'object' &&
+      typeof overrides[key] === "object" &&
       !Array.isArray(overrides[key]) &&
       defaults[key] &&
-      typeof defaults[key] === 'object' &&
+      typeof defaults[key] === "object" &&
       !Array.isArray(defaults[key])
     ) {
       result[key] = deepMerge(defaults[key], overrides[key]);
@@ -38,7 +38,7 @@ function deepMerge(defaults, overrides) {
  * @returns {string} The resolved label value
  */
 function getByPath(obj, key, defaultValue) {
-  const value = key.split('.').reduce((acc, k) => acc?.[k], obj);
+  const value = key.split(".").reduce((acc, k) => acc?.[k], obj);
   return value ?? defaultValue ?? key;
 }
 
@@ -62,16 +62,12 @@ export default function useLabels() {
     isLoading,
     error,
     refetch,
-  } = useApiQuery(
-    ['appLabels'],
-    `${apiConfig.baseUrl}/labels`,
-    {
-      ...CACHE_TIERS.STATIC,
-      select: (result) => result?.data || null,
-      placeholderData: { data: null }, // Don't wait for server — use defaults
-      retry: 1,
-    }
-  );
+  } = useApiQuery(["appLabels"], `${apiConfig.baseUrl}/labels`, {
+    ...CACHE_TIERS.STATIC,
+    select: (result) => result?.data || null,
+    placeholderData: { data: null }, // Don't wait for server — use defaults
+    retry: 1,
+  });
 
   // Deep merge: server overrides local defaults, missing keys fall back to defaults
   const labels = useMemo(

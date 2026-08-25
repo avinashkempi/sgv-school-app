@@ -1,960 +1,1401 @@
 import React, { useState, useEffect, useCallback, memo } from "react";
 import {
-    View,
-    Text,
-    ScrollView,
-    Pressable,
-    ActivityIndicator,
-    TextInput,
-    Modal,
-    Platform,
-    Alert,
-    RefreshControl,
-    KeyboardAvoidingView,
+  View,
+  Text,
+  ScrollView,
+  Pressable,
+  ActivityIndicator,
+  TextInput,
+  Modal,
+  Platform,
+  Alert,
+  RefreshControl,
+  KeyboardAvoidingView,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
 import { useRouter } from "expo-router";
 import { useTheme } from "../../theme";
-import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/useApi";
+import {
+  useApiQuery,
+  useApiMutation,
+  createApiMutationFn,
+} from "../../hooks/useApi";
 import { CACHE_TIERS } from "../../utils/cacheConfig";
 import apiConfig from "../../config/apiConfig";
 import { useQueryClient } from "@tanstack/react-query";
 import Header from "../../components/Header";
 import { useToast } from "../../components/ToastProvider";
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { formatClassName } from '../../utils/formatClassName';
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { formatClassName } from "../../utils/formatClassName";
 
 // ---------- Memoised row — only re-renders when its own props change ----------
-const SubjectMarkRow = memo(function SubjectMarkRow({ subject, isExcluded, marks, defaultMarks, onToggle, onChangeMark, colors }) {
-    return (
-        <View style={{
-            flexDirection: "row",
-            alignItems: "flex-start",   // let text block set height; checkbox/input self-center
-            paddingVertical: 9,
-            borderBottomWidth: 1,
-            borderBottomColor: colors.textSecondary + "15",
-            gap: 10,
-        }}>
-            {/* Checkbox — alignSelf center so it floats in the middle of the row */}
-            <Pressable onPress={onToggle} hitSlop={10} style={{ alignSelf: "center" }}>
-                <View style={{
-                    width: 22, height: 22, borderRadius: 6,
-                    borderWidth: 2,
-                    borderColor: isExcluded ? colors.textSecondary + "50" : colors.primary,
-                    backgroundColor: isExcluded ? "transparent" : colors.primary + "18",
-                    justifyContent: "center", alignItems: "center",
-                }}>
-                    {!isExcluded && (
-                        <MaterialIcons name="check" size={13} color={colors.primary} />
-                    )}
-                </View>
-            </Pressable>
-
-            {/* Subject name + class — flex:1, anchors the row height */}
-            <View style={{ flex: 1, minWidth: 0 }}>
-                <Text
-                    style={{ fontSize: 13, fontFamily: "DMSans-SemiBold", color: isExcluded ? colors.textSecondary : colors.textPrimary, lineHeight: 18 }}
-                    numberOfLines={1}
-                >
-                    {subject.name}
-                </Text>
-                <Text style={{ fontSize: 11, color: colors.textSecondary, fontFamily: "DMSans-Regular", lineHeight: 15 }} numberOfLines={1}>
-                    {subject.class?.name ? formatClassName(subject.class) : ''}
-                </Text>
-            </View>
-
-            {/* Marks input — alignSelf center so it floats in the middle of the row */}
-            <TextInput
-                value={marks ?? defaultMarks}
-                onChangeText={onChangeMark}
-                keyboardType="numeric"
-                editable={!isExcluded}
-                maxLength={4}
-                style={{
-                    alignSelf: "center",
-                    width: 60,
-                    borderWidth: 1.5,
-                    borderColor: isExcluded
-                        ? colors.textSecondary + "20"
-                        : (marks && marks !== defaultMarks ? colors.primary : colors.textSecondary + "40"),
-                    borderRadius: 8,
-                    paddingVertical: 5,
-                    textAlign: "center",
-                    color: isExcluded ? colors.textSecondary + "60" : colors.textPrimary,
-                    fontSize: 14,
-                    fontFamily: "DMSans-SemiBold",
-                    backgroundColor: isExcluded ? colors.textSecondary + "08" : colors.cardBackground,
-                }}
-            />
+const SubjectMarkRow = memo(function SubjectMarkRow({
+  subject,
+  isExcluded,
+  marks,
+  defaultMarks,
+  onToggle,
+  onChangeMark,
+  colors,
+}) {
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "flex-start", // let text block set height; checkbox/input self-center
+        paddingVertical: 9,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.textSecondary + "15",
+        gap: 10,
+      }}
+    >
+      {/* Checkbox — alignSelf center so it floats in the middle of the row */}
+      <Pressable
+        onPress={onToggle}
+        hitSlop={10}
+        style={{ alignSelf: "center" }}
+      >
+        <View
+          style={{
+            width: 22,
+            height: 22,
+            borderRadius: 6,
+            borderWidth: 2,
+            borderColor: isExcluded
+              ? colors.textSecondary + "50"
+              : colors.primary,
+            backgroundColor: isExcluded ? "transparent" : colors.primary + "18",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          {!isExcluded && (
+            <MaterialIcons name="check" size={13} color={colors.primary} />
+          )}
         </View>
-    );
+      </Pressable>
+
+      {/* Subject name + class — flex:1, anchors the row height */}
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text
+          style={{
+            fontSize: 13,
+            fontFamily: "DMSans-SemiBold",
+            color: isExcluded ? colors.textSecondary : colors.textPrimary,
+            lineHeight: 18,
+          }}
+          numberOfLines={1}
+        >
+          {subject.name}
+        </Text>
+        <Text
+          style={{
+            fontSize: 11,
+            color: colors.textSecondary,
+            fontFamily: "DMSans-Regular",
+            lineHeight: 15,
+          }}
+          numberOfLines={1}
+        >
+          {subject.class?.name ? formatClassName(subject.class) : ""}
+        </Text>
+      </View>
+
+      {/* Marks input — alignSelf center so it floats in the middle of the row */}
+      <TextInput
+        value={marks ?? defaultMarks}
+        onChangeText={onChangeMark}
+        keyboardType="numeric"
+        editable={!isExcluded}
+        maxLength={4}
+        style={{
+          alignSelf: "center",
+          width: 60,
+          borderWidth: 1.5,
+          borderColor: isExcluded
+            ? colors.textSecondary + "20"
+            : marks && marks !== defaultMarks
+            ? colors.primary
+            : colors.textSecondary + "40",
+          borderRadius: 8,
+          paddingVertical: 5,
+          textAlign: "center",
+          color: isExcluded ? colors.textSecondary + "60" : colors.textPrimary,
+          fontSize: 14,
+          fontFamily: "DMSans-SemiBold",
+          backgroundColor: isExcluded
+            ? colors.textSecondary + "08"
+            : colors.cardBackground,
+        }}
+      />
+    </View>
+  );
 });
 // ---------------------------------------------------------------------------
 
 export default function AdminExamScheduleScreen() {
-    const _router = useRouter();
-    const { _styles, colors } = useTheme();
-    const { showToast } = useToast();
+  const _router = useRouter();
+  const { _styles, colors } = useTheme();
+  const { showToast } = useToast();
 
-    const queryClient = useQueryClient();
-    const [selectedClassId, setSelectedClassId] = useState(null);
-    const [deletingExamId, setDeletingExamId] = useState(null);
+  const queryClient = useQueryClient();
+  const [selectedClassId, setSelectedClassId] = useState(null);
+  const [deletingExamId, setDeletingExamId] = useState(null);
 
-    // eslint-disable-next-line no-unused-vars
-    const [activeTab, setActiveTab] = useState('schedules'); // Reverting tab code but keep string as fallback or remove if not used elsewhere, let's remove it entirely
-    // const [statusSearch, setStatusSearch] = useState("");
-    // const [statusFilter, setStatusFilter] = useState("All");
+  // eslint-disable-next-line no-unused-vars
+  const [activeTab, setActiveTab] = useState("schedules"); // Reverting tab code but keep string as fallback or remove if not used elsewhere, let's remove it entirely
+  // const [statusSearch, setStatusSearch] = useState("");
+  // const [statusFilter, setStatusFilter] = useState("All");
 
+  // Edit Date State
+  const [editingExam, setEditingExam] = useState(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [newDate, setNewDate] = useState(new Date());
+  const [newRoom, setNewRoom] = useState("");
 
-    // Edit Date State
-    const [editingExam, setEditingExam] = useState(null);
-    const [showDatePicker, setShowDatePicker] = useState(false);
-    const [newDate, setNewDate] = useState(new Date());
-    const [newRoom, setNewRoom] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
 
-    const [refreshing, setRefreshing] = useState(false);
+  // Fetch Current User
+  const { data: userData } = useApiQuery(
+    ["currentUser"],
+    `${apiConfig.baseUrl}/auth/me`
+  );
+  const currentUser = userData?.user;
 
-    // Fetch Current User
-    const { data: userData } = useApiQuery(
-        ['currentUser'],
-        `${apiConfig.baseUrl}/auth/me`
-    );
-    const currentUser = userData?.user;
+  // Fetch Classes
+  const { data: classesData, isLoading: classesLoading } = useApiQuery(
+    ["adminClassesInit"],
+    `${apiConfig.baseUrl}/classes/admin/init`,
+    CACHE_TIERS.STABLE
+  );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const classes = classesData?.classes || [];
 
-    // Fetch Classes
-    const { data: classesData, isLoading: classesLoading } = useApiQuery(
-        ['adminClassesInit'],
-        `${apiConfig.baseUrl}/classes/admin/init`,
-        CACHE_TIERS.STABLE
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const classes = classesData?.classes || [];
+  // Set initial selected class
+  useEffect(() => {
+    if (classes.length > 0 && !selectedClassId) {
+      setSelectedClassId(classes[0]._id);
+    }
+  }, [classes, selectedClassId]);
 
-    // Set initial selected class
-    useEffect(() => {
-        if (classes.length > 0 && !selectedClassId) {
-            setSelectedClassId(classes[0]._id);
-        }
-    }, [classes, selectedClassId]);
+  // Fetch Exams for Selected Class
+  const { data: exams = [], isLoading: examsLoading } = useApiQuery(
+    ["adminExamSchedule", selectedClassId],
+    `${apiConfig.baseUrl}/exams/schedule/class/${selectedClassId}`,
+    {
+      enabled: !!selectedClassId && activeTab === "schedules",
+      ...CACHE_TIERS.STABLE,
+    }
+  );
 
-    // Fetch Exams for Selected Class
-    const { data: exams = [], isLoading: examsLoading } = useApiQuery(
-        ['adminExamSchedule', selectedClassId],
-        `${apiConfig.baseUrl}/exams/schedule/class/${selectedClassId}`,
-        { 
-            enabled: !!selectedClassId && activeTab === 'schedules',
-            ...CACHE_TIERS.STABLE
-        }
-    );
+  // Removed adminMarksStatus query
 
-    // Removed adminMarksStatus query
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await queryClient.invalidateQueries({ queryKey: ["adminClassesInit"] });
+    if (selectedClassId) {
+      await queryClient.invalidateQueries({
+        queryKey: ["adminExamSchedule", selectedClassId],
+      });
+    }
+    setRefreshing(false);
+  };
 
+  const loading = classesLoading || (!!selectedClassId && examsLoading);
 
-    const onRefresh = async () => {
-        setRefreshing(true);
-        await queryClient.invalidateQueries({ queryKey: ['adminClassesInit'] });
-        if (selectedClassId) {
-            await queryClient.invalidateQueries({ queryKey: ['adminExamSchedule', selectedClassId] });
-        }
-        setRefreshing(false);
-    };
+  // Update Exam Mutation
+  const updateExamMutation = useApiMutation({
+    mutationFn: (data) =>
+      createApiMutationFn(
+        `${apiConfig.baseUrl}/exams/${data.id}`,
+        "PUT"
+      )(data.body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["adminExamSchedule", selectedClassId],
+      });
+      showToast("Exam date updated", "success");
+      setEditingExam(null);
+    },
+    onError: (error) =>
+      showToast(error.message || "Failed to update date", "error"),
+  });
 
-    const loading = classesLoading || (!!selectedClassId && examsLoading);
+  // Delete Exam Mutation
+  const deleteExamMutation = useApiMutation({
+    mutationFn: (examId) =>
+      createApiMutationFn(`${apiConfig.baseUrl}/exams/${examId}`, "DELETE")(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["adminExamSchedule", selectedClassId],
+      });
+      showToast("Exam deleted successfully", "success");
+      setDeletingExamId(null);
+    },
+    onError: (error) => {
+      showToast(error.message || "Failed to delete exam", "error");
+      setDeletingExamId(null);
+    },
+  });
 
+  const handleDateChange = (event, selectedDate) => {
+    setShowDatePicker(Platform.OS === "ios");
+    if (selectedDate) {
+      setNewDate(selectedDate);
+    }
+  };
 
-    // Update Exam Mutation
-    const updateExamMutation = useApiMutation({
-        mutationFn: (data) => createApiMutationFn(`${apiConfig.baseUrl}/exams/${data.id}`, 'PUT')(data.body),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['adminExamSchedule', selectedClassId] });
-            showToast("Exam date updated", "success");
-            setEditingExam(null);
+  const saveNewDate = () => {
+    if (!editingExam) return;
+
+    updateExamMutation.mutate({
+      id: editingExam._id,
+      body: {
+        date: newDate,
+        room: newRoom,
+      },
+    });
+  };
+
+  const handleDeleteExam = (exam) => {
+    Alert.alert(
+      "Delete Exam",
+      `Are you sure you want to delete ${exam.subject?.name} - ${exam.name}? This will also delete all associated marks.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          onPress: () => {
+            setDeletingExamId(exam._id);
+            deleteExamMutation.mutate(exam._id);
+          },
+          style: "destructive",
         },
-        onError: (error) => showToast(error.message || "Failed to update date", "error")
-    });
+      ]
+    );
+  };
 
-    // Delete Exam Mutation
-    const deleteExamMutation = useApiMutation({
-        mutationFn: (examId) => createApiMutationFn(`${apiConfig.baseUrl}/exams/${examId}`, 'DELETE')(),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['adminExamSchedule', selectedClassId] });
-            showToast("Exam deleted successfully", "success");
-            setDeletingExamId(null);
-        },
-        onError: (error) => {
-            showToast(error.message || "Failed to delete exam", "error");
-            setDeletingExamId(null);
-        }
-    });
+  const [showInitModal, setShowInitModal] = useState(false);
+  const [initType, setInitType] = useState("FA1");
+  const [initTotalMarks, setInitTotalMarks] = useState("100");
+  const [initDate, setInitDate] = useState(new Date());
+  const [initDuration, setInitDuration] = useState("90");
+  const [initInstructions, setInitInstructions] = useState("");
+  const [showInitDatePicker, setShowInitDatePicker] = useState(false);
+  const [initScope, setInitScope] = useState("all"); // "all" or "selected"
+  const [initSelectedClassIds, setInitSelectedClassIds] = useState([]);
+  // Per-subject marks
+  const [showPerSubjectMarks, setShowPerSubjectMarks] = useState(false);
+  const [subjectMarksMap, setSubjectMarksMap] = useState({}); // { subjectId: marksString }
+  const [excludedSubjectMap, setExcludedSubjectMap] = useState({}); // { subjectId: true } if excluded
 
-    const handleDateChange = (event, selectedDate) => {
-        setShowDatePicker(Platform.OS === 'ios');
-        if (selectedDate) {
-            setNewDate(selectedDate);
-        }
-    };
+  // Stable callbacks — prevent re-creating on every parent render
+  const handleToggleSubject = useCallback((subjectId) => {
+    setExcludedSubjectMap((prev) => ({
+      ...prev,
+      [subjectId]: !prev[subjectId],
+    }));
+  }, []);
 
-    const saveNewDate = () => {
-        if (!editingExam) return;
+  const handleChangeSubjectMark = useCallback((subjectId, value) => {
+    setSubjectMarksMap((prev) => ({ ...prev, [subjectId]: value }));
+  }, []);
 
-        updateExamMutation.mutate({
-            id: editingExam._id,
-            body: {
-                date: newDate,
-                room: newRoom
-            }
-        });
-    };
+  const initMutation = useApiMutation({
+    mutationFn: createApiMutationFn(
+      `${apiConfig.baseUrl}/exams/school-wide/init`,
+      "POST"
+    ),
+    onSuccess: (data) => {
+      showToast(
+        `${data.message}. Created: ${data.created}, Skipped: ${data.skipped}`,
+        "success"
+      );
+      setShowInitModal(false);
+      setShowPerSubjectMarks(false);
+      setSubjectMarksMap({});
+      setExcludedSubjectMap({});
+      queryClient.invalidateQueries({ queryKey: ["adminExamSchedule"] });
+    },
+    onError: (error) =>
+      showToast(error.message || "Failed to initialize exams", "error"),
+  });
 
-    const handleDeleteExam = (exam) => {
-        Alert.alert(
-            "Delete Exam",
-            `Are you sure you want to delete ${exam.subject?.name} - ${exam.name}? This will also delete all associated marks.`,
-            [
-                { text: "Cancel", style: "cancel" },
-                {
-                    text: "Delete",
-                    onPress: () => {
-                        setDeletingExamId(exam._id);
-                        deleteExamMutation.mutate(exam._id);
-                    },
-                    style: "destructive"
-                }
-            ]
-        );
-    };
+  const handleInitDateChange = (event, selectedDate) => {
+    setShowInitDatePicker(Platform.OS === "ios");
+    if (selectedDate) {
+      setInitDate(selectedDate);
+    }
+  };
 
-    const [showInitModal, setShowInitModal] = useState(false);
-    const [initType, setInitType] = useState("FA1");
-    const [initTotalMarks, setInitTotalMarks] = useState("100");
-    const [initDate, setInitDate] = useState(new Date());
-    const [initDuration, setInitDuration] = useState("90");
-    const [initInstructions, setInitInstructions] = useState("");
-    const [showInitDatePicker, setShowInitDatePicker] = useState(false);
-    const [initScope, setInitScope] = useState("all"); // "all" or "selected"
-    const [initSelectedClassIds, setInitSelectedClassIds] = useState([]);
-    // Per-subject marks
-    const [showPerSubjectMarks, setShowPerSubjectMarks] = useState(false);
-    const [subjectMarksMap, setSubjectMarksMap] = useState({}); // { subjectId: marksString }
-    const [excludedSubjectMap, setExcludedSubjectMap] = useState({}); // { subjectId: true } if excluded
-
-    // Stable callbacks — prevent re-creating on every parent render
-    const handleToggleSubject = useCallback((subjectId) => {
-        setExcludedSubjectMap(prev => ({
-            ...prev,
-            [subjectId]: !prev[subjectId]
-        }));
-    }, []);
-
-    const handleChangeSubjectMark = useCallback((subjectId, value) => {
-        setSubjectMarksMap(prev => ({ ...prev, [subjectId]: value }));
-    }, []);
-
-    const initMutation = useApiMutation({
-        mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/exams/school-wide/init`, 'POST'),
-        onSuccess: (data) => {
-            showToast(`${data.message}. Created: ${data.created}, Skipped: ${data.skipped}`, "success");
-            setShowInitModal(false);
-            setShowPerSubjectMarks(false);
-            setSubjectMarksMap({});
-            setExcludedSubjectMap({});
-            queryClient.invalidateQueries({ queryKey: ['adminExamSchedule'] });
-        },
-        onError: (error) => showToast(error.message || "Failed to initialize exams", "error")
-    });
-
-    const handleInitDateChange = (event, selectedDate) => {
-        setShowInitDatePicker(Platform.OS === 'ios');
-        if (selectedDate) {
-            setInitDate(selectedDate);
-        }
-    };
-
-    const handleInitialize = () => {
-        if (!initTotalMarks || isNaN(initTotalMarks) || parseFloat(initTotalMarks) <= 0) {
-            showToast("Please enter valid total marks", "error");
-            return;
-        }
-
-        if (initScope === "selected" && initSelectedClassIds.length === 0) {
-            showToast("Please select at least one class", "error");
-            return;
-        }
-
-        // Build subjectMarks — only include entries with values, coerce to Number
-        const subjectMarks = showPerSubjectMarks
-            ? Object.fromEntries(
-                Object.entries(subjectMarksMap)
-                    .filter(([_, v]) => v && !isNaN(v) && parseFloat(v) > 0)
-                    .map(([k, v]) => [k, parseFloat(v)])
-            )
-            : null;
-
-        initMutation.mutate({
-            type: initType,
-            totalMarks: parseFloat(initTotalMarks),
-            date: initDate.toISOString(),
-            instructions: initInstructions,
-            duration: initDuration ? parseInt(initDuration) : null,
-            classIds: initScope === "selected" ? initSelectedClassIds : null,
-            subjectMarks,
-            excludedSubjectIds: showPerSubjectMarks
-                ? Object.keys(excludedSubjectMap).filter(k => excludedSubjectMap[k])
-                : null
-        });
-    };
-
-    // Use actual Subjects from classes data which have class mappings
-    const allSubjects = (classesData?.subjects || []).map(subject => {
-        // If class is just an ID, map it to the actual class object for display
-        if (typeof subject.class === 'string' || !subject.class?.name) {
-            const clsObj = classes.find(c => c._id === (subject.class?._id || subject.class?.toString()));
-            return { ...subject, class: clsObj || subject.class };
-        }
-        return subject;
-    });
-
-    // When global marks change, update all per-subject marks that haven't been individually customised
-    const applyGlobalMarksToSubjects = useCallback((newGlobalMarks) => {
-        setSubjectMarksMap(prev => {
-            const updated = {};
-            allSubjects.forEach(s => {
-                // overwrite if empty OR still matches old global (hasn't been manually changed)
-                updated[s._id] = (!prev[s._id] || prev[s._id] === initTotalMarks)
-                    ? newGlobalMarks
-                    : prev[s._id];
-            });
-            return updated;
-        });
-    }, [allSubjects, initTotalMarks]);
-
-    // When subjects load or per-subject toggle turns on, pre-fill marks from global default
-    useEffect(() => {
-        if (showPerSubjectMarks && allSubjects.length > 0) {
-            setSubjectMarksMap(prev => {
-                const updated = { ...prev };
-                allSubjects.forEach(s => {
-                    if (!updated[s._id]) updated[s._id] = initTotalMarks;
-                });
-                return updated;
-            });
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [showPerSubjectMarks, allSubjects.length]);
-
-    if (loading && classes.length === 0) {
-        return (
-            <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: "center", alignItems: "center" }}>
-                <ActivityIndicator size="large" color={colors.primary} />
-            </View>
-        );
+  const handleInitialize = () => {
+    if (
+      !initTotalMarks ||
+      isNaN(initTotalMarks) ||
+      parseFloat(initTotalMarks) <= 0
+    ) {
+      showToast("Please enter valid total marks", "error");
+      return;
     }
 
-    return (
-        <View style={{ flex: 1, backgroundColor: colors.background }}>
-            <View style={{ padding: 16, paddingTop: 24, paddingBottom: 8 }}>
-                <Header title="Exam Management" subtitle="Manage Schedules" showBack />
+    if (initScope === "selected" && initSelectedClassIds.length === 0) {
+      showToast("Please select at least one class", "error");
+      return;
+    }
 
-                <Pressable
-                    onPress={() => setShowInitModal(true)}
+    // Build subjectMarks — only include entries with values, coerce to Number
+    const subjectMarks = showPerSubjectMarks
+      ? Object.fromEntries(
+          Object.entries(subjectMarksMap)
+            .filter(([_, v]) => v && !isNaN(v) && parseFloat(v) > 0)
+            .map(([k, v]) => [k, parseFloat(v)])
+        )
+      : null;
+
+    initMutation.mutate({
+      type: initType,
+      totalMarks: parseFloat(initTotalMarks),
+      date: initDate.toISOString(),
+      instructions: initInstructions,
+      duration: initDuration ? parseInt(initDuration) : null,
+      classIds: initScope === "selected" ? initSelectedClassIds : null,
+      subjectMarks,
+      excludedSubjectIds: showPerSubjectMarks
+        ? Object.keys(excludedSubjectMap).filter((k) => excludedSubjectMap[k])
+        : null,
+    });
+  };
+
+  // Use actual Subjects from classes data which have class mappings
+  const allSubjects = (classesData?.subjects || []).map((subject) => {
+    // If class is just an ID, map it to the actual class object for display
+    if (typeof subject.class === "string" || !subject.class?.name) {
+      const clsObj = classes.find(
+        (c) => c._id === (subject.class?._id || subject.class?.toString())
+      );
+      return { ...subject, class: clsObj || subject.class };
+    }
+    return subject;
+  });
+
+  // When global marks change, update all per-subject marks that haven't been individually customised
+  const applyGlobalMarksToSubjects = useCallback(
+    (newGlobalMarks) => {
+      setSubjectMarksMap((prev) => {
+        const updated = {};
+        allSubjects.forEach((s) => {
+          // overwrite if empty OR still matches old global (hasn't been manually changed)
+          updated[s._id] =
+            !prev[s._id] || prev[s._id] === initTotalMarks
+              ? newGlobalMarks
+              : prev[s._id];
+        });
+        return updated;
+      });
+    },
+    [allSubjects, initTotalMarks]
+  );
+
+  // When subjects load or per-subject toggle turns on, pre-fill marks from global default
+  useEffect(() => {
+    if (showPerSubjectMarks && allSubjects.length > 0) {
+      setSubjectMarksMap((prev) => {
+        const updated = { ...prev };
+        allSubjects.forEach((s) => {
+          if (!updated[s._id]) updated[s._id] = initTotalMarks;
+        });
+        return updated;
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showPerSubjectMarks, allSubjects.length]);
+
+  if (loading && classes.length === 0) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: colors.background,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <View style={{ padding: 16, paddingTop: 24, paddingBottom: 8 }}>
+        <Header title="Exam Management" subtitle="Manage Schedules" showBack />
+
+        <Pressable
+          onPress={() => setShowInitModal(true)}
+          style={{
+            backgroundColor: colors.primary + "15",
+            padding: 12,
+            borderRadius: 12,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            marginTop: 12,
+            gap: 8,
+            borderWidth: 1,
+            borderColor: colors.primary + "30",
+          }}
+        >
+          <MaterialIcons
+            name="playlist-add-check"
+            size={24}
+            color={colors.primary}
+          />
+          <Text
+            style={{
+              color: colors.primary,
+              fontFamily: "DMSans-Bold",
+              fontSize: 16,
+            }}
+          >
+            Initialize School Exams
+          </Text>
+        </Pressable>
+      </View>
+
+      <View style={{ paddingHorizontal: 16, marginBottom: 16 }}>
+        <Text
+          style={{
+            color: colors.textSecondary,
+            marginBottom: 8,
+            fontSize: 13,
+            fontFamily: "DMSans-Medium",
+          }}
+        >
+          Filter by Class
+        </Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            {classes.map((cls) => (
+              <Pressable
+                key={cls._id}
+                onPress={() => setSelectedClassId(cls._id)}
+                style={{
+                  paddingHorizontal: 16,
+                  paddingVertical: 8,
+                  backgroundColor:
+                    selectedClassId === cls._id
+                      ? colors.primary
+                      : colors.cardBackground,
+                  borderRadius: 20,
+                  borderWidth: 1,
+                  borderColor:
+                    selectedClassId === cls._id
+                      ? colors.primary
+                      : colors.textSecondary + "20",
+                }}
+              >
+                <Text
+                  style={{
+                    color:
+                      selectedClassId === cls._id ? "#fff" : colors.textPrimary,
+                    fontFamily: "DMSans-Medium",
+                  }}
+                >
+                  {formatClassName(cls.name, cls.section)}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </ScrollView>
+      </View>
+
+      <ScrollView
+        contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+          />
+        }
+      >
+        {loading ? (
+          <ActivityIndicator color={colors.primary} style={{ marginTop: 40 }} />
+        ) : exams.length === 0 ? (
+          <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
+            <MaterialIcons
+              name="event-busy"
+              size={48}
+              color={colors.textSecondary}
+            />
+            <Text style={{ color: colors.textSecondary, marginTop: 16 }}>
+              No exams found for this class
+            </Text>
+          </View>
+        ) : (
+          exams.map((exam) => (
+            <View
+              key={exam._id}
+              style={{
+                backgroundColor: colors.cardBackground,
+                borderRadius: 16,
+                padding: 16,
+                marginBottom: 12,
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                borderWidth: 1,
+                borderColor: colors.textSecondary + "08",
+              }}
+            >
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontFamily: "DMSans-Bold",
+                    color: colors.textPrimary,
+                  }}
+                >
+                  {exam.subject?.name}
+                </Text>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 6,
+                    marginTop: 2,
+                  }}
+                >
+                  <View
                     style={{
-                        backgroundColor: colors.primary + "15",
-                        padding: 12,
-                        borderRadius: 12,
+                      paddingHorizontal: 6,
+                      paddingVertical: 2,
+                      backgroundColor: colors.primary + "15",
+                      borderRadius: 4,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: colors.primary,
+                        fontSize: 10,
+                        fontFamily: "DMSans-Bold",
+                      }}
+                    >
+                      {exam.standardizedType || "EXAM"}
+                    </Text>
+                  </View>
+                </View>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginTop: 8,
+                    gap: 12,
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 4,
+                    }}
+                  >
+                    <MaterialIcons
+                      name="calendar-today"
+                      size={14}
+                      color={colors.textSecondary}
+                    />
+                    <Text
+                      style={{
+                        color: colors.textPrimary,
+                        fontSize: 13,
+                        fontFamily: "DMSans-Medium",
+                      }}
+                    >
+                      {new Date(exam.date).toLocaleDateString()}
+                    </Text>
+                  </View>
+                  {exam.room && (
+                    <View
+                      style={{
                         flexDirection: "row",
                         alignItems: "center",
-                        justifyContent: "center",
-                        marginTop: 12,
-                        gap: 8,
-                        borderWidth: 1,
-                        borderColor: colors.primary + "30"
-                    }}
+                        gap: 4,
+                      }}
+                    >
+                      <MaterialIcons
+                        name="meeting-room"
+                        size={14}
+                        color={colors.textSecondary}
+                      />
+                      <Text
+                        style={{
+                          color: colors.textSecondary,
+                          fontSize: 13,
+                          fontFamily: "DMSans-Medium",
+                        }}
+                      >
+                        {exam.room}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+
+              <View style={{ flexDirection: "row", gap: 8 }}>
+                <Pressable
+                  onPress={() => {
+                    setEditingExam(exam);
+                    setNewDate(new Date(exam.date));
+                    setNewRoom(exam.room || "");
+                    setShowDatePicker(true);
+                  }}
+                  style={{
+                    padding: 10,
+                    backgroundColor: colors.primary + "10",
+                    borderRadius: 10,
+                  }}
                 >
-                    <MaterialIcons name="playlist-add-check" size={24} color={colors.primary} />
-                    <Text style={{ color: colors.primary, fontFamily: "DMSans-Bold", fontSize: 16 }}>
-                        Initialize School Exams
-                    </Text>
+                  <MaterialIcons name="edit" size={20} color={colors.primary} />
                 </Pressable>
-            </View>
 
-            <View style={{ paddingHorizontal: 16, marginBottom: 16 }}>
-                <Text style={{ color: colors.textSecondary, marginBottom: 8, fontSize: 13, fontFamily: "DMSans-Medium" }}>Filter by Class</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    <View style={{ flexDirection: "row", gap: 8 }}>
-                        {classes.map(cls => (
-                            <Pressable
-                                key={cls._id}
-                                onPress={() => setSelectedClassId(cls._id)}
-                                style={{
-                                    paddingHorizontal: 16,
-                                    paddingVertical: 8,
-                                    backgroundColor: selectedClassId === cls._id ? colors.primary : colors.cardBackground,
-                                    borderRadius: 20,
-                                    borderWidth: 1,
-                                    borderColor: selectedClassId === cls._id ? colors.primary : colors.textSecondary + "20"
-                                }}
-                            >
-                                <Text style={{ color: selectedClassId === cls._id ? "#fff" : colors.textPrimary, fontFamily: "DMSans-Medium" }}>
-                                    {formatClassName(cls.name, cls.section)}
-                                </Text>
-                            </Pressable>
-                        ))}
-                    </View>
-                </ScrollView>
-            </View>
-
-            <ScrollView 
-                contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
-                refreshControl={
-                    <RefreshControl 
-                        refreshing={refreshing} 
-                        onRefresh={onRefresh} 
-                        colors={[colors.primary]} 
-                        tintColor={colors.primary}
-                    />
-                }
-            >
-                {loading ? (
-                    <ActivityIndicator color={colors.primary} style={{ marginTop: 40 }} />
-                ) : (
-                    exams.length === 0 ? (
-                        <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
-                            <MaterialIcons name="event-busy" size={48} color={colors.textSecondary} />
-                            <Text style={{ color: colors.textSecondary, marginTop: 16 }}>No exams found for this class</Text>
-                        </View>
+                {(currentUser?.role === "admin" ||
+                  currentUser?.role === "super admin") && (
+                  <Pressable
+                    onPress={() => handleDeleteExam(exam)}
+                    disabled={deletingExamId === exam._id}
+                    style={{
+                      padding: 10,
+                      backgroundColor: (colors.error || "#ff4444") + "10",
+                      borderRadius: 10,
+                    }}
+                  >
+                    {deletingExamId === exam._id ? (
+                      <ActivityIndicator
+                        size={20}
+                        color={colors.error || "#ff4444"}
+                      />
                     ) : (
-                        exams.map((exam) => (
-                            <View
-                                key={exam._id}
-                                style={{
-                                    backgroundColor: colors.cardBackground,
-                                    borderRadius: 16,
-                                    padding: 16,
-                                    marginBottom: 12,
-                                    flexDirection: "row",
-                                    justifyContent: "space-between",
-                                    alignItems: "center",
-                                    borderWidth: 1,
-                                    borderColor: colors.textSecondary + "08"
-                                }}
-                            >
-                                <View style={{ flex: 1 }}>
-                                    <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
-                                        {exam.subject?.name}
-                                    </Text>
-                                    <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 }}>
-                                        <View style={{ paddingHorizontal: 6, paddingVertical: 2, backgroundColor: colors.primary + "15", borderRadius: 4 }}>
-                                            <Text style={{ color: colors.primary, fontSize: 10, fontFamily: "DMSans-Bold" }}>{exam.standardizedType || 'EXAM'}</Text>
-                                        </View>
-                                    </View>
-                                    <View style={{ flexDirection: "row", alignItems: "center", marginTop: 8, gap: 12 }}>
-                                        <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                                            <MaterialIcons name="calendar-today" size={14} color={colors.textSecondary} />
-                                            <Text style={{ color: colors.textPrimary, fontSize: 13, fontFamily: "DMSans-Medium" }}>
-                                                {new Date(exam.date).toLocaleDateString()}
-                                            </Text>
-                                        </View>
-                                        {exam.room && (
-                                            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                                                <MaterialIcons name="meeting-room" size={14} color={colors.textSecondary} />
-                                                <Text style={{ color: colors.textSecondary, fontSize: 13, fontFamily: "DMSans-Medium" }}>
-                                                    {exam.room}
-                                                </Text>
-                                            </View>
-                                        )}
-                                    </View>
-                                </View>
-
-                                <View style={{ flexDirection: "row", gap: 8 }}>
-                                    <Pressable
-                                        onPress={() => {
-                                            setEditingExam(exam);
-                                            setNewDate(new Date(exam.date));
-                                            setNewRoom(exam.room || "");
-                                            setShowDatePicker(true);
-                                        }}
-                                        style={{
-                                            padding: 10,
-                                            backgroundColor: colors.primary + "10",
-                                            borderRadius: 10,
-                                        }}
-                                    >
-                                        <MaterialIcons name="edit" size={20} color={colors.primary} />
-                                    </Pressable>
-
-                                    {(currentUser?.role === 'admin' || currentUser?.role === 'super admin') && (
-                                        <Pressable
-                                            onPress={() => handleDeleteExam(exam)}
-                                            disabled={deletingExamId === exam._id}
-                                            style={{
-                                                padding: 10,
-                                                backgroundColor: (colors.error || "#ff4444") + "10",
-                                                borderRadius: 10,
-                                            }}
-                                        >
-                                            {deletingExamId === exam._id ? (
-                                                <ActivityIndicator size={20} color={colors.error || "#ff4444"} />
-                                            ) : (
-                                                <MaterialIcons name="delete" size={20} color={colors.error || "#ff4444"} />
-                                            )}
-                                        </Pressable>
-                                    )}
-                                </View>
-                            </View>
-                        ))
-                    )
+                      <MaterialIcons
+                        name="delete"
+                        size={20}
+                        color={colors.error || "#ff4444"}
+                      />
+                    )}
+                  </Pressable>
                 )}
-            </ScrollView>
+              </View>
+            </View>
+          ))
+        )}
+      </ScrollView>
 
-            {/* Date Picker Modal */}
-            {editingExam && (
-                <Modal
-                    transparent={true}
-                    visible={!!editingExam}
-                    animationType="fade"
-                    onRequestClose={() => setEditingExam(null)}
-                >
-                    <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" }}>
-                        <View style={{ backgroundColor: colors.cardBackground, width: "85%", borderRadius: 16, padding: 20 }}>
-                            <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginBottom: 16 }}>
-                                Reschedule Exam
-                            </Text>
-                            <Text style={{ color: colors.textSecondary, marginBottom: 20 }}>
-                                {editingExam.subject?.name} - {editingExam.name}
-                            </Text>
-
-                            <View style={{ marginBottom: 20 }}>
-                                <Text style={{ color: colors.textSecondary, marginBottom: 8, fontSize: 14 }}>Date</Text>
-                                <View style={{ alignItems: "center" }}>
-                                    {showDatePicker && (
-                                        <DateTimePicker
-                                            value={newDate}
-                                            mode="date"
-                                            display="default"
-                                            onChange={handleDateChange}
-                                            minimumDate={new Date()}
-                                        />
-                                    )}
-                                    {Platform.OS === 'android' && (
-                                        <Pressable
-                                            onPress={() => setShowDatePicker(true)}
-                                            style={{
-                                                flexDirection: "row",
-                                                alignItems: "center",
-                                                padding: 12,
-                                                borderWidth: 1,
-                                                borderColor: colors.textSecondary + "40",
-                                                borderRadius: 8,
-                                                width: "100%",
-                                                justifyContent: "center"
-                                            }}
-                                        >
-                                            <MaterialIcons name="calendar-today" size={20} color={colors.primary} style={{ marginRight: 8 }} />
-                                            <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
-                                                {newDate.toLocaleDateString()}
-                                            </Text>
-                                        </Pressable>
-                                    )}
-                                </View>
-                            </View>
-
-                            <View style={{ marginBottom: 24 }}>
-                                <Text style={{ color: colors.textSecondary, marginBottom: 8, fontSize: 14 }}>Room Number</Text>
-                                <TextInput
-                                    value={newRoom}
-                                    onChangeText={setNewRoom}
-                                    placeholder="e.g. Room 101"
-                                    placeholderTextColor={colors.textSecondary + "80"}
-                                    style={{
-                                        borderWidth: 1,
-                                        borderColor: colors.textSecondary + "40",
-                                        borderRadius: 8,
-                                        padding: 12,
-                                        color: colors.textPrimary,
-                                        fontSize: 16,
-                                        fontFamily: "DMSans-Medium"
-                                    }}
-                                />
-                            </View>
-
-                            <View style={{ flexDirection: "row", gap: 12 }}>
-                                <Pressable
-                                    onPress={() => setEditingExam(null)}
-                                    style={{ flex: 1, padding: 12, alignItems: "center", borderRadius: 10, backgroundColor: colors.background }}
-                                >
-                                    <Text style={{ color: colors.textPrimary, fontFamily: "DMSans-Bold" }}>Cancel</Text>
-                                </Pressable>
-                                <Pressable
-                                    onPress={saveNewDate}
-                                    disabled={updateExamMutation.isPending}
-                                    style={{ flex: 1, padding: 12, alignItems: "center", borderRadius: 10, backgroundColor: colors.primary }}
-                                >
-                                    {updateExamMutation.isPending ? (
-                                        <ActivityIndicator color="#fff" size="small" />
-                                    ) : (
-                                        <Text style={{ color: "#fff", fontFamily: "DMSans-Bold" }}>Save</Text>
-                                    )}
-                                </Pressable>
-                            </View>
-                        </View>
-                    </View>
-                </Modal>
-            )}
-
-            {/* School-wide Initialization Modal */}
-            <Modal
-                transparent={true}
-                visible={showInitModal}
-                animationType="slide"
-                onRequestClose={() => setShowInitModal(false)}
+      {/* Date Picker Modal */}
+      {editingExam && (
+        <Modal
+          transparent={true}
+          visible={!!editingExam}
+          animationType="fade"
+          onRequestClose={() => setEditingExam(null)}
+        >
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: "rgba(0,0,0,0.5)",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: colors.cardBackground,
+                width: "85%",
+                borderRadius: 16,
+                padding: 20,
+              }}
             >
-                <KeyboardAvoidingView
-                    behavior={Platform.OS === "ios" ? "padding" : undefined}
-                    style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontFamily: "DMSans-Bold",
+                  color: colors.textPrimary,
+                  marginBottom: 16,
+                }}
+              >
+                Reschedule Exam
+              </Text>
+              <Text style={{ color: colors.textSecondary, marginBottom: 20 }}>
+                {editingExam.subject?.name} - {editingExam.name}
+              </Text>
+
+              <View style={{ marginBottom: 20 }}>
+                <Text
+                  style={{
+                    color: colors.textSecondary,
+                    marginBottom: 8,
+                    fontSize: 14,
+                  }}
                 >
-                    <View style={{ backgroundColor: colors.background, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '90%' }}>
-                        <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                                <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
-                                    Initialize Exams
-                                </Text>
-                                <Pressable onPress={() => setShowInitModal(false)}>
-                                    <MaterialIcons name="close" size={24} color={colors.textSecondary} />
-                                </Pressable>
-                            </View>
+                  Date
+                </Text>
+                <View style={{ alignItems: "center" }}>
+                  {showDatePicker && (
+                    <DateTimePicker
+                      value={newDate}
+                      mode="date"
+                      display="default"
+                      onChange={handleDateChange}
+                      minimumDate={new Date()}
+                    />
+                  )}
+                  {Platform.OS === "android" && (
+                    <Pressable
+                      onPress={() => setShowDatePicker(true)}
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        padding: 12,
+                        borderWidth: 1,
+                        borderColor: colors.textSecondary + "40",
+                        borderRadius: 8,
+                        width: "100%",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <MaterialIcons
+                        name="calendar-today"
+                        size={20}
+                        color={colors.primary}
+                        style={{ marginRight: 8 }}
+                      />
+                      <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
+                        {newDate.toLocaleDateString()}
+                      </Text>
+                    </Pressable>
+                  )}
+                </View>
+              </View>
 
-                            <Text style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 20, fontFamily: "DMSans-Regular" }}>
-                                This will create the selected exam type for the selected scope where it does not exist yet.
+              <View style={{ marginBottom: 24 }}>
+                <Text
+                  style={{
+                    color: colors.textSecondary,
+                    marginBottom: 8,
+                    fontSize: 14,
+                  }}
+                >
+                  Room Number
+                </Text>
+                <TextInput
+                  value={newRoom}
+                  onChangeText={setNewRoom}
+                  placeholder="e.g. Room 101"
+                  placeholderTextColor={colors.textSecondary + "80"}
+                  style={{
+                    borderWidth: 1,
+                    borderColor: colors.textSecondary + "40",
+                    borderRadius: 8,
+                    padding: 12,
+                    color: colors.textPrimary,
+                    fontSize: 16,
+                    fontFamily: "DMSans-Medium",
+                  }}
+                />
+              </View>
+
+              <View style={{ flexDirection: "row", gap: 12 }}>
+                <Pressable
+                  onPress={() => setEditingExam(null)}
+                  style={{
+                    flex: 1,
+                    padding: 12,
+                    alignItems: "center",
+                    borderRadius: 10,
+                    backgroundColor: colors.background,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: colors.textPrimary,
+                      fontFamily: "DMSans-Bold",
+                    }}
+                  >
+                    Cancel
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={saveNewDate}
+                  disabled={updateExamMutation.isPending}
+                  style={{
+                    flex: 1,
+                    padding: 12,
+                    alignItems: "center",
+                    borderRadius: 10,
+                    backgroundColor: colors.primary,
+                  }}
+                >
+                  {updateExamMutation.isPending ? (
+                    <ActivityIndicator color="#fff" size="small" />
+                  ) : (
+                    <Text style={{ color: "#fff", fontFamily: "DMSans-Bold" }}>
+                      Save
+                    </Text>
+                  )}
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      )}
+
+      {/* School-wide Initialization Modal */}
+      <Modal
+        transparent={true}
+        visible={showInitModal}
+        animationType="slide"
+        onRequestClose={() => setShowInitModal(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "flex-end",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: colors.background,
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              padding: 24,
+              maxHeight: "90%",
+            }}
+          >
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 20,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 20,
+                    fontFamily: "DMSans-Bold",
+                    color: colors.textPrimary,
+                  }}
+                >
+                  Initialize Exams
+                </Text>
+                <Pressable onPress={() => setShowInitModal(false)}>
+                  <MaterialIcons
+                    name="close"
+                    size={24}
+                    color={colors.textSecondary}
+                  />
+                </Pressable>
+              </View>
+
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: colors.textSecondary,
+                  marginBottom: 20,
+                  fontFamily: "DMSans-Regular",
+                }}
+              >
+                This will create the selected exam type for the selected scope
+                where it does not exist yet.
+              </Text>
+
+              {/* Scope Selection */}
+              <View style={{ marginBottom: 16 }}>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontFamily: "DMSans-Medium",
+                    color: colors.textSecondary,
+                    marginBottom: 8,
+                  }}
+                >
+                  Scope *
+                </Text>
+                <View style={{ flexDirection: "row", gap: 8 }}>
+                  <Pressable
+                    onPress={() => setInitScope("all")}
+                    style={{
+                      flex: 1,
+                      paddingVertical: 10,
+                      backgroundColor:
+                        initScope === "all"
+                          ? colors.primary
+                          : colors.cardBackground,
+                      borderRadius: 12,
+                      borderWidth: 1,
+                      borderColor:
+                        initScope === "all"
+                          ? colors.primary
+                          : colors.textSecondary + "20",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color:
+                          initScope === "all" ? "#fff" : colors.textPrimary,
+                        fontFamily: "DMSans-Medium",
+                      }}
+                    >
+                      All Classes
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => setInitScope("selected")}
+                    style={{
+                      flex: 1,
+                      paddingVertical: 10,
+                      backgroundColor:
+                        initScope === "selected"
+                          ? colors.primary
+                          : colors.cardBackground,
+                      borderRadius: 12,
+                      borderWidth: 1,
+                      borderColor:
+                        initScope === "selected"
+                          ? colors.primary
+                          : colors.textSecondary + "20",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color:
+                          initScope === "selected"
+                            ? "#fff"
+                            : colors.textPrimary,
+                        fontFamily: "DMSans-Medium",
+                      }}
+                    >
+                      Specific Classes
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
+
+              {/* Class Selection (Multi-select) */}
+              {initScope === "selected" && (
+                <View style={{ marginBottom: 16 }}>
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontFamily: "DMSans-Medium",
+                      color: colors.textSecondary,
+                      marginBottom: 8,
+                    }}
+                  >
+                    Select Classes *
+                  </Text>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={{ maxHeight: 50 }}
+                  >
+                    <View style={{ flexDirection: "row", gap: 8 }}>
+                      {classes.map((cls) => {
+                        const isSelected = initSelectedClassIds.includes(
+                          cls._id
+                        );
+                        return (
+                          <Pressable
+                            key={cls._id}
+                            onPress={() => {
+                              if (isSelected) {
+                                setInitSelectedClassIds((prev) =>
+                                  prev.filter((id) => id !== cls._id)
+                                );
+                              } else {
+                                setInitSelectedClassIds((prev) => [
+                                  ...prev,
+                                  cls._id,
+                                ]);
+                              }
+                            }}
+                            style={{
+                              paddingHorizontal: 16,
+                              paddingVertical: 8,
+                              backgroundColor: isSelected
+                                ? colors.primary
+                                : colors.cardBackground,
+                              borderRadius: 20,
+                              borderWidth: 1,
+                              borderColor: isSelected
+                                ? colors.primary
+                                : colors.textSecondary + "20",
+                            }}
+                          >
+                            <Text
+                              style={{
+                                color: isSelected ? "#fff" : colors.textPrimary,
+                              }}
+                            >
+                              {formatClassName(cls.name, cls.section)}
                             </Text>
-
-                            {/* Scope Selection */}
-                            <View style={{ marginBottom: 16 }}>
-                                <Text style={{ fontSize: 14, fontFamily: "DMSans-Medium", color: colors.textSecondary, marginBottom: 8 }}>
-                                    Scope *
-                                </Text>
-                                <View style={{ flexDirection: "row", gap: 8 }}>
-                                    <Pressable
-                                        onPress={() => setInitScope("all")}
-                                        style={{
-                                            flex: 1,
-                                            paddingVertical: 10,
-                                            backgroundColor: initScope === "all" ? colors.primary : colors.cardBackground,
-                                            borderRadius: 12,
-                                            borderWidth: 1,
-                                            borderColor: initScope === "all" ? colors.primary : colors.textSecondary + "20",
-                                            alignItems: "center"
-                                        }}
-                                    >
-                                        <Text style={{ color: initScope === "all" ? "#fff" : colors.textPrimary, fontFamily: "DMSans-Medium" }}>
-                                            All Classes
-                                        </Text>
-                                    </Pressable>
-                                    <Pressable
-                                        onPress={() => setInitScope("selected")}
-                                        style={{
-                                            flex: 1,
-                                            paddingVertical: 10,
-                                            backgroundColor: initScope === "selected" ? colors.primary : colors.cardBackground,
-                                            borderRadius: 12,
-                                            borderWidth: 1,
-                                            borderColor: initScope === "selected" ? colors.primary : colors.textSecondary + "20",
-                                            alignItems: "center"
-                                        }}
-                                    >
-                                        <Text style={{ color: initScope === "selected" ? "#fff" : colors.textPrimary, fontFamily: "DMSans-Medium" }}>
-                                            Specific Classes
-                                        </Text>
-                                    </Pressable>
-                                </View>
-                            </View>
-
-                            {/* Class Selection (Multi-select) */}
-                            {initScope === "selected" && (
-                                <View style={{ marginBottom: 16 }}>
-                                    <Text style={{ fontSize: 14, fontFamily: "DMSans-Medium", color: colors.textSecondary, marginBottom: 8 }}>
-                                        Select Classes *
-                                    </Text>
-                                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ maxHeight: 50 }}>
-                                        <View style={{ flexDirection: "row", gap: 8 }}>
-                                            {classes.map(cls => {
-                                                const isSelected = initSelectedClassIds.includes(cls._id);
-                                                return (
-                                                    <Pressable
-                                                        key={cls._id}
-                                                        onPress={() => {
-                                                            if (isSelected) {
-                                                                setInitSelectedClassIds(prev => prev.filter(id => id !== cls._id));
-                                                            } else {
-                                                                setInitSelectedClassIds(prev => [...prev, cls._id]);
-                                                            }
-                                                        }}
-                                                        style={{
-                                                            paddingHorizontal: 16,
-                                                            paddingVertical: 8,
-                                                            backgroundColor: isSelected ? colors.primary : colors.cardBackground,
-                                                            borderRadius: 20,
-                                                            borderWidth: 1,
-                                                            borderColor: isSelected ? colors.primary : colors.textSecondary + "20"
-                                                        }}
-                                                    >
-                                                        <Text style={{ color: isSelected ? "#fff" : colors.textPrimary }}>
-                                                            {formatClassName(cls.name, cls.section)}
-                                                        </Text>
-                                                    </Pressable>
-                                                );
-                                            })}
-                                        </View>
-                                    </ScrollView>
-                                    {initSelectedClassIds.length === 0 && (
-                                        <Text style={{ color: "red", fontSize: 12, marginTop: 4 }}>
-                                            Please select at least one class
-                                        </Text>
-                                    )}
-                                </View>
-                            )}
-
-                            {/* Exam Type Selection */}
-                            <View style={{ marginBottom: 16 }}>
-                                <Text style={{ fontSize: 14, fontFamily: "DMSans-Medium", color: colors.textSecondary, marginBottom: 8 }}>
-                                    Exam Type *
-                                </Text>
-                                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                                    <View style={{ flexDirection: "row", gap: 8 }}>
-                                        {['FA1', 'FA2', 'SA1', 'FA3', 'FA4', 'SA2'].map(type => (
-                                            <Pressable
-                                                key={type}
-                                                onPress={() => setInitType(type)}
-                                                style={{
-                                                    paddingHorizontal: 16,
-                                                    paddingVertical: 10,
-                                                    backgroundColor: initType === type ? colors.primary : colors.cardBackground,
-                                                    borderRadius: 12,
-                                                    borderWidth: 1,
-                                                    borderColor: initType === type ? colors.primary : colors.textSecondary + "20"
-                                                }}
-                                            >
-                                                <Text style={{ color: initType === type ? "#fff" : colors.textPrimary, fontFamily: "DMSans-Medium" }}>
-                                                    {type}
-                                                </Text>
-                                            </Pressable>
-                                        ))}
-                                    </View>
-                                </ScrollView>
-                            </View>
-
-                            {/* Total Marks */}
-                            <View style={{ marginBottom: 16 }}>
-                                <Text style={{ fontSize: 14, fontFamily: "DMSans-Medium", color: colors.textSecondary, marginBottom: 8 }}>
-                                    Default Total Marks *
-                                </Text>
-                                <TextInput
-                                    value={initTotalMarks}
-                                    onChangeText={(v) => {
-                                        setInitTotalMarks(v);
-                                        if (showPerSubjectMarks) applyGlobalMarksToSubjects(v);
-                                    }}
-                                    keyboardType="numeric"
-                                    placeholder="100"
-                                    placeholderTextColor={colors.textSecondary + "80"}
-                                    style={{
-                                        backgroundColor: colors.cardBackground,
-                                        padding: 14,
-                                        borderRadius: 12,
-                                        color: colors.textPrimary,
-                                        fontSize: 16,
-                                        fontFamily: "DMSans-Regular",
-                                        borderWidth: 1,
-                                        borderColor: colors.textSecondary + "20"
-                                    }}
-                                />
-                            </View>
-
-                            {/* Per-Subject Marks Toggle */}
-                            <Pressable
-                                onPress={() => setShowPerSubjectMarks(v => !v)}
-                                style={{
-                                    flexDirection: "row",
-                                    alignItems: "center",
-                                    marginBottom: 12,
-                                    gap: 10
-                                }}
-                            >
-                                <View style={{
-                                    width: 22, height: 22, borderRadius: 6,
-                                    borderWidth: 2,
-                                    borderColor: showPerSubjectMarks ? colors.primary : colors.textSecondary + "60",
-                                    backgroundColor: showPerSubjectMarks ? colors.primary : "transparent",
-                                    justifyContent: "center", alignItems: "center"
-                                }}>
-                                    {showPerSubjectMarks && (
-                                        <MaterialIcons name="check" size={14} color="#fff" />
-                                    )}
-                                </View>
-                                <Text style={{ fontSize: 14, fontFamily: "DMSans-Medium", color: colors.textPrimary }}>
-                                    Set different marks per subject
-                                </Text>
-                            </Pressable>
-
-                            {/* Per-Subject Marks List */}
-                            {showPerSubjectMarks && (
-                                <View style={{
-                                    backgroundColor: colors.background,
-                                    borderRadius: 12,
-                                    padding: 12,
-                                    marginBottom: 16,
-                                    borderWidth: 1,
-                                    borderColor: colors.textSecondary + "20"
-                                }}>
-                                    {allSubjects.length === 0 ? (
-                                        <ActivityIndicator color={colors.primary} />
-                                    ) : (
-                                        allSubjects
-                                            .filter(s => {
-                                                if (initScope === "selected" && initSelectedClassIds.length > 0) {
-                                                    return initSelectedClassIds.includes(
-                                                        s.class?._id || s.class?.toString()
-                                                    );
-                                                }
-                                                return true;
-                                            })
-                                            .sort((a, b) => {
-                                                const ca = (a.class?.name || "").toLowerCase();
-                                                const cb = (b.class?.name || "").toLowerCase();
-                                                if (ca !== cb) return ca.localeCompare(cb);
-                                                return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-                                            })
-                                            .map(subject => (
-                                                <SubjectMarkRow
-                                                    key={subject._id}
-                                                    subject={subject}
-                                                    isExcluded={!!excludedSubjectMap[subject._id]}
-                                                    marks={subjectMarksMap[subject._id]}
-                                                    defaultMarks={initTotalMarks}
-                                                    onToggle={() => handleToggleSubject(subject._id)}
-                                                    onChangeMark={(v) => handleChangeSubjectMark(subject._id, v)}
-                                                    colors={colors}
-                                                />
-                                            ))
-                                    )}
-                                </View>
-                            )}
-
-                            {/* Date */}
-                            <View style={{ marginBottom: 16 }}>
-                                <Text style={{ fontSize: 14, fontFamily: "DMSans-Medium", color: colors.textSecondary, marginBottom: 8 }}>
-                                    Exam Date
-                                </Text>
-                                <Pressable
-                                    onPress={() => setShowInitDatePicker(true)}
-                                    style={{
-                                        backgroundColor: colors.cardBackground,
-                                        padding: 14,
-                                        borderRadius: 12,
-                                        borderWidth: 1,
-                                        borderColor: colors.textSecondary + "20",
-                                        flexDirection: "row",
-                                        alignItems: "center",
-                                        justifyContent: "space-between"
-                                    }}
-                                >
-                                    <Text style={{ fontSize: 16, fontFamily: "DMSans-Regular", color: colors.textPrimary }}>
-                                        {initDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                    </Text>
-                                    <MaterialIcons name="calendar-today" size={20} color={colors.textSecondary} />
-                                </Pressable>
-                                {showInitDatePicker && (
-                                    <DateTimePicker
-                                        value={initDate}
-                                        mode="date"
-                                        display="default"
-                                        onChange={handleInitDateChange}
-                                    />
-                                )}
-                            </View>
-
-                            {/* Duration */}
-                            <View style={{ marginBottom: 16 }}>
-                                <Text style={{ fontSize: 14, fontFamily: "DMSans-Medium", color: colors.textSecondary, marginBottom: 8 }}>
-                                    Duration (minutes)
-                                </Text>
-                                <TextInput
-                                    value={initDuration}
-                                    onChangeText={setInitDuration}
-                                    keyboardType="numeric"
-                                    placeholder="90"
-                                    placeholderTextColor={colors.textSecondary + "80"}
-                                    style={{
-                                        backgroundColor: colors.cardBackground,
-                                        padding: 14,
-                                        borderRadius: 12,
-                                        color: colors.textPrimary,
-                                        fontSize: 16,
-                                        fontFamily: "DMSans-Regular",
-                                        borderWidth: 1,
-                                        borderColor: colors.textSecondary + "20"
-                                    }}
-                                />
-                            </View>
-
-                            {/* Instructions */}
-                            <View style={{ marginBottom: 24 }}>
-                                <Text style={{ fontSize: 14, fontFamily: "DMSans-Medium", color: colors.textSecondary, marginBottom: 8 }}>
-                                    Instructions (Optional)
-                                </Text>
-                                <TextInput
-                                    value={initInstructions}
-                                    onChangeText={setInitInstructions}
-                                    multiline
-                                    numberOfLines={3}
-                                    placeholder="Enter instructions..."
-                                    placeholderTextColor={colors.textSecondary + "80"}
-                                    textAlignVertical="top"
-                                    style={{
-                                        backgroundColor: colors.cardBackground,
-                                        padding: 14,
-                                        borderRadius: 12,
-                                        color: colors.textPrimary,
-                                        fontSize: 16,
-                                        fontFamily: "DMSans-Regular",
-                                        borderWidth: 1,
-                                        borderColor: colors.textSecondary + "20",
-                                        minHeight: 80
-                                    }}
-                                />
-                            </View>
-
-                            {/* Submit Button */}
-                            <Pressable
-                                onPress={handleInitialize}
-                                disabled={initMutation.isPending}
-                                style={({ pressed }) => ({
-                                    backgroundColor: colors.primary,
-                                    borderRadius: 12,
-                                    padding: 16,
-                                    flexDirection: "row",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    gap: 8,
-                                    opacity: pressed || initMutation.isPending ? 0.7 : 1
-                                })}
-                            >
-                                {initMutation.isPending ? (
-                                    <ActivityIndicator size="small" color="#fff" />
-                                ) : (
-                                    <>
-                                        <MaterialIcons name="playlist-add-check" size={24} color="#fff" />
-                                        <Text style={{ fontSize: 17, fontFamily: "DMSans-Bold", color: "#fff" }}>
-                                            Initialize Exams
-                                        </Text>
-                                    </>
-                                )}
-                            </Pressable>
-                        </ScrollView>
+                          </Pressable>
+                        );
+                      })}
                     </View>
-                </KeyboardAvoidingView>
-            </Modal>
-        </View>
-    );
-}
+                  </ScrollView>
+                  {initSelectedClassIds.length === 0 && (
+                    <Text style={{ color: "red", fontSize: 12, marginTop: 4 }}>
+                      Please select at least one class
+                    </Text>
+                  )}
+                </View>
+              )}
 
+              {/* Exam Type Selection */}
+              <View style={{ marginBottom: 16 }}>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontFamily: "DMSans-Medium",
+                    color: colors.textSecondary,
+                    marginBottom: 8,
+                  }}
+                >
+                  Exam Type *
+                </Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <View style={{ flexDirection: "row", gap: 8 }}>
+                    {["FA1", "FA2", "SA1", "FA3", "FA4", "SA2"].map((type) => (
+                      <Pressable
+                        key={type}
+                        onPress={() => setInitType(type)}
+                        style={{
+                          paddingHorizontal: 16,
+                          paddingVertical: 10,
+                          backgroundColor:
+                            initType === type
+                              ? colors.primary
+                              : colors.cardBackground,
+                          borderRadius: 12,
+                          borderWidth: 1,
+                          borderColor:
+                            initType === type
+                              ? colors.primary
+                              : colors.textSecondary + "20",
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color:
+                              initType === type ? "#fff" : colors.textPrimary,
+                            fontFamily: "DMSans-Medium",
+                          }}
+                        >
+                          {type}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </ScrollView>
+              </View>
+
+              {/* Total Marks */}
+              <View style={{ marginBottom: 16 }}>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontFamily: "DMSans-Medium",
+                    color: colors.textSecondary,
+                    marginBottom: 8,
+                  }}
+                >
+                  Default Total Marks *
+                </Text>
+                <TextInput
+                  value={initTotalMarks}
+                  onChangeText={(v) => {
+                    setInitTotalMarks(v);
+                    if (showPerSubjectMarks) applyGlobalMarksToSubjects(v);
+                  }}
+                  keyboardType="numeric"
+                  placeholder="100"
+                  placeholderTextColor={colors.textSecondary + "80"}
+                  style={{
+                    backgroundColor: colors.cardBackground,
+                    padding: 14,
+                    borderRadius: 12,
+                    color: colors.textPrimary,
+                    fontSize: 16,
+                    fontFamily: "DMSans-Regular",
+                    borderWidth: 1,
+                    borderColor: colors.textSecondary + "20",
+                  }}
+                />
+              </View>
+
+              {/* Per-Subject Marks Toggle */}
+              <Pressable
+                onPress={() => setShowPerSubjectMarks((v) => !v)}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginBottom: 12,
+                  gap: 10,
+                }}
+              >
+                <View
+                  style={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: 6,
+                    borderWidth: 2,
+                    borderColor: showPerSubjectMarks
+                      ? colors.primary
+                      : colors.textSecondary + "60",
+                    backgroundColor: showPerSubjectMarks
+                      ? colors.primary
+                      : "transparent",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  {showPerSubjectMarks && (
+                    <MaterialIcons name="check" size={14} color="#fff" />
+                  )}
+                </View>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontFamily: "DMSans-Medium",
+                    color: colors.textPrimary,
+                  }}
+                >
+                  Set different marks per subject
+                </Text>
+              </Pressable>
+
+              {/* Per-Subject Marks List */}
+              {showPerSubjectMarks && (
+                <View
+                  style={{
+                    backgroundColor: colors.background,
+                    borderRadius: 12,
+                    padding: 12,
+                    marginBottom: 16,
+                    borderWidth: 1,
+                    borderColor: colors.textSecondary + "20",
+                  }}
+                >
+                  {allSubjects.length === 0 ? (
+                    <ActivityIndicator color={colors.primary} />
+                  ) : (
+                    allSubjects
+                      .filter((s) => {
+                        if (
+                          initScope === "selected" &&
+                          initSelectedClassIds.length > 0
+                        ) {
+                          return initSelectedClassIds.includes(
+                            s.class?._id || s.class?.toString()
+                          );
+                        }
+                        return true;
+                      })
+                      .sort((a, b) => {
+                        const ca = (a.class?.name || "").toLowerCase();
+                        const cb = (b.class?.name || "").toLowerCase();
+                        if (ca !== cb) return ca.localeCompare(cb);
+                        return a.name
+                          .toLowerCase()
+                          .localeCompare(b.name.toLowerCase());
+                      })
+                      .map((subject) => (
+                        <SubjectMarkRow
+                          key={subject._id}
+                          subject={subject}
+                          isExcluded={!!excludedSubjectMap[subject._id]}
+                          marks={subjectMarksMap[subject._id]}
+                          defaultMarks={initTotalMarks}
+                          onToggle={() => handleToggleSubject(subject._id)}
+                          onChangeMark={(v) =>
+                            handleChangeSubjectMark(subject._id, v)
+                          }
+                          colors={colors}
+                        />
+                      ))
+                  )}
+                </View>
+              )}
+
+              {/* Date */}
+              <View style={{ marginBottom: 16 }}>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontFamily: "DMSans-Medium",
+                    color: colors.textSecondary,
+                    marginBottom: 8,
+                  }}
+                >
+                  Exam Date
+                </Text>
+                <Pressable
+                  onPress={() => setShowInitDatePicker(true)}
+                  style={{
+                    backgroundColor: colors.cardBackground,
+                    padding: 14,
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    borderColor: colors.textSecondary + "20",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontFamily: "DMSans-Regular",
+                      color: colors.textPrimary,
+                    }}
+                  >
+                    {initDate.toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </Text>
+                  <MaterialIcons
+                    name="calendar-today"
+                    size={20}
+                    color={colors.textSecondary}
+                  />
+                </Pressable>
+                {showInitDatePicker && (
+                  <DateTimePicker
+                    value={initDate}
+                    mode="date"
+                    display="default"
+                    onChange={handleInitDateChange}
+                  />
+                )}
+              </View>
+
+              {/* Duration */}
+              <View style={{ marginBottom: 16 }}>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontFamily: "DMSans-Medium",
+                    color: colors.textSecondary,
+                    marginBottom: 8,
+                  }}
+                >
+                  Duration (minutes)
+                </Text>
+                <TextInput
+                  value={initDuration}
+                  onChangeText={setInitDuration}
+                  keyboardType="numeric"
+                  placeholder="90"
+                  placeholderTextColor={colors.textSecondary + "80"}
+                  style={{
+                    backgroundColor: colors.cardBackground,
+                    padding: 14,
+                    borderRadius: 12,
+                    color: colors.textPrimary,
+                    fontSize: 16,
+                    fontFamily: "DMSans-Regular",
+                    borderWidth: 1,
+                    borderColor: colors.textSecondary + "20",
+                  }}
+                />
+              </View>
+
+              {/* Instructions */}
+              <View style={{ marginBottom: 24 }}>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontFamily: "DMSans-Medium",
+                    color: colors.textSecondary,
+                    marginBottom: 8,
+                  }}
+                >
+                  Instructions (Optional)
+                </Text>
+                <TextInput
+                  value={initInstructions}
+                  onChangeText={setInitInstructions}
+                  multiline
+                  numberOfLines={3}
+                  placeholder="Enter instructions..."
+                  placeholderTextColor={colors.textSecondary + "80"}
+                  textAlignVertical="top"
+                  style={{
+                    backgroundColor: colors.cardBackground,
+                    padding: 14,
+                    borderRadius: 12,
+                    color: colors.textPrimary,
+                    fontSize: 16,
+                    fontFamily: "DMSans-Regular",
+                    borderWidth: 1,
+                    borderColor: colors.textSecondary + "20",
+                    minHeight: 80,
+                  }}
+                />
+              </View>
+
+              {/* Submit Button */}
+              <Pressable
+                onPress={handleInitialize}
+                disabled={initMutation.isPending}
+                style={({ pressed }) => ({
+                  backgroundColor: colors.primary,
+                  borderRadius: 12,
+                  padding: 16,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  opacity: pressed || initMutation.isPending ? 0.7 : 1,
+                })}
+              >
+                {initMutation.isPending ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <>
+                    <MaterialIcons
+                      name="playlist-add-check"
+                      size={24}
+                      color="#fff"
+                    />
+                    <Text
+                      style={{
+                        fontSize: 17,
+                        fontFamily: "DMSans-Bold",
+                        color: "#fff",
+                      }}
+                    >
+                      Initialize Exams
+                    </Text>
+                  </>
+                )}
+              </Pressable>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+    </View>
+  );
+}

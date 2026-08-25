@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import NetInfo from '@react-native-community/netinfo';
+import { useState, useEffect } from "react";
+import NetInfo from "@react-native-community/netinfo";
 
 /**
  * Hook to inspect network quality and connection speed.
@@ -10,20 +10,21 @@ export function useNetworkQuality() {
     isConnected: true,
     isInternetReachable: true,
     isSlow: false,
-    connectionType: 'wifi',
+    connectionType: "wifi",
   });
 
   useEffect(() => {
     const checkState = (state) => {
       const isConnected = !!state.isConnected;
       const isInternetReachable = state.isInternetReachable !== false;
-      const connectionType = state.type || 'unknown';
+      const connectionType = state.type || "unknown";
       const cellularGen = state.details?.cellularGeneration; // '2g' | '3g' | '4g' | '5g'
 
-      const isSlow = !isConnected ||
-        cellularGen === '2g' ||
-        cellularGen === '3g' ||
-        (connectionType === 'cellular' && !cellularGen);
+      const isSlow =
+        !isConnected ||
+        cellularGen === "2g" ||
+        cellularGen === "3g" ||
+        (connectionType === "cellular" && !cellularGen);
 
       setNetworkInfo({
         isConnected,

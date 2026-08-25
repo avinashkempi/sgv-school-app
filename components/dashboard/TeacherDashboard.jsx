@@ -1,378 +1,699 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, RefreshControl, Pressable } from 'react-native';
-import { useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
-import { useTheme } from '../../theme';
-import StatCard from './StatCard';
-import TeacherAttendanceTrendCard from './TeacherAttendanceTrendCard';
-import TeacherPerformanceCard from './TeacherPerformanceCard';
-import DateRangePicker from '../DateRangePicker';
-import { LoadingState, EmptyState } from '../StateComponents';
-import apiConfig from '../../config/apiConfig';
-import { useApiQuery } from '../../hooks/useApi';
-import { formatClassName } from '../../utils/formatClassName';
-import { getISTDateString, getISTToday } from '../../utils/date';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  RefreshControl,
+  Pressable,
+} from "react-native";
+import { useRouter } from "expo-router";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useTheme } from "../../theme";
+import StatCard from "./StatCard";
+import TeacherAttendanceTrendCard from "./TeacherAttendanceTrendCard";
+import TeacherPerformanceCard from "./TeacherPerformanceCard";
+import DateRangePicker from "../DateRangePicker";
+import { LoadingState, EmptyState } from "../StateComponents";
+import apiConfig from "../../config/apiConfig";
+import { useApiQuery } from "../../hooks/useApi";
+import { formatClassName } from "../../utils/formatClassName";
+import { getISTDateString, getISTToday } from "../../utils/date";
 
 const TeacherDashboard = () => {
-    const router = useRouter();
-    const { colors, styles } = useTheme();
-    const [dateRange, setDateRange] = useState('thisWeek');
-    const [showDatePicker, setShowDatePicker] = useState(false);
-    const [refreshing, setRefreshing] = useState(false);
+  const router = useRouter();
+  const { colors, styles } = useTheme();
+  const [dateRange, setDateRange] = useState("thisWeek");
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-    // Dashboard Stats Query
-    const { data, isLoading: loading, refetch: refetchStats } = useApiQuery(
-        ['teacherDashboard', dateRange],
-        `${apiConfig.baseUrl}/dashboard/teacher?range=${dateRange}`,
-        { staleTime: 1000 * 60 * 5 }
-    );
+  // Dashboard Stats Query
+  const {
+    data,
+    isLoading: loading,
+    refetch: refetchStats,
+  } = useApiQuery(
+    ["teacherDashboard", dateRange],
+    `${apiConfig.baseUrl}/dashboard/teacher?range=${dateRange}`,
+    { staleTime: 1000 * 60 * 5 }
+  );
 
-    // Missing Attendance Query
-    const todayStr = getISTToday();
-    const { data: missingData, refetch: refetchMissing } = useApiQuery(
-        ['teacherMissingAttendance', todayStr],
-        (() => {
-            const endDate = new Date();
-            const startDate = new Date();
-            startDate.setDate(endDate.getDate() - 14);
-            return `${apiConfig.baseUrl}/attendance/missing-tracker?startDate=${getISTDateString(startDate)}&endDate=${getISTDateString(endDate)}`;
-        })(),
-        { staleTime: 1000 * 60 * 5 }
-    );
+  // Missing Attendance Query
+  const todayStr = getISTToday();
+  const { data: missingData, refetch: refetchMissing } = useApiQuery(
+    ["teacherMissingAttendance", todayStr],
+    (() => {
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(endDate.getDate() - 14);
+      return `${
+        apiConfig.baseUrl
+      }/attendance/missing-tracker?startDate=${getISTDateString(
+        startDate
+      )}&endDate=${getISTDateString(endDate)}`;
+    })(),
+    { staleTime: 1000 * 60 * 5 }
+  );
 
-    const missingDays = missingData?.success && missingData.missingDays ? missingData.missingDays : [];
-    const missingClassId = missingData?.success && missingData.classId ? missingData.classId : null;
-    const missingClassName = missingData?.success && missingData.className ? missingData.className : null;
+  const missingDays =
+    missingData?.success && missingData.missingDays
+      ? missingData.missingDays
+      : [];
+  const missingClassId =
+    missingData?.success && missingData.classId ? missingData.classId : null;
+  const missingClassName =
+    missingData?.success && missingData.className
+      ? missingData.className
+      : null;
 
-    // React Query handles stale-while-revalidate based on CACHE_TIERS.MODERATE
-    // Manual refetch is only needed on pull-to-refresh (onRefresh)
+  // React Query handles stale-while-revalidate based on CACHE_TIERS.MODERATE
+  // Manual refetch is only needed on pull-to-refresh (onRefresh)
 
-    const onRefresh = async () => {
-        setRefreshing(true);
-        try {
-            await Promise.all([refetchStats(), refetchMissing()]);
-        } catch (err) {
-            console.error("TeacherDashboard refresh error:", err);
-        } finally {
-            setRefreshing(false);
-        }
-    };
-
-    const handleDateRangeChange = (range) => {
-        setDateRange(range);
-    };
-
-    const getDateRangeLabel = () => {
-        const labels = {
-            today: 'Today',
-            thisWeek: 'This Week',
-            thisMonth: 'This Month',
-            last30Days: 'Last 30 Days',
-            thisYear: 'This Year',
-            lastYear: 'Last Year',
-            allTime: 'All Time'
-        };
-        return labels[dateRange] || 'This Week';
-    };
-
-    if (loading && !data) {
-        return <LoadingState message="Loading dashboard..." />;
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([refetchStats(), refetchMissing()]);
+    } catch (err) {
+      console.error("TeacherDashboard refresh error:", err);
+    } finally {
+      setRefreshing(false);
     }
+  };
 
-    if (!data) {
-        return <EmptyState icon="dashboard" title="No Data" message="Dashboard data is not available" />;
-    }
+  const handleDateRangeChange = (range) => {
+    setDateRange(range);
+  };
 
+  const getDateRangeLabel = () => {
+    const labels = {
+      today: "Today",
+      thisWeek: "This Week",
+      thisMonth: "This Month",
+      last30Days: "Last 30 Days",
+      thisYear: "This Year",
+      lastYear: "Last Year",
+      allTime: "All Time",
+    };
+    return labels[dateRange] || "This Week";
+  };
+
+  if (loading && !data) {
+    return <LoadingState message="Loading dashboard..." />;
+  }
+
+  if (!data) {
     return (
-        <ScrollView
-            contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
-            refreshControl={
-                <RefreshControl
-                    refreshing={refreshing}
-                    onRefresh={onRefresh}
-                    colors={[colors.primary]}
-                    tintColor={colors.primary}
-                />
-            }
-            alwaysBounceVertical={true}
-            showsVerticalScrollIndicator={false}
-        >
-            {/* Date Range Selector */}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, marginTop: 8 }}>
-                <View>
-                    <Text style={styles.titleLarge}>My Dashboard</Text>
-                    {data.overview?.className && (
-                        <Text style={{ fontSize: 14, fontFamily: 'DMSans-Medium', color: colors.textSecondary, marginTop: 2 }}>
-                            Class Teacher — {formatClassName(data.overview.className)}
-                        </Text>
-                    )}
-                </View>
-                <Pressable
-                    onPress={() => setShowDatePicker(true)}
-                    style={({ pressed }) => ({
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        paddingHorizontal: 16,
-                        paddingVertical: 8,
-                        borderRadius: 20,
-                        backgroundColor: colors.primaryContainer,
-                        opacity: pressed ? 0.8 : 1
-                    })}
-                >
-                    <MaterialIcons name="calendar-today" size={16} color={colors.onPrimaryContainer} />
-                    <Text style={{
-                        fontSize: 13,
-                        fontFamily: 'DMSans-Bold',
-                        color: colors.onPrimaryContainer,
-                        marginLeft: 6
-                    }}>
-                        {getDateRangeLabel()}
-                    </Text>
-                    <MaterialIcons name="arrow-drop-down" size={18} color={colors.onPrimaryContainer} />
-                </Pressable>
-            </View>
-
-            {/* Missing Attendance Alert */}
-            {missingDays.length > 0 && (
-                <View style={{
-                    backgroundColor: colors.error + '10',
-                    borderWidth: 1,
-                    borderColor: colors.error + '40',
-                    borderRadius: 16,
-                    padding: 16,
-                    marginBottom: 16,
-                }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                        <MaterialIcons name="warning" size={22} color={colors.error} style={{ marginRight: 10 }} />
-                        <View style={{ flex: 1 }}>
-                            <Text style={{ fontFamily: 'DMSans-Bold', color: colors.error, fontSize: 15 }}>Missing Attendance!</Text>
-                            <Text style={{ fontFamily: 'DMSans-Medium', color: colors.textSecondary, fontSize: 12, marginTop: 2 }}>
-                                {missingClassName ? `${missingClassName} — ` : ''}{missingDays.length} day{missingDays.length > 1 ? 's' : ''} not marked
-                            </Text>
-                        </View>
-                    </View>
-
-                    {/* Missed dates list */}
-                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
-                        {missingDays.slice(0, 7).map((day) => {
-                            const d = new Date(day + 'T00:00:00');
-                            const today = new Date(); today.setHours(0, 0, 0, 0);
-                            const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
-                            let label;
-                            if (d.getTime() === today.getTime()) label = 'Today';
-                            else if (d.getTime() === yesterday.getTime()) label = 'Yesterday';
-                            else label = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
-                            return (
-                                <Pressable
-                                    key={day}
-                                    onPress={() => missingClassId && router.push({ pathname: '/teacher/class/attendance', params: { classId: missingClassId, date: day } })}
-                                    style={({ pressed }) => ({
-                                        backgroundColor: colors.error + '18',
-                                        borderWidth: 1,
-                                        borderColor: colors.error + '30',
-                                        borderRadius: 8,
-                                        paddingHorizontal: 10,
-                                        paddingVertical: 5,
-                                        opacity: pressed ? 0.7 : 1
-                                    })}
-                                >
-                                    <Text style={{ fontSize: 12, fontFamily: 'DMSans-Bold', color: colors.error }}>{label}</Text>
-                                </Pressable>
-                            );
-                        })}
-                        {missingDays.length > 7 && (
-                            <View style={{ backgroundColor: colors.error + '18', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 }}>
-                                <Text style={{ fontSize: 12, fontFamily: 'DMSans-Bold', color: colors.error }}>+{missingDays.length - 7} more</Text>
-                            </View>
-                        )}
-                    </View>
-
-                    {/* Mark Now button */}
-                    <Pressable
-                        onPress={() => missingClassId && router.push({ pathname: '/teacher/class/attendance', params: { classId: missingClassId } })}
-                        style={({ pressed }) => ({
-                            backgroundColor: colors.error,
-                            borderRadius: 10,
-                            paddingVertical: 10,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: 6,
-                            opacity: pressed ? 0.8 : 1
-                        })}
-                    >
-                        <MaterialIcons name="edit" size={18} color="#fff" />
-                        <Text style={{ fontSize: 13, fontFamily: 'DMSans-Bold', color: '#fff' }}>Mark Attendance Now</Text>
-                    </Pressable>
-                </View>
-            )}
-
-            {/* Class Attendance Today Card */}
-            {data.classAttendance ? (
-                <View style={{
-                    backgroundColor: colors.cardBackground,
-                    borderRadius: 16,
-                    padding: 20,
-                    marginBottom: 16,
-                    elevation: 2
-                }}>
-                    <Text style={{ fontSize: 17, fontFamily: 'DMSans-Bold', color: colors.textPrimary, marginBottom: 16 }}>
-                        Class Attendance Today
-                    </Text>
-                    {data.classAttendance.marked === 0 ? (
-                        <View style={{ alignItems: 'center', paddingVertical: 12 }}>
-                            <MaterialIcons name="event-busy" size={32} color={colors.textSecondary} />
-                            <Text style={{ fontSize: 14, fontFamily: 'DMSans-Medium', color: colors.textSecondary, marginTop: 8 }}>
-                                Attendance not marked yet today
-                            </Text>
-                        </View>
-                    ) : (
-                        <>
-                            {/* Progress Bar */}
-                            <View style={{ height: 8, backgroundColor: colors.error + '30', borderRadius: 4, marginBottom: 16, overflow: 'hidden' }}>
-                                <View style={{
-                                    height: '100%',
-                                    backgroundColor: colors.success,
-                                    borderRadius: 4,
-                                    width: `${data.classAttendance.total > 0 ? ((data.classAttendance.present / data.classAttendance.total) * 100) : 0}%`
-                                }} />
-                            </View>
-                            {/* Stats Row */}
-                            <View style={{ flexDirection: 'row', gap: 10 }}>
-                                <View style={{ flex: 1, backgroundColor: colors.success + '15', padding: 12, borderRadius: 12, alignItems: 'center' }}>
-                                    <Text style={{ fontSize: 22, fontFamily: 'DMSans-Bold', color: colors.success }}>{data.classAttendance.present}</Text>
-                                    <Text style={{ fontSize: 12, fontFamily: 'DMSans-Medium', color: colors.success }}>Present</Text>
-                                </View>
-                                <View style={{ flex: 1, backgroundColor: colors.error + '15', padding: 12, borderRadius: 12, alignItems: 'center' }}>
-                                    <Text style={{ fontSize: 22, fontFamily: 'DMSans-Bold', color: colors.error }}>{data.classAttendance.absent}</Text>
-                                    <Text style={{ fontSize: 12, fontFamily: 'DMSans-Medium', color: colors.error }}>Absent</Text>
-                                </View>
-                                <View style={{ flex: 1, backgroundColor: '#FF9800' + '15', padding: 12, borderRadius: 12, alignItems: 'center' }}>
-                                    <Text style={{ fontSize: 22, fontFamily: 'DMSans-Bold', color: '#FF9800' }}>{data.classAttendance.late}</Text>
-                                    <Text style={{ fontSize: 12, fontFamily: 'DMSans-Medium', color: '#FF9800' }}>Late</Text>
-                                </View>
-                                <View style={{ flex: 1, backgroundColor: colors.primary + '15', padding: 12, borderRadius: 12, alignItems: 'center' }}>
-                                    <Text style={{ fontSize: 22, fontFamily: 'DMSans-Bold', color: colors.primary }}>{data.classAttendance.total}</Text>
-                                    <Text style={{ fontSize: 12, fontFamily: 'DMSans-Medium', color: colors.primary }}>Total</Text>
-                                </View>
-                            </View>
-                        </>
-                    )}
-                </View>
-            ) : !data.overview?.className && (
-                <View style={{
-                    backgroundColor: colors.cardBackground,
-                    borderRadius: 16,
-                    padding: 20,
-                    marginBottom: 16,
-                    elevation: 2,
-                    alignItems: 'center'
-                }}>
-                    <MaterialIcons name="info-outline" size={32} color={colors.textSecondary} />
-                    <Text style={{ fontSize: 15, fontFamily: 'DMSans-Medium', color: colors.textSecondary, marginTop: 8, textAlign: 'center' }}>
-                        You are not assigned as a class teacher.{'\n'}Class attendance summary is not available.
-                    </Text>
-                </View>
-            )}
-
-            {/* Stat Cards */}
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -6 }}>
-                <StatCard
-                    title="Classes Today"
-                    value={data.overview?.classesToday || 0}
-                    icon="human-male-board"
-                    color={colors.primary}
-                    onPress={() => router.push('/teacher/timetable')}
-                    loading={refreshing}
-                />
-                <StatCard
-                    title="My Students"
-                    value={data.overview?.myStudents || 0}
-                    icon="account-group"
-                    color={colors.tertiary}
-                    onPress={() => router.push('/teacher/classes')}
-                    loading={refreshing}
-                />
-                <StatCard
-                    title="Low Attendance"
-                    value={data.overview?.lowAttendanceCount || 0}
-                    icon="account-alert"
-                    color={colors.error}
-                    onPress={() => missingClassId ? router.push({ pathname: '/teacher/class/attendance', params: { classId: missingClassId } }) : router.push('/teacher/classes')}
-                    loading={refreshing}
-                />
-                <StatCard
-                    title="Total Classes"
-                    value={data.overview?.totalClassesTaught || 0}
-                    icon="school"
-                    color={colors.secondary || colors.primary}
-                    onPress={() => router.push('/teacher/classes')}
-                    loading={refreshing}
-                />
-            </View>
-
-            {/* Insights Section Header */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, marginTop: 28 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                    <View style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 10,
-                        backgroundColor: (colors.primary || '#6750A4') + '1A',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                    }}>
-                        <MaterialIcons name="insights" size={20} color={colors.primary || '#6750A4'} />
-                    </View>
-                    <View>
-                        <Text style={[styles.titleLarge, { marginBottom: 0, fontSize: 19, letterSpacing: 0.1 }]}>Insights & Analytics</Text>
-                        <Text style={{ fontSize: 12, fontFamily: 'DMSans-Medium', color: colors.textSecondary, marginTop: 2 }}>
-                            Class presence trends & academic performance
-                        </Text>
-                    </View>
-                </View>
-            </View>
-
-            {data.charts?.attendanceTrend && data.charts.attendanceTrend.data?.length > 0 ? (
-                <TeacherAttendanceTrendCard
-                    title="Attendance Trend (7 Days)"
-                    subtitle="Daily student presence rate"
-                    labels={data.charts.attendanceTrend.labels}
-                    data={data.charts.attendanceTrend.data}
-                    classId={missingClassId}
-                />
-            ) : (
-                <EmptyState
-                    icon="show-chart"
-                    title="No Attendance Trend"
-                    message="Attendance trend data is not available yet"
-                />
-            )}
-
-            {data.charts?.performance && data.charts.performance.data?.length > 0 ? (
-                <TeacherPerformanceCard
-                    title="Subject Performance"
-                    subtitle="Average marks scored by subject"
-                    labels={data.charts.performance.labels}
-                    data={data.charts.performance.data}
-                />
-            ) : (
-                <EmptyState
-                    icon="bar-chart"
-                    title="No Performance Data"
-                    message="Student performance data is not available yet"
-                />
-            )}
-
-            {/* Date Range Picker Modal */}
-            <DateRangePicker
-                visible={showDatePicker}
-                selectedRange={dateRange}
-                onRangeSelect={handleDateRangeChange}
-                onClose={() => setShowDatePicker(false)}
-            />
-        </ScrollView>
+      <EmptyState
+        icon="dashboard"
+        title="No Data"
+        message="Dashboard data is not available"
+      />
     );
+  }
+
+  return (
+    <ScrollView
+      contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={[colors.primary]}
+          tintColor={colors.primary}
+        />
+      }
+      alwaysBounceVertical={true}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Date Range Selector */}
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 16,
+          marginTop: 8,
+        }}
+      >
+        <View>
+          <Text style={styles.titleLarge}>My Dashboard</Text>
+          {data.overview?.className && (
+            <Text
+              style={{
+                fontSize: 14,
+                fontFamily: "DMSans-Medium",
+                color: colors.textSecondary,
+                marginTop: 2,
+              }}
+            >
+              Class Teacher — {formatClassName(data.overview.className)}
+            </Text>
+          )}
+        </View>
+        <Pressable
+          onPress={() => setShowDatePicker(true)}
+          style={({ pressed }) => ({
+            flexDirection: "row",
+            alignItems: "center",
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            borderRadius: 20,
+            backgroundColor: colors.primaryContainer,
+            opacity: pressed ? 0.8 : 1,
+          })}
+        >
+          <MaterialIcons
+            name="calendar-today"
+            size={16}
+            color={colors.onPrimaryContainer}
+          />
+          <Text
+            style={{
+              fontSize: 13,
+              fontFamily: "DMSans-Bold",
+              color: colors.onPrimaryContainer,
+              marginLeft: 6,
+            }}
+          >
+            {getDateRangeLabel()}
+          </Text>
+          <MaterialIcons
+            name="arrow-drop-down"
+            size={18}
+            color={colors.onPrimaryContainer}
+          />
+        </Pressable>
+      </View>
+
+      {/* Missing Attendance Alert */}
+      {missingDays.length > 0 && (
+        <View
+          style={{
+            backgroundColor: colors.error + "10",
+            borderWidth: 1,
+            borderColor: colors.error + "40",
+            borderRadius: 16,
+            padding: 16,
+            marginBottom: 16,
+          }}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              marginBottom: 12,
+            }}
+          >
+            <MaterialIcons
+              name="warning"
+              size={22}
+              color={colors.error}
+              style={{ marginRight: 10 }}
+            />
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{
+                  fontFamily: "DMSans-Bold",
+                  color: colors.error,
+                  fontSize: 15,
+                }}
+              >
+                Missing Attendance!
+              </Text>
+              <Text
+                style={{
+                  fontFamily: "DMSans-Medium",
+                  color: colors.textSecondary,
+                  fontSize: 12,
+                  marginTop: 2,
+                }}
+              >
+                {missingClassName ? `${missingClassName} — ` : ""}
+                {missingDays.length} day{missingDays.length > 1 ? "s" : ""} not
+                marked
+              </Text>
+            </View>
+          </View>
+
+          {/* Missed dates list */}
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              gap: 6,
+              marginBottom: 12,
+            }}
+          >
+            {missingDays.slice(0, 7).map((day) => {
+              const d = new Date(day + "T00:00:00");
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const yesterday = new Date(today);
+              yesterday.setDate(today.getDate() - 1);
+              let label;
+              if (d.getTime() === today.getTime()) label = "Today";
+              else if (d.getTime() === yesterday.getTime()) label = "Yesterday";
+              else
+                label = d.toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                });
+              return (
+                <Pressable
+                  key={day}
+                  onPress={() =>
+                    missingClassId &&
+                    router.push({
+                      pathname: "/teacher/class/attendance",
+                      params: { classId: missingClassId, date: day },
+                    })
+                  }
+                  style={({ pressed }) => ({
+                    backgroundColor: colors.error + "18",
+                    borderWidth: 1,
+                    borderColor: colors.error + "30",
+                    borderRadius: 8,
+                    paddingHorizontal: 10,
+                    paddingVertical: 5,
+                    opacity: pressed ? 0.7 : 1,
+                  })}
+                >
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontFamily: "DMSans-Bold",
+                      color: colors.error,
+                    }}
+                  >
+                    {label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+            {missingDays.length > 7 && (
+              <View
+                style={{
+                  backgroundColor: colors.error + "18",
+                  borderRadius: 8,
+                  paddingHorizontal: 10,
+                  paddingVertical: 5,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontFamily: "DMSans-Bold",
+                    color: colors.error,
+                  }}
+                >
+                  +{missingDays.length - 7} more
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {/* Mark Now button */}
+          <Pressable
+            onPress={() =>
+              missingClassId &&
+              router.push({
+                pathname: "/teacher/class/attendance",
+                params: { classId: missingClassId },
+              })
+            }
+            style={({ pressed }) => ({
+              backgroundColor: colors.error,
+              borderRadius: 10,
+              paddingVertical: 10,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 6,
+              opacity: pressed ? 0.8 : 1,
+            })}
+          >
+            <MaterialIcons name="edit" size={18} color="#fff" />
+            <Text
+              style={{ fontSize: 13, fontFamily: "DMSans-Bold", color: "#fff" }}
+            >
+              Mark Attendance Now
+            </Text>
+          </Pressable>
+        </View>
+      )}
+
+      {/* Class Attendance Today Card */}
+      {data.classAttendance ? (
+        <View
+          style={{
+            backgroundColor: colors.cardBackground,
+            borderRadius: 16,
+            padding: 20,
+            marginBottom: 16,
+            elevation: 2,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 17,
+              fontFamily: "DMSans-Bold",
+              color: colors.textPrimary,
+              marginBottom: 16,
+            }}
+          >
+            Class Attendance Today
+          </Text>
+          {data.classAttendance.marked === 0 ? (
+            <View style={{ alignItems: "center", paddingVertical: 12 }}>
+              <MaterialIcons
+                name="event-busy"
+                size={32}
+                color={colors.textSecondary}
+              />
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontFamily: "DMSans-Medium",
+                  color: colors.textSecondary,
+                  marginTop: 8,
+                }}
+              >
+                Attendance not marked yet today
+              </Text>
+            </View>
+          ) : (
+            <>
+              {/* Progress Bar */}
+              <View
+                style={{
+                  height: 8,
+                  backgroundColor: colors.error + "30",
+                  borderRadius: 4,
+                  marginBottom: 16,
+                  overflow: "hidden",
+                }}
+              >
+                <View
+                  style={{
+                    height: "100%",
+                    backgroundColor: colors.success,
+                    borderRadius: 4,
+                    width: `${
+                      data.classAttendance.total > 0
+                        ? (data.classAttendance.present /
+                            data.classAttendance.total) *
+                          100
+                        : 0
+                    }%`,
+                  }}
+                />
+              </View>
+              {/* Stats Row */}
+              <View style={{ flexDirection: "row", gap: 10 }}>
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: colors.success + "15",
+                    padding: 12,
+                    borderRadius: 12,
+                    alignItems: "center",
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 22,
+                      fontFamily: "DMSans-Bold",
+                      color: colors.success,
+                    }}
+                  >
+                    {data.classAttendance.present}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontFamily: "DMSans-Medium",
+                      color: colors.success,
+                    }}
+                  >
+                    Present
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: colors.error + "15",
+                    padding: 12,
+                    borderRadius: 12,
+                    alignItems: "center",
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 22,
+                      fontFamily: "DMSans-Bold",
+                      color: colors.error,
+                    }}
+                  >
+                    {data.classAttendance.absent}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontFamily: "DMSans-Medium",
+                      color: colors.error,
+                    }}
+                  >
+                    Absent
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: "#FF9800" + "15",
+                    padding: 12,
+                    borderRadius: 12,
+                    alignItems: "center",
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 22,
+                      fontFamily: "DMSans-Bold",
+                      color: "#FF9800",
+                    }}
+                  >
+                    {data.classAttendance.late}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontFamily: "DMSans-Medium",
+                      color: "#FF9800",
+                    }}
+                  >
+                    Late
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: colors.primary + "15",
+                    padding: 12,
+                    borderRadius: 12,
+                    alignItems: "center",
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 22,
+                      fontFamily: "DMSans-Bold",
+                      color: colors.primary,
+                    }}
+                  >
+                    {data.classAttendance.total}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontFamily: "DMSans-Medium",
+                      color: colors.primary,
+                    }}
+                  >
+                    Total
+                  </Text>
+                </View>
+              </View>
+            </>
+          )}
+        </View>
+      ) : (
+        !data.overview?.className && (
+          <View
+            style={{
+              backgroundColor: colors.cardBackground,
+              borderRadius: 16,
+              padding: 20,
+              marginBottom: 16,
+              elevation: 2,
+              alignItems: "center",
+            }}
+          >
+            <MaterialIcons
+              name="info-outline"
+              size={32}
+              color={colors.textSecondary}
+            />
+            <Text
+              style={{
+                fontSize: 15,
+                fontFamily: "DMSans-Medium",
+                color: colors.textSecondary,
+                marginTop: 8,
+                textAlign: "center",
+              }}
+            >
+              You are not assigned as a class teacher.{"\n"}Class attendance
+              summary is not available.
+            </Text>
+          </View>
+        )
+      )}
+
+      {/* Stat Cards */}
+      <View
+        style={{ flexDirection: "row", flexWrap: "wrap", marginHorizontal: -6 }}
+      >
+        <StatCard
+          title="Classes Today"
+          value={data.overview?.classesToday || 0}
+          icon="human-male-board"
+          color={colors.primary}
+          onPress={() => router.push("/teacher/timetable")}
+          loading={refreshing}
+        />
+        <StatCard
+          title="My Students"
+          value={data.overview?.myStudents || 0}
+          icon="account-group"
+          color={colors.tertiary}
+          onPress={() => router.push("/teacher/classes")}
+          loading={refreshing}
+        />
+        <StatCard
+          title="Low Attendance"
+          value={data.overview?.lowAttendanceCount || 0}
+          icon="account-alert"
+          color={colors.error}
+          onPress={() =>
+            missingClassId
+              ? router.push({
+                  pathname: "/teacher/class/attendance",
+                  params: { classId: missingClassId },
+                })
+              : router.push("/teacher/classes")
+          }
+          loading={refreshing}
+        />
+        <StatCard
+          title="Total Classes"
+          value={data.overview?.totalClassesTaught || 0}
+          icon="school"
+          color={colors.secondary || colors.primary}
+          onPress={() => router.push("/teacher/classes")}
+          loading={refreshing}
+        />
+      </View>
+
+      {/* Insights Section Header */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 16,
+          marginTop: 28,
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          <View
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              backgroundColor: (colors.primary || "#6750A4") + "1A",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <MaterialIcons
+              name="insights"
+              size={20}
+              color={colors.primary || "#6750A4"}
+            />
+          </View>
+          <View>
+            <Text
+              style={[
+                styles.titleLarge,
+                { marginBottom: 0, fontSize: 19, letterSpacing: 0.1 },
+              ]}
+            >
+              Insights & Analytics
+            </Text>
+            <Text
+              style={{
+                fontSize: 12,
+                fontFamily: "DMSans-Medium",
+                color: colors.textSecondary,
+                marginTop: 2,
+              }}
+            >
+              Class presence trends & academic performance
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      {data.charts?.attendanceTrend &&
+      data.charts.attendanceTrend.data?.length > 0 ? (
+        <TeacherAttendanceTrendCard
+          title="Attendance Trend (7 Days)"
+          subtitle="Daily student presence rate"
+          labels={data.charts.attendanceTrend.labels}
+          data={data.charts.attendanceTrend.data}
+          classId={missingClassId}
+        />
+      ) : (
+        <EmptyState
+          icon="show-chart"
+          title="No Attendance Trend"
+          message="Attendance trend data is not available yet"
+        />
+      )}
+
+      {data.charts?.performance && data.charts.performance.data?.length > 0 ? (
+        <TeacherPerformanceCard
+          title="Subject Performance"
+          subtitle="Average marks scored by subject"
+          labels={data.charts.performance.labels}
+          data={data.charts.performance.data}
+        />
+      ) : (
+        <EmptyState
+          icon="bar-chart"
+          title="No Performance Data"
+          message="Student performance data is not available yet"
+        />
+      )}
+
+      {/* Date Range Picker Modal */}
+      <DateRangePicker
+        visible={showDatePicker}
+        selectedRange={dateRange}
+        onRangeSelect={handleDateRangeChange}
+        onClose={() => setShowDatePicker(false)}
+      />
+    </ScrollView>
+  );
 };
 
 export default TeacherDashboard;

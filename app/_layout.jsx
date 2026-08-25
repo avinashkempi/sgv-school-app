@@ -11,15 +11,22 @@ import { StatusBar } from "expo-status-bar";
 import NetworkStatusProvider from "../components/NetworkStatusProvider";
 import BottomNavigation from "../components/BottomNavigation";
 import ErrorBoundary from "../components/ErrorBoundary";
-import * as Notifications from 'expo-notifications';
+import * as Notifications from "expo-notifications";
 import { NavigationProvider } from "../context/NavigationContext";
 import { NotificationProvider } from "../context/NotificationContext";
 import { AuthProvider, useAuth } from "../context/AuthContext";
-import { AcademicYearProvider, useAcademicYear } from "../context/AcademicYearContext";
+import {
+  AcademicYearProvider,
+  useAcademicYear,
+} from "../context/AcademicYearContext";
 import { LabelsProvider } from "../context/LabelsContext";
 
-import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
-import { queryClient, persister, setGlobalAuthHandler } from '../utils/queryClient';
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import {
+  queryClient,
+  persister,
+  setGlobalAuthHandler,
+} from "../utils/queryClient";
 import DemoBanner from "../components/DemoBanner";
 import useOfflinePrefetch from "../hooks/useOfflinePrefetch";
 import { setupAppStateRefresh } from "../utils/appStateRefresh";
@@ -66,14 +73,14 @@ function Inner() {
   useEffect(() => {
     if (!isReady || initialRoutingDone.current) return;
 
-    const inLoginGroup = segments[0] === 'login';
+    const inLoginGroup = segments[0] === "login";
 
     if (!token && !inLoginGroup) {
       // No token — redirect to login
-      router.replace('/login');
+      router.replace("/login");
     } else if (token && inLoginGroup) {
       // Token exists and on login page -> Redirect to home
-      router.replace('/');
+      router.replace("/");
     } else if (token && !inLoginGroup) {
       // Logged in, sync academic year context
       syncYear();
@@ -88,31 +95,34 @@ function Inner() {
   useEffect(() => {
     if (!initialRoutingDone.current || !isReady) return;
 
-    const inLoginGroup = segments[0] === 'login';
+    const inLoginGroup = segments[0] === "login";
 
     if (!token && !inLoginGroup) {
-      router.replace('/login');
+      router.replace("/login");
     } else if (token && inLoginGroup) {
-      router.replace('/');
+      router.replace("/");
     }
   }, [segments, router, token, isReady]);
 
   // Setup push notification listeners (FCM registration is now handled by AuthContext.login)
   useEffect(() => {
-    if (Platform.OS === 'web') return;
+    if (Platform.OS === "web") return;
 
     let notificationSubscription;
     let responseSubscription;
 
     // Listen for foreground notifications
-    notificationSubscription = Notifications.addNotificationReceivedListener(_notification => {
-      // Foreground notification received
-    });
+    notificationSubscription = Notifications.addNotificationReceivedListener(
+      (_notification) => {
+        // Foreground notification received
+      }
+    );
 
     // Listen for notification taps
-    responseSubscription = Notifications.addNotificationResponseReceivedListener(_response => {
-      // Notification tap handling
-    });
+    responseSubscription =
+      Notifications.addNotificationResponseReceivedListener((_response) => {
+        // Notification tap handling
+      });
 
     return () => {
       notificationSubscription?.remove();
@@ -123,26 +133,38 @@ function Inner() {
   // Check for store app updates on mount
   useEffect(() => {
     try {
-      const { checkAppUpdate } = require('../utils/inAppUpdates');
+      const { checkAppUpdate } = require("../utils/inAppUpdates");
       checkAppUpdate();
     } catch (err) {
-      console.warn('Failed to initialize app update check:', err);
+      console.warn("Failed to initialize app update check:", err);
     }
   }, []);
 
   if (!isReady) {
     return (
-      <SafeAreaView style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }]}>
+      <SafeAreaView
+        style={[
+          styles.safeArea,
+          {
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: colors.background,
+          },
+        ]}
+      >
         <ActivityIndicator size="large" color="#2F6CD4" />
       </SafeAreaView>
     );
   }
 
-  const isLogin = segments[0] === 'login';
+  const isLogin = segments[0] === "login";
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
-      <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: colors.background }]}
+      edges={["top", "left", "right"]}
+    >
+      <StatusBar style={mode === "dark" ? "light" : "dark"} />
       <NetworkStatusProvider>
         <NavigationProvider>
           <NotificationProvider>
@@ -152,10 +174,10 @@ function Inner() {
                 headerShown: false,
                 // Standard edge gesture navigation (like iOS / Instagram)
                 gestureEnabled: true,
-                gestureDirection: 'horizontal',
+                gestureDirection: "horizontal",
                 fullScreenGestureEnabled: false,
                 // Native-driven fast smooth horizontal transitions
-                animation: 'slide_from_right',
+                animation: "slide_from_right",
                 animationDuration: 200,
                 // Freeze off-screen screens to save CPU/GPU cycles
                 freezeOnBlur: true,
@@ -174,16 +196,26 @@ function Inner() {
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     // DMSans - Primary font family
-    'DMSans-Regular': require("../assets/fonts/DMSans-Regular.ttf"),
-    'DMSans-Medium': require("../assets/fonts/DMSans-Medium.ttf"),
-    'DMSans-SemiBold': require("../assets/fonts/DMSans-SemiBold.ttf"),
-    'DMSans-Bold': require("../assets/fonts/DMSans-Bold.ttf"),
+    "DMSans-Regular": require("../assets/fonts/DMSans-Regular.ttf"),
+    "DMSans-Medium": require("../assets/fonts/DMSans-Medium.ttf"),
+    "DMSans-SemiBold": require("../assets/fonts/DMSans-SemiBold.ttf"),
+    "DMSans-Bold": require("../assets/fonts/DMSans-Bold.ttf"),
     // Icon fonts - bundled for offline support
-    ...require('@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialIcons.ttf') && { 'MaterialIcons': require('@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialIcons.ttf') },
-    ...require('@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome.ttf') && { 'FontAwesome': require('@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome.ttf') },
-    ...require('@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf') && { 'Material Design Icons': require('@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf') },
-    ...require('@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Feather.ttf') && { 'Feather': require('@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Feather.ttf') },
-    ...require('@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Ionicons.ttf') && { 'Ionicons': require('@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Ionicons.ttf') },
+    ...(require("@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialIcons.ttf") && {
+      MaterialIcons: require("@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialIcons.ttf"),
+    }),
+    ...(require("@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome.ttf") && {
+      FontAwesome: require("@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome.ttf"),
+    }),
+    ...(require("@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf") && {
+      "Material Design Icons": require("@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf"),
+    }),
+    ...(require("@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Feather.ttf") && {
+      Feather: require("@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Feather.ttf"),
+    }),
+    ...(require("@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Ionicons.ttf") && {
+      Ionicons: require("@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Ionicons.ttf"),
+    }),
   });
 
   useEffect(() => {
@@ -204,7 +236,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <PersistQueryClientProvider
         client={queryClient}
-        persistOptions={{ persister, maxAge: Infinity }}
+        persistOptions={{ persister, maxAge: Infinity, buster: "2.0.1" }}
       >
         <ThemeProvider>
           <ToastProvider>

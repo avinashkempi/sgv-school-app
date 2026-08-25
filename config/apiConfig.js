@@ -2,62 +2,62 @@
 // Keep environment-specific URLs here so the rest of the app doesn't hardcode them.
 
 // Production API base
-const BASE_URL = 'https://sgv-school-backend.onrender.com/api';
+const BASE_URL = "https://sgv-school-backend.onrender.com/api";
 
 // Local development (uncomment to use local server)
 // const BASE_URL = 'http://localhost:10000/api';
 
 const endpoints = {
   auth: {
-    login: '/auth/login',
-    updateProfilePhoto: '/auth/profile-photo',
-    changePassword: '/auth/change-password',
+    login: "/auth/login",
+    updateProfilePhoto: "/auth/profile-photo",
+    changePassword: "/auth/change-password",
   },
   events: {
-    list: '/events',
-    create: '/events',
+    list: "/events",
+    create: "/events",
     getById: (id) => `/events/${id}`,
     update: (id) => `/events/${id}`,
     delete: (id) => `/events/${id}`,
   },
   schoolInfo: {
-    get: '/school-info',
+    get: "/school-info",
   },
   labels: {
-    get: '/labels',
+    get: "/labels",
   },
   users: {
-    list: '/users',
-    create: '/users',
+    list: "/users",
+    create: "/users",
     getById: (id) => `/users/${id}`,
     update: (id) => `/users/${id}`,
     delete: (id) => `/users/${id}`,
   },
   fcm: {
-    register: '/fcm/register',
-    registerPublic: '/fcm/register-public',
-    unregister: '/fcm/unregister',
+    register: "/fcm/register",
+    registerPublic: "/fcm/register-public",
+    unregister: "/fcm/unregister",
   },
   subjects: {
-    list: '/subjects',
-    create: '/subjects',
+    list: "/subjects",
+    create: "/subjects",
     getById: (id) => `/subjects/${id}`,
     update: (id) => `/subjects/${id}`,
     delete: (id) => `/subjects/${id}`,
     usage: (id) => `/subjects/${id}/usage`,
   },
   posts: {
-    list: '/posts',
-    create: '/posts',
+    list: "/posts",
+    create: "/posts",
     getById: (id) => `/posts/${id}`,
     update: (id) => `/posts/${id}`,
     delete: (id) => `/posts/${id}`,
     togglePin: (id) => `/posts/${id}/pin`,
   },
   vibes: {
-    list: '/vibes',
+    list: "/vibes",
     getById: (id) => `/vibes/${id}`,
-    create: '/vibes',
+    create: "/vibes",
     update: (id) => `/vibes/${id}`,
     delete: (id) => `/vibes/${id}`,
     toggleLike: (id) => `/vibes/${id}/like`,
@@ -66,14 +66,14 @@ const endpoints = {
     addComment: (id) => `/vibes/${id}/comments`,
     deleteComment: (commentId) => `/vibes/comments/${commentId}`,
     toggleBookmark: (id) => `/vibes/${id}/bookmark`,
-    myVibes: '/vibes/user/my-vibes',
-    saved: '/vibes/user/saved',
+    myVibes: "/vibes/user/my-vibes",
+    saved: "/vibes/user/saved",
     userVibes: (userId) => `/vibes/user/${userId}`,
-    highlights: '/vibes/highlights',
-    spotlight: '/vibes/spotlight',
-    recordViews: '/vibes/views',
+    highlights: "/vibes/highlights",
+    spotlight: "/vibes/spotlight",
+    recordViews: "/vibes/views",
     recordView: (id) => `/vibes/${id}/view`,
-    adminPending: '/vibes/admin/pending',
+    adminPending: "/vibes/admin/pending",
     adminReview: (id) => `/vibes/admin/${id}/review`,
     adminPin: (id) => `/vibes/admin/${id}/pin`,
     adminSpotlight: (id) => `/vibes/admin/${id}/spotlight`,

@@ -1,10 +1,10 @@
-import * as ImagePicker from 'expo-image-picker';
-import * as ImageManipulator from 'expo-image-manipulator';
-import { Alert, Platform } from 'react-native';
+import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
+import { Alert, Platform } from "react-native";
 
 // Cloudinary configuration
-const CLOUD_NAME = 'atnkf0cu';
-const UPLOAD_PRESET = 'sgv_school_uploads';
+const CLOUD_NAME = "atnkf0cu";
+const UPLOAD_PRESET = "sgv_school_uploads";
 const CLOUDINARY_IMAGE_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
 const CLOUDINARY_VIDEO_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`;
 
@@ -12,12 +12,12 @@ const CLOUDINARY_VIDEO_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/vide
  * Cloudinary Organized Folder Paths
  */
 export const CLOUDINARY_FOLDERS = {
-  AVATARS: 'sgv_school/avatars',
-  POSTS: 'sgv_school/posts',
-  VIBES_IMAGES: 'sgv_school/vibes/images',
-  VIBES_VIDEOS: 'sgv_school/vibes/videos',
-  BRANDING: 'sgv_school/branding',
-  DOCUMENTS: 'sgv_school/documents',
+  AVATARS: "sgv_school/avatars",
+  POSTS: "sgv_school/posts",
+  VIBES_IMAGES: "sgv_school/vibes/images",
+  VIBES_VIDEOS: "sgv_school/vibes/videos",
+  BRANDING: "sgv_school/branding",
+  DOCUMENTS: "sgv_school/documents",
 };
 
 // Limits
@@ -34,9 +34,17 @@ const MAX_VIDEO_DURATION_SEC = 30; // Max 30 seconds per video
  */
 export const isVideoAsset = (asset) => {
   if (!asset) return false;
-  if (typeof asset === 'object' && asset.type === 'video') return true;
-  if (typeof asset === 'object' && asset.mimeType && asset.mimeType.startsWith('video/')) return true;
-  const uri = typeof asset === 'string' ? asset : (asset.uri || asset.url || asset.fileName || asset.name || '');
+  if (typeof asset === "object" && asset.type === "video") return true;
+  if (
+    typeof asset === "object" &&
+    asset.mimeType &&
+    asset.mimeType.startsWith("video/")
+  )
+    return true;
+  const uri =
+    typeof asset === "string"
+      ? asset
+      : asset.uri || asset.url || asset.fileName || asset.name || "";
   return /\.(mov|mp4|m4v|webm|avi|3gp|mkv|flv|wmv|qt)(\?.*)?$/i.test(uri);
 };
 
@@ -45,13 +53,16 @@ export const isVideoAsset = (asset) => {
  * Returns true if granted, false otherwise.
  */
 const requestPermissions = async (source) => {
-  if (Platform.OS === 'web') return true;
+  if (Platform.OS === "web") return true;
 
-  if (source === 'camera') {
+  if (source === "camera") {
     try {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission Required', 'Camera permission is needed to take photos. Please enable it in Settings.');
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Required",
+          "Camera permission is needed to take photos. Please enable it in Settings."
+        );
         return false;
       }
       return true;
@@ -69,12 +80,12 @@ const requestPermissions = async (source) => {
  * @param {'gallery'|'camera'} source
  * @returns {Promise<{uri: string, width: number, height: number}|null>}
  */
-export const pickImage = async (source = 'gallery') => {
+export const pickImage = async (source = "gallery") => {
   const hasPermission = await requestPermissions(source);
   if (!hasPermission) return null;
 
   const options = {
-    mediaTypes: ['images'],
+    mediaTypes: ["images"],
     allowsEditing: true,
     aspect: [16, 9],
     quality: 0.85,
@@ -82,14 +93,14 @@ export const pickImage = async (source = 'gallery') => {
 
   let result;
   try {
-    if (source === 'camera' && Platform.OS !== 'web') {
+    if (source === "camera" && Platform.OS !== "web") {
       result = await ImagePicker.launchCameraAsync(options);
     } else {
       result = await ImagePicker.launchImageLibraryAsync(options);
     }
   } catch (err) {
     try {
-      if (source === 'camera' && Platform.OS !== 'web') {
+      if (source === "camera" && Platform.OS !== "web") {
         result = await ImagePicker.launchCameraAsync({ quality: 0.85 });
       } else {
         result = await ImagePicker.launchImageLibraryAsync({ quality: 0.85 });
@@ -99,7 +110,12 @@ export const pickImage = async (source = 'gallery') => {
     }
   }
 
-  if (!result || result.canceled || !result.assets || result.assets.length === 0) {
+  if (
+    !result ||
+    result.canceled ||
+    !result.assets ||
+    result.assets.length === 0
+  ) {
     return null;
   }
 
@@ -113,8 +129,8 @@ export const pickImage = async (source = 'gallery') => {
  * @param {'gallery'|'camera'} source
  * @returns {Promise<{uri: string, width: number, height: number}|null>}
  */
-export const pickProfilePhoto = async (source = 'gallery') => {
-  const picked = await pickVibeMedia(source, 'images', 1);
+export const pickProfilePhoto = async (source = "gallery") => {
+  const picked = await pickVibeMedia(source, "images", 1);
   if (!picked || picked.length === 0) return null;
   return picked[0];
 };
@@ -129,25 +145,29 @@ export const pickProfilePhoto = async (source = 'gallery') => {
  * @param {number} [remainingSlots=5]
  * @returns {Promise<Array<{type: 'image'|'video', uri: string, width: number, height: number, aspectRatio: number, duration?: number}>>}
  */
-export const pickVibeMedia = async (source = 'gallery', mediaType = 'all', remainingSlots = 5) => {
+export const pickVibeMedia = async (
+  source = "gallery",
+  mediaType = "all",
+  remainingSlots = 5
+) => {
   const hasPermission = await requestPermissions(source);
   if (!hasPermission) return [];
 
-  let expoMediaTypes = ['images', 'videos'];
-  if (mediaType === 'images') expoMediaTypes = ['images'];
-  if (mediaType === 'videos') expoMediaTypes = ['videos'];
+  let expoMediaTypes = ["images", "videos"];
+  if (mediaType === "images") expoMediaTypes = ["images"];
+  if (mediaType === "videos") expoMediaTypes = ["videos"];
 
   const options = {
     mediaTypes: expoMediaTypes,
     allowsEditing: false,
-    allowsMultipleSelection: mediaType !== 'videos' && remainingSlots > 1,
+    allowsMultipleSelection: mediaType !== "videos" && remainingSlots > 1,
     quality: 0.85,
     videoMaxDuration: MAX_VIDEO_DURATION_SEC,
-    selectionLimit: mediaType === 'videos' ? 1 : Math.min(remainingSlots, 5),
+    selectionLimit: mediaType === "videos" ? 1 : Math.min(remainingSlots, 5),
   };
 
   let result;
-  if (source === 'camera' && Platform.OS !== 'web') {
+  if (source === "camera" && Platform.OS !== "web") {
     result = await ImagePicker.launchCameraAsync({
       mediaTypes: expoMediaTypes,
       allowsEditing: false,
@@ -163,18 +183,20 @@ export const pickVibeMedia = async (source = 'gallery', mediaType = 'all', remai
   }
 
   const assets = result.assets;
-  const isVideoSelected = assets.some(a => isVideoAsset(a));
+  const isVideoSelected = assets.some((a) => isVideoAsset(a));
 
   if (isVideoSelected) {
     // Only 1 video is permitted per vibe
-    const videoAsset = assets.find(a => isVideoAsset(a)) || assets[0];
+    const videoAsset = assets.find((a) => isVideoAsset(a)) || assets[0];
     const durationSec = videoAsset.duration
-      ? (videoAsset.duration > 500 ? videoAsset.duration / 1000 : videoAsset.duration)
+      ? videoAsset.duration > 500
+        ? videoAsset.duration / 1000
+        : videoAsset.duration
       : 0;
 
     if (durationSec > MAX_VIDEO_DURATION_SEC + 1) {
       Alert.alert(
-        'Video Too Long',
+        "Video Too Long",
         `Videos on Vibes are limited to ${MAX_VIDEO_DURATION_SEC} seconds. Please choose a shorter clip.`
       );
       return [];
@@ -182,32 +204,45 @@ export const pickVibeMedia = async (source = 'gallery', mediaType = 'all', remai
 
     const width = videoAsset.width || 720;
     const height = videoAsset.height || 1280;
-    const aspectRatio = width && height ? Number((width / height).toFixed(3)) : 0.562;
+    const aspectRatio =
+      width && height ? Number((width / height).toFixed(3)) : 0.562;
 
-    return [{
-      type: 'video',
-      uri: videoAsset.uri,
-      width,
-      height,
-      aspectRatio,
-      duration: Math.round(durationSec),
-    }];
+    return [
+      {
+        type: "video",
+        uri: videoAsset.uri,
+        width,
+        height,
+        aspectRatio,
+        duration: Math.round(durationSec),
+      },
+    ];
   }
 
   // Up to 5 photos
   const selectedPhotos = assets.slice(0, remainingSlots);
-  return selectedPhotos.map(asset => ({
-    type: isVideoAsset(asset) ? 'video' : 'image',
+  return selectedPhotos.map((asset) => ({
+    type: isVideoAsset(asset) ? "video" : "image",
     uri: asset.uri,
     width: asset.width || 1080,
     height: asset.height || 1080,
-    aspectRatio: asset.width && asset.height ? Number((asset.width / asset.height).toFixed(3)) : 1,
+    aspectRatio:
+      asset.width && asset.height
+        ? Number((asset.width / asset.height).toFixed(3))
+        : 1,
   }));
 };
 
 // Backward-compatible alias
-export const pickVibeImages = (source = 'gallery', allowsMultipleSelection = false) => {
-  return pickVibeMedia(source, allowsMultipleSelection ? 'images' : 'all', allowsMultipleSelection ? 5 : 1);
+export const pickVibeImages = (
+  source = "gallery",
+  allowsMultipleSelection = false
+) => {
+  return pickVibeMedia(
+    source,
+    allowsMultipleSelection ? "images" : "all",
+    allowsMultipleSelection ? 5 : 1
+  );
 };
 
 /**
@@ -231,7 +266,7 @@ export const compressImage = async (uri) => {
     );
     return manipulated.uri;
   } catch (error) {
-    console.warn('Image compression failed, using original:', error);
+    console.warn("Image compression failed, using original:", error);
     return uri; // Fall back to original if compression fails
   }
 };
@@ -253,7 +288,7 @@ export const compressAvatar = async (uri) => {
     );
     return manipulated.uri;
   } catch (error) {
-    console.warn('Avatar compression failed, using original:', error);
+    console.warn("Avatar compression failed, using original:", error);
     return uri;
   }
 };
@@ -294,53 +329,57 @@ export const uploadToCloudinary = async (uri, onProgress, options = {}) => {
   // Validate file size before upload
   const fileSize = await getFileSize(uri);
   if (fileSize > MAX_FILE_SIZE_BYTES) {
-    throw new Error(`Image is too large (${(fileSize / 1024 / 1024).toFixed(1)}MB). Maximum size is 10MB.`);
+    throw new Error(
+      `Image is too large (${(fileSize / 1024 / 1024).toFixed(
+        1
+      )}MB). Maximum size is 10MB.`
+    );
   }
 
   const folder = options?.folder || CLOUDINARY_FOLDERS.POSTS;
-  const prefix = options?.fileNamePrefix || 'upload';
+  const prefix = options?.fileNamePrefix || "upload";
   const fileName = `${prefix}_${Date.now()}.jpg`;
 
   const formData = new FormData();
 
-  if (Platform.OS === 'web') {
+  if (Platform.OS === "web") {
     // In web browsers, fetch the local blob from the blob:/data: URI and append as a real Blob
     try {
       const response = await fetch(uri);
       const blob = await response.blob();
-      formData.append('file', blob, fileName);
+      formData.append("file", blob, fileName);
     } catch {
       // If fetching the blob fails, append URI string directly
-      formData.append('file', uri);
+      formData.append("file", uri);
     }
   } else {
     // React Native mobile format
-    formData.append('file', {
-      uri: Platform.OS === 'ios' ? uri.replace('file://', '') : uri,
-      type: 'image/jpeg',
+    formData.append("file", {
+      uri: Platform.OS === "ios" ? uri.replace("file://", "") : uri,
+      type: "image/jpeg",
       name: fileName,
     });
   }
 
-  formData.append('upload_preset', UPLOAD_PRESET);
-  formData.append('cloud_name', CLOUD_NAME);
+  formData.append("upload_preset", UPLOAD_PRESET);
+  formData.append("cloud_name", CLOUD_NAME);
   if (folder) {
-    formData.append('folder', folder);
-    formData.append('asset_folder', folder);
+    formData.append("folder", folder);
+    formData.append("asset_folder", folder);
   }
 
   // Use XMLHttpRequest for progress tracking
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
 
-    xhr.upload.addEventListener('progress', (event) => {
+    xhr.upload.addEventListener("progress", (event) => {
       if (event.lengthComputable && onProgress) {
         const percent = Math.round((event.loaded / event.total) * 100);
         onProgress(percent);
       }
     });
 
-    xhr.addEventListener('load', () => {
+    xhr.addEventListener("load", () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
           const response = JSON.parse(xhr.responseText);
@@ -349,10 +388,10 @@ export const uploadToCloudinary = async (uri, onProgress, options = {}) => {
             publicId: response.public_id,
           });
         } catch (e) {
-          reject(new Error('Failed to parse Cloudinary response'));
+          reject(new Error("Failed to parse Cloudinary response"));
         }
       } else {
-        let errorMsg = 'Upload failed';
+        let errorMsg = "Upload failed";
         try {
           const errResponse = JSON.parse(xhr.responseText);
           errorMsg = errResponse.error?.message || errorMsg;
@@ -363,16 +402,20 @@ export const uploadToCloudinary = async (uri, onProgress, options = {}) => {
       }
     });
 
-    xhr.addEventListener('error', () => {
-      reject(new Error('Network error during upload. Please check your internet connection.'));
+    xhr.addEventListener("error", () => {
+      reject(
+        new Error(
+          "Network error during upload. Please check your internet connection."
+        )
+      );
     });
 
-    xhr.addEventListener('timeout', () => {
-      reject(new Error('Upload timed out. Please try again.'));
+    xhr.addEventListener("timeout", () => {
+      reject(new Error("Upload timed out. Please try again."));
     });
 
     xhr.timeout = 60000; // 60 second timeout
-    xhr.open('POST', CLOUDINARY_IMAGE_URL);
+    xhr.open("POST", CLOUDINARY_IMAGE_URL);
     xhr.send(formData);
   });
 };
@@ -386,7 +429,11 @@ export const uploadToCloudinary = async (uri, onProgress, options = {}) => {
  * @param {Object} [options]
  * @returns {Promise<{url: string, publicId: string, localUri: string}|null>} null if user cancelled
  */
-export const pickAndUploadImage = async (source = 'gallery', onProgress, options = {}) => {
+export const pickAndUploadImage = async (
+  source = "gallery",
+  onProgress,
+  options = {}
+) => {
   const picked = await pickImage(source);
   if (!picked) return null;
 
@@ -413,7 +460,7 @@ export const pickAndUploadImage = async (source = 'gallery', onProgress, options
 export const uploadProfilePhoto = async (uri, onProgress) => {
   return uploadToCloudinary(uri, onProgress, {
     folder: CLOUDINARY_FOLDERS.AVATARS,
-    fileNamePrefix: 'avatar',
+    fileNamePrefix: "avatar",
   });
 };
 
@@ -424,7 +471,10 @@ export const uploadProfilePhoto = async (uri, onProgress) => {
  * @param {(progress: number) => void} [onProgress]
  * @returns {Promise<{url: string, publicId: string, localUri: string}|null>}
  */
-export const pickAndUploadProfilePhoto = async (source = 'gallery', onProgress) => {
+export const pickAndUploadProfilePhoto = async (
+  source = "gallery",
+  onProgress
+) => {
   const picked = await pickProfilePhoto(source);
   if (!picked) return null;
 
@@ -452,56 +502,68 @@ export const pickAndUploadProfilePhoto = async (source = 'gallery', onProgress) 
  * @param {string} [options.fileNamePrefix] - Prefix for file naming
  * @returns {Promise<{url: string, publicId: string, thumbnailUrl: string, duration: number, width: number, height: number}>}
  */
-export const uploadVideoToCloudinary = async (uri, onProgress, options = {}) => {
+export const uploadVideoToCloudinary = async (
+  uri,
+  onProgress,
+  options = {}
+) => {
   const fileSize = await getFileSize(uri);
   if (fileSize > MAX_VIDEO_SIZE_BYTES) {
-    throw new Error(`Video is too large (${(fileSize / 1024 / 1024).toFixed(1)}MB). Maximum size is 30MB.`);
+    throw new Error(
+      `Video is too large (${(fileSize / 1024 / 1024).toFixed(
+        1
+      )}MB). Maximum size is 30MB.`
+    );
   }
 
   const folder = options?.folder || CLOUDINARY_FOLDERS.VIBES_VIDEOS;
-  const prefix = options?.fileNamePrefix || 'vibe_video';
+  const prefix = options?.fileNamePrefix || "vibe_video";
 
   const formData = new FormData();
-  const uriStr = typeof uri === 'string' ? uri : (uri?.uri || '');
-  const ext = uriStr.split('.').pop()?.split('?')[0]?.toLowerCase() || 'mov';
-  const isMov = ext === 'mov' || ext === 'qt';
-  const mimeType = isMov ? 'video/quicktime' : (ext === 'webm' ? 'video/webm' : 'video/mp4');
+  const uriStr = typeof uri === "string" ? uri : uri?.uri || "";
+  const ext = uriStr.split(".").pop()?.split("?")[0]?.toLowerCase() || "mov";
+  const isMov = ext === "mov" || ext === "qt";
+  const mimeType = isMov
+    ? "video/quicktime"
+    : ext === "webm"
+    ? "video/webm"
+    : "video/mp4";
   const filename = `${prefix}_${Date.now()}.${ext}`;
 
-  if (Platform.OS === 'web') {
+  if (Platform.OS === "web") {
     try {
       const response = await fetch(uriStr);
       const blob = await response.blob();
-      formData.append('file', blob, filename);
+      formData.append("file", blob, filename);
     } catch {
-      formData.append('file', uriStr);
+      formData.append("file", uriStr);
     }
   } else {
-    formData.append('file', {
-      uri: Platform.OS === 'ios' ? uriStr.replace('file://', '') : uriStr,
+    formData.append("file", {
+      uri: Platform.OS === "ios" ? uriStr.replace("file://", "") : uriStr,
       type: mimeType,
       name: filename,
     });
   }
 
-  formData.append('upload_preset', UPLOAD_PRESET);
-  formData.append('cloud_name', CLOUD_NAME);
+  formData.append("upload_preset", UPLOAD_PRESET);
+  formData.append("cloud_name", CLOUD_NAME);
   if (folder) {
-    formData.append('folder', folder);
-    formData.append('asset_folder', folder);
+    formData.append("folder", folder);
+    formData.append("asset_folder", folder);
   }
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
 
-    xhr.upload.addEventListener('progress', (event) => {
+    xhr.upload.addEventListener("progress", (event) => {
       if (event.lengthComputable && onProgress) {
         const percent = Math.round((event.loaded / event.total) * 100);
         onProgress(percent);
       }
     });
 
-    xhr.addEventListener('load', () => {
+    xhr.addEventListener("load", () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
           const response = JSON.parse(xhr.responseText);
@@ -518,10 +580,10 @@ export const uploadVideoToCloudinary = async (uri, onProgress, options = {}) => 
             height: response.height || 1280,
           });
         } catch {
-          reject(new Error('Failed to parse Cloudinary video response'));
+          reject(new Error("Failed to parse Cloudinary video response"));
         }
       } else {
-        let errorMsg = 'Video upload failed';
+        let errorMsg = "Video upload failed";
         try {
           const errResponse = JSON.parse(xhr.responseText);
           errorMsg = errResponse.error?.message || errorMsg;
@@ -532,16 +594,20 @@ export const uploadVideoToCloudinary = async (uri, onProgress, options = {}) => 
       }
     });
 
-    xhr.addEventListener('error', () => {
-      reject(new Error('Network error during video upload. Please check your internet connection.'));
+    xhr.addEventListener("error", () => {
+      reject(
+        new Error(
+          "Network error during video upload. Please check your internet connection."
+        )
+      );
     });
 
-    xhr.addEventListener('timeout', () => {
-      reject(new Error('Video upload timed out. Please try again.'));
+    xhr.addEventListener("timeout", () => {
+      reject(new Error("Video upload timed out. Please try again."));
     });
 
     xhr.timeout = 120000; // 120 second timeout for video
-    xhr.open('POST', CLOUDINARY_VIDEO_URL);
+    xhr.open("POST", CLOUDINARY_VIDEO_URL);
     xhr.send(formData);
   });
 };
@@ -556,14 +622,14 @@ export const uploadVideoToCloudinary = async (uri, onProgress, options = {}) => 
  * @returns {string} Optimized streaming URL
  */
 export const getOptimizedVideoUrl = (url, { isSlow = false } = {}) => {
-  if (!url || !url.includes('cloudinary.com')) return url;
-  if (url.includes('/upload/w_') || url.includes('/upload/q_')) return url;
+  if (!url || !url.includes("cloudinary.com")) return url;
+  if (url.includes("/upload/w_") || url.includes("/upload/q_")) return url;
 
   const targetWidth = isSlow ? 480 : 720;
-  const targetQuality = isSlow ? 'eco' : 'auto';
+  const targetQuality = isSlow ? "eco" : "auto";
 
   return url.replace(
-    '/upload/',
+    "/upload/",
     `/upload/w_${targetWidth},q_${targetQuality},f_auto,vc_auto,c_limit/`
   );
 };
@@ -576,43 +642,82 @@ export const getOptimizedVideoUrl = (url, { isSlow = false } = {}) => {
  * @returns {string} Tiny blurred image URL
  */
 export const getBlurPlaceholderUrl = (url) => {
-  if (!url || typeof url !== 'string') return '';
-  if (!url.includes('cloudinary.com')) return url;
+  if (!url || typeof url !== "string") return "";
+  if (!url.includes("cloudinary.com")) return url;
 
   return url.replace(
-    '/upload/',
-    '/upload/w_32,e_blur:600,q_10,f_auto,c_limit/'
+    "/upload/",
+    "/upload/w_32,e_blur:600,q_10,f_auto,c_limit/"
   );
 };
 
 /**
- * Get dynamic video poster thumbnail from a video URL or public ID.
+ * Check if a URL represents a video asset
+ */
+export const isVideoUrl = (url) => {
+  if (!url || typeof url !== "string") return false;
+  return (
+    url.includes("/video/upload/") ||
+    /\.(mp4|mov|webm|m4v|avi|3gp|mkv|flv|wmv|qt)(\?.*)?$/i.test(url)
+  );
+};
+
+/**
+ * Generate a high-quality JPEG poster frame from a Cloudinary video URL.
+ * Cloudinary allows generating JPEG posters from video files at start offset (so_0).
  *
  * @param {string} videoUrl - Cloudinary video URL
- * @param {string} [thumbnailUrl] - Precomputed thumbnail URL if available
+ * @param {string|object} [optionsOrThumbnail] - Precomputed thumbnail URL OR options object
  * @returns {string} Poster JPEG image URL
  */
-export const getVideoPosterUrl = (videoUrl, thumbnailUrl) => {
-  if (thumbnailUrl && thumbnailUrl.trim()) return thumbnailUrl;
-  if (!videoUrl || !videoUrl.includes('cloudinary.com')) return videoUrl;
+export const getVideoPosterUrl = (
+  videoUrl,
+  optionsOrThumbnail = {}
+) => {
+  if (typeof optionsOrThumbnail === "string" && optionsOrThumbnail.trim()) {
+    return optionsOrThumbnail;
+  }
 
-  // Derive poster by inserting so_0 (first frame) and replacing extension with .jpg
-  return videoUrl
-    .replace('/upload/', '/upload/so_0,w_720,q_auto,f_auto,c_limit/')
-    .replace(/\.(mp4|mov|avi|webm|mkv)$/i, '.jpg');
+  const options =
+    typeof optionsOrThumbnail === "object" && optionsOrThumbnail !== null
+      ? optionsOrThumbnail
+      : {};
+  const { width = 1080, height = 600, mode = "fill", timeOffset = "so_0" } = options;
+
+  if (!videoUrl || typeof videoUrl !== "string") return "";
+  if (!videoUrl.includes("cloudinary.com")) return videoUrl;
+
+  // Replace video file extension with .jpg
+  let posterUrl = videoUrl.replace(
+    /\.(mp4|mov|webm|m4v|avi|3gp|mkv|flv|wmv|qt)(\?.*)?$/i,
+    ".jpg"
+  );
+
+  const crop = mode === "fill" ? "c_fill,g_auto" : "c_limit";
+  const transform = `${timeOffset},w_${width}${height ? `,h_${height}` : ""},${crop},q_auto,f_auto`;
+
+  if (hasCloudinaryTransform(posterUrl)) {
+    return posterUrl;
+  }
+
+  return posterUrl.replace("/upload/", `/upload/${transform}/`);
 };
 
 /**
  * Helper to check if a Cloudinary URL already contains transformation segments.
  */
 export const hasCloudinaryTransform = (url) => {
-  if (!url || typeof url !== 'string') return false;
-  return /\/upload\/([a-z0-9_]+:[a-z0-9_]+|[a-z0-9_]+_[a-z0-9_]+|\w+\/)/i.test(url) ||
-    url.includes('/upload/w_') ||
-    url.includes('/upload/c_') ||
-    url.includes('/upload/q_') ||
-    url.includes('/upload/e_blur') ||
-    url.includes('/upload/so_');
+  if (!url || typeof url !== "string") return false;
+  return (
+    /\/upload\/([a-z0-9_]+:[a-z0-9_]+|[a-z0-9_]+_[a-z0-9_]+|\w+\/)/i.test(
+      url
+    ) ||
+    url.includes("/upload/w_") ||
+    url.includes("/upload/c_") ||
+    url.includes("/upload/q_") ||
+    url.includes("/upload/e_blur") ||
+    url.includes("/upload/so_")
+  );
 };
 
 /**
@@ -626,9 +731,12 @@ export const hasCloudinaryTransform = (url) => {
  * @param {boolean} [options.isSlow=false] - Whether network is slow
  * @returns {string} Transformed URL
  */
-export const getOptimizedCloudinaryUrl = (url, { width = 800, quality = 'auto', isSlow = false } = {}) => {
-  if (!url || typeof url !== 'string') return url || '';
-  if (!url.includes('cloudinary.com')) return url;
+export const getOptimizedCloudinaryUrl = (
+  url,
+  { width = 800, quality = "auto", isSlow = false } = {}
+) => {
+  if (!url || typeof url !== "string") return url || "";
+  if (!url.includes("cloudinary.com")) return url;
 
   // If already transformed, don't duplicate
   if (hasCloudinaryTransform(url)) {
@@ -636,10 +744,10 @@ export const getOptimizedCloudinaryUrl = (url, { width = 800, quality = 'auto', 
   }
 
   const effectiveWidth = isSlow ? Math.min(width, 720) : width;
-  const effectiveQuality = isSlow ? 'eco' : quality;
+  const effectiveQuality = isSlow ? "eco" : quality;
 
   return url.replace(
-    '/upload/',
+    "/upload/",
     `/upload/w_${effectiveWidth},q_${effectiveQuality},f_auto,c_limit/`
   );
 };
@@ -652,12 +760,12 @@ export const getOptimizedCloudinaryUrl = (url, { width = 800, quality = 'auto', 
  * @returns {string} Transformed avatar URL
  */
 export const getAvatarUrl = (url, size = 200) => {
-  if (!url || typeof url !== 'string') return url || '';
-  if (!url.includes('cloudinary.com')) return url;
+  if (!url || typeof url !== "string") return url || "";
+  if (!url.includes("cloudinary.com")) return url;
   if (hasCloudinaryTransform(url)) return url;
 
   return url.replace(
-    '/upload/',
+    "/upload/",
     `/upload/w_${size},h_${size},c_fill,g_face,q_auto,f_auto/`
   );
 };
@@ -666,27 +774,33 @@ export const getAvatarUrl = (url, size = 200) => {
  * Optimized circular story preview thumbnail (200x200 smart face/auto crop)
  */
 export const getStoryThumbnailUrl = (url) => {
-  if (!url || typeof url !== 'string') return url || '';
-  if (!url.includes('cloudinary.com')) return url;
+  if (!url || typeof url !== "string") return url || "";
+  if (isVideoUrl(url)) {
+    return getVideoPosterUrl(url, { width: 200, height: 200, mode: "fill" });
+  }
+  if (!url.includes("cloudinary.com")) return url;
   if (hasCloudinaryTransform(url)) return url;
 
   return url.replace(
-    '/upload/',
-    '/upload/w_200,h_200,c_fill,g_auto,q_auto,f_auto/'
+    "/upload/",
+    "/upload/w_200,h_200,c_fill,g_auto,q_auto,f_auto/"
   );
 };
 
 /**
- * Optimized 1080x600 Hero Spotlight banner
+ * Optimized 1080x600 Hero Spotlight banner (supports images & video posters)
  */
 export const getHeroBannerUrl = (url) => {
-  if (!url || typeof url !== 'string') return url || '';
-  if (!url.includes('cloudinary.com')) return url;
+  if (!url || typeof url !== "string") return url || "";
+  if (isVideoUrl(url)) {
+    return getVideoPosterUrl(url, { width: 1080, height: 600, mode: "fill" });
+  }
+  if (!url.includes("cloudinary.com")) return url;
   if (hasCloudinaryTransform(url)) return url;
 
   return url.replace(
-    '/upload/',
-    '/upload/w_1080,h_600,c_fill,g_auto,q_auto,f_auto/'
+    "/upload/",
+    "/upload/w_1080,h_600,c_fill,g_auto,q_auto,f_auto/"
   );
 };
 
@@ -694,13 +808,16 @@ export const getHeroBannerUrl = (url) => {
  * Optimized 360x360 Square Grid thumbnail (for Profile / Gallery)
  */
 export const getGridThumbnailUrl = (url) => {
-  if (!url || typeof url !== 'string') return url || '';
-  if (!url.includes('cloudinary.com')) return url;
+  if (!url || typeof url !== "string") return url || "";
+  if (isVideoUrl(url)) {
+    return getVideoPosterUrl(url, { width: 360, height: 360, mode: "fill" });
+  }
+  if (!url.includes("cloudinary.com")) return url;
   if (hasCloudinaryTransform(url)) return url;
 
   return url.replace(
-    '/upload/',
-    '/upload/w_360,h_360,c_fill,g_auto,q_auto,f_auto/'
+    "/upload/",
+    "/upload/w_360,h_360,c_fill,g_auto,q_auto,f_auto/"
   );
 };
 
@@ -708,16 +825,59 @@ export const getGridThumbnailUrl = (url) => {
  * Optimized Feed Image URL (max 1080px wide with auto quality and format)
  */
 export const getFeedImageUrl = (url, { isSlow = false } = {}) => {
-  if (!url || typeof url !== 'string') return url || '';
-  if (!url.includes('cloudinary.com')) return url;
+  if (!url || typeof url !== "string") return url || "";
+  if (isVideoUrl(url)) {
+    return getVideoPosterUrl(url, {
+      width: isSlow ? 720 : 1080,
+      mode: "limit",
+    });
+  }
+  if (!url.includes("cloudinary.com")) return url;
   if (hasCloudinaryTransform(url)) return url;
 
   const targetWidth = isSlow ? 720 : 1080;
-  const targetQuality = isSlow ? 'eco' : 'auto';
+  const targetQuality = isSlow ? "eco" : "auto";
 
   return url.replace(
-    '/upload/',
+    "/upload/",
     `/upload/w_${targetWidth},q_${targetQuality},f_auto,c_limit/`
   );
+};
+
+/**
+ * Universal Media Thumbnail Resolver for Vibes cards, stories, and spotlights.
+ * Correctly prioritizes thumbnailUrl and converts videos to posters.
+ */
+export const resolveMediaThumbnail = (mediaItem, targetType = "hero", options = {}) => {
+  if (!mediaItem) return "";
+
+  const isObj = typeof mediaItem === "object";
+  const directThumbnail = isObj ? mediaItem.thumbnailUrl : null;
+  const rawUrl = isObj ? mediaItem.url : mediaItem;
+  const isVideo = isObj ? mediaItem.type === "video" || isVideoUrl(rawUrl) : isVideoUrl(rawUrl);
+
+  // If a pre-generated thumbnail URL is present and not a video stream, optimize that
+  if (directThumbnail && !isVideoUrl(directThumbnail)) {
+    if (targetType === "story") return getStoryThumbnailUrl(directThumbnail);
+    if (targetType === "grid") return getGridThumbnailUrl(directThumbnail);
+    return getHeroBannerUrl(directThumbnail);
+  }
+
+  // If it's a video, generate video poster
+  if (isVideo) {
+    if (targetType === "story") {
+      return getVideoPosterUrl(rawUrl, { width: 200, height: 200, mode: "fill", ...options });
+    }
+    if (targetType === "grid") {
+      return getVideoPosterUrl(rawUrl, { width: 360, height: 360, mode: "fill", ...options });
+    }
+    return getVideoPosterUrl(rawUrl, { width: 1080, height: 600, mode: "fill", ...options });
+  }
+
+  // Normal image URL
+  if (targetType === "story") return getStoryThumbnailUrl(rawUrl);
+  if (targetType === "grid") return getGridThumbnailUrl(rawUrl);
+  if (targetType === "feed") return getFeedImageUrl(rawUrl, options);
+  return getHeroBannerUrl(rawUrl);
 };
 

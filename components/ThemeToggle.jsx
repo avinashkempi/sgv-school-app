@@ -59,11 +59,7 @@ export default function ThemeToggle({ size = 20 }) {
       >
         <Animated.View style={{ opacity: fade, transform: [{ rotate: spin }] }}>
           {mode === "dark" ? (
-            <MaterialIcons
-              name="wb-sunny"
-              size={size}
-              color={colors.primary}
-            />
+            <MaterialIcons name="wb-sunny" size={size} color={colors.primary} />
           ) : (
             <MaterialIcons
               name="nightlight-round"

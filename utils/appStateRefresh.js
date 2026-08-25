@@ -8,8 +8,8 @@
  *
  * Usage: call `setupAppStateRefresh()` once in _layout.jsx
  */
-import { AppState, Platform } from 'react-native';
-import { focusManager } from '@tanstack/react-query';
+import { AppState, Platform } from "react-native";
+import { focusManager } from "@tanstack/react-query";
 
 // Minimum time (ms) the app must be in the background before we
 // trigger a refetch on resume. Prevents battery drain from quick switches.
@@ -25,9 +25,9 @@ let appStateSubscription = null;
  *   React Query the app is "focused" to trigger stale refetches
  */
 function handleAppStateChange(nextAppState) {
-  if (nextAppState === 'background' || nextAppState === 'inactive') {
+  if (nextAppState === "background" || nextAppState === "inactive") {
     lastBackgroundTimestamp = Date.now();
-  } else if (nextAppState === 'active') {
+  } else if (nextAppState === "active") {
     const wasInBackground = lastBackgroundTimestamp !== null;
     const backgroundDuration = wasInBackground
       ? Date.now() - lastBackgroundTimestamp
@@ -51,13 +51,16 @@ function handleAppStateChange(nextAppState) {
  */
 export function setupAppStateRefresh() {
   // On web, React Query's built-in visibilitychange listener works fine
-  if (Platform.OS === 'web') return () => {};
+  if (Platform.OS === "web") return () => {};
 
   // Subscribe to AppState changes
-  appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
+  appStateSubscription = AppState.addEventListener(
+    "change",
+    handleAppStateChange
+  );
 
   // Set initial focus state
-  focusManager.setFocused(AppState.currentState === 'active');
+  focusManager.setFocused(AppState.currentState === "active");
 
   return () => {
     if (appStateSubscription) {

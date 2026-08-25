@@ -1,892 +1,2248 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, RefreshControl, ActivityIndicator, ScrollView, SectionList, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { useApiQuery, useApiMutation, createApiMutationFn } from '../../hooks/useApi';
-import apiConfig from '../../config/apiConfig';
-import { useQueryClient } from '@tanstack/react-query';
-import { useToast } from '../../components/ToastProvider';
-import { useTheme } from '../../theme';
-import Header from '../../components/Header';
-import formatClassName from '../../utils/formatClassName';
-import { getISTDateString } from '../../utils/date';
+import React, { useState, useMemo } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  Modal,
+  TextInput,
+  RefreshControl,
+  ActivityIndicator,
+  ScrollView,
+  SectionList,
+  Pressable,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+} from "react-native";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import {
+  useApiQuery,
+  useApiMutation,
+  createApiMutationFn,
+} from "../../hooks/useApi";
+import apiConfig from "../../config/apiConfig";
+import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "../../components/ToastProvider";
+import { useTheme } from "../../theme";
+import Header from "../../components/Header";
+import formatClassName from "../../utils/formatClassName";
+import { getISTDateString } from "../../utils/date";
+import UserAvatar from "../../components/ui/UserAvatar";
+import { useAcademicYear } from "../../context/AcademicYearContext";
+
+const REJECTION_PRESETS = [
+  "Exam / Assessment Period",
+  "Low Attendance Record",
+  "Staff / Teacher Shortage",
+  "Short Notice / Late Request",
+  "Event / Sports Day Obligation",
+  "Other Reason",
+];
 
 export default function AdminLeaves() {
-    // eslint-disable-next-line no-unused-vars
-    const router = useRouter();
-    const { showToast } = useToast();
-    const queryClient = useQueryClient();
-    const { colors, styles } = useTheme();
-    const [activeTab, setActiveTab] = useState('requests'); // 'requests', 'my_leaves', 'daily'
-    const [refreshing, setRefreshing] = useState(false);
+  const { showToast } = useToast();
+  const queryClient = useQueryClient();
+  const { colors } = useTheme();
+  const { selectedYear } = useAcademicYear();
 
-    const [statusFilter, setStatusFilter] = useState('pending'); // 'pending', 'history'
+  // Navigation Tabs: 'requests' | 'daily' | 'my_leaves'
+  const [activeTab, setActiveTab] = useState("requests");
+  const [refreshing, setRefreshing] = useState(false);
 
-    // Action Modal State
-    const [actionModalVisible, setActionModalVisible] = useState(false);
-    const [selectedRequest, setSelectedRequest] = useState(null);
-    const [actionType, setActionType] = useState(''); // 'approved' or 'rejected'
-    const [actionReason, setActionReason] = useState('');
-    const [rejectionReason, setRejectionReason] = useState('');
-    const [rejectionComments, setRejectionComments] = useState('');
+  // Filters (Defaults to 'all' so nothing is hidden by default)
+  const [selectedAcademicYearId, setSelectedAcademicYearId] = useState("all");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedClassId, setSelectedClassId] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState("list"); // 'list' or 'grouped'
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
 
-    // Apply Leave Modal State
-    const [applyModalVisible, setApplyModalVisible] = useState(false);
-    const [startDate, setStartDate] = useState(new Date());
-    const [endDate, setEndDate] = useState(new Date());
-    const [reason, setReason] = useState('');
-    const [showStartPicker, setShowStartPicker] = useState(false);
-    const [showEndPicker, setShowEndPicker] = useState(false);
-    const [isHalfDay, setIsHalfDay] = useState(false);
-    const [halfDaySlot, setHalfDaySlot] = useState('morning');
+  // Daily Overview State
+  const [dailyDate, setDailyDate] = useState(new Date());
+  const [showDailyDatePicker, setShowDailyDatePicker] = useState(false);
 
-    // Fetch Requests
-    // If statusFilter is 'history', we might want to fetch all non-pending, or specifically approved/rejected.
-    // The backend supports ?status=... or no status for all.
-    // Let's use ?status=pending for pending, and no status (or separate calls) for history.
-    // Actually, for history let's just fetch everything and filter client side or ask backend for 'approved,rejected' (if supported)
-    // My backend change: if status is undefined, it returns all.
-    // Let's pass status only if 'pending'. If 'history', pass nothing (get all) and filter or just show all?
-    // Better: If history, maybe we want to see approved and rejected. 
-    // Backend Implementation: `if (status) query.status = status;`
-    // So if I don't pass status, I get all.
-    // I will fetch based on filter.
-    const queryUrl = statusFilter === 'pending'
-        ? `${apiConfig.baseUrl}/leaves/requests?status=pending`
-        : `${apiConfig.baseUrl}/leaves/requests`; // Gets all, we can filter processed ones
+  // Action Modal State (Approve / Reject / Edit)
+  const [actionModalVisible, setActionModalVisible] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [actionType, setActionType] = useState("approved");
+  const [actionReason, setActionReason] = useState("");
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [rejectionComments, setRejectionComments] = useState("");
 
-    const { data: requestsData, isLoading: requestsLoading, refetch: refetchRequests } = useApiQuery(
-        ['adminLeaveRequests', statusFilter],
-        queryUrl,
-        { enabled: activeTab === 'requests' }
+  // Apply Leave Modal State
+  const [applyModalVisible, setApplyModalVisible] = useState(false);
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
+  const [reason, setReason] = useState("");
+  const [showStartPicker, setShowStartPicker] = useState(false);
+  const [showEndPicker, setShowEndPicker] = useState(false);
+  const [isHalfDay, setIsHalfDay] = useState(false);
+  const [halfDaySlot, setHalfDaySlot] = useState("morning");
+
+  // Fetch Academic Years list
+  const { data: academicYearsData } = useApiQuery(
+    ["academicYearsListAdmin"],
+    `${apiConfig.baseUrl}/academic-year`
+  );
+  const academicYears = useMemo(() => academicYearsData || [], [academicYearsData]);
+
+  const activeYearObj = useMemo(() => {
+    return (
+      academicYears.find((y) => y.isActive) ||
+      academicYears.find((y) => y.status === "current") ||
+      selectedYear ||
+      academicYears[0]
     );
+  }, [academicYears, selectedYear]);
 
-    const requests = React.useMemo(() => {
-        if (!requestsData?.data) return [];
-        let data = requestsData.data;
+  // Fetch Classes list
+  const { data: classesData } = useApiQuery(
+    ["classesForLeavesAdmin", selectedAcademicYearId],
+    `${apiConfig.baseUrl}/classes`
+  );
+  const classesList = useMemo(() => classesData || [], [classesData]);
 
-        // If filter is history, exclude pending
-        if (statusFilter === 'history') {
-            data = data.filter(r => r.status !== 'pending');
-        }
+  // Build Requests Query URL
+  const queryParams = new URLSearchParams();
+  if (statusFilter !== "all") queryParams.append("status", statusFilter);
+  if (selectedAcademicYearId !== "all") {
+    queryParams.append("academicYear", selectedAcademicYearId);
+  }
+  if (roleFilter !== "all") queryParams.append("role", roleFilter);
+  if (selectedClassId !== "all") queryParams.append("classId", selectedClassId);
+  if (searchQuery.trim()) queryParams.append("search", searchQuery.trim());
 
-        const studentRequests = data.filter(r => r.applicantRole === 'student');
-        const teacherRequests = data.filter(r => r.applicantRole === 'teacher');
-        const staffRequests = data.filter(r => r.applicantRole === 'staff' || r.applicantRole === 'support_staff');
-        const adminRequests = data.filter(r => r.applicantRole === 'admin');
+  const queryUrl = `${apiConfig.baseUrl}/leaves/requests?${queryParams.toString()}`;
 
-        const sections = [];
-        if (studentRequests.length > 0) sections.push({ title: 'Student Requests', data: studentRequests });
-        if (teacherRequests.length > 0) sections.push({ title: 'Teacher Requests', data: teacherRequests });
-        if (staffRequests.length > 0) sections.push({ title: 'Staff Requests', data: staffRequests });
-        if (adminRequests.length > 0) sections.push({ title: 'Admin Requests', data: adminRequests });
-        return sections;
-    }, [requestsData, statusFilter]);
+  const {
+    data: requestsData,
+    isLoading: requestsLoading,
+    refetch: refetchRequests,
+  } = useApiQuery(
+    [
+      "adminLeaveRequests",
+      statusFilter,
+      selectedAcademicYearId,
+      roleFilter,
+      selectedClassId,
+      searchQuery,
+    ],
+    queryUrl,
+    { enabled: activeTab === "requests" }
+  );
+  const rawRequests = useMemo(() => requestsData?.data || [], [requestsData]);
 
-    // Fetch My Leaves
-    const { data: myLeavesData, isLoading: myLeavesLoading, refetch: refetchMyLeaves } = useApiQuery(
-        ['myLeaves'],
-        `${apiConfig.baseUrl}/leaves/my-leaves`,
-        { enabled: activeTab === 'my_leaves' }
-    );
-    const myLeaves = myLeavesData?.data || [];
+  // Fetch Unfiltered Requests for KPI Counters
+  const { data: allRequestsData, refetch: refetchAllRequests } = useApiQuery(
+    ["adminLeaveRequestsSummary", selectedAcademicYearId, roleFilter, selectedClassId],
+    `${apiConfig.baseUrl}/leaves/requests?academicYear=${selectedAcademicYearId}&role=${roleFilter}&classId=${selectedClassId}`,
+    { enabled: activeTab === "requests" }
+  );
+  const allRequests = useMemo(() => allRequestsData?.data || [], [allRequestsData]);
 
-    // Fetch Leave Balance
-    const { data: balanceData, refetch: refetchBalance } = useApiQuery(
-        ['leaveBalance'],
-        `${apiConfig.baseUrl}/leaves/balance`,
-        { enabled: activeTab === 'my_leaves' }
-    );
-    const leaveBalance = balanceData?.data;
-
-    // Fetch Daily Stats
-    const { data: dailyStatsData, isLoading: dailyStatsLoading, refetch: refetchDailyStats } = useApiQuery(
-        ['dailyLeaveStats'],
-        `${apiConfig.baseUrl}/leaves/daily-stats`,
-        { enabled: activeTab === 'daily' }
-    );
-    const dailyStats = dailyStatsData?.data || [];
-
-    const loading = (activeTab === 'requests' && requestsLoading) ||
-        (activeTab === 'my_leaves' && myLeavesLoading) ||
-        (activeTab === 'daily' && dailyStatsLoading);
-
-    // Mutations
-    const actionMutation = useApiMutation({
-        mutationFn: (data) => createApiMutationFn(`${apiConfig.baseUrl}/leaves/${data.id}/action`, 'PUT')(data.body),
-        onSuccess: () => {
-            showToast(`Leave updated successfully`, 'success');
-            setActionModalVisible(false);
-            queryClient.invalidateQueries({ queryKey: ['adminLeaveRequests'] });
-            queryClient.invalidateQueries({ queryKey: ['dailyLeaveStats'] });
-        },
-        onError: (error) => showToast(error.message || 'Error updating status', 'error')
-    });
-
-    const applyLeaveMutation = useApiMutation({
-        mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/leaves/apply`, 'POST'),
-        onSuccess: () => {
-            showToast('Leave applied successfully', 'success');
-            setApplyModalVisible(false);
-            setReason('');
-            setIsHalfDay(false);
-            queryClient.invalidateQueries({ queryKey: ['myLeaves'] });
-            queryClient.invalidateQueries({ queryKey: ['leaveBalance'] });
-            queryClient.invalidateQueries({ queryKey: ['adminLeaveRequests'] });
-        },
-        onError: (error) => showToast(error.message || 'Error applying leave', 'error')
-    });
-
-    const onRefresh = async () => {
-        setRefreshing(true);
-        if (activeTab === 'requests') await refetchRequests();
-        else if (activeTab === 'my_leaves') {
-            await Promise.all([refetchMyLeaves(), refetchBalance()]);
-        } else if (activeTab === 'daily') await refetchDailyStats();
-        setRefreshing(false);
+  // Summary Metrics
+  const summaryMetrics = useMemo(() => {
+    const pending = allRequests.filter((r) => r.status === "pending").length;
+    const approved = allRequests.filter((r) => r.status === "approved").length;
+    const rejected = allRequests.filter((r) => r.status === "rejected").length;
+    const students = allRequests.filter((r) => r.applicantRole === "student").length;
+    const staff = allRequests.filter((r) =>
+      ["teacher", "staff", "support_staff"].includes(r.applicantRole)
+    ).length;
+    return {
+      total: allRequests.length,
+      pending,
+      approved,
+      rejected,
+      students,
+      staff,
     };
+  }, [allRequests]);
 
-    // --- Action Handlers ---
+  // Client-side search & filtering refinement
+  const filteredRequests = useMemo(() => {
+    let list = [...rawRequests];
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      list = list.filter((r) => {
+        const nameMatch = r.applicant?.name?.toLowerCase().includes(q);
+        const reasonMatch = r.reason?.toLowerCase().includes(q);
+        const classNameMatch = formatClassName(r.class?.name || r.class?.label)
+          ?.toLowerCase()
+          .includes(q);
+        const sectionMatch = r.class?.section?.toLowerCase().includes(q);
+        return nameMatch || reasonMatch || classNameMatch || sectionMatch;
+      });
+    }
+    return list;
+  }, [rawRequests, searchQuery]);
 
-    const openActionModal = (request, type) => {
-        setSelectedRequest(request);
-        setActionType(type);
+  // Grouped sections for 'grouped' view mode
+  const categorizedSections = useMemo(() => {
+    if (viewMode !== "grouped") return [];
+    const sections = [];
 
-        // Pre-fill if editing existing approval/rejection
-        if (request.status !== 'pending') {
-            // If we are editing, 'type' passed in might be the target type we clicked, OR we just toggle.
-            // But UI has separate Approve/Reject buttons.
-            // If I click Edit, I should probably show select? 
-            // Simplification: In history view, show "Edit" button. Clicking it opens a choice or pre-fills current state.
-            // Let's say "Edit" opens the modal with current state.
-            // But the modal is designed for "Approve" OR "Reject".
-            // We can pass the request's current status (or the new desired status if user clicked a specific button).
+    const studentRequests = filteredRequests.filter((r) => r.applicantRole === "student");
+    const teacherRequests = filteredRequests.filter((r) => r.applicantRole === "teacher");
+    const staffRequests = filteredRequests.filter(
+      (r) => r.applicantRole === "staff" || r.applicantRole === "support_staff"
+    );
+    const adminRequests = filteredRequests.filter((r) => r.applicantRole === "admin");
 
-            // If user clicks "Edit", let's open modal in the state matching current request status.
-            setActionType(request.status);
-            if (request.status === 'approved') {
-                setActionReason(request.actionReason || '');
-                setRejectionReason('');
-                setRejectionComments('');
-            } else {
-                setRejectionReason(request.rejectionReason || '');
-                setRejectionComments(request.rejectionComments || '');
-                setActionReason('');
-            }
-        } else {
-            setActionReason('');
-            setRejectionReason('');
-            setRejectionComments('');
-        }
-        setActionModalVisible(true);
-    };
+    if (roleFilter === "student" || roleFilter === "all") {
+      const classMap = {};
+      studentRequests.forEach((req) => {
+        const classLabel = req.class
+          ? `${formatClassName(req.class.name || req.class.label)} ${
+              req.class.section ? `(${req.class.section})` : ""
+            }`
+          : "Unassigned Class";
+        if (!classMap[classLabel]) classMap[classLabel] = [];
+        classMap[classLabel].push(req);
+      });
 
-    const handleAction = () => {
-        if (actionType === 'rejected' && (!rejectionReason || !rejectionComments)) {
-            showToast('Rejection reason and comments are required', 'error');
-            return;
-        }
-
-        actionMutation.mutate({
-            id: selectedRequest._id,
-            body: {
-                status: actionType,
-                reason: actionReason,
-                rejectionReason: actionType === 'rejected' ? rejectionReason : undefined,
-                rejectionComments: actionType === 'rejected' ? rejectionComments : undefined
-            }
+      Object.keys(classMap).forEach((cls) => {
+        sections.push({
+          title: `🎒 ${cls}`,
+          data: classMap[cls],
         });
-    };
+      });
+    }
 
-    // --- Apply Leave Handlers ---
+    if (roleFilter === "teacher" || roleFilter === "all") {
+      if (teacherRequests.length > 0) {
+        sections.push({ title: "👨‍🏫 Teachers", data: teacherRequests });
+      }
+    }
 
-    const handleApplyLeave = () => {
-        if (!reason.trim()) {
-            showToast('Please enter a reason', 'error');
-            return;
-        }
+    if (roleFilter === "staff" || roleFilter === "all") {
+      if (staffRequests.length > 0) {
+        sections.push({ title: "👔 Staff", data: staffRequests });
+      }
+    }
 
-        if (!isHalfDay && endDate < startDate) {
-            showToast('End date cannot be before start date', 'error');
-            return;
-        }
+    if (roleFilter === "admin" || roleFilter === "all") {
+      if (adminRequests.length > 0) {
+        sections.push({ title: "🛡️ Administrators", data: adminRequests });
+      }
+    }
 
-        let finalEndDate = endDate;
-        if (isHalfDay) finalEndDate = startDate;
+    return sections;
+  }, [filteredRequests, viewMode, roleFilter]);
 
-        applyLeaveMutation.mutate({
-            startDate: getISTDateString(startDate),
-            endDate: getISTDateString(finalEndDate),
-            reason,
-            leaveType: isHalfDay ? 'half' : 'full',
-            halfDaySlot: isHalfDay ? halfDaySlot : undefined
-        });
-    };
+  // Fetch Daily Leaves Stats
+  const dailyDateStr = useMemo(() => getISTDateString(dailyDate), [dailyDate]);
+  const {
+    data: dailyStatsData,
+    isLoading: dailyStatsLoading,
+    refetch: refetchDailyStats,
+  } = useApiQuery(
+    ["dailyLeaveStatsAdmin", dailyDateStr, selectedAcademicYearId],
+    `${apiConfig.baseUrl}/leaves/daily-stats?date=${dailyDateStr}&academicYear=${selectedAcademicYearId}`,
+    { enabled: activeTab === "daily" }
+  );
+  const dailyLeaves = useMemo(() => dailyStatsData?.data || [], [dailyStatsData]);
 
-    // --- Render Items ---
-
-    const formatDate = (dateString) => {
-        if (!dateString) return '';
-        return new Date(dateString).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
-    };
-
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'approved': return colors.success;
-            case 'rejected': return colors.error;
-            default: return '#FF9800';
-        }
-    };
-
-    const renderRequestItem = ({ item }) => (
-        <View style={{
-            backgroundColor: colors.surfaceContainer,
-            borderRadius: 16,
-            padding: 16,
-            marginBottom: 12,
-        }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                <View>
-                    <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
-                        {item.applicant?.name || 'Unknown'}
-                    </Text>
-                    <Text style={{ fontSize: 13, color: colors.onSurfaceVariant, fontFamily: "DMSans-Medium" }}>
-                        {item.applicantRole === 'student'
-                            ? `Class: ${formatClassName(item.class?.name)} ${item.class?.section || ''}`
-                            : (item.applicantRole || 'Unknown').toUpperCase()}
-                    </Text>
-                </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <MaterialIcons name="date-range" size={14} color={colors.primary} style={{ marginRight: 4 }} />
-                        <Text style={{ fontSize: 14, color: colors.onSurface, fontFamily: "DMSans-Medium" }}>
-                            {formatDate(item.startDate)}
-                            {item.leaveType === 'full' && item.startDate !== item.endDate && ` - ${formatDate(item.endDate)}`}
-                        </Text>
-                    </View>
-                    <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginTop: 2, fontStyle: 'italic' }}>
-                        {item.leaveType === 'half' ? `Half Day (${item.halfDaySlot})` : 'Full Day'}
-                    </Text>
-                    {item.status !== 'pending' && (
-                        <View style={{
-                            marginTop: 4,
-                            paddingHorizontal: 8,
-                            paddingVertical: 2,
-                            borderRadius: 4,
-                            backgroundColor: getStatusColor(item.status) + '15',
-                            borderWidth: 1,
-                            borderColor: getStatusColor(item.status) + '30'
-                        }}>
-                            <Text style={{ color: getStatusColor(item.status), fontSize: 10, fontFamily: "DMSans-Bold", textTransform: 'uppercase' }}>
-                                {item.status}
-                            </Text>
-                        </View>
-                    )}
-                </View>
-            </View>
-
-            <View style={{ backgroundColor: colors.surface, padding: 12, borderRadius: 8, marginBottom: 12 }}>
-                <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4, fontFamily: "DMSans-Medium" }}>Reason</Text>
-                <Text style={{ fontSize: 14, color: colors.onSurface, fontFamily: "DMSans-Regular", lineHeight: 20 }}>{item.reason}</Text>
-            </View>
-
-            {item.status !== 'pending' && item.status === 'rejected' && (
-                <View style={{ backgroundColor: colors.errorContainer + '20', padding: 12, borderRadius: 8, marginBottom: 12 }}>
-                    <Text style={{ fontSize: 12, color: colors.error, marginBottom: 4, fontFamily: "DMSans-Medium" }}>Rejection Reason</Text>
-                    <Text style={{ fontSize: 14, color: colors.onSurface, fontFamily: "DMSans-Regular" }}>{item.rejectionReason}</Text>
-                    {item.rejectionComments && <Text style={{ fontSize: 13, color: colors.onSurfaceVariant, marginTop: 4 }}>Note: {item.rejectionComments}</Text>}
-                </View>
-            )}
-
-            {item.status !== 'pending' && item.status === 'approved' && item.actionReason && (
-                <View style={{ backgroundColor: colors.primaryContainer + '20', padding: 12, borderRadius: 8, marginBottom: 12 }}>
-                    <Text style={{ fontSize: 12, color: colors.primary, marginBottom: 4, fontFamily: "DMSans-Medium" }}>Approval Note</Text>
-                    <Text style={{ fontSize: 14, color: colors.onSurface, fontFamily: "DMSans-Regular" }}>{item.actionReason}</Text>
-                </View>
-            )}
-
-            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 12, paddingTop: 4 }}>
-                {item.status === 'pending' ? (
-                    <>
-                        <TouchableOpacity
-                            style={{
-                                paddingVertical: 8,
-                                paddingHorizontal: 16,
-                                borderRadius: 8,
-                                backgroundColor: colors.errorContainer,
-                                borderWidth: 1,
-                                borderColor: colors.error
-                            }}
-                            onPress={() => openActionModal(item, 'rejected')}
-                        >
-                            <Text style={{ color: colors.error, fontFamily: "DMSans-Bold", fontSize: 14 }}>Reject</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={{
-                                paddingVertical: 8,
-                                paddingHorizontal: 16,
-                                borderRadius: 8,
-                                backgroundColor: colors.primary,
-                                elevation: 1
-                            }}
-                            onPress={() => openActionModal(item, 'approved')}
-                        >
-                            <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 14 }}>Approve</Text>
-                        </TouchableOpacity>
-                    </>
-                ) : (
-                    <TouchableOpacity
-                        style={{
-                            paddingVertical: 8,
-                            paddingHorizontal: 16,
-                            borderRadius: 8,
-                            backgroundColor: colors.surfaceVariant,
-                            borderWidth: 1,
-                            borderColor: colors.outline
-                        }}
-                        onPress={() => openActionModal(item, item.status)}
-                    >
-                        <Text style={{ color: colors.onSurface, fontFamily: "DMSans-Bold", fontSize: 14 }}>Edit Decision</Text>
-                    </TouchableOpacity>
-                )}
-            </View>
-        </View>
+  // Group Daily Leaves
+  const dailyLeavesGrouped = useMemo(() => {
+    const students = dailyLeaves.filter((l) => l.applicantRole === "student");
+    const teachers = dailyLeaves.filter((l) => l.applicantRole === "teacher");
+    const staff = dailyLeaves.filter((l) =>
+      ["staff", "support_staff", "admin"].includes(l.applicantRole)
     );
+    return { students, teachers, staff };
+  }, [dailyLeaves]);
 
-    const renderMyLeaveItem = ({ item }) => {
-        const isRejected = item.status === 'rejected';
-        return (
-            <View style={{
-                backgroundColor: colors.surfaceContainer,
-                borderRadius: 16,
-                padding: 16,
-                marginBottom: 12,
-            }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                    <View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-                            <MaterialIcons name="date-range" size={16} color={colors.primary} style={{ marginRight: 6 }} />
-                            <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
-                                {formatDate(item.startDate)}
-                                {item.leaveType === 'full' && item.startDate !== item.endDate && ` - ${formatDate(item.endDate)}`}
-                            </Text>
-                        </View>
-                        <Text style={{ fontSize: 13, color: colors.onSurfaceVariant, fontFamily: "DMSans-Medium" }}>
-                            {item.leaveType === 'half' ? `Half Day (${item.halfDaySlot})` : 'Full Day'}
-                        </Text>
-                    </View>
-                    <View style={{
-                        paddingHorizontal: 10,
-                        paddingVertical: 5,
-                        borderRadius: 8,
-                        backgroundColor: getStatusColor(item.status) + '15',
-                        borderWidth: 1,
-                        borderColor: getStatusColor(item.status) + '30'
-                    }}>
-                        <Text style={{ color: getStatusColor(item.status), fontSize: 12, fontFamily: "DMSans-Bold", textTransform: 'uppercase' }}>
-                            {item.status.toUpperCase()}
-                        </Text>
-                    </View>
-                </View>
+  // Fetch Admin's Own Leaves & Balance
+  const {
+    data: myLeavesData,
+    isLoading: myLeavesLoading,
+    refetch: refetchMyLeaves,
+  } = useApiQuery(
+    ["adminMyLeaves", selectedAcademicYearId],
+    `${apiConfig.baseUrl}/leaves/my-leaves?academicYear=${selectedAcademicYearId}`,
+    { enabled: activeTab === "my_leaves" }
+  );
+  const myLeaves = useMemo(() => myLeavesData?.data || [], [myLeavesData]);
 
-                <View style={{ backgroundColor: colors.surface, padding: 12, borderRadius: 8, marginBottom: isRejected ? 12 : 0 }}>
-                    <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4, fontFamily: "DMSans-Medium" }}>Reason</Text>
-                    <Text style={{ fontSize: 14, color: colors.onSurface, fontFamily: "DMSans-Regular", lineHeight: 20 }}>{item.reason}</Text>
-                </View>
+  const { data: balanceData, refetch: refetchBalance } = useApiQuery(
+    ["adminLeaveBalance"],
+    `${apiConfig.baseUrl}/leaves/balance`,
+    { enabled: activeTab === "my_leaves" }
+  );
+  const leaveBalance = balanceData?.data || { total: 12, used: 0, remaining: 12 };
 
-                {isRejected && (
-                    <View style={{
-                        marginTop: 0,
-                        padding: 12,
-                        backgroundColor: colors.errorContainer + '40',
-                        borderRadius: 8,
-                        borderLeftWidth: 3,
-                        borderLeftColor: colors.error
-                    }}>
-                        <Text style={{ fontSize: 13, fontFamily: "DMSans-Bold", color: colors.error, marginBottom: 4 }}>Rejection Details</Text>
-                        <Text style={{ fontSize: 13, color: colors.onSurface, marginBottom: 2, fontFamily: "DMSans-Regular" }}>
-                            <Text style={{ fontFamily: "DMSans-Bold" }}>Reason: </Text>{item.rejectionReason}
-                        </Text>
-                        <Text style={{ fontSize: 13, color: colors.onSurface, fontFamily: "DMSans-Regular" }}>
-                            <Text style={{ fontFamily: "DMSans-Bold" }}>Note: </Text>{item.rejectionComments}
-                        </Text>
-                    </View>
-                )}
-            </View>
-        );
-    };
+  // Count active filters
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (selectedAcademicYearId !== "all") count++;
+    if (roleFilter !== "all") count++;
+    if (selectedClassId !== "all") count++;
+    return count;
+  }, [selectedAcademicYearId, roleFilter, selectedClassId]);
 
-    const renderDailyItem = ({ item }) => (
-        <View style={{
-            backgroundColor: colors.surfaceContainer,
-            borderRadius: 16,
-            padding: 16,
-            marginBottom: 12,
-        }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                <View>
-                    <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
-                        {item.applicant?.name || 'Unknown'}
-                    </Text>
-                    <Text style={{ fontSize: 13, color: colors.onSurfaceVariant, fontFamily: "DMSans-Medium" }}>
-                        {item.applicantRole === 'student'
-                            ? `Class: ${formatClassName(item.class?.name)} ${item.class?.section || ''}`
-                            : (item.applicantRole || 'Unknown').toUpperCase()}
-                    </Text>
-                </View>
-                <View style={{
-                    paddingHorizontal: 10,
-                    paddingVertical: 5,
-                    borderRadius: 8,
-                    backgroundColor: colors.error + '15',
-                    borderWidth: 1,
-                    borderColor: colors.error + '30'
-                }}>
-                    <Text style={{ color: colors.error, fontSize: 12, fontFamily: "DMSans-Bold", textTransform: 'uppercase' }}>
-                        ON LEAVE
-                    </Text>
-                </View>
-            </View>
+  // Mutations
+  const actionMutation = useApiMutation({
+    mutationFn: (data) =>
+      createApiMutationFn(
+        `${apiConfig.baseUrl}/leaves/${data.id}/action`,
+        "PUT"
+      )(data.body),
+    onSuccess: () => {
+      showToast(
+        actionType === "approved" ? "Leave approved successfully" : "Leave rejected",
+        "success"
+      );
+      setActionModalVisible(false);
+      queryClient.invalidateQueries({ queryKey: ["adminLeaveRequests"] });
+      queryClient.invalidateQueries({ queryKey: ["adminLeaveRequestsSummary"] });
+      queryClient.invalidateQueries({ queryKey: ["dailyLeaveStatsAdmin"] });
+    },
+    onError: (error) =>
+      showToast(error.message || "Error updating leave request", "error"),
+  });
 
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                <MaterialIcons name="event" size={14} color={colors.primary} style={{ marginRight: 6 }} />
-                <Text style={{ fontSize: 14, color: colors.onSurface, fontFamily: "DMSans-Medium" }}>
-                    Until: {formatDate(item.endDate)} ({item.leaveType === 'half' ? 'Half Day' : 'Full Day'})
-                </Text>
-            </View>
+  const applyLeaveMutation = useApiMutation({
+    mutationFn: createApiMutationFn(
+      `${apiConfig.baseUrl}/leaves/apply`,
+      "POST"
+    ),
+    onSuccess: () => {
+      showToast("Leave applied successfully", "success");
+      setApplyModalVisible(false);
+      setReason("");
+      setIsHalfDay(false);
+      queryClient.invalidateQueries({ queryKey: ["adminMyLeaves"] });
+      queryClient.invalidateQueries({ queryKey: ["adminLeaveBalance"] });
+      queryClient.invalidateQueries({ queryKey: ["adminLeaveRequests"] });
+      queryClient.invalidateQueries({ queryKey: ["adminLeaveRequestsSummary"] });
+    },
+    onError: (error) =>
+      showToast(error.message || "Error applying for leave", "error"),
+  });
 
-            <View style={{ backgroundColor: colors.surface, padding: 12, borderRadius: 8 }}>
-                <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4, fontFamily: "DMSans-Medium" }}>Reason</Text>
-                <Text style={{ fontSize: 14, color: colors.onSurface, fontFamily: "DMSans-Regular", lineHeight: 20 }}>{item.reason}</Text>
-            </View>
-        </View>
-    );
+  const onRefresh = async () => {
+    setRefreshing(true);
+    if (activeTab === "requests") {
+      await Promise.all([refetchRequests(), refetchAllRequests()]);
+    } else if (activeTab === "daily") {
+      await refetchDailyStats();
+    } else if (activeTab === "my_leaves") {
+      await Promise.all([refetchMyLeaves(), refetchBalance()]);
+    }
+    setRefreshing(false);
+  };
+
+  const openActionModal = (request, type) => {
+    setSelectedRequest(request);
+    setActionType(type);
+    if (request.status !== "pending") {
+      if (type === "approved") {
+        setActionReason(request.actionReason || "");
+        setRejectionReason("");
+        setRejectionComments("");
+      } else {
+        setRejectionReason(request.rejectionReason || "");
+        setRejectionComments(request.rejectionComments || "");
+        setActionReason("");
+      }
+    } else {
+      setActionReason("");
+      setRejectionReason("");
+      setRejectionComments("");
+    }
+    setActionModalVisible(true);
+  };
+
+  const handleAction = () => {
+    if (actionType === "rejected" && (!rejectionReason || !rejectionComments)) {
+      showToast("Please provide both rejection reason and comments", "error");
+      return;
+    }
+
+    actionMutation.mutate({
+      id: selectedRequest._id,
+      body: {
+        status: actionType,
+        reason: actionReason,
+        rejectionReason: actionType === "rejected" ? rejectionReason : undefined,
+        rejectionComments: actionType === "rejected" ? rejectionComments : undefined,
+      },
+    });
+  };
+
+  const handleApplyLeave = () => {
+    if (!reason.trim()) {
+      showToast("Please enter a reason for leave", "error");
+      return;
+    }
+    if (!isHalfDay && endDate < startDate) {
+      showToast("End date cannot be before start date", "error");
+      return;
+    }
+
+    let finalEndDate = endDate;
+    if (isHalfDay) finalEndDate = startDate;
+
+    applyLeaveMutation.mutate({
+      startDate: getISTDateString(startDate),
+      endDate: getISTDateString(finalEndDate),
+      reason,
+      leaveType: isHalfDay ? "half" : "full",
+      halfDaySlot: isHalfDay ? halfDaySlot : undefined,
+    });
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    return new Date(dateString).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const calculateDays = (start, end, leaveType) => {
+    if (leaveType === "half") return "0.5 Day";
+    const s = new Date(start);
+    const e = new Date(end);
+    const diff = Math.ceil(Math.abs(e - s) / (1000 * 60 * 60 * 24)) + 1;
+    return diff === 1 ? "1 Day" : `${diff} Days`;
+  };
+
+  const getRoleBadgeStyle = (role) => {
+    switch (role) {
+      case "student":
+        return { bg: "#FFF3E0", border: "#FFE0B2", text: "#E65100", label: "Student", icon: "school" };
+      case "teacher":
+        return { bg: "#EDE7F6", border: "#D1C4E9", text: "#512DA8", label: "Teacher", icon: "person" };
+      case "staff":
+      case "support_staff":
+        return { bg: "#E0F2F1", border: "#B2DFDB", text: "#00695C", label: "Staff", icon: "work" };
+      case "admin":
+      case "super admin":
+        return { bg: "#E8F5E9", border: "#C8E6C9", text: "#2E7D32", label: "Admin", icon: "security" };
+      default:
+        return { bg: colors.surfaceContainer, border: colors.outlineVariant, text: colors.onSurface, label: "USER", icon: "person" };
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case "approved":
+        return { color: colors.success || "#2E7D32", bg: "#E8F5E9", label: "Approved", icon: "checkmark-circle" };
+      case "rejected":
+        return { color: colors.error || "#D32F2F", bg: "#FFEBEE", label: "Rejected", icon: "close-circle" };
+      default:
+        return { color: "#E65100", bg: "#FFF3E0", label: "Pending", icon: "time-outline" };
+    }
+  };
+
+  // Render Request Card
+  const renderRequestCard = ({ item }) => {
+    const roleStyle = getRoleBadgeStyle(item.applicantRole);
+    const statusBadge = getStatusBadge(item.status);
+    const isStudent = item.applicantRole === "student";
+    const durationLabel = calculateDays(item.startDate, item.endDate, item.leaveType);
 
     return (
-        <View style={{ flex: 1, backgroundColor: colors.background }}>
-            <View style={{ padding: 16, paddingBottom: 0 }}>
-                <Header title="Leave Management" showBack={true} />
+      <View
+        style={[
+          styles.requestCard,
+          { backgroundColor: colors.surface, borderColor: colors.outlineVariant + "50" },
+        ]}
+      >
+        <View style={[styles.cardAccent, { backgroundColor: roleStyle.text }]} />
+
+        {/* Header */}
+        <View style={styles.cardHeader}>
+          <View style={{ flexDirection: "row", alignItems: "center", flex: 1, gap: 10 }}>
+            <UserAvatar
+              photoUrl={item.applicant?.profilePhoto}
+              name={item.applicant?.name || "Unknown"}
+              role={item.applicantRole}
+              size={40}
+            />
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                <Text style={[styles.applicantName, { color: colors.onSurface }]} numberOfLines={1}>
+                  {item.applicant?.name || "Unknown"}
+                </Text>
+                {item.academicYear?.name && (
+                  <View style={[styles.tinyYearPill, { backgroundColor: colors.surfaceContainerHigh }]}>
+                    <Text style={[styles.tinyYearText, { color: colors.onSurfaceVariant }]}>
+                      {item.academicYear.name}
+                    </Text>
+                  </View>
+                )}
+              </View>
+
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 }}>
+                <View style={[styles.roleChip, { backgroundColor: roleStyle.bg, borderColor: roleStyle.border }]}>
+                  <MaterialIcons name={roleStyle.icon} size={10} color={roleStyle.text} />
+                  <Text style={[styles.roleChipText, { color: roleStyle.text }]}>
+                    {roleStyle.label}
+                  </Text>
+                </View>
+
+                {isStudent && item.class && (
+                  <View style={[styles.classChip, { backgroundColor: "#FFF3E0", borderColor: "#FFE0B2" }]}>
+                    <Text style={[styles.classChipText, { color: "#E65100" }]}>
+                      {formatClassName(item.class.name || item.class.label)}{" "}
+                      {item.class.section ? `(${item.class.section})` : ""}
+                    </Text>
+                  </View>
+                )}
+              </View>
             </View>
+          </View>
 
-            <View style={{ flexDirection: 'row', marginHorizontal: 16, marginBottom: 16, backgroundColor: colors.surfaceContainer, borderRadius: 12, padding: 4 }}>
-                {['requests', 'my_leaves', 'daily'].map((tab) => (
-                    <TouchableOpacity
-                        key={tab}
-                        style={{
-                            flex: 1,
-                            paddingVertical: 10,
-                            alignItems: 'center',
-                            borderRadius: 8,
-                            backgroundColor: activeTab === tab ? colors.background : 'transparent',
-                            elevation: activeTab === tab ? 2 : 0,
-                            shadowColor: "#000",
-                            shadowOpacity: activeTab === tab ? 0.05 : 0,
-                        }}
-                        onPress={() => setActiveTab(tab)}
-                    >
-                        <Text style={{
-                            fontFamily: activeTab === tab ? "DMSans-Bold" : "DMSans-Medium",
-                            color: activeTab === tab ? colors.primary : colors.onSurfaceVariant,
-                            textTransform: 'capitalize'
-                        }}>{tab.replace('_', ' ')}</Text>
-                    </TouchableOpacity>
-                ))}
-            </View>
-
-            {activeTab === 'my_leaves' && leaveBalance && (
-                <View style={{
-                    marginHorizontal: 16,
-                    marginBottom: 16,
-                    backgroundColor: colors.primaryContainer,
-                    borderRadius: 16,
-                    padding: 16,
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                }}>
-                    <View style={{ alignItems: 'center', flex: 1 }}>
-                        <Text style={{ fontSize: 12, color: colors.onPrimaryContainer, fontFamily: "DMSans-Medium", marginBottom: 4 }}>Total</Text>
-                        <Text style={{ fontSize: 20, color: colors.onPrimaryContainer, fontFamily: "DMSans-Bold" }}>{leaveBalance.total}</Text>
-                    </View>
-                    <View style={{ width: 1, height: 24, backgroundColor: colors.onPrimaryContainer, opacity: 0.2 }} />
-                    <View style={{ alignItems: 'center', flex: 1 }}>
-                        <Text style={{ fontSize: 12, color: colors.onPrimaryContainer, fontFamily: "DMSans-Medium", marginBottom: 4 }}>Used</Text>
-                        <Text style={{ fontSize: 20, color: colors.onPrimaryContainer, fontFamily: "DMSans-Bold" }}>{leaveBalance.used}</Text>
-                    </View>
-                    <View style={{ width: 1, height: 24, backgroundColor: colors.onPrimaryContainer, opacity: 0.2 }} />
-                    <View style={{ alignItems: 'center', flex: 1 }}>
-                        <Text style={{ fontSize: 12, color: colors.onPrimaryContainer, fontFamily: "DMSans-Medium", marginBottom: 4 }}>Remaining</Text>
-                        <Text style={{ fontSize: 20, color: colors.primary, fontFamily: "DMSans-Bold" }}>{leaveBalance.remaining}</Text>
-                    </View>
-                </View>
-            )}
-
-            {loading ? (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <ActivityIndicator size="large" color={colors.primary} />
-                </View>
-            ) : (
-                <>
-                    {activeTab === 'requests' ? (
-                        <View style={{ flex: 1 }}>
-                            {/* Filter Toggles */}
-                            <View style={{ flexDirection: 'row', paddingHorizontal: 16, marginBottom: 12, gap: 12 }}>
-                                <TouchableOpacity
-                                    onPress={() => setStatusFilter('pending')}
-                                    style={{
-                                        paddingHorizontal: 16,
-                                        paddingVertical: 8,
-                                        borderRadius: 20,
-                                        backgroundColor: statusFilter === 'pending' ? colors.primary : colors.surfaceContainer,
-                                        borderWidth: 1,
-                                        borderColor: statusFilter === 'pending' ? colors.primary : colors.outlineVariant
-                                    }}
-                                >
-                                    <Text style={{
-                                        color: statusFilter === 'pending' ? colors.onPrimary : colors.onSurfaceVariant,
-                                        fontFamily: "DMSans-Medium",
-                                        fontSize: 13
-                                    }}>Pending</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    onPress={() => setStatusFilter('history')}
-                                    style={{
-                                        paddingHorizontal: 16,
-                                        paddingVertical: 8,
-                                        borderRadius: 20,
-                                        backgroundColor: statusFilter === 'history' ? colors.primary : colors.surfaceContainer,
-                                        borderWidth: 1,
-                                        borderColor: statusFilter === 'history' ? colors.primary : colors.outlineVariant
-                                    }}
-                                >
-                                    <Text style={{
-                                        color: statusFilter === 'history' ? colors.onPrimary : colors.onSurfaceVariant,
-                                        fontFamily: "DMSans-Medium",
-                                        fontSize: 13
-                                    }}>History</Text>
-                                </TouchableOpacity>
-                            </View>
-
-                            <SectionList
-
-                                sections={requests}
-                                renderItem={renderRequestItem}
-                                renderSectionHeader={({ section: { title } }) => (
-                                    <Text style={{
-                                        fontSize: 14,
-                                        fontFamily: "DMSans-Bold",
-                                        color: colors.onSurfaceVariant,
-                                        backgroundColor: colors.background,
-                                        paddingVertical: 8,
-                                        paddingHorizontal: 4,
-                                        marginTop: 10,
-                                        textTransform: 'uppercase'
-                                    }}>{title}</Text>
-                                )}
-                                keyExtractor={(item) => item._id}
-                                contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
-                                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
-                                ListEmptyComponent={
-                                    <View style={{ alignItems: 'center', marginTop: 40, opacity: 0.6 }}>
-                                        <MaterialIcons name="done-all" size={64} color={colors.onSurfaceVariant} />
-                                        <Text style={{ marginTop: 16, fontSize: 16, color: colors.onSurfaceVariant, fontFamily: "DMSans-Medium" }}>
-                                            {statusFilter === 'pending' ? 'No pending requests.' : 'No history found.'}
-                                        </Text>
-                                    </View>
-                                }
-                            />
-                        </View>
-                    ) : (
-                        <FlatList
-                            data={activeTab === 'my_leaves' ? myLeaves : dailyStats}
-                            renderItem={activeTab === 'my_leaves' ? renderMyLeaveItem : renderDailyItem}
-                            keyExtractor={(item) => item._id}
-                            contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
-                            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
-                            ListEmptyComponent={
-                                <View style={{ alignItems: 'center', marginTop: 40, opacity: 0.6 }}>
-                                    <MaterialIcons name="event-busy" size={64} color={colors.onSurfaceVariant} />
-                                    <Text style={{ marginTop: 16, fontSize: 16, color: colors.onSurfaceVariant, fontFamily: "DMSans-Medium" }}>No records found.</Text>
-                                </View>
-                            }
-                        />
-                    )}
-                </>
-            )}
-
-            {activeTab === 'my_leaves' && (
-                <TouchableOpacity
-                    style={styles.fab}
-                    onPress={() => setApplyModalVisible(true)}
-                    activeOpacity={0.8}
-                >
-                    <Ionicons name="add" size={28} color={colors.onPrimaryContainer} />
-                </TouchableOpacity>
-            )}
-
-            {/* Action Modal */}
-            <Modal
-                visible={actionModalVisible}
-                animationType="fade"
-                transparent={true}
-                onRequestClose={() => setActionModalVisible(false)}
-            >
-                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 }}>
-                    <View style={{ backgroundColor: colors.surface, borderRadius: 24, padding: 24, elevation: 5 }}>
-                        <Text style={{ fontSize: 20, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 20 }}>
-                            {actionType === 'approved' ? 'Approve Leave' : 'Reject Leave'}
-                        </Text>
-
-                        {actionType === 'rejected' && (
-                            <>
-                                <Text style={styles_internal.label(colors)}>Rejection Reason *</Text>
-                                <TextInput
-                                    style={styles_internal.input(colors)}
-                                    placeholder="e.g., Exam Period, Staff Shortage"
-                                    placeholderTextColor={colors.onSurfaceVariant}
-                                    value={rejectionReason}
-                                    onChangeText={setRejectionReason}
-                                />
-                                <Text style={styles_internal.label(colors)}>Comments *</Text>
-                                <TextInput
-                                    style={[styles_internal.input(colors), { minHeight: 80, textAlignVertical: 'top' }]}
-                                    placeholder="Add detailed comments..."
-                                    placeholderTextColor={colors.onSurfaceVariant}
-                                    value={rejectionComments}
-                                    onChangeText={setRejectionComments}
-                                    multiline
-                                    numberOfLines={3}
-                                />
-                            </>
-                        )}
-
-                        {actionType === 'approved' && (
-                            <>
-                                <Text style={styles_internal.label(colors)}>Note (Optional)</Text>
-                                <TextInput
-                                    style={[styles_internal.input(colors), { minHeight: 80, textAlignVertical: 'top' }]}
-                                    placeholder="Add a note..."
-                                    placeholderTextColor={colors.onSurfaceVariant}
-                                    value={actionReason}
-                                    onChangeText={setActionReason}
-                                    multiline
-                                    numberOfLines={3}
-                                />
-                            </>
-                        )}
-
-                        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 24 }}>
-                            <TouchableOpacity
-                                style={{ paddingVertical: 10, paddingHorizontal: 20 }}
-                                onPress={() => setActionModalVisible(false)}
-                            >
-                                <Text style={{ color: colors.onSurfaceVariant, fontFamily: "DMSans-Bold", fontSize: 16 }}>Cancel</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={{
-                                    backgroundColor: actionType === 'approved' ? colors.primary : colors.error,
-                                    paddingVertical: 10, paddingHorizontal: 24, borderRadius: 100
-                                }}
-                                onPress={handleAction}
-                                disabled={actionMutation.isPending}
-                            >
-                                {actionMutation.isPending ? (
-                                    <ActivityIndicator color={colors.onPrimary} size="small" />
-                                ) : (
-                                    <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 16 }}>
-                                        {actionType === 'approved' ? 'Approve' : 'Reject'}
-                                    </Text>
-                                )}
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </Modal>
-
-            {/* Apply Leave Modal */}
-            <Modal
-                visible={applyModalVisible}
-                animationType="slide"
-                transparent={true}
-                onRequestClose={() => setApplyModalVisible(false)}
-            >
-                <KeyboardAvoidingView
-                    behavior={Platform.OS === "ios" ? "padding" : undefined}
-                    style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}
-                >
-                    <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, maxHeight: '90%' }}>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                            <Text style={{ fontSize: 24, fontFamily: "DMSans-Bold", color: colors.onSurface }}>Apply for Leave</Text>
-                            <TouchableOpacity onPress={() => setApplyModalVisible(false)}>
-                                <Ionicons name="close" size={24} color={colors.onSurfaceVariant} />
-                            </TouchableOpacity>
-                        </View>
-
-                        <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                            <View style={{ marginBottom: 24 }}>
-                                <Text style={styles_internal.label(colors)}>LEAVE TYPE</Text>
-                                <View style={{ flexDirection: 'row', backgroundColor: colors.surfaceContainer, borderRadius: 12, padding: 4 }}>
-                                    <Pressable
-                                        style={{
-                                            flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 8,
-                                            backgroundColor: !isHalfDay ? colors.background : 'transparent',
-                                            elevation: !isHalfDay ? 1 : 0, shadowColor: "#000", shadowOpacity: !isHalfDay ? 0.05 : 0
-                                        }}
-                                        onPress={() => setIsHalfDay(false)}
-                                    >
-                                        <Text style={{ fontFamily: !isHalfDay ? "DMSans-Bold" : "DMSans-Medium", color: !isHalfDay ? colors.primary : colors.onSurfaceVariant }}>Full Day</Text>
-                                    </Pressable>
-                                    <Pressable
-                                        style={{
-                                            flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 8,
-                                            backgroundColor: isHalfDay ? colors.background : 'transparent',
-                                            elevation: isHalfDay ? 1 : 0, shadowColor: "#000", shadowOpacity: isHalfDay ? 0.05 : 0
-                                        }}
-                                        onPress={() => setIsHalfDay(true)}
-                                    >
-                                        <Text style={{ fontFamily: isHalfDay ? "DMSans-Bold" : "DMSans-Medium", color: isHalfDay ? colors.primary : colors.onSurfaceVariant }}>Half Day</Text>
-                                    </Pressable>
-                                </View>
-                            </View>
-
-                            {isHalfDay && (
-                                <View style={{ marginBottom: 24 }}>
-                                    <Text style={styles_internal.label(colors)}>SLOT</Text>
-                                    <View style={{ flexDirection: 'row', gap: 12 }}>
-                                        <Pressable
-                                            style={{
-                                                flex: 1, paddingVertical: 12, borderRadius: 12, borderWidth: 1,
-                                                borderColor: halfDaySlot === 'morning' ? colors.primary : colors.outlineVariant,
-                                                backgroundColor: halfDaySlot === 'morning' ? colors.secondaryContainer : 'transparent',
-                                                alignItems: 'center'
-                                            }}
-                                            onPress={() => setHalfDaySlot('morning')}
-                                        >
-                                            <Text style={{ fontFamily: "DMSans-Medium", color: halfDaySlot === 'morning' ? colors.onSecondaryContainer : colors.onSurfaceVariant }}>Morning</Text>
-                                        </Pressable>
-                                        <Pressable
-                                            style={{
-                                                flex: 1, paddingVertical: 12, borderRadius: 12, borderWidth: 1,
-                                                borderColor: halfDaySlot === 'afternoon' ? colors.primary : colors.outlineVariant,
-                                                backgroundColor: halfDaySlot === 'afternoon' ? colors.secondaryContainer : 'transparent',
-                                                alignItems: 'center'
-                                            }}
-                                            onPress={() => setHalfDaySlot('afternoon')}
-                                        >
-                                            <Text style={{ fontFamily: "DMSans-Medium", color: halfDaySlot === 'afternoon' ? colors.onSecondaryContainer : colors.onSurfaceVariant }}>Afternoon</Text>
-                                        </Pressable>
-                                    </View>
-                                </View>
-                            )}
-
-                            <View style={{ flexDirection: 'row', gap: 16 }}>
-                                <View style={{ flex: 1, marginBottom: 24 }}>
-                                    <Text style={styles_internal.label(colors)}>START DATE</Text>
-                                    <TouchableOpacity
-                                        style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.surfaceContainer, borderRadius: 12, padding: 14 }}
-                                        onPress={() => setShowStartPicker(true)}
-                                    >
-                                        <Text style={{ fontSize: 16, color: colors.onSurface, fontFamily: "DMSans-Regular" }}>{formatDate(startDate)}</Text>
-                                        <Ionicons name="calendar-outline" size={20} color={colors.primary} />
-                                    </TouchableOpacity>
-                                    {showStartPicker && (
-                                        <DateTimePicker
-                                            value={startDate}
-                                            mode="date"
-                                            display="default"
-                                            minimumDate={new Date()}
-                                            onChange={(event, selectedDate) => {
-                                                setShowStartPicker(false);
-                                                if (selectedDate) {
-                                                    setStartDate(selectedDate);
-                                                    if (selectedDate > endDate) setEndDate(selectedDate);
-                                                }
-                                            }}
-                                        />
-                                    )}
-                                </View>
-
-                                {!isHalfDay && (
-                                    <View style={{ flex: 1, marginBottom: 24 }}>
-                                        <Text style={styles_internal.label(colors)}>END DATE</Text>
-                                        <TouchableOpacity
-                                            style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.surfaceContainer, borderRadius: 12, padding: 14 }}
-                                            onPress={() => setShowEndPicker(true)}
-                                        >
-                                            <Text style={{ fontSize: 16, color: colors.onSurface, fontFamily: "DMSans-Regular" }}>{formatDate(endDate)}</Text>
-                                            <Ionicons name="calendar-outline" size={20} color={colors.primary} />
-                                        </TouchableOpacity>
-                                        {showEndPicker && (
-                                            <DateTimePicker
-                                                value={endDate}
-                                                mode="date"
-                                                display="default"
-                                                minimumDate={startDate}
-                                                onChange={(event, selectedDate) => {
-                                                    setShowEndPicker(false);
-                                                    if (selectedDate) setEndDate(selectedDate);
-                                                }}
-                                            />
-                                        )}
-                                    </View>
-                                )}
-                            </View>
-
-                            <View style={{ marginBottom: 32 }}>
-                                <Text style={styles_internal.label(colors)}>REASON</Text>
-                                <TextInput
-                                    style={{
-                                        backgroundColor: colors.surfaceContainer, borderRadius: 12, padding: 14, fontSize: 16,
-                                        color: colors.onSurface, fontFamily: "DMSans-Regular", minHeight: 120, textAlignVertical: 'top'
-                                    }}
-                                    placeholder="Enter reason for leave..."
-                                    placeholderTextColor={colors.onSurfaceVariant}
-                                    value={reason}
-                                    onChangeText={setReason}
-                                    multiline
-                                    numberOfLines={4}
-                                />
-                            </View>
-
-                            <TouchableOpacity
-                                style={{
-                                    backgroundColor: colors.primary, paddingVertical: 16, borderRadius: 100, alignItems: 'center',
-                                    marginBottom: 32, elevation: 2, shadowColor: colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8
-                                }}
-                                onPress={handleApplyLeave}
-                                disabled={applyLeaveMutation.isPending}
-                            >
-                                {applyLeaveMutation.isPending ? (
-                                    <ActivityIndicator color={colors.onPrimary} />
-                                ) : (
-                                    <Text style={{ color: colors.onPrimary, fontSize: 16, fontFamily: "DMSans-Bold", letterSpacing: 0.5 }}>Submit Application</Text>
-                                )}
-                            </TouchableOpacity>
-                        </ScrollView>
-                    </View>
-                </KeyboardAvoidingView>
-            </Modal>
+          <View style={[styles.statusBadge, { backgroundColor: statusBadge.bg, borderColor: statusBadge.color + "40" }]}>
+            <Ionicons name={statusBadge.icon} size={12} color={statusBadge.color} />
+            <Text style={[styles.statusBadgeText, { color: statusBadge.color }]}>
+              {statusBadge.label}
+            </Text>
+          </View>
         </View>
+
+        {/* Date & Duration */}
+        <View style={[styles.dateBar, { backgroundColor: colors.surfaceContainerLow }]}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flex: 1 }}>
+            <Ionicons name="calendar-outline" size={14} color={colors.primary} />
+            <Text style={[styles.dateText, { color: colors.onSurface }]}>
+              {formatDate(item.startDate)}
+              {item.leaveType === "full" && item.startDate !== item.endDate && ` – ${formatDate(item.endDate)}`}
+            </Text>
+          </View>
+
+          <View style={[styles.durationBadge, { backgroundColor: colors.primaryContainer }]}>
+            <Text style={[styles.durationBadgeText, { color: colors.onPrimaryContainer }]}>
+              {durationLabel}
+              {item.leaveType === "half" ? ` (${item.halfDaySlot})` : ""}
+            </Text>
+          </View>
+        </View>
+
+        {/* Reason */}
+        <View style={[styles.reasonBox, { backgroundColor: colors.surfaceContainerHighest + "35" }]}>
+          <Text style={[styles.reasonText, { color: colors.onSurface }]}>
+            "{item.reason}"
+          </Text>
+        </View>
+
+        {/* Decision details */}
+        {item.status === "rejected" && (
+          <View style={[styles.decisionBox, { backgroundColor: "#FFEBEE", borderColor: "#FFCDD2" }]}>
+            <Text style={{ color: "#D32F2F", fontFamily: "DMSans-Bold", fontSize: 11 }}>
+              Rejected: {item.rejectionReason}
+            </Text>
+            {item.rejectionComments && (
+              <Text style={{ color: colors.onSurfaceVariant, fontSize: 11, marginTop: 1 }}>
+                Note: {item.rejectionComments}
+              </Text>
+            )}
+          </View>
+        )}
+
+        {item.status === "approved" && item.actionReason && (
+          <View style={[styles.decisionBox, { backgroundColor: "#E8F5E9", borderColor: "#C8E6C9" }]}>
+            <Text style={{ color: "#2E7D32", fontFamily: "DMSans-Bold", fontSize: 11 }}>
+              Approval Note: {item.actionReason}
+            </Text>
+          </View>
+        )}
+
+        {/* Actions */}
+        <View style={styles.actionRow}>
+          {item.status === "pending" ? (
+            <>
+              <TouchableOpacity
+                style={[styles.rejectBtn, { backgroundColor: colors.errorContainer + "30", borderColor: colors.error + "40" }]}
+                onPress={() => openActionModal(item, "rejected")}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="close" size={14} color={colors.error} />
+                <Text style={[styles.btnLabel, { color: colors.error }]}>Reject</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.approveBtn, { backgroundColor: colors.primary }]}
+                onPress={() => openActionModal(item, "approved")}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="checkmark" size={14} color={colors.onPrimary} />
+                <Text style={[styles.btnLabel, { color: colors.onPrimary }]}>Approve</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <TouchableOpacity
+              style={[styles.editBtn, { backgroundColor: colors.surfaceContainerHigh, borderColor: colors.outlineVariant }]}
+              onPress={() => openActionModal(item, item.status)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="create-outline" size={13} color={colors.onSurface} />
+              <Text style={[styles.btnLabel, { color: colors.onSurface }]}>Edit Decision</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
     );
+  };
+
+  // Render Daily Absence Card
+  const renderDailyCard = ({ item }) => {
+    const roleStyle = getRoleBadgeStyle(item.applicantRole);
+    return (
+      <View style={[styles.requestCard, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + "50" }]}>
+        <View style={[styles.cardAccent, { backgroundColor: roleStyle.text }]} />
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 }}>
+          <UserAvatar
+            photoUrl={item.applicant?.profilePhoto}
+            name={item.applicant?.name || "Unknown"}
+            role={item.applicantRole}
+            size={38}
+          />
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.applicantName, { color: colors.onSurface }]}>
+              {item.applicant?.name || "Unknown"}
+            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 }}>
+              <View style={[styles.roleChip, { backgroundColor: roleStyle.bg, borderColor: roleStyle.border }]}>
+                <MaterialIcons name={roleStyle.icon} size={10} color={roleStyle.text} />
+                <Text style={[styles.roleChipText, { color: roleStyle.text }]}>{roleStyle.label}</Text>
+              </View>
+              {item.applicantRole === "student" && item.class && (
+                <Text style={{ fontSize: 11, color: colors.onSurfaceVariant, fontFamily: "DMSans-Medium" }}>
+                  {formatClassName(item.class.name || item.class.label)}
+                </Text>
+              )}
+            </View>
+          </View>
+          <View style={[styles.awayBadge, { backgroundColor: "#FFEBEE", borderColor: "#FFCDD2" }]}>
+            <Text style={{ color: "#D32F2F", fontSize: 10, fontFamily: "DMSans-Bold" }}>ON LEAVE</Text>
+          </View>
+        </View>
+
+        <View style={[styles.dateBar, { backgroundColor: colors.surfaceContainerLow }]}>
+          <Text style={{ fontSize: 12, color: colors.onSurface, fontFamily: "DMSans-Medium" }}>
+            Until: {formatDate(item.endDate)} ({item.leaveType === "half" ? "Half Day" : "Full Day"})
+          </Text>
+        </View>
+
+        <Text style={[styles.reasonText, { color: colors.onSurfaceVariant, marginTop: 6 }]}>
+          "{item.reason}"
+        </Text>
+      </View>
+    );
+  };
+
+  // Render My Leave Card
+  const renderMyLeaveCard = ({ item }) => {
+    const statusBadge = getStatusBadge(item.status);
+    return (
+      <View style={[styles.requestCard, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + "50" }]}>
+        <View style={[styles.cardAccent, { backgroundColor: statusBadge.color }]} />
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+          <View>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Ionicons name="calendar" size={14} color={colors.primary} />
+              <Text style={[styles.dateText, { color: colors.onSurface }]}>
+                {formatDate(item.startDate)}
+                {item.leaveType === "full" && item.startDate !== item.endDate && ` – ${formatDate(item.endDate)}`}
+              </Text>
+            </View>
+            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginTop: 1 }}>
+              {item.leaveType === "half" ? `Half Day (${item.halfDaySlot})` : "Full Day"} • {calculateDays(item.startDate, item.endDate, item.leaveType)}
+            </Text>
+          </View>
+          <View style={[styles.statusBadge, { backgroundColor: statusBadge.bg, borderColor: statusBadge.color + "40" }]}>
+            <Ionicons name={statusBadge.icon} size={12} color={statusBadge.color} />
+            <Text style={[styles.statusBadgeText, { color: statusBadge.color }]}>{statusBadge.label}</Text>
+          </View>
+        </View>
+
+        <View style={[styles.reasonBox, { backgroundColor: colors.surfaceContainerHighest + "35" }]}>
+          <Text style={[styles.reasonText, { color: colors.onSurface }]}>"{item.reason}"</Text>
+        </View>
+      </View>
+    );
+  };
+
+  // ListHeaderComponent for Admin Requests Tab (Scrolls with list)
+  const renderListHeader = () => {
+    return (
+      <View style={{ paddingTop: 4, paddingBottom: 10 }}>
+        {/* Compact KPI Capsules */}
+        <View style={styles.compactKpiBar}>
+          <TouchableOpacity
+            style={[
+              styles.kpiCapsule,
+              {
+                backgroundColor: statusFilter === "pending" ? "#FFF3E0" : colors.surface,
+                borderColor: statusFilter === "pending" ? "#FFB74D" : colors.outlineVariant + "40",
+              },
+            ]}
+            onPress={() => setStatusFilter(statusFilter === "pending" ? "all" : "pending")}
+          >
+            <View style={[styles.kpiDot, { backgroundColor: "#E65100" }]} />
+            <Text style={[styles.kpiCapsuleNum, { color: "#E65100" }]}>{summaryMetrics.pending}</Text>
+            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]}>Pending</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.kpiCapsule,
+              {
+                backgroundColor: statusFilter === "approved" ? "#E8F5E9" : colors.surface,
+                borderColor: statusFilter === "approved" ? "#81C784" : colors.outlineVariant + "40",
+              },
+            ]}
+            onPress={() => setStatusFilter(statusFilter === "approved" ? "all" : "approved")}
+          >
+            <View style={[styles.kpiDot, { backgroundColor: "#2E7D32" }]} />
+            <Text style={[styles.kpiCapsuleNum, { color: "#2E7D32" }]}>{summaryMetrics.approved}</Text>
+            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]}>Approved</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.kpiCapsule,
+              {
+                backgroundColor: statusFilter === "rejected" ? "#FFEBEE" : colors.surface,
+                borderColor: statusFilter === "rejected" ? "#E57373" : colors.outlineVariant + "40",
+              },
+            ]}
+            onPress={() => setStatusFilter(statusFilter === "rejected" ? "all" : "rejected")}
+          >
+            <View style={[styles.kpiDot, { backgroundColor: "#D32F2F" }]} />
+            <Text style={[styles.kpiCapsuleNum, { color: "#D32F2F" }]}>{summaryMetrics.rejected}</Text>
+            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]}>Rejected</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.kpiCapsule,
+              {
+                backgroundColor: statusFilter === "all" ? colors.primaryContainer + "40" : colors.surface,
+                borderColor: statusFilter === "all" ? colors.primary : colors.outlineVariant + "40",
+              },
+            ]}
+            onPress={() => setStatusFilter("all")}
+          >
+            <Text style={[styles.kpiCapsuleNum, { color: colors.primary }]}>{summaryMetrics.total}</Text>
+            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]}>All</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Active Filters Tag Bar */}
+        {activeFiltersCount > 0 && (
+          <View style={styles.activeFiltersRow}>
+            {selectedAcademicYearId !== "all" && (
+              <View style={[styles.activeFilterPill, { backgroundColor: colors.secondaryContainer }]}>
+                <Text style={[styles.activeFilterText, { color: colors.onSecondaryContainer }]}>
+                  Year: {academicYears.find((y) => y._id === selectedAcademicYearId)?.name || "Selected"}
+                </Text>
+                <TouchableOpacity onPress={() => setSelectedAcademicYearId("all")}>
+                  <Ionicons name="close" size={14} color={colors.onSecondaryContainer} />
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {roleFilter !== "all" && (
+              <View style={[styles.activeFilterPill, { backgroundColor: colors.secondaryContainer }]}>
+                <Text style={[styles.activeFilterText, { color: colors.onSecondaryContainer }]}>
+                  Role: {roleFilter.toUpperCase()}
+                </Text>
+                <TouchableOpacity onPress={() => setRoleFilter("all")}>
+                  <Ionicons name="close" size={14} color={colors.onSecondaryContainer} />
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {selectedClassId !== "all" && (
+              <View style={[styles.activeFilterPill, { backgroundColor: colors.secondaryContainer }]}>
+                <Text style={[styles.activeFilterText, { color: colors.onSecondaryContainer }]}>
+                  Class: {formatClassName(classesList.find((c) => c._id === selectedClassId)?.name || "Selected")}
+                </Text>
+                <TouchableOpacity onPress={() => setSelectedClassId("all")}>
+                  <Ionicons name="close" size={14} color={colors.onSecondaryContainer} />
+                </TouchableOpacity>
+              </View>
+            )}
+
+            <TouchableOpacity
+              onPress={() => {
+                setSelectedAcademicYearId("all");
+                setRoleFilter("all");
+                setSelectedClassId("all");
+              }}
+              style={styles.clearAllBtn}
+            >
+              <Text style={{ fontSize: 11, color: colors.primary, fontFamily: "DMSans-Bold" }}>
+                Reset Filters
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+    );
+  };
+
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      {/* 1. Header */}
+      <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
+        <Header
+          title="Leave Management"
+          subtitle="Review requests, track absences & allowance"
+          showBack={true}
+        />
+      </View>
+
+      {/* 2. Sleek Segmented Navigation (Height 36px) */}
+      <View style={styles.tabContainer}>
+        <View style={[styles.tabBar, { backgroundColor: colors.surfaceContainer }]}>
+          {[
+            { key: "requests", label: "Requests", count: summaryMetrics.pending },
+            { key: "daily", label: "On Leave Today", count: dailyLeaves.length },
+            { key: "my_leaves", label: "My Leaves", count: null },
+          ].map((tab) => {
+            const isTabActive = activeTab === tab.key;
+            return (
+              <TouchableOpacity
+                key={tab.key}
+                style={[
+                  styles.tabBtn,
+                  isTabActive && [styles.tabBtnActive, { backgroundColor: colors.surface }],
+                ]}
+                onPress={() => setActiveTab(tab.key)}
+                activeOpacity={0.8}
+              >
+                <Text
+                  style={[
+                    styles.tabBtnText,
+                    { color: isTabActive ? colors.primary : colors.onSurfaceVariant },
+                    isTabActive && { fontFamily: "DMSans-Bold" },
+                  ]}
+                >
+                  {tab.label}
+                </Text>
+                {tab.count !== null && tab.count > 0 && (
+                  <View style={[styles.tabBadge, { backgroundColor: tab.key === "requests" ? "#E65100" : colors.primary }]}>
+                    <Text style={styles.tabBadgeText}>{tab.count}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+
+      {/* 3. Sticky Search & Filter Action Bar */}
+      {activeTab === "requests" && (
+        <View style={styles.searchFilterBar}>
+          <View style={[styles.searchInputBox, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + "60" }]}>
+            <Ionicons name="search" size={16} color={colors.onSurfaceVariant} />
+            <TextInput
+              style={[styles.searchInput, { color: colors.onSurface }]}
+              placeholder="Search applicant, class, or reason..."
+              placeholderTextColor={colors.onSurfaceVariant + "80"}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery("")}>
+                <Ionicons name="close-circle" size={16} color={colors.onSurfaceVariant} />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* View Mode Toggle: Stream vs Grouped */}
+          <TouchableOpacity
+            style={[styles.viewModeBtn, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + "60" }]}
+            onPress={() => setViewMode(viewMode === "grouped" ? "list" : "grouped")}
+            activeOpacity={0.7}
+          >
+            <Ionicons name={viewMode === "grouped" ? "layers" : "list"} size={16} color={colors.primary} />
+          </TouchableOpacity>
+
+          {/* Filter Sheet Button */}
+          <TouchableOpacity
+            style={[
+              styles.filterSheetBtn,
+              {
+                backgroundColor: activeFiltersCount > 0 ? colors.primaryContainer : colors.surface,
+                borderColor: activeFiltersCount > 0 ? colors.primary : colors.outlineVariant + "60",
+              },
+            ]}
+            onPress={() => setFilterModalVisible(true)}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name="funnel-outline"
+              size={16}
+              color={activeFiltersCount > 0 ? colors.onPrimaryContainer : colors.onSurfaceVariant}
+            />
+            {activeFiltersCount > 0 && (
+              <View style={[styles.filterBadge, { backgroundColor: colors.primary }]}>
+                <Text style={styles.filterBadgeText}>{activeFiltersCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* TAB 1: REQUESTS LIST */}
+      {activeTab === "requests" && (
+        <View style={{ flex: 1 }}>
+          {requestsLoading ? (
+            <View style={styles.loaderBox}>
+              <ActivityIndicator size="large" color={colors.primary} />
+              <Text style={[styles.loaderText, { color: colors.onSurfaceVariant }]}>
+                Loading leave requests...
+              </Text>
+            </View>
+          ) : viewMode === "grouped" && categorizedSections.length > 0 ? (
+            <SectionList
+              sections={categorizedSections}
+              renderItem={renderRequestCard}
+              ListHeaderComponent={renderListHeader}
+              renderSectionHeader={({ section: { title, data } }) => (
+                <View style={[styles.sectionHeader, { backgroundColor: colors.background, borderBottomColor: colors.outlineVariant + "30" }]}>
+                  <Text style={[styles.sectionHeaderTitle, { color: colors.onSurface }]}>{title}</Text>
+                  <Text style={[styles.sectionCountText, { color: colors.onSurfaceVariant }]}>
+                    {data.length}
+                  </Text>
+                </View>
+              )}
+              keyExtractor={(item) => item._id}
+              contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
+              }
+              ListEmptyComponent={
+                <View style={styles.emptyContainer}>
+                  <MaterialIcons name="done-all" size={48} color={colors.onSurfaceVariant + "70"} />
+                  <Text style={[styles.emptyTitle, { color: colors.onSurface }]}>No Leave Requests</Text>
+                  <Text style={[styles.emptySub, { color: colors.onSurfaceVariant }]}>
+                    No leave requests match your selected filters.
+                  </Text>
+                </View>
+              }
+            />
+          ) : (
+            <FlatList
+              data={filteredRequests}
+              renderItem={renderRequestCard}
+              ListHeaderComponent={renderListHeader}
+              keyExtractor={(item) => item._id}
+              contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
+              }
+              ListEmptyComponent={
+                <View style={styles.emptyContainer}>
+                  <MaterialIcons name="done-all" size={48} color={colors.onSurfaceVariant + "70"} />
+                  <Text style={[styles.emptyTitle, { color: colors.onSurface }]}>No Leave Requests</Text>
+                  <Text style={[styles.emptySub, { color: colors.onSurfaceVariant }]}>
+                    No leave requests match your selected filters.
+                  </Text>
+                </View>
+              }
+            />
+          )}
+        </View>
+      )}
+
+      {/* TAB 2: DAILY ABSENCE DASHBOARD */}
+      {activeTab === "daily" && (
+        <View style={{ flex: 1 }}>
+          {/* Compact Date Bar */}
+          <View style={[styles.dailyBar, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + "40" }]}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Ionicons name="calendar" size={16} color={colors.primary} />
+              <Text style={[styles.dateText, { color: colors.onSurface }]}>{formatDate(dailyDate)}</Text>
+            </View>
+
+            <View style={{ flexDirection: "row", gap: 6 }}>
+              <TouchableOpacity
+                style={[styles.quickBtn, { backgroundColor: colors.primaryContainer }]}
+                onPress={() => setDailyDate(new Date())}
+              >
+                <Text style={{ color: colors.onPrimaryContainer, fontFamily: "DMSans-Bold", fontSize: 11 }}>
+                  Today
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.quickBtn, { backgroundColor: colors.surfaceContainerHigh }]}
+                onPress={() => setShowDailyDatePicker(true)}
+              >
+                <Text style={{ color: colors.onSurface, fontFamily: "DMSans-Medium", fontSize: 11 }}>
+                  Pick Date
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {showDailyDatePicker && (
+              <DateTimePicker
+                value={dailyDate}
+                mode="date"
+                display="default"
+                onChange={(event, selected) => {
+                  setShowDailyDatePicker(false);
+                  if (selected) setDailyDate(selected);
+                }}
+              />
+            )}
+          </View>
+
+          {/* Daily Quick Counts */}
+          <View style={styles.dailyCountsRow}>
+            <View style={[styles.dailyCountPill, { backgroundColor: "#FFF3E0" }]}>
+              <Text style={{ color: "#E65100", fontFamily: "DMSans-Bold", fontSize: 11 }}>
+                {dailyLeavesGrouped.students.length} Students
+              </Text>
+            </View>
+            <View style={[styles.dailyCountPill, { backgroundColor: "#EDE7F6" }]}>
+              <Text style={{ color: "#512DA8", fontFamily: "DMSans-Bold", fontSize: 11 }}>
+                {dailyLeavesGrouped.teachers.length} Teachers
+              </Text>
+            </View>
+            <View style={[styles.dailyCountPill, { backgroundColor: "#E0F2F1" }]}>
+              <Text style={{ color: "#00695C", fontFamily: "DMSans-Bold", fontSize: 11 }}>
+                {dailyLeavesGrouped.staff.length} Staff
+              </Text>
+            </View>
+          </View>
+
+          {dailyStatsLoading ? (
+            <View style={styles.loaderBox}>
+              <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+          ) : (
+            <FlatList
+              data={dailyLeaves}
+              renderItem={renderDailyCard}
+              keyExtractor={(item) => item._id}
+              contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
+              }
+              ListEmptyComponent={
+                <View style={styles.emptyContainer}>
+                  <Ionicons name="checkmark-done-circle-outline" size={48} color={colors.success} />
+                  <Text style={[styles.emptyTitle, { color: colors.onSurface }]}>All Present</Text>
+                  <Text style={[styles.emptySub, { color: colors.onSurfaceVariant }]}>
+                    No approved leaves found for {formatDate(dailyDate)}.
+                  </Text>
+                </View>
+              }
+            />
+          )}
+        </View>
+      )}
+
+      {/* TAB 3: MY LEAVES & BALANCE */}
+      {activeTab === "my_leaves" && (
+        <View style={{ flex: 1 }}>
+          <View style={[styles.allowanceCard, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + "50" }]}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+              <View>
+                <Text style={[styles.allowanceTitle, { color: colors.onSurface }]}>Leave Allowance</Text>
+                <Text style={{ fontSize: 11, color: colors.onSurfaceVariant }}>
+                  Year {activeYearObj?.name || new Date().getFullYear()}
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={[styles.applyBtnSmall, { backgroundColor: colors.primary }]}
+                onPress={() => setApplyModalVisible(true)}
+              >
+                <Ionicons name="add" size={15} color={colors.onPrimary} />
+                <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 12 }}>
+                  Apply Leave
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.allowanceGrid}>
+              <View style={[styles.allowanceCol, { backgroundColor: colors.surfaceContainerLow }]}>
+                <Text style={[styles.allowanceNum, { color: colors.onSurface }]}>{leaveBalance.total}</Text>
+                <Text style={[styles.allowanceLabel, { color: colors.onSurfaceVariant }]}>Total</Text>
+              </View>
+              <View style={[styles.allowanceCol, { backgroundColor: "#FFF3E0" }]}>
+                <Text style={[styles.allowanceNum, { color: "#E65100" }]}>{leaveBalance.used}</Text>
+                <Text style={[styles.allowanceLabel, { color: "#E65100" }]}>Used</Text>
+              </View>
+              <View style={[styles.allowanceCol, { backgroundColor: "#E8F5E9" }]}>
+                <Text style={[styles.allowanceNum, { color: "#2E7D32" }]}>{leaveBalance.remaining}</Text>
+                <Text style={[styles.allowanceLabel, { color: "#2E7D32" }]}>Remaining</Text>
+              </View>
+            </View>
+          </View>
+
+          {myLeavesLoading ? (
+            <View style={styles.loaderBox}>
+              <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+          ) : (
+            <FlatList
+              data={myLeaves}
+              renderItem={renderMyLeaveCard}
+              keyExtractor={(item) => item._id}
+              contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
+              }
+              ListEmptyComponent={
+                <View style={styles.emptyContainer}>
+                  <Ionicons name="calendar-outline" size={48} color={colors.onSurfaceVariant + "70"} />
+                  <Text style={[styles.emptyTitle, { color: colors.onSurface }]}>No Leave Records</Text>
+                  <Text style={[styles.emptySub, { color: colors.onSurfaceVariant }]}>
+                    You haven't submitted any leave requests yet.
+                  </Text>
+                </View>
+              }
+            />
+          )}
+
+          <TouchableOpacity
+            style={[styles.fabBtn, { backgroundColor: colors.primary }]}
+            onPress={() => setApplyModalVisible(true)}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="add" size={24} color={colors.onPrimary} />
+            <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 13 }}>
+              Apply
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* FILTER BOTTOM SHEET / MODAL */}
+      <Modal
+        visible={filterModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setFilterModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.filterSheetCard, { backgroundColor: colors.surface }]}>
+            <View style={styles.filterSheetHeader}>
+              <Text style={[styles.filterSheetTitle, { color: colors.onSurface }]}>
+                Filter Leave Requests
+              </Text>
+              <TouchableOpacity onPress={() => setFilterModalVisible(false)}>
+                <Ionicons name="close" size={22} color={colors.onSurfaceVariant} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 380 }}>
+              {/* Role Filter */}
+              <Text style={[styles.filterGroupLabel, { color: colors.onSurfaceVariant }]}>
+                APPLICANT ROLE
+              </Text>
+              <View style={styles.chipGrid}>
+                {[
+                  { id: "all", label: "All Roles" },
+                  { id: "student", label: "Students" },
+                  { id: "teacher", label: "Teachers" },
+                  { id: "staff", label: "Staff" },
+                  { id: "admin", label: "Admin" },
+                ].map((item) => {
+                  const isSel = roleFilter === item.id;
+                  return (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={[
+                        styles.sheetChip,
+                        isSel && [styles.sheetChipActive, { backgroundColor: colors.primary }],
+                      ]}
+                      onPress={() => setRoleFilter(item.id)}
+                    >
+                      <Text
+                        style={[
+                          styles.sheetChipText,
+                          { color: isSel ? colors.onPrimary : colors.onSurface },
+                        ]}
+                      >
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {/* Academic Year Filter */}
+              <Text style={[styles.filterGroupLabel, { color: colors.onSurfaceVariant, marginTop: 14 }]}>
+                ACADEMIC YEAR
+              </Text>
+              <View style={styles.chipGrid}>
+                <TouchableOpacity
+                  style={[
+                    styles.sheetChip,
+                    selectedAcademicYearId === "all" && [styles.sheetChipActive, { backgroundColor: colors.primary }],
+                  ]}
+                  onPress={() => setSelectedAcademicYearId("all")}
+                >
+                  <Text
+                    style={[
+                      styles.sheetChipText,
+                      { color: selectedAcademicYearId === "all" ? colors.onPrimary : colors.onSurface },
+                    ]}
+                  >
+                    All Years
+                  </Text>
+                </TouchableOpacity>
+
+                {academicYears.map((yr) => {
+                  const isSel = selectedAcademicYearId === yr._id;
+                  return (
+                    <TouchableOpacity
+                      key={yr._id}
+                      style={[
+                        styles.sheetChip,
+                        isSel && [styles.sheetChipActive, { backgroundColor: colors.primary }],
+                      ]}
+                      onPress={() => setSelectedAcademicYearId(yr._id)}
+                    >
+                      <Text
+                        style={[
+                          styles.sheetChipText,
+                          { color: isSel ? colors.onPrimary : colors.onSurface },
+                        ]}
+                      >
+                        {yr.name} {yr.isActive ? "(Current)" : ""}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {/* Class Filter */}
+              {classesList.length > 0 && (
+                <>
+                  <Text style={[styles.filterGroupLabel, { color: colors.onSurfaceVariant, marginTop: 14 }]}>
+                    CLASS & SECTION
+                  </Text>
+                  <View style={styles.chipGrid}>
+                    <TouchableOpacity
+                      style={[
+                        styles.sheetChip,
+                        selectedClassId === "all" && [styles.sheetChipActive, { backgroundColor: colors.primary }],
+                      ]}
+                      onPress={() => setSelectedClassId("all")}
+                    >
+                      <Text
+                        style={[
+                          styles.sheetChipText,
+                          { color: selectedClassId === "all" ? colors.onPrimary : colors.onSurface },
+                        ]}
+                      >
+                        All Classes
+                      </Text>
+                    </TouchableOpacity>
+
+                    {classesList.map((cls) => {
+                      const isSel = selectedClassId === cls._id;
+                      return (
+                        <TouchableOpacity
+                          key={cls._id}
+                          style={[
+                            styles.sheetChip,
+                            isSel && [styles.sheetChipActive, { backgroundColor: colors.primary }],
+                          ]}
+                          onPress={() => setSelectedClassId(cls._id)}
+                        >
+                          <Text
+                            style={[
+                              styles.sheetChipText,
+                              { color: isSel ? colors.onPrimary : colors.onSurface },
+                            ]}
+                          >
+                            {formatClassName(cls.name || cls.label)} {cls.section ? `(${cls.section})` : ""}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </>
+              )}
+            </ScrollView>
+
+            <View style={styles.filterSheetFooter}>
+              <TouchableOpacity
+                style={styles.sheetResetBtn}
+                onPress={() => {
+                  setSelectedAcademicYearId("all");
+                  setRoleFilter("all");
+                  setSelectedClassId("all");
+                  setFilterModalVisible(false);
+                }}
+              >
+                <Text style={{ color: colors.onSurfaceVariant, fontFamily: "DMSans-Bold", fontSize: 13 }}>
+                  Reset All
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.sheetApplyBtn, { backgroundColor: colors.primary }]}
+                onPress={() => setFilterModalVisible(false)}
+              >
+                <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 14 }}>
+                  Apply Filters
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ACTION MODAL (APPROVE / REJECT) */}
+      <Modal
+        visible={actionModalVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setActionModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={styles.modalBackdrop}
+        >
+          <View style={[styles.actionModalCard, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + "50" }]}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <View
+                  style={[
+                    styles.actionIconBox,
+                    { backgroundColor: actionType === "approved" ? "#E8F5E9" : "#FFEBEE" },
+                  ]}
+                >
+                  <Ionicons
+                    name={actionType === "approved" ? "checkmark-circle" : "close-circle"}
+                    size={20}
+                    color={actionType === "approved" ? "#2E7D32" : "#D32F2F"}
+                  />
+                </View>
+                <Text style={[styles.modalHeading, { color: colors.onSurface }]}>
+                  {actionType === "approved" ? "Approve Leave Request" : "Reject Leave Request"}
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => setActionModalVisible(false)}>
+                <Ionicons name="close" size={20} color={colors.onSurfaceVariant} />
+              </TouchableOpacity>
+            </View>
+
+            {selectedRequest && (
+              <View style={[styles.applicantMiniSummary, { backgroundColor: colors.surfaceContainerLow }]}>
+                <UserAvatar
+                  photoUrl={selectedRequest.applicant?.profilePhoto}
+                  name={selectedRequest.applicant?.name || "Unknown"}
+                  role={selectedRequest.applicantRole}
+                  size={32}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 13, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
+                    {selectedRequest.applicant?.name}
+                  </Text>
+                  <Text style={{ fontSize: 11, color: colors.onSurfaceVariant, fontFamily: "DMSans-Regular" }}>
+                    {formatDate(selectedRequest.startDate)} – {formatDate(selectedRequest.endDate)} (
+                    {calculateDays(selectedRequest.startDate, selectedRequest.endDate, selectedRequest.leaveType)})
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {actionType === "rejected" && (
+              <ScrollView style={{ maxHeight: 260 }} showsVerticalScrollIndicator={false}>
+                <Text style={[styles.fieldLabel, { color: colors.onSurfaceVariant }]}>
+                  SELECT REASON FOR REJECTION *
+                </Text>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+                  {REJECTION_PRESETS.map((preset) => {
+                    const isPresetSelected = rejectionReason === preset;
+                    return (
+                      <TouchableOpacity
+                        key={preset}
+                        style={[
+                          styles.presetChip,
+                          {
+                            backgroundColor: isPresetSelected ? "#FFEBEE" : colors.surfaceContainer,
+                            borderColor: isPresetSelected ? "#D32F2F" : colors.outlineVariant + "40",
+                          },
+                        ]}
+                        onPress={() => setRejectionReason(preset)}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 11,
+                            color: isPresetSelected ? "#D32F2F" : colors.onSurface,
+                            fontFamily: isPresetSelected ? "DMSans-Bold" : "DMSans-Medium",
+                          }}
+                        >
+                          {preset}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+
+                <Text style={[styles.fieldLabel, { color: colors.onSurfaceVariant }]}>
+                  SPECIFIC COMMENTS / NOTE *
+                </Text>
+                <TextInput
+                  style={[
+                    styles.textArea,
+                    {
+                      backgroundColor: colors.surfaceContainer,
+                      color: colors.onSurface,
+                      borderColor: colors.outlineVariant,
+                    },
+                  ]}
+                  placeholder="Explain why this request is being rejected..."
+                  placeholderTextColor={colors.onSurfaceVariant + "80"}
+                  value={rejectionComments}
+                  onChangeText={setRejectionComments}
+                  multiline
+                  numberOfLines={3}
+                />
+              </ScrollView>
+            )}
+
+            {actionType === "approved" && (
+              <View style={{ marginBottom: 8 }}>
+                <Text style={[styles.fieldLabel, { color: colors.onSurfaceVariant }]}>
+                  APPROVAL NOTE (OPTIONAL)
+                </Text>
+                <TextInput
+                  style={[
+                    styles.textArea,
+                    {
+                      backgroundColor: colors.surfaceContainer,
+                      color: colors.onSurface,
+                      borderColor: colors.outlineVariant,
+                    },
+                  ]}
+                  placeholder="e.g. Ensure assignments are submitted..."
+                  placeholderTextColor={colors.onSurfaceVariant + "80"}
+                  value={actionReason}
+                  onChangeText={setActionReason}
+                  multiline
+                  numberOfLines={3}
+                />
+              </View>
+            )}
+
+            <View style={styles.modalBtnRow}>
+              <TouchableOpacity
+                style={styles.modalCancelBtn}
+                onPress={() => setActionModalVisible(false)}
+              >
+                <Text style={{ color: colors.onSurfaceVariant, fontFamily: "DMSans-Bold", fontSize: 13 }}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.modalConfirmBtn,
+                  { backgroundColor: actionType === "approved" ? colors.primary : colors.error },
+                ]}
+                onPress={handleAction}
+                disabled={actionMutation.isPending}
+              >
+                {actionMutation.isPending ? (
+                  <ActivityIndicator color="#FFF" size="small" />
+                ) : (
+                  <Text style={{ color: "#FFF", fontFamily: "DMSans-Bold", fontSize: 13 }}>
+                    {actionType === "approved" ? "Approve" : "Reject"}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* APPLY LEAVE MODAL (ADMIN) */}
+      <Modal
+        visible={applyModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setApplyModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}
+        >
+          <View style={[styles.applySheetCard, { backgroundColor: colors.surface }]}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <Text style={[styles.modalHeading, { color: colors.onSurface }]}>Apply for Leave</Text>
+              <TouchableOpacity onPress={() => setApplyModalVisible(false)}>
+                <Ionicons name="close" size={22} color={colors.onSurfaceVariant} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={{ marginBottom: 14 }}>
+                <Text style={[styles.fieldLabel, { color: colors.onSurfaceVariant }]}>LEAVE TYPE</Text>
+                <View style={[styles.segmentBox, { backgroundColor: colors.surfaceContainer }]}>
+                  <Pressable
+                    style={[styles.segmentOption, !isHalfDay && [styles.segmentActive, { backgroundColor: colors.surface }]]}
+                    onPress={() => setIsHalfDay(false)}
+                  >
+                    <Text style={[styles.segmentText, { color: !isHalfDay ? colors.primary : colors.onSurfaceVariant }]}>
+                      Full Day
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    style={[styles.segmentOption, isHalfDay && [styles.segmentActive, { backgroundColor: colors.surface }]]}
+                    onPress={() => setIsHalfDay(true)}
+                  >
+                    <Text style={[styles.segmentText, { color: isHalfDay ? colors.primary : colors.onSurfaceVariant }]}>
+                      Half Day
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
+
+              {isHalfDay && (
+                <View style={{ marginBottom: 14 }}>
+                  <Text style={[styles.fieldLabel, { color: colors.onSurfaceVariant }]}>HALF DAY SLOT</Text>
+                  <View style={{ flexDirection: "row", gap: 8 }}>
+                    <Pressable
+                      style={[
+                        styles.slotBtn,
+                        {
+                          backgroundColor: halfDaySlot === "morning" ? colors.primaryContainer : colors.surfaceContainer,
+                          borderColor: halfDaySlot === "morning" ? colors.primary : colors.outlineVariant + "40",
+                        },
+                      ]}
+                      onPress={() => setHalfDaySlot("morning")}
+                    >
+                      <Text
+                        style={{
+                          fontFamily: "DMSans-Bold",
+                          fontSize: 12,
+                          color: halfDaySlot === "morning" ? colors.onPrimaryContainer : colors.onSurfaceVariant,
+                        }}
+                      >
+                        🌅 Morning
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      style={[
+                        styles.slotBtn,
+                        {
+                          backgroundColor: halfDaySlot === "afternoon" ? colors.primaryContainer : colors.surfaceContainer,
+                          borderColor: halfDaySlot === "afternoon" ? colors.primary : colors.outlineVariant + "40",
+                        },
+                      ]}
+                      onPress={() => setHalfDaySlot("afternoon")}
+                    >
+                      <Text
+                        style={{
+                          fontFamily: "DMSans-Bold",
+                          fontSize: 12,
+                          color: halfDaySlot === "afternoon" ? colors.onPrimaryContainer : colors.onSurfaceVariant,
+                        }}
+                      >
+                        🌇 Afternoon
+                      </Text>
+                    </Pressable>
+                  </View>
+                </View>
+              )}
+
+              <View style={{ flexDirection: "row", gap: 10, marginBottom: 14 }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.fieldLabel, { color: colors.onSurfaceVariant }]}>START DATE</Text>
+                  <TouchableOpacity
+                    style={[styles.datePickerInput, { backgroundColor: colors.surfaceContainer }]}
+                    onPress={() => setShowStartPicker(true)}
+                  >
+                    <Text style={{ fontSize: 13, color: colors.onSurface, fontFamily: "DMSans-Medium" }}>
+                      {formatDate(startDate)}
+                    </Text>
+                    <Ionicons name="calendar-outline" size={16} color={colors.primary} />
+                  </TouchableOpacity>
+                  {showStartPicker && (
+                    <DateTimePicker
+                      value={startDate}
+                      mode="date"
+                      display="default"
+                      onChange={(e, date) => {
+                        setShowStartPicker(false);
+                        if (date) {
+                          setStartDate(date);
+                          if (date > endDate) setEndDate(date);
+                        }
+                      }}
+                    />
+                  )}
+                </View>
+
+                {!isHalfDay && (
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.fieldLabel, { color: colors.onSurfaceVariant }]}>END DATE</Text>
+                    <TouchableOpacity
+                      style={[styles.datePickerInput, { backgroundColor: colors.surfaceContainer }]}
+                      onPress={() => setShowEndPicker(true)}
+                    >
+                      <Text style={{ fontSize: 13, color: colors.onSurface, fontFamily: "DMSans-Medium" }}>
+                        {formatDate(endDate)}
+                      </Text>
+                      <Ionicons name="calendar-outline" size={16} color={colors.primary} />
+                    </TouchableOpacity>
+                    {showEndPicker && (
+                      <DateTimePicker
+                        value={endDate}
+                        mode="date"
+                        display="default"
+                        minimumDate={startDate}
+                        onChange={(e, date) => {
+                          setShowEndPicker(false);
+                          if (date) setEndDate(date);
+                        }}
+                      />
+                    )}
+                  </View>
+                )}
+              </View>
+
+              <View style={{ marginBottom: 18 }}>
+                <Text style={[styles.fieldLabel, { color: colors.onSurfaceVariant }]}>REASON FOR LEAVE *</Text>
+                <TextInput
+                  style={[styles.textArea, { backgroundColor: colors.surfaceContainer, color: colors.onSurface }]}
+                  placeholder="Provide details about your leave application..."
+                  placeholderTextColor={colors.onSurfaceVariant + "80"}
+                  value={reason}
+                  onChangeText={setReason}
+                  multiline
+                  numberOfLines={3}
+                />
+              </View>
+
+              <TouchableOpacity
+                style={[styles.submitBtn, { backgroundColor: colors.primary }]}
+                onPress={handleApplyLeave}
+                disabled={applyLeaveMutation.isPending}
+              >
+                {applyLeaveMutation.isPending ? (
+                  <ActivityIndicator color="#FFF" />
+                ) : (
+                  <Text style={{ color: "#FFF", fontFamily: "DMSans-Bold", fontSize: 15 }}>
+                    Submit Application
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+    </View>
+  );
 }
 
-const styles_internal = {
-    label: (colors) => ({
-        fontSize: 12,
-        color: colors.onSurfaceVariant,
-        marginBottom: 8,
-        fontFamily: "DMSans-Bold",
-        letterSpacing: 0.5,
-        textTransform: 'uppercase'
-    }),
-    input: (colors) => ({
-        borderWidth: 1,
-        borderColor: colors.outline,
-        borderRadius: 8,
-        padding: 12,
-        color: colors.onSurface,
-        fontFamily: "DMSans-Regular",
-        marginBottom: 16
-    })
-};
+const styles = StyleSheet.create({
+  tabContainer: {
+    paddingHorizontal: 16,
+    marginBottom: 8,
+  },
+  tabBar: {
+    flexDirection: "row",
+    borderRadius: 10,
+    padding: 3,
+  },
+  tabBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 7,
+    borderRadius: 8,
+    gap: 5,
+  },
+  tabBtnActive: {
+    elevation: 1,
+  },
+  tabBtnText: {
+    fontSize: 12,
+    fontFamily: "DMSans-Medium",
+  },
+  tabBadge: {
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 8,
+  },
+  tabBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 9,
+    fontFamily: "DMSans-Bold",
+  },
+  searchFilterBar: {
+    flexDirection: "row",
+    paddingHorizontal: 16,
+    gap: 8,
+    marginBottom: 6,
+    alignItems: "center",
+  },
+  searchInputBox: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+    gap: 6,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 12,
+    fontFamily: "DMSans-Regular",
+    padding: 0,
+  },
+  viewModeBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  filterSheetBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+  },
+  filterBadge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  filterBadgeText: {
+    color: "#FFF",
+    fontSize: 9,
+    fontFamily: "DMSans-Bold",
+  },
+  compactKpiBar: {
+    flexDirection: "row",
+    gap: 6,
+    marginBottom: 8,
+  },
+  kpiCapsule: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 6,
+    paddingHorizontal: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 4,
+  },
+  kpiDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  kpiCapsuleNum: {
+    fontSize: 12,
+    fontFamily: "DMSans-Bold",
+  },
+  kpiCapsuleLabel: {
+    fontSize: 10,
+    fontFamily: "DMSans-Medium",
+  },
+  activeFiltersRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    flexWrap: "wrap",
+    marginTop: 2,
+    marginBottom: 4,
+  },
+  activeFilterPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    gap: 4,
+  },
+  activeFilterText: {
+    fontSize: 10,
+    fontFamily: "DMSans-Bold",
+  },
+  clearAllBtn: {
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 6,
+    paddingHorizontal: 2,
+    borderBottomWidth: 1,
+    marginBottom: 8,
+    marginTop: 6,
+  },
+  sectionHeaderTitle: {
+    fontSize: 13,
+    fontFamily: "DMSans-Bold",
+  },
+  sectionCountText: {
+    fontSize: 11,
+    fontFamily: "DMSans-Medium",
+  },
+  requestCard: {
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 10,
+    borderWidth: 1,
+    position: "relative",
+    overflow: "hidden",
+    elevation: 1,
+  },
+  cardAccent: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    bottom: 0,
+    width: 3,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 8,
+  },
+  applicantName: {
+    fontSize: 14,
+    fontFamily: "DMSans-Bold",
+  },
+  tinyYearPill: {
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 4,
+  },
+  tinyYearText: {
+    fontSize: 9,
+    fontFamily: "DMSans-Medium",
+  },
+  roleChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 4,
+    borderWidth: 1,
+    gap: 2,
+  },
+  roleChipText: {
+    fontSize: 9,
+    fontFamily: "DMSans-Bold",
+    textTransform: "uppercase",
+  },
+  classChip: {
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 4,
+    borderWidth: 1,
+  },
+  classChipText: {
+    fontSize: 10,
+    fontFamily: "DMSans-Bold",
+  },
+  statusBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    gap: 3,
+  },
+  statusBadgeText: {
+    fontSize: 10,
+    fontFamily: "DMSans-Bold",
+    textTransform: "uppercase",
+  },
+  dateBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  dateText: {
+    fontSize: 12,
+    fontFamily: "DMSans-Bold",
+  },
+  durationBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  durationBadgeText: {
+    fontSize: 10,
+    fontFamily: "DMSans-Bold",
+  },
+  reasonBox: {
+    padding: 8,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  reasonText: {
+    fontSize: 12,
+    fontFamily: "DMSans-Regular",
+    fontStyle: "italic",
+    lineHeight: 16,
+  },
+  decisionBox: {
+    padding: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    marginBottom: 8,
+  },
+  actionRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 8,
+  },
+  rejectBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 3,
+  },
+  approveBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    gap: 3,
+  },
+  editBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+    borderWidth: 1,
+    gap: 4,
+  },
+  btnLabel: {
+    fontSize: 11,
+    fontFamily: "DMSans-Bold",
+  },
+  dailyBar: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginHorizontal: 16,
+    padding: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 8,
+  },
+  quickBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  dailyCountsRow: {
+    flexDirection: "row",
+    paddingHorizontal: 16,
+    gap: 6,
+    marginBottom: 10,
+  },
+  dailyCountPill: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  awayBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    borderWidth: 1,
+  },
+  allowanceCard: {
+    marginHorizontal: 16,
+    padding: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    marginBottom: 10,
+  },
+  allowanceTitle: {
+    fontSize: 14,
+    fontFamily: "DMSans-Bold",
+  },
+  applyBtnSmall: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    gap: 3,
+  },
+  allowanceGrid: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 6,
+  },
+  allowanceCol: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  allowanceNum: {
+    fontSize: 16,
+    fontFamily: "DMSans-Bold",
+  },
+  allowanceLabel: {
+    fontSize: 10,
+    fontFamily: "DMSans-Medium",
+    marginTop: 1,
+  },
+  fabBtn: {
+    position: "absolute",
+    bottom: 20,
+    right: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 24,
+    elevation: 3,
+    gap: 4,
+  },
+  loaderBox: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 30,
+  },
+  loaderText: {
+    marginTop: 8,
+    fontSize: 12,
+    fontFamily: "DMSans-Medium",
+  },
+  emptyContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 30,
+    marginTop: 20,
+  },
+  emptyTitle: {
+    fontSize: 15,
+    fontFamily: "DMSans-Bold",
+    marginTop: 8,
+    marginBottom: 2,
+  },
+  emptySub: {
+    fontSize: 12,
+    fontFamily: "DMSans-Regular",
+    textAlign: "center",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  filterSheetCard: {
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    padding: 18,
+    paddingBottom: 28,
+  },
+  filterSheetHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 14,
+  },
+  filterSheetTitle: {
+    fontSize: 16,
+    fontFamily: "DMSans-Bold",
+  },
+  filterGroupLabel: {
+    fontSize: 10,
+    fontFamily: "DMSans-Bold",
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  chipGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+  },
+  sheetChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: "#F0F0F0",
+  },
+  sheetChipActive: {
+    elevation: 1,
+  },
+  sheetChipText: {
+    fontSize: 12,
+    fontFamily: "DMSans-Medium",
+  },
+  filterSheetFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 18,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#E0E0E050",
+  },
+  sheetResetBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  sheetApplyBtn: {
+    paddingVertical: 9,
+    paddingHorizontal: 18,
+    borderRadius: 8,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    justifyContent: "center",
+    padding: 18,
+  },
+  actionModalCard: {
+    borderRadius: 18,
+    padding: 16,
+    borderWidth: 1,
+    elevation: 5,
+  },
+  actionIconBox: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalHeading: {
+    fontSize: 16,
+    fontFamily: "DMSans-Bold",
+  },
+  applicantMiniSummary: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 8,
+    borderRadius: 8,
+    gap: 8,
+    marginBottom: 12,
+  },
+  fieldLabel: {
+    fontSize: 10,
+    fontFamily: "DMSans-Bold",
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  presetChip: {
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 6,
+    borderWidth: 1,
+  },
+  textArea: {
+    borderRadius: 8,
+    borderWidth: 1,
+    padding: 8,
+    fontSize: 12,
+    fontFamily: "DMSans-Regular",
+    minHeight: 60,
+    textAlignVertical: "top",
+    marginBottom: 10,
+  },
+  modalBtnRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 6,
+  },
+  modalCancelBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  modalConfirmBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  applySheetCard: {
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    padding: 20,
+    maxHeight: "90%",
+  },
+  segmentBox: {
+    flexDirection: "row",
+    borderRadius: 8,
+    padding: 3,
+  },
+  segmentOption: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 8,
+    borderRadius: 6,
+  },
+  segmentActive: {
+    elevation: 1,
+  },
+  segmentText: {
+    fontSize: 12,
+    fontFamily: "DMSans-Bold",
+  },
+  slotBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: "center",
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  datePickerInput: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 10,
+    borderRadius: 8,
+  },
+  submitBtn: {
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "center",
+    marginBottom: 16,
+  },
+});

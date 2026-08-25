@@ -1,5 +1,5 @@
-import React, { createContext, useContext } from 'react';
-import useLabels from '../hooks/useLabels';
+import React, { createContext, useContext } from "react";
+import useLabels from "../hooks/useLabels";
 
 const LabelsContext = createContext(null);
 
@@ -31,7 +31,7 @@ export function LabelsProvider({ children }) {
 export function useLabel() {
   const context = useContext(LabelsContext);
   if (!context) {
-    throw new Error('useLabel must be used within a LabelsProvider');
+    throw new Error("useLabel must be used within a LabelsProvider");
   }
   return context;
 }

@@ -1,496 +1,678 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
-    View,
-    Text,
-    ScrollView,
-    RefreshControl,
-    ActivityIndicator,
-    Pressable
-} from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { useTheme } from '../../theme';
-import { useApiQuery } from '../../hooks/useApi';
-import apiConfig from '../../config/apiConfig';
-import Header from '../../components/Header';
-import StatCard from '../../components/StatCard';
-import { useToast } from '../../components/ToastProvider';
-import { useLabel } from '../../context/LabelsContext';
+  View,
+  Text,
+  ScrollView,
+  RefreshControl,
+  ActivityIndicator,
+  Pressable,
+} from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { useTheme } from "../../theme";
+import { useApiQuery } from "../../hooks/useApi";
+import apiConfig from "../../config/apiConfig";
+import Header from "../../components/Header";
+import StatCard from "../../components/StatCard";
+import { useToast } from "../../components/ToastProvider";
+import { useLabel } from "../../context/LabelsContext";
 
 /**
  * Teacher Exam Dashboard
  * Unified interface for all exam management tasks
  */
 export default function TeacherExamDashboard() {
-    const router = useRouter();
-    const { colors } = useTheme();
-    const { showToast } = useToast();
-    const { t } = useLabel();
-    const [refreshing, setRefreshing] = useState(false);
-    const [selectedTab, setSelectedTab] = useState('overview'); // 'overview', 'reports'
+  const router = useRouter();
+  const { colors } = useTheme();
+  const { showToast } = useToast();
+  const { t } = useLabel();
+  const [refreshing, setRefreshing] = useState(false);
+  const [selectedTab, setSelectedTab] = useState("overview"); // 'overview', 'reports'
 
-    // Fetch dashboard data
-    const { data: dashboardData, isLoading, isFetching, refetch } = useApiQuery(
-        ['teacherExamDashboard'],
-        `${apiConfig.baseUrl}/exams/teacher/dashboard`
+  // Fetch dashboard data
+  const {
+    data: dashboardData,
+    isLoading,
+    isFetching,
+    refetch,
+  } = useApiQuery(
+    ["teacherExamDashboard"],
+    `${apiConfig.baseUrl}/exams/teacher/dashboard`
+  );
+
+  const dashboard = dashboardData?.dashboard || [];
+  const academicYear = dashboardData?.academicYear;
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  };
+
+  // Calculate overall summary
+  const overallSummary = dashboard.reduce(
+    (acc, item) => {
+      acc.examsCreated += item.summary?.examsCreated || 0;
+      acc.marksEntered += item.summary?.marksEntered || 0;
+      acc.marksPublished += item.summary?.marksPublished || 0;
+      acc.pending += item.summary?.pending || 0;
+      return acc;
+    },
+    { examsCreated: 0, marksEntered: 0, marksPublished: 0, pending: 0 }
+  );
+
+  // eslint-disable-next-line no-unused-vars
+  const handleQuickInit = () => {
+    router.push("/teacher/subject/create-exam");
+  };
+
+  // eslint-disable-next-line no-unused-vars
+  const handleEnterMarks = (examId, examType) => {
+    if (examId) {
+      router.push(`/teacher/exam/enter-marks?examId=${examId}`);
+    } else {
+      showToast(t("toasts.examNotCreatedYet", "Exam not created yet"), "error");
+    }
+  };
+
+  const handleViewReports = (classId, subjectId) => {
+    router.push(
+      `/shared/class-reports?classId=${classId}&subjectId=${subjectId}`
     );
+  };
 
-    const dashboard = dashboardData?.dashboard || [];
-    const academicYear = dashboardData?.academicYear;
+  const renderSummaryCards = () => (
+    <View style={{ flexDirection: "row", gap: 12, marginBottom: 20 }}>
+      <StatCard
+        label={t("teacher.examsCreated", "Exams Created")}
+        value={overallSummary.examsCreated}
+        icon="school"
+        color="#2196F3"
+        gradient
+        variant="compact"
+      />
+      <StatCard
+        label={t("teacher.marksEntered", "Marks Entered")}
+        value={overallSummary.marksEntered}
+        icon="check-circle"
+        color="#4CAF50"
+        gradient
+        variant="compact"
+      />
+      <StatCard
+        label={t("common.pending", "Pending")}
+        value={overallSummary.pending}
+        icon="pending-actions"
+        color="#FF9800"
+        gradient
+        variant="compact"
+      />
+    </View>
+  );
 
-    const onRefresh = async () => {
-        setRefreshing(true);
-        await refetch();
-        setRefreshing(false);
-    };
-
-    // Calculate overall summary
-    const overallSummary = dashboard.reduce((acc, item) => {
-        acc.examsCreated += item.summary?.examsCreated || 0;
-        acc.marksEntered += item.summary?.marksEntered || 0;
-        acc.marksPublished += item.summary?.marksPublished || 0;
-        acc.pending += item.summary?.pending || 0;
-        return acc;
-    }, { examsCreated: 0, marksEntered: 0, marksPublished: 0, pending: 0 });
-
-    // eslint-disable-next-line no-unused-vars
-    const handleQuickInit = () => {
-        router.push('/teacher/subject/create-exam');
-    };
-
-    // eslint-disable-next-line no-unused-vars
-    const handleEnterMarks = (examId, examType) => {
-        if (examId) {
-            router.push(`/teacher/exam/enter-marks?examId=${examId}`);
-        } else {
-            showToast(t('toasts.examNotCreatedYet', 'Exam not created yet'), 'error');
-        }
-    };
-
-    const handleViewReports = (classId, subjectId) => {
-        router.push(`/shared/class-reports?classId=${classId}&subjectId=${subjectId}`);
-    };
-
-    const renderSummaryCards = () => (
-        <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
-            <StatCard
-                label={t('teacher.examsCreated', 'Exams Created')}
-                value={overallSummary.examsCreated}
-                icon="school"
-                color="#2196F3"
-                gradient
-                variant="compact"
-            />
-            <StatCard
-                label={t('teacher.marksEntered', 'Marks Entered')}
-                value={overallSummary.marksEntered}
-                icon="check-circle"
-                color="#4CAF50"
-                gradient
-                variant="compact"
-            />
-            <StatCard
-                label={t('common.pending', 'Pending')}
-                value={overallSummary.pending}
-                icon="pending-actions"
-                color="#FF9800"
-                gradient
-                variant="compact"
-            />
-        </View>
-    );
-
-    const renderExamProgress = (examStatus) => {
-        const examTypes = ['FA1', 'FA2', 'SA1', 'FA3', 'FA4', 'SA2'];
-
-        return (
-            <View style={{ flexDirection: 'row', gap: 6, marginTop: 10 }}>
-                {examTypes.map(type => {
-                    const exam = examStatus.find(e => e.type === type);
-                    const exists = exam?.exists;
-                    const complete = exam?.marksComplete;
-
-                    let bgColor = colors.surfaceContainerHighest;
-                    let icon = 'radio-button-unchecked';
-
-                    if (complete) {
-                        bgColor = '#4CAF50';
-                        icon = 'check-circle';
-                    } else if (exists) {
-                        bgColor = '#FF9800';
-                        icon = 'circle';
-                    }
-
-                    return (
-                        <View
-                            key={type}
-                            style={{
-                                flex: 1,
-                                height: 32,
-                                backgroundColor: bgColor,
-                                borderRadius: 6,
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                flexDirection: 'row',
-                                gap: 4
-                            }}
-                        >
-                            <MaterialIcons
-                                name={icon}
-                                size={12}
-                                color={exists ? '#FFFFFF' : colors.onSurfaceVariant}
-                            />
-                            <Text style={{
-                                fontSize: 10,
-                                fontFamily: 'DMSans-Bold',
-                                color: exists ? '#FFFFFF' : colors.onSurfaceVariant
-                            }}>
-                                {type}
-                            </Text>
-                        </View>
-                    );
-                })}
-            </View>
-        );
-    };
-
-    const renderClassSubjectCard = (item, index) => (
-        <View
-            key={`card-${item.classId || 'noid'}-${item.subjectId || 'noid'}-${index}`}
-            style={{
-                backgroundColor: colors.surfaceContainerLow,
-                borderRadius: 16,
-                padding: 16,
-                marginBottom: 16,
-                borderWidth: 1,
-                borderColor: colors.outlineVariant
-            }}
-        >
-            {/* Header */}
-            <View style={{ marginBottom: 12 }}>
-                <Text style={{
-                    fontSize: 18,
-                    fontFamily: 'DMSans-Bold',
-                    color: colors.onSurface,
-                    marginBottom: 4
-                }}>
-                    {item.className}
-                </Text>
-                <Text style={{
-                    fontSize: 15,
-                    fontFamily: 'DMSans-Medium',
-                    color: colors.primary
-                }}>
-                    {item.subjectName}
-                </Text>
-                <Text style={{
-                    fontSize: 12,
-                    fontFamily: 'DMSans-Regular',
-                    color: colors.onSurfaceVariant,
-                    marginTop: 4
-                }}>
-                    {item.studentCount} {t('common.students', 'students')}
-                </Text>
-            </View>
-
-            {/* Progress indicators */}
-            {renderExamProgress(item.examStatus)}
-
-            {/* Summary stats */}
-            <View style={{
-                flexDirection: 'row',
-                gap: 12,
-                marginTop: 12,
-                paddingTop: 12,
-                borderTopWidth: 1,
-                borderTopColor: colors.outlineVariant
-            }}>
-                <View style={{ flex: 1 }}>
-                    <Text style={{ fontSize: 20, fontFamily: 'DMSans-Bold', color: colors.primary }}>
-                        {item.summary?.examsCreated || 0}/6
-                    </Text>
-                    <Text style={{ fontSize: 11, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant }}>
-                        {t('teacher.created', 'Created')}
-                    </Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                    <Text style={{ fontSize: 20, fontFamily: 'DMSans-Bold', color: colors.success }}>
-                        {item.summary?.marksEntered || 0}
-                    </Text>
-                    <Text style={{ fontSize: 11, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant }}>
-                        {t('teacher.marksEntered', 'Marks Entered')}
-                    </Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                    <Text style={{ fontSize: 20, fontFamily: 'DMSans-Bold', color: colors.error }}>
-                        {item.summary?.pending || 0}
-                    </Text>
-                    <Text style={{ fontSize: 11, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant }}>
-                        {t('common.pending', 'Pending')}
-                    </Text>
-                </View>
-            </View>
-
-            {/* Enter Marks per exam */}
-            {(() => {
-                const existingExams = item.examStatus.filter(e => e.exists);
-                if (existingExams.length === 0) {
-                    return (
-                        <View style={{ marginTop: 14, padding: 12, backgroundColor: colors.surfaceContainerHighest, borderRadius: 10 }}>
-                            <Text style={{ textAlign: 'center', color: colors.onSurfaceVariant, fontFamily: 'DMSans-Medium', fontSize: 13 }}>
-                                {t('teacher.noExamsCreated', 'No exams created yet — admin must create exams first')}
-                            </Text>
-                        </View>
-                    );
-                }
-                return (
-                    <View style={{ marginTop: 14 }}>
-                        <Text style={{ fontSize: 12, fontFamily: 'DMSans-Medium', color: colors.onSurfaceVariant, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                            {t('teacher.enterMarks', 'Enter Marks')}
-                        </Text>
-                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                            {existingExams.map(exam => (
-                                <Pressable
-                                    key={exam.type}
-                                    onPress={() => handleEnterMarks(exam.examId, exam.type)}
-                                    style={({ pressed }) => ({
-                                        backgroundColor: exam.marksComplete
-                                            ? (pressed ? '#388E3C' : '#4CAF50')
-                                            : (pressed ? colors.primary + 'DD' : colors.primary),
-                                        paddingVertical: 8,
-                                        paddingHorizontal: 14,
-                                        borderRadius: 20,
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                        gap: 4
-                                    })}
-                                >
-                                    <MaterialIcons
-                                        name={exam.marksComplete ? 'check-circle' : 'edit'}
-                                        size={14}
-                                        color="#FFFFFF"
-                                    />
-                                    <Text style={{ color: '#FFFFFF', fontSize: 13, fontFamily: 'DMSans-Bold' }}>
-                                        {exam.type}
-                                    </Text>
-                                </Pressable>
-                            ))}
-                        </View>
-                    </View>
-                );
-            })()}
-
-            {/* View Reports button */}
-            <Pressable
-                onPress={() => handleViewReports(item.classId, item.subjectId)}
-                style={({ pressed }) => ({
-                    marginTop: 10,
-                    backgroundColor: pressed ? colors.surfaceContainerHighest : colors.surfaceContainerHigh,
-                    paddingVertical: 10,
-                    paddingHorizontal: 16,
-                    borderRadius: 10,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 6
-                })}
-            >
-                <MaterialIcons name="analytics" size={18} color={colors.onSurface} />
-                <Text style={{ color: colors.onSurface, fontSize: 13, fontFamily: 'DMSans-Bold' }}>{t('common.reports', 'Reports')}</Text>
-            </Pressable>
-        </View>
-    );
-
-    const renderOverviewTab = () => (
-        <View>
-            {renderSummaryCards()}
-
-            {/* Your Classes Section */}
-            <View style={{ marginBottom: 20 }}>
-                <Text style={{
-                    fontSize: 20,
-                    fontFamily: 'DMSans-Bold',
-                    color: colors.onSurface,
-                    marginBottom: 16
-                }}>
-                    {t('teacher.yourClasses', 'Your Classes')}
-                </Text>
-
-                {dashboard.length === 0 ? (
-                    <View style={{
-                        alignItems: 'center',
-                        paddingVertical: 60,
-                        backgroundColor: colors.surfaceContainerHighest,
-                        borderRadius: 16
-                    }}>
-                        <MaterialIcons name="school" size={64} color={colors.onSurfaceVariant} style={{ opacity: 0.5 }} />
-                        <Text style={{
-                            color: colors.onSurfaceVariant,
-                            fontSize: 16,
-                            fontFamily: 'DMSans-Medium',
-                            marginTop: 16,
-                            textAlign: 'center'
-                        }}>
-                            {t('teacher.noClassesAssignedYet', 'No classes assigned yet')}
-                        </Text>
-                    </View>
-                ) : (
-                    dashboard.map((item, index) => renderClassSubjectCard(item, index))
-                )}
-            </View>
-        </View>
-    );
-
-    const renderContent = () => {
-        if (selectedTab === 'overview') {
-            return renderOverviewTab();
-        } else if (selectedTab === 'reports') {
-            return (
-                <View style={{ marginBottom: 20 }}>
-                    <Text style={{
-                        fontSize: 18,
-                        fontFamily: 'DMSans-Bold',
-                        color: colors.onSurface,
-                        marginBottom: 16
-                    }}>
-                        {t('teacher.classReports', 'Class Reports')}
-                    </Text>
-                    {dashboard.length === 0 ? (
-                        <View style={{
-                            backgroundColor: colors.surfaceContainerLow,
-                            borderRadius: 16,
-                            padding: 32,
-                            alignItems: 'center'
-                        }}>
-                            <MaterialIcons name="analytics" size={48} color={colors.onSurfaceVariant} style={{ opacity: 0.5 }} />
-                            <Text style={{
-                                fontSize: 16,
-                                fontFamily: 'DMSans-Medium',
-                                color: colors.onSurfaceVariant,
-                                marginTop: 12
-                            }}>
-                                {t('teacher.noClassesAssigned', 'No classes assigned')}
-                            </Text>
-                        </View>
-                    ) : (
-                        dashboard.map(item => (
-                            <Pressable
-                                key={`${item.classId}-${item.subjectId}`}
-                                onPress={() => handleViewReports(item.classId, item.subjectId)}
-                                style={({ pressed }) => ({
-                                    backgroundColor: colors.surfaceContainerLow,
-                                    borderRadius: 16,
-                                    padding: 16,
-                                    marginBottom: 12,
-                                    borderWidth: 1,
-                                    borderColor: colors.outlineVariant,
-                                    opacity: pressed ? 0.9 : 1
-                                })}
-                            >
-                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                    <View>
-                                        <Text style={{ fontSize: 15, fontFamily: 'DMSans-Bold', color: colors.onSurface }}>
-                                            {item.className}
-                                        </Text>
-                                        <Text style={{ fontSize: 13, fontFamily: 'DMSans-Regular', color: colors.primary, marginTop: 2 }}>
-                                            {item.subjectName}
-                                        </Text>
-                                    </View>
-                                    <MaterialIcons name="chevron-right" size={24} color={colors.primary} />
-                                </View>
-                            </Pressable>
-                        ))
-                    )}
-                </View>
-            );
-        }
-        return null;
-    };
+  const renderExamProgress = (examStatus) => {
+    const examTypes = ["FA1", "FA2", "SA1", "FA3", "FA4", "SA2"];
 
     return (
-        <View style={{ flex: 1, backgroundColor: colors.background }}>
-            <ScrollView
-                refreshControl={
-                    <RefreshControl
-                        refreshing={refreshing}
-                        onRefresh={onRefresh}
-                        colors={[colors.primary]}
-                    />
-                }
-                contentContainerStyle={{ paddingBottom: 24 }}
+      <View style={{ flexDirection: "row", gap: 6, marginTop: 10 }}>
+        {examTypes.map((type) => {
+          const exam = examStatus.find((e) => e.type === type);
+          const exists = exam?.exists;
+          const complete = exam?.marksComplete;
+
+          let bgColor = colors.surfaceContainerHighest;
+          let icon = "radio-button-unchecked";
+
+          if (complete) {
+            bgColor = "#4CAF50";
+            icon = "check-circle";
+          } else if (exists) {
+            bgColor = "#FF9800";
+            icon = "circle";
+          }
+
+          return (
+            <View
+              key={type}
+              style={{
+                flex: 1,
+                height: 32,
+                backgroundColor: bgColor,
+                borderRadius: 6,
+                alignItems: "center",
+                justifyContent: "center",
+                flexDirection: "row",
+                gap: 4,
+              }}
             >
-                <View style={{ padding: 16, paddingTop: 24 }}>
-                    <Header
-                        title={t('teacher.examManagement', 'Exam Management')}
-                        subtitle={academicYear?.name || t('teacher.currentAcademicYear', 'Current Academic Year')}
-                        showBack
-                    />
-
-                    {/* Tabs  */}
-                    <View style={{
-                        flexDirection: 'row',
-                        gap: 8,
-                        marginTop: 20,
-                        marginBottom: 24,
-                        backgroundColor: colors.surfaceContainerHighest,
-                        padding: 4,
-                        borderRadius: 12
-                    }}>
-                        {[
-                            { id: 'overview', label: t('common.overview', 'Overview'), icon: 'dashboard' },
-                            { id: 'reports', label: t('common.reports', 'Reports'), icon: 'analytics' }
-                        ].map(tab => (
-                            <Pressable
-                                key={tab.id}
-                                onPress={() => setSelectedTab(tab.id)}
-                                style={({ pressed }) => ({
-                                    flex: 1,
-                                    paddingVertical: 12,
-                                    borderRadius: 8,
-                                    backgroundColor: selectedTab === tab.id
-                                        ? (pressed ? colors.primary + 'DD' : colors.primary)
-                                        : (pressed ? colors.surfaceContainerHigh : 'transparent'),
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: 6
-                                })}
-                            >
-                                <MaterialIcons
-                                    name={tab.icon}
-                                    size={18}
-                                    color={selectedTab === tab.id ? '#FFFFFF' : colors.onSurfaceVariant}
-                                />
-                                <Text style={{
-                                    fontSize: 14,
-                                    fontFamily: 'DMSans-Bold',
-                                    color: selectedTab === tab.id ? '#FFFFFF' : colors.onSurfaceVariant
-                                }}>
-                                    {tab.label}
-                                </Text>
-                            </Pressable>
-                        ))}
-                    </View>
-
-                    {isLoading && !dashboardData ? (
-                        <View style={{ paddingVertical: 48, alignItems: 'center', justifyContent: 'center' }}>
-                            <ActivityIndicator size="large" color={colors.primary} />
-                            <Text style={{
-                                fontSize: 14,
-                                fontFamily: 'DMSans-Medium',
-                                color: colors.onSurfaceVariant,
-                                marginTop: 12
-                            }}>
-                                {t('teacher.loadingExams', 'Loading exam dashboard...')}
-                            </Text>
-                        </View>
-                    ) : (
-                        <View style={{ opacity: isFetching && !isLoading ? 0.85 : 1 }}>
-                            {renderContent()}
-                        </View>
-                    )}
-                </View>
-            </ScrollView>
-        </View>
+              <MaterialIcons
+                name={icon}
+                size={12}
+                color={exists ? "#FFFFFF" : colors.onSurfaceVariant}
+              />
+              <Text
+                style={{
+                  fontSize: 10,
+                  fontFamily: "DMSans-Bold",
+                  color: exists ? "#FFFFFF" : colors.onSurfaceVariant,
+                }}
+              >
+                {type}
+              </Text>
+            </View>
+          );
+        })}
+      </View>
     );
+  };
+
+  const renderClassSubjectCard = (item, index) => (
+    <View
+      key={`card-${item.classId || "noid"}-${
+        item.subjectId || "noid"
+      }-${index}`}
+      style={{
+        backgroundColor: colors.surfaceContainerLow,
+        borderRadius: 16,
+        padding: 16,
+        marginBottom: 16,
+        borderWidth: 1,
+        borderColor: colors.outlineVariant,
+      }}
+    >
+      {/* Header */}
+      <View style={{ marginBottom: 12 }}>
+        <Text
+          style={{
+            fontSize: 18,
+            fontFamily: "DMSans-Bold",
+            color: colors.onSurface,
+            marginBottom: 4,
+          }}
+        >
+          {item.className}
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            fontFamily: "DMSans-Medium",
+            color: colors.primary,
+          }}
+        >
+          {item.subjectName}
+        </Text>
+        <Text
+          style={{
+            fontSize: 12,
+            fontFamily: "DMSans-Regular",
+            color: colors.onSurfaceVariant,
+            marginTop: 4,
+          }}
+        >
+          {item.studentCount} {t("common.students", "students")}
+        </Text>
+      </View>
+
+      {/* Progress indicators */}
+      {renderExamProgress(item.examStatus)}
+
+      {/* Summary stats */}
+      <View
+        style={{
+          flexDirection: "row",
+          gap: 12,
+          marginTop: 12,
+          paddingTop: 12,
+          borderTopWidth: 1,
+          borderTopColor: colors.outlineVariant,
+        }}
+      >
+        <View style={{ flex: 1 }}>
+          <Text
+            style={{
+              fontSize: 20,
+              fontFamily: "DMSans-Bold",
+              color: colors.primary,
+            }}
+          >
+            {item.summary?.examsCreated || 0}/6
+          </Text>
+          <Text
+            style={{
+              fontSize: 11,
+              fontFamily: "DMSans-Medium",
+              color: colors.onSurfaceVariant,
+            }}
+          >
+            {t("teacher.created", "Created")}
+          </Text>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text
+            style={{
+              fontSize: 20,
+              fontFamily: "DMSans-Bold",
+              color: colors.success,
+            }}
+          >
+            {item.summary?.marksEntered || 0}
+          </Text>
+          <Text
+            style={{
+              fontSize: 11,
+              fontFamily: "DMSans-Medium",
+              color: colors.onSurfaceVariant,
+            }}
+          >
+            {t("teacher.marksEntered", "Marks Entered")}
+          </Text>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text
+            style={{
+              fontSize: 20,
+              fontFamily: "DMSans-Bold",
+              color: colors.error,
+            }}
+          >
+            {item.summary?.pending || 0}
+          </Text>
+          <Text
+            style={{
+              fontSize: 11,
+              fontFamily: "DMSans-Medium",
+              color: colors.onSurfaceVariant,
+            }}
+          >
+            {t("common.pending", "Pending")}
+          </Text>
+        </View>
+      </View>
+
+      {/* Enter Marks per exam */}
+      {(() => {
+        const existingExams = item.examStatus.filter((e) => e.exists);
+        if (existingExams.length === 0) {
+          return (
+            <View
+              style={{
+                marginTop: 14,
+                padding: 12,
+                backgroundColor: colors.surfaceContainerHighest,
+                borderRadius: 10,
+              }}
+            >
+              <Text
+                style={{
+                  textAlign: "center",
+                  color: colors.onSurfaceVariant,
+                  fontFamily: "DMSans-Medium",
+                  fontSize: 13,
+                }}
+              >
+                {t(
+                  "teacher.noExamsCreated",
+                  "No exams created yet — admin must create exams first"
+                )}
+              </Text>
+            </View>
+          );
+        }
+        return (
+          <View style={{ marginTop: 14 }}>
+            <Text
+              style={{
+                fontSize: 12,
+                fontFamily: "DMSans-Medium",
+                color: colors.onSurfaceVariant,
+                marginBottom: 8,
+                textTransform: "uppercase",
+                letterSpacing: 0.5,
+              }}
+            >
+              {t("teacher.enterMarks", "Enter Marks")}
+            </Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+              {existingExams.map((exam) => (
+                <Pressable
+                  key={exam.type}
+                  onPress={() => handleEnterMarks(exam.examId, exam.type)}
+                  style={({ pressed }) => ({
+                    backgroundColor: exam.marksComplete
+                      ? pressed
+                        ? "#388E3C"
+                        : "#4CAF50"
+                      : pressed
+                      ? colors.primary + "DD"
+                      : colors.primary,
+                    paddingVertical: 8,
+                    paddingHorizontal: 14,
+                    borderRadius: 20,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 4,
+                  })}
+                >
+                  <MaterialIcons
+                    name={exam.marksComplete ? "check-circle" : "edit"}
+                    size={14}
+                    color="#FFFFFF"
+                  />
+                  <Text
+                    style={{
+                      color: "#FFFFFF",
+                      fontSize: 13,
+                      fontFamily: "DMSans-Bold",
+                    }}
+                  >
+                    {exam.type}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        );
+      })()}
+
+      {/* View Reports button */}
+      <Pressable
+        onPress={() => handleViewReports(item.classId, item.subjectId)}
+        style={({ pressed }) => ({
+          marginTop: 10,
+          backgroundColor: pressed
+            ? colors.surfaceContainerHighest
+            : colors.surfaceContainerHigh,
+          paddingVertical: 10,
+          paddingHorizontal: 16,
+          borderRadius: 10,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 6,
+        })}
+      >
+        <MaterialIcons name="analytics" size={18} color={colors.onSurface} />
+        <Text
+          style={{
+            color: colors.onSurface,
+            fontSize: 13,
+            fontFamily: "DMSans-Bold",
+          }}
+        >
+          {t("common.reports", "Reports")}
+        </Text>
+      </Pressable>
+    </View>
+  );
+
+  const renderOverviewTab = () => (
+    <View>
+      {renderSummaryCards()}
+
+      {/* Your Classes Section */}
+      <View style={{ marginBottom: 20 }}>
+        <Text
+          style={{
+            fontSize: 20,
+            fontFamily: "DMSans-Bold",
+            color: colors.onSurface,
+            marginBottom: 16,
+          }}
+        >
+          {t("teacher.yourClasses", "Your Classes")}
+        </Text>
+
+        {dashboard.length === 0 ? (
+          <View
+            style={{
+              alignItems: "center",
+              paddingVertical: 60,
+              backgroundColor: colors.surfaceContainerHighest,
+              borderRadius: 16,
+            }}
+          >
+            <MaterialIcons
+              name="school"
+              size={64}
+              color={colors.onSurfaceVariant}
+              style={{ opacity: 0.5 }}
+            />
+            <Text
+              style={{
+                color: colors.onSurfaceVariant,
+                fontSize: 16,
+                fontFamily: "DMSans-Medium",
+                marginTop: 16,
+                textAlign: "center",
+              }}
+            >
+              {t("teacher.noClassesAssignedYet", "No classes assigned yet")}
+            </Text>
+          </View>
+        ) : (
+          dashboard.map((item, index) => renderClassSubjectCard(item, index))
+        )}
+      </View>
+    </View>
+  );
+
+  const renderContent = () => {
+    if (selectedTab === "overview") {
+      return renderOverviewTab();
+    } else if (selectedTab === "reports") {
+      return (
+        <View style={{ marginBottom: 20 }}>
+          <Text
+            style={{
+              fontSize: 18,
+              fontFamily: "DMSans-Bold",
+              color: colors.onSurface,
+              marginBottom: 16,
+            }}
+          >
+            {t("teacher.classReports", "Class Reports")}
+          </Text>
+          {dashboard.length === 0 ? (
+            <View
+              style={{
+                backgroundColor: colors.surfaceContainerLow,
+                borderRadius: 16,
+                padding: 32,
+                alignItems: "center",
+              }}
+            >
+              <MaterialIcons
+                name="analytics"
+                size={48}
+                color={colors.onSurfaceVariant}
+                style={{ opacity: 0.5 }}
+              />
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontFamily: "DMSans-Medium",
+                  color: colors.onSurfaceVariant,
+                  marginTop: 12,
+                }}
+              >
+                {t("teacher.noClassesAssigned", "No classes assigned")}
+              </Text>
+            </View>
+          ) : (
+            dashboard.map((item) => (
+              <Pressable
+                key={`${item.classId}-${item.subjectId}`}
+                onPress={() => handleViewReports(item.classId, item.subjectId)}
+                style={({ pressed }) => ({
+                  backgroundColor: colors.surfaceContainerLow,
+                  borderRadius: 16,
+                  padding: 16,
+                  marginBottom: 12,
+                  borderWidth: 1,
+                  borderColor: colors.outlineVariant,
+                  opacity: pressed ? 0.9 : 1,
+                })}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <View>
+                    <Text
+                      style={{
+                        fontSize: 15,
+                        fontFamily: "DMSans-Bold",
+                        color: colors.onSurface,
+                      }}
+                    >
+                      {item.className}
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        fontFamily: "DMSans-Regular",
+                        color: colors.primary,
+                        marginTop: 2,
+                      }}
+                    >
+                      {item.subjectName}
+                    </Text>
+                  </View>
+                  <MaterialIcons
+                    name="chevron-right"
+                    size={24}
+                    color={colors.primary}
+                  />
+                </View>
+              </Pressable>
+            ))
+          )}
+        </View>
+      );
+    }
+    return null;
+  };
+
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[colors.primary]}
+          />
+        }
+        contentContainerStyle={{ paddingBottom: 24 }}
+      >
+        <View style={{ padding: 16, paddingTop: 24 }}>
+          <Header
+            title={t("teacher.examManagement", "Exam Management")}
+            subtitle={
+              academicYear?.name ||
+              t("teacher.currentAcademicYear", "Current Academic Year")
+            }
+            showBack
+          />
+
+          {/* Tabs  */}
+          <View
+            style={{
+              flexDirection: "row",
+              gap: 8,
+              marginTop: 20,
+              marginBottom: 24,
+              backgroundColor: colors.surfaceContainerHighest,
+              padding: 4,
+              borderRadius: 12,
+            }}
+          >
+            {[
+              {
+                id: "overview",
+                label: t("common.overview", "Overview"),
+                icon: "dashboard",
+              },
+              {
+                id: "reports",
+                label: t("common.reports", "Reports"),
+                icon: "analytics",
+              },
+            ].map((tab) => (
+              <Pressable
+                key={tab.id}
+                onPress={() => setSelectedTab(tab.id)}
+                style={({ pressed }) => ({
+                  flex: 1,
+                  paddingVertical: 12,
+                  borderRadius: 8,
+                  backgroundColor:
+                    selectedTab === tab.id
+                      ? pressed
+                        ? colors.primary + "DD"
+                        : colors.primary
+                      : pressed
+                      ? colors.surfaceContainerHigh
+                      : "transparent",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 6,
+                })}
+              >
+                <MaterialIcons
+                  name={tab.icon}
+                  size={18}
+                  color={
+                    selectedTab === tab.id ? "#FFFFFF" : colors.onSurfaceVariant
+                  }
+                />
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontFamily: "DMSans-Bold",
+                    color:
+                      selectedTab === tab.id
+                        ? "#FFFFFF"
+                        : colors.onSurfaceVariant,
+                  }}
+                >
+                  {tab.label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+
+          {isLoading && !dashboardData ? (
+            <View
+              style={{
+                paddingVertical: 48,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <ActivityIndicator size="large" color={colors.primary} />
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontFamily: "DMSans-Medium",
+                  color: colors.onSurfaceVariant,
+                  marginTop: 12,
+                }}
+              >
+                {t("teacher.loadingExams", "Loading exam dashboard...")}
+              </Text>
+            </View>
+          ) : (
+            <View style={{ opacity: isFetching && !isLoading ? 0.85 : 1 }}>
+              {renderContent()}
+            </View>
+          )}
+        </View>
+      </ScrollView>
+    </View>
+  );
 }

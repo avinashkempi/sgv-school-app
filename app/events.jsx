@@ -1,5 +1,12 @@
-import React, { useState, useMemo, } from "react";
-import { FlatList, View, Text, Pressable, Alert, ActivityIndicator } from "react-native";
+import React, { useState, useMemo } from "react";
+import {
+  FlatList,
+  View,
+  Text,
+  Pressable,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -9,7 +16,11 @@ import { useToast } from "../components/ToastProvider";
 import Header from "../components/Header";
 import EventFormModal from "../components/EventFormModal";
 import ModernCalendar from "../components/ModernCalendar";
-import { useApiQuery, useApiMutation, createApiMutationFn } from "../hooks/useApi";
+import {
+  useApiQuery,
+  useApiMutation,
+  createApiMutationFn,
+} from "../hooks/useApi";
 import { useAuth } from "../context/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import apiConfig from "../config/apiConfig";
@@ -21,88 +32,95 @@ import { useLabel } from "../context/LabelsContext";
 import AppRefreshControl from "../components/ui/AppRefreshControl";
 
 // Memoized day renderer component for performance
-const DayRenderer = React.memo(({ date, state, marking, onDayPress, colors }) => {
-  const hasSchoolEvent = marking?.hasSchoolEvent;
-  const hasEvent = marking?.marked;
-  const isSelected = marking?.selected;
-  const isToday = state === 'today';
+const DayRenderer = React.memo(
+  ({ date, state, marking, onDayPress, colors }) => {
+    const hasSchoolEvent = marking?.hasSchoolEvent;
+    const hasEvent = marking?.marked;
+    const isSelected = marking?.selected;
+    const isToday = state === "today";
 
-  return (
-    <Pressable
-      onPress={() => onDayPress({ dateString: date.dateString })}
-      style={{
-        width: 40,
-        height: 40, // Reduced height for vertical compactness
-        justifyContent: 'center',
-        alignItems: 'center',
-        position: 'relative',
-      }}
-    >
-      {/* Circle border for school events */}
-      {hasSchoolEvent && (
-        <View
-          style={{
-            position: 'absolute',
-            width: 42,
-            height: 42,
-            borderRadius: 20,
-            borderWidth: 2,
-            borderColor: '#FFD700',
-          }}
-        />
-      )}
-
-      {/* Selected background */}
-      {isSelected && (
-        <View
-          style={{
-            position: 'absolute',
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            backgroundColor: colors.primary,
-          }}
-        />
-      )}
-
-      {/* Date text */}
-      <Text
+    return (
+      <Pressable
+        onPress={() => onDayPress({ dateString: date.dateString })}
         style={{
-          fontSize: 16,
-          fontWeight: isSelected ? '600' : isToday ? '600' : '400',
-          color: isSelected ? colors.white : state === 'disabled' ? colors.textSecondary : colors.textPrimary,
+          width: 40,
+          height: 40, // Reduced height for vertical compactness
+          justifyContent: "center",
+          alignItems: "center",
+          position: "relative",
         }}
       >
-        {date.day}
-      </Text>
+        {/* Circle border for school events */}
+        {hasSchoolEvent && (
+          <View
+            style={{
+              position: "absolute",
+              width: 42,
+              height: 42,
+              borderRadius: 20,
+              borderWidth: 2,
+              borderColor: "#FFD700",
+            }}
+          />
+        )}
 
-      {/* Dots for events */}
-      {hasEvent && !isSelected && !hasSchoolEvent && (
-        <View
+        {/* Selected background */}
+        {isSelected && (
+          <View
+            style={{
+              position: "absolute",
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: colors.primary,
+            }}
+          />
+        )}
+
+        {/* Date text */}
+        <Text
           style={{
-            position: 'absolute',
-            bottom: 2,
-            width: 4,
-            height: 4,
-            borderRadius: 2,
-            backgroundColor: colors.primary,
+            fontSize: 16,
+            fontWeight: isSelected ? "600" : isToday ? "600" : "400",
+            color: isSelected
+              ? colors.white
+              : state === "disabled"
+              ? colors.textSecondary
+              : colors.textPrimary,
           }}
-        />
-      )}
-    </Pressable>
-  );
-}, (prevProps, nextProps) => {
-  // Custom comparison for memoization - only re-render if these props change
-  return (
-    prevProps.marking?.hasSchoolEvent === nextProps.marking?.hasSchoolEvent &&
-    prevProps.marking?.marked === nextProps.marking?.marked &&
-    prevProps.marking?.selected === nextProps.marking?.selected &&
-    prevProps.state === nextProps.state &&
-    prevProps.date?.dateString === nextProps.date?.dateString
-  );
-});
+        >
+          {date.day}
+        </Text>
 
-DayRenderer.displayName = 'DayRenderer';
+        {/* Dots for events */}
+        {hasEvent && !isSelected && !hasSchoolEvent && (
+          <View
+            style={{
+              position: "absolute",
+              bottom: 2,
+              width: 4,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: colors.primary,
+            }}
+          />
+        )}
+      </Pressable>
+    );
+  },
+  (prevProps, nextProps) => {
+    // Custom comparison for memoization - only re-render if these props change
+    return (
+      prevProps.marking?.hasSchoolEvent === nextProps.marking?.hasSchoolEvent &&
+      prevProps.marking?.marked === nextProps.marking?.marked &&
+      prevProps.marking?.selected === nextProps.marking?.selected &&
+      prevProps.state === nextProps.state &&
+      prevProps.date?.dateString === nextProps.date?.dateString
+    );
+  }
+);
+
+DayRenderer.displayName = "DayRenderer";
 
 // Helper to format dates for display in Indian format (DD-MM-YYYY)
 const formatIndianDate = (dateInput) => {
@@ -110,103 +128,166 @@ const formatIndianDate = (dateInput) => {
 };
 
 // Memoized EventCard component with custom comparison for optimal performance
-const EventCard = React.memo(({ event, colors, isAdmin, onEdit, onDelete, t }) => {
-  const router = useRouter();
-  // Sanitize event data to prevent rendering issues
-  const title = event.title?.trim() || t('events.untitledEvent', 'Untitled Event');
-  const description = event.description?.trim();
-  const hasValidDescription = description && description.length > 1;
+const EventCard = React.memo(
+  ({ event, colors, isAdmin, onEdit, onDelete, t }) => {
+    const router = useRouter();
+    // Sanitize event data to prevent rendering issues
+    const title =
+      event.title?.trim() || t("events.untitledEvent", "Untitled Event");
+    const description = event.description?.trim();
+    const hasValidDescription = description && description.length > 1;
 
-  return (
-    <Card variant="elevated" style={{ marginBottom: 4 }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <View style={{ flex: 1, marginRight: 12 }}>
-          <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.onSurface, marginBottom: 8 }} numberOfLines={2}>
-            {title}
-          </Text>
-          {hasValidDescription && (
-            <Text style={{ fontSize: 14, fontFamily: "DMSans-Regular", color: colors.onSurfaceVariant, lineHeight: 20, marginBottom: 12 }} numberOfLines={2}>
-              {description}
+    return (
+      <Card variant="elevated" style={{ marginBottom: 4 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+          }}
+        >
+          <View style={{ flex: 1, marginRight: 12 }}>
+            <Text
+              style={{
+                fontSize: 18,
+                fontFamily: "DMSans-Bold",
+                color: colors.onSurface,
+                marginBottom: 8,
+              }}
+              numberOfLines={2}
+            >
+              {title}
             </Text>
-          )}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            {event.isSchoolEvent && (
-              <View style={{
-                backgroundColor: '#FFD700' + '20',
-                paddingVertical: 4,
-                paddingHorizontal: 12,
-                borderRadius: 20,
-                alignSelf: 'flex-start',
-                flexDirection: 'row',
-                alignItems: 'center'
-              }}>
-                <MaterialIcons name="school" size={14} color="#F59E0B" style={{ marginRight: 4 }} />
-                <Text style={{ fontSize: 12, fontFamily: "DMSans-Bold", color: "#F59E0B" }}>{t('events.schoolEvent', 'School Event')}</Text>
-              </View>
-            )}
-
-            {/* Event Vibes Memories button */}
-            <Pressable
-              onPress={() => router.push('/vibes')}
-              style={({ pressed }) => ({
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: colors.surfaceContainerHighest,
-                paddingVertical: 4,
-                paddingHorizontal: 10,
-                borderRadius: 20,
-                gap: 4,
-                opacity: pressed ? 0.7 : 1,
-              })}
-            >
-              <MaterialIcons name="auto-awesome" size={13} color="#FF9800" />
-              <Text style={{ fontSize: 11, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
-                Event Vibes
+            {hasValidDescription && (
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontFamily: "DMSans-Regular",
+                  color: colors.onSurfaceVariant,
+                  lineHeight: 20,
+                  marginBottom: 12,
+                }}
+                numberOfLines={2}
+              >
+                {description}
               </Text>
-            </Pressable>
-          </View>
-        </View>
-        {isAdmin && (
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            <Pressable
-              onPress={onEdit}
-              style={({ pressed }) => ({
-                padding: 8,
-                backgroundColor: colors.surfaceContainerHighest,
-                borderRadius: 8,
-                opacity: pressed ? 0.7 : 1,
-              })}
+            )}
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
+                flexWrap: "wrap",
+              }}
             >
-              <MaterialIcons name="edit" size={18} color={colors.onSurfaceVariant} />
-            </Pressable>
-            <Pressable
-              onPress={onDelete}
-              style={({ pressed }) => ({
-                padding: 8,
-                backgroundColor: colors.errorContainer,
-                borderRadius: 8,
-                opacity: pressed ? 0.7 : 1,
-              })}
-            >
-              <MaterialIcons name="delete-outline" size={18} color={colors.onErrorContainer} />
-            </Pressable>
-          </View>
-        )}
-      </View>
-    </Card>
-  );
-}, (prevProps, nextProps) => {
-  // Custom comparison - only re-render if these props change
-  return (
-    prevProps.event._id === nextProps.event._id &&
-    prevProps.event.title === nextProps.event.title &&
-    prevProps.event.description === nextProps.event.description &&
-    prevProps.event.isSchoolEvent === nextProps.event.isSchoolEvent &&
-    prevProps.isAdmin === nextProps.isAdmin
-  );
-});
+              {event.isSchoolEvent && (
+                <View
+                  style={{
+                    backgroundColor: "#FFD700" + "20",
+                    paddingVertical: 4,
+                    paddingHorizontal: 12,
+                    borderRadius: 20,
+                    alignSelf: "flex-start",
+                    flexDirection: "row",
+                    alignItems: "center",
+                  }}
+                >
+                  <MaterialIcons
+                    name="school"
+                    size={14}
+                    color="#F59E0B"
+                    style={{ marginRight: 4 }}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontFamily: "DMSans-Bold",
+                      color: "#F59E0B",
+                    }}
+                  >
+                    {t("events.schoolEvent", "School Event")}
+                  </Text>
+                </View>
+              )}
 
-EventCard.displayName = 'EventCard';
+              {/* Event Vibes Memories button */}
+              <Pressable
+                onPress={() => router.push("/vibes")}
+                style={({ pressed }) => ({
+                  flexDirection: "row",
+                  alignItems: "center",
+                  backgroundColor: colors.surfaceContainerHighest,
+                  paddingVertical: 4,
+                  paddingHorizontal: 10,
+                  borderRadius: 20,
+                  gap: 4,
+                  opacity: pressed ? 0.7 : 1,
+                })}
+              >
+                <MaterialIcons name="auto-awesome" size={13} color="#FF9800" />
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontFamily: "DMSans-Bold",
+                    color: colors.onSurface,
+                  }}
+                >
+                  Event Vibes
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+          {isAdmin && (
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <Pressable
+                onPress={onEdit}
+                style={({ pressed }) => ({
+                  padding: 8,
+                  backgroundColor: colors.surfaceContainerHighest,
+                  borderRadius: 8,
+                  opacity: pressed ? 0.7 : 1,
+                })}
+              >
+                <MaterialIcons
+                  name="edit"
+                  size={18}
+                  color={colors.onSurfaceVariant}
+                />
+              </Pressable>
+              <Pressable
+                onPress={onDelete}
+                style={({ pressed }) => ({
+                  padding: 8,
+                  backgroundColor: colors.errorContainer,
+                  borderRadius: 8,
+                  opacity: pressed ? 0.7 : 1,
+                })}
+              >
+                <MaterialIcons
+                  name="delete-outline"
+                  size={18}
+                  color={colors.onErrorContainer}
+                />
+              </Pressable>
+            </View>
+          )}
+        </View>
+      </Card>
+    );
+  },
+  (prevProps, nextProps) => {
+    // Custom comparison - only re-render if these props change
+    return (
+      prevProps.event._id === nextProps.event._id &&
+      prevProps.event.title === nextProps.event.title &&
+      prevProps.event.description === nextProps.event.description &&
+      prevProps.event.isSchoolEvent === nextProps.event.isSchoolEvent &&
+      prevProps.isAdmin === nextProps.isAdmin
+    );
+  }
+);
+
+EventCard.displayName = "EventCard";
 
 export default function EventsScreen() {
   const _navigation = useNavigation();
@@ -216,47 +297,71 @@ export default function EventsScreen() {
   const [editingEvent, setEditingEvent] = useState(null);
   const queryClient = useQueryClient();
   const { t } = useLabel();
-  const { data: allEvents = [], isLoading: loading, refetch } = useApiQuery(
-    ['events'],
-    apiConfig.url(apiConfig.endpoints.events.list),
-    {
-      select: (data) => data.event || [],
-    }
-  );
+  const {
+    data: allEvents = [],
+    isLoading: loading,
+    refetch,
+  } = useApiQuery(["events"], apiConfig.url(apiConfig.endpoints.events.list), {
+    select: (data) => data.event || [],
+  });
 
   const { user: userData } = useAuth();
 
-  const isAuthenticated = userData?.role === 'admin' || userData?.role === 'super admin';
+  const isAuthenticated =
+    userData?.role === "admin" || userData?.role === "super admin";
 
   // Mutations
   const createEventMutation = useApiMutation({
-    mutationFn: createApiMutationFn(apiConfig.url(apiConfig.endpoints.events.create), 'POST'),
+    mutationFn: createApiMutationFn(
+      apiConfig.url(apiConfig.endpoints.events.create),
+      "POST"
+    ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['events'] });
-      showToast(t('toasts.eventCreated', 'Event created successfully'));
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+      showToast(t("toasts.eventCreated", "Event created successfully"));
       setIsEventFormVisible(false);
     },
-    onError: (error) => showToast(error.message || t('toasts.failedToCreateEvent', 'Failed to create event'))
+    onError: (error) =>
+      showToast(
+        error.message ||
+          t("toasts.failedToCreateEvent", "Failed to create event")
+      ),
   });
 
   const updateEventMutation = useApiMutation({
-    mutationFn: (data) => createApiMutationFn(apiConfig.url(apiConfig.endpoints.events.update(data._id)), 'PUT')(data),
+    mutationFn: (data) =>
+      createApiMutationFn(
+        apiConfig.url(apiConfig.endpoints.events.update(data._id)),
+        "PUT"
+      )(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['events'] });
-      showToast(t('toasts.eventUpdated', 'Event updated successfully'));
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+      showToast(t("toasts.eventUpdated", "Event updated successfully"));
       setIsEventFormVisible(false);
       setEditingEvent(null);
     },
-    onError: (error) => showToast(error.message || t('toasts.failedToUpdateEvent', 'Failed to update event'))
+    onError: (error) =>
+      showToast(
+        error.message ||
+          t("toasts.failedToUpdateEvent", "Failed to update event")
+      ),
   });
 
   const deleteEventMutation = useApiMutation({
-    mutationFn: (id) => createApiMutationFn(apiConfig.url(apiConfig.endpoints.events.delete(id)), 'DELETE')(),
+    mutationFn: (id) =>
+      createApiMutationFn(
+        apiConfig.url(apiConfig.endpoints.events.delete(id)),
+        "DELETE"
+      )(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['events'] });
-      showToast(t('toasts.eventDeleted', 'Event deleted successfully'));
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+      showToast(t("toasts.eventDeleted", "Event deleted successfully"));
     },
-    onError: (error) => showToast(error.message || t('toasts.failedToDeleteEvent', 'Failed to delete event'))
+    onError: (error) =>
+      showToast(
+        error.message ||
+          t("toasts.failedToDeleteEvent", "Failed to delete event")
+      ),
   });
 
   const [refreshFlag, _setRefreshFlag] = useState(false);
@@ -297,21 +402,21 @@ export default function EventsScreen() {
     () =>
       selectedDate
         ? allEvents
-          .filter((event) => {
-            if (!event || !event.date) return false;
-            try {
-              return getISTDateString(event.date) === selectedDate;
-            // eslint-disable-next-line no-unused-vars
-            } catch (e) {
-              return false;
-            }
-          })
-          .sort((a, b) => {
-            // School events first (true comes before false in descending order)
-            if (a.isSchoolEvent && !b.isSchoolEvent) return -1;
-            if (!a.isSchoolEvent && b.isSchoolEvent) return 1;
-            return 0;
-          })
+            .filter((event) => {
+              if (!event || !event.date) return false;
+              try {
+                return getISTDateString(event.date) === selectedDate;
+                // eslint-disable-next-line no-unused-vars
+              } catch (e) {
+                return false;
+              }
+            })
+            .sort((a, b) => {
+              // School events first (true comes before false in descending order)
+              if (a.isSchoolEvent && !b.isSchoolEvent) return -1;
+              if (!a.isSchoolEvent && b.isSchoolEvent) return 1;
+              return 0;
+            })
         : [],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [selectedDate, allEvents, refreshFlag]
@@ -332,7 +437,7 @@ export default function EventsScreen() {
         if (curr.isSchoolEvent) {
           acc[date].hasSchoolEvent = true;
         }
-      // eslint-disable-next-line no-unused-vars
+        // eslint-disable-next-line no-unused-vars
       } catch (e) {
         // Ignore invalid dates
       }
@@ -347,7 +452,7 @@ export default function EventsScreen() {
     }
 
     return dates;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate, allEvents, refreshFlag]);
 
   return (
@@ -373,11 +478,18 @@ export default function EventsScreen() {
             onEdit={() => handleEditEvent(item)}
             onDelete={() => {
               Alert.alert(
-                t('alerts.deleteEventTitle', 'Delete Event'),
-                t('alerts.deleteEventMessage', `Are you sure you want to delete "${item.title}"? This action cannot be undone.`),
+                t("alerts.deleteEventTitle", "Delete Event"),
+                t(
+                  "alerts.deleteEventMessage",
+                  `Are you sure you want to delete "${item.title}"? This action cannot be undone.`
+                ),
                 [
-                  { text: t('common.cancel'), style: "cancel" },
-                  { text: t('common.delete'), style: "destructive", onPress: () => handleDeleteEvent(item._id, item.title) },
+                  { text: t("common.cancel"), style: "cancel" },
+                  {
+                    text: t("common.delete"),
+                    style: "destructive",
+                    onPress: () => handleDeleteEvent(item._id, item.title),
+                  },
                 ]
               );
             }}
@@ -388,14 +500,24 @@ export default function EventsScreen() {
         ListHeaderComponent={
           <>
             <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
-              <Header title={t('events.title')} subtitle={t('events.subtitle')} />
+              <Header
+                title={t("events.title")}
+                subtitle={t("events.subtitle")}
+              />
 
-              <View style={[{ backgroundColor: colors.surfaceContainer, borderRadius: 16 }, { padding: 0, overflow: 'hidden', marginBottom: 24 }]}>
+              <View
+                style={[
+                  {
+                    backgroundColor: colors.surfaceContainer,
+                    borderRadius: 16,
+                  },
+                  { padding: 0, overflow: "hidden", marginBottom: 24 },
+                ]}
+              >
                 <ModernCalendar
                   current={selectedDate}
                   onDayPress={handleDateSelect}
-                  onMonthChange={(_month) => {
-                  }}
+                  onMonthChange={(_month) => {}}
                   markedDates={markedDates}
                   dayComponent={({ date, state, marking }) => (
                     <DayRenderer
@@ -410,22 +532,23 @@ export default function EventsScreen() {
                     borderRadius: 24,
                   }}
                   theme={{
-                    calendarBackground: 'transparent',
-                    'stylesheet.day.basic': {
+                    calendarBackground: "transparent",
+                    "stylesheet.day.basic": {
                       base: {
                         width: 40,
                         height: 40,
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }
-                    }
+                        alignItems: "center",
+                        justifyContent: "center",
+                      },
+                    },
                   }}
                 />
               </View>
 
               {selectedDate && (
                 <Text style={[styles.titleMedium, { marginBottom: 16 }]}>
-                  {t('events.eventsOn', 'Events on')} {formatIndianDate(selectedDate)}
+                  {t("events.eventsOn", "Events on")}{" "}
+                  {formatIndianDate(selectedDate)}
                 </Text>
               )}
             </View>
@@ -434,15 +557,34 @@ export default function EventsScreen() {
         ListEmptyComponent={
           selectedDate ? (
             loading && filteredEvents.length === 0 ? (
-              <View style={{ alignItems: 'center', padding: 20 }}>
+              <View style={{ alignItems: "center", padding: 20 }}>
                 <ActivityIndicator size="small" color={colors.primary} />
-                <Text style={{ color: colors.textSecondary, marginTop: 8, fontFamily: "DMSans-Regular" }}>{t('common.loading')}</Text>
+                <Text
+                  style={{
+                    color: colors.textSecondary,
+                    marginTop: 8,
+                    fontFamily: "DMSans-Regular",
+                  }}
+                >
+                  {t("common.loading")}
+                </Text>
               </View>
             ) : (
-              <View style={{ alignItems: 'center', padding: 40, opacity: 0.6 }}>
-                <MaterialIcons name="event-busy" size={48} color={colors.textSecondary} />
-                <Text style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16, fontFamily: "DMSans-Medium" }}>
-                  {t('events.noEventsMessage', 'No events on this date.')}
+              <View style={{ alignItems: "center", padding: 40, opacity: 0.6 }}>
+                <MaterialIcons
+                  name="event-busy"
+                  size={48}
+                  color={colors.textSecondary}
+                />
+                <Text
+                  style={{
+                    color: colors.textSecondary,
+                    marginTop: 16,
+                    fontSize: 16,
+                    fontFamily: "DMSans-Medium",
+                  }}
+                >
+                  {t("events.noEventsMessage", "No events on this date.")}
                 </Text>
               </View>
             )
@@ -462,7 +604,9 @@ export default function EventsScreen() {
             handleEventSubmit(eventData);
           }}
           editItem={editingEvent}
-          isLoading={createEventMutation.isPending || updateEventMutation.isPending}
+          isLoading={
+            createEventMutation.isPending || updateEventMutation.isPending
+          }
         />
       )}
 
@@ -470,12 +614,13 @@ export default function EventsScreen() {
       {isAuthenticated && (
         <Pressable
           onPress={() => setIsEventFormVisible(true)}
-          style={({ pressed }) => ([
-            styles.fab,
-            { opacity: pressed ? 0.9 : 1 }
-          ])}
+          style={({ pressed }) => [styles.fab, { opacity: pressed ? 0.9 : 1 }]}
         >
-          <MaterialIcons name="add" size={24} color={colors.onPrimaryContainer} />
+          <MaterialIcons
+            name="add"
+            size={24}
+            color={colors.onPrimaryContainer}
+          />
         </Pressable>
       )}
     </View>

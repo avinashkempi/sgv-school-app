@@ -13,12 +13,12 @@
  *   - Fetches notification count and stores in AsyncStorage
  *   - On next app open, data is immediately available from cache
  */
-import * as BackgroundFetch from 'expo-background-fetch';
-import * as TaskManager from 'expo-task-manager';
-import storage from './storage';
-import apiConfig from '../config/apiConfig';
+import * as BackgroundFetch from "expo-background-fetch";
+import * as TaskManager from "expo-task-manager";
+import storage from "./storage";
+import apiConfig from "../config/apiConfig";
 
-const BACKGROUND_SYNC_TASK = 'BACKGROUND_DATA_SYNC';
+const BACKGROUND_SYNC_TASK = "BACKGROUND_DATA_SYNC";
 
 /**
  * Define the background task.
@@ -26,28 +26,33 @@ const BACKGROUND_SYNC_TASK = 'BACKGROUND_DATA_SYNC';
  */
 TaskManager.defineTask(BACKGROUND_SYNC_TASK, async () => {
   try {
-    const token = await storage.getItem('@auth_token');
-    if (!token || token === 'demo-token') {
+    const token = await storage.getItem("@auth_token");
+    if (!token || token === "demo-token") {
       return BackgroundFetch.BackgroundFetchResult.NoData;
     }
 
     // Fetch notification count silently
     const response = await fetch(`${apiConfig.baseUrl}/notifications`, {
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
     });
 
     if (response.ok) {
       const data = await response.json();
-      const unreadCount = data.unreadCount ?? (data.notifications || []).filter(n => !n.isRead).length;
+      const unreadCount =
+        data.unreadCount ??
+        (data.notifications || []).filter((n) => !n.isRead).length;
 
       // Store for immediate access on app open
-      await storage.setItem('@bg_notification_count', JSON.stringify({
-        count: unreadCount,
-        timestamp: Date.now(),
-      }));
+      await storage.setItem(
+        "@bg_notification_count",
+        JSON.stringify({
+          count: unreadCount,
+          timestamp: Date.now(),
+        })
+      );
 
       console.log(`[BackgroundSync] Notification count synced: ${unreadCount}`);
       return BackgroundFetch.BackgroundFetchResult.NewData;
@@ -55,7 +60,7 @@ TaskManager.defineTask(BACKGROUND_SYNC_TASK, async () => {
 
     return BackgroundFetch.BackgroundFetchResult.NoData;
   } catch (err) {
-    console.error('[BackgroundSync] Task failed:', err);
+    console.error("[BackgroundSync] Task failed:", err);
     return BackgroundFetch.BackgroundFetchResult.Failed;
   }
 });
@@ -69,33 +74,35 @@ export async function registerBackgroundSync() {
     const status = await BackgroundFetch.getStatusAsync();
 
     if (status === BackgroundFetch.BackgroundFetchStatus.Denied) {
-      console.warn('[BackgroundSync] Background fetch is denied by the OS');
+      console.warn("[BackgroundSync] Background fetch is denied by the OS");
       return false;
     }
 
     if (status === BackgroundFetch.BackgroundFetchStatus.Restricted) {
-      console.warn('[BackgroundSync] Background fetch is restricted');
+      console.warn("[BackgroundSync] Background fetch is restricted");
       return false;
     }
 
     // Check if already registered
-    const isRegistered = await TaskManager.isTaskRegisteredAsync(BACKGROUND_SYNC_TASK);
+    const isRegistered = await TaskManager.isTaskRegisteredAsync(
+      BACKGROUND_SYNC_TASK
+    );
     if (isRegistered) {
-      console.log('[BackgroundSync] Task already registered');
+      console.log("[BackgroundSync] Task already registered");
       return true;
     }
 
     // Register with minimum interval (iOS enforces 15min minimum)
     await BackgroundFetch.registerTaskAsync(BACKGROUND_SYNC_TASK, {
       minimumInterval: 15 * 60, // 15 minutes in seconds
-      stopOnTerminate: false,    // Android: keep running after app is killed
-      startOnBoot: true,         // Android: start on device boot
+      stopOnTerminate: false, // Android: keep running after app is killed
+      startOnBoot: true, // Android: start on device boot
     });
 
-    console.log('[BackgroundSync] Task registered successfully');
+    console.log("[BackgroundSync] Task registered successfully");
     return true;
   } catch (err) {
-    console.error('[BackgroundSync] Registration failed:', err);
+    console.error("[BackgroundSync] Registration failed:", err);
     return false;
   }
 }
@@ -106,13 +113,15 @@ export async function registerBackgroundSync() {
  */
 export async function unregisterBackgroundSync() {
   try {
-    const isRegistered = await TaskManager.isTaskRegisteredAsync(BACKGROUND_SYNC_TASK);
+    const isRegistered = await TaskManager.isTaskRegisteredAsync(
+      BACKGROUND_SYNC_TASK
+    );
     if (isRegistered) {
       await BackgroundFetch.unregisterTaskAsync(BACKGROUND_SYNC_TASK);
-      console.log('[BackgroundSync] Task unregistered');
+      console.log("[BackgroundSync] Task unregistered");
     }
   } catch (err) {
-    console.error('[BackgroundSync] Unregister failed:', err);
+    console.error("[BackgroundSync] Unregister failed:", err);
   }
 }
 
@@ -122,7 +131,7 @@ export async function unregisterBackgroundSync() {
  */
 export async function getBackgroundNotificationCount() {
   try {
-    const raw = await storage.getItem('@bg_notification_count');
+    const raw = await storage.getItem("@bg_notification_count");
     if (!raw) return null;
     const { count, timestamp } = JSON.parse(raw);
     // Only use if less than 1 hour old

@@ -1,9 +1,9 @@
-import { useCallback } from 'react';
-import apiConfig from '../config/apiConfig';
-import { SCHOOL as FALLBACK_SCHOOL } from '../constants/basic-info';
-import { useApiQuery } from './useApi';
-import { CACHE_TIERS } from '../utils/cacheConfig';
-import { useQueryClient } from '@tanstack/react-query';
+import { useCallback } from "react";
+import apiConfig from "../config/apiConfig";
+import { SCHOOL as FALLBACK_SCHOOL } from "../constants/basic-info";
+import { useApiQuery } from "./useApi";
+import { CACHE_TIERS } from "../utils/cacheConfig";
+import { useQueryClient } from "@tanstack/react-query";
 
 /**
  * Fetches and caches school info via React Query.
@@ -20,18 +20,25 @@ const normalizePhotos = (data) => {
   if (!data) return [];
   const raw = data.photoUrl ?? data.photoUrls ?? data.photourls ?? [];
   if (Array.isArray(raw)) {
-    return raw.map(p => (typeof p === 'string' ? p.trim() : (p?.url || ''))).filter(Boolean);
+    return raw
+      .map((p) => (typeof p === "string" ? p.trim() : p?.url || ""))
+      .filter(Boolean);
   }
-  if (typeof raw === 'string' && raw.trim()) {
+  if (typeof raw === "string" && raw.trim()) {
     try {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        return parsed.map(p => (typeof p === 'string' ? p.trim() : (p?.url || ''))).filter(Boolean);
+        return parsed
+          .map((p) => (typeof p === "string" ? p.trim() : p?.url || ""))
+          .filter(Boolean);
       }
     } catch {
       // Not JSON, continue to delimiter split
     }
-    return raw.split(',').map(s => s.trim()).filter(Boolean);
+    return raw
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
   }
   return [];
 };
@@ -66,7 +73,7 @@ export default function useSchoolInfo() {
     error,
     refetch,
   } = useApiQuery(
-    ['schoolInfo'],
+    ["schoolInfo"],
     apiConfig.url(apiConfig.endpoints.schoolInfo.get),
     {
       ...CACHE_TIERS.STATIC,
@@ -76,17 +83,20 @@ export default function useSchoolInfo() {
     }
   );
 
-  const refresh = useCallback(async (silent = false) => {
-    try {
-      await queryClient.invalidateQueries({ queryKey: ['schoolInfo'] });
-      await refetch();
-    } catch (err) {
-      // Suppress errors on silent refresh
-      if (!silent) {
-        console.warn('[useSchoolInfo] Refresh failed:', err);
+  const refresh = useCallback(
+    async (silent = false) => {
+      try {
+        await queryClient.invalidateQueries({ queryKey: ["schoolInfo"] });
+        await refetch();
+      } catch (err) {
+        // Suppress errors on silent refresh
+        if (!silent) {
+          console.warn("[useSchoolInfo] Refresh failed:", err);
+        }
       }
-    }
-  }, [queryClient, refetch]);
+    },
+    [queryClient, refetch]
+  );
 
   return {
     schoolInfo: schoolInfo || FALLBACK_SCHOOL,

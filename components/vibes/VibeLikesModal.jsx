@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback } from "react";
 import {
   View,
   Text,
@@ -6,22 +6,23 @@ import {
   FlatList,
   Pressable,
   StyleSheet,
-} from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
-import { useTheme } from '../../theme';
-import { useApiQuery } from '../../hooks/useApi';
-import apiConfig from '../../config/apiConfig';
-import { CACHE_TIERS } from '../../utils/cacheConfig';
-import { Image } from 'expo-image';
-import { getAvatarUrl, getBlurPlaceholderUrl } from '../../utils/cloudinaryUpload';
-import SkeletonLoader from '../SkeletonLoader';
+} from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useTheme } from "../../theme";
+import { useApiQuery } from "../../hooks/useApi";
+import apiConfig from "../../config/apiConfig";
+import { CACHE_TIERS } from "../../utils/cacheConfig";
+import SkeletonLoader from "../SkeletonLoader";
+import UserAvatar from "../ui/UserAvatar";
 
 export default function VibeLikesModal({ visible, onClose, vibeId }) {
   const { colors } = useTheme();
 
   const { data, isLoading } = useApiQuery(
-    ['vibeLikes', vibeId],
-    vibeId ? `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.getLikes(vibeId)}` : null,
+    ["vibeLikes", vibeId],
+    vibeId
+      ? `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.getLikes(vibeId)}`
+      : null,
     {
       ...CACHE_TIERS.VIBES_REALTIME,
       enabled: !!vibeId && visible,
@@ -30,58 +31,70 @@ export default function VibeLikesModal({ visible, onClose, vibeId }) {
 
   const users = data?.data || [];
 
-  const renderUserItem = useCallback(({ item }) => {
-    const roleText = item.role === 'student'
-      ? (item.currentClass?.name ? `Student • ${item.currentClass.name}` : 'Student')
-      : item.role === 'teacher'
-      ? (item.designation ? `Teacher • ${item.designation}` : 'Teacher')
-      : item.role === 'admin' || item.role === 'super admin'
-      ? 'Administrator'
-      : item.role;
+  const renderUserItem = useCallback(
+    ({ item }) => {
+      const roleText =
+        item.role === "student"
+          ? item.currentClass?.name
+            ? `Student • ${item.currentClass.name}`
+            : "Student"
+          : item.role === "teacher"
+          ? item.designation
+            ? `Teacher • ${item.designation}`
+            : "Teacher"
+          : item.role === "admin" || item.role === "super admin"
+          ? "Administrator"
+          : item.role;
 
-    const avatarUri = item.profilePhoto ? getAvatarUrl(item.profilePhoto, 80) : null;
-    const avatarBlur = avatarUri ? getBlurPlaceholderUrl(avatarUri) : null;
-
-    return (
-      <View style={styles.userRow}>
-        <View style={[styles.avatarCircle, { backgroundColor: colors.primaryContainer, overflow: 'hidden' }]}>
-          {avatarUri ? (
-            <Image
-              source={{ uri: avatarUri }}
-              placeholder={avatarBlur ? { uri: avatarBlur } : undefined}
-              style={{ width: '100%', height: '100%' }}
-              contentFit="cover"
-              transition={150}
-              cachePolicy="memory-disk"
-            />
-          ) : (
-            <Text style={[styles.avatarText, { color: colors.onPrimaryContainer }]}>
-              {item.name ? item.name[0].toUpperCase() : 'U'}
+      return (
+        <View style={styles.userRow}>
+          <UserAvatar
+            photoUrl={item.profilePhoto}
+            name={item.name || "User"}
+            role={item.role}
+            size={38}
+          />
+          <View style={styles.userDetails}>
+            <Text style={[styles.userName, { color: colors.onSurface }]}>
+              {item.name}
             </Text>
-          )}
+            <Text style={[styles.userRole, { color: colors.onSurfaceVariant }]}>
+              {roleText}
+            </Text>
+          </View>
+          <MaterialIcons name="favorite" size={16} color="#FF2D55" />
         </View>
-        <View style={styles.userDetails}>
-          <Text style={[styles.userName, { color: colors.onSurface }]}>
-            {item.name}
-          </Text>
-          <Text style={[styles.userRole, { color: colors.onSurfaceVariant }]}>
-            {roleText}
-          </Text>
-        </View>
-        <MaterialIcons name="favorite" size={16} color="#FF2D55" />
-      </View>
-    );
-  }, [colors]);
+      );
+    },
+    [colors]
+  );
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}
+    >
       <View style={styles.overlay}>
         <View style={[styles.container, { backgroundColor: colors.surface }]}>
           {/* Header */}
-          <View style={[styles.header, { borderBottomColor: colors.outlineVariant }]}>
-            <Text style={[styles.headerTitle, { color: colors.onSurface }]}>Likes</Text>
-            <Pressable onPress={onClose} hitSlop={12}>
-              <MaterialIcons name="close" size={22} color={colors.onSurface} />
+          <View
+            style={[
+              styles.header,
+              { borderBottomColor: colors.outlineVariant || "rgba(0,0,0,0.06)" },
+            ]}
+          >
+            <View style={styles.headerTitleGroup}>
+              <View style={styles.heartBadge}>
+                <MaterialIcons name="favorite" size={14} color="#FF2D55" />
+              </View>
+              <Text style={[styles.headerTitle, { color: colors.onSurface }]}>
+                Likes {users.length > 0 ? `(${users.length})` : ""}
+              </Text>
+            </View>
+            <Pressable onPress={onClose} hitSlop={12} style={styles.closeBtn}>
+              <MaterialIcons name="close" size={20} color={colors.onSurface} />
             </Pressable>
           </View>
 
@@ -100,7 +113,15 @@ export default function VibeLikesModal({ visible, onClose, vibeId }) {
             </View>
           ) : users.length === 0 ? (
             <View style={styles.centerContainer}>
-              <Text style={[styles.emptyText, { color: colors.onSurfaceVariant }]}>
+              <MaterialIcons
+                name="favorite-border"
+                size={40}
+                color={colors.onSurfaceVariant}
+                style={{ opacity: 0.6, marginBottom: 8 }}
+              />
+              <Text
+                style={[styles.emptyText, { color: colors.onSurfaceVariant }]}
+              >
                 No likes yet
               </Text>
             </View>
@@ -122,26 +143,46 @@ export default function VibeLikesModal({ visible, onClose, vibeId }) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "flex-end",
   },
   container: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: '70%',
-    minHeight: '40%',
+    maxHeight: "70%",
+    minHeight: "40%",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 16,
-    borderBottomWidth: 1,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  headerTitleGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  heartBadge: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: "rgba(255, 45, 85, 0.12)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerTitle: {
-    fontSize: 17,
-    fontFamily: 'DMSans-Bold',
+    fontSize: 16,
+    fontFamily: "DMSans-Bold",
+  },
+  closeBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
   },
   listContent: {
     paddingHorizontal: 20,
@@ -153,23 +194,23 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   skeletonRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
   centerContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 40,
   },
   emptyText: {
     fontSize: 14,
-    fontFamily: 'DMSans-Regular',
+    fontFamily: "DMSans-Regular",
   },
   userRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 8,
     gap: 12,
   },
@@ -177,22 +218,22 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   avatarText: {
     fontSize: 14,
-    fontFamily: 'DMSans-Bold',
+    fontFamily: "DMSans-Bold",
   },
   userDetails: {
     flex: 1,
   },
   userName: {
     fontSize: 14,
-    fontFamily: 'DMSans-Bold',
+    fontFamily: "DMSans-Bold",
   },
   userRole: {
     fontSize: 12,
-    fontFamily: 'DMSans-Regular',
+    fontFamily: "DMSans-Regular",
   },
 });

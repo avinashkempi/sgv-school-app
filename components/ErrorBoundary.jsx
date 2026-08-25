@@ -1,6 +1,12 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -32,12 +38,18 @@ class ErrorBoundary extends React.Component {
         <View style={styles.container}>
           <View style={styles.content}>
             <MaterialIcons name="error" size={64} color="#FF6B6B" />
-            <Text style={styles.headlineMedium}>Oops! Something went wrong.</Text>
+            <Text style={styles.title}>
+              Oops! Something went wrong.
+            </Text>
             <Text style={styles.subtitle}>
-              We{"'"}re sorry, but an unexpected error occurred. Please try again.
+              We{"'"}re sorry, but an unexpected error occurred. Please try
+              again.
             </Text>
 
-            <TouchableOpacity style={styles.button} onPress={this.handleTryAgain}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={this.handleTryAgain}
+            >
               <Text style={styles.buttonText}>Try Again</Text>
             </TouchableOpacity>
 
@@ -45,7 +57,9 @@ class ErrorBoundary extends React.Component {
             {/* eslint-disable-next-line no-undef */}
             {__DEV__ && this.state.error && (
               <ScrollView style={styles.debugBox}>
-                <Text style={styles.debugText}>{this.state.error.toString()}</Text>
+                <Text style={styles.debugText}>
+                  {this.state.error.toString()}
+                </Text>
               </ScrollView>
             )}
           </View>
@@ -60,58 +74,58 @@ class ErrorBoundary extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   content: {
-    alignItems: 'center',
+    alignItems: "center",
     maxWidth: 400,
-    width: '100%',
+    width: "100%",
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginTop: 20,
     marginBottom: 10,
-    textAlign: 'center',
+    textAlign: "center",
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
     marginBottom: 30,
     lineHeight: 24,
   },
   button: {
-    backgroundColor: '#4A90E2',
+    backgroundColor: "#4A90E2",
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 25,
     elevation: 3,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   debugBox: {
     marginTop: 30,
     padding: 10,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
     borderRadius: 5,
-    width: '100%',
+    width: "100%",
     maxHeight: 200,
   },
   debugText: {
-    color: '#d63031',
-    fontFamily: 'monospace',
+    color: "#d63031",
+    fontFamily: "monospace",
     fontSize: 12,
   },
 });

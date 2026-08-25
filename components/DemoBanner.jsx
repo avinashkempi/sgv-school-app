@@ -1,27 +1,27 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
 
 export default function DemoBanner() {
-    return (
-        <View style={styles.container}>
-            <Text style={styles.labelSmall}>Demo Mode • Log in for full access</Text>
-        </View>
-    );
+  return (
+    <View style={styles.container}>
+      <Text style={styles.labelSmall}>Demo Mode • Log in for full access</Text>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        backgroundColor: '#FF9800',
-        paddingVertical: 8,
-        paddingHorizontal: 16,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    text: {
-        color: '#fff',
-        fontSize: 12,
-        fontFamily: 'DMSans-Bold',
-        textTransform: 'uppercase',
-        letterSpacing: 1,
-    },
+  container: {
+    backgroundColor: "#FF9800",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  text: {
+    color: "#fff",
+    fontSize: 12,
+    fontFamily: "DMSans-Bold",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
 });
