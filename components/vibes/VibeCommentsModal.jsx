@@ -12,6 +12,7 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../theme';
@@ -19,24 +20,11 @@ import { useAuth } from '../../context/AuthContext';
 import { useApiQuery, useApiMutation, createApiMutationFn } from '../../hooks/useApi';
 import apiConfig from '../../config/apiConfig';
 import { CACHE_TIERS } from '../../utils/cacheConfig';
+import { Image } from 'expo-image';
+import { getAvatarUrl, getBlurPlaceholderUrl } from '../../utils/cloudinaryUpload';
+import formatTimeAgo from '../../utils/formatTimeAgo';
 
 const QUICK_EMOJIS = ['❤️', '🔥', '👏', '🎓', '🎉', '🌟', '🙌'];
-
-const formatCommentTime = (dateString) => {
-  if (!dateString) return '';
-  const now = new Date();
-  const date = new Date(dateString);
-  const diffMs = now - date;
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 1) return 'now';
-  if (diffMins < 60) return `${diffMins}m`;
-  if (diffHours < 24) return `${diffHours}h`;
-  if (diffDays < 7) return `${diffDays}d`;
-  return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-};
 
 export default function VibeCommentsModal({ visible, onClose, vibe }) {
   const { colors } = useTheme();
@@ -55,14 +43,32 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
     queryKey,
     vibeId ? `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.getComments(vibeId)}` : null,
     {
-      ...CACHE_TIERS.REAL_TIME,
+      ...CACHE_TIERS.VIBES_REALTIME,
       enabled: !!vibeId && visible,
     }
   );
 
   const comments = data?.data || [];
 
-  // Add comment mutation
+  // Helper to adjust comments count across feed
+  const adjustCommentsCount = useCallback((delta) => {
+    const updateVibes = (oldData) => {
+      if (!oldData?.pages) return oldData;
+      return {
+        ...oldData,
+        pages: oldData.pages.map(page => ({
+          ...page,
+          data: (page.data || []).map(v => v._id === vibeId ? { ...v, commentsCount: Math.max((v.commentsCount || 0) + delta, 0) } : v),
+        })),
+      };
+    };
+
+    queryClient.setQueriesData({ queryKey: ['vibes'] }, updateVibes);
+    queryClient.setQueryData(['myVibes'], updateVibes);
+    queryClient.setQueryData(['savedVibes'], updateVibes);
+  }, [vibeId, queryClient]);
+
+  // Add comment mutation with optimistic insertion
   const addCommentMutation = useApiMutation({
     mutationFn: async (payload) => {
       return createApiMutationFn(
@@ -70,14 +76,47 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
         'POST'
       )(payload);
     },
-    onSuccess: () => {
-      setCommentText('');
+    onMutate: async (newCommentPayload) => {
+      await queryClient.cancelQueries({ queryKey });
+
+      const prevComments = queryClient.getQueryData(queryKey);
+      const isSchool = newCommentPayload.postAs === 'school';
+
+      const optimisticComment = {
+        _id: `temp-${Date.now()}`,
+        text: newCommentPayload.text,
+        postAs: newCommentPayload.postAs,
+        createdAt: new Date().toISOString(),
+        user: {
+          _id: user?.id || user?._id,
+          name: isSchool ? 'SGV School' : (user?.name || 'Me'),
+          profilePhoto: isSchool ? null : user?.profilePhoto,
+          role: user?.role,
+        },
+      };
+
+      queryClient.setQueryData(queryKey, (old) => ({
+        ...old,
+        data: [...(old?.data || []), optimisticComment],
+      }));
+
+      adjustCommentsCount(1);
+
+      return { prevComments };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.prevComments) {
+        queryClient.setQueryData(queryKey, context.prevComments);
+      }
+      adjustCommentsCount(-1);
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey });
       queryClient.invalidateQueries({ queryKey: ['vibes'] });
     },
   });
 
-  // Delete comment mutation
+  // Delete comment mutation with optimistic removal
   const deleteCommentMutation = useApiMutation({
     mutationFn: async (commentId) => {
       return createApiMutationFn(
@@ -85,7 +124,27 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
         'DELETE'
       )({});
     },
-    onSuccess: () => {
+    onMutate: async (commentId) => {
+      await queryClient.cancelQueries({ queryKey });
+
+      const prevComments = queryClient.getQueryData(queryKey);
+
+      queryClient.setQueryData(queryKey, (old) => ({
+        ...old,
+        data: (old?.data || []).filter(c => c._id !== commentId),
+      }));
+
+      adjustCommentsCount(-1);
+
+      return { prevComments };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.prevComments) {
+        queryClient.setQueryData(queryKey, context.prevComments);
+      }
+      adjustCommentsCount(1);
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey });
       queryClient.invalidateQueries({ queryKey: ['vibes'] });
     },
@@ -94,12 +153,16 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
   const handleSendComment = useCallback(async () => {
     if (!commentText.trim() || submitting) return;
 
+    const payload = {
+      text: commentText.trim(),
+      postAs: isAdmin && postAsSchool ? 'school' : 'self',
+    };
+
+    setCommentText('');
     setSubmitting(true);
+
     try {
-      await addCommentMutation.mutateAsync({
-        text: commentText.trim(),
-        postAs: isAdmin && postAsSchool ? 'school' : 'self',
-      });
+      await addCommentMutation.mutateAsync(payload);
     } catch (err) {
       console.warn('Comment error:', err);
     } finally {
@@ -122,9 +185,11 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
     const isSchool = item.postAs === 'school';
     const isAuthor = user?.id === item.user?._id || user?._id === item.user?._id;
     const canDelete = isAdmin || isAuthor;
+    const avatarUri = item.user?.profilePhoto ? getAvatarUrl(item.user.profilePhoto, 80) : null;
+    const avatarBlur = avatarUri ? getBlurPlaceholderUrl(avatarUri) : null;
 
     return (
-      <View style={styles.commentRow}>
+      <Animated.View entering={FadeIn.duration(200)} style={styles.commentRow}>
         {/* Avatar */}
         <View style={[
           styles.commentAvatar,
@@ -132,10 +197,20 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
             backgroundColor: isSchool ? '#FFF8E1' : colors.primaryContainer,
             borderColor: isSchool ? '#FFB300' : 'transparent',
             borderWidth: isSchool ? 1 : 0,
+            overflow: 'hidden',
           }
         ]}>
           {isSchool ? (
             <MaterialIcons name="school" size={16} color="#F57F17" />
+          ) : avatarUri ? (
+            <Image
+              source={{ uri: avatarUri }}
+              placeholder={avatarBlur ? { uri: avatarBlur } : undefined}
+              style={{ width: '100%', height: '100%' }}
+              contentFit="cover"
+              transition={150}
+              cachePolicy="memory-disk"
+            />
           ) : (
             <Text style={[styles.avatarText, { color: colors.onPrimaryContainer }]}>
               {item.user?.name ? item.user.name[0].toUpperCase() : 'U'}
@@ -153,7 +228,7 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
               <MaterialIcons name="verified" size={12} color="#FFB300" />
             )}
             <Text style={[styles.commentTime, { color: colors.onSurfaceVariant }]}>
-              {formatCommentTime(item.createdAt)}
+              {formatTimeAgo(item.createdAt, { compact: true })}
             </Text>
           </View>
 
@@ -172,7 +247,7 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
             <MaterialIcons name="delete-outline" size={18} color={colors.onSurfaceVariant} />
           </Pressable>
         )}
-      </View>
+      </Animated.View>
     );
   }, [colors, user, isAdmin, handleDeleteComment]);
 

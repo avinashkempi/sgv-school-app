@@ -73,11 +73,13 @@ export default function AdminLeaves() {
 
         const studentRequests = data.filter(r => r.applicantRole === 'student');
         const teacherRequests = data.filter(r => r.applicantRole === 'teacher');
+        const staffRequests = data.filter(r => r.applicantRole === 'staff' || r.applicantRole === 'support_staff');
         const adminRequests = data.filter(r => r.applicantRole === 'admin');
 
         const sections = [];
         if (studentRequests.length > 0) sections.push({ title: 'Student Requests', data: studentRequests });
         if (teacherRequests.length > 0) sections.push({ title: 'Teacher Requests', data: teacherRequests });
+        if (staffRequests.length > 0) sections.push({ title: 'Staff Requests', data: staffRequests });
         if (adminRequests.length > 0) sections.push({ title: 'Admin Requests', data: adminRequests });
         return sections;
     }, [requestsData, statusFilter]);

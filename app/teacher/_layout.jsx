@@ -6,12 +6,12 @@ export default function TeacherLayout() {
     <RoleGuard allowedRoles={['teacher', 'staff', 'admin', 'super admin']}>
       <Stack screenOptions={{
         headerShown: false,
-        animation: 'fade_from_bottom',
+        animation: 'slide_from_right',
         animationDuration: 200,
         freezeOnBlur: true,
         detachInactiveScreens: false,
         gestureEnabled: true,
-        fullScreenGestureEnabled: true,
+        fullScreenGestureEnabled: false,
       }} />
     </RoleGuard>
   );

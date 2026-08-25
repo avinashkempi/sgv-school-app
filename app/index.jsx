@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  RefreshControl,
   Pressable,
   StyleSheet,
 } from "react-native";
@@ -16,6 +15,10 @@ import { useQueryClient } from '@tanstack/react-query';
 import useFade from "../hooks/useFade";
 import { useTheme } from "../theme";
 import useSchoolInfo from "../hooks/useSchoolInfo";
+import useTabScrollToTop from "../hooks/useTabScrollToTop";
+import useDoubleBackToExit from "../hooks/useDoubleBackToExit";
+import AppRefreshControl from "../components/ui/AppRefreshControl";
+import { ROUTES } from "../constants/routes";
 import Header from "../components/Header";
 import Card from "../components/Card";
 import VibeStoriesTray from "../components/vibes/VibeStoriesTray";
@@ -43,6 +46,12 @@ export default function HomeScreen() {
   const { updateUser, isAuthenticated } = useAuth();
   const { t } = useLabel();
   const queryClient = useQueryClient();
+  const scrollRef = useRef(null);
+
+  // Mobile standard gestures
+  useTabScrollToTop(scrollRef, '/');
+  useTabScrollToTop(scrollRef, ROUTES.HOME);
+  useDoubleBackToExit(true);
 
   // Create Vibe Modal state
   const [showCreateVibe, setShowCreateVibe] = useState(false);
@@ -100,12 +109,15 @@ export default function HomeScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView
+        ref={scrollRef}
         style={{ flex: 1 }}
         contentContainerStyle={[themeStyles.contentPaddingBottom, { paddingHorizontal: 16, paddingTop: 16 }]}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
+          <AppRefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         showsVerticalScrollIndicator={false}
+        scrollsToTop={true}
+        keyboardShouldPersistTaps="handled"
       >
         {/* Large M3 Welcome Header with Academic Year & Notifications */}
         <Header

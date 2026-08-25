@@ -1,33 +1,42 @@
-import React, { memo, useCallback, useState, useMemo } from 'react';
+import React, { memo, useCallback, useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
-  ScrollView,
+  FlatList,
   Pressable,
   StyleSheet,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  withRepeat,
+  withTiming,
+  Easing,
 } from 'react-native-reanimated';
 import { useTheme } from '../../theme';
 import { useAuth } from '../../context/AuthContext';
 import { useApiQuery } from '../../hooks/useApi';
 import apiConfig from '../../config/apiConfig';
 import { CACHE_TIERS } from '../../utils/cacheConfig';
-import { getStoryThumbnailUrl } from '../../utils/cloudinaryUpload';
+import { getStoryThumbnailUrl, getBlurPlaceholderUrl } from '../../utils/cloudinaryUpload';
 import SkeletonLoader from '../SkeletonLoader';
 import VibeStoryViewerModal from './VibeStoryViewerModal';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
+// Instagram-style vibrant gradient colors for unseen stories
+const UNSEEN_GRADIENT = ['#F59E0B', '#EF4444', '#EC4899', '#8B5CF6'];
+const OFFICIAL_GRADIENT = ['#3B82F6', '#1D4ED8', '#60A5FA'];
+const ACHIEVEMENT_GRADIENT = ['#F59E0B', '#D97706', '#FCD34D'];
+
 /**
- * Single Story Ring Bubble with Spring Motion & Haptics
+ * Single Story Ring Bubble with Instagram Gradient Ring & Seen/Unseen State
  */
 const StoryBubble = memo(({
   title,
@@ -36,6 +45,9 @@ const StoryBubble = memo(({
   icon,
   ringColor,
   isSpecial,
+  isOfficial,
+  isAchievement,
+  isViewed,
   badgeIcon,
   onPress,
 }) => {
@@ -55,11 +67,19 @@ const StoryBubble = memo(({
   }));
 
   const handlePress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid).catch(() => {});
     onPress?.();
   };
 
   const optimizedImg = imageUri ? getStoryThumbnailUrl(imageUri) : null;
+  const blurPlaceholder = imageUri ? getBlurPlaceholderUrl(imageUri) : null;
+
+  // Determine gradient palette
+  const gradientColors = isOfficial
+    ? OFFICIAL_GRADIENT
+    : isAchievement
+      ? ACHIEVEMENT_GRADIENT
+      : UNSEEN_GRADIENT;
 
   return (
     <AnimatedPressable
@@ -70,47 +90,81 @@ const StoryBubble = memo(({
       accessibilityRole="button"
       accessibilityLabel={title}
     >
-      <View style={[
-        styles.ringOuter,
-        { borderColor: ringColor || colors.primary }
-      ]}>
-        <View style={[styles.ringInner, { backgroundColor: colors.surfaceContainer }]}>
-          {optimizedImg ? (
-            <Image
-              source={{ uri: optimizedImg }}
-              style={styles.avatarImage}
-              contentFit="cover"
-              transition={200}
-              cachePolicy="memory-disk"
-            />
-          ) : (
-            <View style={[
-              styles.iconWrapper,
-              { backgroundColor: ringColor ? ringColor + '20' : colors.primaryContainer }
-            ]}>
-              <MaterialIcons
-                name={icon || 'auto-awesome'}
-                size={26}
-                color={ringColor || colors.primary}
+      {/* Outer Story Ring — Gradient for Unseen, Muted for Seen */}
+      {!isViewed ? (
+        <LinearGradient
+          colors={gradientColors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.gradientRingOuter}
+        >
+          <View style={[styles.ringInner, { backgroundColor: colors.surfaceContainer }]}>
+            {optimizedImg ? (
+              <Image
+                source={{ uri: optimizedImg }}
+                placeholder={blurPlaceholder ? { uri: blurPlaceholder } : undefined}
+                style={styles.avatarImage}
+                contentFit="cover"
+                transition={150}
+                cachePolicy="memory-disk"
               />
-            </View>
-          )}
+            ) : (
+              <View style={[
+                styles.iconWrapper,
+                { backgroundColor: ringColor ? ringColor + '20' : colors.primaryContainer }
+              ]}>
+                <MaterialIcons
+                  name={icon || 'auto-awesome'}
+                  size={26}
+                  color={ringColor || colors.primary}
+                />
+              </View>
+            )}
 
-          {/* Badge indicator on bottom-right of circle */}
-          {badgeIcon && (
-            <View style={[styles.badgePill, { backgroundColor: ringColor || colors.primary }]}>
-              <MaterialIcons name={badgeIcon} size={11} color="#fff" />
-            </View>
-          )}
+            {badgeIcon && (
+              <View style={[styles.badgePill, { backgroundColor: ringColor || colors.primary }]}>
+                <MaterialIcons name={badgeIcon} size={11} color="#fff" />
+              </View>
+            )}
+          </View>
+        </LinearGradient>
+      ) : (
+        <View style={[styles.seenRingOuter, { borderColor: colors.outlineVariant }]}>
+          <View style={[styles.ringInner, { backgroundColor: colors.surfaceContainer }]}>
+            {optimizedImg ? (
+              <Image
+                source={{ uri: optimizedImg }}
+                placeholder={blurPlaceholder ? { uri: blurPlaceholder } : undefined}
+                style={[styles.avatarImage, { opacity: 0.85 }]}
+                contentFit="cover"
+                transition={150}
+                cachePolicy="memory-disk"
+              />
+            ) : (
+              <View style={[styles.iconWrapper, { backgroundColor: colors.surfaceContainerHighest }]}>
+                <MaterialIcons
+                  name={icon || 'auto-awesome'}
+                  size={24}
+                  color={colors.onSurfaceVariant}
+                />
+              </View>
+            )}
+
+            {badgeIcon && (
+              <View style={[styles.badgePill, { backgroundColor: colors.onSurfaceVariant }]}>
+                <MaterialIcons name={badgeIcon} size={10} color="#fff" />
+              </View>
+            )}
+          </View>
         </View>
-      </View>
+      )}
 
       <Text
         style={[
           styles.bubbleLabel,
           {
-            color: colors.onSurface,
-            fontFamily: isSpecial ? 'DMSans-Bold' : 'DMSans-Medium',
+            color: isViewed ? colors.onSurfaceVariant : colors.onSurface,
+            fontFamily: isSpecial || !isViewed ? 'DMSans-Bold' : 'DMSans-Medium',
           }
         ]}
         numberOfLines={1}
@@ -132,6 +186,41 @@ const StoryBubble = memo(({
 StoryBubble.displayName = 'StoryBubble';
 
 /**
+ * Animated Pulsing Green Live Dot Component
+ */
+const PulsingLiveDot = memo(() => {
+  const pulseScale = useSharedValue(1);
+  const pulseOpacity = useSharedValue(1);
+
+  useEffect(() => {
+    pulseScale.value = withRepeat(
+      withTiming(1.4, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      true
+    );
+    pulseOpacity.value = withRepeat(
+      withTiming(0.4, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      true
+    );
+  }, [pulseScale, pulseOpacity]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulseScale.value }],
+    opacity: pulseOpacity.value,
+  }));
+
+  return (
+    <View style={styles.liveDotContainer}>
+      <Animated.View style={[styles.liveDotGlow, animatedStyle]} />
+      <View style={styles.liveDotCore} />
+    </View>
+  );
+});
+
+PulsingLiveDot.displayName = 'PulsingLiveDot';
+
+/**
  * VibeStoriesTray — horizontal story bar displayed near the top of the Home Page.
  */
 const VibeStoriesTray = ({ onOpenCreate }) => {
@@ -140,20 +229,31 @@ const VibeStoriesTray = ({ onOpenCreate }) => {
   const { isAuthenticated } = useAuth();
 
   // Full-screen Story Viewer State
-  const [activeStoryGroup, setActiveStoryGroup] = useState(null); // { stories: [], title: '' }
+  const [activeStoryGroup, setActiveStoryGroup] = useState(null);
 
   const { data: highlightsData, isLoading } = useApiQuery(
     ['vibeHighlights'],
     `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.highlights}`,
-    {
-      ...CACHE_TIERS.MODERATE,
-      staleTime: 60 * 1000, // 1 min freshness
-    }
+    CACHE_TIERS.VIBES_HOME
   );
 
   const officialVibes = useMemo(() => highlightsData?.data?.official || [], [highlightsData]);
   const achievementVibes = useMemo(() => highlightsData?.data?.achievements || [], [highlightsData]);
   const authorStories = useMemo(() => highlightsData?.data?.stories || [], [highlightsData]);
+
+  // Prefetch story avatars/thumbnails when highlights data arrives
+  useEffect(() => {
+    if (!highlightsData?.data) return;
+    const urlsToPrefetch = [
+      officialVibes[0]?.images?.[0]?.url,
+      achievementVibes[0]?.images?.[0]?.url,
+      ...authorStories.map(s => s.author?.profilePhoto || s.latestImage),
+    ].filter(Boolean);
+
+    urlsToPrefetch.forEach(url => {
+      Image.prefetch(getStoryThumbnailUrl(url));
+    });
+  }, [highlightsData, officialVibes, achievementVibes, authorStories]);
 
   const handleOpenOfficialStories = useCallback(() => {
     if (officialVibes.length > 0) {
@@ -188,35 +288,71 @@ const VibeStoriesTray = ({ onOpenCreate }) => {
     }
   }, [router]);
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <View style={styles.titleGroup}>
-          <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>
-            Campus Moments
-          </Text>
-          <View style={[styles.liveDot, { backgroundColor: '#10B981' }]} />
-        </View>
-        <Pressable
-          onPress={() => router.push('/vibes')}
-          hitSlop={8}
-          style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
-        >
-          <Text style={[styles.viewAllText, { color: colors.primary }]}>
-            View All
-          </Text>
-        </Pressable>
-      </View>
+  // Combined stories array with seen/unseen calculation
+  const trayItems = useMemo(() => {
+    const isOfficialViewed = officialVibes.length > 0 && officialVibes.every(v => v.isViewed);
+    const isAchievementsViewed = achievementVibes.length > 0 && achievementVibes.every(v => v.isViewed);
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* 1. Add Vibe Action Bubble */}
+    const items = [
+      { id: 'create-action', type: 'create' },
+      {
+        id: 'official-story',
+        type: 'official',
+        title: 'Official',
+        subtitle: officialVibes.length > 0 ? `${officialVibes.length} live` : 'Notices',
+        icon: 'school',
+        ringColor: '#2563EB',
+        isSpecial: true,
+        isOfficial: true,
+        isViewed: isOfficialViewed,
+        badgeIcon: 'verified',
+        imageUri: officialVibes[0]?.images?.[0]?.url,
+        onPress: handleOpenOfficialStories,
+      },
+      {
+        id: 'achievement-story',
+        type: 'achievement',
+        title: 'Achievements',
+        subtitle: achievementVibes.length > 0 ? `${achievementVibes.length} wins` : 'Spotlight',
+        icon: 'emoji-events',
+        ringColor: '#F59E0B',
+        isSpecial: true,
+        isAchievement: true,
+        isViewed: isAchievementsViewed,
+        badgeIcon: 'star',
+        imageUri: achievementVibes[0]?.images?.[0]?.url,
+        onPress: handleOpenAchievementStories,
+      },
+    ];
+
+    authorStories.forEach((story, idx) => {
+      const authorName = story.author?.name ? story.author.name.split(' ')[0] : 'Campus';
+      const role = story.author?.role === 'teacher' ? 'Faculty' : (story.author?.currentClass || 'Student');
+      const isStoryViewed = story.isViewed || (story.unviewedCount === 0);
+
+      items.push({
+        id: story.author?._id || `story-${idx}`,
+        type: 'author',
+        title: authorName,
+        subtitle: role,
+        imageUri: story.author?.profilePhoto || story.latestImage,
+        ringColor: story.author?.role === 'teacher' ? '#8B5CF6' : colors.primary,
+        isSpecial: false,
+        isViewed: isStoryViewed,
+        badgeIcon: story.author?.role === 'teacher' ? 'school' : undefined,
+        onPress: () => handleOpenAuthorStories(story),
+      });
+    });
+
+    return items;
+  }, [officialVibes, achievementVibes, authorStories, colors.primary, handleOpenOfficialStories, handleOpenAchievementStories, handleOpenAuthorStories]);
+
+  const renderTrayItem = useCallback(({ item }) => {
+    if (item.type === 'create') {
+      return (
         <AnimatedPressable
           onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
             onOpenCreate?.();
           }}
           style={styles.bubbleContainer}
@@ -225,7 +361,7 @@ const VibeStoriesTray = ({ onOpenCreate }) => {
         >
           <View style={[styles.addOuterRing, { borderColor: colors.outlineVariant }]}>
             <View style={[styles.addInnerBox, { backgroundColor: colors.surfaceContainerHighest }]}>
-              <MaterialIcons name="add" size={28} color={colors.primary} />
+              <MaterialIcons name="add" size={26} color={colors.primary} />
             </View>
           </View>
           <Text style={[styles.bubbleLabel, { color: colors.onSurface, fontFamily: 'DMSans-Bold' }]}>
@@ -235,59 +371,71 @@ const VibeStoriesTray = ({ onOpenCreate }) => {
             New Moment
           </Text>
         </AnimatedPressable>
+      );
+    }
 
-        {/* 2. Official School Stories Bubble */}
-        <StoryBubble
-          title="Official"
-          subtitle={officialVibes.length > 0 ? `${officialVibes.length} live` : 'Notices'}
-          icon="school"
-          ringColor="#2563EB" // Vibrant Royal Blue
-          isSpecial={true}
-          badgeIcon="verified"
-          imageUri={officialVibes[0]?.images?.[0]?.url}
-          onPress={handleOpenOfficialStories}
-        />
+    return (
+      <StoryBubble
+        title={item.title}
+        subtitle={item.subtitle}
+        imageUri={item.imageUri}
+        icon={item.icon}
+        ringColor={item.ringColor}
+        isSpecial={item.isSpecial}
+        isOfficial={item.isOfficial}
+        isAchievement={item.isAchievement}
+        isViewed={item.isViewed}
+        badgeIcon={item.badgeIcon}
+        onPress={item.onPress}
+      />
+    );
+  }, [colors, isAuthenticated, onOpenCreate]);
 
-        {/* 3. Achievements Stories Bubble */}
-        <StoryBubble
-          title="Achievements"
-          subtitle={achievementVibes.length > 0 ? `${achievementVibes.length} wins` : 'Spotlight'}
-          icon="emoji-events"
-          ringColor="#F59E0B" // Gold / Amber
-          isSpecial={true}
-          badgeIcon="star"
-          imageUri={achievementVibes[0]?.images?.[0]?.url}
-          onPress={handleOpenAchievementStories}
-        />
+  return (
+    <View style={styles.container}>
+      <View style={styles.headerRow}>
+        <View style={styles.titleGroup}>
+          <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>
+            Campus Moments
+          </Text>
+          <PulsingLiveDot />
+        </View>
+        <Pressable
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+            router.push('/vibes');
+          }}
+          hitSlop={8}
+          style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+        >
+          <Text style={[styles.viewAllText, { color: colors.primary }]}>
+            View All
+          </Text>
+        </Pressable>
+      </View>
 
-        {/* 4. Loading Skeleton or Real Author Story Rings */}
-        {isLoading && authorStories.length === 0 ? (
-          [1, 2, 3].map((key) => (
+      {isLoading && authorStories.length === 0 ? (
+        <View style={{ flexDirection: 'row', gap: 14, paddingHorizontal: 2 }}>
+          {[1, 2, 3, 4].map((key) => (
             <View key={key} style={styles.bubbleContainer}>
-              <SkeletonLoader width={64} height={64} borderRadius={32} />
+              <SkeletonLoader width={66} height={66} borderRadius={33} />
               <SkeletonLoader width={48} height={10} borderRadius={5} style={{ marginTop: 6 }} />
             </View>
-          ))
-        ) : (
-          authorStories.map((story, idx) => {
-            const authorName = story.author?.name ? story.author.name.split(' ')[0] : 'Campus';
-            const role = story.author?.role === 'teacher' ? 'Faculty' : (story.author?.currentClass || 'Student');
-
-            return (
-              <StoryBubble
-                key={story.author?._id || `story-${idx}`}
-                title={authorName}
-                subtitle={role}
-                imageUri={story.latestImage}
-                ringColor={story.author?.role === 'teacher' ? '#8B5CF6' : colors.primary}
-                isSpecial={false}
-                badgeIcon={story.author?.role === 'teacher' ? 'school' : undefined}
-                onPress={() => handleOpenAuthorStories(story)}
-              />
-            );
-          })
-        )}
-      </ScrollView>
+          ))}
+        </View>
+      ) : (
+        <FlatList
+          horizontal
+          data={trayItems}
+          renderItem={renderTrayItem}
+          keyExtractor={(item) => item.id}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          initialNumToRender={6}
+          maxToRenderPerBatch={4}
+          windowSize={3}
+        />
+      )}
 
       {/* Full-Screen Interactive Story Viewer Modal */}
       {activeStoryGroup && (
@@ -317,17 +465,32 @@ const styles = StyleSheet.create({
   titleGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
   sectionTitle: {
     fontSize: 16,
     fontFamily: 'DMSans-Bold',
     letterSpacing: -0.2,
   },
-  liveDot: {
+  liveDotContainer: {
+    width: 14,
+    height: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  liveDotGlow: {
+    position: 'absolute',
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#10B981',
+  },
+  liveDotCore: {
     width: 7,
     height: 7,
-    borderRadius: 4,
+    borderRadius: 3.5,
+    backgroundColor: '#10B981',
   },
   viewAllText: {
     fontSize: 13,
@@ -342,12 +505,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: 68,
   },
-  ringOuter: {
-    width: 66,
-    height: 66,
-    borderRadius: 33,
-    borderWidth: 2.5,
+  gradientRingOuter: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
     padding: 2.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  seenRingOuter: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    borderWidth: 1.5,
+    padding: 2,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 6,
@@ -355,7 +527,7 @@ const styles = StyleSheet.create({
   ringInner: {
     width: '100%',
     height: '100%',
-    borderRadius: 30,
+    borderRadius: 31,
     overflow: 'hidden',
     position: 'relative',
     alignItems: 'center',
@@ -396,9 +568,9 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   addOuterRing: {
-    width: 66,
-    height: 66,
-    borderRadius: 33,
+    width: 68,
+    height: 68,
+    borderRadius: 34,
     borderWidth: 1.5,
     borderStyle: 'dashed',
     padding: 3,

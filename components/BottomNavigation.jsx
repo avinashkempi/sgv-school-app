@@ -15,6 +15,7 @@ import { BlurView } from "expo-blur";
 import { useTheme } from "../theme";
 import { ROUTES } from "../constants/routes";
 import { useAuth } from '../context/AuthContext';
+import { useNavigationContext } from '../context/NavigationContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLabel } from '../context/LabelsContext';
 
@@ -26,6 +27,7 @@ function BottomNavigation() {
   const pathname = usePathname();
   const { colors, mode } = useTheme();
   const { user } = useAuth();
+  const { emitScrollToTop } = useNavigationContext() || {};
   const insets = useSafeAreaInsets();
   const { t } = useLabel();
 
@@ -89,12 +91,18 @@ function BottomNavigation() {
 
   const handleTabPress = useCallback((route) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
-    if (pathname === route) return;
+    if (pathname === route || (route === ROUTES.HOME && pathname === '/')) {
+      // Standard mobile behavior: tapping active tab scrolls feed/screen to top
+      if (emitScrollToTop) {
+        emitScrollToTop(route);
+      }
+      return;
+    }
 
     requestAnimationFrame(() => {
       router.replace(route);
     });
-  }, [pathname, router]);
+  }, [pathname, router, emitScrollToTop]);
 
   const Container = Platform.OS === 'android' ? View : BlurView;
 

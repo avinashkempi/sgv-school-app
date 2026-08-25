@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
@@ -20,10 +21,11 @@ import { useToast } from '../ToastProvider';
 import { useAuth } from '../../context/AuthContext';
 import { createApiMutationFn } from '../../hooks/useApi';
 import apiConfig from '../../config/apiConfig';
-import { pickVibeMedia, compressImage, uploadToCloudinary, uploadVideoToCloudinary } from '../../utils/cloudinaryUpload';
+import { pickVibeMedia, compressImage, uploadToCloudinary, uploadVideoToCloudinary, CLOUDINARY_FOLDERS, getBlurPlaceholderUrl } from '../../utils/cloudinaryUpload';
 
 const MAX_IMAGES = 5;
 const MAX_CAPTION_LENGTH = 2200;
+const DRAFT_STORAGE_KEY = '@vibe_create_draft_v1';
 
 const CATEGORIES = [
   { key: 'general', label: 'General', icon: 'auto-awesome' },
@@ -35,6 +37,18 @@ const CATEGORIES = [
 ];
 
 const SUGGESTED_TAGS = ['AnnualDay', 'SportsMeet', 'ScienceExhibition', 'CampusLife', 'ArtShowcase', 'QuizClub'];
+
+// Exponential backoff upload retry helper
+const uploadWithRetry = async (uploadFn, retries = 2) => {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await uploadFn();
+    } catch (err) {
+      if (attempt === retries) throw err;
+      await new Promise(res => setTimeout(res, 800 * (attempt + 1)));
+    }
+  }
+};
 
 export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
   const { colors } = useTheme();
@@ -65,6 +79,40 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
   );
   const [submitting, setSubmitting] = useState(false);
 
+  // Restore draft when opening create mode
+  useEffect(() => {
+    if (visible && !isEditing) {
+      AsyncStorage.getItem(DRAFT_STORAGE_KEY).then((raw) => {
+        if (raw) {
+          try {
+            const saved = JSON.parse(raw);
+            if (saved.caption) setCaption(prev => prev || saved.caption);
+            if (saved.category) setCategory(prev => prev || saved.category);
+            if (saved.location) setLocation(prev => prev || saved.location);
+          } catch {
+            // Ignore parse errors
+          }
+        }
+      }).catch(() => {});
+    }
+  }, [visible, isEditing]);
+
+
+  // Persist draft on text changes
+  useEffect(() => {
+    if (!isEditing && (caption || location)) {
+      AsyncStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({
+        caption,
+        category,
+        location,
+      })).catch(() => {});
+    }
+  }, [caption, category, location, isEditing]);
+
+  const clearDraft = useCallback(() => {
+    AsyncStorage.removeItem(DRAFT_STORAGE_KEY).catch(() => {});
+  }, []);
+
   const resetForm = useCallback(() => {
     setCaption('');
     setCategory(isAdmin ? 'official' : 'general');
@@ -72,12 +120,13 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
     setLocation('');
     setImages([]);
     setSubmitting(false);
-  }, [isAdmin]);
+    clearDraft();
+  }, [isAdmin, clearDraft]);
 
   const handleClose = useCallback(() => {
     if (submitting) return;
     if (caption || images.length > 0) {
-      Alert.alert('Discard Vibe?', 'Your draft will not be saved.', [
+      Alert.alert('Discard Vibe?', 'Your draft will be removed.', [
         { text: 'Keep Editing', style: 'cancel' },
         { text: 'Discard', style: 'destructive', onPress: () => { resetForm(); onClose(); } },
       ]);
@@ -89,7 +138,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
 
   const hasVideo = images.some(img => img.type === 'video');
 
-  // Photo Picking (Up to 5 Photos)
+  // Parallel Photo Picking and Concurrency Uploads (Up to 5 Photos)
   const handleAddPhotos = useCallback(async (source) => {
     if (hasVideo) {
       Alert.alert(
@@ -122,78 +171,79 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
 
       const newPhotosToUpload = picked.slice(0, remainingSlots);
 
-      for (const photo of newPhotosToUpload) {
-        const imageId = `${Date.now()}_${Math.random()}`;
-
-        if (photo.type === 'video') {
-          // If a video was picked, switch to video pipeline
-          const videoItem = {
-            id: imageId,
-            type: 'video',
-            localUri: photo.uri,
-            duration: photo.duration || 0,
-            url: null,
-            uploading: true,
-            progress: 0,
-            width: photo.width,
-            height: photo.height,
-            aspectRatio: photo.aspectRatio,
-          };
-          setImages([videoItem]);
-
-          (async () => {
-            try {
-              const result = await uploadVideoToCloudinary(photo.uri, (progress) => {
-                setImages(prev => prev.map(item =>
-                  item.id === imageId ? { ...item, progress } : item
-                ));
-              });
-
-              setImages(prev => prev.map(item =>
-                item.id === imageId ? {
-                  ...item,
-                  url: result.url,
-                  publicId: result.publicId,
-                  thumbnailUrl: result.thumbnailUrl,
-                  duration: result.duration || item.duration,
-                  uploading: false,
-                  progress: 100,
-                } : item
-              ));
-            } catch (err) {
-              showToast(err.message || 'Failed to upload video', 'error');
-              setImages([]);
-            }
-          })();
-          return; // Only 1 video permitted
-        }
-
-        const newImage = {
-          id: imageId,
-          type: 'image',
-          localUri: photo.uri,
+      // 1. If video picked by mistake in gallery, switch to video pipeline
+      if (newPhotosToUpload[0]?.type === 'video') {
+        const video = newPhotosToUpload[0];
+        const videoId = `${Date.now()}_${Math.random()}`;
+        const videoItem = {
+          id: videoId,
+          type: 'video',
+          localUri: video.uri,
+          duration: video.duration || 0,
           url: null,
           uploading: true,
           progress: 0,
-          width: photo.width,
-          height: photo.height,
-          aspectRatio: photo.aspectRatio,
+          width: video.width,
+          height: video.height,
+          aspectRatio: video.aspectRatio,
         };
+        setImages([videoItem]);
 
-        setImages(prev => [...prev.filter(i => i.type !== 'video'), newImage]);
-
-        // Background compress & upload to Cloudinary
         (async () => {
           try {
-            const compressedUri = await compressImage(photo.uri);
-            const result = await uploadToCloudinary(compressedUri, (progress) => {
-              setImages(prev => prev.map(img =>
-                img.id === imageId ? { ...img, progress } : img
+            const result = await uploadWithRetry(() => uploadVideoToCloudinary(video.uri, (progress) => {
+              setImages(prev => prev.map(item =>
+                item.id === videoId ? { ...item, progress } : item
               ));
-            });
+            }));
+
+            setImages(prev => prev.map(item =>
+              item.id === videoId ? {
+                ...item,
+                url: result.url,
+                publicId: result.publicId,
+                thumbnailUrl: result.thumbnailUrl,
+                duration: result.duration || item.duration,
+                uploading: false,
+                progress: 100,
+              } : item
+            ));
+          } catch (err) {
+            showToast(err.message || 'Failed to upload video', 'error');
+            setImages([]);
+          }
+        })();
+        return;
+      }
+
+      // 2. Prepare placeholder items in state immediately for instant UI responsiveness
+      const placeholderItems = newPhotosToUpload.map(photo => ({
+        id: `${Date.now()}_${Math.random()}`,
+        type: 'image',
+        localUri: photo.uri,
+        url: null,
+        uploading: true,
+        progress: 0,
+        width: photo.width,
+        height: photo.height,
+        aspectRatio: photo.aspectRatio,
+      }));
+
+      setImages(prev => [...prev.filter(i => i.type !== 'video'), ...placeholderItems]);
+
+      // 3. Parallelize compression and upload across all picked images simultaneously
+      await Promise.all(
+        placeholderItems.map(async (item) => {
+          try {
+            const compressedUri = await compressImage(item.localUri);
+            const result = await uploadWithRetry(() => uploadToCloudinary(compressedUri, (progress) => {
+              setImages(prev => prev.map(img =>
+                img.id === item.id ? { ...img, progress } : img
+              ));
+            }, { folder: CLOUDINARY_FOLDERS.VIBES_IMAGES, fileNamePrefix: 'vibe_img' }));
 
             setImages(prev => prev.map(img =>
-              img.id === imageId ? {
+              img.id === item.id ? {
                 ...img,
                 url: result.url,
                 publicId: result.publicId,
@@ -203,10 +253,10 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
             ));
           } catch (err) {
             showToast(err.message || 'Failed to upload photo', 'error');
-            setImages(prev => prev.filter(img => img.id !== imageId));
+            setImages(prev => prev.filter(img => img.id !== item.id));
           }
-        })();
-      }
+        })
+      );
     } catch (error) {
       showToast(error.message || 'Error selecting photos', 'error');
     }
@@ -254,14 +304,14 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
 
       setImages([newVideo]);
 
-      // Background upload to Cloudinary Video endpoint
+      // Background upload to Cloudinary Video endpoint with retry
       (async () => {
         try {
-          const result = await uploadVideoToCloudinary(video.uri, (progress) => {
+          const result = await uploadWithRetry(() => uploadVideoToCloudinary(video.uri, (progress) => {
             setImages(prev => prev.map(item =>
               item.id === videoId ? { ...item, progress } : item
             ));
-          });
+          }, { folder: CLOUDINARY_FOLDERS.VIBES_VIDEOS, fileNamePrefix: 'vibe_video' }));
 
           setImages(prev => prev.map(item =>
             item.id === videoId ? {
@@ -269,7 +319,9 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
               url: result.url,
               publicId: result.publicId,
               thumbnailUrl: result.thumbnailUrl,
-              duration: result.duration || item.duration,
+              duration: result.duration || video.duration,
+              width: result.width || video.width,
+              height: result.height || video.height,
               uploading: false,
               progress: 100
             } : item
@@ -358,6 +410,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
       queryClient.invalidateQueries({ queryKey: ['vibeSpotlight'] });
       if (isAdmin) {
         queryClient.invalidateQueries({ queryKey: ['pendingVibes'] });
+        queryClient.invalidateQueries({ queryKey: ['pendingVibesCount'] });
       }
 
       resetForm();
@@ -504,6 +557,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                   <View key={img.id || index} style={styles.imageThumbWrapper}>
                     <Image
                       source={{ uri: img.thumbnailUrl || img.localUri || img.url }}
+                      placeholder={img.url ? { uri: getBlurPlaceholderUrl(img.url) } : undefined}
                       style={styles.imageThumb}
                       contentFit="cover"
                       transition={150}
@@ -797,7 +851,7 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: 'rgba(0,0,0,0.65)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -807,11 +861,11 @@ const styles = StyleSheet.create({
     left: 4,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    paddingHorizontal: 6,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    paddingHorizontal: 5,
     paddingVertical: 2,
     borderRadius: 6,
-    gap: 3,
+    gap: 2,
   },
   videoDurationText: {
     color: '#fff',
@@ -819,11 +873,10 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans-Bold',
   },
   addMediaLargeButton: {
-    width: 90,
+    width: 100,
     height: 100,
     borderRadius: 14,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
+    borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
     gap: 2,
@@ -833,10 +886,10 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans-Regular',
   },
   addImageButton: {
-    width: 85,
+    width: 100,
     height: 100,
     borderRadius: 14,
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderStyle: 'dashed',
     justifyContent: 'center',
     alignItems: 'center',
@@ -844,32 +897,30 @@ const styles = StyleSheet.create({
   },
   addImageText: {
     fontSize: 12,
-    fontFamily: 'DMSans-Medium',
+    fontFamily: 'DMSans-Bold',
   },
   categoryScroll: {
     gap: 8,
-    paddingBottom: 4,
   },
   categoryPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 20,
+    borderRadius: 18,
+    gap: 6,
   },
   categoryPillText: {
     fontSize: 13,
     fontFamily: 'DMSans-Bold',
   },
   captionInput: {
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    padding: 14,
     borderRadius: 14,
+    borderWidth: 1,
     fontSize: 14,
     fontFamily: 'DMSans-Regular',
-    borderWidth: 1,
-    minHeight: 90,
+    minHeight: 100,
     textAlignVertical: 'top',
   },
   charCount: {
@@ -883,8 +934,8 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   tagChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 12,
   },
   tagChipText: {
@@ -895,14 +946,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
+    paddingVertical: 10,
     borderRadius: 14,
     borderWidth: 1,
     gap: 8,
   },
   locationInput: {
     flex: 1,
-    paddingVertical: 10,
     fontSize: 14,
     fontFamily: 'DMSans-Regular',
+    padding: 0,
   },
 });

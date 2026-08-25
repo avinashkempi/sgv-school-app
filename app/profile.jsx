@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
-import { View, Text, ScrollView, RefreshControl, Modal, Pressable, KeyboardAvoidingView, Platform } from "react-native";
+import * as ImagePicker from 'expo-image-picker';
+import { View, Text, ScrollView, Modal, Pressable, KeyboardAvoidingView, Platform, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import storage from "../utils/storage";
 import { useTheme } from "../theme";
@@ -19,15 +20,20 @@ import AppTextInput from "../components/TextInput";
 import { LoadingState } from "../components/StateComponents";
 import Header from "../components/Header";
 import { Image } from 'expo-image';
-import { getGridThumbnailUrl } from '../utils/cloudinaryUpload';
+import { getGridThumbnailUrl, compressAvatar, uploadProfilePhoto, getAvatarUrl } from '../utils/cloudinaryUpload';
+import AppRefreshControl from "../components/ui/AppRefreshControl";
 
 export default function ProfileScreen() {
   const { styles, colors } = useTheme();
   const { showToast } = useToast();
   const router = useRouter();
-  const { user: authUser, logout } = useAuth();
+  const { user: authUser, logout, updateUser } = useAuth();
   const { t } = useLabel();
   const [refreshing, setRefreshing] = useState(false);
+
+  const [showPhotoOptionsModal, setShowPhotoOptionsModal] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const { data: user, refetch, isLoading } = useApiQuery(
     ['currentUser'],
@@ -41,12 +47,13 @@ export default function ProfileScreen() {
 
   // Fetch user's approved vibes
   const userId = user?._id || authUser?._id;
+  const isUserIdValid = Boolean(userId && userId !== 'undefined');
   const { data: userVibesData, refetch: refetchVibes } = useApiQuery(
     ['userVibes', userId],
-    `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.userVibes(userId)}`,
+    isUserIdValid && apiConfig.endpoints.vibes?.userVibes ? `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.userVibes(userId)}` : null,
     {
       ...CACHE_TIERS.MODERATE,
-      enabled: !!userId,
+      enabled: isUserIdValid,
       select: (data) => data?.data || [],
     }
   );
@@ -114,6 +121,116 @@ export default function ProfileScreen() {
     }
   });
 
+  const updateProfilePhotoMutation = useApiMutation({
+    mutationFn: (data) => createApiMutationFn(`${apiConfig.baseUrl}/auth/profile-photo`, 'PATCH')(data),
+    onSuccess: async (data) => {
+      if (data?.user) {
+        await updateUser(data.user);
+      }
+      refetch();
+      showToast(data?.message || 'Profile photo updated successfully', "success");
+    },
+    onError: (error) => {
+      showToast(error.message || 'Failed to update profile photo', "error");
+    }
+  });
+
+  const handlePickPhoto = async (source) => {
+    // Close modal FIRST and give iOS enough time for the native sheet to fully dismiss
+    // before we try to present the native image picker. Without this delay, UIKit
+    // on iOS blocks the picker presentation while the modal is still animating out.
+    setShowPhotoOptionsModal(false);
+    await new Promise((resolve) => setTimeout(resolve, Platform.OS === 'ios' ? 600 : 100));
+
+    try {
+      let result;
+
+      if (source === 'camera') {
+        // Request camera permission first
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== 'granted') {
+          showToast('Camera permission is required to take photos.', 'error');
+          return;
+        }
+        result = await ImagePicker.launchCameraAsync({
+          mediaTypes: ['images'],
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.9,
+        });
+      } else {
+        // Gallery — system photo picker on iOS 14+ handles its own permission
+        result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images'],
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.9,
+        });
+      }
+
+      if (!result || result.canceled || !result.assets || result.assets.length === 0) {
+        return; // User cancelled — do nothing
+      }
+
+      const picked = result.assets[0];
+      if (!picked?.uri) return;
+
+      // Show upload overlay
+      setIsUploadingPhoto(true);
+      setUploadProgress(0);
+
+      // Compress to 500×500 square JPEG
+      const compressedUri = await compressAvatar(picked.uri);
+
+      // Upload to Cloudinary avatars folder
+      const uploadResult = await uploadProfilePhoto(compressedUri, (progress) => {
+        setUploadProgress(progress);
+      });
+
+      // Persist to backend
+      if (uploadResult?.url) {
+        await updateProfilePhotoMutation.mutateAsync({
+          profilePhoto: uploadResult.url,
+          profilePhotoPublicId: uploadResult.publicId,
+        });
+      }
+    } catch (error) {
+      console.error('[Profile] Photo upload error:', error);
+      showToast(error.message || 'Failed to upload photo', 'error');
+    } finally {
+      setIsUploadingPhoto(false);
+      setUploadProgress(0);
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setShowPhotoOptionsModal(false);
+    Alert.alert(
+      'Remove Profile Photo?',
+      'Are you sure you want to remove your profile picture?',
+      [
+        { text: t('common.cancel') || 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setIsUploadingPhoto(true);
+              await updateProfilePhotoMutation.mutateAsync({
+                profilePhoto: null,
+                profilePhotoPublicId: null,
+              });
+            } catch (error) {
+              showToast(error.message || 'Failed to remove photo', 'error');
+            } finally {
+              setIsUploadingPhoto(false);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const handleChangePasswordSubmit = () => {
     if (!currentPassword?.trim() || !newPassword?.trim() || !confirmPassword?.trim()) {
       showToast(t('toasts.allFieldsMandatory'), "error");
@@ -141,7 +258,7 @@ export default function ProfileScreen() {
     setRefreshing(true);
     await Promise.all([
       refetch(),
-      refetchVibes ? refetchVibes() : Promise.resolve()
+      isUserIdValid && refetchVibes ? refetchVibes() : Promise.resolve()
     ]);
     setRefreshing(false);
   };
@@ -170,25 +287,102 @@ export default function ProfileScreen() {
       style={{ flex: 1, backgroundColor: colors.background }}
       contentContainerStyle={[styles.contentPaddingBottom, { paddingHorizontal: 16, paddingTop: 16 }]}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
+        <AppRefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
+      showsVerticalScrollIndicator={false}
+      scrollsToTop={true}
+      keyboardDismissMode="on-drag"
+      keyboardShouldPersistTaps="handled"
     >
-      <View style={{ alignItems: "center", marginTop: 20, marginBottom: 40 }}>
-        <View style={{
-          width: 100,
-          height: 100,
-          borderRadius: 50,
-          backgroundColor: colors.surfaceContainerHigh,
-          alignItems: "center",
-          justifyContent: "center",
-          marginBottom: 16,
-          elevation: 5,
-          shadowColor: colors.shadow,
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.1,
-          shadowRadius: 12,
-        }}>
-          <MaterialIcons name="person" size={50} color={colors.primary} />
+      <View style={{ alignItems: "center", marginTop: 20, marginBottom: 36 }}>
+        {/* Avatar Container with Camera Edit Badge */}
+        <View style={{ position: 'relative', marginBottom: 16 }}>
+          <Pressable
+            onPress={() => setShowPhotoOptionsModal(true)}
+            disabled={isUploadingPhoto}
+            style={({ pressed }) => [
+              {
+                width: 108,
+                height: 108,
+                borderRadius: 54,
+                backgroundColor: colors.surfaceContainerHigh,
+                alignItems: "center",
+                justifyContent: "center",
+                elevation: 6,
+                shadowColor: colors.shadow || '#000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.15,
+                shadowRadius: 12,
+                borderWidth: 3,
+                borderColor: colors.surfaceContainerHighest || colors.border,
+                overflow: 'hidden',
+                opacity: pressed ? 0.9 : 1,
+              }
+            ]}
+          >
+            {user?.profilePhoto ? (
+              <Image
+                source={{ uri: getAvatarUrl(user.profilePhoto, 300) }}
+                style={{ width: '100%', height: '100%' }}
+                contentFit="cover"
+                transition={200}
+              />
+            ) : (
+              <View style={{ width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primaryContainer }}>
+                {user?.name ? (
+                  <Text style={{ fontSize: 38, fontFamily: 'DMSans-Bold', color: colors.onPrimaryContainer }}>
+                    {user.name.trim()[0].toUpperCase()}
+                  </Text>
+                ) : (
+                  <MaterialIcons name="person" size={50} color={colors.primary} />
+                )}
+              </View>
+            )}
+
+            {/* Uploading progress overlay */}
+            {isUploadingPhoto && (
+              <View style={{
+                ...StyleSheet.absoluteFillObject,
+                backgroundColor: 'rgba(0,0,0,0.65)',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <ActivityIndicator color="#fff" size="small" />
+                {uploadProgress > 0 && (
+                  <Text style={{ color: '#fff', fontSize: 12, fontFamily: 'DMSans-Bold', marginTop: 4 }}>
+                    {uploadProgress}%
+                  </Text>
+                )}
+              </View>
+            )}
+          </Pressable>
+
+          {/* Floating Camera Button Badge */}
+          <Pressable
+            onPress={() => setShowPhotoOptionsModal(true)}
+            disabled={isUploadingPhoto}
+            style={({ pressed }) => [{
+              position: 'absolute',
+              bottom: 0,
+              right: 0,
+              backgroundColor: colors.primary,
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderWidth: 3,
+              borderColor: colors.background,
+              elevation: 4,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.2,
+              shadowRadius: 4,
+              opacity: pressed ? 0.8 : 1,
+            }]}
+          >
+            <MaterialIcons name="camera-alt" size={18} color={colors.onPrimary || '#fff'} />
+          </Pressable>
         </View>
 
         {user ? (
@@ -656,6 +850,118 @@ export default function ProfileScreen() {
           </KeyboardAvoidingView>
         </Modal>
       )}
+
+      {/* Photo Options Bottom Sheet / Modal */}
+      <Modal
+        visible={showPhotoOptionsModal}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setShowPhotoOptionsModal(false)}
+      >
+        <Pressable
+          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}
+          onPress={() => setShowPhotoOptionsModal(false)}
+        >
+          <Pressable
+            style={{
+              backgroundColor: colors.surfaceContainerLowest || colors.cardBackground || '#fff',
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              padding: 24,
+              paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+            }}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: colors.outlineVariant || '#ccc', alignSelf: 'center', marginBottom: 20 }} />
+            <Text style={{ fontSize: 18, fontFamily: 'DMSans-Bold', color: colors.onSurface, marginBottom: 16, textAlign: 'center' }}>
+              Profile Photo
+            </Text>
+
+            {/* Option: Camera */}
+            <Pressable
+              onPress={() => handlePickPhoto('camera')}
+              style={({ pressed }) => [{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingVertical: 14,
+                paddingHorizontal: 16,
+                borderRadius: 12,
+                backgroundColor: pressed ? (colors.surfaceContainerHigh || '#eee') : 'transparent',
+                marginBottom: 4,
+              }]}
+            >
+              <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primaryContainer, alignItems: 'center', justifyContent: 'center', marginRight: 14 }}>
+                <MaterialIcons name="photo-camera" size={22} color={colors.primary} />
+              </View>
+              <Text style={{ fontSize: 16, fontFamily: 'DMSans-Medium', color: colors.onSurface }}>
+                Take Photo
+              </Text>
+            </Pressable>
+
+            {/* Option: Gallery */}
+            <Pressable
+              onPress={() => handlePickPhoto('gallery')}
+              style={({ pressed }) => [{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingVertical: 14,
+                paddingHorizontal: 16,
+                borderRadius: 12,
+                backgroundColor: pressed ? (colors.surfaceContainerHigh || '#eee') : 'transparent',
+                marginBottom: 4,
+              }]}
+            >
+              <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.secondaryContainer || colors.primaryContainer, alignItems: 'center', justifyContent: 'center', marginRight: 14 }}>
+                <MaterialIcons name="photo-library" size={22} color={colors.secondary || colors.primary} />
+              </View>
+              <Text style={{ fontSize: 16, fontFamily: 'DMSans-Medium', color: colors.onSurface }}>
+                Choose from Gallery
+              </Text>
+            </Pressable>
+
+            {/* Option: Remove Photo (if photo exists) */}
+            {user?.profilePhoto && (
+              <Pressable
+                onPress={handleRemovePhoto}
+                style={({ pressed }) => [{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingVertical: 14,
+                  paddingHorizontal: 16,
+                  borderRadius: 12,
+                  backgroundColor: pressed ? (colors.errorContainer || '#ffebee') : 'transparent',
+                  marginBottom: 4,
+                }]}
+              >
+                <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.errorContainer || '#ffebee', alignItems: 'center', justifyContent: 'center', marginRight: 14 }}>
+                  <MaterialIcons name="delete-outline" size={22} color={colors.error || '#d32f2f'} />
+                </View>
+                <Text style={{ fontSize: 16, fontFamily: 'DMSans-Medium', color: colors.error || '#d32f2f' }}>
+                  Remove Photo
+                </Text>
+              </Pressable>
+            )}
+
+            {/* Option: Cancel */}
+            <Pressable
+              onPress={() => setShowPhotoOptionsModal(false)}
+              style={({ pressed }) => [{
+                marginTop: 12,
+                paddingVertical: 14,
+                borderRadius: 12,
+                backgroundColor: colors.surfaceContainerHighest || '#eee',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: pressed ? 0.8 : 1,
+              }]}
+            >
+              <Text style={{ fontSize: 16, fontFamily: 'DMSans-Bold', color: colors.onSurfaceVariant || '#555' }}>
+                {t('common.cancel')}
+              </Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </ScrollView>
   );
 }

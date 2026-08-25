@@ -10,6 +10,8 @@ const BASE_URL = 'https://sgv-school-backend.onrender.com/api';
 const endpoints = {
   auth: {
     login: '/auth/login',
+    updateProfilePhoto: '/auth/profile-photo',
+    changePassword: '/auth/change-password',
   },
   events: {
     list: '/events',
@@ -66,9 +68,11 @@ const endpoints = {
     toggleBookmark: (id) => `/vibes/${id}/bookmark`,
     myVibes: '/vibes/user/my-vibes',
     saved: '/vibes/user/saved',
+    userVibes: (userId) => `/vibes/user/${userId}`,
     highlights: '/vibes/highlights',
     spotlight: '/vibes/spotlight',
-    userVibes: (userId) => `/vibes/user/${userId}`,
+    recordViews: '/vibes/views',
+    recordView: (id) => `/vibes/${id}/view`,
     adminPending: '/vibes/admin/pending',
     adminReview: (id) => `/vibes/admin/${id}/review`,
     adminPin: (id) => `/vibes/admin/${id}/pin`,

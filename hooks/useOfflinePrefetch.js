@@ -50,6 +50,11 @@ export default function useOfflinePrefetch() {
                 prefetch(['events'], '/events', CACHE_TIERS.MODERATE);
                 prefetch(['schoolInfo'], apiConfig.endpoints.schoolInfo.get, CACHE_TIERS.STATIC);
 
+                // Prefetch Vibes highlights and spotlight for instantaneous home loading
+                prefetch(['vibeHighlights'], apiConfig.endpoints.vibes.highlights, CACHE_TIERS.VIBES_HOME);
+                prefetch(['vibeSpotlight'], apiConfig.endpoints.vibes.spotlight, CACHE_TIERS.VIBES_HOME);
+                prefetch(['vibes', 'all', null], `${apiConfig.endpoints.vibes.list}?page=1&limit=10`, CACHE_TIERS.VIBES_FEED);
+
                 // Prefetch user-scoped notifications
                 prefetch(['notifications', userId], '/notifications', CACHE_TIERS.REAL_TIME);
 

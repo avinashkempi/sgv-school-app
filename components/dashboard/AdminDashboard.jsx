@@ -66,8 +66,9 @@ const AdminDashboard = () => {
     return (
         <ScrollView
             contentContainerStyle={{ paddingBottom: 20 }}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} />}
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
         >
             {/* Date Range Selector */}
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, marginTop: 8 }}>

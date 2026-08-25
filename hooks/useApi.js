@@ -27,6 +27,9 @@ export function useApiQuery(key, url, options = {}) {
         queryKey: key,
         placeholderData,
         queryFn: async () => {
+            if (!url || typeof url !== 'string' || url.includes('/undefined') || url.includes('/null')) {
+                return null;
+            }
             try {
                 const response = await apiFetch(url);
                 if (!response.ok) {

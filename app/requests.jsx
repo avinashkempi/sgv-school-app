@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, Text, ScrollView, RefreshControl } from "react-native";
+import React, { useState, useRef } from "react";
+import { View, Text, ScrollView } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "expo-router";
@@ -9,6 +9,8 @@ import Card from "../components/Card";
 import apiConfig from "../config/apiConfig";
 import { useApiQuery } from "../hooks/useApi";
 import { useLabel } from "../context/LabelsContext";
+import useTabScrollToTop from "../hooks/useTabScrollToTop";
+import AppRefreshControl from "../components/ui/AppRefreshControl";
 
 export default function RequestsScreen() {
     const router = useRouter();
@@ -16,6 +18,10 @@ export default function RequestsScreen() {
     const { user } = useAuth();
     const { t } = useLabel();
     const [refreshing, setRefreshing] = useState(false);
+    const scrollRef = useRef(null);
+
+    // Mobile standard gestures
+    useTabScrollToTop(scrollRef, '/requests');
 
     // Fetch Teacher Classes (for teachers)
     const { data: teacherClassesData, refetch: refetchClasses } = useApiQuery(
@@ -39,7 +45,7 @@ export default function RequestsScreen() {
     const navigateToLeaves = () => {
         if (user?.role === 'student') {
             router.push('/student/leaves');
-        } else if (user?.role === 'staff' || user?.role === 'teacher') {
+        } else if (user?.role === 'staff' || user?.role === 'teacher' || user?.role === 'support_staff') {
             router.push('/teacher/leaves');
         } else if (user?.role === 'admin' || user?.role === 'super admin') {
             router.push('/admin/leaves');
@@ -49,7 +55,7 @@ export default function RequestsScreen() {
     const navigateToMyAttendance = () => {
         if (user?.role === 'student') {
             router.push(`/student/attendance`);
-        } else if (user?.role === 'teacher' || user?.role === 'staff') {
+        } else if (user?.role === 'teacher' || user?.role === 'staff' || user?.role === 'support_staff') {
             router.push('/teacher/attendance');
         } else if (user?.role === 'admin' || user?.role === 'super admin') {
             router.push('/admin/attendance?tab=my_attendance');
@@ -117,7 +123,11 @@ export default function RequestsScreen() {
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
             <ScrollView
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
+                ref={scrollRef}
+                refreshControl={<AppRefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+                showsVerticalScrollIndicator={false}
+                scrollsToTop={true}
+                keyboardShouldPersistTaps="handled"
                 contentContainerStyle={[styles.contentPaddingBottom, { padding: 16 }]}
             >
                 <Header

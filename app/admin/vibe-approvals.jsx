@@ -22,6 +22,9 @@ import { CACHE_TIERS } from '../../utils/cacheConfig';
 import VibeImageCarousel from '../../components/vibes/VibeImageCarousel';
 import RoleGuard from '../../components/RoleGuard';
 
+import { getAvatarUrl, getBlurPlaceholderUrl } from '../../utils/cloudinaryUpload';
+import { Image } from 'expo-image';
+
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const REJECT_REASONS = [
@@ -66,13 +69,31 @@ export default function VibeApprovalsScreen() {
   const pendingVibes = data?.pages?.flatMap(p => p?.data || []) || [];
   const totalPending = data?.pages?.[0]?.pendingCount ?? pendingVibes.length;
 
-  // Review mutation
+  // Review mutation with optimistic removal
   const reviewMutation = useApiMutation({
     mutationFn: async ({ vibeId, action, reason }) => {
       return createApiMutationFn(
         `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.adminReview(vibeId)}`,
         'PATCH'
       )({ action, reason });
+    },
+    onMutate: async ({ vibeId }) => {
+      await queryClient.cancelQueries({ queryKey });
+      const prevData = queryClient.getQueryData(queryKey);
+
+      queryClient.setQueryData(queryKey, (old) => {
+        if (!old?.pages) return old;
+        return {
+          ...old,
+          pages: old.pages.map(page => ({
+            ...page,
+            data: (page.data || []).filter(v => v._id !== vibeId),
+            pendingCount: Math.max((page.pendingCount || 1) - 1, 0),
+          })),
+        };
+      });
+
+      return { prevData };
     },
     onSuccess: (res) => {
       showToast(res.message || 'Updated vibe', 'success');
@@ -84,7 +105,10 @@ export default function VibeApprovalsScreen() {
       setRejectingVibe(null);
       setCustomReason('');
     },
-    onError: (err) => {
+    onError: (err, _vars, context) => {
+      if (context?.prevData) {
+        queryClient.setQueryData(queryKey, context.prevData);
+      }
       showToast(err.message || 'Failed to review vibe', 'error');
     },
   });
@@ -119,15 +143,27 @@ export default function VibeApprovalsScreen() {
 
   const renderItem = useCallback(({ item }) => {
     const isProcessing = processingId === item._id;
+    const authorAvatarUri = item.author?.profilePhoto ? getAvatarUrl(item.author.profilePhoto, 80) : null;
+    const authorAvatarBlur = authorAvatarUri ? getBlurPlaceholderUrl(authorAvatarUri) : null;
 
     return (
       <View style={[styles.reviewCard, { backgroundColor: colors.surfaceContainer }]}>
         {/* Author Header */}
         <View style={styles.authorHeader}>
-          <View style={[styles.avatarCircle, { backgroundColor: colors.primaryContainer }]}>
-            <Text style={[styles.avatarText, { color: colors.onPrimaryContainer }]}>
-              {item.author?.name ? item.author.name[0].toUpperCase() : 'U'}
-            </Text>
+          <View style={[styles.avatarCircle, { backgroundColor: colors.primaryContainer, overflow: 'hidden' }]}>
+            {authorAvatarUri ? (
+              <Image
+                source={{ uri: authorAvatarUri }}
+                placeholder={authorAvatarBlur ? { uri: authorAvatarBlur } : undefined}
+                style={{ width: '100%', height: '100%' }}
+                contentFit="cover"
+                transition={150}
+              />
+            ) : (
+              <Text style={[styles.avatarText, { color: colors.onPrimaryContainer }]}>
+                {item.author?.name ? item.author.name[0].toUpperCase() : 'U'}
+              </Text>
+            )}
           </View>
           <View style={{ flex: 1 }}>
             <Text style={[styles.authorName, { color: colors.onSurface }]}>
@@ -157,6 +193,7 @@ export default function VibeApprovalsScreen() {
             isVisible={true}
           />
         )}
+
 
         {/* Caption */}
         {item.caption ? (

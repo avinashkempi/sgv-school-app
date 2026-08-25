@@ -41,8 +41,9 @@ const StudentDashboard = () => {
     return (
         <ScrollView
             contentContainerStyle={{ paddingBottom: 24 }}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} />}
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
         >
             <Text style={[styles.titleLarge, { marginBottom: 16, marginTop: 8 }]}>My Progress</Text>
 

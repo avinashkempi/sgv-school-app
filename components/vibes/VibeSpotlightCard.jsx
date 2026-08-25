@@ -9,6 +9,7 @@ import {
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import Animated, {
   useSharedValue,
@@ -19,8 +20,9 @@ import { useTheme } from '../../theme';
 import { useApiQuery } from '../../hooks/useApi';
 import apiConfig from '../../config/apiConfig';
 import { CACHE_TIERS } from '../../utils/cacheConfig';
-import { getHeroBannerUrl } from '../../utils/cloudinaryUpload';
+import { getHeroBannerUrl, getBlurPlaceholderUrl } from '../../utils/cloudinaryUpload';
 import SkeletonLoader from '../SkeletonLoader';
+
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32;
@@ -32,13 +34,11 @@ const VibeSpotlightCard = () => {
   const router = useRouter();
   const scale = useSharedValue(1);
 
+
   const { data: spotlightData, isLoading } = useApiQuery(
     ['vibeSpotlight'],
     `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.spotlight}`,
-    {
-      ...CACHE_TIERS.MODERATE,
-      staleTime: 60 * 1000,
-    }
+    CACHE_TIERS.VIBES_HOME
   );
 
   const vibe = spotlightData?.data;
@@ -118,7 +118,9 @@ const VibeSpotlightCard = () => {
 
   const coverImageUri = vibe.images?.[0]?.url;
   const optimizedCover = coverImageUri ? getHeroBannerUrl(coverImageUri) : null;
+  const coverBlurPlaceholder = coverImageUri ? getBlurPlaceholderUrl(coverImageUri) : null;
   const isVideo = vibe.images?.[0]?.type === 'video';
+
 
   const badgeConfig = vibe.category === 'achievement'
     ? { label: 'Achievement Spotlight', bg: '#F59E0B', icon: 'emoji-events' }
@@ -165,9 +167,10 @@ const VibeSpotlightCard = () => {
           {optimizedCover ? (
             <Image
               source={{ uri: optimizedCover }}
+              placeholder={coverBlurPlaceholder ? { uri: coverBlurPlaceholder } : undefined}
               style={styles.coverImage}
               contentFit="cover"
-              transition={250}
+              transition={200}
               cachePolicy="memory-disk"
             />
           ) : (
@@ -176,8 +179,11 @@ const VibeSpotlightCard = () => {
             </View>
           )}
 
-          {/* Gradient-like dark overlay at bottom of image */}
-          <View style={styles.imageOverlay} />
+          {/* Sleek Gradient Overlay at bottom */}
+          <LinearGradient
+            colors={['transparent', 'rgba(0,0,0,0.65)']}
+            style={styles.imageOverlay}
+          />
 
           {/* Category / Type Badge */}
           <View style={[styles.categoryPill, { backgroundColor: badgeConfig.bg }]}>
@@ -298,8 +304,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: 60,
-    backgroundColor: 'rgba(0,0,0,0.25)',
+    height: 70,
   },
   categoryPill: {
     position: 'absolute',

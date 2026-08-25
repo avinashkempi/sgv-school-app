@@ -12,7 +12,7 @@ import { useTheme } from "../theme";
 import { useApiQuery } from "../hooks/useApi";
 import apiConfig from "../config/apiConfig";
 import { CACHE_TIERS } from "../utils/cacheConfig";
-import { getGridThumbnailUrl } from "../utils/cloudinaryUpload";
+import { getGridThumbnailUrl, getAvatarUrl } from "../utils/cloudinaryUpload";
 
 export default function UserDetailModal({ visible, onClose, user }) {
     const { colors } = useTheme();
@@ -76,9 +76,21 @@ export default function UserDetailModal({ visible, onClose, user }) {
                                 width: 80, height: 80, borderRadius: 40,
                                 backgroundColor: colors.primary + '15',
                                 justifyContent: 'center', alignItems: 'center',
-                                marginBottom: 12
+                                marginBottom: 12,
+                                overflow: 'hidden',
+                                borderWidth: user.profilePhoto ? 2 : 0,
+                                borderColor: colors.primary,
                             }}>
-                                <MaterialIcons name="person" size={40} color={colors.primary} />
+                                {user.profilePhoto ? (
+                                    <Image
+                                        source={{ uri: getAvatarUrl(user.profilePhoto, 160) }}
+                                        style={{ width: '100%', height: '100%' }}
+                                        contentFit="cover"
+                                        transition={150}
+                                    />
+                                ) : (
+                                    <MaterialIcons name="person" size={40} color={colors.primary} />
+                                )}
                             </View>
                             <Text style={{ fontSize: 24, fontFamily: "DMSans-Bold", color: colors.textPrimary }}>
                                 {user.name}
@@ -189,12 +201,13 @@ const DetailRow = ({ icon, label, value, style }) => {
 
 const UserVibesSection = ({ userId }) => {
     const { colors } = useTheme();
+    const isValidUserId = Boolean(userId && userId !== 'undefined');
     const { data: vibesData } = useApiQuery(
         ['userVibes', userId],
-        `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.userVibes(userId)}`,
+        isValidUserId && apiConfig.endpoints.vibes?.userVibes ? `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.userVibes(userId)}` : null,
         {
             ...CACHE_TIERS.MODERATE,
-            enabled: !!userId,
+            enabled: isValidUserId,
             select: (data) => data?.data || [],
         }
     );

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -17,7 +17,9 @@ import Animated, {
   withSequence,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { getOptimizedVideoUrl, getVideoPosterUrl } from '../../utils/cloudinaryUpload';
+import { getOptimizedVideoUrl, getVideoPosterUrl, getBlurPlaceholderUrl } from '../../utils/cloudinaryUpload';
+import useNetworkQuality from '../../hooks/useNetworkQuality';
+import useDoubleTap from '../../hooks/useDoubleTap';
 
 // Global mute state across the app session (Instagram pattern)
 let globalIsMuted = true;
@@ -28,8 +30,9 @@ const setGlobalMuted = (muted) => {
 };
 
 /**
- * VibeVideoPlayer — High-performance viewport-aware video player for Vibes.
- * Uses expo-video native hardware player with automatic pause/play and global audio control.
+ * VibeVideoPlayer — Viewport-aware lazy video player for Vibes.
+ * Uses native expo-video with automatic pause/play, adaptive streaming quality,
+ * and lazy allocation when scrolled into view.
  *
  * @param {string} url - Cloudinary video stream URL
  * @param {string} [thumbnailUrl] - Poster image URL
@@ -48,18 +51,19 @@ const VibeVideoPlayer = React.memo(({
   isActiveSlide = true,
   onDoubleTapLike,
 }) => {
+  const { isSlow } = useNetworkQuality();
   const [isMuted, setIsMuted] = useState(globalIsMuted);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showPlayOverlay, setShowPlayOverlay] = useState(false);
   const [isReady, setIsReady] = useState(false);
 
-  const lastTapRef = useRef(0);
   const playOverlayOpacity = useSharedValue(0);
   const muteBadgeOpacity = useSharedValue(0);
 
-  // Optimized video streaming URL & Poster URL
-  const videoSource = useMemo(() => getOptimizedVideoUrl(url), [url]);
+  // Optimized adaptive video streaming URL & Poster URL
+  const videoSource = useMemo(() => getOptimizedVideoUrl(url, { isSlow }), [url, isSlow]);
   const posterUrl = useMemo(() => getVideoPosterUrl(url, thumbnailUrl), [url, thumbnailUrl]);
+  const posterBlurUrl = useMemo(() => getBlurPlaceholderUrl(posterUrl), [posterUrl]);
 
   // Sync with global mute changes from other cards
   useEffect(() => {
@@ -70,8 +74,10 @@ const VibeVideoPlayer = React.memo(({
     return () => muteListeners.delete(onMuteChange);
   }, []);
 
-  // Initialize native expo-video player
-  const player = useVideoPlayer(videoSource, (p) => {
+  // Only allocate active video stream to native hardware player when in viewport or active
+  const activeSource = (isVisible && isActiveSlide) ? videoSource : null;
+
+  const player = useVideoPlayer(activeSource, (p) => {
     p.loop = true;
     p.muted = isMuted;
   });
@@ -83,7 +89,7 @@ const VibeVideoPlayer = React.memo(({
     }
   }, [player, isMuted]);
 
-  // Viewport & Active Slide Playback Controller (Instagram Pattern)
+  // Viewport & Active Slide Playback Controller
   useEffect(() => {
     if (!player) return;
 
@@ -167,21 +173,14 @@ const VibeVideoPlayer = React.memo(({
     }
   }, [player, isPlaying, playOverlayOpacity]);
 
-  const handlePress = useCallback(() => {
-    const now = Date.now();
-    const DOUBLE_TAP_DELAY = 300;
-
-    if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
-      // Double Tap -> Heart Burst
-      if (onDoubleTapLike) {
-        onDoubleTapLike();
-      }
-    } else {
-      // Single Tap -> Toggle Mute (Instagram behavior) or Play/Pause
-      toggleMute();
-    }
-    lastTapRef.current = now;
-  }, [onDoubleTapLike, toggleMute]);
+  // Double tap -> heart like, single tap -> toggle mute
+  const handlePress = useDoubleTap(
+    useCallback(() => {
+      onDoubleTapLike?.();
+    }, [onDoubleTapLike]),
+    toggleMute,
+    280
+  );
 
   const playOverlayStyle = useAnimatedStyle(() => ({
     opacity: playOverlayOpacity.value,
@@ -194,18 +193,21 @@ const VibeVideoPlayer = React.memo(({
 
   return (
     <View style={[styles.container, { width, height }]}>
-      {/* Poster Image shown until video is buffered & ready, or when off-screen */}
-      {(!isReady || !isVisible) && (
+      {/* Instant Blurred Poster Image shown until video is buffered & ready, or when off-screen */}
+      {(!isReady || !isVisible || !isActiveSlide) && (
         <Image
           source={{ uri: posterUrl }}
+          placeholder={posterBlurUrl ? { uri: posterBlurUrl } : undefined}
+          placeholderContentFit="contain"
           style={[StyleSheet.absoluteFill, styles.posterImage]}
           contentFit="contain"
           cachePolicy="memory-disk"
+          transition={150}
         />
       )}
 
       {/* Native expo-video View */}
-      {isVisible && (
+      {isVisible && isActiveSlide && player && (
         <Pressable
           onPress={handlePress}
           onLongPress={togglePlayPause}
@@ -266,7 +268,7 @@ const VibeVideoPlayer = React.memo(({
       </View>
 
       {/* Loading Spinner */}
-      {isVisible && !isReady && (
+      {isVisible && isActiveSlide && !isReady && (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color="#fff" />
         </View>

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
   Alert,
   Platform,
   ActivityIndicator,
+  LayoutAnimation,
+  UIManager,
 } from 'react-native';
 import { MaterialIcons, FontAwesome } from '@expo/vector-icons';
 import * as Sharing from 'expo-sharing';
@@ -23,28 +25,16 @@ import Animated, {
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../../theme';
+import { Image } from 'expo-image';
+import { getAvatarUrl, getBlurPlaceholderUrl } from '../../utils/cloudinaryUpload';
+import formatTimeAgo from '../../utils/formatTimeAgo';
 import VibeImageCarousel from './VibeImageCarousel';
 
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
-/**
- * Format date into relative human time (e.g. 5m, 2h, 3d).
- */
-const formatTimeAgo = (dateString) => {
-  if (!dateString) return '';
-  const now = new Date();
-  const date = new Date(dateString);
-  const diffMs = now - date;
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-};
 
 /**
  * Render caption with highlighted clickable hashtags
@@ -91,10 +81,16 @@ const VibeCard = ({
   const { colors } = useTheme();
   const [expanded, setExpanded] = useState(false);
 
-  // Optimistic local states for instant visual feedback
+  // Optimistic local states synced with parent/props
   const [isLiked, setIsLiked] = useState(!!vibe.isLiked);
   const [likesCount, setLikesCount] = useState(vibe.likesCount || 0);
   const [isBookmarked, setIsBookmarked] = useState(!!vibe.isBookmarked);
+
+  useEffect(() => {
+    setIsLiked(!!vibe.isLiked);
+    setLikesCount(vibe.likesCount || 0);
+    setIsBookmarked(!!vibe.isBookmarked);
+  }, [vibe.isLiked, vibe.likesCount, vibe.isBookmarked]);
 
   // Animation values for Like and Bookmark icons
   const likeScale = useSharedValue(1);
@@ -104,8 +100,13 @@ const VibeCard = ({
   const isAuthor = currentUserId && vibe.author?._id === currentUserId;
   const canModerate = isAdmin || isAuthor;
 
+  const toggleExpand = useCallback(() => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpanded(prev => !prev);
+  }, []);
+
   const handleLikePress = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     likeScale.value = withSequence(
       withSpring(1.4, { damping: 6, stiffness: 350 }),
       withSpring(1.0, { damping: 10, stiffness: 300 })
@@ -120,14 +121,18 @@ const VibeCard = ({
 
   const handleDoubleTapLike = useCallback(() => {
     if (!isLiked) {
+      likeScale.value = withSequence(
+        withSpring(1.4, { damping: 6, stiffness: 350 }),
+        withSpring(1.0, { damping: 10, stiffness: 300 })
+      );
       setIsLiked(true);
       setLikesCount(prev => prev + 1);
       onLike?.(vibe._id, true);
     }
-  }, [isLiked, vibe._id, onLike]);
+  }, [isLiked, vibe._id, onLike, likeScale]);
 
   const handleBookmarkPress = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     bookmarkScale.value = withSequence(
       withSpring(1.3, { damping: 8, stiffness: 350 }),
       withSpring(1.0, { damping: 10, stiffness: 300 })
@@ -175,7 +180,6 @@ const VibeCard = ({
       const firstImage = vibe.images?.[0]?.url || (typeof vibe.images?.[0] === 'string' ? vibe.images[0] : null);
 
       if (Platform.OS === 'web') {
-        // Web Sharing
         if (firstImage) {
           try {
             const response = await fetch(firstImage);
@@ -195,7 +199,6 @@ const VibeCard = ({
           }
         }
 
-        // WhatsApp Web fallback
         const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareMessage)}`;
         if (typeof window !== 'undefined') {
           window.open(waUrl, '_blank');
@@ -204,8 +207,6 @@ const VibeCard = ({
         return;
       }
 
-      // Native Mobile (iOS / Android)
-      // Auto-copy full caption and Play Store download link so it can also be pasted or referenced
       await Clipboard.setStringAsync(shareMessage).catch(() => {});
 
       if (firstImage) {
@@ -224,7 +225,6 @@ const VibeCard = ({
         }
       }
 
-      // Fallback if no image or sharing not available
       await Share.share({
         title: shareTitle,
         message: shareMessage,
@@ -291,8 +291,11 @@ const VibeCard = ({
     }
   }, [vibe.category]);
 
+  const authorAvatarUri = vibe.author?.profilePhoto ? getAvatarUrl(vibe.author.profilePhoto, 100) : null;
+  const authorAvatarBlur = authorAvatarUri ? getBlurPlaceholderUrl(authorAvatarUri) : null;
+
   return (
-    <Animated.View entering={FadeIn.duration(250)} style={[styles.card, { backgroundColor: colors.surfaceContainer }]}>
+    <Animated.View entering={FadeIn.duration(200)} style={[styles.card, { backgroundColor: colors.surfaceContainer }]}>
       {/* ──── Header ──── */}
       <View style={styles.header}>
         <View style={styles.authorRow}>
@@ -303,10 +306,20 @@ const VibeCard = ({
               backgroundColor: isSchoolPost ? '#FFF8E1' : colors.primaryContainer,
               borderColor: isSchoolPost ? '#FFB300' : 'transparent',
               borderWidth: isSchoolPost ? 1.5 : 0,
+              overflow: 'hidden',
             }
           ]}>
             {isSchoolPost ? (
               <MaterialIcons name="school" size={22} color="#F57F17" />
+            ) : authorAvatarUri ? (
+              <Image
+                source={{ uri: authorAvatarUri }}
+                placeholder={authorAvatarBlur ? { uri: authorAvatarBlur } : undefined}
+                style={{ width: '100%', height: '100%' }}
+                contentFit="cover"
+                transition={150}
+                cachePolicy="memory-disk"
+              />
             ) : (
               <Text style={[styles.avatarInitial, { color: colors.onPrimaryContainer }]}>
                 {vibe.author?.name ? vibe.author.name[0].toUpperCase() : 'U'}
@@ -459,7 +472,7 @@ const VibeCard = ({
               <RichCaption caption={vibe.caption} onTagPress={onTagPress} colors={colors} />
             </Text>
             {vibe.caption.length > 110 && (
-              <Pressable onPress={() => setExpanded(!expanded)} hitSlop={6}>
+              <Pressable onPress={toggleExpand} hitSlop={6}>
                 <Text style={[styles.moreText, { color: colors.onSurfaceVariant }]}>
                   {expanded ? 'less' : 'more'}
                 </Text>
@@ -494,8 +507,13 @@ const VibeCard = ({
 
 const styles = StyleSheet.create({
   card: {
-    marginBottom: 20,
+    marginBottom: 16,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
   },
   header: {
     flexDirection: 'row',
@@ -670,4 +688,16 @@ const styles = StyleSheet.create({
   },
 });
 
-export default React.memo(VibeCard);
+export default React.memo(VibeCard, (prevProps, nextProps) => {
+  return (
+    prevProps.vibe._id === nextProps.vibe._id &&
+    prevProps.vibe.isLiked === nextProps.vibe.isLiked &&
+    prevProps.vibe.likesCount === nextProps.vibe.likesCount &&
+    prevProps.vibe.isBookmarked === nextProps.vibe.isBookmarked &&
+    prevProps.vibe.commentsCount === nextProps.vibe.commentsCount &&
+    prevProps.vibe.isPinned === nextProps.vibe.isPinned &&
+    prevProps.isVisible === nextProps.isVisible &&
+    prevProps.isAdmin === nextProps.isAdmin &&
+    prevProps.currentUserId === nextProps.currentUserId
+  );
+});

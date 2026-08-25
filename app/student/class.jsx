@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
     View,
     Text,
     ScrollView,
-    RefreshControl,
     ActivityIndicator,
     Pressable,
 } from "react-native";
@@ -17,6 +16,8 @@ import { useLabel } from "../../context/LabelsContext";
 import { useApiQuery } from "../../hooks/useApi";
 import { formatClassName } from "../../utils/formatClassName";
 import { useAuth } from "../../context/AuthContext";
+import useTabScrollToTop from "../../hooks/useTabScrollToTop";
+import AppRefreshControl from "../../components/ui/AppRefreshControl";
 
 export default function StudentClassScreen() {
     const router = useRouter();
@@ -25,6 +26,10 @@ export default function StudentClassScreen() {
     const { _showToast } = useToast();
     const [refreshing, setRefreshing] = useState(false);
     const { user } = useAuth();
+    const scrollRef = useRef(null);
+
+    // Mobile standard gestures
+    useTabScrollToTop(scrollRef, '/student/class');
 
     const classId = user?.currentClass?._id || user?.currentClass;
 
@@ -47,8 +52,11 @@ export default function StudentClassScreen() {
     if (!classData) {
         return (
             <ScrollView
+                ref={scrollRef}
                 contentContainerStyle={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 20 }}
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} />}
+                refreshControl={<AppRefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+                scrollsToTop={true}
+                keyboardShouldPersistTaps="handled"
             >
                 <MaterialIcons name="school" size={64} color={colors.textSecondary} />
                 <Text style={{ fontSize: 18, fontFamily: "DMSans-Bold", color: colors.textPrimary, marginTop: 16, textAlign: "center" }}>
@@ -64,9 +72,12 @@ export default function StudentClassScreen() {
     return (
         <View style={styles.container}>
             <ScrollView
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} />}
+                ref={scrollRef}
+                refreshControl={<AppRefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
                 contentContainerStyle={{ paddingBottom: 24 }}
                 showsVerticalScrollIndicator={false}
+                scrollsToTop={true}
+                keyboardShouldPersistTaps="handled"
             >
                 <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
                     <Header

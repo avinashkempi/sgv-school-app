@@ -1,5 +1,5 @@
 import React, { useState, useMemo, } from "react";
-import { FlatList, View, Text, Pressable, Alert, RefreshControl, ActivityIndicator } from "react-native";
+import { FlatList, View, Text, Pressable, Alert, ActivityIndicator } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -18,6 +18,7 @@ import { formatDate, getISTDateString, getISTToday } from "../utils/date";
 
 import Card from "../components/Card";
 import { useLabel } from "../context/LabelsContext";
+import AppRefreshControl from "../components/ui/AppRefreshControl";
 
 // Memoized day renderer component for performance
 const DayRenderer = React.memo(({ date, state, marking, onDayPress, colors }) => {
@@ -355,9 +356,12 @@ export default function EventsScreen() {
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: 24 }}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} />
+          <AppRefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         showsVerticalScrollIndicator={false}
+        scrollsToTop={true}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
         data={filteredEvents}
         keyExtractor={(item) => (item._id ?? item.id).toString()}
         renderItem={({ item }) => (

@@ -150,12 +150,12 @@ function Inner() {
             <Stack
               screenOptions={{
                 headerShown: false,
-                // Enable gesture navigation
+                // Standard edge gesture navigation (like iOS / Instagram)
                 gestureEnabled: true,
                 gestureDirection: 'horizontal',
-                fullScreenGestureEnabled: true,
-                // Native-driven fast transitions (Android: fade_from_bottom is smooth & fast)
-                animation: 'fade_from_bottom',
+                fullScreenGestureEnabled: false,
+                // Native-driven fast smooth horizontal transitions
+                animation: 'slide_from_right',
                 animationDuration: 200,
                 // Freeze off-screen screens to save CPU/GPU cycles
                 freezeOnBlur: true,

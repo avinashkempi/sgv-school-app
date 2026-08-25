@@ -5,7 +5,6 @@ import {
   Modal,
   FlatList,
   Pressable,
-  ActivityIndicator,
   StyleSheet,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -13,6 +12,9 @@ import { useTheme } from '../../theme';
 import { useApiQuery } from '../../hooks/useApi';
 import apiConfig from '../../config/apiConfig';
 import { CACHE_TIERS } from '../../utils/cacheConfig';
+import { Image } from 'expo-image';
+import { getAvatarUrl, getBlurPlaceholderUrl } from '../../utils/cloudinaryUpload';
+import SkeletonLoader from '../SkeletonLoader';
 
 export default function VibeLikesModal({ visible, onClose, vibeId }) {
   const { colors } = useTheme();
@@ -21,7 +23,7 @@ export default function VibeLikesModal({ visible, onClose, vibeId }) {
     ['vibeLikes', vibeId],
     vibeId ? `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.getLikes(vibeId)}` : null,
     {
-      ...CACHE_TIERS.REAL_TIME,
+      ...CACHE_TIERS.VIBES_REALTIME,
       enabled: !!vibeId && visible,
     }
   );
@@ -37,12 +39,26 @@ export default function VibeLikesModal({ visible, onClose, vibeId }) {
       ? 'Administrator'
       : item.role;
 
+    const avatarUri = item.profilePhoto ? getAvatarUrl(item.profilePhoto, 80) : null;
+    const avatarBlur = avatarUri ? getBlurPlaceholderUrl(avatarUri) : null;
+
     return (
       <View style={styles.userRow}>
-        <View style={[styles.avatarCircle, { backgroundColor: colors.primaryContainer }]}>
-          <Text style={[styles.avatarText, { color: colors.onPrimaryContainer }]}>
-            {item.name ? item.name[0].toUpperCase() : 'U'}
-          </Text>
+        <View style={[styles.avatarCircle, { backgroundColor: colors.primaryContainer, overflow: 'hidden' }]}>
+          {avatarUri ? (
+            <Image
+              source={{ uri: avatarUri }}
+              placeholder={avatarBlur ? { uri: avatarBlur } : undefined}
+              style={{ width: '100%', height: '100%' }}
+              contentFit="cover"
+              transition={150}
+              cachePolicy="memory-disk"
+            />
+          ) : (
+            <Text style={[styles.avatarText, { color: colors.onPrimaryContainer }]}>
+              {item.name ? item.name[0].toUpperCase() : 'U'}
+            </Text>
+          )}
         </View>
         <View style={styles.userDetails}>
           <Text style={[styles.userName, { color: colors.onSurface }]}>
@@ -71,8 +87,16 @@ export default function VibeLikesModal({ visible, onClose, vibeId }) {
 
           {/* List */}
           {isLoading && users.length === 0 ? (
-            <View style={styles.centerContainer}>
-              <ActivityIndicator size="small" color={colors.primary} />
+            <View style={styles.skeletonContainer}>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <View key={i} style={styles.skeletonRow}>
+                  <SkeletonLoader width={38} height={38} borderRadius={19} />
+                  <View style={{ flex: 1, gap: 6 }}>
+                    <SkeletonLoader width={130} height={14} borderRadius={7} />
+                    <SkeletonLoader width={80} height={11} borderRadius={5} />
+                  </View>
+                </View>
+              ))}
             </View>
           ) : users.length === 0 ? (
             <View style={styles.centerContainer}>
@@ -122,6 +146,16 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: 20,
     paddingVertical: 12,
+  },
+  skeletonContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    gap: 14,
+  },
+  skeletonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   centerContainer: {
     flex: 1,

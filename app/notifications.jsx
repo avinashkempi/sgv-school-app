@@ -25,6 +25,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "../components/ToastProvider";
 import { useNotifications } from "../hooks/useNotifications";
 import { useLabel } from '../context/LabelsContext';
+import SwipeableRow from '../components/ui/SwipeableRow';
 
 // Category color mappings - curated harmonious palette
 const getCategoryConfig = (type, colors) => {
@@ -241,150 +242,156 @@ const NotificationItem = memo(({ notif, colors, markAsRead, handleDelete, isAdmi
         : (isDarkMode ? `${config.color}40` : `${config.color}30`);
 
     return (
-        <Pressable
-            onPress={handlePress}
-            style={({ pressed }) => [
-                styles.card,
-                {
-                    backgroundColor: cardBg,
-                    borderColor: cardBorderColor,
-                    transform: [{ scale: pressed ? 0.992 : 1 }],
-                }
-            ]}
+        <SwipeableRow
+            onDelete={isAdmin ? () => handleDelete(notif._id) : undefined}
+            enabled={isAdmin}
+            deleteColor={colors.error || '#EF4444'}
         >
-            {/* Unread Accent Left Bar */}
-            {!notif.isRead && (
-                <View
-                    style={[
-                        styles.unreadAccentBar,
-                        { backgroundColor: config.color }
-                    ]}
-                />
-            )}
+            <Pressable
+                onPress={handlePress}
+                style={({ pressed }) => [
+                    styles.card,
+                    {
+                        backgroundColor: cardBg,
+                        borderColor: cardBorderColor,
+                        transform: [{ scale: pressed ? 0.992 : 1 }],
+                    }
+                ]}
+            >
+                {/* Unread Accent Left Bar */}
+                {!notif.isRead && (
+                    <View
+                        style={[
+                            styles.unreadAccentBar,
+                            { backgroundColor: config.color }
+                        ]}
+                    />
+                )}
 
-            <View style={styles.cardContent}>
-                {/* Animated Category Icon */}
-                <AnimatedCategoryIcon
-                    type={notif.type}
-                    isRead={notif.isRead}
-                    colors={colors}
-                />
+                <View style={styles.cardContent}>
+                    {/* Animated Category Icon */}
+                    <AnimatedCategoryIcon
+                        type={notif.type}
+                        isRead={notif.isRead}
+                        colors={colors}
+                    />
 
-                {/* Main Body */}
-                <View style={styles.cardBody}>
-                    {/* Header Row: Category Badge + Time + Actions */}
-                    <View style={styles.metaRow}>
-                        <View style={styles.categoryBadgeRow}>
-                            <View
-                                style={[
-                                    styles.categoryPill,
-                                    {
-                                        backgroundColor: notif.isRead
-                                            ? (isDarkMode ? 'rgba(255,255,255,0.08)' : colors.surfaceContainerHighest)
-                                            : `${config.color}18`,
-                                    }
-                                ]}
-                            >
-                                <Text
+                    {/* Main Body */}
+                    <View style={styles.cardBody}>
+                        {/* Header Row: Category Badge + Time + Actions */}
+                        <View style={styles.metaRow}>
+                            <View style={styles.categoryBadgeRow}>
+                                <View
                                     style={[
-                                        styles.categoryPillText,
+                                        styles.categoryPill,
                                         {
-                                            color: notif.isRead
-                                                ? colors.onSurfaceVariant
-                                                : config.color
+                                            backgroundColor: notif.isRead
+                                                ? (isDarkMode ? 'rgba(255,255,255,0.08)' : colors.surfaceContainerHighest)
+                                                : `${config.color}18`,
                                         }
                                     ]}
                                 >
-                                    {config.label.toUpperCase()}
-                                </Text>
+                                    <Text
+                                        style={[
+                                            styles.categoryPillText,
+                                            {
+                                                color: notif.isRead
+                                                    ? colors.onSurfaceVariant
+                                                    : config.color
+                                            }
+                                        ]}
+                                    >
+                                        {config.label.toUpperCase()}
+                                    </Text>
+                                </View>
+
+                                <View style={styles.timeWrapper}>
+                                    <MaterialIcons name="access-time" size={11} color={colors.outline} style={{ marginRight: 3 }} />
+                                    <Text style={[styles.timeText, { color: colors.outline }]}>
+                                        {getRelativeTime(notif.createdAt)}
+                                    </Text>
+                                </View>
                             </View>
 
-                            <View style={styles.timeWrapper}>
-                                <MaterialIcons name="access-time" size={11} color={colors.outline} style={{ marginRight: 3 }} />
-                                <Text style={[styles.timeText, { color: colors.outline }]}>
-                                    {getRelativeTime(notif.createdAt)}
-                                </Text>
+                            {/* Top Right Status & Actions */}
+                            <View style={styles.actionRow}>
+                                {!notif.isRead && (
+                                    <AnimatedUnreadDot color={config.color} />
+                                )}
+                                {isAdmin && (
+                                    <Pressable
+                                        onPress={(e) => {
+                                            e.stopPropagation?.();
+                                            handleDelete(notif._id);
+                                        }}
+                                        hitSlop={8}
+                                        style={({ pressed }) => [
+                                            styles.iconButton,
+                                            {
+                                                backgroundColor: pressed
+                                                    ? (isDarkMode ? 'rgba(239, 68, 68, 0.2)' : '#FEE2E2')
+                                                    : 'transparent'
+                                            }
+                                        ]}
+                                        accessibilityLabel="Delete notification"
+                                    >
+                                        <MaterialIcons name="delete-outline" size={18} color={colors.error || '#EF4444'} />
+                                    </Pressable>
+                                )}
                             </View>
                         </View>
 
-                        {/* Top Right Status & Actions */}
-                        <View style={styles.actionRow}>
-                            {!notif.isRead && (
-                                <AnimatedUnreadDot color={config.color} />
-                            )}
-                            {isAdmin && (
-                                <Pressable
-                                    onPress={(e) => {
-                                        e.stopPropagation?.();
-                                        handleDelete(notif._id);
-                                    }}
-                                    hitSlop={8}
-                                    style={({ pressed }) => [
-                                        styles.iconButton,
-                                        {
-                                            backgroundColor: pressed
-                                                ? (isDarkMode ? 'rgba(239, 68, 68, 0.2)' : '#FEE2E2')
-                                                : 'transparent'
-                                        }
-                                    ]}
-                                    accessibilityLabel="Delete notification"
-                                >
-                                    <MaterialIcons name="delete-outline" size={18} color={colors.error || '#EF4444'} />
-                                </Pressable>
-                            )}
-                        </View>
-                    </View>
-
-                    {/* Title */}
-                    <Text
-                        style={[
-                            styles.title,
-                            {
-                                color: colors.onSurface,
-                                fontFamily: notif.isRead ? "DMSans-Medium" : "DMSans-Bold",
-                            }
-                        ]}
-                        numberOfLines={isExpanded ? undefined : 2}
-                    >
-                        {notif.title || "Notification"}
-                    </Text>
-
-                    {/* Message */}
-                    <Text
-                        style={[
-                            styles.message,
-                            {
-                                color: colors.onSurfaceVariant,
-                            }
-                        ]}
-                        numberOfLines={isExpanded ? undefined : 3}
-                    >
-                        {notif.message}
-                    </Text>
-
-                    {/* Expand / Collapse Indicator for long messages */}
-                    {isLongMessage && (
-                        <Pressable
-                            onPress={(e) => {
-                                e.stopPropagation?.();
-                                setIsExpanded(prev => !prev);
-                            }}
-                            hitSlop={4}
-                            style={styles.expandButton}
+                        {/* Title */}
+                        <Text
+                            style={[
+                                styles.title,
+                                {
+                                    color: colors.onSurface,
+                                    fontFamily: notif.isRead ? "DMSans-Medium" : "DMSans-Bold",
+                                }
+                            ]}
+                            numberOfLines={isExpanded ? undefined : 2}
                         >
-                            <Text style={[styles.expandButtonText, { color: colors.primary }]}>
-                                {isExpanded ? "Show less" : "Read more"}
-                            </Text>
-                            <MaterialIcons
-                                name={isExpanded ? "keyboard-arrow-up" : "keyboard-arrow-down"}
-                                size={14}
-                                color={colors.primary}
-                            />
-                        </Pressable>
-                    )}
+                            {notif.title || "Notification"}
+                        </Text>
+
+                        {/* Message */}
+                        <Text
+                            style={[
+                                styles.message,
+                                {
+                                    color: colors.onSurfaceVariant,
+                                }
+                            ]}
+                            numberOfLines={isExpanded ? undefined : 3}
+                        >
+                            {notif.message}
+                        </Text>
+
+                        {/* Expand / Collapse Indicator for long messages */}
+                        {isLongMessage && (
+                            <Pressable
+                                onPress={(e) => {
+                                    e.stopPropagation?.();
+                                    setIsExpanded(prev => !prev);
+                                }}
+                                hitSlop={4}
+                                style={styles.expandButton}
+                            >
+                                <Text style={[styles.expandButtonText, { color: colors.primary }]}>
+                                    {isExpanded ? "Show less" : "Read more"}
+                                </Text>
+                                <MaterialIcons
+                                    name={isExpanded ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+                                    size={14}
+                                    color={colors.primary}
+                                />
+                            </Pressable>
+                        )}
+                    </View>
                 </View>
-            </View>
-        </Pressable>
+            </Pressable>
+        </SwipeableRow>
     );
 });
 NotificationItem.displayName = "NotificationItem";

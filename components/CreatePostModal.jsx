@@ -19,7 +19,7 @@ import { useTheme } from '../theme';
 import { useToast } from './ToastProvider';
 import { createApiMutationFn } from '../hooks/useApi';
 import apiConfig from '../config/apiConfig';
-import { pickImage, compressImage, uploadToCloudinary } from '../utils/cloudinaryUpload';
+import { pickImage, compressImage, uploadToCloudinary, CLOUDINARY_FOLDERS } from '../utils/cloudinaryUpload';
 
 const MAX_IMAGES = 5;
 const MAX_TITLE_LENGTH = 200;
@@ -91,7 +91,7 @@ export default function CreatePostModal({ visible, onClose, editPost = null }) {
         setImages(prev => prev.map(img =>
           img.id === imageId ? { ...img, progress } : img
         ));
-      });
+      }, { folder: CLOUDINARY_FOLDERS.POSTS, fileNamePrefix: 'post' });
 
       // Update with the final URL
       setImages(prev => prev.map(img =>

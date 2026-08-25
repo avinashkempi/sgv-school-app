@@ -8,6 +8,18 @@ const UPLOAD_PRESET = 'sgv_school_uploads';
 const CLOUDINARY_IMAGE_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
 const CLOUDINARY_VIDEO_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`;
 
+/**
+ * Cloudinary Organized Folder Paths
+ */
+export const CLOUDINARY_FOLDERS = {
+  AVATARS: 'sgv_school/avatars',
+  POSTS: 'sgv_school/posts',
+  VIBES_IMAGES: 'sgv_school/vibes/images',
+  VIBES_VIDEOS: 'sgv_school/vibes/videos',
+  BRANDING: 'sgv_school/branding',
+  DOCUMENTS: 'sgv_school/documents',
+};
+
 // Limits
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 const MAX_IMAGE_WIDTH = 1200; // Resize to 1200px wide before upload
@@ -36,23 +48,24 @@ const requestPermissions = async (source) => {
   if (Platform.OS === 'web') return true;
 
   if (source === 'camera') {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission Required', 'Camera permission is needed to take photos.');
-      return false;
-    }
-  } else {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission Required', 'Photo library permission is needed to select images.');
-      return false;
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Required', 'Camera permission is needed to take photos. Please enable it in Settings.');
+        return false;
+      }
+      return true;
+    } catch {
+      return true;
     }
   }
+
+  // For gallery, Expo Go and modern Android/iOS use system photo picker which handles access natively
   return true;
 };
 
 /**
- * Pick an image from the gallery or camera.
+ * Pick an image from the gallery or camera (General 16:9 / Landscape).
  * @param {'gallery'|'camera'} source
  * @returns {Promise<{uri: string, width: number, height: number}|null>}
  */
@@ -64,21 +77,46 @@ export const pickImage = async (source = 'gallery') => {
     mediaTypes: ['images'],
     allowsEditing: true,
     aspect: [16, 9],
-    quality: 0.9,
+    quality: 0.85,
   };
 
   let result;
-  if (source === 'camera' && Platform.OS !== 'web') {
-    result = await ImagePicker.launchCameraAsync(options);
-  } else {
-    result = await ImagePicker.launchImageLibraryAsync(options);
+  try {
+    if (source === 'camera' && Platform.OS !== 'web') {
+      result = await ImagePicker.launchCameraAsync(options);
+    } else {
+      result = await ImagePicker.launchImageLibraryAsync(options);
+    }
+  } catch (err) {
+    try {
+      if (source === 'camera' && Platform.OS !== 'web') {
+        result = await ImagePicker.launchCameraAsync({ quality: 0.85 });
+      } else {
+        result = await ImagePicker.launchImageLibraryAsync({ quality: 0.85 });
+      }
+    } catch {
+      return null;
+    }
   }
 
-  if (result.canceled || !result.assets || result.assets.length === 0) {
+  if (!result || result.canceled || !result.assets || result.assets.length === 0) {
     return null;
   }
 
   return result.assets[0];
+};
+
+/**
+ * Pick a profile avatar photo from gallery or camera.
+ * Uses the exact same proven mechanism as Vibes.
+ *
+ * @param {'gallery'|'camera'} source
+ * @returns {Promise<{uri: string, width: number, height: number}|null>}
+ */
+export const pickProfilePhoto = async (source = 'gallery') => {
+  const picked = await pickVibeMedia(source, 'images', 1);
+  if (!picked || picked.length === 0) return null;
+  return picked[0];
 };
 
 /**
@@ -199,6 +237,28 @@ export const compressImage = async (uri) => {
 };
 
 /**
+ * Compress and format an avatar image into a 500x500 square JPEG.
+ * @param {string} uri - Local image URI
+ * @returns {Promise<string>} - Compressed avatar URI
+ */
+export const compressAvatar = async (uri) => {
+  try {
+    const manipulated = await ImageManipulator.manipulateAsync(
+      uri,
+      [{ resize: { width: 500, height: 500 } }],
+      {
+        compress: 0.85,
+        format: ImageManipulator.SaveFormat.JPEG,
+      }
+    );
+    return manipulated.uri;
+  } catch (error) {
+    console.warn('Avatar compression failed, using original:', error);
+    return uri;
+  }
+};
+
+/**
  * Get file size from a local URI (approximate for RN).
  * @param {string} uri
  * @returns {Promise<number>} size in bytes
@@ -220,12 +280,15 @@ const getFileSize = async (uri) => {
  *
  * @param {string} uri - Local image URI (already compressed)
  * @param {(progress: number) => void} [onProgress] - Progress callback (0-100)
+ * @param {Object} [options] - Additional options
+ * @param {string} [options.folder] - Target Cloudinary folder (from CLOUDINARY_FOLDERS)
+ * @param {string} [options.fileNamePrefix] - Prefix for file naming
  * @returns {Promise<{url: string, publicId: string}>}
  */
-export const uploadToCloudinary = async (uri, onProgress) => {
+export const uploadToCloudinary = async (uri, onProgress, options = {}) => {
   // If video is passed into image uploader, delegate to video uploader automatically
   if (isVideoAsset({ uri })) {
-    return uploadVideoToCloudinary(uri, onProgress);
+    return uploadVideoToCloudinary(uri, onProgress, options);
   }
 
   // Validate file size before upload
@@ -234,6 +297,10 @@ export const uploadToCloudinary = async (uri, onProgress) => {
     throw new Error(`Image is too large (${(fileSize / 1024 / 1024).toFixed(1)}MB). Maximum size is 10MB.`);
   }
 
+  const folder = options?.folder || CLOUDINARY_FOLDERS.POSTS;
+  const prefix = options?.fileNamePrefix || 'upload';
+  const fileName = `${prefix}_${Date.now()}.jpg`;
+
   const formData = new FormData();
 
   if (Platform.OS === 'web') {
@@ -241,7 +308,7 @@ export const uploadToCloudinary = async (uri, onProgress) => {
     try {
       const response = await fetch(uri);
       const blob = await response.blob();
-      formData.append('file', blob, `vibe_${Date.now()}.jpg`);
+      formData.append('file', blob, fileName);
     } catch {
       // If fetching the blob fails, append URI string directly
       formData.append('file', uri);
@@ -251,12 +318,16 @@ export const uploadToCloudinary = async (uri, onProgress) => {
     formData.append('file', {
       uri: Platform.OS === 'ios' ? uri.replace('file://', '') : uri,
       type: 'image/jpeg',
-      name: `vibe_${Date.now()}.jpg`,
+      name: fileName,
     });
   }
 
   formData.append('upload_preset', UPLOAD_PRESET);
   formData.append('cloud_name', CLOUD_NAME);
+  if (folder) {
+    formData.append('folder', folder);
+    formData.append('asset_folder', folder);
+  }
 
   // Use XMLHttpRequest for progress tracking
   return new Promise((resolve, reject) => {
@@ -312,9 +383,10 @@ export const uploadToCloudinary = async (uri, onProgress) => {
  *
  * @param {'gallery'|'camera'} source
  * @param {(progress: number) => void} [onProgress]
- * @returns {Promise<{url: string, localUri: string}|null>} null if user cancelled
+ * @param {Object} [options]
+ * @returns {Promise<{url: string, publicId: string, localUri: string}|null>} null if user cancelled
  */
-export const pickAndUploadImage = async (source = 'gallery', onProgress) => {
+export const pickAndUploadImage = async (source = 'gallery', onProgress, options = {}) => {
   const picked = await pickImage(source);
   if (!picked) return null;
 
@@ -322,10 +394,48 @@ export const pickAndUploadImage = async (source = 'gallery', onProgress) => {
 
   const compressedUri = await compressImage(picked.uri);
 
-  const result = await uploadToCloudinary(compressedUri, onProgress);
+  const result = await uploadToCloudinary(compressedUri, onProgress, options);
 
   return {
     url: result.url,
+    publicId: result.publicId,
+    localUri: compressedUri,
+  };
+};
+
+/**
+ * Upload a profile avatar photo to the sgv_school/avatars folder.
+ *
+ * @param {string} uri - Local compressed avatar URI
+ * @param {(progress: number) => void} [onProgress]
+ * @returns {Promise<{url: string, publicId: string}>}
+ */
+export const uploadProfilePhoto = async (uri, onProgress) => {
+  return uploadToCloudinary(uri, onProgress, {
+    folder: CLOUDINARY_FOLDERS.AVATARS,
+    fileNamePrefix: 'avatar',
+  });
+};
+
+/**
+ * Complete Profile Photo Pipeline: Pick (1:1 square) → Compress (500x500) → Upload to avatars folder.
+ *
+ * @param {'gallery'|'camera'} source
+ * @param {(progress: number) => void} [onProgress]
+ * @returns {Promise<{url: string, publicId: string, localUri: string}|null>}
+ */
+export const pickAndUploadProfilePhoto = async (source = 'gallery', onProgress) => {
+  const picked = await pickProfilePhoto(source);
+  if (!picked) return null;
+
+  if (onProgress) onProgress(0);
+
+  const compressedUri = await compressAvatar(picked.uri);
+  const result = await uploadProfilePhoto(compressedUri, onProgress);
+
+  return {
+    url: result.url,
+    publicId: result.publicId,
     localUri: compressedUri,
   };
 };
@@ -337,20 +447,26 @@ export const pickAndUploadImage = async (source = 'gallery', onProgress) => {
  *
  * @param {string} uri - Local video file URI
  * @param {(progress: number) => void} [onProgress] - Progress callback (0-100)
+ * @param {Object} [options] - Additional options
+ * @param {string} [options.folder] - Target Cloudinary folder
+ * @param {string} [options.fileNamePrefix] - Prefix for file naming
  * @returns {Promise<{url: string, publicId: string, thumbnailUrl: string, duration: number, width: number, height: number}>}
  */
-export const uploadVideoToCloudinary = async (uri, onProgress) => {
+export const uploadVideoToCloudinary = async (uri, onProgress, options = {}) => {
   const fileSize = await getFileSize(uri);
   if (fileSize > MAX_VIDEO_SIZE_BYTES) {
     throw new Error(`Video is too large (${(fileSize / 1024 / 1024).toFixed(1)}MB). Maximum size is 30MB.`);
   }
+
+  const folder = options?.folder || CLOUDINARY_FOLDERS.VIBES_VIDEOS;
+  const prefix = options?.fileNamePrefix || 'vibe_video';
 
   const formData = new FormData();
   const uriStr = typeof uri === 'string' ? uri : (uri?.uri || '');
   const ext = uriStr.split('.').pop()?.split('?')[0]?.toLowerCase() || 'mov';
   const isMov = ext === 'mov' || ext === 'qt';
   const mimeType = isMov ? 'video/quicktime' : (ext === 'webm' ? 'video/webm' : 'video/mp4');
-  const filename = `vibe_video_${Date.now()}.${ext}`;
+  const filename = `${prefix}_${Date.now()}.${ext}`;
 
   if (Platform.OS === 'web') {
     try {
@@ -370,6 +486,10 @@ export const uploadVideoToCloudinary = async (uri, onProgress) => {
 
   formData.append('upload_preset', UPLOAD_PRESET);
   formData.append('cloud_name', CLOUD_NAME);
+  if (folder) {
+    formData.append('folder', folder);
+    formData.append('asset_folder', folder);
+  }
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
@@ -428,18 +548,40 @@ export const uploadVideoToCloudinary = async (uri, onProgress) => {
 
 /**
  * Get dynamic Cloudinary video stream URL optimized for mobile playback.
- * Automatically transcodes and caps at 720p HD with auto-codec.
+ * Automatically transcodes and caps at 720p HD (or 480p on slow connections) with auto-codec.
  *
  * @param {string} url - Original Cloudinary video URL
+ * @param {Object} [options]
+ * @param {boolean} [options.isSlow=false] - Whether user is on slow connection
  * @returns {string} Optimized streaming URL
  */
-export const getOptimizedVideoUrl = (url) => {
+export const getOptimizedVideoUrl = (url, { isSlow = false } = {}) => {
   if (!url || !url.includes('cloudinary.com')) return url;
   if (url.includes('/upload/w_') || url.includes('/upload/q_')) return url;
 
+  const targetWidth = isSlow ? 480 : 720;
+  const targetQuality = isSlow ? 'eco' : 'auto';
+
   return url.replace(
     '/upload/',
-    '/upload/w_720,q_auto,f_auto,vc_auto,c_limit/'
+    `/upload/w_${targetWidth},q_${targetQuality},f_auto,vc_auto,c_limit/`
+  );
+};
+
+/**
+ * Get a tiny ultra-fast blurred placeholder for instant rendering before full image loads.
+ * Typical payload is < 1KB, completely eliminating blank/grey boxes on slow internet.
+ *
+ * @param {string} url - Original Cloudinary image URL
+ * @returns {string} Tiny blurred image URL
+ */
+export const getBlurPlaceholderUrl = (url) => {
+  if (!url || typeof url !== 'string') return '';
+  if (!url.includes('cloudinary.com')) return url;
+
+  return url.replace(
+    '/upload/',
+    '/upload/w_32,e_blur:600,q_10,f_auto,c_limit/'
   );
 };
 
@@ -461,27 +603,62 @@ export const getVideoPosterUrl = (videoUrl, thumbnailUrl) => {
 };
 
 /**
+ * Helper to check if a Cloudinary URL already contains transformation segments.
+ */
+export const hasCloudinaryTransform = (url) => {
+  if (!url || typeof url !== 'string') return false;
+  return /\/upload\/([a-z0-9_]+:[a-z0-9_]+|[a-z0-9_]+_[a-z0-9_]+|\w+\/)/i.test(url) ||
+    url.includes('/upload/w_') ||
+    url.includes('/upload/c_') ||
+    url.includes('/upload/q_') ||
+    url.includes('/upload/e_blur') ||
+    url.includes('/upload/so_');
+};
+
+/**
  * Get a Cloudinary optimized URL for display.
  * Appends transformation parameters for responsive loading.
  *
  * @param {string} url - Original Cloudinary URL
  * @param {Object} [options]
  * @param {number} [options.width=800] - Desired width
- * @param {string} [options.quality='auto'] - Quality setting
+ * @param {string} [options.quality='auto'] - Quality setting ('auto', 'eco', 'low', or number)
+ * @param {boolean} [options.isSlow=false] - Whether network is slow
  * @returns {string} Transformed URL
  */
-export const getOptimizedCloudinaryUrl = (url, { width = 800, quality = 'auto' } = {}) => {
+export const getOptimizedCloudinaryUrl = (url, { width = 800, quality = 'auto', isSlow = false } = {}) => {
   if (!url || typeof url !== 'string') return url || '';
   if (!url.includes('cloudinary.com')) return url;
 
   // If already transformed, don't duplicate
-  if (url.includes('/upload/w_') || url.includes('/upload/c_') || url.includes('/upload/q_')) {
+  if (hasCloudinaryTransform(url)) {
     return url;
   }
 
+  const effectiveWidth = isSlow ? Math.min(width, 720) : width;
+  const effectiveQuality = isSlow ? 'eco' : quality;
+
   return url.replace(
     '/upload/',
-    `/upload/w_${width},q_${quality},f_auto,c_limit/`
+    `/upload/w_${effectiveWidth},q_${effectiveQuality},f_auto,c_limit/`
+  );
+};
+
+/**
+ * Optimized circular avatar image (face-detection smart crop)
+ *
+ * @param {string} url - Cloudinary image URL
+ * @param {number} [size=200] - Desired width and height
+ * @returns {string} Transformed avatar URL
+ */
+export const getAvatarUrl = (url, size = 200) => {
+  if (!url || typeof url !== 'string') return url || '';
+  if (!url.includes('cloudinary.com')) return url;
+  if (hasCloudinaryTransform(url)) return url;
+
+  return url.replace(
+    '/upload/',
+    `/upload/w_${size},h_${size},c_fill,g_face,q_auto,f_auto/`
   );
 };
 
@@ -491,7 +668,7 @@ export const getOptimizedCloudinaryUrl = (url, { width = 800, quality = 'auto' }
 export const getStoryThumbnailUrl = (url) => {
   if (!url || typeof url !== 'string') return url || '';
   if (!url.includes('cloudinary.com')) return url;
-  if (url.includes('/upload/w_200')) return url;
+  if (hasCloudinaryTransform(url)) return url;
 
   return url.replace(
     '/upload/',
@@ -505,7 +682,7 @@ export const getStoryThumbnailUrl = (url) => {
 export const getHeroBannerUrl = (url) => {
   if (!url || typeof url !== 'string') return url || '';
   if (!url.includes('cloudinary.com')) return url;
-  if (url.includes('/upload/w_1080,h_600')) return url;
+  if (hasCloudinaryTransform(url)) return url;
 
   return url.replace(
     '/upload/',
@@ -519,7 +696,7 @@ export const getHeroBannerUrl = (url) => {
 export const getGridThumbnailUrl = (url) => {
   if (!url || typeof url !== 'string') return url || '';
   if (!url.includes('cloudinary.com')) return url;
-  if (url.includes('/upload/w_360')) return url;
+  if (hasCloudinaryTransform(url)) return url;
 
   return url.replace(
     '/upload/',
@@ -530,13 +707,17 @@ export const getGridThumbnailUrl = (url) => {
 /**
  * Optimized Feed Image URL (max 1080px wide with auto quality and format)
  */
-export const getFeedImageUrl = (url) => {
+export const getFeedImageUrl = (url, { isSlow = false } = {}) => {
   if (!url || typeof url !== 'string') return url || '';
   if (!url.includes('cloudinary.com')) return url;
-  if (url.includes('/upload/w_1080')) return url;
+  if (hasCloudinaryTransform(url)) return url;
+
+  const targetWidth = isSlow ? 720 : 1080;
+  const targetQuality = isSlow ? 'eco' : 'auto';
 
   return url.replace(
     '/upload/',
-    '/upload/w_1080,q_auto,f_auto,c_limit/'
+    `/upload/w_${targetWidth},q_${targetQuality},f_auto,c_limit/`
   );
 };
+

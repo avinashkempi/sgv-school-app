@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { View, Text, ScrollView, Pressable, Switch, Linking, } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons, FontAwesome, } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useTheme } from '../theme';
 import { useToast } from '../components/ToastProvider';
 import Header from '../components/Header';
 import { useAuth } from '../context/AuthContext';
 import { useLabel } from '../context/LabelsContext';
 import { SCHOOL } from '../constants/basic-info';
+import useTabScrollToTop from '../hooks/useTabScrollToTop';
+import useDoubleBackToExit from '../hooks/useDoubleBackToExit';
 import Card from '../components/Card';
 import Button from '../components/Button';
 
@@ -17,6 +20,11 @@ export default function MenuScreen() {
     const { showToast } = useToast();
     const { user, logout } = useAuth();
     const { t } = useLabel();
+    const scrollRef = useRef(null);
+
+    // Mobile standard gestures
+    useTabScrollToTop(scrollRef, '/menu');
+    useDoubleBackToExit(true);
 
     const handleLogout = async () => {
         await logout(router, null, showToast);
@@ -84,7 +92,13 @@ export default function MenuScreen() {
                 <Header title={t('menu.title')} subtitle={t('menu.subtitle')} />
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.contentPaddingBottom, { paddingHorizontal: 20 }]}>
+            <ScrollView
+                ref={scrollRef}
+                showsVerticalScrollIndicator={false}
+                scrollsToTop={true}
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={[styles.contentPaddingBottom, { paddingHorizontal: 20 }]}
+            >
                 {/* Quick Actions Grid */}
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 10 }}>
                     {menuItems.map((item, index) => (
@@ -151,7 +165,10 @@ export default function MenuScreen() {
                         </View>
                         <Switch
                             value={mode === 'dark'}
-                            onValueChange={toggle}
+                            onValueChange={() => {
+                                Haptics.selectionAsync().catch(() => { });
+                                toggle();
+                            }}
                             trackColor={{ false: colors.surfaceContainerHighest, true: colors.primary }}
                             thumbColor={mode === 'dark' ? colors.onPrimary : colors.outline}
                         />

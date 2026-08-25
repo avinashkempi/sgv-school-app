@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
     View,
     Text,
     ScrollView,
     Pressable,
-    RefreshControl,
     ActivityIndicator,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -17,6 +16,8 @@ import AppHeader from "../../components/Header";
 import { formatClassName } from "../../utils/formatClassName";
 import { useAuth } from "../../context/AuthContext";
 import { useLabel } from "../../context/LabelsContext";
+import useTabScrollToTop from "../../hooks/useTabScrollToTop";
+import AppRefreshControl from "../../components/ui/AppRefreshControl";
 
 export default function TeacherClassesScreen() {
     const router = useRouter();
@@ -28,6 +29,11 @@ export default function TeacherClassesScreen() {
     const userId = user?.id || user?._id || authUserId;
     const { t } = useLabel();
     const [refreshing, setRefreshing] = useState(false);
+    const scrollRef = useRef(null);
+
+    // Mobile standard gestures
+    useTabScrollToTop(scrollRef, '/teacher/classes');
+    useTabScrollToTop(scrollRef, '/teacher');
 
     const { data: classesData, isLoading: loading, refetch } = useApiQuery(
         ['teacherClasses', userId],
@@ -44,9 +50,12 @@ export default function TeacherClassesScreen() {
     return (
         <View style={styles.container}>
             <ScrollView
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} />}
+                ref={scrollRef}
+                refreshControl={<AppRefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
                 contentContainerStyle={{ paddingBottom: 24, minHeight: "100%" }}
                 showsVerticalScrollIndicator={false}
+                scrollsToTop={true}
+                keyboardShouldPersistTaps="handled"
             >
                 <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
                     <AppHeader title={t('teacher.classesTitle', 'My Classes')} subtitle={t('teacher.classesSubtitle', 'Manage your assigned classes')} />

@@ -1,11 +1,10 @@
-import React, { useState, } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
   ScrollView,
   Pressable,
   TextInput,
-  RefreshControl,
   ActivityIndicator,
   FlatList,
 } from "react-native";
@@ -25,6 +24,8 @@ import { useLabel } from "../../context/LabelsContext";
 import UserDetailModal from "../../components/UserDetailModal";
 import UserCard from "../../components/UserCard";
 import UserFormModal from "../../components/UserFormModal";
+import useTabScrollToTop from "../../hooks/useTabScrollToTop";
+import AppRefreshControl from "../../components/ui/AppRefreshControl";
 
 export default function AdminScreen() {
   const router = useRouter();
@@ -32,6 +33,10 @@ export default function AdminScreen() {
   const { t } = useLabel();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
+  const scrollRef = useRef(null);
+
+  // Mobile standard gestures
+  useTabScrollToTop(scrollRef, '/admin');
   const [searchQuery, setSearchQuery] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [roleFilter, setRoleFilter] = useState("all");
@@ -274,6 +279,9 @@ export default function AdminScreen() {
         ListFooterComponent={renderFooter}
         ListEmptyComponent={renderEmptyList}
         showsVerticalScrollIndicator={false}
+        ref={scrollRef}
+        scrollsToTop={true}
+        keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled"
         onEndReached={() => {
           if (hasNextPage) {
@@ -282,7 +290,7 @@ export default function AdminScreen() {
         }}
         onEndReachedThreshold={0.5}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} />
+          <AppRefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       />
 

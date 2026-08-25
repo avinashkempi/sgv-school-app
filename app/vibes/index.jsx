@@ -5,8 +5,8 @@ import {
   FlatList,
   ActivityIndicator,
   Pressable,
-  RefreshControl,
   StyleSheet,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -17,6 +17,11 @@ import { useToast } from '../../components/ToastProvider';
 import { useApiInfiniteQuery, useApiQuery, useApiMutation, createApiMutationFn } from '../../hooks/useApi';
 import apiConfig from '../../config/apiConfig';
 import { CACHE_TIERS } from '../../utils/cacheConfig';
+import useTabScrollToTop from '../../hooks/useTabScrollToTop';
+import useDoubleBackToExit from '../../hooks/useDoubleBackToExit';
+import useNetworkQuality from '../../hooks/useNetworkQuality';
+import AppRefreshControl from '../../components/ui/AppRefreshControl';
+import { ROUTES } from '../../constants/routes';
 import VibeCard from '../../components/vibes/VibeCard';
 import CreateVibeModal from '../../components/vibes/CreateVibeModal';
 import VibeCommentsModal from '../../components/vibes/VibeCommentsModal';
@@ -39,8 +44,15 @@ export default function VibesScreen() {
   const { colors, styles: themeStyles } = useTheme();
   const { user, isAuthenticated } = useAuth();
   const { showToast } = useToast();
+  const { isConnected, isSlow } = useNetworkQuality();
   const queryClient = useQueryClient();
   const isAdmin = user?.role === 'admin' || user?.role === 'super admin';
+  const scrollRef = useRef(null);
+
+  // Mobile standard gestures
+  useTabScrollToTop(scrollRef, '/vibes');
+  useTabScrollToTop(scrollRef, ROUTES.VIBES);
+  useDoubleBackToExit(true);
 
   // Navigation / View Tabs: 'feed' | 'my-vibes' | 'saved'
   const [activeTab, setActiveTab] = useState('feed');
@@ -77,7 +89,8 @@ export default function VibesScreen() {
   }).current;
 
   // ──── Main Feed Infinite Query ────
-  const feedQueryKey = ['vibes', selectedCategory, selectedTag];
+  const feedQueryKey = useMemo(() => ['vibes', selectedCategory, selectedTag], [selectedCategory, selectedTag]);
+
   const {
     data: feedData,
     isLoading: isFeedLoading,
@@ -99,7 +112,7 @@ export default function VibesScreen() {
       return url;
     },
     {
-      ...CACHE_TIERS.MODERATE,
+      ...CACHE_TIERS.VIBES_FEED,
       enabled: activeTab === 'feed',
       getNextPageParam: (lastPage) => {
         if (lastPage?.pagination?.hasMore) {
@@ -142,7 +155,7 @@ export default function VibesScreen() {
     ['savedVibes'],
     (page) => `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.saved}?page=${page}&limit=${VIBES_PER_PAGE}`,
     {
-      ...CACHE_TIERS.MODERATE,
+      ...CACHE_TIERS.VIBES_FEED,
       enabled: activeTab === 'saved' && isAuthenticated,
       getNextPageParam: (lastPage) => lastPage?.pagination?.hasMore ? lastPage.pagination.page + 1 : undefined,
       initialPageParam: 1,
@@ -153,24 +166,89 @@ export default function VibesScreen() {
   const myVibes = useMemo(() => myVibesData?.pages?.flatMap(p => p?.data || []) || [], [myVibesData]);
   const savedVibes = useMemo(() => savedData?.pages?.flatMap(p => p?.data || []) || [], [savedData]);
 
-  // ──── Mutations ────
+  // Helper to update vibe across infinite query pages
+  const updateVibeInPages = useCallback((oldData, vibeId, updater) => {
+    if (!oldData?.pages) return oldData;
+    return {
+      ...oldData,
+      pages: oldData.pages.map(page => ({
+        ...page,
+        data: (page.data || []).map(vibe => vibe._id === vibeId ? updater(vibe) : vibe),
+      })),
+    };
+  }, []);
+
+  // ──── Optimistic Mutations ────
   const likeMutation = useApiMutation({
-    mutationFn: async (vibeId) => {
+    mutationFn: async ({ vibeId }) => {
       return createApiMutationFn(
         `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.toggleLike(vibeId)}`,
         'POST'
       )({});
     },
+    onMutate: async ({ vibeId, nextLiked }) => {
+      await queryClient.cancelQueries({ queryKey: feedQueryKey });
+
+      const prevFeed = queryClient.getQueryData(feedQueryKey);
+      const prevMy = queryClient.getQueryData(['myVibes']);
+      const prevSaved = queryClient.getQueryData(['savedVibes']);
+
+      const updater = (vibe) => ({
+        ...vibe,
+        isLiked: nextLiked,
+        likesCount: nextLiked ? (vibe.likesCount || 0) + 1 : Math.max((vibe.likesCount || 1) - 1, 0),
+      });
+
+      queryClient.setQueryData(feedQueryKey, old => updateVibeInPages(old, vibeId, updater));
+      queryClient.setQueryData(['myVibes'], old => updateVibeInPages(old, vibeId, updater));
+      queryClient.setQueryData(['savedVibes'], old => updateVibeInPages(old, vibeId, updater));
+
+      return { prevFeed, prevMy, prevSaved };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.prevFeed) queryClient.setQueryData(feedQueryKey, context.prevFeed);
+      if (context?.prevMy) queryClient.setQueryData(['myVibes'], context.prevMy);
+      if (context?.prevSaved) queryClient.setQueryData(['savedVibes'], context.prevSaved);
+      showToast('Network error updating like', 'error');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['vibeHighlights'] });
+      queryClient.invalidateQueries({ queryKey: ['vibeSpotlight'] });
+    },
   });
 
   const bookmarkMutation = useApiMutation({
-    mutationFn: async (vibeId) => {
+    mutationFn: async ({ vibeId }) => {
       return createApiMutationFn(
         `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.toggleBookmark(vibeId)}`,
         'POST'
       )({});
     },
-    onSuccess: () => {
+    onMutate: async ({ vibeId, nextBookmarked }) => {
+      await queryClient.cancelQueries({ queryKey: feedQueryKey });
+
+      const prevFeed = queryClient.getQueryData(feedQueryKey);
+      const prevMy = queryClient.getQueryData(['myVibes']);
+      const prevSaved = queryClient.getQueryData(['savedVibes']);
+
+      const updater = (vibe) => ({
+        ...vibe,
+        isBookmarked: nextBookmarked,
+      });
+
+      queryClient.setQueryData(feedQueryKey, old => updateVibeInPages(old, vibeId, updater));
+      queryClient.setQueryData(['myVibes'], old => updateVibeInPages(old, vibeId, updater));
+      queryClient.setQueryData(['savedVibes'], old => updateVibeInPages(old, vibeId, updater));
+
+      return { prevFeed, prevMy, prevSaved };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.prevFeed) queryClient.setQueryData(feedQueryKey, context.prevFeed);
+      if (context?.prevMy) queryClient.setQueryData(['myVibes'], context.prevMy);
+      if (context?.prevSaved) queryClient.setQueryData(['savedVibes'], context.prevSaved);
+      showToast('Network error updating saved status', 'error');
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['savedVibes'] });
     },
   });
@@ -207,21 +285,21 @@ export default function VibesScreen() {
     },
   });
 
-  // Action handlers
-  const handleLike = useCallback((vibeId) => {
+  // Action handlers with instant optimistic invocation
+  const handleLike = useCallback((vibeId, nextLiked) => {
     if (!isAuthenticated) {
       showToast('Please log in to like vibes', 'info');
       return;
     }
-    likeMutation.mutate(vibeId);
+    likeMutation.mutate({ vibeId, nextLiked });
   }, [isAuthenticated, showToast, likeMutation]);
 
-  const handleBookmark = useCallback((vibeId) => {
+  const handleBookmark = useCallback((vibeId, nextBookmarked) => {
     if (!isAuthenticated) {
       showToast('Please log in to save vibes', 'info');
       return;
     }
-    bookmarkMutation.mutate(vibeId);
+    bookmarkMutation.mutate({ vibeId, nextBookmarked });
   }, [isAuthenticated, showToast, bookmarkMutation]);
 
   const handleDelete = useCallback((vibe) => {
@@ -334,6 +412,20 @@ export default function VibesScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
+      {/* ──── Offline / Slow Network Hint Banner ──── */}
+      {!isConnected ? (
+        <View style={styles.offlineBanner}>
+          <MaterialIcons name="cloud-off" size={14} color="#fff" />
+          <Text style={styles.offlineBannerText}>You're offline. Browsing cached vibes.</Text>
+        </View>
+      ) : isSlow ? (
+        <View style={[styles.offlineBanner, { backgroundColor: '#1E293B' }]}>
+          <MaterialIcons name="speed" size={14} color="#38BDF8" />
+          <Text style={[styles.offlineBannerText, { color: '#E0F2FE' }]}>Slow connection • Low-data mode active</Text>
+        </View>
+      ) : null}
+
+
       {/* ──── Top App Bar ──── */}
       <View style={[styles.topBar, { borderBottomColor: colors.outlineVariant }]}>
         <View style={styles.brandRow}>
@@ -524,15 +616,24 @@ export default function VibesScreen() {
         </View>
       ) : (
         <FlatList
+          ref={scrollRef}
           data={currentList}
           renderItem={activeTab === 'my-vibes' ? renderMyVibeItem : renderFeedItem}
           keyExtractor={(item) => item._id}
           showsVerticalScrollIndicator={false}
+          scrollsToTop={true}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
           contentContainerStyle={[themeStyles.contentPaddingBottom, styles.listContent]}
           onViewableItemsChanged={onViewableItemsChanged}
           viewabilityConfig={viewabilityConfig}
+          initialNumToRender={3}
+          maxToRenderPerBatch={3}
+          windowSize={5}
+          removeClippedSubviews={Platform.OS === 'android'}
+          updateCellsBatchingPeriod={40}
           refreshControl={
-            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={[colors.primary]} />
+            <AppRefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
           }
           onEndReached={() => {
             if (activeTab === 'feed' && hasFeedNextPage && !isFeedFetchingNext) {
@@ -583,6 +684,19 @@ export default function VibesScreen() {
 }
 
 const styles = StyleSheet.create({
+  offlineBanner: {
+    backgroundColor: '#374151',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 5,
+    gap: 6,
+  },
+  offlineBannerText: {
+    color: '#F3F4F6',
+    fontSize: 11,
+    fontFamily: 'DMSans-Medium',
+  },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
