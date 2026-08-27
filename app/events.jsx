@@ -214,7 +214,12 @@ const EventCard = React.memo(
 
               {/* Event Vibes Memories button */}
               <Pressable
-                onPress={() => router.push("/vibes")}
+                onPress={() =>
+                  router.push({
+                    pathname: "/vibes",
+                    params: { tag: event.title, category: "arts" },
+                  })
+                }
                 style={({ pressed }) => ({
                   flexDirection: "row",
                   alignItems: "center",

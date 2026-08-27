@@ -17,6 +17,8 @@ import { useTheme, FONTS, FONT_SIZES } from "../../theme";
 import Button from "../Button";
 import { useToast } from "../ToastProvider";
 
+import { formatUserName } from "../../utils/userFormatters";
+
 export default function ReportCardExportModal({
   visible,
   onClose,
@@ -27,26 +29,25 @@ export default function ReportCardExportModal({
   const { showToast } = useToast();
   const [exporting, setExporting] = useState(false);
 
-  if (!reportData) return null;
+  const student = reportData?.student;
+  const overall = reportData?.overall;
+  const exams = reportData?.exams || [];
+  const attendance = reportData?.attendance;
 
-  const { student, overall, exams = [], attendance } = reportData;
-
-  // Extract all unique subject names across all exams
+  // Extract distinct list of all subjects across all exams
   const allSubjects = Array.from(
     new Set(
-      exams.flatMap((e) =>
-        Array.isArray(e.subjects) ? e.subjects.map((s) => s.subject) : []
-      )
+      exams.flatMap((e) => e.subjects?.map((s) => s.subject) || []).filter(Boolean)
     )
   );
 
   // Generate clean, high-resolution printable HTML
   const generateHTML = () => {
-    const studentName = student?.name || "Student";
+    const studentName = formatUserName(student?.name) || "Student";
     const className = student?.class || student?.className || "N/A";
     const rollNo = student?.rollNumber || "N/A";
     const admNo = student?.admissionNumber || "N/A";
-    const academicYear = student?.academicYear || "Academic Year 2024-2025";
+    const academicYear = student?.academicYear ? `Academic Year ${student.academicYear}` : "Academic Performance";
     const overallPct = overall?.percentage || 0;
     const overallGrade = overall?.grade || "-";
     const rank = overall?.classRank ? `Rank ${overall.classRank} / ${overall.totalInClass || "-"}` : "N/A";

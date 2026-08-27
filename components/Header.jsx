@@ -12,6 +12,7 @@ import apiConfig from "../config/apiConfig";
 
 import { useAcademicYear } from "../context/AcademicYearContext";
 import { useLabel } from "../context/LabelsContext";
+import { formatUserName } from "../utils/userFormatters";
 
 const getGreeting = () => {
   const hour = new Date().getHours();
@@ -101,7 +102,8 @@ const Header = ({
 
   // "welcome" is a creative, compact, and stylish hero app bar
   if (variant === "welcome") {
-    const effectiveUserName = userName || userData?.name;
+    const rawUserName = userName || userData?.name;
+    const effectiveUserName = formatUserName(rawUserName);
     const firstName = effectiveUserName
       ? effectiveUserName.trim().split(" ")[0]
       : null;

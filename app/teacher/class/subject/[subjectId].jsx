@@ -4,11 +4,12 @@ import {
   Text,
   ScrollView,
   Pressable,
-  RefreshControl,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { useTheme, FONTS, FONT_SIZES } from "../../../../theme";
 import { useAuth } from "../../../../context/AuthContext";
 import {
@@ -25,19 +26,24 @@ import UserAvatar from "../../../../components/ui/UserAvatar";
 import { formatUserName } from "../../../../utils/userFormatters";
 import { useLabel } from "../../../../context/LabelsContext";
 import { formatDate } from "../../../../utils/date";
+import AppRefreshControl from "../../../../components/ui/AppRefreshControl";
+import ClassMediaAttachmentViewer from "../../../../components/class/ClassMediaAttachmentViewer";
 
 export default function SubjectDetailScreen() {
   const { id, subjectId } = useLocalSearchParams(); // classId and subjectId
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { _styles, colors } = useTheme();
+  const { colors, mode } = useTheme();
+  const isDark = mode === "dark";
   const { t } = useLabel();
   const { showToast } = useToast();
+  const { user } = useAuth();
 
   const [refreshing, setRefreshing] = useState(false);
   const [showPostModal, setShowPostModal] = useState(false);
-  // eslint-disable-next-line no-unused-vars
-  const { user } = useAuth();
+
+  const userId = user?._id || user?.id || user?.userId;
+  const isAdmin = user?.role === "admin" || user?.role === "super admin";
 
   // Fetch Subject Details
   const { data: subjects } = useApiQuery(
@@ -82,6 +88,12 @@ export default function SubjectDetailScreen() {
       queryClient.invalidateQueries({
         queryKey: ["subjectContent", subjectId],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["studentClassFeed", id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["classContentFeed", id],
+      });
     },
     onError: (error) =>
       showToast(
@@ -91,20 +103,60 @@ export default function SubjectDetailScreen() {
       ),
   });
 
-  const handlePostContent = (data) => {
-    // Add subjectId to the data
-    const payload = { ...data, subject: subjectId };
+  const deleteContentMutation = useApiMutation({
+    mutationFn: (contentId) =>
+      createApiMutationFn(
+        `${apiConfig.baseUrl}/classes/${id}/content/${contentId}`,
+        "DELETE"
+      )(),
+    onSuccess: () => {
+      showToast(
+        t("student.postDeletedSuccess", "Post deleted successfully"),
+        "success"
+      );
+      queryClient.invalidateQueries({
+        queryKey: ["subjectContent", subjectId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["studentClassFeed", id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["classContentFeed", id],
+      });
+    },
+    onError: (error) =>
+      showToast(error.message || "Failed to delete post", "error"),
+  });
+
+  const handlePostContent = (formData) => {
+    const payload = { ...formData, subject: subjectId };
     postContentMutation.mutate(payload);
+  };
+
+  const handleDeletePost = (contentId) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    Alert.alert(
+      "Delete Post",
+      "Are you sure you want to delete this post? This cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => deleteContentMutation.mutate(contentId),
+        },
+      ]
+    );
   };
 
   const getContentTypeColor = (type) => {
     switch (type) {
       case "homework":
-        return colors.error;
+        return "#EF4444";
       case "news":
-        return colors.primary;
+        return "#F59E0B";
       default:
-        return colors.secondary;
+        return "#3B82F6";
     }
   };
 
@@ -115,7 +167,7 @@ export default function SubjectDetailScreen() {
       case "news":
         return "campaign";
       default:
-        return "note";
+        return "menu-book";
     }
   };
 
@@ -123,15 +175,11 @@ export default function SubjectDetailScreen() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[colors.primary]}
-          />
+          <AppRefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        contentContainerStyle={{ paddingBottom: 24 }}
+        contentContainerStyle={{ paddingBottom: 80 }}
       >
-        <View style={{ padding: 16, paddingTop: 24 }}>
+        <View style={{ padding: 16, paddingTop: 20 }}>
           <AppHeader
             title={
               subjectName || t("teacher.subjectDetails", "Subject Details")
@@ -147,7 +195,7 @@ export default function SubjectDetailScreen() {
           />
 
           {/* Quick Actions */}
-          <View style={{ flexDirection: "row", gap: 12, marginTop: 20 }}>
+          <View style={{ flexDirection: "row", gap: 12, marginTop: 16 }}>
             <Pressable
               onPress={() =>
                 router.push({
@@ -157,15 +205,15 @@ export default function SubjectDetailScreen() {
               }
               style={({ pressed }) => ({
                 flex: 1,
-                backgroundColor: colors.success,
-                borderRadius: 12,
-                padding: 16,
+                backgroundColor: colors.primary,
+                borderRadius: 14,
+                padding: 14,
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: 8,
                 opacity: pressed ? 0.9 : 1,
-                elevation: 3,
+                elevation: 2,
               })}
             >
               <MaterialIcons name="leaderboard" size={20} color="#fff" />
@@ -182,152 +230,224 @@ export default function SubjectDetailScreen() {
           </View>
 
           {loading ? (
-            <View style={{ marginTop: 100, alignItems: "center" }}>
+            <View style={{ marginTop: 80, alignItems: "center" }}>
               <ActivityIndicator size="large" color={colors.primary} />
             </View>
           ) : (
-            <View style={{ marginTop: 24 }}>
+            <View style={{ marginTop: 20, gap: 12 }}>
               {content.length === 0 ? (
                 <View
-                  style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}
+                  style={{
+                    alignItems: "center",
+                    marginTop: 40,
+                    padding: 24,
+                    borderRadius: 16,
+                    borderWidth: 1,
+                    borderColor: colors.outlineVariant,
+                    borderStyle: "dashed",
+                    gap: 8,
+                  }}
                 >
                   <MaterialIcons
                     name="article"
                     size={48}
-                    color={colors.textSecondary}
+                    color={colors.onSurfaceVariant}
                   />
                   <Text
                     style={{
-                      color: colors.textSecondary,
-                      marginTop: 16,
-                      fontSize: FONT_SIZES.lg,
+                      color: colors.onSurface,
+                      fontSize: FONT_SIZES.mdLg,
+                      fontFamily: FONTS.bold,
                     }}
                   >
                     {t("teacher.noContentPostedYet", "No content posted yet.")}
                   </Text>
-                </View>
-              ) : (
-                content.map((item) => (
-                  <View
-                    key={item._id}
+                  <Text
                     style={{
-                      backgroundColor: colors.cardBackground,
-                      borderRadius: 16,
-                      padding: 16,
-                      marginBottom: 12,
-                      borderLeftWidth: 4,
-                      borderLeftColor: getContentTypeColor(item.type),
-                      shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 1 },
-                      shadowOpacity: 0.05,
-                      shadowRadius: 4,
-                      elevation: 1,
+                      color: colors.onSurfaceVariant,
+                      fontSize: FONT_SIZES.sm,
+                      fontFamily: FONTS.regular,
+                      textAlign: "center",
                     }}
                   >
+                    Tap the + button below to post homework, study notes, or slides for this subject.
+                  </Text>
+                </View>
+              ) : (
+                content.map((item) => {
+                  const typeColor = getContentTypeColor(item.type);
+                  const authorId = item.author?._id || item.author;
+                  const canDelete = isAdmin || (userId && authorId && authorId.toString() === userId.toString());
+
+                  return (
                     <View
+                      key={item._id}
                       style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                        marginBottom: 8,
+                        backgroundColor: isDark
+                          ? colors.surfaceContainer
+                          : "#FFFFFF",
+                        borderRadius: 16,
+                        padding: 16,
+                        borderWidth: 1,
+                        borderColor: isDark
+                          ? colors.outlineVariant
+                          : "rgba(0,0,0,0.06)",
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 1 },
+                        shadowOpacity: 0.04,
+                        shadowRadius: 4,
+                        elevation: 1,
+                        gap: 10,
                       }}
                     >
                       <View
                         style={{
                           flexDirection: "row",
+                          justifyContent: "space-between",
                           alignItems: "center",
-                          gap: 8,
                         }}
                       >
                         <View
                           style={{
-                            backgroundColor:
-                              getContentTypeColor(item.type) + "20",
-                            padding: 6,
-                            borderRadius: 8,
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 6,
                           }}
                         >
-                          <MaterialIcons
-                            name={getContentTypeIcon(item.type)}
-                            size={20}
-                            color={getContentTypeColor(item.type)}
-                          />
+                          <View
+                            style={{
+                              backgroundColor: typeColor + "18",
+                              paddingHorizontal: 8,
+                              paddingVertical: 3,
+                              borderRadius: 6,
+                              flexDirection: "row",
+                              alignItems: "center",
+                              gap: 4,
+                            }}
+                          >
+                            <MaterialIcons
+                              name={getContentTypeIcon(item.type)}
+                              size={14}
+                              color={typeColor}
+                            />
+                            <Text
+                              style={{
+                                fontSize: 10,
+                                fontFamily: FONTS.bold,
+                                color: typeColor,
+                                textTransform: "uppercase",
+                                letterSpacing: 0.4,
+                              }}
+                            >
+                              {item.type}
+                            </Text>
+                          </View>
                         </View>
-                        <Text
-                          style={{
-                            fontSize: FONT_SIZES.lg,
-                            fontWeight: "700",
-                            color: colors.textPrimary,
-                          }}
-                        >
-                          {item.title}
-                        </Text>
+
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                          <Text
+                            style={{
+                              fontSize: FONT_SIZES.xs,
+                              fontFamily: FONTS.regular,
+                              color: colors.onSurfaceVariant,
+                            }}
+                          >
+                            {formatDate(item.createdAt)}
+                          </Text>
+
+                          {canDelete && (
+                            <Pressable
+                              onPress={() => handleDeletePost(item._id)}
+                              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                              style={{ padding: 4 }}
+                            >
+                              <MaterialIcons
+                                name="delete-outline"
+                                size={18}
+                                color={colors.error}
+                              />
+                            </Pressable>
+                          )}
+                        </View>
                       </View>
+
                       <Text
-                        style={{ fontSize: FONT_SIZES.sm, color: colors.textSecondary }}
+                        style={{
+                          fontSize: FONT_SIZES.mdLg,
+                          fontFamily: FONTS.bold,
+                          color: colors.onSurface,
+                        }}
                       >
-                        {formatDate(item.createdAt)}
+                        {item.title}
                       </Text>
-                    </View>
 
-                    <Text
-                      style={{
-                        fontSize: FONT_SIZES.base,
-                        color: colors.textSecondary,
-                        lineHeight: 20,
-                      }}
-                    >
-                      {item.description}
-                    </Text>
-
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        marginTop: 12,
-                        alignItems: "center",
-                      }}
-                    >
-                      <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                        <UserAvatar
-                          photoUrl={item.author?.profilePhoto || item.teacher?.profilePhoto}
-                          name={formatUserName(item.author?.name || item.teacher?.name, "Teacher")}
-                          role="teacher"
-                          size={18}
-                        />
+                      {item.description ? (
                         <Text
                           style={{
                             fontSize: FONT_SIZES.sm,
-                            color: colors.textSecondary,
-                            fontWeight: "500",
+                            fontFamily: FONTS.regular,
+                            color: colors.onSurfaceVariant,
+                            lineHeight: 20,
                           }}
                         >
-                          {t("common.by", "By")}:{" "}
-                          {formatUserName(item.author?.name || item.teacher?.name, t("common.teacher", "Teacher"))}
+                          {item.description}
                         </Text>
-                      </View>
+                      ) : null}
+
+                      {/* Attachments Viewer */}
+                      {item.attachments && item.attachments.length > 0 && (
+                        <ClassMediaAttachmentViewer attachments={item.attachments} />
+                      )}
+
                       <View
                         style={{
-                          backgroundColor: colors.background,
-                          paddingHorizontal: 8,
-                          paddingVertical: 4,
-                          borderRadius: 4,
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          paddingTop: 8,
+                          borderTopWidth: 1,
+                          borderTopColor: isDark
+                            ? "rgba(255,255,255,0.06)"
+                            : "rgba(0,0,0,0.05)",
                         }}
                       >
-                        <Text
+                        <View
                           style={{
-                            fontSize: FONT_SIZES.micro,
-                            fontWeight: "600",
-                            color: colors.textSecondary,
-                            textTransform: "uppercase",
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 6,
                           }}
                         >
-                          {t("teacher.contentType_" + item.type, item.type)}
-                        </Text>
+                          <UserAvatar
+                            photoUrl={
+                              item.author?.profilePhoto ||
+                              item.teacher?.profilePhoto
+                            }
+                            name={formatUserName(
+                              item.author?.name || item.teacher?.name,
+                              "Teacher"
+                            )}
+                            role="teacher"
+                            size={20}
+                          />
+                          <Text
+                            style={{
+                              fontSize: FONT_SIZES.xs,
+                              color: colors.onSurfaceVariant,
+                              fontFamily: FONTS.medium,
+                            }}
+                          >
+                            {t("common.by", "By")}:{" "}
+                            {formatUserName(
+                              item.author?.name || item.teacher?.name,
+                              t("common.teacher", "Teacher")
+                            )}
+                          </Text>
+                        </View>
                       </View>
                     </View>
-                  </View>
-                ))
+                  );
+                })
               )}
             </View>
           )}
@@ -336,7 +456,10 @@ export default function SubjectDetailScreen() {
 
       {/* FAB to Post Content */}
       <Pressable
-        onPress={() => setShowPostModal(true)}
+        onPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+          setShowPostModal(true);
+        }}
         style={({ pressed }) => ({
           position: "absolute",
           bottom: 24,
@@ -347,11 +470,11 @@ export default function SubjectDetailScreen() {
           borderRadius: 28,
           justifyContent: "center",
           alignItems: "center",
-          elevation: 4,
+          elevation: 5,
           shadowColor: "#000",
-          shadowOffset: { width: 0, height: 2 },
+          shadowOffset: { width: 0, height: 3 },
           shadowOpacity: 0.25,
-          shadowRadius: 3.84,
+          shadowRadius: 4,
           opacity: pressed ? 0.9 : 1,
         })}
       >
@@ -362,6 +485,8 @@ export default function SubjectDetailScreen() {
         visible={showPostModal}
         onClose={() => setShowPostModal(false)}
         onSubmit={handlePostContent}
+        defaultSubjectId={subjectId}
+        isLoading={postContentMutation.isPending}
       />
     </View>
   );

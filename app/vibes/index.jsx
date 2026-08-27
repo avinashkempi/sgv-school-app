@@ -66,6 +66,13 @@ export default function VibesScreen() {
 
   // Navigation / View Tabs: 'feed' | 'my-vibes' | 'saved'
   const [activeTab, setActiveTab] = useState("feed");
+  const targetVibeId =
+    typeof searchParams?.vibeId === "string"
+      ? searchParams.vibeId
+      : typeof searchParams?.id === "string"
+      ? searchParams.id
+      : null;
+
   const [selectedCategory, setSelectedCategory] = useState(
     typeof searchParams?.category === "string" ? searchParams.category : "all"
   );
@@ -90,6 +97,36 @@ export default function VibesScreen() {
   const [editingVibe, setEditingVibe] = useState(null);
   const [activeCommentVibe, setActiveCommentVibe] = useState(null);
   const [activeLikesVibeId, setActiveLikesVibeId] = useState(null);
+
+  // Target Vibe Query (from deep link, spotlight, or notification)
+  const { data: targetVibeData } = useApiQuery(
+    ["targetVibe", targetVibeId],
+    targetVibeId && apiConfig.endpoints.vibes?.getById
+      ? `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.getById(targetVibeId)}`
+      : null,
+    {
+      ...CACHE_TIERS.REAL_TIME,
+      enabled: !!targetVibeId,
+      select: (data) => data?.data || null,
+    }
+  );
+
+  useEffect(() => {
+    if (targetVibeId && scrollRef.current) {
+      const timer = setTimeout(() => {
+        try {
+          scrollRef.current?.scrollToOffset({ offset: 0, animated: true });
+        } catch (_) {}
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [targetVibeId, targetVibeData]);
+
+  useEffect(() => {
+    if (searchParams?.openComments === "true" && targetVibeData) {
+      setActiveCommentVibe(targetVibeData);
+    }
+  }, [searchParams?.openComments, targetVibeData]);
 
   // Admin pending count query
   const { data: pendingData } = useApiQuery(
@@ -214,10 +251,18 @@ export default function VibesScreen() {
     }
   );
 
-  const feedVibes = useMemo(
+  const rawFeedVibes = useMemo(
     () => feedData?.pages?.flatMap((p) => p?.data || []) || [],
     [feedData]
   );
+
+  const feedVibes = useMemo(() => {
+    if (!targetVibeData || !targetVibeData._id) return rawFeedVibes;
+    const filtered = rawFeedVibes.filter(
+      (v) => String(v._id) !== String(targetVibeData._id)
+    );
+    return [targetVibeData, ...filtered];
+  }, [rawFeedVibes, targetVibeData]);
   const myVibes = useMemo(
     () => myVibesData?.pages?.flatMap((p) => p?.data || []) || [],
     [myVibesData]

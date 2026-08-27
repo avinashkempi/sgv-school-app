@@ -10,6 +10,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -32,12 +33,16 @@ import { EmptyState } from "../../../components/StateComponents";
 import { useLabel } from "../../../context/LabelsContext";
 import UserAvatar from "../../../components/ui/UserAvatar";
 import { formatUserName, toTitleCase } from "../../../utils/userFormatters";
+import PostContentModal from "../../../components/PostContentModal";
+import ClassMediaAttachmentViewer from "../../../components/class/ClassMediaAttachmentViewer";
+import { CACHE_TIERS } from "../../../utils/cacheConfig";
 
 export default function ClassDetailsScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   // eslint-disable-next-line no-unused-vars
-  const { styles, colors } = useTheme();
+  const { styles, colors, mode } = useTheme();
+  const isDark = mode === "dark";
   const { showToast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -50,8 +55,9 @@ export default function ClassDetailsScreen() {
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedDetailUser, setSelectedDetailUser] = useState(null);
+  const [showPostModal, setShowPostModal] = useState(false);
 
-  const [activeTab, setActiveTab] = useState("subjects"); // subjects, students
+  const [activeTab, setActiveTab] = useState("subjects"); // subjects, feed, students
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGlobalSubjectIds, setSelectedGlobalSubjectIds] = useState([]);
   const [selectedStudentIds, setSelectedStudentIds] = useState([]);
@@ -62,6 +68,18 @@ export default function ClassDetailsScreen() {
     `${apiConfig.baseUrl}/classes/${id}/full-details`,
     { enabled: !!id }
   );
+
+  // Fetch Class Feed & Notes
+  const {
+    data: classFeed = [],
+    isLoading: loadingFeed,
+    refetch: refetchFeed,
+  } = useApiQuery(
+    ["classContentFeed", id],
+    `${apiConfig.baseUrl}/classes/${id}/content`,
+    { ...CACHE_TIERS.MODERATE, enabled: !!id }
+  );
+
 
   const classData = data?.classData;
   const subjects = data?.subjects || [];
@@ -306,11 +324,66 @@ export default function ClassDetailsScreen() {
     );
   };
 
+  const postContentMutation = useApiMutation({
+    mutationFn: createApiMutationFn(
+      `${apiConfig.baseUrl}/classes/${id}/content`,
+      "POST"
+    ),
+    onSuccess: () => {
+      showToast(
+        t("teacher.contentPostedSuccess", "Content posted successfully"),
+        "success"
+      );
+      setShowPostModal(false);
+      queryClient.invalidateQueries({ queryKey: ["classContentFeed", id] });
+      queryClient.invalidateQueries({ queryKey: ["studentClassFeed", id] });
+    },
+    onError: (error) =>
+      showToast(
+        error.message ||
+          t("teacher.contentPostedFailure", "Failed to post content"),
+        "error"
+      ),
+  });
+
+  const deleteContentMutation = useApiMutation({
+    mutationFn: (contentId) =>
+      createApiMutationFn(
+        `${apiConfig.baseUrl}/classes/${id}/content/${contentId}`,
+        "DELETE"
+      )(),
+    onSuccess: () => {
+      showToast(
+        t("student.postDeletedSuccess", "Post deleted successfully"),
+        "success"
+      );
+      queryClient.invalidateQueries({ queryKey: ["classContentFeed", id] });
+      queryClient.invalidateQueries({ queryKey: ["studentClassFeed", id] });
+    },
+    onError: (err) => showToast(err.message || "Failed to delete post", "error"),
+  });
+
+  const handleDeleteFeedItem = (contentId) => {
+    Alert.alert(
+      "Delete Post",
+      "Are you sure you want to delete this post? This cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => deleteContentMutation.mutate(contentId),
+        },
+      ]
+    );
+  };
+
   const onRefresh = async () => {
     setRefreshing(true);
-    await refetch();
+    await Promise.all([refetch(), refetchFeed()]);
     setRefreshing(false);
   };
+
 
   const isClassTeacher = (() => {
     if (!user || !classData || !classData.classTeacher) return false;
@@ -443,7 +516,18 @@ export default function ClassDetailsScreen() {
           {/* Tabs */}
           <SegmentedControl
             tabs={[
-              { key: "subjects", label: t("teacher.subjects", "Subjects") },
+              {
+                key: "subjects",
+                label: `${t("teacher.subjects", "Subjects")} (${
+                  subjects.length
+                })`,
+              },
+              {
+                key: "feed",
+                label: `${t("student.classFeed", "Feed & Notes")} (${
+                  classFeed.length
+                })`,
+              },
               {
                 key: "students",
                 label: `${t("common.students", "Students")} (${
@@ -453,8 +537,9 @@ export default function ClassDetailsScreen() {
             ]}
             activeTab={activeTab}
             onTabChange={setActiveTab}
-            style={{ marginBottom: 24 }}
+            style={{ marginBottom: 20 }}
           />
+
 
           {activeTab === "subjects" ? (
             <View>
@@ -586,8 +671,263 @@ export default function ClassDetailsScreen() {
                 ))
               )}
             </View>
+          ) : activeTab === "feed" ? (
+            <View style={{ gap: 12 }}>
+              {/* Post Action Button */}
+              <Pressable
+                onPress={() => setShowPostModal(true)}
+                style={({ pressed }) => ({
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: colors.primary,
+                  paddingVertical: 12,
+                  paddingHorizontal: 16,
+                  borderRadius: 14,
+                  gap: 8,
+                  opacity: pressed ? 0.9 : 1,
+                  marginBottom: 4,
+                })}
+              >
+                <MaterialIcons name="add-circle-outline" size={20} color="#FFFFFF" />
+                <Text
+                  style={{
+                    color: "#FFFFFF",
+                    fontSize: FONT_SIZES.base,
+                    fontFamily: FONTS.bold,
+                  }}
+                >
+                  Post Notes, Homework or Slides
+                </Text>
+              </Pressable>
+
+              {loadingFeed ? (
+                <View style={{ paddingVertical: 40, alignItems: "center" }}>
+                  <ActivityIndicator size="small" color={colors.primary} />
+                </View>
+              ) : classFeed.length === 0 ? (
+                <View
+                  style={{
+                    alignItems: "center",
+                    padding: 32,
+                    borderRadius: 16,
+                    borderWidth: 1,
+                    borderColor: colors.outlineVariant,
+                    borderStyle: "dashed",
+                    gap: 8,
+                  }}
+                >
+                  <MaterialIcons
+                    name="article"
+                    size={48}
+                    color={colors.onSurfaceVariant}
+                  />
+                  <Text
+                    style={{
+                      fontSize: FONT_SIZES.mdLg,
+                      fontFamily: FONTS.bold,
+                      color: colors.onSurface,
+                    }}
+                  >
+                    No Content Posted Yet
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: FONT_SIZES.sm,
+                      fontFamily: FONTS.regular,
+                      color: colors.onSurfaceVariant,
+                      textAlign: "center",
+                    }}
+                  >
+                    Post homework, study notes, or announcements for this class using the button above.
+                  </Text>
+                </View>
+              ) : (
+                classFeed.map((item) => {
+                  const typeColor =
+                    item.type === "homework"
+                      ? "#EF4444"
+                      : item.type === "news"
+                      ? "#F59E0B"
+                      : "#3B82F6";
+                  const authorId = item.author?._id || item.author;
+                  const currentUserId = user?._id || user?.id || user?.userId;
+                  const canDelete =
+                    user?.role === "admin" ||
+                    user?.role === "super admin" ||
+                    isClassTeacher ||
+                    (currentUserId && authorId && authorId.toString() === currentUserId.toString());
+
+                  return (
+                    <View
+                      key={item._id}
+                      style={{
+                        backgroundColor: isDark
+                          ? colors.surfaceContainer
+                          : "#FFFFFF",
+                        borderRadius: 16,
+                        padding: 16,
+                        borderWidth: 1,
+                        borderColor: isDark
+                          ? colors.outlineVariant
+                          : "rgba(0,0,0,0.06)",
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 1 },
+                        shadowOpacity: 0.04,
+                        shadowRadius: 4,
+                        elevation: 1,
+                        gap: 10,
+                      }}
+                    >
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                          <View
+                            style={{
+                              backgroundColor: typeColor + "18",
+                              paddingHorizontal: 8,
+                              paddingVertical: 3,
+                              borderRadius: 6,
+                              flexDirection: "row",
+                              alignItems: "center",
+                              gap: 4,
+                            }}
+                          >
+                            <Text
+                              style={{
+                                fontSize: 10,
+                                fontFamily: FONTS.bold,
+                                color: typeColor,
+                                textTransform: "uppercase",
+                                letterSpacing: 0.4,
+                              }}
+                            >
+                              {item.type}
+                            </Text>
+                          </View>
+
+                          {item.subject && (
+                            <View
+                              style={{
+                                backgroundColor: isDark
+                                  ? colors.surfaceContainerHighest
+                                  : colors.surfaceContainerHigh,
+                                paddingHorizontal: 8,
+                                paddingVertical: 3,
+                                borderRadius: 6,
+                              }}
+                            >
+                              <Text
+                                style={{
+                                  fontSize: 11,
+                                  fontFamily: FONTS.medium,
+                                  color: colors.onSurface,
+                                }}
+                              >
+                                {item.subject.name}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                          <Text
+                            style={{
+                              fontSize: FONT_SIZES.xs,
+                              fontFamily: FONTS.regular,
+                              color: colors.onSurfaceVariant,
+                            }}
+                          >
+                            {formatDate(item.createdAt)}
+                          </Text>
+                          {canDelete && (
+                            <Pressable
+                              onPress={() => handleDeleteFeedItem(item._id)}
+                              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                              style={{ padding: 4 }}
+                            >
+                              <MaterialIcons
+                                name="delete-outline"
+                                size={18}
+                                color={colors.error}
+                              />
+                            </Pressable>
+                          )}
+                        </View>
+                      </View>
+
+                      <Text
+                        style={{
+                          fontSize: FONT_SIZES.mdLg,
+                          fontFamily: FONTS.bold,
+                          color: colors.onSurface,
+                        }}
+                      >
+                        {item.title}
+                      </Text>
+
+                      {item.description ? (
+                        <Text
+                          style={{
+                            fontSize: FONT_SIZES.sm,
+                            fontFamily: FONTS.regular,
+                            color: colors.onSurfaceVariant,
+                            lineHeight: 20,
+                          }}
+                        >
+                          {item.description}
+                        </Text>
+                      ) : null}
+
+                      {/* Attachments */}
+                      {item.attachments && item.attachments.length > 0 && (
+                        <ClassMediaAttachmentViewer attachments={item.attachments} />
+                      )}
+
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 6,
+                          paddingTop: 8,
+                          borderTopWidth: 1,
+                          borderTopColor: isDark
+                            ? "rgba(255,255,255,0.06)"
+                            : "rgba(0,0,0,0.05)",
+                        }}
+                      >
+                        <UserAvatar
+                          photoUrl={item.author?.profilePhoto}
+                          name={item.author?.name}
+                          role={item.author?.role || "teacher"}
+                          size={20}
+                        />
+                        <Text
+                          style={{
+                            fontSize: FONT_SIZES.xs,
+                            color: colors.onSurfaceVariant,
+                            fontFamily: FONTS.medium,
+                          }}
+                        >
+                          Posted by{" "}
+                          <Text style={{ fontFamily: FONTS.bold, color: colors.onSurface }}>
+                            {item.author?.name || "Teacher"}
+                          </Text>
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                })
+              )}
+            </View>
           ) : (
             <View>
+
               {students.length === 0 ? (
                 <EmptyState
                   icon="people-outline"
@@ -738,43 +1078,57 @@ export default function ClassDetailsScreen() {
         </View>
       </ScrollView>
 
-      {/* FAB for Add Subject or Add Student */}
-      {canManageClass && (
+      {/* FAB for Add Subject, Post Content or Add Student */}
+      {(canManageClass || isClassTeacher || activeTab === "feed") && (
         <Pressable
           onPress={() => {
-            if (activeTab === "subjects") {
-              setSelectedGlobalSubjectIds([]);
-              setShowAddSubjectModal(true);
-              setSearchQuery("");
+            if (activeTab === "feed") {
+              setShowPostModal(true);
+            } else if (activeTab === "subjects") {
+              if (canManageClass) {
+                setSelectedGlobalSubjectIds([]);
+                setShowAddSubjectModal(true);
+                setSearchQuery("");
+              } else {
+                setShowPostModal(true);
+              }
             } else {
-              setShowAddStudentModal(true);
+              if (canManageClass) {
+                setShowAddStudentModal(true);
+              }
             }
           }}
           style={({ pressed }) => ({
             position: "absolute",
             bottom: 24,
             right: 24,
-            backgroundColor: colors.primaryContainer,
+            backgroundColor: colors.primary,
             width: 56,
             height: 56,
-            borderRadius: 16,
+            borderRadius: 28,
             justifyContent: "center",
             alignItems: "center",
             elevation: 6,
-            shadowColor: colors.shadow,
+            shadowColor: "#000",
             shadowOffset: { width: 0, height: 3 },
             shadowOpacity: 0.3,
             shadowRadius: 6,
             opacity: pressed ? 0.9 : 1,
           })}
           accessibilityLabel={
-            activeTab === "subjects" ? "Add subject" : "Add student"
+            activeTab === "feed"
+              ? "Post material"
+              : activeTab === "subjects"
+              ? canManageClass
+                ? "Add subject"
+                : "Post material"
+              : "Add student"
           }
         >
           <MaterialIcons
-            name="add"
+            name={activeTab === "feed" ? "post-add" : "add"}
             size={28}
-            color={colors.onPrimaryContainer}
+            color="#FFFFFF"
           />
         </Pressable>
       )}
@@ -1208,7 +1562,7 @@ export default function ClassDetailsScreen() {
                               color: colors.onSurface,
                             }}
                           >
-                            {student.name}
+                            {formatUserName(student.name)}
                           </Text>
                           <Text
                             style={{
@@ -1287,6 +1641,14 @@ export default function ClassDetailsScreen() {
         visible={showDetailModal}
         onClose={() => setShowDetailModal(false)}
         user={selectedDetailUser}
+      />
+
+      <PostContentModal
+        visible={showPostModal}
+        onClose={() => setShowPostModal(false)}
+        onSubmit={(formData) => postContentMutation.mutate(formData)}
+        subjects={subjects}
+        isLoading={postContentMutation.isPending}
       />
     </View>
   );

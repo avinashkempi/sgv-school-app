@@ -18,6 +18,7 @@ import { useToast } from "../../components/ToastProvider";
 import AppHeader from "../../components/Header";
 import apiConfig from "../../config/apiConfig";
 import { useLabel } from "../../context/LabelsContext";
+import { formatUserName } from "../../utils/userFormatters";
 
 export default function MarksEntryScreen() {
   const router = useRouter();
@@ -204,7 +205,7 @@ export default function MarksEntryScreen() {
                     color: colors.textPrimary,
                   }}
                 >
-                  {student.name}
+                  {formatUserName(student.name)}
                 </Text>
                 <Text style={{ fontSize: FONT_SIZES.sm, color: colors.textSecondary }}>
                   {t("common.roll", "Roll")}: {student.rollNumber || "-"}

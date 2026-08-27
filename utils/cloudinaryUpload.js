@@ -1,5 +1,6 @@
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
+import * as DocumentPicker from "expo-document-picker";
 import { Alert, Platform } from "react-native";
 
 // Cloudinary configuration
@@ -7,6 +8,8 @@ const CLOUD_NAME = "atnkf0cu";
 const UPLOAD_PRESET = "sgv_school_uploads";
 const CLOUDINARY_IMAGE_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
 const CLOUDINARY_VIDEO_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`;
+const CLOUDINARY_RAW_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/raw/upload`;
+
 
 /**
  * Cloudinary Organized Folder Paths
@@ -880,4 +883,375 @@ export const resolveMediaThumbnail = (mediaItem, targetType = "hero", options = 
   if (targetType === "feed") return getFeedImageUrl(rawUrl, options);
   return getHeroBannerUrl(rawUrl);
 };
+
+// ─────────────────────────────────────────────────────────────
+// Document & Multi-Format Utilities
+// ─────────────────────────────────────────────────────────────
+
+const MAX_DOC_SIZE_BYTES = 25 * 1024 * 1024; // 25MB
+
+/**
+ * Resolves comprehensive metadata for any attachment (file/URL/object).
+ * Supports: PDF, PowerPoint (PPT, PPTX), Word (DOC, DOCX), Excel (XLS, XLSX),
+ * Video, Image, and Web Links.
+ */
+export const getDocumentMeta = (item) => {
+  if (!item) {
+    return {
+      url: "",
+      name: "Attachment",
+      label: "Attachment",
+      icon: "attach-file",
+      color: "#6366F1",
+      bgColor: "rgba(99, 102, 241, 0.12)",
+      type: "other",
+      extension: "FILE",
+      isViewableOnline: false,
+      size: 0,
+    };
+  }
+
+  let url = "";
+  let name = "";
+  let explicitType = "";
+  let size = 0;
+
+  if (typeof item === "string") {
+    url = item;
+    try {
+      const parts = url.split("/");
+      name = decodeURIComponent(parts[parts.length - 1]?.split("?")[0] || "Attachment");
+    } catch {
+      name = "Attachment";
+    }
+  } else if (typeof item === "object") {
+    url = item.url || item.uri || "";
+    name = item.name || item.fileName || "";
+    explicitType = (item.fileType || item.type || "").toLowerCase();
+    size = item.size || 0;
+    if (!name && url) {
+      try {
+        const parts = url.split("/");
+        name = decodeURIComponent(parts[parts.length - 1]?.split("?")[0] || "Attachment");
+      } catch {
+        name = "Attachment";
+      }
+    }
+  }
+
+  const lowerUrl = (url || "").toLowerCase();
+  const lowerName = (name || "").toLowerCase();
+  const checkStr = `${lowerName} ${lowerUrl}`;
+
+  // 1. PDF
+  if (explicitType === "pdf" || /\.pdf(\?.*)?$/i.test(checkStr)) {
+    return {
+      url,
+      name: name || "Document.pdf",
+      label: "PDF Document",
+      type: "pdf",
+      icon: "picture-as-pdf",
+      color: "#EF4444",
+      bgColor: "rgba(239, 68, 68, 0.12)",
+      extension: "PDF",
+      isViewableOnline: true,
+      size,
+    };
+  }
+
+  // 2. PowerPoint
+  if (
+    explicitType === "pptx" ||
+    explicitType === "ppt" ||
+    /\.(pptx|ppt)(\?.*)?$/i.test(checkStr)
+  ) {
+    return {
+      url,
+      name: name || "Presentation.pptx",
+      label: "PowerPoint Presentation",
+      type: "pptx",
+      icon: "slideshow",
+      color: "#EA580C",
+      bgColor: "rgba(234, 88, 12, 0.12)",
+      extension: "PPTX",
+      isViewableOnline: true,
+      size,
+    };
+  }
+
+  // 3. Word Document
+  if (
+    explicitType === "docx" ||
+    explicitType === "doc" ||
+    /\.(docx|doc)(\?.*)?$/i.test(checkStr)
+  ) {
+    return {
+      url,
+      name: name || "Document.docx",
+      label: "Word Document",
+      type: "docx",
+      icon: "description",
+      color: "#2563EB",
+      bgColor: "rgba(37, 99, 235, 0.12)",
+      extension: "DOCX",
+      isViewableOnline: true,
+      size,
+    };
+  }
+
+  // 4. Excel Spreadsheet
+  if (
+    explicitType === "xlsx" ||
+    explicitType === "xls" ||
+    explicitType === "csv" ||
+    /\.(xlsx|xls|csv)(\?.*)?$/i.test(checkStr)
+  ) {
+    return {
+      url,
+      name: name || "Spreadsheet.xlsx",
+      label: "Excel Spreadsheet",
+      type: "xlsx",
+      icon: "table-chart",
+      color: "#16A34A",
+      bgColor: "rgba(22, 163, 74, 0.12)",
+      extension: "XLSX",
+      isViewableOnline: true,
+      size,
+    };
+  }
+
+  // 5. Video
+  if (explicitType === "video" || isVideoAsset(item) || isVideoUrl(url)) {
+    return {
+      url,
+      name: name || "Video Clip",
+      label: "Video Clip",
+      type: "video",
+      icon: "videocam",
+      color: "#9333EA",
+      bgColor: "rgba(147, 51, 234, 0.12)",
+      extension: "VIDEO",
+      isViewableOnline: true,
+      size,
+    };
+  }
+
+  // 6. Image
+  if (
+    explicitType === "image" ||
+    /\.(jpg|jpeg|png|webp|gif|bmp|heic)(\?.*)?$/i.test(checkStr) ||
+    lowerUrl.includes("/image/upload/")
+  ) {
+    return {
+      url,
+      name: name || "Photo.jpg",
+      label: "Image",
+      type: "image",
+      icon: "image",
+      color: "#06B6D4",
+      bgColor: "rgba(6, 182, 212, 0.12)",
+      extension: "IMAGE",
+      isViewableOnline: true,
+      size,
+    };
+  }
+
+  // 7. Web Link
+  if (explicitType === "link" || /^https?:\/\//i.test(url)) {
+    return {
+      url,
+      name: name || url,
+      label: "Web Link",
+      type: "link",
+      icon: "link",
+      color: "#0D9488",
+      bgColor: "rgba(13, 148, 136, 0.12)",
+      extension: "LINK",
+      isViewableOnline: true,
+      size,
+    };
+  }
+
+  // 8. General Document
+  return {
+    url,
+    name: name || "Attachment",
+    label: "Document",
+    type: "document",
+    icon: "insert-drive-file",
+    color: "#6366F1",
+    bgColor: "rgba(99, 102, 241, 0.12)",
+    extension: "FILE",
+    isViewableOnline: false,
+    size,
+  };
+};
+
+/**
+ * Upload a document (PDF, PPTX, DOCX, XLSX, TXT, etc.) to Cloudinary.
+ *
+ * @param {string} fileUri - Local file URI
+ * @param {string} fileName - File name with extension
+ * @param {(progress: number) => void} [onProgress]
+ * @param {Object} [options]
+ * @returns {Promise<{url: string, publicId: string, name: string, fileType: string, size: number}>}
+ */
+export const uploadDocumentToCloudinary = async (
+  fileUri,
+  fileName = "document",
+  onProgress,
+  options = {}
+) => {
+  const fileSize = await getFileSize(fileUri);
+  if (fileSize > MAX_DOC_SIZE_BYTES) {
+    throw new Error(
+      `File is too large (${(fileSize / 1024 / 1024).toFixed(
+        1
+      )}MB). Maximum size is 25MB.`
+    );
+  }
+
+  const folder = options?.folder || CLOUDINARY_FOLDERS.DOCUMENTS;
+  const isPdf = /\.pdf$/i.test(fileName);
+  const uploadUrl = isPdf ? CLOUDINARY_IMAGE_URL : CLOUDINARY_RAW_URL;
+
+  const formData = new FormData();
+  const cleanName = fileName || `doc_${Date.now()}`;
+
+  if (Platform.OS === "web") {
+    try {
+      const response = await fetch(fileUri);
+      const blob = await response.blob();
+      formData.append("file", blob, cleanName);
+    } catch {
+      formData.append("file", fileUri);
+    }
+  } else {
+    formData.append("file", {
+      uri: Platform.OS === "ios" ? fileUri.replace("file://", "") : fileUri,
+      type: isPdf ? "application/pdf" : "application/octet-stream",
+      name: cleanName,
+    });
+  }
+
+  formData.append("upload_preset", UPLOAD_PRESET);
+  formData.append("cloud_name", CLOUD_NAME);
+  if (folder) {
+    formData.append("folder", folder);
+    formData.append("asset_folder", folder);
+  }
+
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+
+    xhr.upload.addEventListener("progress", (event) => {
+      if (event.lengthComputable && onProgress) {
+        const percent = Math.round((event.loaded / event.total) * 100);
+        onProgress(percent);
+      }
+    });
+
+    xhr.addEventListener("load", () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const response = JSON.parse(xhr.responseText);
+          const meta = getDocumentMeta({
+            url: response.secure_url,
+            name: cleanName,
+          });
+          resolve({
+            url: response.secure_url,
+            publicId: response.public_id,
+            name: cleanName,
+            fileType: meta.type,
+            size: fileSize,
+          });
+        } catch {
+          reject(new Error("Failed to parse Cloudinary response"));
+        }
+      } else {
+        let errorMsg = "Upload failed";
+        try {
+          const errResponse = JSON.parse(xhr.responseText);
+          errorMsg = errResponse.error?.message || errorMsg;
+        } catch {
+          // Use default error
+        }
+        reject(new Error(errorMsg));
+      }
+    });
+
+    xhr.addEventListener("error", () => {
+      reject(
+        new Error(
+          "Network error during upload. Please check your internet connection."
+        )
+      );
+    });
+
+    xhr.addEventListener("timeout", () => {
+      reject(new Error("Upload timed out. Please try again."));
+    });
+
+    xhr.timeout = 120000; // 120 seconds
+    xhr.open("POST", uploadUrl);
+    xhr.send(formData);
+  });
+};
+
+/**
+ * Convenience method to pick a document via system picker and upload to Cloudinary.
+ *
+ * @param {(progress: number) => void} [onProgress]
+ * @param {Object} [options]
+ * @returns {Promise<{url: string, publicId: string, name: string, fileType: string, size: number}|null>}
+ */
+export const pickAndUploadDocument = async (onProgress, options = {}) => {
+  try {
+    const result = await DocumentPicker.getDocumentAsync({
+      type: [
+        "application/pdf",
+        "application/vnd.ms-powerpoint",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "text/plain",
+        "application/octet-stream",
+        "*/*",
+      ],
+      copyToCacheDirectory: true,
+    });
+
+    if (
+      !result ||
+      result.canceled ||
+      !result.assets ||
+      result.assets.length === 0
+    ) {
+      return null;
+    }
+
+    const file = result.assets[0];
+    if (onProgress) onProgress(0);
+
+    const uploaded = await uploadDocumentToCloudinary(
+      file.uri,
+      file.name || "document",
+      onProgress,
+      options
+    );
+
+    return {
+      ...uploaded,
+      name: file.name || uploaded.name,
+      size: file.size || uploaded.size,
+    };
+  } catch (err) {
+    console.error("pickAndUploadDocument error:", err);
+    throw err;
+  }
+};
+
 

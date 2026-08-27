@@ -19,6 +19,8 @@ import Header from "../../components/Header";
 import Card from "../../components/Card";
 import AppRefreshControl from "../../components/ui/AppRefreshControl";
 import { useLabel } from "../../context/LabelsContext";
+import { useAcademicYear } from "../../context/AcademicYearContext";
+import { formatUserName } from "../../utils/userFormatters";
 import apiConfig from "../../config/apiConfig";
 
 import ReportCardGauge, {
@@ -120,14 +122,18 @@ export default function StudentReportCardScreen() {
     }));
   };
 
+  const { selectedYear } = useAcademicYear();
+  const currentAcademicYear =
+    reportCard?.student?.academicYear || selectedYear?.name || "";
+
   // Safe fallback values
   const studentInfo = reportCard?.student || {
-    name: user?.name || "Student",
+    name: formatUserName(user?.name) || "Student",
     class: user?.currentClass?.name
       ? `${user.currentClass.name} ${user.currentClass.section || ""}`.trim()
       : "Class",
     rollNumber: user?.rollNumber || "",
-    academicYear: "2024-2025",
+    academicYear: currentAcademicYear,
   };
 
   const overall = reportCard?.overall || {
@@ -689,18 +695,49 @@ export default function StudentReportCardScreen() {
               { backgroundColor: colors.surfaceContainerHighest },
             ]}
           >
-            <MaterialIcons name="auto-graph" size={20} color={colors.primary} />
+            <MaterialIcons name="auto-graph" size={22} color={colors.primary} />
             <View style={{ flex: 1 }}>
-              <Text style={[styles.consistencyTitle, { color: colors.onSurface }]}>
-                Consistency Index: {consistency.score}%
-              </Text>
+              <View style={styles.consistencyHeaderRow}>
+                <Text style={[styles.consistencyTitle, { color: colors.onSurface }]}>
+                  Consistency Index: {consistency.score}%
+                </Text>
+                <View
+                  style={[
+                    styles.consistencyScorePill,
+                    {
+                      backgroundColor:
+                        consistency.score >= 85
+                          ? "rgba(5, 150, 105, 0.15)"
+                          : consistency.score >= 70
+                          ? "rgba(2, 132, 199, 0.15)"
+                          : "rgba(217, 119, 6, 0.15)",
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.consistencyScoreText,
+                      {
+                        color:
+                          consistency.score >= 85
+                            ? colors.success
+                            : consistency.score >= 70
+                            ? colors.primary
+                            : "#D97706",
+                      },
+                    ]}
+                  >
+                    {consistency.label}
+                  </Text>
+                </View>
+              </View>
               <Text
                 style={[
                   styles.consistencyDesc,
                   { color: colors.onSurfaceVariant },
                 ]}
               >
-                {consistency.label} across assessments
+                Measures performance stability across terms. High consistency indicates steady study habits and minimal mark fluctuations between exams.
               </Text>
             </View>
           </View>
@@ -766,7 +803,7 @@ export default function StudentReportCardScreen() {
         <View style={styles.headerContainer}>
           <Header
             title={t("student.myReportCard", "My Report Card")}
-            subtitle={studentInfo.academicYear ? `Academic Year ${studentInfo.academicYear}` : "Academic Performance"}
+            subtitle={currentAcademicYear ? `Academic Year ${currentAcademicYear}` : "Academic Performance"}
             showBack
           />
 
@@ -836,7 +873,7 @@ export default function StudentReportCardScreen() {
             end={{ x: 1, y: 1 }}
             style={styles.heroGradient}
           >
-            {/* Top Row: Gauge + Student Identity */}
+            {/* Top Row: Gauge + Academic Details */}
             <View style={styles.heroTopRow}>
               <ReportCardGauge
                 percentage={overall.percentage}
@@ -846,17 +883,15 @@ export default function StudentReportCardScreen() {
               />
 
               <View style={styles.studentDetailsCol}>
-                <View style={styles.academicPill}>
-                  <Text style={styles.academicPillText}>
-                    {studentInfo.academicYear || "2024-2025"}
-                  </Text>
-                </View>
+                {currentAcademicYear ? (
+                  <View style={styles.academicPill}>
+                    <Text style={styles.academicPillText}>
+                      {currentAcademicYear}
+                    </Text>
+                  </View>
+                ) : null}
 
-                <Text style={styles.studentName} numberOfLines={1}>
-                  {studentInfo.name}
-                </Text>
-
-                <Text style={styles.studentClass}>
+                <Text style={styles.studentClass} numberOfLines={1}>
                   {studentInfo.class}
                   {studentInfo.rollNumber ? ` • Roll #${studentInfo.rollNumber}` : ""}
                 </Text>
@@ -1153,15 +1188,11 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: FONTS.bold,
   },
-  studentName: {
-    fontSize: FONT_SIZES.xl,
-    fontFamily: FONTS.bold,
-    color: "#FFFFFF",
-  },
   studentClass: {
-    fontSize: FONT_SIZES.xs,
-    color: "rgba(255, 255, 255, 0.8)",
-    fontFamily: FONTS.medium,
+    fontSize: FONT_SIZES.md,
+    color: "#FFFFFF",
+    fontFamily: FONTS.bold,
+    marginTop: 2,
   },
   gradeStatusBadge: {
     flexDirection: "row",
@@ -1499,20 +1530,37 @@ const styles = StyleSheet.create({
   },
   consistencyBox: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: 12,
-    padding: 12,
-    borderRadius: 12,
+    padding: 14,
+    borderRadius: 14,
     marginTop: 18,
   },
+  consistencyHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    flexWrap: "wrap",
+  },
+  consistencyScorePill: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  consistencyScoreText: {
+    fontSize: 10,
+    fontFamily: FONTS.bold,
+  },
   consistencyTitle: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   consistencyDesc: {
-    fontSize: 10,
+    fontSize: 11,
     fontFamily: FONTS.regular,
-    marginTop: 1,
+    lineHeight: 16,
+    marginTop: 4,
   },
   historyBridgeCard: {
     borderRadius: 18,

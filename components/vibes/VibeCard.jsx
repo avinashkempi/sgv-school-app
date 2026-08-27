@@ -188,7 +188,7 @@ const VibeCard = ({
         "https://play.google.com/store/apps/details?id=com.sgvschool.app";
       const authorName = isSchoolPost
         ? "SGV School"
-        : vibe.author?.name || "Community Member";
+        : formatUserName(vibe.author?.name, "Community Member");
       const shareTitle = isSchoolPost
         ? "✨ SGV School Vibes ✨"
         : `✨ SGV School Vibe by ${authorName} ✨`;
@@ -770,9 +770,8 @@ const VibeCard = ({
               <Text style={[styles.captionAuthor, { color: colors.onSurface }]}>
                 {isSchoolPost
                   ? "SGV School"
-                  : typeof vibe.author?.name === "string" &&
-                    vibe.author.name.trim()
-                  ? vibe.author.name.trim().split(/\s+/)[0]
+                  : vibe.author?.name
+                  ? formatUserName(vibe.author.name).trim().split(/\s+/)[0]
                   : "Author"}{" "}
               </Text>
               {renderRichCaption(vibe.caption, onTagPress, colors)}

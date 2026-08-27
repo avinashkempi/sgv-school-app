@@ -69,7 +69,14 @@ const VibeSpotlightCard = () => {
 
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
-    router.push("/vibes");
+    if (vibe?._id) {
+      router.push({
+        pathname: "/vibes",
+        params: { vibeId: String(vibe._id) },
+      });
+    } else {
+      router.push("/vibes");
+    }
   };
 
   const amberAccent = isDark ? "#FFB74D" : "#D97706";
