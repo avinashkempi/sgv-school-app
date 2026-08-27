@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES } from "../../theme";
 import apiConfig from "../../config/apiConfig";
 import { useApiQuery } from "../../hooks/useApi";
 import { useToast } from "../../components/ToastProvider";

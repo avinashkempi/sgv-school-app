@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import {
   Modal,
   View,
@@ -45,6 +45,30 @@ export default function PinchableLightboxModal({ visible, imageUrl, onClose }) {
   const savedTranslateX = useSharedValue(0);
   const savedTranslateY = useSharedValue(0);
   const dismissTranslateY = useSharedValue(0);
+
+  // Reset all transform values and loading state when modal becomes visible or image changes
+  useEffect(() => {
+    if (visible) {
+      setLoading(true);
+      scale.value = 1;
+      savedScale.value = 1;
+      translateX.value = 0;
+      translateY.value = 0;
+      savedTranslateX.value = 0;
+      savedTranslateY.value = 0;
+      dismissTranslateY.value = 0;
+    }
+  }, [
+    visible,
+    imageUrl,
+    scale,
+    savedScale,
+    translateX,
+    translateY,
+    savedTranslateX,
+    savedTranslateY,
+    dismissTranslateY,
+  ]);
 
   const handleDismiss = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});

@@ -3,7 +3,7 @@ import { View, Text, ScrollView } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "expo-router";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
+import { useTheme, FONTS, FONT_SIZES } from "../theme";
 import Header from "../components/Header";
 import Card from "../components/Card";
 import apiConfig from "../config/apiConfig";

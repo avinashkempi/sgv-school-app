@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { StyleSheet, View, Text, Modal, Pressable } from "react-native";
 import LottieView from "lottie-react-native";
 import * as Haptics from "expo-haptics";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS } from "../theme";
 import Button from "./Button";
 
 /**

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo, useRef } from "react";
 import {
   View,
   Text,
@@ -14,7 +14,8 @@ import {
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
+import * as Haptics from "expo-haptics";
+import { useTheme, FONTS, FONT_SIZES } from "../../theme";
 import { useToast } from "../../components/ToastProvider";
 import {
   useApiInfiniteQuery,
@@ -31,12 +32,8 @@ import {
   formatUserDesignationOrRole,
 } from "../../utils/userFormatters";
 
-import {
-  getAvatarUrl,
-  getBlurPlaceholderUrl,
-} from "../../utils/cloudinaryUpload";
-
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const CARD_WIDTH = SCREEN_WIDTH - 24;
 
 const REJECT_REASONS = [
   "Does not meet school community guidelines",
@@ -46,16 +43,41 @@ const REJECT_REASONS = [
   "Incorrect category selected",
 ];
 
+const APPROVAL_FILTERS = [
+  { key: "all", label: "All Pending" },
+  { key: "student", label: "Students" },
+  { key: "teacher", label: "Teachers" },
+  { key: "sports", label: "Sports" },
+  { key: "achievement", label: "Achievements" },
+];
+
 export default function VibeApprovalsScreen() {
   const router = useRouter();
   const { colors, styles: themeStyles } = useTheme();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
 
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [selectedIds, setSelectedIds] = useState(new Set());
   const [rejectingVibe, setRejectingVibe] = useState(null);
+  const [isBatchReject, setIsBatchReject] = useState(false);
   const [selectedReason, setSelectedReason] = useState(REJECT_REASONS[0]);
   const [customReason, setCustomReason] = useState("");
   const [processingId, setProcessingId] = useState(null);
+
+  // Viewport visibility tracking for high-performance video autoplay
+  const [visibleItemIds, setVisibleItemIds] = useState(new Set());
+
+  const onViewableItemsChanged = useRef(({ viewableItems }) => {
+    const ids = new Set(
+      viewableItems.map((vi) => vi.item?._id).filter(Boolean)
+    );
+    setVisibleItemIds(ids);
+  }).current;
+
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 60,
+  }).current;
 
   const queryKey = ["pendingVibes"];
 
@@ -70,7 +92,7 @@ export default function VibeApprovalsScreen() {
   } = useApiInfiniteQuery(
     queryKey,
     (page) =>
-      `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.adminPending}?page=${page}&limit=10`,
+      `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.adminPending}?page=${page}&limit=20`,
     {
       ...CACHE_TIERS.REAL_TIME,
       getNextPageParam: (lastPage, allPages) => {
@@ -85,10 +107,32 @@ export default function VibeApprovalsScreen() {
     }
   );
 
-  const pendingVibes = data?.pages?.flatMap((p) => p?.data || []) || [];
-  const totalPending = data?.pages?.[0]?.pendingCount ?? pendingVibes.length;
+  const allPendingVibes = useMemo(
+    () => data?.pages?.flatMap((p) => p?.data || []) || [],
+    [data?.pages]
+  );
+  const totalPending = data?.pages?.[0]?.pendingCount ?? allPendingVibes.length;
 
-  // Review mutation with optimistic removal
+  // Filter pending vibes by role or category
+  const filteredPendingVibes = useMemo(() => {
+    if (activeFilter === "all") return allPendingVibes;
+    if (activeFilter === "student") {
+      return allPendingVibes.filter(
+        (v) => v.author?.role === "student" || v.authorRole === "student"
+      );
+    }
+    if (activeFilter === "teacher") {
+      return allPendingVibes.filter(
+        (v) =>
+          v.author?.role === "teacher" ||
+          v.author?.role === "staff" ||
+          v.authorRole === "teacher"
+      );
+    }
+    return allPendingVibes.filter((v) => v.category === activeFilter);
+  }, [allPendingVibes, activeFilter]);
+
+  // Single review mutation
   const reviewMutation = useApiMutation({
     mutationFn: async ({ vibeId, action, reason }) => {
       return createApiMutationFn(
@@ -132,6 +176,50 @@ export default function VibeApprovalsScreen() {
     },
   });
 
+  // Batch review mutation
+  const batchReviewMutation = useApiMutation({
+    mutationFn: async ({ vibeIds, action, reason }) => {
+      return createApiMutationFn(
+        `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.adminBatchReview}`,
+        "POST"
+      )({ vibeIds, action, reason });
+    },
+    onSuccess: (res) => {
+      showToast(res.message || "Batch update complete", "success");
+      setSelectedIds(new Set());
+      setRejectingVibe(null);
+      setIsBatchReject(false);
+      setCustomReason("");
+      queryClient.invalidateQueries({ queryKey });
+      queryClient.invalidateQueries({ queryKey: ["pendingVibesCount"] });
+      queryClient.invalidateQueries({ queryKey: ["vibes"] });
+      queryClient.invalidateQueries({ queryKey: ["vibeHighlights"] });
+      queryClient.invalidateQueries({ queryKey: ["vibeSpotlight"] });
+    },
+    onError: (err) => {
+      showToast(err.message || "Failed batch review", "error");
+    },
+  });
+
+  const toggleSelect = useCallback((id) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const handleSelectAll = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    if (selectedIds.size === filteredPendingVibes.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredPendingVibes.map((v) => v._id)));
+    }
+  }, [selectedIds, filteredPendingVibes]);
+
   const handleApprove = useCallback(
     async (vibe) => {
       setProcessingId(vibe._id);
@@ -147,10 +235,37 @@ export default function VibeApprovalsScreen() {
     [reviewMutation]
   );
 
+  const handleBatchApprove = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
+      () => {}
+    );
+    await batchReviewMutation.mutateAsync({
+      vibeIds: Array.from(selectedIds),
+      action: "approve",
+    });
+  }, [selectedIds, batchReviewMutation]);
+
+  const handleBatchRejectPrompt = useCallback(() => {
+    if (selectedIds.size === 0) return;
+    setIsBatchReject(true);
+    setRejectingVibe({ _id: "batch" });
+  }, [selectedIds]);
+
   const handleConfirmReject = useCallback(async () => {
+    const finalReason = customReason.trim() || selectedReason;
+
+    if (isBatchReject) {
+      await batchReviewMutation.mutateAsync({
+        vibeIds: Array.from(selectedIds),
+        action: "reject",
+        reason: finalReason,
+      });
+      return;
+    }
+
     if (!rejectingVibe) return;
 
-    const finalReason = customReason.trim() || selectedReason;
     setProcessingId(rejectingVibe._id);
     try {
       await reviewMutation.mutateAsync({
@@ -161,32 +276,51 @@ export default function VibeApprovalsScreen() {
     } finally {
       setProcessingId(null);
     }
-  }, [rejectingVibe, customReason, selectedReason, reviewMutation]);
+  }, [
+    isBatchReject,
+    selectedIds,
+    rejectingVibe,
+    customReason,
+    selectedReason,
+    batchReviewMutation,
+    reviewMutation,
+  ]);
 
   const renderItem = useCallback(
     ({ item }) => {
       const isProcessing = processingId === item._id;
-      const authorAvatarUri = item.author?.profilePhoto
-        ? getAvatarUrl(item.author.profilePhoto, 80)
-        : null;
-      const _authorAvatarBlur = authorAvatarUri
-        ? getBlurPlaceholderUrl(authorAvatarUri)
-        : null;
+      const isSelected = selectedIds.has(item._id);
 
       return (
         <View
           style={[
             styles.reviewCard,
-            { backgroundColor: colors.surfaceContainer },
+            {
+              backgroundColor: colors.surfaceContainer,
+              borderColor: isSelected ? colors.primary : colors.outlineVariant,
+              borderWidth: isSelected ? 2 : 1,
+            },
           ]}
         >
           {/* Author Header */}
           <View style={styles.authorHeader}>
+            <Pressable
+              onPress={() => toggleSelect(item._id)}
+              hitSlop={8}
+              style={styles.checkboxTouch}
+            >
+              <MaterialIcons
+                name={isSelected ? "check-box" : "check-box-outline-blank"}
+                size={22}
+                color={isSelected ? colors.primary : colors.onSurfaceVariant}
+              />
+            </Pressable>
+
             <UserAvatar
               photoUrl={item.author?.profilePhoto}
               name={formatUserName(item.author?.name, "Community Member")}
               role={item.author?.role}
-              size={40}
+              size={36}
             />
             <View style={{ flex: 1 }}>
               <Text style={[styles.authorName, { color: colors.onSurface }]}>
@@ -216,12 +350,12 @@ export default function VibeApprovalsScreen() {
             </View>
           </View>
 
-          {/* Media Preview */}
+          {/* Media Preview bounded within card */}
           {item.images && item.images.length > 0 && (
             <VibeImageCarousel
               images={item.images}
-              width={SCREEN_WIDTH}
-              isVisible={true}
+              width={CARD_WIDTH}
+              isVisible={visibleItemIds.has(item._id)}
             />
           )}
 
@@ -234,11 +368,27 @@ export default function VibeApprovalsScreen() {
             </View>
           ) : null}
 
+          {/* Location if present */}
+          {item.location ? (
+            <View style={styles.locationRow}>
+              <MaterialIcons
+                name="place"
+                size={13}
+                color={colors.onSurfaceVariant}
+              />
+              <Text
+                style={[styles.locationText, { color: colors.onSurfaceVariant }]}
+              >
+                {item.location}
+              </Text>
+            </View>
+          ) : null}
+
           {/* Submitted timestamp */}
           <View style={styles.timeRow}>
             <MaterialIcons
               name="schedule"
-              size={14}
+              size={13}
               color={colors.onSurfaceVariant}
             />
             <Text style={[styles.timeText, { color: colors.onSurfaceVariant }]}>
@@ -258,7 +408,10 @@ export default function VibeApprovalsScreen() {
             ]}
           >
             <Pressable
-              onPress={() => setRejectingVibe(item)}
+              onPress={() => {
+                setIsBatchReject(false);
+                setRejectingVibe(item);
+              }}
               disabled={isProcessing}
               style={[styles.rejectBtn, { borderColor: colors.error }]}
             >
@@ -286,7 +439,7 @@ export default function VibeApprovalsScreen() {
         </View>
       );
     },
-    [colors, processingId, handleApprove]
+    [colors, processingId, selectedIds, toggleSelect, handleApprove, visibleItemIds]
   );
 
   return (
@@ -317,7 +470,7 @@ export default function VibeApprovalsScreen() {
                 { color: colors.onSurfaceVariant },
               ]}
             >
-              Review community submissions before publishing
+              Moderate community submissions
             </Text>
           </View>
           {totalPending > 0 && (
@@ -339,8 +492,86 @@ export default function VibeApprovalsScreen() {
           )}
         </View>
 
+        {/* Filter Chips Bar */}
+        <View style={styles.filterContainer}>
+          <FlatList
+            horizontal
+            data={APPROVAL_FILTERS}
+            keyExtractor={(item) => item.key}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterScroll}
+            renderItem={({ item }) => {
+              const isSelected = activeFilter === item.key;
+              return (
+                <Pressable
+                  onPress={() => {
+                    Haptics.impactAsync(
+                      Haptics.ImpactFeedbackStyle.Light
+                    ).catch(() => {});
+                    setActiveFilter(item.key);
+                  }}
+                  style={[
+                    styles.filterChip,
+                    {
+                      backgroundColor: isSelected
+                        ? colors.primaryContainer
+                        : colors.surfaceContainerHigh,
+                      borderColor: isSelected
+                        ? colors.primary
+                        : colors.outlineVariant || "transparent",
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.filterChipText,
+                      {
+                        color: isSelected
+                          ? colors.onPrimaryContainer
+                          : colors.onSurfaceVariant,
+                        fontFamily: isSelected ? FONTS.bold : FONTS.medium,
+                      },
+                    ]}
+                  >
+                    {item.label}
+                  </Text>
+                </Pressable>
+              );
+            }}
+          />
+
+          {filteredPendingVibes.length > 0 && (
+            <Pressable
+              onPress={handleSelectAll}
+              style={[
+                styles.selectAllBtn,
+                { backgroundColor: colors.surfaceContainerHighest },
+              ]}
+            >
+              <MaterialIcons
+                name={
+                  selectedIds.size === filteredPendingVibes.length &&
+                  filteredPendingVibes.length > 0
+                    ? "check-box"
+                    : "check-box-outline-blank"
+                }
+                size={16}
+                color={colors.primary}
+              />
+              <Text
+                style={[styles.selectAllBtnText, { color: colors.primary }]}
+              >
+                {selectedIds.size === filteredPendingVibes.length &&
+                filteredPendingVibes.length > 0
+                  ? "Deselect"
+                  : "Select All"}
+              </Text>
+            </Pressable>
+          )}
+        </View>
+
         {/* Content */}
-        {isLoading && pendingVibes.length === 0 ? (
+        {isLoading && filteredPendingVibes.length === 0 ? (
           <View style={styles.centerContainer}>
             <ActivityIndicator size="large" color={colors.primary} />
             <Text
@@ -349,7 +580,7 @@ export default function VibeApprovalsScreen() {
               Loading pending vibes...
             </Text>
           </View>
-        ) : pendingVibes.length === 0 ? (
+        ) : filteredPendingVibes.length === 0 ? (
           <View style={styles.emptyContainer}>
             <MaterialIcons
               name="check-circle-outline"
@@ -362,7 +593,7 @@ export default function VibeApprovalsScreen() {
             <Text
               style={[styles.emptySubtitle, { color: colors.onSurfaceVariant }]}
             >
-              There are no pending vibes awaiting approval right now.
+              No pending vibes matching this filter awaiting approval.
             </Text>
             <Pressable
               onPress={() => refetch()}
@@ -376,7 +607,7 @@ export default function VibeApprovalsScreen() {
           </View>
         ) : (
           <FlatList
-            data={pendingVibes}
+            data={filteredPendingVibes}
             renderItem={renderItem}
             keyExtractor={(item) => item._id}
             contentContainerStyle={[
@@ -384,6 +615,8 @@ export default function VibeApprovalsScreen() {
               styles.listContent,
             ]}
             showsVerticalScrollIndicator={false}
+            onViewableItemsChanged={onViewableItemsChanged}
+            viewabilityConfig={viewabilityConfig}
             refreshControl={
               <RefreshControl
                 refreshing={isRefetching}
@@ -405,7 +638,46 @@ export default function VibeApprovalsScreen() {
           />
         )}
 
-        {/* ──── Reject Feedback Modal ──── */}
+        {/* ──── Floating Batch Action Bar ──── */}
+        {selectedIds.size > 0 && (
+          <View
+            style={[
+              styles.batchActionBar,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.outlineVariant,
+              },
+            ]}
+          >
+            <Text style={[styles.batchCountText, { color: colors.onSurface }]}>
+              {selectedIds.size} selected
+            </Text>
+            <View style={styles.batchBtnRow}>
+              <Pressable
+                onPress={handleBatchRejectPrompt}
+                style={[styles.batchRejectBtn, { borderColor: colors.error }]}
+              >
+                <MaterialIcons name="close" size={16} color={colors.error} />
+                <Text
+                  style={[styles.batchRejectBtnText, { color: colors.error }]}
+                >
+                  Reject
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={handleBatchApprove}
+                style={[styles.batchApproveBtn, { backgroundColor: "#2E7D32" }]}
+              >
+                <MaterialIcons name="check" size={16} color="#fff" />
+                <Text style={styles.batchApproveBtnText}>
+                  Approve ({selectedIds.size})
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        )}
+
+        {/* ──── Reject Feedback Modal (Single & Batch) ──── */}
         {rejectingVibe && (
           <Modal visible={!!rejectingVibe} transparent animationType="slide">
             <View style={styles.modalOverlay}>
@@ -416,10 +688,15 @@ export default function VibeApprovalsScreen() {
                   <Text
                     style={[styles.modalTitle, { color: colors.onSurface }]}
                   >
-                    Reject Vibe Submission
+                    {isBatchReject
+                      ? `Reject ${selectedIds.size} Submissions`
+                      : "Reject Vibe Submission"}
                   </Text>
                   <Pressable
-                    onPress={() => setRejectingVibe(null)}
+                    onPress={() => {
+                      setRejectingVibe(null);
+                      setIsBatchReject(false);
+                    }}
                     hitSlop={10}
                   >
                     <MaterialIcons
@@ -433,7 +710,7 @@ export default function VibeApprovalsScreen() {
                 <Text
                   style={[styles.modalHint, { color: colors.onSurfaceVariant }]}
                 >
-                  Select a reason or write custom feedback. The author will be
+                  Select a reason or write custom feedback. Authors will be
                   notified.
                 </Text>
 
@@ -513,7 +790,10 @@ export default function VibeApprovalsScreen() {
                 {/* Modal Buttons */}
                 <View style={styles.modalActions}>
                   <Pressable
-                    onPress={() => setRejectingVibe(null)}
+                    onPress={() => {
+                      setRejectingVibe(null);
+                      setIsBatchReject(false);
+                    }}
                     style={[
                       styles.modalCancelBtn,
                       { borderColor: colors.outline },
@@ -579,9 +859,42 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
   },
+  filterContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    gap: 8,
+  },
+  filterScroll: {
+    gap: 8,
+    paddingRight: 8,
+  },
+  filterChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  filterChipText: {
+    fontSize: FONT_SIZES.xs,
+  },
+  selectAllBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  selectAllBtnText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+  },
   listContent: {
-    paddingTop: 12,
-    paddingBottom: 40,
+    paddingTop: 8,
+    paddingBottom: 80,
   },
   centerContainer: {
     flex: 1,
@@ -625,26 +938,20 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.medium,
   },
   reviewCard: {
-    marginBottom: 24,
+    marginHorizontal: 12,
+    marginBottom: 16,
+    borderRadius: 20,
     overflow: "hidden",
   },
   authorHeader: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    gap: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 8,
   },
-  avatarCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatarText: {
-    fontSize: FONT_SIZES.lg,
-    fontFamily: FONTS.bold,
+  checkboxTouch: {
+    padding: 2,
   },
   authorName: {
     fontSize: FONT_SIZES.base,
@@ -672,6 +979,17 @@ const styles = StyleSheet.create({
   captionText: {
     fontSize: FONT_SIZES.base,
     lineHeight: 20,
+    fontFamily: FONTS.regular,
+  },
+  locationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 14,
+    paddingTop: 2,
+  },
+  locationText: {
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
   },
   timeRow: {
@@ -718,6 +1036,58 @@ const styles = StyleSheet.create({
   approveBtnText: {
     color: "#fff",
     fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.bold,
+  },
+  batchActionBar: {
+    position: "absolute",
+    bottom: 16,
+    left: 16,
+    right: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 18,
+    borderWidth: 1,
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+  },
+  batchCountText: {
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.bold,
+  },
+  batchBtnRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  batchRejectBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1.5,
+  },
+  batchRejectBtnText: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
+  },
+  batchApproveBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+  batchApproveBtnText: {
+    color: "#fff",
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   loadingMore: {

@@ -1,4 +1,4 @@
-import React, { memo, useState } from "react";
+import React, { memo, useState, useEffect } from "react";
 import { View, Text, Pressable, StyleSheet, Dimensions } from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
@@ -50,6 +50,10 @@ const VibeSpotlightCard = () => {
   );
 
   const vibe = spotlightData?.data;
+
+  useEffect(() => {
+    setImageError(false);
+  }, [vibe?._id]);
 
   const handlePressIn = () => {
     scale.value = withSpring(0.98, { damping: 15, stiffness: 300 });

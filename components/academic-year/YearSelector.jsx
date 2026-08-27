@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES } from "../../theme";
 import apiFetch from "../../utils/apiFetch";
 import apiConfig from "../../config/apiConfig";
 import { useAcademicYear } from "../../context/AcademicYearContext";

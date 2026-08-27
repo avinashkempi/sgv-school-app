@@ -9,7 +9,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LETTER_SPACINGS } from "../theme";
 
 /**
  * Single timeline item — animated with Reanimated on UI thread.

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -15,8 +15,9 @@ import {
 import Animated, { FadeIn } from "react-native-reanimated";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import * as Haptics from "expo-haptics";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 import {
   useApiQuery,
@@ -40,6 +41,8 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
   const [commentText, setCommentText] = useState("");
   const [postAsSchool, setPostAsSchool] = useState(isAdmin);
   const [submitting, setSubmitting] = useState(false);
+  const [replyingTo, setReplyingTo] = useState(null); // { id, name, text }
+  const inputRef = useRef(null);
 
   const vibeId = vibe?._id;
   const queryKey = ["vibeComments", vibeId];
@@ -57,7 +60,7 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
 
   const comments = data?.data || [];
 
-  // Helper to adjust comments count across feed
+  // Helper to adjust comments count across feed without trashing infinite scroll pagination
   const adjustCommentsCount = useCallback(
     (delta) => {
       const updateVibes = (oldData) => {
@@ -79,8 +82,46 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
       };
 
       queryClient.setQueriesData({ queryKey: ["vibes"] }, updateVibes);
-      queryClient.setQueryData(["myVibes"], updateVibes);
-      queryClient.setQueryData(["savedVibes"], updateVibes);
+      queryClient.setQueriesData({ queryKey: ["myVibes"] }, updateVibes);
+      queryClient.setQueriesData({ queryKey: ["savedVibes"] }, updateVibes);
+
+      // Update spotlight query in-memory if matching
+      queryClient.setQueryData(["vibeSpotlight"], (old) => {
+        if (!old?.data || old.data._id !== vibeId) return old;
+        return {
+          ...old,
+          data: {
+            ...old.data,
+            commentsCount: Math.max((old.data.commentsCount || 0) + delta, 0),
+          },
+        };
+      });
+
+      // Update highlights query in-memory if matching
+      queryClient.setQueryData(["vibeHighlights"], (old) => {
+        if (!old?.data) return old;
+        const updateList = (list) =>
+          (list || []).map((v) =>
+            v._id === vibeId
+              ? {
+                  ...v,
+                  commentsCount: Math.max((v.commentsCount || 0) + delta, 0),
+                }
+              : v
+          );
+        return {
+          ...old,
+          data: {
+            ...old.data,
+            official: updateList(old.data.official),
+            achievements: updateList(old.data.achievements),
+            stories: (old.data.stories || []).map((st) => ({
+              ...st,
+              vibes: updateList(st.vibes),
+            })),
+          },
+        };
+      });
     },
     [vibeId, queryClient]
   );
@@ -103,6 +144,15 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
         _id: `temp-${Date.now()}`,
         text: newCommentPayload.text,
         postAs: newCommentPayload.postAs,
+        parentComment: replyingTo
+          ? {
+              _id: replyingTo.id,
+              text: replyingTo.text,
+              user: { name: replyingTo.name },
+            }
+          : null,
+        likesCount: 0,
+        isLiked: false,
         createdAt: new Date().toISOString(),
         user: {
           _id: user?.id || user?._id,
@@ -129,11 +179,52 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey });
-      queryClient.invalidateQueries({ queryKey: ["vibes"] });
-      queryClient.invalidateQueries({ queryKey: ["myVibes"] });
-      queryClient.invalidateQueries({ queryKey: ["savedVibes"] });
-      queryClient.invalidateQueries({ queryKey: ["vibeHighlights"] });
-      queryClient.invalidateQueries({ queryKey: ["vibeSpotlight"] });
+    },
+  });
+
+  // Toggle comment like mutation
+  const likeCommentMutation = useApiMutation({
+    mutationFn: async (commentId) => {
+      return createApiMutationFn(
+        `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.toggleCommentLike(
+          commentId
+        )}`,
+        "POST"
+      )({});
+    },
+    onMutate: async (commentId) => {
+      await queryClient.cancelQueries({ queryKey });
+
+      const prevComments = queryClient.getQueryData(queryKey);
+
+      queryClient.setQueryData(queryKey, (old) => {
+        if (!old?.data) return old;
+        return {
+          ...old,
+          data: old.data.map((c) => {
+            if (c._id === commentId) {
+              const nextLiked = !c.isLiked;
+              const delta = nextLiked ? 1 : -1;
+              return {
+                ...c,
+                isLiked: nextLiked,
+                likesCount: Math.max((c.likesCount || 0) + delta, 0),
+              };
+            }
+            return c;
+          }),
+        };
+      });
+
+      return { prevComments };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.prevComments) {
+        queryClient.setQueryData(queryKey, context.prevComments);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 
@@ -169,13 +260,36 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey });
-      queryClient.invalidateQueries({ queryKey: ["vibes"] });
-      queryClient.invalidateQueries({ queryKey: ["myVibes"] });
-      queryClient.invalidateQueries({ queryKey: ["savedVibes"] });
-      queryClient.invalidateQueries({ queryKey: ["vibeHighlights"] });
-      queryClient.invalidateQueries({ queryKey: ["vibeSpotlight"] });
     },
   });
+
+  const handleStartReply = useCallback((comment) => {
+    const authorName =
+      comment.postAs === "school"
+        ? "SGV School"
+        : formatUserName(comment.user?.name, "User");
+    setReplyingTo({
+      id: comment._id,
+      name: authorName,
+      text: comment.text,
+    });
+    setCommentText((prev) => (prev ? prev : `@${authorName} `));
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
+  }, []);
+
+  const handleCancelReply = useCallback(() => {
+    setReplyingTo(null);
+  }, []);
+
+  const handleToggleLikeComment = useCallback(
+    (commentId) => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      likeCommentMutation.mutate(commentId);
+    },
+    [likeCommentMutation]
+  );
 
   const handleSendComment = useCallback(async () => {
     if (!commentText.trim() || submitting) return;
@@ -183,9 +297,11 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
     const payload = {
       text: commentText.trim(),
       postAs: isAdmin && postAsSchool ? "school" : "self",
+      ...(replyingTo?.id ? { parentComment: replyingTo.id } : {}),
     };
 
     setCommentText("");
+    setReplyingTo(null);
     setSubmitting(true);
 
     try {
@@ -195,7 +311,7 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
     } finally {
       setSubmitting(false);
     }
-  }, [commentText, submitting, addCommentMutation, isAdmin, postAsSchool]);
+  }, [commentText, submitting, addCommentMutation, isAdmin, postAsSchool, replyingTo]);
 
   const handleDeleteComment = useCallback(
     (comment) => {
@@ -225,10 +341,17 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
       const isAuthor =
         user?.id === item.user?._id || user?._id === item.user?._id;
       const canDelete = isAdmin || isAuthor;
+      const parentName = item.parentComment?.user?.name
+        ? formatUserName(item.parentComment.user.name, "User")
+        : null;
+
       return (
         <Animated.View
           entering={FadeIn.duration(200)}
-          style={styles.commentRow}
+          style={[
+            styles.commentRow,
+            item.parentComment && styles.nestedCommentRow,
+          ]}
         >
           {/* Avatar */}
           {isSchool ? (
@@ -265,7 +388,7 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
                 {isSchool ? "SGV School" : formatUserName(item.user?.name, "User")}
               </Text>
               {isSchool && (
-                <MaterialIcons name="verified" size={12} color="#FFB300" />
+                <MaterialIcons name="verified" size={13} color="#FFB300" />
               )}
               <Text
                 style={[styles.commentTime, { color: colors.onSurfaceVariant }]}
@@ -274,29 +397,99 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
               </Text>
             </View>
 
+            {/* Replying context badge if threaded */}
+            {parentName && (
+              <View
+                style={[
+                  styles.replyBadge,
+                  { backgroundColor: colors.surfaceContainerHighest },
+                ]}
+              >
+                <MaterialIcons
+                  name="reply"
+                  size={12}
+                  color={colors.primary}
+                />
+                <Text
+                  style={[styles.replyBadgeText, { color: colors.onSurfaceVariant }]}
+                >
+                  Replying to @{parentName}
+                </Text>
+              </View>
+            )}
+
             <Text style={[styles.commentText, { color: colors.onSurface }]}>
               {item.text}
             </Text>
+
+            {/* Action Bar (Reply + Delete) */}
+            <View style={styles.commentActionsRow}>
+              <Pressable
+                onPress={() => handleStartReply(item)}
+                hitSlop={8}
+                style={styles.replyButton}
+              >
+                <Text
+                  style={[styles.replyButtonText, { color: colors.primary }]}
+                >
+                  Reply
+                </Text>
+              </Pressable>
+
+              {canDelete && (
+                <Pressable
+                  onPress={() => handleDeleteComment(item)}
+                  hitSlop={8}
+                  style={styles.deleteButton}
+                >
+                  <Text
+                    style={[
+                      styles.replyButtonText,
+                      { color: colors.onSurfaceVariant },
+                    ]}
+                  >
+                    Delete
+                  </Text>
+                </Pressable>
+              )}
+            </View>
           </View>
 
-          {/* Delete option */}
-          {canDelete && (
-            <Pressable
-              onPress={() => handleDeleteComment(item)}
-              hitSlop={10}
-              style={styles.deleteButton}
-            >
-              <MaterialIcons
-                name="delete-outline"
-                size={18}
-                color={colors.onSurfaceVariant}
-              />
-            </Pressable>
-          )}
+          {/* Comment Like Heart */}
+          <Pressable
+            onPress={() => handleToggleLikeComment(item._id)}
+            hitSlop={10}
+            style={styles.likeCommentButton}
+          >
+            <MaterialIcons
+              name={item.isLiked ? "favorite" : "favorite-border"}
+              size={16}
+              color={item.isLiked ? "#FF2D55" : colors.onSurfaceVariant}
+            />
+            {item.likesCount > 0 && (
+              <Text
+                style={[
+                  styles.commentLikeCount,
+                  {
+                    color: item.isLiked ? "#FF2D55" : colors.onSurfaceVariant,
+                  },
+                ]}
+              >
+                {item.likesCount}
+              </Text>
+            )}
+          </Pressable>
         </Animated.View>
       );
     },
-    [colors, user, isAdmin, handleDeleteComment]
+    [
+      colors,
+      user,
+      isAdmin,
+      handleDeleteComment,
+      handleStartReply,
+      handleToggleLikeComment,
+    ]
   );
 
   return (
@@ -367,6 +560,30 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
             />
           )}
 
+          {/* Replying banner indicator */}
+          {replyingTo && (
+            <View
+              style={[
+                styles.replyingBanner,
+                { backgroundColor: colors.surfaceContainerHighest },
+              ]}
+            >
+              <Text
+                numberOfLines={1}
+                style={[styles.replyingBannerText, { color: colors.onSurface }]}
+              >
+                Replying to <Text style={{ fontFamily: FONTS.bold }}>@{replyingTo.name}</Text>
+              </Text>
+              <Pressable onPress={handleCancelReply} hitSlop={8}>
+                <MaterialIcons
+                  name="close"
+                  size={16}
+                  color={colors.onSurfaceVariant}
+                />
+              </Pressable>
+            </View>
+          )}
+
           {/* Quick Emoji Reaction Bar */}
           <View
             style={[styles.emojiBar, { borderTopColor: colors.outlineVariant }]}
@@ -399,51 +616,71 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
                 Comment as:
               </Text>
               <Pressable
-                onPress={() => setPostAsSchool(!postAsSchool)}
+                onPress={() => setPostAsSchool(false)}
                 style={[
                   styles.adminTogglePill,
-                  {
-                    backgroundColor: postAsSchool ? "#FFF8E1" : colors.surface,
+                  !postAsSchool && {
+                    backgroundColor: colors.primary,
                   },
                 ]}
               >
-                {postAsSchool ? (
-                  <Image
-                    source={require("../../assets/images/icon.png")}
-                    style={{ width: 16, height: 16, borderRadius: 8 }}
-                    contentFit="cover"
-                  />
-                ) : (
-                  <MaterialIcons
-                    name="person"
-                    size={14}
-                    color={colors.primary}
-                  />
-                )}
                 <Text
                   style={[
                     styles.adminToggleText,
-                    { color: postAsSchool ? "#E65100" : colors.onSurface },
+                    {
+                      color: !postAsSchool ? "#fff" : colors.onSurfaceVariant,
+                    },
                   ]}
                 >
-                  {postAsSchool ? "SGV School" : "Myself"}
+                  Me
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => setPostAsSchool(true)}
+                style={[
+                  styles.adminTogglePill,
+                  postAsSchool && {
+                    backgroundColor: "#FFB300",
+                  },
+                ]}
+              >
+                <MaterialIcons
+                  name="school"
+                  size={14}
+                  color={postAsSchool ? "#000" : colors.onSurfaceVariant}
+                />
+                <Text
+                  style={[
+                    styles.adminToggleText,
+                    {
+                      color: postAsSchool ? "#000" : colors.onSurfaceVariant,
+                    },
+                  ]}
+                >
+                  SGV School
                 </Text>
               </Pressable>
             </View>
           )}
 
-          {/* Input Bar */}
+          {/* Input Area */}
           <View
-            style={[styles.inputRow, { borderTopColor: colors.outlineVariant }]}
+            style={[
+              styles.inputRow,
+              {
+                borderTopColor: colors.outlineVariant,
+                backgroundColor: colors.surface,
+              },
+            ]}
           >
+            <UserAvatar
+              photoUrl={postAsSchool ? null : user?.profilePhoto}
+              name={postAsSchool ? "School" : formatUserName(user?.name, "Me")}
+              role={postAsSchool ? "school" : user?.role}
+              size={34}
+            />
             <TextInput
-              placeholder={user ? "Add a comment..." : "Log in to comment"}
-              placeholderTextColor={colors.onSurfaceVariant}
-              value={commentText}
-              onChangeText={setCommentText}
-              multiline
-              maxLength={600}
-              editable={!!user && !submitting}
+              ref={inputRef}
               style={[
                 styles.textInput,
                 {
@@ -451,6 +688,16 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
                   color: colors.onSurface,
                 },
               ]}
+              placeholder={
+                replyingTo
+                  ? `Reply to @${replyingTo.name}...`
+                  : "Add a comment for SGV..."
+              }
+              placeholderTextColor={colors.onSurfaceVariant}
+              value={commentText}
+              onChangeText={setCommentText}
+              multiline
+              maxLength={600}
             />
             <Pressable
               onPress={handleSendComment}
@@ -461,7 +708,6 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
                   backgroundColor: commentText.trim()
                     ? colors.primary
                     : colors.surfaceContainerHighest,
-                  opacity: commentText.trim() ? 1 : 0.6,
                 },
               ]}
             >
@@ -469,8 +715,8 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
                 <MaterialIcons
-                  name="send"
-                  size={18}
+                  name="arrow-upward"
+                  size={20}
                   color={commentText.trim() ? "#fff" : colors.onSurfaceVariant}
                 />
               )}
@@ -485,68 +731,74 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.45)",
     justifyContent: "flex-end",
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
   container: {
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    maxHeight: "82%",
-    minHeight: "55%",
+    maxHeight: "85%",
+    minHeight: "50%",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    overflow: "hidden",
   },
   header: {
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 14,
+    paddingTop: 8,
+    paddingBottom: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   handleBar: {
-    width: 38,
+    width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "rgba(128,128,128,0.3)",
-    marginBottom: 12,
+    backgroundColor: "rgba(128,128,128,0.4)",
+    marginBottom: 8,
   },
   headerTitleRow: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
+    alignItems: "center",
     width: "100%",
+    paddingHorizontal: 16,
   },
   headerTitle: {
     fontSize: FONT_SIZES.lg,
     fontFamily: FONTS.bold,
   },
   listContent: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    padding: 16,
+    gap: 16,
   },
   loadingContainer: {
-    flex: 1,
+    padding: 40,
     justifyContent: "center",
     alignItems: "center",
   },
   emptyContainer: {
-    flex: 1,
+    padding: 40,
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 40,
     gap: 8,
   },
   emptyTitle: {
     fontSize: FONT_SIZES.lg,
     fontFamily: FONTS.bold,
+    marginTop: 8,
   },
   emptySubtitle: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
   },
   commentRow: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 16,
     gap: 10,
+    alignItems: "flex-start",
+  },
+  nestedCommentRow: {
+    marginLeft: 20,
+    borderLeftWidth: 2,
+    borderLeftColor: "rgba(128,128,128,0.2)",
+    paddingLeft: 8,
   },
   commentAvatar: {
     width: 34,
@@ -554,10 +806,6 @@ const styles = StyleSheet.create({
     borderRadius: 17,
     justifyContent: "center",
     alignItems: "center",
-  },
-  avatarText: {
-    fontSize: FONT_SIZES.md,
-    fontFamily: FONTS.bold,
   },
   commentBody: {
     flex: 1,
@@ -577,13 +825,62 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
     marginLeft: 4,
   },
+  replyBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginBottom: 4,
+  },
+  replyBadgeText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.medium,
+  },
   commentText: {
     fontSize: FONT_SIZES.base,
     fontFamily: FONTS.regular,
     lineHeight: LINE_HEIGHTS.base,
   },
+  commentActionsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginTop: 4,
+  },
+  replyButton: {
+    paddingVertical: 2,
+  },
+  replyButtonText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+  },
   deleteButton: {
-    padding: 4,
+    paddingVertical: 2,
+  },
+  likeCommentButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingTop: 4,
+    paddingLeft: 6,
+  },
+  commentLikeCount: {
+    fontSize: 10,
+    fontFamily: FONTS.bold,
+    marginTop: 2,
+  },
+  replyingBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+  },
+  replyingBannerText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.regular,
   },
   emojiBar: {
     flexDirection: "row",

@@ -11,7 +11,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 import { useApiQuery } from "../../hooks/useApi";
 import { CACHE_TIERS } from "../../utils/cacheConfig";

@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, Dimensions, ScrollView } from "react-native";
 import { LineChart, BarChart, PieChart } from "react-native-chart-kit";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
+import { useTheme, FONTS, FONT_SIZES } from "../theme";
 
 /**
  * PerformanceChart Component

@@ -15,7 +15,7 @@ import {
 import { Image } from "expo-image";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LETTER_SPACINGS } from "../theme";
 import { useToast } from "./ToastProvider";
 import { createApiMutationFn } from "../hooks/useApi";
 import apiConfig from "../config/apiConfig";

@@ -13,7 +13,7 @@ import Animated, {
   withTiming,
   Easing,
 } from "react-native-reanimated";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 import { useApiQuery } from "../../hooks/useApi";
 import apiConfig from "../../config/apiConfig";
@@ -21,6 +21,7 @@ import { CACHE_TIERS } from "../../utils/cacheConfig";
 import {
   getStoryThumbnailUrl,
   getBlurPlaceholderUrl,
+  resolveMediaThumbnail,
 } from "../../utils/cloudinaryUpload";
 import SkeletonLoader from "../SkeletonLoader";
 import VibeStoryViewerModal from "./VibeStoryViewerModal";
@@ -408,9 +409,10 @@ const VibeStoriesTray = ({ onOpenCreate, hideHeader = false }) => {
         isOfficial: true,
         isViewed: isOfficialViewed,
         badgeIcon: "verified",
-        imageUri:
-          officialVibes[0]?.images?.[0]?.thumbnailUrl ||
-          officialVibes[0]?.images?.[0]?.url,
+        imageUri: resolveMediaThumbnail(
+          officialVibes[0]?.images?.[0],
+          "story"
+        ),
         onPress: handleOpenOfficialStories,
       },
       {
@@ -429,9 +431,10 @@ const VibeStoriesTray = ({ onOpenCreate, hideHeader = false }) => {
         isAchievement: true,
         isViewed: isAchievementsViewed,
         badgeIcon: "star",
-        imageUri:
-          achievementVibes[0]?.images?.[0]?.thumbnailUrl ||
-          achievementVibes[0]?.images?.[0]?.url,
+        imageUri: resolveMediaThumbnail(
+          achievementVibes[0]?.images?.[0],
+          "story"
+        ),
         onPress: handleOpenAchievementStories,
       },
     ];

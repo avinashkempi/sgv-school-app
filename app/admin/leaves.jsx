@@ -25,7 +25,7 @@ import {
 import apiConfig from "../../config/apiConfig";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "../../components/ToastProvider";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES } from "../../theme";
 import Header from "../../components/Header";
 import formatClassName from "../../utils/formatClassName";
 import { getISTDateString } from "../../utils/date";

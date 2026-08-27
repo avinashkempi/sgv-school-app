@@ -9,7 +9,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
+import { useTheme, FONTS, FONT_SIZES } from "../theme";
 import { LoadingState, EmptyState } from "./StateComponents";
 import apiFetch from "../utils/apiFetch";
 import apiConfig from "../config/apiConfig";

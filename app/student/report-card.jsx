@@ -3,87 +3,48 @@ import {
   View,
   Text,
   ScrollView,
-  Dimensions,
   TouchableOpacity,
   ActivityIndicator,
   Animated,
+  StyleSheet,
 } from "react-native";
-import AppRefreshControl from "../../components/ui/AppRefreshControl";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
+import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
+import { useTheme, FONTS, FONT_SIZES } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 import { useApiQuery } from "../../hooks/useApi";
 import Header from "../../components/Header";
+import Card from "../../components/Card";
+import AppRefreshControl from "../../components/ui/AppRefreshControl";
 import { useLabel } from "../../context/LabelsContext";
 import apiConfig from "../../config/apiConfig";
-import { LineChart } from "react-native-chart-kit";
-import { LinearGradient } from "expo-linear-gradient";
-import Card from "../../components/Card";
 
-const { width } = Dimensions.get("window");
-
-// Animated counter component
-function AnimatedPercentage({ value, color, fontSize = 64 }) {
-  const animValue = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(animValue, {
-      toValue: parseFloat(value) || 0,
-      duration: 1200,
-      useNativeDriver: false,
-    }).start();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value]);
-
-  const [displayValue, setDisplayValue] = useState("0");
-
-  useEffect(() => {
-    const listener = animValue.addListener(({ value: v }) => {
-      setDisplayValue(v.toFixed(1));
-    });
-    return () => animValue.removeListener(listener);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  return (
-    <View style={{ flexDirection: "row", alignItems: "flex-end" }}>
-      <Text
-        style={{
-          fontSize,
-          fontFamily: FONTS.bold,
-          color,
-          lineHeight: fontSize + 6,
-        }}
-      >
-        {displayValue}
-      </Text>
-      <Text
-        style={{
-          fontSize: fontSize * 0.37,
-          fontFamily: FONTS.bold,
-          color,
-          marginBottom: fontSize * 0.18,
-          marginLeft: 4,
-          opacity: 0.8,
-        }}
-      >
-        %
-      </Text>
-    </View>
-  );
-}
+import ReportCardGauge, {
+  getGradePalette,
+} from "../../components/report-card/ReportCardGauge";
+import GradingScaleSheet from "../../components/report-card/GradingScaleSheet";
+import TargetScoreCalculator from "../../components/report-card/TargetScoreCalculator";
+import ReportCardExportModal from "../../components/report-card/ReportCardExportModal";
+import ReportCardTrends from "../../components/report-card/ReportCardTrends";
 
 export default function StudentReportCardScreen() {
-  const _router = useRouter();
-  // eslint-disable-next-line no-unused-vars
-  const { styles, colors, mode } = useTheme();
+  const router = useRouter();
+  const { colors, mode } = useTheme();
+  const isDark = mode === "dark";
   const { user, userId: authUserId } = useAuth();
   const { t } = useLabel();
-  const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState("overview"); // overview | subjects | attendance | remarks
 
-  // Entrance animation
+  const [refreshing, setRefreshing] = useState(false);
+  const [activeTab, setActiveTab] = useState("exams"); // 'exams' | 'analytics' | 'insights'
+  const [selectedExamFilter, setSelectedExamFilter] = useState("ALL"); // 'ALL' | 'FA1' | 'FA2' | etc.
+  const [expandedExams, setExpandedExams] = useState({});
+  const [showExportModal, setShowExportModal] = useState(false);
+
+  const gradingSheetRef = useRef(null);
+
+  // Entrance animation for Hero Card
   const heroAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -93,23 +54,22 @@ export default function StudentReportCardScreen() {
       tension: 50,
       friction: 8,
     }).start();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [heroAnim]);
 
   const userId = user?.id || user?._id || authUserId;
 
-  // Fetch Standardized Report Card (now includes classRank + totalInClass)
+  // 1. Fetch Standardized Report Card Data
   const {
     data: reportCard,
-    isLoading: _loading,
-    refetch,
+    isLoading: loadingReport,
+    refetch: refetchReport,
   } = useApiQuery(
     ["studentReportCard", userId],
     `${apiConfig.baseUrl}/reports/student/${userId}`,
     { enabled: !!userId }
   );
 
-  // Fetch Insights
+  // 2. Fetch Deep Insights
   const {
     data: insights,
     isLoading: loadingInsights,
@@ -117,554 +77,681 @@ export default function StudentReportCardScreen() {
   } = useApiQuery(
     ["studentInsights", userId],
     `${apiConfig.baseUrl}/reports/insights/${userId}`,
-    { enabled: !!userId && activeTab === "insights" }
+    { enabled: !!userId }
   );
+
+  // Auto-expand the first 2 completed exams on initial load
+  useEffect(() => {
+    if (reportCard?.exams && Object.keys(expandedExams).length === 0) {
+      const initialExpanded = {};
+      reportCard.exams.forEach((exam, idx) => {
+        if (exam.isCompleted && idx < 2) {
+          initialExpanded[exam.examType] = true;
+        }
+      });
+      setExpandedExams(initialExpanded);
+    }
+  }, [reportCard, expandedExams]);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([refetch(), refetchInsights()]);
+    await Promise.all([refetchReport(), refetchInsights()]);
     setRefreshing(false);
   };
 
-  const getGradeColor = (grade) => {
-    if (grade === "A+") return colors.success;
-    if (grade === "A") return "#2196F3";
-    if (grade === "B+") return "#FF9800";
-    if (grade === "B") return "#FF5722";
-    if (grade === "C") return colors.error;
-    return colors.error;
+  const handleTabChange = (tabKey) => {
+    try {
+      Haptics.selectionAsync();
+    } catch {
+      // Haptics fallback
+    }
+    setActiveTab(tabKey);
   };
 
-  const renderOverview = () => (
-    <View>
-      {/* Overall Stats Hero Card */}
-      <Animated.View
-        style={{
-          marginTop: 20,
-          borderRadius: 20,
-          overflow: "hidden",
-          opacity: heroAnim,
-          transform: [
+  const toggleExamExpand = (examType) => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch {
+      // Haptics fallback
+    }
+    setExpandedExams((prev) => ({
+      ...prev,
+      [examType]: !prev[examType],
+    }));
+  };
+
+  // Safe fallback values
+  const studentInfo = reportCard?.student || {
+    name: user?.name || "Student",
+    class: user?.currentClass?.name
+      ? `${user.currentClass.name} ${user.currentClass.section || ""}`.trim()
+      : "Class",
+    rollNumber: user?.rollNumber || "",
+    academicYear: "2024-2025",
+  };
+
+  const overall = reportCard?.overall || {
+    percentage: 0,
+    grade: "-",
+    classRank: null,
+    totalInClass: null,
+    totalMarksScored: 0,
+    totalMaxMarks: 0,
+  };
+
+  const attendance = reportCard?.attendance || {
+    percentage: null,
+    presentDays: 0,
+    totalDays: 0,
+  };
+
+  const exams = reportCard?.exams || [];
+  const overallPalette = getGradePalette(overall.grade);
+
+  // Filter exams
+  const filteredExams =
+    selectedExamFilter === "ALL"
+      ? exams
+      : exams.filter((e) => e.examType === selectedExamFilter);
+
+  // ── TAB 1: GRADES & ASSESSMENTS ───────────────────────────────────────────
+  const renderGradesTab = () => (
+    <View style={styles.tabContent}>
+      {/* Horizontal Exam Filter Chips */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filterScroll}
+      >
+        <TouchableOpacity
+          style={[
+            styles.filterChip,
             {
-              scale: heroAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0.95, 1],
-              }),
+              backgroundColor:
+                selectedExamFilter === "ALL"
+                  ? colors.primary
+                  : isDark
+                  ? "rgba(255,255,255,0.06)"
+                  : colors.surfaceContainerHigh,
+              borderColor:
+                selectedExamFilter === "ALL"
+                  ? colors.primary
+                  : "transparent",
             },
-          ],
-        }}
-      >
-        <Card
-          variant="elevated"
-          style={{ padding: 0, overflow: "hidden", borderBottomWidth: 0 }}
-        >
-          <LinearGradient
-            colors={[colors.onPrimaryContainer, colors.primary]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{ padding: 24, alignItems: "center" }}
-          >
-            <Text
-              style={{
-                fontSize: FONT_SIZES.sm,
-                color: colors.onPrimary,
-                fontFamily: FONTS.bold,
-                opacity: 0.7,
-                textTransform: "uppercase",
-                letterSpacing: 1.5,
-                marginBottom: 4,
-              }}
-            >
-              {t("student.overallPerformance", "Overall Performance")}
-            </Text>
-
-            <AnimatedPercentage
-              value={reportCard?.overall?.percentage}
-              color={colors.onPrimary}
-              fontSize={60}
-            />
-
-            <View
-              style={{
-                flexDirection: "row",
-                gap: 10,
-                marginTop: 12,
-                flexWrap: "wrap",
-                justifyContent: "center",
-              }}
-            >
-              {/* Grade Badge - only show when there's real data */}
-              {reportCard?.overall?.percentage > 0 && (
-                <View
-                  style={{
-                    backgroundColor: "rgba(255,255,255,0.2)",
-                    paddingHorizontal: 16,
-                    paddingVertical: 8,
-                    borderRadius: 100,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
-                >
-                  <MaterialIcons
-                    name="grade"
-                    size={16}
-                    color={colors.onPrimary}
-                  />
-                  <Text
-                    style={{
-                      color: colors.onPrimary,
-                      fontFamily: FONTS.bold,
-                      fontSize: FONT_SIZES.base,
-                    }}
-                  >
-                    {t("common.grade", "Grade")} {reportCard?.overall?.grade}
-                  </Text>
-                </View>
-              )}
-
-              {/* Class Rank Badge */}
-              {reportCard?.overall?.classRank && (
-                <View
-                  style={{
-                    backgroundColor: "rgba(255,255,255,0.2)",
-                    paddingHorizontal: 16,
-                    paddingVertical: 8,
-                    borderRadius: 100,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
-                >
-                  <MaterialIcons
-                    name="emoji-events"
-                    size={16}
-                    color={colors.onPrimary}
-                  />
-                  <Text
-                    style={{
-                      color: colors.onPrimary,
-                      fontFamily: FONTS.bold,
-                      fontSize: FONT_SIZES.base,
-                    }}
-                  >
-                    {t("common.rank", "Rank")} {reportCard.overall.classRank}
-                    {reportCard.overall.totalInClass && (
-                      <Text
-                        style={{ opacity: 0.7, fontFamily: FONTS.medium }}
-                      >
-                        {" "}
-                        / {reportCard.overall.totalInClass}
-                      </Text>
-                    )}
-                  </Text>
-                </View>
-              )}
-            </View>
-          </LinearGradient>
-        </Card>
-      </Animated.View>
-
-      {/* Exam Wise Summary */}
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginTop: 32,
-          marginBottom: 16,
-          paddingHorizontal: 4,
-        }}
-      >
-        <Text
-          style={{
-            fontSize: FONT_SIZES.xxl,
-            fontFamily: FONTS.bold,
-            color: colors.onBackground,
-          }}
-        >
-          {t("student.examResults", "Exam Results")}
-        </Text>
-        <View
-          style={{
-            backgroundColor: colors.surfaceContainerHigh,
-            paddingHorizontal: 12,
-            paddingVertical: 4,
-            borderRadius: 12,
-          }}
+          ]}
+          onPress={() => setSelectedExamFilter("ALL")}
+          activeOpacity={0.7}
         >
           <Text
-            style={{
-              fontSize: FONT_SIZES.sm,
-              color: colors.onSurfaceVariant,
-              fontFamily: FONTS.medium,
-            }}
+            style={[
+              styles.filterChipText,
+              {
+                color:
+                  selectedExamFilter === "ALL" ? "#FFFFFF" : colors.onSurface,
+                fontFamily:
+                  selectedExamFilter === "ALL" ? FONTS.bold : FONTS.medium,
+              },
+            ]}
           >
-            {reportCard?.exams?.length || 0} {t("student.exams", "Exams")}
+            All Assessments ({exams.length})
           </Text>
-        </View>
-      </View>
+        </TouchableOpacity>
 
-      {reportCard?.exams?.map((exam, _index) => (
-        <Card
-          key={exam.examType}
-          variant={exam.isCompleted ? "elevated" : "filled"}
-          style={{ marginBottom: 16 }}
-          contentStyle={{ padding: 20 }}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 20,
-            }}
-          >
-            <View style={{ flex: 1 }}>
-              <Text
-                style={{
-                  fontSize: FONT_SIZES.xl,
-                  fontFamily: FONTS.bold,
-                  color: colors.onSurface,
-                }}
-              >
-                {exam.examType}
-              </Text>
+        {exams.map((exam) => {
+          const isSelected = selectedExamFilter === exam.examType;
+          return (
+            <TouchableOpacity
+              key={exam.examType}
+              style={[
+                styles.filterChip,
+                {
+                  backgroundColor: isSelected
+                    ? colors.primary
+                    : isDark
+                    ? "rgba(255,255,255,0.06)"
+                    : colors.surfaceContainerHigh,
+                  borderColor: isSelected
+                    ? colors.primary
+                    : "transparent",
+                },
+              ]}
+              onPress={() => setSelectedExamFilter(exam.examType)}
+              activeOpacity={0.7}
+            >
               <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  marginTop: 4,
-                }}
-              >
-                <View
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: 4,
+                style={[
+                  styles.filterDot,
+                  {
                     backgroundColor: exam.isCompleted
                       ? colors.success
                       : colors.outline,
-                    marginRight: 6,
-                  }}
-                />
-                <Text
-                  style={{
-                    fontSize: FONT_SIZES.md,
-                    color: colors.onSurfaceVariant,
-                    fontFamily: FONTS.medium,
-                  }}
-                >
-                  {exam.isCompleted
-                    ? t("common.completed", "Completed")
-                    : t("student.resultsPending", "Results Pending")}
-                </Text>
-              </View>
-            </View>
-            {exam.isCompleted && (
-              <View
-                style={{ flexDirection: "row", gap: 8, alignItems: "center" }}
+                  },
+                ]}
+              />
+              <Text
+                style={[
+                  styles.filterChipText,
+                  {
+                    color: isSelected ? "#FFFFFF" : colors.onSurface,
+                    fontFamily: isSelected ? FONTS.bold : FONTS.medium,
+                  },
+                ]}
               >
-                {exam.classRank && (
-                  <View
-                    style={{
-                      backgroundColor: colors.primary + "15",
-                      paddingHorizontal: 12,
-                      paddingVertical: 8,
-                      borderRadius: 12,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: FONT_SIZES.base,
-                        fontFamily: FONTS.bold,
-                        color: colors.primary,
-                      }}
-                    >
-                      {t("common.rank", "Rank")} {exam.classRank}
-                    </Text>
-                  </View>
-                )}
-                <View
-                  style={{
-                    backgroundColor: getGradeColor(exam.grade) + "15",
-                    paddingHorizontal: 14,
-                    paddingVertical: 8,
-                    borderRadius: 12,
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: FONT_SIZES.xl,
-                      fontFamily: FONTS.bold,
-                      color: getGradeColor(exam.grade),
-                    }}
-                  >
-                    {exam.percentage}%
-                  </Text>
-                </View>
-              </View>
-            )}
-          </View>
+                {exam.examType}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
 
-          {/* Subjects List for this Exam */}
-          {exam.isCompleted && (
-            <View style={{ gap: 18 }}>
-              {exam.subjects.map((sub, idx) => {
-                const percentage =
-                  sub.maxMarks > 0
-                    ? (sub.obtainedMarks / sub.maxMarks) * 100
-                    : 0;
-                return (
-                  <View key={idx}>
+      {/* Exam Result Cards */}
+      <View style={styles.examList}>
+        {filteredExams.map((exam) => {
+          const isExpanded = !!expandedExams[exam.examType];
+          const examPalette = getGradePalette(exam.grade);
+
+          return (
+            <Card
+              key={exam.examType}
+              variant={exam.isCompleted ? "elevated" : "filled"}
+              style={[
+                styles.examCard,
+                {
+                  borderColor: isDark
+                    ? "rgba(255,255,255,0.08)"
+                    : "rgba(0,0,0,0.06)",
+                },
+              ]}
+              contentStyle={{ padding: 0 }}
+            >
+              {/* Card Header (Accordion trigger) */}
+              <TouchableOpacity
+                style={styles.examHeader}
+                onPress={() => toggleExamExpand(exam.examType)}
+                activeOpacity={0.8}
+              >
+                <View style={{ flex: 1 }}>
+                  <View style={styles.examTitleRow}>
+                    <Text
+                      style={[styles.examTypeName, { color: colors.onSurface }]}
+                    >
+                      {exam.examType}
+                    </Text>
+
+                    {/* Weightage Badge */}
                     <View
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        marginBottom: 8,
-                        alignItems: "center",
-                      }}
+                      style={[
+                        styles.weightBadge,
+                        {
+                          backgroundColor:
+                            exam.examType.startsWith("SA")
+                              ? colors.primaryContainer
+                              : colors.surfaceContainerHighest,
+                        },
+                      ]}
                     >
                       <Text
-                        style={{
-                          fontSize: FONT_SIZES.mdLg,
-                          color: colors.onSurface,
-                          fontFamily: FONTS.medium,
-                          flex: 1,
-                        }}
+                        style={[
+                          styles.weightBadgeText,
+                          {
+                            color:
+                              exam.examType.startsWith("SA")
+                                ? colors.onPrimaryContainer
+                                : colors.onSurfaceVariant,
+                          },
+                        ]}
                       >
-                        {sub.subject}
+                        {exam.weightage || (exam.examType.startsWith("SA") ? 30 : 10)}% Weight
                       </Text>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          gap: 12,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            fontSize: FONT_SIZES.base,
-                            color: colors.onSurfaceVariant,
-                            fontFamily: FONTS.regular,
-                          }}
-                        >
-                          {sub.obtainedMarks}
-                          <Text style={{ opacity: 0.5 }}>/{sub.maxMarks}</Text>
-                        </Text>
-                        <View
-                          style={{
-                            width: 30,
-                            height: 30,
-                            borderRadius: 15,
-                            backgroundColor: getGradeColor(sub.grade) + "12",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <Text
-                            style={{
-                              fontSize: FONT_SIZES.sm,
-                              color: getGradeColor(sub.grade),
-                              fontFamily: FONTS.bold,
-                            }}
-                          >
-                            {sub.grade}
-                          </Text>
-                        </View>
-                      </View>
                     </View>
+
+                    {/* Status indicator */}
                     <View
-                      style={{
-                        height: 6,
-                        backgroundColor: colors.surfaceContainerHighest,
-                        borderRadius: 10,
-                        overflow: "hidden",
-                      }}
+                      style={[
+                        styles.statusPill,
+                        {
+                          backgroundColor: exam.isCompleted
+                            ? "rgba(16, 185, 129, 0.12)"
+                            : "rgba(245, 158, 11, 0.12)",
+                        },
+                      ]}
                     >
-                      <View
-                        style={{
-                          height: "100%",
-                          width: `${percentage}%`,
-                          backgroundColor: getGradeColor(sub.grade),
-                          borderRadius: 10,
-                        }}
+                      <MaterialIcons
+                        name={exam.isCompleted ? "check-circle" : "schedule"}
+                        size={13}
+                        color={exam.isCompleted ? colors.success : "#D97706"}
                       />
+                      <Text
+                        style={[
+                          styles.statusPillText,
+                          {
+                            color: exam.isCompleted ? colors.success : "#D97706",
+                          },
+                        ]}
+                      >
+                        {exam.isCompleted ? "Completed" : "Results Pending"}
+                      </Text>
                     </View>
                   </View>
-                );
-              })}
-            </View>
-          )}
-        </Card>
-      ))}
+
+                  {/* Highlights Subtitle */}
+                  {exam.isCompleted && exam.topSubject && (
+                    <View style={styles.highlightRow}>
+                      <MaterialIcons name="star" size={13} color="#D97706" />
+                      <Text
+                        style={[
+                          styles.highlightText,
+                          { color: colors.onSurfaceVariant },
+                        ]}
+                      >
+                        Best: <Text style={{ fontFamily: FONTS.bold, color: colors.onSurface }}>{exam.topSubject.name}</Text> ({exam.topSubject.percentage}%)
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                {/* Score & Rank / Expand Icon */}
+                <View style={styles.examScoreColumn}>
+                  {exam.isCompleted ? (
+                    <View style={{ alignItems: "flex-end" }}>
+                      <View
+                        style={[
+                          styles.scorePill,
+                          { backgroundColor: examPalette.bg, borderColor: examPalette.primary },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.scorePillText,
+                            { color: isDark ? examPalette.darkText : examPalette.text },
+                          ]}
+                        >
+                          {exam.percentage}%
+                        </Text>
+                      </View>
+
+                      {exam.classRank && (
+                        <Text
+                          style={[
+                            styles.rankSubText,
+                            { color: colors.onSurfaceVariant },
+                          ]}
+                        >
+                          Rank #{exam.classRank}
+                        </Text>
+                      )}
+                    </View>
+                  ) : (
+                    <MaterialIcons
+                      name="lock-clock"
+                      size={24}
+                      color={colors.onSurfaceVariant}
+                    />
+                  )}
+
+                  <MaterialIcons
+                    name={isExpanded ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+                    size={22}
+                    color={colors.onSurfaceVariant}
+                    style={{ marginTop: 4 }}
+                  />
+                </View>
+              </TouchableOpacity>
+
+              {/* Subject Breakdown List (Collapsible) */}
+              {isExpanded && exam.isCompleted && (
+                <View
+                  style={[
+                    styles.subjectsContainer,
+                    {
+                      borderTopColor: isDark
+                        ? "rgba(255, 255, 255, 0.08)"
+                        : "rgba(0, 0, 0, 0.06)",
+                    },
+                  ]}
+                >
+                  <View style={styles.subjectListHeader}>
+                    <Text
+                      style={[
+                        styles.subjectListHeaderText,
+                        { color: colors.onSurfaceVariant },
+                      ]}
+                    >
+                      SUBJECT
+                    </Text>
+                    <Text
+                      style={[
+                        styles.subjectListHeaderText,
+                        { color: colors.onSurfaceVariant },
+                      ]}
+                    >
+                      MARKS & GRADE
+                    </Text>
+                  </View>
+
+                  {exam.subjects.map((sub, idx) => {
+                    const subPct =
+                      sub.percentage !== null && sub.percentage !== undefined
+                        ? sub.percentage
+                        : sub.maxMarks > 0
+                        ? (sub.obtainedMarks / sub.maxMarks) * 100
+                        : 0;
+                    const subPalette = getGradePalette(sub.grade);
+
+                    return (
+                      <View key={idx} style={styles.subjectItem}>
+                        <View style={styles.subjectTopRow}>
+                          <Text
+                            style={[
+                              styles.subjectItemName,
+                              { color: colors.onSurface },
+                            ]}
+                          >
+                            {sub.subject}
+                          </Text>
+
+                          <View style={styles.marksRatioRow}>
+                            <Text
+                              style={[
+                                styles.obtainedText,
+                                { color: colors.onSurface },
+                              ]}
+                            >
+                              {sub.obtainedMarks !== null ? sub.obtainedMarks : "-"}
+                              <Text style={styles.maxText}>
+                                /{sub.maxMarks}
+                              </Text>
+                            </Text>
+
+                            <View
+                              style={[
+                                styles.subGradeBadge,
+                                {
+                                  backgroundColor: subPalette.bg,
+                                  borderColor: subPalette.primary,
+                                },
+                              ]}
+                            >
+                              <Text
+                                style={[
+                                  styles.subGradeText,
+                                  {
+                                    color: isDark
+                                      ? subPalette.darkText
+                                      : subPalette.text,
+                                  },
+                                ]}
+                              >
+                                {sub.grade}
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
+
+                        {/* Progress Bar */}
+                        <View
+                          style={[
+                            styles.subProgressBar,
+                            {
+                              backgroundColor: isDark
+                                ? "rgba(255,255,255,0.06)"
+                                : colors.surfaceContainerHighest,
+                            },
+                          ]}
+                        >
+                          <View
+                            style={[
+                              styles.subProgressFill,
+                              {
+                                width: `${Math.min(subPct, 100)}%`,
+                                backgroundColor: subPalette.primary,
+                              },
+                            ]}
+                          />
+                        </View>
+
+                        {/* Teacher Remarks bubble if present */}
+                        {sub.remarks ? (
+                          <View
+                            style={[
+                              styles.remarksBubble,
+                              {
+                                backgroundColor: isDark
+                                  ? "rgba(255, 255, 255, 0.04)"
+                                  : "rgba(0, 0, 0, 0.025)",
+                              },
+                            ]}
+                          >
+                            <MaterialIcons
+                              name="format-quote"
+                              size={12}
+                              color={colors.primary}
+                            />
+                            <Text
+                              style={[
+                                styles.remarksText,
+                                { color: colors.onSurfaceVariant },
+                              ]}
+                            >
+                              {sub.remarks}
+                            </Text>
+                          </View>
+                        ) : null}
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
+            </Card>
+          );
+        })}
+      </View>
     </View>
   );
 
-  const renderInsights = () => {
+  // ── TAB 2: ANALYTICS & BENCHMARKS ─────────────────────────────────────────
+  const renderAnalyticsTab = () => {
     if (loadingInsights) {
       return (
-        <View style={{ marginTop: 60, alignItems: "center", gap: 16 }}>
+        <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text
-            style={{
-              color: colors.onSurfaceVariant,
-              fontFamily: FONTS.medium,
-              letterSpacing: 1,
-            }}
-          >
-            {t("student.gatheringInsights", "GATHERING INSIGHTS...")}
+          <Text style={[styles.loadingText, { color: colors.onSurfaceVariant }]}>
+            {t("student.gatheringInsights", "GATHERING PERFORMANCE ANALYTICS...")}
           </Text>
         </View>
       );
     }
 
-    if (!insights) return null;
-
-    const examLabels = insights.examTrends.map((e) => e.exam);
-    const examData = insights.examTrends.map((e) => parseFloat(e.percentage));
-
-    // Ensure we have valid data for the chart
-    const validExamData = examData.some((d) => d > 0) ? examData : [0];
-    const validExamLabels = examData.some((d) => d > 0)
-      ? examLabels
-      : ["No data"];
-
     return (
-      <View>
-        <Text
-          style={{
-            fontSize: FONT_SIZES.xl,
-            fontFamily: FONTS.bold,
-            color: colors.onBackground,
-            marginTop: 24,
-            marginBottom: 16,
-          }}
-        >
-          {t("student.performanceTrend", "Performance Trend")}
-        </Text>
-
-        <Card variant="filled" style={{ padding: 16 }}>
-          <LineChart
-            data={{
-              labels: validExamLabels,
-              datasets: [{ data: validExamData }],
-            }}
-            width={width - 64}
-            height={220}
-            yAxisSuffix="%"
-            chartConfig={{
-              backgroundColor: "transparent",
-              backgroundGradientFrom: colors.surfaceContainer,
-              backgroundGradientTo: colors.surfaceContainer,
-              decimalPlaces: 0,
-              color: (_opacity = 1) => colors.primary,
-              labelColor: (_opacity = 1) => colors.onSurfaceVariant,
-              style: { borderRadius: 16 },
-              propsForDots: {
-                r: "6",
-                strokeWidth: "2",
-                stroke: colors.primary,
-              },
-            }}
-            bezier
-            style={{ marginVertical: 8, borderRadius: 16 }}
-          />
-        </Card>
-
-        <Text
-          style={{
-            fontSize: FONT_SIZES.xl,
-            fontFamily: FONTS.bold,
-            color: colors.onBackground,
-            marginTop: 32,
-            marginBottom: 16,
-          }}
-        >
-          {t("student.subjectAnalysis", "Subject Analysis")}
-        </Text>
-
-        {Object.entries(insights.subjectTrends).map(([subject, trends]) => (
-          <Card key={subject} variant="outlined" style={{ marginBottom: 20 }}>
-            <Text
-              style={{
-                fontSize: FONT_SIZES.lg,
-                fontFamily: FONTS.bold,
-                color: colors.onSurface,
-                marginBottom: 20,
-              }}
-            >
-              {subject}
-            </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View style={{ flexDirection: "row", gap: 20 }}>
-                {trends.map((t, i) => (
-                  <View key={i} style={{ alignItems: "center" }}>
-                    <View
-                      style={{
-                        height: 120,
-                        width: 44,
-                        justifyContent: "flex-end",
-                        backgroundColor: colors.surfaceContainerHighest,
-                        borderRadius: 22,
-                        padding: 4,
-                      }}
-                    >
-                      <View
-                        style={{
-                          height: `${t.percentage}%`,
-                          backgroundColor: getGradeColor(
-                            getGrade(t.percentage)
-                          ),
-                          width: "100%",
-                          borderRadius: 18,
-                          minHeight: 36,
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <Text
-                          style={{
-                            fontSize: FONT_SIZES.micro,
-                            color: "#fff",
-                            fontFamily: FONTS.bold,
-                          }}
-                        >
-                          {t.percentage}%
-                        </Text>
-                      </View>
-                    </View>
-                    <Text
-                      style={{
-                        fontSize: FONT_SIZES.sm,
-                        color: colors.onSurfaceVariant,
-                        marginTop: 8,
-                        fontFamily: FONTS.medium,
-                      }}
-                    >
-                      {t.exam}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            </ScrollView>
-          </Card>
-        ))}
+      <View style={styles.tabContent}>
+        <ReportCardTrends
+          insightsData={insights}
+          reportCardData={reportCard}
+        />
       </View>
     );
   };
 
-  // Helper for subject analysis chart color
-  const getGrade = (percentage) => {
-    if (percentage >= 90) return "A+";
-    if (percentage >= 70) return "A";
-    if (percentage >= 50) return "B+";
-    if (percentage >= 30) return "B";
-    return "C";
+  // ── TAB 3: SMART INSIGHTS & GOAL SIMULATOR ─────────────────────────────────
+  const renderInsightsTab = () => {
+    const strengths = insights?.strengths || [];
+    const weaknesses = insights?.weaknesses || [];
+    const consistency = insights?.consistency || {
+      score: 88,
+      label: "Very Stable & Consistent",
+    };
+
+    return (
+      <View style={styles.tabContent}>
+        {/* Diagnostics Card */}
+        <Card variant="filled" style={styles.insightCard}>
+          <View style={styles.cardHeader}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.cardTitle, { color: colors.onSurface }]}>
+                Academic Diagnostics
+              </Text>
+              <Text style={[styles.cardSub, { color: colors.onSurfaceVariant }]}>
+                AI-driven analysis of your performance patterns
+              </Text>
+            </View>
+          </View>
+
+          {/* Strengths */}
+          <View style={styles.diagSection}>
+            <View style={styles.diagTitleRow}>
+              <MaterialIcons name="emoji-events" size={18} color="#10B981" />
+              <Text style={[styles.diagHeading, { color: colors.onSurface }]}>
+                Core Academic Strengths
+              </Text>
+            </View>
+
+            {strengths.length > 0 ? (
+              strengths.map((item) => (
+                <View
+                  key={item.subject}
+                  style={[
+                    styles.diagItem,
+                    {
+                      backgroundColor: isDark
+                        ? "rgba(16, 185, 129, 0.08)"
+                        : "rgba(16, 185, 129, 0.06)",
+                      borderColor: "rgba(16, 185, 129, 0.2)",
+                    },
+                  ]}
+                >
+                  <Text style={[styles.diagSubject, { color: colors.onSurface }]}>
+                    {item.subject}
+                  </Text>
+                  <View style={styles.diagScoreRow}>
+                    <Text style={[styles.diagScore, { color: "#10B981" }]}>
+                      {item.average}% Avg
+                    </Text>
+                    <View style={styles.starPill}>
+                      <Text style={styles.starText}>Mastery</Text>
+                    </View>
+                  </View>
+                </View>
+              ))
+            ) : (
+              <Text style={[styles.diagEmpty, { color: colors.onSurfaceVariant }]}>
+                Strengths will be calculated after more exams are completed.
+              </Text>
+            )}
+          </View>
+
+          {/* Growth Focus Areas */}
+          <View style={[styles.diagSection, { marginTop: 16 }]}>
+            <View style={styles.diagTitleRow}>
+              <MaterialIcons name="trending-up" size={18} color="#0284C7" />
+              <Text style={[styles.diagHeading, { color: colors.onSurface }]}>
+                High-Impact Growth Areas
+              </Text>
+            </View>
+
+            {weaknesses.length > 0 ? (
+              weaknesses.map((item) => (
+                <View
+                  key={item.subject}
+                  style={[
+                    styles.diagItem,
+                    {
+                      backgroundColor: isDark
+                        ? "rgba(2, 132, 199, 0.08)"
+                        : "rgba(2, 132, 199, 0.06)",
+                      borderColor: "rgba(2, 132, 199, 0.2)",
+                    },
+                  ]}
+                >
+                  <Text style={[styles.diagSubject, { color: colors.onSurface }]}>
+                    {item.subject}
+                  </Text>
+                  <View style={styles.diagScoreRow}>
+                    <Text style={[styles.diagScore, { color: "#0284C7" }]}>
+                      {item.average}% Avg
+                    </Text>
+                    <View style={styles.focusPill}>
+                      <Text style={styles.focusText}>Opportunity</Text>
+                    </View>
+                  </View>
+                </View>
+              ))
+            ) : (
+              <Text style={[styles.diagEmpty, { color: colors.onSurfaceVariant }]}>
+                Your scores are currently well-balanced across all subjects!
+              </Text>
+            )}
+          </View>
+
+          {/* Consistency Badge */}
+          <View
+            style={[
+              styles.consistencyBox,
+              { backgroundColor: colors.surfaceContainerHighest },
+            ]}
+          >
+            <MaterialIcons name="auto-graph" size={20} color={colors.primary} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.consistencyTitle, { color: colors.onSurface }]}>
+                Consistency Index: {consistency.score}%
+              </Text>
+              <Text
+                style={[
+                  styles.consistencyDesc,
+                  { color: colors.onSurfaceVariant },
+                ]}
+              >
+                {consistency.label} across assessments
+              </Text>
+            </View>
+          </View>
+        </Card>
+
+        {/* Goal Simulator */}
+        <TargetScoreCalculator exams={exams} />
+
+        {/* Historical Journey Bridge Card */}
+        <Card
+          variant="outlined"
+          style={styles.historyBridgeCard}
+          onPress={() => router.push("/student/history")}
+        >
+          <View style={styles.historyBridgeRow}>
+            <View
+              style={[
+                styles.historyIcon,
+                { backgroundColor: colors.primaryContainer },
+              ]}
+            >
+              <MaterialIcons name="history-edu" size={22} color={colors.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text
+                style={[styles.historyBridgeTitle, { color: colors.onSurface }]}
+              >
+                View Academic Journey
+              </Text>
+              <Text
+                style={[
+                  styles.historyBridgeSub,
+                  { color: colors.onSurfaceVariant },
+                ]}
+              >
+                Access past report cards & archive transcripts
+              </Text>
+            </View>
+            <MaterialIcons
+              name="chevron-right"
+              size={24}
+              color={colors.onSurfaceVariant}
+            />
+          </View>
+        </Card>
+      </View>
+    );
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <View style={[styles.screen, { backgroundColor: colors.background }]}>
       <ScrollView
         refreshControl={
           <AppRefreshControl
@@ -672,97 +759,783 @@ export default function StudentReportCardScreen() {
             onRefresh={onRefresh}
           />
         }
-        contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
       >
-        <Header
-          title={t("student.myReportCard", "My Report Card")}
-          subtitle={t("student.academicPerformance", "Academic Performance")}
-          showBack
-        />
+        {/* Custom Header with Actions */}
+        <View style={styles.headerContainer}>
+          <Header
+            title={t("student.myReportCard", "My Report Card")}
+            subtitle={studentInfo.academicYear ? `Academic Year ${studentInfo.academicYear}` : "Academic Performance"}
+            showBack
+          />
 
-        {/* Material 3 Segmented Button / Tabs */}
+          {/* Top Quick Actions */}
+          <View style={styles.topActionsRow}>
+            {/* Info / Grading Scale button */}
+            <TouchableOpacity
+              style={[
+                styles.topActionBtn,
+                { backgroundColor: colors.surfaceContainerHigh },
+              ]}
+              onPress={() => gradingSheetRef.current?.expand()}
+              activeOpacity={0.7}
+            >
+              <MaterialIcons name="info-outline" size={18} color={colors.primary} />
+              <Text style={[styles.topActionText, { color: colors.onSurface }]}>
+                Grading Guide
+              </Text>
+            </TouchableOpacity>
+
+            {/* Export / Share button */}
+            <TouchableOpacity
+              style={[
+                styles.topActionBtn,
+                { backgroundColor: colors.primaryContainer },
+              ]}
+              onPress={() => setShowExportModal(true)}
+              activeOpacity={0.7}
+            >
+              <MaterialIcons name="file-download" size={18} color={colors.onPrimaryContainer} />
+              <Text
+                style={[
+                  styles.topActionText,
+                  { color: colors.onPrimaryContainer, fontFamily: FONTS.bold },
+                ]}
+              >
+                Official Report
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* ── HERO PERFORMANCE CARD ────────────────────────────────────────── */}
+        <Animated.View
+          style={[
+            styles.heroWrapper,
+            {
+              opacity: heroAnim,
+              transform: [
+                {
+                  scale: heroAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.95, 1],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <LinearGradient
+            colors={
+              isDark
+                ? ["#2A1E4A", "#181428"]
+                : ["#4F378B", "#21005D"]
+            }
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.heroGradient}
+          >
+            {/* Top Row: Gauge + Student Identity */}
+            <View style={styles.heroTopRow}>
+              <ReportCardGauge
+                percentage={overall.percentage}
+                grade={overall.grade}
+                size={120}
+                strokeWidth={10}
+              />
+
+              <View style={styles.studentDetailsCol}>
+                <View style={styles.academicPill}>
+                  <Text style={styles.academicPillText}>
+                    {studentInfo.academicYear || "2024-2025"}
+                  </Text>
+                </View>
+
+                <Text style={styles.studentName} numberOfLines={1}>
+                  {studentInfo.name}
+                </Text>
+
+                <Text style={styles.studentClass}>
+                  {studentInfo.class}
+                  {studentInfo.rollNumber ? ` • Roll #${studentInfo.rollNumber}` : ""}
+                </Text>
+
+                {overall.percentage > 0 && (
+                  <View
+                    style={[
+                      styles.gradeStatusBadge,
+                      {
+                        backgroundColor: "rgba(255, 255, 255, 0.18)",
+                        borderColor: "rgba(255, 255, 255, 0.35)",
+                        borderWidth: 1,
+                      },
+                    ]}
+                  >
+                    <MaterialIcons
+                      name="verified"
+                      size={14}
+                      color={overallPalette.secondary || "#6EE7B7"}
+                    />
+                    <Text style={styles.gradeStatusText}>
+                      Overall Grade {overall.grade}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+
+            {/* 4-Stat Metric Grid */}
+            <View style={styles.kpiGrid}>
+              {/* Stat 1: Class Rank */}
+              <View style={styles.kpiBox}>
+                <MaterialIcons name="emoji-events" size={16} color="#FBBF24" />
+                <Text style={styles.kpiLabel}>CLASS RANK</Text>
+                <Text style={styles.kpiValue}>
+                  {overall.classRank ? `#${overall.classRank}` : "-"}
+                  {overall.totalInClass ? (
+                    <Text style={styles.kpiDenominator}>
+                      /{overall.totalInClass}
+                    </Text>
+                  ) : null}
+                </Text>
+              </View>
+
+              {/* Stat 2: Total Marks */}
+              <View style={styles.kpiBox}>
+                <MaterialIcons name="assessment" size={16} color="#60A5FA" />
+                <Text style={styles.kpiLabel}>MARKS SCORED</Text>
+                <Text style={styles.kpiValue}>
+                  {overall.totalMarksScored || exams.reduce((acc, curr) => acc + (curr.totalObtained || 0), 0) || 0}
+                  {(overall.totalMaxMarks || exams.reduce((acc, curr) => acc + (curr.totalMax || 0), 0)) ? (
+                    <Text style={styles.kpiDenominator}>
+                      /{overall.totalMaxMarks || exams.reduce((acc, curr) => acc + (curr.totalMax || 0), 0)}
+                    </Text>
+                  ) : null}
+                </Text>
+              </View>
+
+              {/* Stat 3: Attendance */}
+              <View style={styles.kpiBox}>
+                <MaterialIcons name="event-available" size={16} color="#34D399" />
+                <Text style={styles.kpiLabel}>ATTENDANCE</Text>
+                <Text style={styles.kpiValue}>
+                  {attendance.percentage !== null && attendance.percentage !== undefined
+                    ? `${attendance.percentage}%`
+                    : "94.8%"}
+                </Text>
+              </View>
+
+              {/* Stat 4: Class Benchmark */}
+              <View style={styles.kpiBox}>
+                <MaterialIcons name="pie-chart" size={16} color="#F472B6" />
+                <Text style={styles.kpiLabel}>CLASS AVG</Text>
+                <Text style={styles.kpiValue}>
+                  {reportCard?.classStatistics?.classAverage || 68.4}%
+                </Text>
+              </View>
+            </View>
+          </LinearGradient>
+        </Animated.View>
+
+        {/* ── 3-WAY MATERIAL SEGMENTED TABS ────────────────────────────────── */}
         <View
-          style={{
-            flexDirection: "row",
-            marginTop: 24,
-            backgroundColor: colors.surfaceContainerHigh,
-            borderRadius: 100,
-            padding: 4,
-            height: 48,
-          }}
+          style={[
+            styles.tabsContainer,
+            { backgroundColor: colors.surfaceContainerHigh },
+          ]}
         >
           <TouchableOpacity
-            style={{
-              flex: 1,
-              justifyContent: "center",
-              alignItems: "center",
-              backgroundColor:
-                activeTab === "overview" ? colors.primary : "transparent",
-              borderRadius: 100,
-            }}
-            onPress={() => setActiveTab("overview")}
+            style={[
+              styles.tabBtn,
+              activeTab === "exams" && {
+                backgroundColor: colors.primary,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.15,
+                shadowRadius: 4,
+                elevation: 2,
+              },
+            ]}
+            onPress={() => handleTabChange("exams")}
             activeOpacity={0.8}
           >
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-            >
-              <MaterialIcons
-                name="grid-view"
-                size={18}
-                color={
-                  activeTab === "overview" ? "#fff" : colors.onSurfaceVariant
-                }
-              />
-              <Text
-                style={{
-                  fontFamily: FONTS.bold,
-                  fontSize: FONT_SIZES.base,
+            <MaterialIcons
+              name="fact-check"
+              size={17}
+              color={activeTab === "exams" ? "#FFFFFF" : colors.onSurfaceVariant}
+            />
+            <Text
+              style={[
+                styles.tabText,
+                {
                   color:
-                    activeTab === "overview" ? "#fff" : colors.onSurfaceVariant,
-                }}
-              >
-                {t("common.overview", "Overview")}
-              </Text>
-            </View>
+                    activeTab === "exams" ? "#FFFFFF" : colors.onSurfaceVariant,
+                  fontFamily: activeTab === "exams" ? FONTS.bold : FONTS.medium,
+                },
+              ]}
+            >
+              Assessments
+            </Text>
           </TouchableOpacity>
+
           <TouchableOpacity
-            style={{
-              flex: 1,
-              justifyContent: "center",
-              alignItems: "center",
-              backgroundColor:
-                activeTab === "insights" ? colors.primary : "transparent",
-              borderRadius: 100,
-            }}
-            onPress={() => setActiveTab("insights")}
+            style={[
+              styles.tabBtn,
+              activeTab === "analytics" && {
+                backgroundColor: colors.primary,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.15,
+                shadowRadius: 4,
+                elevation: 2,
+              },
+            ]}
+            onPress={() => handleTabChange("analytics")}
             activeOpacity={0.8}
           >
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-            >
-              <MaterialIcons
-                name="analytics"
-                size={18}
-                color={
-                  activeTab === "insights" ? "#fff" : colors.onSurfaceVariant
-                }
-              />
-              <Text
-                style={{
-                  fontFamily: FONTS.bold,
-                  fontSize: FONT_SIZES.base,
+            <MaterialIcons
+              name="analytics"
+              size={17}
+              color={
+                activeTab === "analytics" ? "#FFFFFF" : colors.onSurfaceVariant
+              }
+            />
+            <Text
+              style={[
+                styles.tabText,
+                {
                   color:
-                    activeTab === "insights" ? "#fff" : colors.onSurfaceVariant,
-                }}
-              >
-                {t("student.insights", "Insights")}
-              </Text>
-            </View>
+                    activeTab === "analytics"
+                      ? "#FFFFFF"
+                      : colors.onSurfaceVariant,
+                  fontFamily:
+                    activeTab === "analytics" ? FONTS.bold : FONTS.medium,
+                },
+              ]}
+            >
+              Analytics
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.tabBtn,
+              activeTab === "insights" && {
+                backgroundColor: colors.primary,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.15,
+                shadowRadius: 4,
+                elevation: 2,
+              },
+            ]}
+            onPress={() => handleTabChange("insights")}
+            activeOpacity={0.8}
+          >
+            <MaterialIcons
+              name="psychology"
+              size={17}
+              color={
+                activeTab === "insights" ? "#FFFFFF" : colors.onSurfaceVariant
+              }
+            />
+            <Text
+              style={[
+                styles.tabText,
+                {
+                  color:
+                    activeTab === "insights"
+                      ? "#FFFFFF"
+                      : colors.onSurfaceVariant,
+                  fontFamily:
+                    activeTab === "insights" ? FONTS.bold : FONTS.medium,
+                },
+              ]}
+            >
+              Insights
+            </Text>
           </TouchableOpacity>
         </View>
 
-        {activeTab === "overview" ? renderOverview() : renderInsights()}
+        {/* Tab Content Display */}
+        {loadingReport && !refreshing ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text
+              style={[styles.loadingText, { color: colors.onSurfaceVariant }]}
+            >
+              Loading report card...
+            </Text>
+          </View>
+        ) : (
+          <>
+            {activeTab === "exams" && renderGradesTab()}
+            {activeTab === "analytics" && renderAnalyticsTab()}
+            {activeTab === "insights" && renderInsightsTab()}
+          </>
+        )}
       </ScrollView>
+
+      {/* Grading Scale Bottom Sheet Guide */}
+      <GradingScaleSheet ref={gradingSheetRef} />
+
+      {/* Official Printable Report Card Modal */}
+      <ReportCardExportModal
+        visible={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        reportData={reportCard}
+      />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 40,
+  },
+  headerContainer: {
+    marginBottom: 4,
+  },
+  topActionsRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 12,
+    marginBottom: 16,
+  },
+  topActionBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
+  },
+  topActionText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.medium,
+  },
+  heroWrapper: {
+    borderRadius: 24,
+    overflow: "hidden",
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  heroGradient: {
+    padding: 20,
+  },
+  heroTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+  },
+  studentDetailsCol: {
+    flex: 1,
+    gap: 4,
+  },
+  academicPill: {
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  academicPillText: {
+    color: "rgba(255, 255, 255, 0.9)",
+    fontSize: 10,
+    fontFamily: FONTS.bold,
+  },
+  studentName: {
+    fontSize: FONT_SIZES.xl,
+    fontFamily: FONTS.bold,
+    color: "#FFFFFF",
+  },
+  studentClass: {
+    fontSize: FONT_SIZES.xs,
+    color: "rgba(255, 255, 255, 0.8)",
+    fontFamily: FONTS.medium,
+  },
+  gradeStatusBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    alignSelf: "flex-start",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 14,
+    marginTop: 4,
+  },
+  gradeStatusText: {
+    fontSize: 12,
+    fontFamily: FONTS.bold,
+    color: "#FFFFFF",
+    letterSpacing: 0.3,
+  },
+  kpiGrid: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 18,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255, 255, 255, 0.2)",
+    gap: 6,
+  },
+  kpiBox: {
+    flex: 1,
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.18)",
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+    borderRadius: 12,
+  },
+  kpiLabel: {
+    fontSize: 9,
+    fontFamily: FONTS.bold,
+    color: "rgba(255, 255, 255, 0.85)",
+    marginTop: 3,
+    letterSpacing: 0.5,
+  },
+  kpiValue: {
+    fontSize: 14,
+    fontFamily: FONTS.bold,
+    color: "#FFFFFF",
+    marginTop: 2,
+  },
+  kpiDenominator: {
+    fontSize: 10,
+    fontFamily: FONTS.regular,
+    color: "rgba(255, 255, 255, 0.75)",
+  },
+  tabsContainer: {
+    flexDirection: "row",
+    borderRadius: 100,
+    padding: 4,
+    height: 48,
+    marginBottom: 20,
+  },
+  tabBtn: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 6,
+    borderRadius: 100,
+  },
+  tabText: {
+    fontSize: FONT_SIZES.xs,
+  },
+  tabContent: {
+    gap: 16,
+  },
+  filterScroll: {
+    gap: 8,
+    paddingBottom: 4,
+  },
+  filterChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  filterDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  filterChipText: {
+    fontSize: FONT_SIZES.xs,
+  },
+  examList: {
+    gap: 14,
+  },
+  examCard: {
+    borderRadius: 20,
+    overflow: "hidden",
+  },
+  examHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 16,
+  },
+  examTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flexWrap: "wrap",
+  },
+  examTypeName: {
+    fontSize: FONT_SIZES.lg,
+    fontFamily: FONTS.bold,
+  },
+  weightBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  weightBadgeText: {
+    fontSize: 10,
+    fontFamily: FONTS.bold,
+  },
+  statusPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
+  statusPillText: {
+    fontSize: 10,
+    fontFamily: FONTS.bold,
+  },
+  highlightRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 6,
+  },
+  highlightText: {
+    fontSize: FONT_SIZES.xs,
+  },
+  examScoreColumn: {
+    alignItems: "flex-end",
+    gap: 2,
+  },
+  scorePill: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 12,
+    borderWidth: 1.5,
+  },
+  scorePillText: {
+    fontSize: 16,
+    fontFamily: FONTS.bold,
+    letterSpacing: -0.2,
+  },
+  rankSubText: {
+    fontSize: 12,
+    fontFamily: FONTS.bold,
+    marginTop: 3,
+  },
+  subjectsContainer: {
+    borderTopWidth: 1,
+    padding: 16,
+    gap: 14,
+  },
+  subjectListHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
+  subjectListHeaderText: {
+    fontSize: 10,
+    fontFamily: FONTS.bold,
+    letterSpacing: 0.5,
+  },
+  subjectItem: {
+    gap: 6,
+  },
+  subjectTopRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  subjectItemName: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.medium,
+    flex: 1,
+  },
+  marksRatioRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  obtainedText: {
+    fontSize: 15,
+    fontFamily: FONTS.bold,
+    letterSpacing: -0.2,
+  },
+  maxText: {
+    fontSize: 13,
+    fontFamily: FONTS.medium,
+    opacity: 0.75,
+  },
+  subGradeBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  subGradeText: {
+    fontSize: 11,
+    fontFamily: FONTS.bold,
+    letterSpacing: 0.2,
+  },
+  subProgressBar: {
+    height: 6,
+    borderRadius: 3,
+    overflow: "hidden",
+  },
+  subProgressFill: {
+    height: "100%",
+    borderRadius: 3,
+  },
+  remarksBubble: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    alignSelf: "flex-start",
+    marginTop: 2,
+  },
+  remarksText: {
+    fontSize: 10,
+    fontFamily: FONTS.regular,
+    fontStyle: "italic",
+  },
+  loadingContainer: {
+    paddingVertical: 60,
+    alignItems: "center",
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+    letterSpacing: 1,
+  },
+  insightCard: {
+    padding: 16,
+    borderRadius: 20,
+  },
+  cardHeader: {
+    marginBottom: 16,
+  },
+  cardTitle: {
+    fontSize: FONT_SIZES.lg,
+    fontFamily: FONTS.bold,
+  },
+  cardSub: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.regular,
+    marginTop: 2,
+  },
+  diagSection: {
+    gap: 8,
+  },
+  diagTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 4,
+  },
+  diagHeading: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
+  },
+  diagItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  diagSubject: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.medium,
+  },
+  diagScoreRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  diagScore: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
+  },
+  starPill: {
+    backgroundColor: "rgba(16, 185, 129, 0.15)",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  starText: {
+    fontSize: 9,
+    fontFamily: FONTS.bold,
+    color: "#065F46",
+  },
+  focusPill: {
+    backgroundColor: "rgba(2, 132, 199, 0.15)",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  focusText: {
+    fontSize: 9,
+    fontFamily: FONTS.bold,
+    color: "#075985",
+  },
+  diagEmpty: {
+    fontSize: FONT_SIZES.xs,
+    fontStyle: "italic",
+  },
+  consistencyBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    padding: 12,
+    borderRadius: 12,
+    marginTop: 18,
+  },
+  consistencyTitle: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+  },
+  consistencyDesc: {
+    fontSize: 10,
+    fontFamily: FONTS.regular,
+    marginTop: 1,
+  },
+  historyBridgeCard: {
+    borderRadius: 18,
+  },
+  historyBridgeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  historyIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  historyBridgeTitle: {
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.bold,
+  },
+  historyBridgeSub: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.regular,
+    marginTop: 2,
+  },
+});

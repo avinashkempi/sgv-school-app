@@ -1,7 +1,7 @@
 import React from "react";
 import { Modal, View, Text, StyleSheet, Pressable } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS } from "../../theme";
 import { useLabel } from "../../context/LabelsContext";
 import Button from "../Button";
 

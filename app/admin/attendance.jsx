@@ -26,7 +26,7 @@ import apiFetch from "../../utils/apiFetch";
 import { useQueryClient } from "@tanstack/react-query";
 import apiConfig from "../../config/apiConfig";
 import { useToast } from "../../components/ToastProvider";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES } from "../../theme";
 import { EmptyState } from "../../components/StateComponents";
 
 import AttendanceView from "../../components/AttendanceView";
@@ -183,7 +183,7 @@ export default function AdminAttendance() {
         date: getISTDateString(date),
         isSchoolEvent: true,
         isHoliday: true,
-        description: "Manually marked as a holiday from attendance dashboard",
+        description: "Official school holiday declared by administration.",
       });
     }
   };
@@ -1910,9 +1910,11 @@ export default function AdminAttendance() {
 
           {activeTab === "my_attendance" && (
             <AttendanceView
+              role={user?.role || "admin"}
               attendanceHistory={allMyAttendance}
               summary={mySummaryData}
-              loading={myAttendanceLoading}
+              holidays={myAttendanceResponse?.holidays}
+              loading={myAttendanceLoading && !myAttendanceResponse}
               refreshing={refreshing}
               onRefresh={onRefresh}
               onLoadMore={loadMoreMyAttendance}

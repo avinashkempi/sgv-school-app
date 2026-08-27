@@ -9,7 +9,7 @@ import AppRefreshControl from "../../components/ui/AppRefreshControl";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES } from "../../theme";
 import apiConfig from "../../config/apiConfig";
 import { useApiQuery } from "../../hooks/useApi";
 import { CACHE_TIERS } from "../../utils/cacheConfig";

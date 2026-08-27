@@ -33,6 +33,7 @@ import {
   formatUserName,
   formatVibeAuthorSubtitle,
 } from "../../utils/userFormatters";
+import { isVideoUrl, getVideoPosterUrl } from "../../utils/cloudinaryUpload";
 
 if (
   Platform.OS === "android" &&
@@ -76,7 +77,7 @@ const renderRichCaption = (caption, onTagPress, colors) => {
           onPress={() => onTagPress?.(part)}
           style={[styles.hashtag, { color: colors.primary }]}
         >
-          {part}{" "}
+          {part}
         </Text>
       );
     }
@@ -214,14 +215,25 @@ const VibeCard = ({
       messageLines.push(APP_DOWNLOAD_URL);
 
       const shareMessage = messageLines.join("\n");
-      const firstImage =
-        vibe.images?.[0]?.url ||
-        (typeof vibe.images?.[0] === "string" ? vibe.images[0] : null);
+      const firstMedia = vibe.images?.[0];
+      const rawMediaUrl =
+        typeof firstMedia === "string"
+          ? firstMedia
+          : firstMedia?.url || firstMedia?.thumbnailUrl || null;
+      const isVideo =
+        (typeof firstMedia === "object" && firstMedia?.type === "video") ||
+        isVideoUrl(rawMediaUrl);
+
+      // For videos, share high-res poster JPEG
+      const shareImageUrl = isVideo
+        ? firstMedia?.thumbnailUrl ||
+          getVideoPosterUrl(rawMediaUrl, { width: 1080, mode: "fill" })
+        : rawMediaUrl;
 
       if (Platform.OS === "web") {
-        if (firstImage) {
+        if (shareImageUrl) {
           try {
-            const response = await fetch(firstImage);
+            const response = await fetch(shareImageUrl);
             const blob = await response.blob();
             const file = new File([blob], "vibe_share.jpg", {
               type: "image/jpeg",
@@ -252,14 +264,14 @@ const VibeCard = ({
 
       await Clipboard.setStringAsync(shareMessage).catch(() => {});
 
-      if (firstImage) {
+      if (shareImageUrl) {
         const isSharingAvailable = await Sharing.isAvailableAsync();
         if (isSharingAvailable) {
           const localUri = `${
             FileSystem.cacheDirectory
           }vibe_share_${Date.now()}.jpg`;
           const downloadRes = await FileSystem.downloadAsync(
-            firstImage,
+            shareImageUrl,
             localUri
           );
 

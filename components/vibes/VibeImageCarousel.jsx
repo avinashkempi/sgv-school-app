@@ -21,7 +21,7 @@ import Animated, {
   useAnimatedScrollHandler,
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES } from "../../theme";
 import {
   getOptimizedCloudinaryUrl,
   getBlurPlaceholderUrl,
@@ -168,12 +168,7 @@ const VibeImageCarousel = React.memo(
       onDoubleTapLike?.();
     }, [triggerHeartAnimation, onDoubleTapLike]);
 
-    const handleSingleTap = useCallback((index) => {
-      setSelectedImageIndex(index);
-      setLightboxVisible(true);
-    }, []);
-
-    const handlePress = useDoubleTap(handleDoubleTap, handleSingleTap, 280);
+    const handlePress = useDoubleTap(handleDoubleTap, null, 280);
 
     const handleLongPress = useCallback(
       (index) => {

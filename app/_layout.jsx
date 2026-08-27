@@ -4,7 +4,7 @@ import { Text, Platform, ActivityIndicator } from "react-native";
 import { useEffect, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { ThemeProvider, useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
+import { ThemeProvider, useTheme, FONTS } from "../theme";
 import { ToastProvider, useToast } from "../components/ToastProvider";
 import { StatusBar } from "expo-status-bar";
 

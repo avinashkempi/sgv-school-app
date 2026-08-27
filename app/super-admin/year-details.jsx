@@ -11,7 +11,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LETTER_SPACINGS } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
 import { useToast } from "../../components/ToastProvider";
 import apiConfig from "../../config/apiConfig";

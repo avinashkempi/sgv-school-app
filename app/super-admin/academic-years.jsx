@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LETTER_SPACINGS } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
 import apiConfig from "../../config/apiConfig";
 import apiFetch from "../../utils/apiFetch";

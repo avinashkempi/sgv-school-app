@@ -12,7 +12,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import AppRefreshControl from "../../components/ui/AppRefreshControl";
 import storage from "../../utils/storage";
 import { useRouter } from "expo-router";
-import { useTheme, FONT_FAMILIES, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
+import { useTheme, FONT_FAMILIES, FONTS, FONT_SIZES } from "../../theme";
 import {
   useApiQuery,
   useApiMutation,

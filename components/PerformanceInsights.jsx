@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, ScrollView } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS } from "../theme";
 import Card from "./Card";
 
 /**

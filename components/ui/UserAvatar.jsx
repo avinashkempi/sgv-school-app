@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Image } from "expo-image";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -111,6 +111,10 @@ const UserAvatar = ({
 }) => {
   const { colors } = useTheme();
   const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [photoUrl]);
 
   const borderRadius = shape === "circle" ? size / 2 : Math.max(8, size / 4);
   const fontSize = Math.max(10, Math.round(size * 0.38));

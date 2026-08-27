@@ -11,7 +11,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS } from "../theme";
 import { useToast } from "../components/ToastProvider";
 import Header from "../components/Header";
 import EventFormModal from "../components/EventFormModal";
@@ -111,6 +111,7 @@ const DayRenderer = React.memo(
   (prevProps, nextProps) => {
     // Custom comparison for memoization - only re-render if these props change
     return (
+      prevProps.colors === nextProps.colors &&
       prevProps.marking?.hasSchoolEvent === nextProps.marking?.hasSchoolEvent &&
       prevProps.marking?.marked === nextProps.marking?.marked &&
       prevProps.marking?.selected === nextProps.marking?.selected &&
@@ -279,10 +280,12 @@ const EventCard = React.memo(
   (prevProps, nextProps) => {
     // Custom comparison - only re-render if these props change
     return (
+      prevProps.colors === nextProps.colors &&
       prevProps.event._id === nextProps.event._id &&
       prevProps.event.title === nextProps.event.title &&
       prevProps.event.description === nextProps.event.description &&
       prevProps.event.isSchoolEvent === nextProps.event.isSchoolEvent &&
+      prevProps.event.date === nextProps.event.date &&
       prevProps.isAdmin === nextProps.isAdmin
     );
   }

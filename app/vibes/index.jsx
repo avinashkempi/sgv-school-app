@@ -1,8 +1,9 @@
-import React, { useState, useCallback, useMemo, useRef } from "react";
+import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import {
   View,
   Text,
   FlatList,
+  TextInput,
   ActivityIndicator,
   Pressable,
   StyleSheet,
@@ -12,7 +13,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../components/ToastProvider";
 import {
@@ -39,6 +40,7 @@ const VIBES_PER_PAGE = 10;
 
 const CATEGORIES = [
   { key: "all", label: "All", icon: "auto-awesome" },
+  { key: "general", label: "General", icon: "bubble-chart" },
   { key: "official", label: "Official", icon: "school" },
   { key: "achievement", label: "Achievements", icon: "emoji-events" },
   { key: "sports", label: "Sports", icon: "sports-soccer" },
@@ -70,6 +72,18 @@ export default function VibesScreen() {
   const [selectedTag, setSelectedTag] = useState(
     typeof searchParams?.tag === "string" ? searchParams.tag : null
   );
+
+  // In-Feed Search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [showSearchBar, setShowSearchBar] = useState(false);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim());
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   // Modals state
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -104,8 +118,8 @@ export default function VibesScreen() {
 
   // ──── Main Feed Infinite Query ────
   const feedQueryKey = useMemo(
-    () => ["vibes", selectedCategory, selectedTag],
-    [selectedCategory, selectedTag]
+    () => ["vibes", selectedCategory, selectedTag, debouncedSearch],
+    [selectedCategory, selectedTag, debouncedSearch]
   );
 
   const {
@@ -125,6 +139,9 @@ export default function VibesScreen() {
       }
       if (selectedTag) {
         url += `&tag=${encodeURIComponent(selectedTag)}`;
+      }
+      if (debouncedSearch) {
+        url += `&search=${encodeURIComponent(debouncedSearch)}`;
       }
       return url;
     },
@@ -606,6 +623,54 @@ export default function VibesScreen() {
           }}
         />
 
+        {/* Active Search Filter Indicator */}
+        {debouncedSearch ? (
+          <View
+            style={[
+              styles.activeTagBanner,
+              { backgroundColor: colors.primaryContainer },
+            ]}
+          >
+            <View style={styles.activeTagBadge}>
+              <MaterialIcons
+                name="search"
+                size={14}
+                color={colors.onPrimaryContainer}
+              />
+              <Text
+                style={[
+                  styles.activeTagText,
+                  { color: colors.onPrimaryContainer },
+                ]}
+              >
+                Search: "{debouncedSearch}"
+              </Text>
+            </View>
+            <Pressable
+              onPress={() => {
+                setSearchQuery("");
+                setDebouncedSearch("");
+              }}
+              hitSlop={8}
+              style={styles.clearTagBtn}
+            >
+              <MaterialIcons
+                name="close"
+                size={14}
+                color={colors.onPrimaryContainer}
+              />
+              <Text
+                style={[
+                  styles.clearTagText,
+                  { color: colors.onPrimaryContainer },
+                ]}
+              >
+                Clear
+              </Text>
+            </Pressable>
+          </View>
+        ) : null}
+
         {/* Active Tag Filter Indicator */}
         {selectedTag && (
           <View
@@ -717,6 +782,7 @@ export default function VibesScreen() {
     activeTab,
     selectedTag,
     selectedCategory,
+    debouncedSearch,
     colors,
     isAuthenticated,
     showToast,
@@ -789,6 +855,30 @@ export default function VibesScreen() {
             </Pressable>
           )}
 
+          {/* Search Toggle Action in Top Bar */}
+          <Pressable
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+              setShowSearchBar((prev) => !prev);
+            }}
+            style={[
+              styles.actionIconBtn,
+              {
+                backgroundColor: showSearchBar
+                  ? colors.primaryContainer
+                  : colors.surfaceContainerHighest,
+              },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel="Search Vibes"
+          >
+            <MaterialIcons
+              name="search"
+              size={20}
+              color={showSearchBar ? colors.primary : colors.onSurface}
+            />
+          </Pressable>
+
           {/* Quick Post Action in Top Bar */}
           <Pressable
             onPress={() => {
@@ -822,6 +912,47 @@ export default function VibesScreen() {
           </Pressable>
         </View>
       </View>
+
+      {/* ──── Expandable In-Feed Search Bar ──── */}
+      {showSearchBar && (
+        <View
+          style={[
+            styles.searchBarWrapper,
+            {
+              backgroundColor: colors.surfaceContainerHighest,
+              borderColor: colors.outlineVariant || "transparent",
+            },
+          ]}
+        >
+          <MaterialIcons
+            name="search"
+            size={18}
+            color={colors.onSurfaceVariant}
+          />
+          <TextInput
+            style={[styles.searchInput, { color: colors.onSurface }]}
+            placeholder="Search captions, tags..."
+            placeholderTextColor={colors.onSurfaceVariant}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoFocus
+            returnKeyType="search"
+          />
+          {searchQuery.length > 0 && (
+            <Pressable
+              onPress={() => setSearchQuery("")}
+              hitSlop={8}
+              style={styles.clearSearchBtn}
+            >
+              <MaterialIcons
+                name="cancel"
+                size={16}
+                color={colors.onSurfaceVariant}
+              />
+            </Pressable>
+          )}
+        </View>
+      )}
 
       {/* ──── Material 3 Segmented Button: Feed / My Posts / Saved ──── */}
       <View style={[styles.segmentWrapper, { backgroundColor: colors.surface }]}>
@@ -1247,6 +1378,13 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: -2,
     right: -2,
+    backgroundColor: "#DC2626",
+    borderRadius: 9,
+    minWidth: 18,
+    height: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 4,
   },
   pendingBadgeText: {
     color: "#fff",
@@ -1477,6 +1615,26 @@ const styles = StyleSheet.create({
   extendedFabText: {
     fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
+  },
+  searchBarWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 14,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.regular,
+    paddingVertical: 0,
+  },
+  clearSearchBtn: {
+    padding: 4,
   },
 });
 

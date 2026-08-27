@@ -13,7 +13,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LETTER_SPACINGS } from "../theme";
 import storage from "../utils/storage";
 import apiFetch from "../utils/apiFetch";
 import apiConfig from "../config/apiConfig";

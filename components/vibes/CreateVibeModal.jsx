@@ -55,6 +55,17 @@ const SUGGESTED_TAGS = [
   "QuizClub",
 ];
 
+const CAMPUS_LOCATIONS = [
+  "Main Auditorium",
+  "Sports Ground",
+  "Science Lab",
+  "Library",
+  "Assembly Quadrangle",
+  "Cafeteria",
+  "Computer Lab",
+  "Junior Wing",
+];
+
 // Exponential backoff upload retry helper
 const uploadWithRetry = async (uploadFn, retries = 2) => {
   for (let attempt = 0; attempt <= retries; attempt++) {
@@ -76,54 +87,84 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
 
   const isAdmin = user?.role === "admin" || user?.role === "super admin";
 
-  const [caption, setCaption] = useState(editVibe?.caption || "");
-  const [category, setCategory] = useState(
-    editVibe?.category || (isAdmin ? "official" : "general")
-  );
-  const [postAs, setPostAs] = useState(
-    editVibe?.postAs || (isAdmin ? "school" : "self")
-  );
-  const [location, setLocation] = useState(editVibe?.location || "");
-  const [isSpotlight, setIsSpotlight] = useState(Boolean(editVibe?.isSpotlight));
-  const [images, setImages] = useState(
-    editVibe?.images?.map((img) => ({
-      type: img.type || "image",
-      url: typeof img === "string" ? img : img.url,
-      thumbnailUrl: img.thumbnailUrl || "",
-      duration: img.duration || 0,
-      localUri: null,
-      uploading: false,
-      progress: 0,
-      width: img.width || 1080,
-      height: img.height || 1080,
-      aspectRatio: img.aspectRatio || 1,
-    })) || []
-  );
+  const [caption, setCaption] = useState("");
+  const [category, setCategory] = useState(isAdmin ? "official" : "general");
+  const [postAs, setPostAs] = useState(isAdmin ? "school" : "self");
+  const [location, setLocation] = useState("");
+  const [isSpotlight, setIsSpotlight] = useState(false);
+  const [images, setImages] = useState([]);
   const [submitting, setSubmitting] = useState(false);
 
-  // Restore draft when opening create mode
+  // Sync state whenever modal opens or editVibe changes
   useEffect(() => {
-    if (visible && !isEditing) {
-      AsyncStorage.getItem(DRAFT_STORAGE_KEY)
-        .then((raw) => {
-          if (raw) {
-            try {
-              const saved = JSON.parse(raw);
-              if (saved.caption) setCaption((prev) => prev || saved.caption);
-              if (saved.category) setCategory((prev) => prev || saved.category);
-              if (saved.location) setLocation((prev) => prev || saved.location);
-            } catch {
-              // Ignore parse errors
+    if (visible) {
+      if (editVibe) {
+        setCaption(editVibe.caption || "");
+        setCategory(
+          editVibe.category || (isAdmin ? "official" : "general")
+        );
+        setPostAs(
+          editVibe.postAs || (isAdmin ? "school" : "self")
+        );
+        setLocation(editVibe.location || "");
+        setIsSpotlight(Boolean(editVibe.isSpotlight));
+        setImages(
+          editVibe.images?.map((img) => {
+            const rawUrl = typeof img === "string" ? img : img?.url || "";
+            const isVideo =
+              img?.type === "video" ||
+              /\.(mp4|mov|webm|m4v|avi|3gp|mkv|flv|wmv|qt)(\?.*)?$/i.test(
+                rawUrl
+              );
+            return {
+              type: isVideo ? "video" : "image",
+              url: rawUrl,
+              thumbnailUrl:
+                typeof img === "object" ? img?.thumbnailUrl || "" : "",
+              duration: typeof img === "object" ? img?.duration || 0 : 0,
+              localUri: null,
+              uploading: false,
+              progress: 0,
+              width: typeof img === "object" ? img?.width || 1080 : 1080,
+              height: typeof img === "object" ? img?.height || 1080 : 1080,
+              aspectRatio:
+                typeof img === "object" ? img?.aspectRatio || 1 : 1,
+              publicId: typeof img === "object" ? img?.publicId || "" : "",
+            };
+          }) || []
+        );
+      } else {
+        // Create mode: load draft if available
+        AsyncStorage.getItem(DRAFT_STORAGE_KEY)
+          .then((raw) => {
+            if (raw) {
+              try {
+                const saved = JSON.parse(raw);
+                setCaption(saved.caption || "");
+                setCategory(
+                  saved.category || (isAdmin ? "official" : "general")
+                );
+                setLocation(saved.location || "");
+              } catch {
+                // Ignore parse errors
+              }
+            } else {
+              setCaption("");
+              setCategory(isAdmin ? "official" : "general");
+              setLocation("");
             }
-          }
-        })
-        .catch(() => {});
+          })
+          .catch(() => {});
+        setPostAs(isAdmin ? "school" : "self");
+        setIsSpotlight(false);
+        setImages([]);
+      }
     }
-  }, [visible, isEditing]);
+  }, [visible, editVibe, isAdmin]);
 
-  // Persist draft on text changes
+  // Persist draft on text changes (create mode only)
   useEffect(() => {
-    if (!isEditing && (caption || location)) {
+    if (visible && !isEditing && (caption || location)) {
       AsyncStorage.setItem(
         DRAFT_STORAGE_KEY,
         JSON.stringify({
@@ -133,7 +174,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
         })
       ).catch(() => {});
     }
-  }, [caption, category, location, isEditing]);
+  }, [visible, caption, category, location, isEditing]);
 
   const clearDraft = useCallback(() => {
     AsyncStorage.removeItem(DRAFT_STORAGE_KEY).catch(() => {});
@@ -1177,6 +1218,60 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                   style={[styles.locationInput, { color: colors.onSurface }]}
                 />
               </View>
+
+              {/* Quick Location Chips */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.quickLocationContainer}
+              >
+                {CAMPUS_LOCATIONS.map((loc) => {
+                  const isSelected = location === loc;
+                  return (
+                    <Pressable
+                      key={loc}
+                      onPress={() => {
+                        Haptics.impactAsync(
+                          Haptics.ImpactFeedbackStyle.Light
+                        ).catch(() => {});
+                        setLocation(isSelected ? "" : loc);
+                      }}
+                      style={[
+                        styles.quickLocChip,
+                        {
+                          backgroundColor: isSelected
+                            ? colors.primaryContainer
+                            : colors.surfaceContainerHigh,
+                          borderColor: isSelected
+                            ? colors.primary
+                            : colors.outlineVariant || "transparent",
+                        },
+                      ]}
+                    >
+                      <MaterialIcons
+                        name="place"
+                        size={13}
+                        color={
+                          isSelected ? colors.primary : colors.onSurfaceVariant
+                        }
+                      />
+                      <Text
+                        style={[
+                          styles.quickLocText,
+                          {
+                            color: isSelected
+                              ? colors.onPrimaryContainer
+                              : colors.onSurfaceVariant,
+                            fontFamily: isSelected ? FONTS.bold : FONTS.medium,
+                          },
+                        ]}
+                      >
+                        {loc}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
             </View>
 
             <View style={{ height: 40 }} />
@@ -1440,5 +1535,22 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
     lineHeight: LINE_HEIGHTS.xs,
+  },
+  quickLocationContainer: {
+    flexDirection: "row",
+    gap: 8,
+    paddingTop: 8,
+  },
+  quickLocChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  quickLocText: {
+    fontSize: FONT_SIZES.xs,
   },
 });

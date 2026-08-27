@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, Pressable } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import AppBottomSheet from "./AppBottomSheet";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES } from "../../theme";
 
 /**
  * FilterBottomSheet - Standardized, accessible filter bottom sheet

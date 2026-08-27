@@ -7,7 +7,7 @@ import {
   Platform,
 } from "react-native";
 import { Image } from "expo-image";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LETTER_SPACINGS } from "../theme";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import apiConfig from "../config/apiConfig";

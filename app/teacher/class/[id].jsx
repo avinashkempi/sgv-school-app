@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../../theme";
+import { useTheme, FONTS, FONT_SIZES } from "../../../theme";
 import { useAuth } from "../../../context/AuthContext";
 import {
   useApiQuery,
@@ -902,7 +902,7 @@ export default function ClassDetailsScreen() {
                         <Pressable
                           key={item._id}
                           disabled={isAlreadyAdded}
-                          onPress={() => toggleGlobalSubjectSelection(item._id)}
+                          onPress={() => toggleSubjectSelection(item._id)}
                           style={({ pressed }) => ({
                             backgroundColor: isAlreadyAdded
                               ? colors.surfaceContainerHighest

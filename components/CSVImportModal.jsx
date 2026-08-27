@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS } from "../theme";
 import { useApiMutation, createApiMutationFn } from "../hooks/useApi";
 import { useToast } from "./ToastProvider";
 import apiConfig from "../config/apiConfig";

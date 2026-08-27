@@ -252,7 +252,9 @@ export default function MenuHeroProfile({ user }) {
               { color: colors.onSurfaceVariant },
             ]}
           >
-            {user.phoneNumber ? `Phone: ${user.phoneNumber}` : "Verified SGV Account"}
+            {user.phone || user.phoneNumber
+              ? `Phone: ${user.phone || user.phoneNumber}`
+              : "Verified SGV Account"}
           </Text>
         </View>
 

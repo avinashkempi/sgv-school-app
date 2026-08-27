@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import {} from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES } from "../../theme";
 import { useApiQuery, useApiMutation } from "../../hooks/useApi";
 import { useToast } from "../../components/ToastProvider";
 import AppHeader from "../../components/Header";

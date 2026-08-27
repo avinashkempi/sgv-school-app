@@ -80,9 +80,11 @@ export default function TeacherAttendance() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <AttendanceView
+        role={user?.role || "teacher"}
         attendanceHistory={allRecords}
         summary={summary}
-        loading={loading}
+        holidays={data?.holidays}
+        loading={loading && !data}
         refreshing={refreshing}
         onRefresh={onRefresh}
         onLoadMore={loadMore}

@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, ScrollView, Pressable, Modal } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LETTER_SPACINGS } from "../theme";
 import UserAvatar from "./ui/UserAvatar";
 import {
   formatUserName,
@@ -12,7 +12,7 @@ import {
 import { useApiQuery } from "../hooks/useApi";
 import apiConfig from "../config/apiConfig";
 import { CACHE_TIERS } from "../utils/cacheConfig";
-import { getGridThumbnailUrl } from "../utils/cloudinaryUpload";
+import { resolveMediaThumbnail, isVideoUrl } from "../utils/cloudinaryUpload";
 
 export default function UserDetailModal({ visible, onClose, user }) {
   const { colors } = useTheme();
@@ -385,10 +385,15 @@ const UserVibesSection = ({ userId }) => {
     <DetailSection title={`CAMPUS VIBES (${vibes.length})`}>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
         {vibes.slice(0, 6).map((vibe, idx) => {
-          const imgUrl =
-            vibe.images?.[0]?.thumbnailUrl || vibe.images?.[0]?.url;
-          const optimizedUrl = imgUrl ? getGridThumbnailUrl(imgUrl) : null;
-          const isVideo = vibe.images?.[0]?.type === "video";
+          const firstMedia = vibe.images?.[0];
+          const rawUrl =
+            typeof firstMedia === "object"
+              ? firstMedia?.url || ""
+              : firstMedia || "";
+          const optimizedUrl = resolveMediaThumbnail(firstMedia, "grid");
+          const isVideo =
+            (typeof firstMedia === "object" && firstMedia?.type === "video") ||
+            isVideoUrl(rawUrl);
 
           return (
             <View
