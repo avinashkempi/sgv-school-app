@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import { useApiMutation, createApiMutationFn } from "../../hooks/useApi";
 import { useToast } from "../../components/ToastProvider";
 import apiConfig from "../../config/apiConfig";
@@ -114,8 +114,8 @@ export default function CreateYearScreen() {
     <View style={{ marginBottom: 20 }}>
       <Text
         style={{
-          fontSize: 14,
-          fontFamily: "DMSans-Bold",
+          fontSize: FONT_SIZES.base,
+          fontFamily: FONTS.bold,
           color: colors.onSurface,
           marginBottom: 8,
         }}
@@ -135,8 +135,8 @@ export default function CreateYearScreen() {
           borderRadius: 12,
           paddingHorizontal: 16,
           paddingVertical: 12,
-          fontSize: 15,
-          fontFamily: "DMSans-Medium",
+          fontSize: FONT_SIZES.mdLg,
+          fontFamily: FONTS.medium,
           color: colors.onSurface,
         }}
         {...options}
@@ -144,8 +144,8 @@ export default function CreateYearScreen() {
       {errors[field] && (
         <Text
           style={{
-            fontSize: 12,
-            fontFamily: "DMSans-Medium",
+            fontSize: FONT_SIZES.sm,
+            fontFamily: FONTS.medium,
             color: colors.error,
             marginTop: 6,
           }}
@@ -156,8 +156,8 @@ export default function CreateYearScreen() {
       {options.hint && !errors[field] && (
         <Text
           style={{
-            fontSize: 12,
-            fontFamily: "DMSans-Regular",
+            fontSize: FONT_SIZES.sm,
+            fontFamily: FONTS.regular,
             color: colors.onSurfaceVariant,
             marginTop: 6,
           }}
@@ -201,8 +201,8 @@ export default function CreateYearScreen() {
       <View style={{ flex: 1 }}>
         <Text
           style={{
-            fontSize: 14,
-            fontFamily: "DMSans-Bold",
+            fontSize: FONT_SIZES.base,
+            fontFamily: FONTS.bold,
             color: colors.onSurface,
             marginBottom: 4,
           }}
@@ -212,8 +212,8 @@ export default function CreateYearScreen() {
         {description && (
           <Text
             style={{
-              fontSize: 12,
-              fontFamily: "DMSans-Regular",
+              fontSize: FONT_SIZES.sm,
+              fontFamily: FONTS.regular,
               color: colors.onSurfaceVariant,
             }}
           >
@@ -251,8 +251,8 @@ export default function CreateYearScreen() {
           >
             <Text
               style={{
-                fontSize: 16,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.lg,
+                fontFamily: FONTS.bold,
                 color: colors.onSurface,
                 marginBottom: 16,
               }}
@@ -304,8 +304,8 @@ export default function CreateYearScreen() {
           >
             <Text
               style={{
-                fontSize: 16,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.lg,
+                fontFamily: FONTS.bold,
                 color: colors.onSurface,
                 marginBottom: 4,
               }}
@@ -314,8 +314,8 @@ export default function CreateYearScreen() {
             </Text>
             <Text
               style={{
-                fontSize: 12,
-                fontFamily: "DMSans-Regular",
+                fontSize: FONT_SIZES.sm,
+                fontFamily: FONTS.regular,
                 color: colors.onSurfaceVariant,
                 marginBottom: 16,
               }}
@@ -388,8 +388,8 @@ export default function CreateYearScreen() {
             <Text
               style={{
                 flex: 1,
-                fontSize: 12,
-                fontFamily: "DMSans-Regular",
+                fontSize: FONT_SIZES.sm,
+                fontFamily: FONTS.regular,
                 color: colors.onSurface,
               }}
             >
@@ -414,8 +414,8 @@ export default function CreateYearScreen() {
             >
               <Text
                 style={{
-                  fontSize: 15,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.mdLg,
+                  fontFamily: FONTS.bold,
                   color: colors.onSurface,
                 }}
               >
@@ -443,8 +443,8 @@ export default function CreateYearScreen() {
               ) : (
                 <Text
                   style={{
-                    fontSize: 15,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.mdLg,
+                    fontFamily: FONTS.bold,
                     color: "#FFF",
                   }}
                 >

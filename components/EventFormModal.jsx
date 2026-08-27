@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
 import { useToast } from "./ToastProvider";
 
 // Helper to format dates for display in Indian format (DD-MM-YYYY)
@@ -168,7 +168,11 @@ export default function EventFormModal({
               <Text
                 style={[
                   globalStyles.title,
-                  { fontSize: 20, color: colors.textPrimary },
+                  {
+                    fontSize: FONT_SIZES.xxl,
+                    fontFamily: FONTS.bold,
+                    color: colors.textPrimary,
+                  },
                 ]}
               >
                 {isEditing ? "Edit Event" : "New Event"}
@@ -196,8 +200,8 @@ export default function EventFormModal({
             <View style={{ marginBottom: 12 }}>
               <Text
                 style={{
-                  fontSize: 13,
-                  fontWeight: "600",
+                  fontSize: FONT_SIZES.md,
+                  fontFamily: FONTS.semiBold,
                   color: colors.textSecondary,
                   marginBottom: 8,
                   marginLeft: 4,
@@ -229,7 +233,7 @@ export default function EventFormModal({
                 <Text
                   style={{
                     color: colors.error,
-                    fontSize: 12,
+                    fontSize: FONT_SIZES.sm,
                     marginTop: 4,
                     marginLeft: 4,
                   }}
@@ -242,8 +246,8 @@ export default function EventFormModal({
             <View style={{ marginBottom: 12 }}>
               <Text
                 style={{
-                  fontSize: 13,
-                  fontWeight: "600",
+                  fontSize: FONT_SIZES.md,
+                  fontFamily: FONTS.semiBold,
                   color: colors.textSecondary,
                   marginBottom: 8,
                   marginLeft: 4,
@@ -278,7 +282,7 @@ export default function EventFormModal({
                 <Text
                   style={{
                     color: colors.error,
-                    fontSize: 12,
+                    fontSize: FONT_SIZES.sm,
                     marginTop: 4,
                     marginLeft: 4,
                   }}
@@ -333,7 +337,7 @@ export default function EventFormModal({
             {isHoliday && (
               <Text
                 style={{
-                  fontSize: 12,
+                  fontSize: FONT_SIZES.sm,
                   color: colors.error || "#EF4444",
                   marginBottom: 16,
                   marginLeft: 32,
@@ -418,12 +422,12 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.03)",
   },
   dateLabel: {
-    fontSize: 14,
-    fontWeight: "500",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.medium,
     marginRight: 8,
   },
   dateValue: {
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.semiBold,
   },
 });

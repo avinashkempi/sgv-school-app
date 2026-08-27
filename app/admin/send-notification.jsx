@@ -12,7 +12,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 
 import { useRouter } from "expo-router";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import {
   useApiQuery,
   useApiMutation,
@@ -124,7 +124,7 @@ export default function SendNotificationScreen() {
                 borderRadius: 12,
                 padding: 16,
                 color: colors.textPrimary,
-                fontSize: 16,
+                fontSize: FONT_SIZES.lg,
                 backgroundColor: colors.cardBackground,
               }}
             />
@@ -147,7 +147,7 @@ export default function SendNotificationScreen() {
                 borderRadius: 12,
                 padding: 16,
                 color: colors.textPrimary,
-                fontSize: 16,
+                fontSize: FONT_SIZES.lg,
                 backgroundColor: colors.cardBackground,
                 minHeight: 100,
                 textAlignVertical: "top",
@@ -220,13 +220,13 @@ export default function SendNotificationScreen() {
                   style={{
                     color: colors.textPrimary,
                     fontWeight: "600",
-                    fontSize: 16,
+                    fontSize: FONT_SIZES.lg,
                     marginBottom: 4,
                   }}
                 >
                   Send to Public Users
                 </Text>
-                <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
+                <Text style={{ color: colors.textSecondary, fontSize: FONT_SIZES.md }}>
                   {sendToPublic
                     ? "Will reach both logged-in and non-logged-in users"
                     : "Only logged-in users will receive this notification"}
@@ -491,8 +491,8 @@ export default function SendNotificationScreen() {
                 <Text
                   style={{
                     color: "#fff",
-                    fontSize: 18,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.xl,
+                    fontFamily: FONTS.bold,
                   }}
                 >
                   Send Broadcast

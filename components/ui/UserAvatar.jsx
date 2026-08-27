@@ -2,19 +2,21 @@ import React, { useState, useMemo } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Image } from "expo-image";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, LETTER_SPACINGS } from "../../theme";
 import {
   getAvatarUrl,
   getBlurPlaceholderUrl,
 } from "../../utils/cloudinaryUpload";
+import { formatUserName } from "../../utils/userFormatters";
 
 /**
  * Extracts 1-2 initials from a user's name.
  * e.g. "Avinash Kempi" -> "AK", "John" -> "J", "" -> "?"
  */
 const getInitials = (name) => {
-  if (!name || typeof name !== "string") return "?";
-  const parts = name.trim().split(/\s+/).filter(Boolean);
+  const formatted = formatUserName(name);
+  if (!formatted) return "?";
+  const parts = formatted.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "?";
   if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
@@ -134,15 +136,29 @@ const UserAvatar = ({
     [role, name, colors]
   );
 
+  const isSchoolIdentity = useMemo(() => {
+    const r = role ? String(role).toLowerCase().trim() : "";
+    const n = name ? String(name).toLowerCase().trim() : "";
+    return (
+      r === "school" ||
+      n === "sgv school" ||
+      n === "sgv official" ||
+      n === "shri guru vidya" ||
+      n === "shri guru vidya english medium school" ||
+      n.includes("sgv school") ||
+      n.includes("shri guru vidya")
+    );
+  }, [role, name]);
+
   const containerStyle = [
     styles.container,
     {
       width: size,
       height: size,
       borderRadius,
-      backgroundColor: fallbackBg,
-      borderWidth: showBorder ? 1.5 : 0,
-      borderColor: borderColor || colors.border || "rgba(0,0,0,0.08)",
+      backgroundColor: isSchoolIdentity && !optimizedUrl ? (colors.surfaceContainerLowest || "#ffffff") : fallbackBg,
+      borderWidth: showBorder || (isSchoolIdentity && !optimizedUrl) ? 1.5 : 0,
+      borderColor: borderColor || (isSchoolIdentity && !optimizedUrl ? (colors.outlineVariant || "rgba(0,0,0,0.08)") : (colors.border || "rgba(0,0,0,0.08)")),
     },
     style,
   ];
@@ -157,6 +173,12 @@ const UserAvatar = ({
           contentFit="cover"
           transition={150}
           onError={() => setImageError(true)}
+        />
+      ) : isSchoolIdentity ? (
+        <Image
+          source={require("../../assets/images/icon.png")}
+          style={{ width: "88%", height: "88%", borderRadius: borderRadius * 0.88 }}
+          contentFit="contain"
         />
       ) : initials !== "?" ? (
         <Text
@@ -205,8 +227,8 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   initialsText: {
-    fontFamily: "DMSans-Bold",
-    letterSpacing: 0.5,
+    fontFamily: FONTS.bold,
+    letterSpacing: LETTER_SPACINGS.xs,
     textAlign: "center",
     includeFontPadding: false,
   },

@@ -11,7 +11,7 @@ import {
   Platform,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
 import { useForm, Controller } from "react-hook-form";
 
 import { useApiQuery } from "../hooks/useApi";
@@ -192,8 +192,8 @@ export default function UserFormModal({
             >
               <Text
                 style={{
-                  fontSize: 24,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.xxl,
+                  fontFamily: FONTS.bold,
                   color: colors.textPrimary,
                 }}
               >
@@ -228,9 +228,9 @@ export default function UserFormModal({
                     style={[
                       styles.bodyLarge,
                       {
-                        borderWidth: 1,
-                        borderColor: colors.outline,
-                        borderRadius: 4,
+                        borderWidth: errors.name ? 1.5 : 1,
+                        borderColor: errors.name ? colors.error : colors.outline,
+                        borderRadius: 8,
                         padding: 14,
                         backgroundColor: "transparent",
                       },
@@ -244,7 +244,9 @@ export default function UserFormModal({
                 )}
               />
               {errors.name && (
-                <Text style={styles.bodySmall}>{errors.name.message}</Text>
+                <Text style={{ color: colors.error, fontSize: FONT_SIZES.sm, fontFamily: FONTS.medium, marginTop: 4 }}>
+                  {errors.name.message}
+                </Text>
               )}
             </View>
 
@@ -265,9 +267,9 @@ export default function UserFormModal({
                       [
                         styles.bodyLarge,
                         {
-                          borderWidth: 1,
-                          borderColor: colors.outline,
-                          borderRadius: 4,
+                          borderWidth: errors.phone ? 1.5 : 1,
+                          borderColor: errors.phone ? colors.error : colors.outline,
+                          borderRadius: 8,
                           padding: 14,
                           backgroundColor: "transparent",
                         },
@@ -294,12 +296,14 @@ export default function UserFormModal({
                 )}
               />
               {errors.phone && (
-                <Text style={styles.bodySmall}>{errors.phone.message}</Text>
+                <Text style={{ color: colors.error, fontSize: FONT_SIZES.sm, fontFamily: FONTS.medium, marginTop: 4 }}>
+                  {errors.phone.message}
+                </Text>
               )}
               {modalMode === "edit" && (
                 <Text
                   style={{
-                    fontSize: 11,
+                    fontSize: FONT_SIZES.xs,
                     color: colors.textSecondary,
                     marginTop: 4,
                   }}
@@ -375,9 +379,9 @@ export default function UserFormModal({
                     <TextInput
                       style={{
                         flex: 1,
-                        fontSize: 16,
+                        fontSize: FONT_SIZES.lg,
                         color: colors.textPrimary,
-                        fontFamily: "DMSans-Regular",
+                        fontFamily: FONTS.regular,
                         paddingVertical: 14, // Match theme vertical padding
                       }}
                       placeholder={
@@ -405,7 +409,9 @@ export default function UserFormModal({
                 </Pressable>
               </View>
               {errors.password && modalMode === "add" && (
-                <Text style={styles.bodySmall}>{errors.password.message}</Text>
+                <Text style={{ color: colors.error, fontSize: FONT_SIZES.sm, fontFamily: FONTS.medium, marginTop: 4 }}>
+                  {errors.password.message}
+                </Text>
               )}
             </View>
 
@@ -442,9 +448,9 @@ export default function UserFormModal({
                       style={{
                         color:
                           watchedRole === role ? "#fff" : colors.textPrimary,
-                        fontFamily: "DMSans-Bold",
+                        fontFamily: FONTS.bold,
                         textTransform: "capitalize",
-                        fontSize: 14,
+                        fontSize: FONT_SIZES.base,
                       }}
                     >
                       {role}
@@ -645,8 +651,8 @@ export default function UserFormModal({
                                   value === cls._id
                                     ? "#fff"
                                     : colors.textPrimary,
-                                fontFamily: "DMSans-Medium",
-                                fontSize: 14,
+                                fontFamily: FONTS.medium,
+                                fontSize: FONT_SIZES.base,
                               }}
                             >
                               {cls.name || cls.label}
@@ -657,7 +663,7 @@ export default function UserFormModal({
                     )}
                   />
                   {errors.currentClass && (
-                    <Text style={styles.bodySmall}>
+                    <Text style={{ color: colors.error, fontSize: FONT_SIZES.sm, fontFamily: FONTS.medium, marginTop: 4 }}>
                       {errors.currentClass.message}
                     </Text>
                   )}
@@ -1050,8 +1056,8 @@ export default function UserFormModal({
             >
               <Text
                 style={{
-                  fontSize: 16,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.lg,
+                  fontFamily: FONTS.bold,
                   color: colors.textPrimary,
                 }}
               >
@@ -1077,8 +1083,8 @@ export default function UserFormModal({
               ) : (
                 <Text
                   style={{
-                    fontSize: 16,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.lg,
+                    fontFamily: FONTS.bold,
                     color: "#fff",
                   }}
                 >

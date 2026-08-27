@@ -2,7 +2,7 @@ import React from "react";
 import { Text, Pressable, ActivityIndicator, Platform } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
 
 /**
  * Material 3 Button
@@ -107,12 +107,13 @@ const Button = ({
 
   const labelStyle = [
     {
-      fontFamily: "DMSans-Medium",
-      fontSize: 14,
-      lineHeight: 20,
-      letterSpacing: 0.1,
+      fontFamily: FONTS.medium,
+      fontSize: FONT_SIZES.base,
+      lineHeight: LINE_HEIGHTS.base,
+      letterSpacing: LETTER_SPACINGS.base,
       color: themeColors.text,
       textAlign: "center",
+      flexShrink: 1,
     },
     (icon || loading) && iconPosition === "left" && { marginLeft: 8 },
     (icon || loading) && iconPosition === "right" && { marginRight: 8 },

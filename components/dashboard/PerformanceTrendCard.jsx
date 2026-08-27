@@ -13,7 +13,7 @@ import Svg, {
   Rect,
 } from "react-native-svg";
 import { useRouter } from "expo-router";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES } from "../../theme";
 
 /**
  * Grade & Achievement Helper
@@ -105,6 +105,7 @@ const PerformanceTrendCard = ({
   title = "Performance Trend",
   subtitle = "Academic Year • Exam Average",
   onViewReport,
+  embedded = false,
 }) => {
   const router = useRouter();
   const { colors, mode } = useTheme();
@@ -255,109 +256,115 @@ const PerformanceTrendCard = ({
           setCardWidth(w);
         }
       }}
-      style={{
-        backgroundColor:
-          colors.surfaceContainer || (isDark ? "#1E1B24" : "#F7F3FB"),
-        borderRadius: 24,
-        padding: 18,
-        marginBottom: 20,
-        borderWidth: 1,
-        borderColor: colors.outlineVariant
-          ? colors.outlineVariant + "35"
-          : "rgba(0,0,0,0.06)",
-      }}
+      style={
+        embedded
+          ? { width: "100%" }
+          : {
+              backgroundColor:
+                colors.surfaceContainer || (isDark ? "#1E1B24" : "#F7F3FB"),
+              borderRadius: 24,
+              padding: 18,
+              marginBottom: 20,
+              borderWidth: 1,
+              borderColor: colors.outlineVariant
+                ? colors.outlineVariant + "35"
+                : "rgba(0,0,0,0.06)",
+            }
+      }
     >
-      {/* Header */}
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 16,
-        }}
-      >
+      {/* Header (hidden when embedded in HomeModuleContainer) */}
+      {!embedded && (
         <View
           style={{
             flexDirection: "row",
+            justifyContent: "space-between",
             alignItems: "center",
-            flex: 1,
-            marginRight: 12,
+            marginBottom: 16,
           }}
         >
           <View
             style={{
-              width: 42,
-              height: 42,
-              borderRadius: 12,
-              backgroundColor: (colors.primary || "#6750A4") + "1A",
+              flexDirection: "row",
               alignItems: "center",
-              justifyContent: "center",
+              flex: 1,
               marginRight: 12,
             }}
           >
-            <MaterialCommunityIcons
-              name="trending-up"
-              size={24}
+            <View
+              style={{
+                width: 42,
+                height: 42,
+                borderRadius: 12,
+                backgroundColor: (colors.primary || "#6750A4") + "1A",
+                alignItems: "center",
+                justifyContent: "center",
+                marginRight: 12,
+              }}
+            >
+              <MaterialCommunityIcons
+                name="trending-up"
+                size={24}
+                color={colors.primary || "#6750A4"}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{
+                  fontSize: FONT_SIZES.lg,
+                  fontFamily: FONTS.bold,
+                  color: colors.onSurface || (isDark ? "#FFFFFF" : "#1D1B20"),
+                  letterSpacing: 0.1,
+                }}
+                numberOfLines={1}
+              >
+                {title}
+              </Text>
+              <Text
+                style={{
+                  fontSize: FONT_SIZES.sm,
+                  fontFamily: FONTS.medium,
+                  color:
+                    colors.onSurfaceVariant || (isDark ? "#CAC4D0" : "#49454F"),
+                  marginTop: 1,
+                }}
+                numberOfLines={1}
+              >
+                {subtitle}
+              </Text>
+            </View>
+          </View>
+
+          {/* View Details Button */}
+          <Pressable
+            onPress={handleNavigation}
+            style={({ pressed }) => ({
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: (colors.primary || "#6750A4") + "15",
+              paddingHorizontal: 12,
+              paddingVertical: 7,
+              borderRadius: 100,
+              opacity: pressed ? 0.75 : 1,
+            })}
+          >
+            <Text
+              style={{
+                fontSize: FONT_SIZES.sm,
+                fontFamily: FONTS.bold,
+                color: colors.primary || "#6750A4",
+                marginRight: 2,
+              }}
+            >
+              Reports
+            </Text>
+            <MaterialIcons
+              name="chevron-right"
+              size={16}
               color={colors.primary || "#6750A4"}
             />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text
-              style={{
-                fontSize: 17,
-                fontFamily: "DMSans-Bold",
-                color: colors.onSurface || (isDark ? "#FFFFFF" : "#1D1B20"),
-                letterSpacing: 0.1,
-              }}
-              numberOfLines={1}
-            >
-              {title}
-            </Text>
-            <Text
-              style={{
-                fontSize: 12,
-                fontFamily: "DMSans-Medium",
-                color:
-                  colors.onSurfaceVariant || (isDark ? "#CAC4D0" : "#49454F"),
-                marginTop: 1,
-              }}
-              numberOfLines={1}
-            >
-              {subtitle}
-            </Text>
-          </View>
+          </Pressable>
         </View>
-
-        {/* View Details Button */}
-        <Pressable
-          onPress={handleNavigation}
-          style={({ pressed }) => ({
-            flexDirection: "row",
-            alignItems: "center",
-            backgroundColor: (colors.primary || "#6750A4") + "15",
-            paddingHorizontal: 12,
-            paddingVertical: 7,
-            borderRadius: 100,
-            opacity: pressed ? 0.75 : 1,
-          })}
-        >
-          <Text
-            style={{
-              fontSize: 12,
-              fontFamily: "DMSans-Bold",
-              color: colors.primary || "#6750A4",
-              marginRight: 2,
-            }}
-          >
-            Reports
-          </Text>
-          <MaterialIcons
-            name="chevron-right"
-            size={16}
-            color={colors.primary || "#6750A4"}
-          />
-        </Pressable>
-      </View>
+      )}
 
       {/* KPI Summary Metrics Strip */}
       <View
@@ -385,8 +392,8 @@ const PerformanceTrendCard = ({
         >
           <Text
             style={{
-              fontSize: 11,
-              fontFamily: "DMSans-Medium",
+              fontSize: FONT_SIZES.xs,
+              fontFamily: FONTS.medium,
               color:
                 colors.onSurfaceVariant || (isDark ? "#CAC4D0" : "#79747E"),
               marginBottom: 2,
@@ -399,8 +406,8 @@ const PerformanceTrendCard = ({
           >
             <Text
               style={{
-                fontSize: 18,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.xl,
+                fontFamily: FONTS.bold,
                 color: colors.onSurface || (isDark ? "#FFFFFF" : "#1D1B20"),
               }}
             >
@@ -408,8 +415,8 @@ const PerformanceTrendCard = ({
             </Text>
             <Text
               style={{
-                fontSize: 11,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.xs,
+                fontFamily: FONTS.bold,
                 color: getGradeInfo(yearAverage).color,
               }}
             >
@@ -435,8 +442,8 @@ const PerformanceTrendCard = ({
         >
           <Text
             style={{
-              fontSize: 11,
-              fontFamily: "DMSans-Medium",
+              fontSize: FONT_SIZES.xs,
+              fontFamily: FONTS.medium,
               color:
                 colors.onSurfaceVariant || (isDark ? "#CAC4D0" : "#79747E"),
               marginBottom: 2,
@@ -450,8 +457,8 @@ const PerformanceTrendCard = ({
           >
             <Text
               style={{
-                fontSize: 18,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.xl,
+                fontFamily: FONTS.bold,
                 color: getGradeInfo(latest.percentage).color,
               }}
             >
@@ -459,8 +466,8 @@ const PerformanceTrendCard = ({
             </Text>
             <Text
               style={{
-                fontSize: 11,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.xs,
+                fontFamily: FONTS.bold,
                 color: getGradeInfo(latest.percentage).color,
               }}
             >
@@ -486,8 +493,8 @@ const PerformanceTrendCard = ({
         >
           <Text
             style={{
-              fontSize: 11,
-              fontFamily: "DMSans-Medium",
+              fontSize: FONT_SIZES.xs,
+              fontFamily: FONTS.medium,
               color:
                 colors.onSurfaceVariant || (isDark ? "#CAC4D0" : "#79747E"),
               marginBottom: 2,
@@ -506,8 +513,8 @@ const PerformanceTrendCard = ({
               />
               <Text
                 style={{
-                  fontSize: 15,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.mdLg,
+                  fontFamily: FONTS.bold,
                   color: trendDelta >= 0 ? "#10B981" : "#EF4444",
                   marginLeft: 2,
                 }}
@@ -518,8 +525,8 @@ const PerformanceTrendCard = ({
           ) : (
             <Text
               style={{
-                fontSize: 13,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.md,
+                fontFamily: FONTS.bold,
                 color: colors.primary || "#6750A4",
               }}
             >
@@ -547,8 +554,8 @@ const PerformanceTrendCard = ({
           >
             <Text
               style={{
-                fontSize: 11,
-                fontFamily: "DMSans-Medium",
+                fontSize: FONT_SIZES.xs,
+                fontFamily: FONTS.medium,
                 color:
                   colors.onSurfaceVariant || (isDark ? "#CAC4D0" : "#79747E"),
                 marginBottom: 2,
@@ -558,8 +565,8 @@ const PerformanceTrendCard = ({
             </Text>
             <Text
               style={{
-                fontSize: 18,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.xl,
+                fontFamily: FONTS.bold,
                 color: "#10B981",
               }}
             >
@@ -664,8 +671,8 @@ const PerformanceTrendCard = ({
                   fill={
                     colors.onSurfaceVariant || (isDark ? "#9E9E9E" : "#757575")
                   }
-                  fontSize="10"
-                  fontFamily="DMSans-Medium"
+                  fontSize={FONT_SIZES.micro}
+                  fontFamily={FONTS.medium}
                   textAnchor="end"
                   opacity="0.8"
                 >
@@ -772,9 +779,8 @@ const PerformanceTrendCard = ({
                       fill={
                         isSelected ? "#FFFFFF" : isDark ? "#FFFFFF" : "#1D1B20"
                       }
-                      fontSize="10.5"
-                      fontFamily="DMSans-Bold"
-                      fontWeight="bold"
+                      fontSize={FONT_SIZES.xs}
+                      fontFamily={FONTS.bold}
                       textAnchor="middle"
                     >
                       {p.percentage}%
@@ -791,9 +797,8 @@ const PerformanceTrendCard = ({
                       ? colors.primary || "#6750A4"
                       : colors.onSurfaceVariant || "#757575"
                   }
-                  fontSize={isSelected ? "12" : "11"}
-                  fontFamily={isSelected ? "DMSans-Bold" : "DMSans-Medium"}
-                  fontWeight={isSelected ? "bold" : "normal"}
+                  fontSize={isSelected ? FONT_SIZES.sm : FONT_SIZES.xs}
+                  fontFamily={isSelected ? FONTS.bold : FONTS.medium}
                   textAnchor="middle"
                 >
                   {p.examType}
@@ -856,8 +861,8 @@ const PerformanceTrendCard = ({
             >
               <Text
                 style={{
-                  fontSize: 15,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.mdLg,
+                  fontFamily: FONTS.bold,
                   color: colors.onSurface || (isDark ? "#FFFFFF" : "#1D1B20"),
                 }}
               >
@@ -873,8 +878,8 @@ const PerformanceTrendCard = ({
               >
                 <Text
                   style={{
-                    fontSize: 10,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.micro,
+                    fontFamily: FONTS.bold,
                     color: "#FFFFFF",
                   }}
                 >
@@ -883,8 +888,8 @@ const PerformanceTrendCard = ({
               </View>
               <Text
                 style={{
-                  fontSize: 12,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.sm,
+                  fontFamily: FONTS.medium,
                   color: activeGrade.color,
                 }}
               >
@@ -893,8 +898,8 @@ const PerformanceTrendCard = ({
             </View>
             <Text
               style={{
-                fontSize: 12,
-                fontFamily: "DMSans-Regular",
+                fontSize: FONT_SIZES.sm,
+                fontFamily: FONTS.regular,
                 color:
                   colors.onSurfaceVariant || (isDark ? "#CAC4D0" : "#49454F"),
               }}
@@ -911,8 +916,8 @@ const PerformanceTrendCard = ({
           <View style={{ alignItems: "flex-end" }}>
             <Text
               style={{
-                fontSize: 22,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.title,
+                fontFamily: FONTS.bold,
                 color: activeGrade.color,
               }}
             >
@@ -921,8 +926,8 @@ const PerformanceTrendCard = ({
             {activeIdx > 0 && (
               <Text
                 style={{
-                  fontSize: 11,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.xs,
+                  fontFamily: FONTS.bold,
                   color:
                     activeExam.percentage >=
                     normalizedData[activeIdx - 1].percentage
@@ -953,8 +958,8 @@ const PerformanceTrendCard = ({
         <View style={{ marginTop: 14 }}>
           <Text
             style={{
-              fontSize: 12,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.sm,
+              fontFamily: FONTS.bold,
               color:
                 colors.onSurfaceVariant || (isDark ? "#CAC4D0" : "#79747E"),
               marginBottom: 8,
@@ -1007,8 +1012,8 @@ const PerformanceTrendCard = ({
                   <View>
                     <Text
                       style={{
-                        fontSize: 12,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.sm,
+                        fontFamily: FONTS.bold,
                         color: isSelected
                           ? "#FFFFFF"
                           : colors.onSurface ||
@@ -1019,8 +1024,8 @@ const PerformanceTrendCard = ({
                     </Text>
                     <Text
                       style={{
-                        fontSize: 11,
-                        fontFamily: "DMSans-Medium",
+                        fontSize: FONT_SIZES.xs,
+                        fontFamily: FONTS.medium,
                         color: isSelected
                           ? "rgba(255, 255, 255, 0.85)"
                           : colors.onSurfaceVariant ||

@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import {
   useApiMutation,
   createApiMutationFn,
@@ -165,8 +165,8 @@ export default function TransitionWizardScreen() {
                 ) : (
                   <Text
                     style={{
-                      fontSize: 16,
-                      fontFamily: "DMSans-Bold",
+                      fontSize: FONT_SIZES.lg,
+                      fontFamily: FONTS.bold,
                       color: isActive ? "#FFF" : colors.onSurfaceVariant,
                     }}
                   >
@@ -176,8 +176,8 @@ export default function TransitionWizardScreen() {
               </View>
               <Text
                 style={{
-                  fontSize: 11,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.xs,
+                  fontFamily: FONTS.medium,
                   color: isActive ? colors.primary : colors.onSurfaceVariant,
                   marginTop: 6,
                   textAlign: "center",
@@ -208,8 +208,8 @@ export default function TransitionWizardScreen() {
     <View style={{ flex: 1 }}>
       <Text
         style={{
-          fontSize: 20,
-          fontFamily: "DMSans-Bold",
+          fontSize: FONT_SIZES.xl,
+          fontFamily: FONTS.bold,
           color: colors.onSurface,
           marginBottom: 8,
         }}
@@ -218,8 +218,8 @@ export default function TransitionWizardScreen() {
       </Text>
       <Text
         style={{
-          fontSize: 14,
-          fontFamily: "DMSans-Regular",
+          fontSize: FONT_SIZES.base,
+          fontFamily: FONTS.regular,
           color: colors.onSurfaceVariant,
           marginBottom: 24,
         }}
@@ -233,8 +233,8 @@ export default function TransitionWizardScreen() {
           <Text
             style={{
               marginTop: 16,
-              fontSize: 14,
-              fontFamily: "DMSans-Medium",
+              fontSize: FONT_SIZES.base,
+              fontFamily: FONTS.medium,
               color: colors.onSurfaceVariant,
             }}
           >
@@ -251,8 +251,8 @@ export default function TransitionWizardScreen() {
           />
           <Text
             style={{
-              fontSize: 16,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.lg,
+              fontFamily: FONTS.bold,
               color: colors.onSurface,
               marginTop: 16,
             }}
@@ -261,8 +261,8 @@ export default function TransitionWizardScreen() {
           </Text>
           <Text
             style={{
-              fontSize: 14,
-              fontFamily: "DMSans-Regular",
+              fontSize: FONT_SIZES.base,
+              fontFamily: FONTS.regular,
               color: colors.onSurfaceVariant,
               marginTop: 8,
               textAlign: "center",
@@ -286,7 +286,7 @@ export default function TransitionWizardScreen() {
           >
             <MaterialIcons name="play-arrow" size={20} color="#FFF" />
             <Text
-              style={{ fontSize: 15, fontFamily: "DMSans-Bold", color: "#FFF" }}
+              style={{ fontSize: FONT_SIZES.mdLg, fontFamily: FONTS.bold, color: "#FFF" }}
             >
               Start Preview
             </Text>
@@ -299,8 +299,8 @@ export default function TransitionWizardScreen() {
         <View style={{ marginTop: 24 }}>
           <Text
             style={{
-              fontSize: 16,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.lg,
+              fontFamily: FONTS.bold,
               color: colors.onSurface,
               marginBottom: 12,
             }}
@@ -321,9 +321,9 @@ export default function TransitionWizardScreen() {
               <Text
                 style={{
                   marginTop: 8,
-                  fontSize: 13,
+                  fontSize: FONT_SIZES.md,
                   color: colors.onSurfaceVariant,
-                  fontFamily: "DMSans-Medium",
+                  fontFamily: FONTS.medium,
                 }}
               >
                 Scanning current year data...
@@ -348,8 +348,8 @@ export default function TransitionWizardScreen() {
                 <MaterialIcons name="warning" size={20} color={colors.error} />
                 <Text
                   style={{
-                    fontSize: 15,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.mdLg,
+                    fontFamily: FONTS.bold,
                     color: colors.error,
                   }}
                 >
@@ -375,8 +375,8 @@ export default function TransitionWizardScreen() {
                   />
                   <Text
                     style={{
-                      fontSize: 13,
-                      fontFamily: "DMSans-Regular",
+                      fontSize: FONT_SIZES.md,
+                      fontFamily: FONTS.regular,
                       color: colors.onErrorContainer,
                       flex: 1,
                     }}
@@ -387,8 +387,8 @@ export default function TransitionWizardScreen() {
               ))}
               <Text
                 style={{
-                  fontSize: 12,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.sm,
+                  fontFamily: FONTS.medium,
                   color: colors.error,
                   marginTop: 16,
                   opacity: 0.8,
@@ -417,8 +417,8 @@ export default function TransitionWizardScreen() {
               <View style={{ flex: 1 }}>
                 <Text
                   style={{
-                    fontSize: 15,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.mdLg,
+                    fontFamily: FONTS.bold,
                     color: colors.success,
                   }}
                 >
@@ -426,8 +426,8 @@ export default function TransitionWizardScreen() {
                 </Text>
                 <Text
                   style={{
-                    fontSize: 13,
-                    fontFamily: "DMSans-Regular",
+                    fontSize: FONT_SIZES.md,
+                    fontFamily: FONTS.regular,
                     color: colors.onSurfaceVariant,
                     marginTop: 2,
                   }}
@@ -454,8 +454,8 @@ export default function TransitionWizardScreen() {
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         <Text
           style={{
-            fontSize: 20,
-            fontFamily: "DMSans-Bold",
+            fontSize: FONT_SIZES.xl,
+            fontFamily: FONTS.bold,
             color: colors.onSurface,
             marginBottom: 8,
           }}
@@ -464,8 +464,8 @@ export default function TransitionWizardScreen() {
         </Text>
         <Text
           style={{
-            fontSize: 14,
-            fontFamily: "DMSans-Regular",
+            fontSize: FONT_SIZES.base,
+            fontFamily: FONTS.regular,
             color: colors.onSurfaceVariant,
             marginBottom: 20,
           }}
@@ -484,8 +484,8 @@ export default function TransitionWizardScreen() {
         >
           <Text
             style={{
-              fontSize: 16,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.lg,
+              fontFamily: FONTS.bold,
               color: colors.onSurface,
               marginBottom: 12,
             }}
@@ -541,8 +541,8 @@ export default function TransitionWizardScreen() {
               <MaterialIcons name="warning" size={20} color={colors.error} />
               <Text
                 style={{
-                  fontSize: 16,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.lg,
+                  fontFamily: FONTS.bold,
                   color: colors.error,
                 }}
               >
@@ -553,8 +553,8 @@ export default function TransitionWizardScreen() {
               <Text
                 key={index}
                 style={{
-                  fontSize: 13,
-                  fontFamily: "DMSans-Regular",
+                  fontSize: FONT_SIZES.md,
+                  fontFamily: FONTS.regular,
                   color: colors.onErrorContainer,
                   marginBottom: 6,
                 }}
@@ -570,8 +570,8 @@ export default function TransitionWizardScreen() {
           <View style={{ marginBottom: 16 }}>
             <Text
               style={{
-                fontSize: 16,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.lg,
+                fontFamily: FONTS.bold,
                 color: colors.onSurface,
                 marginBottom: 12,
               }}
@@ -592,8 +592,8 @@ export default function TransitionWizardScreen() {
               >
                 <Text
                   style={{
-                    fontSize: 15,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.mdLg,
+                    fontFamily: FONTS.bold,
                     color: colors.onSurface,
                   }}
                 >
@@ -601,8 +601,8 @@ export default function TransitionWizardScreen() {
                 </Text>
                 <Text
                   style={{
-                    fontSize: 12,
-                    fontFamily: "DMSans-Regular",
+                    fontSize: FONT_SIZES.sm,
+                    fontFamily: FONTS.regular,
                     color: colors.onSurfaceVariant,
                     marginTop: 4,
                   }}
@@ -612,8 +612,8 @@ export default function TransitionWizardScreen() {
                 </Text>
                 <Text
                   style={{
-                    fontSize: 12,
-                    fontFamily: "DMSans-Regular",
+                    fontSize: FONT_SIZES.sm,
+                    fontFamily: FONTS.regular,
                     color: colors.error,
                     marginTop: 4,
                   }}
@@ -625,8 +625,8 @@ export default function TransitionWizardScreen() {
             {manualReviewStudents.length > 5 && (
               <Text
                 style={{
-                  fontSize: 13,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.md,
+                  fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                   marginTop: 8,
                 }}
@@ -661,8 +661,8 @@ export default function TransitionWizardScreen() {
           >
             <Text
               style={{
-                fontSize: 15,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.mdLg,
+                fontFamily: FONTS.bold,
                 color: colors.onSurface,
               }}
             >
@@ -680,7 +680,7 @@ export default function TransitionWizardScreen() {
             })}
           >
             <Text
-              style={{ fontSize: 15, fontFamily: "DMSans-Bold", color: "#FFF" }}
+              style={{ fontSize: FONT_SIZES.mdLg, fontFamily: FONTS.bold, color: "#FFF" }}
             >
               Next: Confirm →
             </Text>
@@ -699,8 +699,8 @@ export default function TransitionWizardScreen() {
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         <Text
           style={{
-            fontSize: 20,
-            fontFamily: "DMSans-Bold",
+            fontSize: FONT_SIZES.xl,
+            fontFamily: FONTS.bold,
             color: colors.onSurface,
             marginBottom: 8,
           }}
@@ -709,8 +709,8 @@ export default function TransitionWizardScreen() {
         </Text>
         <Text
           style={{
-            fontSize: 14,
-            fontFamily: "DMSans-Regular",
+            fontSize: FONT_SIZES.base,
+            fontFamily: FONTS.regular,
             color: colors.onSurfaceVariant,
             marginBottom: 20,
           }}
@@ -738,8 +738,8 @@ export default function TransitionWizardScreen() {
             <MaterialIcons name="warning" size={24} color={colors.error} />
             <Text
               style={{
-                fontSize: 16,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.lg,
+                fontFamily: FONTS.bold,
                 color: colors.error,
               }}
             >
@@ -798,8 +798,8 @@ export default function TransitionWizardScreen() {
             </View>
             <Text
               style={{
-                fontSize: 14,
-                fontFamily: "DMSans-Medium",
+                fontSize: FONT_SIZES.base,
+                fontFamily: FONTS.medium,
                 color: colors.onSurface,
                 flex: 1,
               }}
@@ -834,8 +834,8 @@ export default function TransitionWizardScreen() {
             </View>
             <Text
               style={{
-                fontSize: 14,
-                fontFamily: "DMSans-Medium",
+                fontSize: FONT_SIZES.base,
+                fontFamily: FONTS.medium,
                 color: colors.onSurface,
                 flex: 1,
               }}
@@ -868,8 +868,8 @@ export default function TransitionWizardScreen() {
             </View>
             <Text
               style={{
-                fontSize: 14,
-                fontFamily: "DMSans-Medium",
+                fontSize: FONT_SIZES.base,
+                fontFamily: FONTS.medium,
                 color: colors.onSurface,
                 flex: 1,
               }}
@@ -890,8 +890,8 @@ export default function TransitionWizardScreen() {
         >
           <Text
             style={{
-              fontSize: 14,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.base,
+              fontFamily: FONTS.bold,
               color: colors.onSurface,
               marginBottom: 8,
             }}
@@ -900,8 +900,8 @@ export default function TransitionWizardScreen() {
           </Text>
           <Text
             style={{
-              fontSize: 13,
-              fontFamily: "DMSans-Regular",
+              fontSize: FONT_SIZES.md,
+              fontFamily: FONTS.regular,
               color: colors.onSurfaceVariant,
               marginBottom: 12,
             }}
@@ -920,8 +920,8 @@ export default function TransitionWizardScreen() {
               borderRadius: 8,
               paddingHorizontal: 16,
               paddingVertical: 12,
-              fontSize: 15,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.mdLg,
+              fontFamily: FONTS.bold,
               color: colors.onSurface,
             }}
           />
@@ -950,8 +950,8 @@ export default function TransitionWizardScreen() {
           >
             <Text
               style={{
-                fontSize: 15,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.mdLg,
+                fontFamily: FONTS.bold,
                 color: colors.onSurface,
               }}
             >
@@ -980,8 +980,8 @@ export default function TransitionWizardScreen() {
             ) : (
               <Text
                 style={{
-                  fontSize: 15,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.mdLg,
+                  fontFamily: FONTS.bold,
                   color: "#FFF",
                 }}
               >
@@ -1023,14 +1023,14 @@ function StatRow({ icon, label, value, color }) {
       <Text
         style={{
           flex: 1,
-          fontSize: 14,
-          fontFamily: "DMSans-Medium",
+          fontSize: FONT_SIZES.base,
+          fontFamily: FONTS.medium,
           color: color,
         }}
       >
         {label}
       </Text>
-      <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color }}>
+      <Text style={{ fontSize: FONT_SIZES.lg, fontFamily: FONTS.bold, color }}>
         {value}
       </Text>
     </View>
@@ -1049,8 +1049,8 @@ function CheckItem({ text }) {
       />
       <Text
         style={{
-          fontSize: 13,
-          fontFamily: "DMSans-Regular",
+          fontSize: FONT_SIZES.md,
+          fontFamily: FONTS.regular,
           color: colors.onErrorContainer,
           flex: 1,
         }}

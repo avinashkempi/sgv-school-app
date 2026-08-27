@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, ScrollView } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
 import Card from "./Card";
 
 /**
@@ -150,8 +150,8 @@ export default function PerformanceInsights({ reportData }) {
             <View style={{ flex: 1 }}>
               <Text
                 style={{
-                  fontSize: 16,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.lg,
+                  fontFamily: FONTS.bold,
                   color: colors.onSurface,
                 }}
               >
@@ -159,8 +159,8 @@ export default function PerformanceInsights({ reportData }) {
               </Text>
               <Text
                 style={{
-                  fontSize: 13,
-                  fontFamily: "DMSans-Regular",
+                  fontSize: FONT_SIZES.md,
+                  fontFamily: FONTS.regular,
                   color: colors.onSurfaceVariant,
                   marginTop: 2,
                 }}
@@ -179,8 +179,8 @@ export default function PerformanceInsights({ reportData }) {
       {/* Strengths */}
       <Text
         style={{
-          fontSize: 18,
-          fontFamily: "DMSans-Bold",
+          fontSize: FONT_SIZES.xl,
+          fontFamily: FONTS.bold,
           color: colors.onSurface,
           marginBottom: 12,
         }}
@@ -206,8 +206,8 @@ export default function PerformanceInsights({ reportData }) {
             >
               <Text
                 style={{
-                  fontSize: 16,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.lg,
+                  fontFamily: FONTS.bold,
                   color: colors.success,
                 }}
               >
@@ -217,8 +217,8 @@ export default function PerformanceInsights({ reportData }) {
             <View style={{ flex: 1 }}>
               <Text
                 style={{
-                  fontSize: 15,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.mdLg,
+                  fontFamily: FONTS.bold,
                   color: colors.onSurface,
                 }}
               >
@@ -226,8 +226,8 @@ export default function PerformanceInsights({ reportData }) {
               </Text>
               <Text
                 style={{
-                  fontSize: 12,
-                  fontFamily: "DMSans-Regular",
+                  fontSize: FONT_SIZES.sm,
+                  fontFamily: FONTS.regular,
                   color: colors.onSurfaceVariant,
                   marginTop: 2,
                 }}
@@ -245,8 +245,8 @@ export default function PerformanceInsights({ reportData }) {
             >
               <Text
                 style={{
-                  fontSize: 16,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.lg,
+                  fontFamily: FONTS.bold,
                   color: getGradeColor(item.percentage),
                 }}
               >
@@ -260,8 +260,8 @@ export default function PerformanceInsights({ reportData }) {
       {/* Weaknesses */}
       <Text
         style={{
-          fontSize: 18,
-          fontFamily: "DMSans-Bold",
+          fontSize: FONT_SIZES.xl,
+          fontFamily: FONTS.bold,
           color: colors.onSurface,
           marginTop: 20,
           marginBottom: 12,
@@ -295,8 +295,8 @@ export default function PerformanceInsights({ reportData }) {
             <View style={{ flex: 1 }}>
               <Text
                 style={{
-                  fontSize: 15,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.mdLg,
+                  fontFamily: FONTS.bold,
                   color: colors.onSurface,
                 }}
               >
@@ -304,8 +304,8 @@ export default function PerformanceInsights({ reportData }) {
               </Text>
               <Text
                 style={{
-                  fontSize: 12,
-                  fontFamily: "DMSans-Regular",
+                  fontSize: FONT_SIZES.sm,
+                  fontFamily: FONTS.regular,
                   color: colors.onSurfaceVariant,
                   marginTop: 2,
                 }}
@@ -323,8 +323,8 @@ export default function PerformanceInsights({ reportData }) {
             >
               <Text
                 style={{
-                  fontSize: 16,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.lg,
+                  fontFamily: FONTS.bold,
                   color: getGradeColor(item.percentage),
                 }}
               >
@@ -344,8 +344,8 @@ export default function PerformanceInsights({ reportData }) {
           >
             <Text
               style={{
-                fontSize: 12,
-                fontFamily: "DMSans-Medium",
+                fontSize: FONT_SIZES.sm,
+                fontFamily: FONTS.medium,
                 color: colors.primary,
                 marginBottom: 4,
               }}
@@ -354,10 +354,10 @@ export default function PerformanceInsights({ reportData }) {
             </Text>
             <Text
               style={{
-                fontSize: 13,
-                fontFamily: "DMSans-Regular",
+                fontSize: FONT_SIZES.md,
+                fontFamily: FONTS.regular,
                 color: colors.onSurfaceVariant,
-                lineHeight: 18,
+                lineHeight: LINE_HEIGHTS.md,
               }}
             >
               {getRecommendation(item.percentage)}
@@ -382,8 +382,8 @@ export default function PerformanceInsights({ reportData }) {
           <View style={{ flex: 1 }}>
             <Text
               style={{
-                fontSize: 16,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.lg,
+                fontFamily: FONTS.bold,
                 color: colors.onSurface,
                 marginBottom: 8,
               }}
@@ -393,40 +393,40 @@ export default function PerformanceInsights({ reportData }) {
             <View style={{ gap: 6 }}>
               <Text
                 style={{
-                  fontSize: 13,
-                  fontFamily: "DMSans-Regular",
+                  fontSize: FONT_SIZES.md,
+                  fontFamily: FONTS.regular,
                   color: colors.onSurfaceVariant,
-                  lineHeight: 18,
+                  lineHeight: LINE_HEIGHTS.md,
                 }}
               >
                 • Focus extra time on {insights.weaknesses[0]?.subject}
               </Text>
               <Text
                 style={{
-                  fontSize: 13,
-                  fontFamily: "DMSans-Regular",
+                  fontSize: FONT_SIZES.md,
+                  fontFamily: FONTS.regular,
                   color: colors.onSurfaceVariant,
-                  lineHeight: 18,
+                  lineHeight: LINE_HEIGHTS.md,
                 }}
               >
                 • Review previous exam papers
               </Text>
               <Text
                 style={{
-                  fontSize: 13,
-                  fontFamily: "DMSans-Regular",
+                  fontSize: FONT_SIZES.md,
+                  fontFamily: FONTS.regular,
                   color: colors.onSurfaceVariant,
-                  lineHeight: 18,
+                  lineHeight: LINE_HEIGHTS.md,
                 }}
               >
                 • Ask your teacher for help in weak areas
               </Text>
               <Text
                 style={{
-                  fontSize: 13,
-                  fontFamily: "DMSans-Regular",
+                  fontSize: FONT_SIZES.md,
+                  fontFamily: FONTS.regular,
                   color: colors.onSurfaceVariant,
-                  lineHeight: 18,
+                  lineHeight: LINE_HEIGHTS.md,
                 }}
               >
                 • Create a study schedule and stick to it

@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
 import apiConfig from "../../config/apiConfig";
 import apiFetch from "../../utils/apiFetch";
@@ -165,11 +165,11 @@ export default function AcademicYearsScreen() {
               <MaterialIcons name="star" size={20} color="#FFF" />
               <Text
                 style={{
-                  fontSize: 13,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.md,
+                  fontFamily: FONTS.bold,
                   color: "#FFF",
                   textTransform: "uppercase",
-                  letterSpacing: 1,
+                  letterSpacing: LETTER_SPACINGS.micro,
                 }}
               >
                 CURRENT ACADEMIC YEAR
@@ -205,8 +205,8 @@ export default function AcademicYearsScreen() {
                 />
                 <Text
                   style={{
-                    fontSize: 20,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.xl,
+                    fontFamily: FONTS.bold,
                     color: colors.onSurface,
                   }}
                 >
@@ -216,8 +216,8 @@ export default function AcademicYearsScreen() {
               {year.description && (
                 <Text
                   style={{
-                    fontSize: 13,
-                    fontFamily: "DMSans-Regular",
+                    fontSize: FONT_SIZES.md,
+                    fontFamily: FONTS.regular,
                     color: colors.onSurfaceVariant,
                     marginTop: 4,
                   }}
@@ -246,8 +246,8 @@ export default function AcademicYearsScreen() {
                 />
                 <Text
                   style={{
-                    fontSize: 12,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.sm,
+                    fontFamily: FONTS.bold,
                     color: statusColor.text,
                   }}
                 >
@@ -272,8 +272,8 @@ export default function AcademicYearsScreen() {
             <View style={{ flex: 1 }}>
               <Text
                 style={{
-                  fontSize: 11,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.xs,
+                  fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                   marginBottom: 4,
                 }}
@@ -282,8 +282,8 @@ export default function AcademicYearsScreen() {
               </Text>
               <Text
                 style={{
-                  fontSize: 14,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.base,
+                  fontFamily: FONTS.bold,
                   color: colors.onSurface,
                 }}
               >
@@ -293,8 +293,8 @@ export default function AcademicYearsScreen() {
             <View style={{ flex: 1 }}>
               <Text
                 style={{
-                  fontSize: 11,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.xs,
+                  fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                   marginBottom: 4,
                 }}
@@ -303,8 +303,8 @@ export default function AcademicYearsScreen() {
               </Text>
               <Text
                 style={{
-                  fontSize: 14,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.base,
+                  fontFamily: FONTS.bold,
                   color: colors.onSurface,
                 }}
               >
@@ -325,8 +325,8 @@ export default function AcademicYearsScreen() {
             >
               <Text
                 style={{
-                  fontSize: 12,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.sm,
+                  fontFamily: FONTS.bold,
                   color: colors.onSurface,
                   marginBottom: 10,
                 }}
@@ -383,8 +383,8 @@ export default function AcademicYearsScreen() {
                 )}
                 <Text
                   style={{
-                    fontSize: 14,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.base,
+                    fontFamily: FONTS.bold,
                     color: "#FFF",
                   }}
                 >
@@ -411,8 +411,8 @@ export default function AcademicYearsScreen() {
                 <MaterialIcons name="sync" size={18} color="#FFF" />
                 <Text
                   style={{
-                    fontSize: 14,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.base,
+                    fontFamily: FONTS.bold,
                     color: "#FFF",
                   }}
                 >
@@ -444,8 +444,8 @@ export default function AcademicYearsScreen() {
               />
               <Text
                 style={{
-                  fontSize: 14,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.base,
+                  fontFamily: FONTS.bold,
                   color: colors.onSurface,
                 }}
               >
@@ -504,8 +504,8 @@ export default function AcademicYearsScreen() {
               <MaterialIcons name="add-circle" size={20} color="#FFF" />
               <Text
                 style={{
-                  fontSize: 14,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.base,
+                  fontFamily: FONTS.bold,
                   color: "#FFF",
                 }}
               >
@@ -534,8 +534,8 @@ export default function AcademicYearsScreen() {
               />
               <Text
                 style={{
-                  fontSize: 14,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.base,
+                  fontFamily: FONTS.bold,
                   color: colors.onSurface,
                 }}
               >
@@ -555,8 +555,8 @@ export default function AcademicYearsScreen() {
               <ActivityIndicator size="large" color={colors.primary} />
               <Text
                 style={{
-                  fontSize: 14,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.base,
+                  fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                   marginTop: 12,
                 }}
@@ -578,8 +578,8 @@ export default function AcademicYearsScreen() {
                 <View style={{ marginBottom: 24 }}>
                   <Text
                     style={{
-                      fontSize: 18,
-                      fontFamily: "DMSans-Bold",
+                      fontSize: FONT_SIZES.xl,
+                      fontFamily: FONTS.bold,
                       color: colors.onSurface,
                       marginBottom: 16,
                     }}
@@ -597,8 +597,8 @@ export default function AcademicYearsScreen() {
                 <View>
                   <Text
                     style={{
-                      fontSize: 18,
-                      fontFamily: "DMSans-Bold",
+                      fontSize: FONT_SIZES.xl,
+                      fontFamily: FONTS.bold,
                       color: colors.onSurface,
                       marginBottom: 16,
                     }}
@@ -631,8 +631,8 @@ export default function AcademicYearsScreen() {
                     />
                     <Text
                       style={{
-                        fontSize: 16,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.lg,
+                        fontFamily: FONTS.bold,
                         color: colors.onSurface,
                         marginTop: 16,
                       }}
@@ -641,8 +641,8 @@ export default function AcademicYearsScreen() {
                     </Text>
                     <Text
                       style={{
-                        fontSize: 14,
-                        fontFamily: "DMSans-Regular",
+                        fontSize: FONT_SIZES.base,
+                        fontFamily: FONTS.regular,
                         color: colors.onSurfaceVariant,
                         marginTop: 8,
                         textAlign: "center",
@@ -686,13 +686,13 @@ function StatItem({ icon, label, value, color }) {
         <MaterialIcons name={icon} size={16} color={color} />
       </View>
       <View>
-        <Text style={{ fontSize: 16, fontFamily: "DMSans-Bold", color: color }}>
+        <Text style={{ fontSize: FONT_SIZES.lg, fontFamily: FONTS.bold, color: color }}>
           {value}
         </Text>
         <Text
           style={{
-            fontSize: 10,
-            fontFamily: "DMSans-Medium",
+            fontSize: FONT_SIZES.micro,
+            fontFamily: FONTS.medium,
             color: color,
             opacity: 0.7,
           }}

@@ -2,7 +2,7 @@ import React, { useState, useCallback } from "react";
 import { View, Text, ScrollView, RefreshControl } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter, useFocusEffect } from "expo-router";
-import { useTheme } from "../../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../../theme";
 import Header from "../../../components/Header";
 import { useLabel } from "../../../context/LabelsContext";
 import Card from "../../../components/Card";
@@ -142,8 +142,8 @@ export default function StudentHistoryScreen() {
                       />
                       <Text
                         style={{
-                          fontSize: 18,
-                          fontFamily: "DMSans-Bold",
+                          fontSize: FONT_SIZES.xl,
+                          fontFamily: FONTS.bold,
                           color: colors.onSurface,
                         }}
                       >
@@ -163,8 +163,8 @@ export default function StudentHistoryScreen() {
                     >
                       <Text
                         style={{
-                          fontSize: 12,
-                          fontFamily: "DMSans-Medium",
+                          fontSize: FONT_SIZES.sm,
+                          fontFamily: FONTS.medium,
                           color: colors.onSurfaceVariant,
                         }}
                       >
@@ -184,9 +184,9 @@ export default function StudentHistoryScreen() {
                     <View>
                       <Text
                         style={{
-                          fontSize: 13,
+                          fontSize: FONT_SIZES.md,
                           color: colors.onSurfaceVariant,
-                          fontFamily: "DMSans-Regular",
+                          fontFamily: FONTS.regular,
                           marginBottom: 4,
                         }}
                       >
@@ -194,8 +194,8 @@ export default function StudentHistoryScreen() {
                       </Text>
                       <Text
                         style={{
-                          fontSize: 15,
-                          fontFamily: "DMSans-Bold",
+                          fontSize: FONT_SIZES.mdLg,
+                          fontFamily: FONTS.bold,
                           color:
                             record.finalStatus === "promoted"
                               ? colors.success
@@ -215,9 +215,9 @@ export default function StudentHistoryScreen() {
                     <View>
                       <Text
                         style={{
-                          fontSize: 13,
+                          fontSize: FONT_SIZES.md,
                           color: colors.onSurfaceVariant,
-                          fontFamily: "DMSans-Regular",
+                          fontFamily: FONTS.regular,
                           marginBottom: 4,
                         }}
                       >
@@ -225,8 +225,8 @@ export default function StudentHistoryScreen() {
                       </Text>
                       <Text
                         style={{
-                          fontSize: 15,
-                          fontFamily: "DMSans-Bold",
+                          fontSize: FONT_SIZES.mdLg,
+                          fontFamily: FONTS.bold,
                           color: colors.onSurface,
                         }}
                       >
@@ -240,9 +240,9 @@ export default function StudentHistoryScreen() {
                       <View>
                         <Text
                           style={{
-                            fontSize: 13,
+                            fontSize: FONT_SIZES.md,
                             color: colors.onSurfaceVariant,
-                            fontFamily: "DMSans-Regular",
+                            fontFamily: FONTS.regular,
                             marginBottom: 4,
                           }}
                         >
@@ -257,8 +257,8 @@ export default function StudentHistoryScreen() {
                         >
                           <Text
                             style={{
-                              fontSize: 15,
-                              fontFamily: "DMSans-Bold",
+                              fontSize: FONT_SIZES.mdLg,
+                              fontFamily: FONTS.bold,
                               color: getGradeColor(record.grade),
                             }}
                           >
@@ -275,8 +275,8 @@ export default function StudentHistoryScreen() {
                           >
                             <Text
                               style={{
-                                fontSize: 10,
-                                fontFamily: "DMSans-Bold",
+                                fontSize: FONT_SIZES.micro,
+                                fontFamily: FONTS.bold,
                                 color: getGradeColor(record.grade),
                               }}
                             >

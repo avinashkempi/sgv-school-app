@@ -9,7 +9,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
 
 /**
  * Single timeline item — animated with Reanimated on UI thread.
@@ -169,9 +169,9 @@ const ExamTimelineItem = React.memo(
                 <Text
                   style={{
                     color: examColor,
-                    fontSize: 11,
-                    fontFamily: "DMSans-Bold",
-                    letterSpacing: 0.5,
+                    fontSize: FONT_SIZES.xs,
+                    fontFamily: FONTS.bold,
+                    letterSpacing: LETTER_SPACINGS.xs,
                   }}
                 >
                   {exam.standardizedType}
@@ -193,9 +193,9 @@ const ExamTimelineItem = React.memo(
                   <Text
                     style={{
                       color: "#fff",
-                      fontSize: 10,
-                      fontFamily: "DMSans-Bold",
-                      letterSpacing: 1,
+                      fontSize: FONT_SIZES.micro,
+                      fontFamily: FONTS.bold,
+                      letterSpacing: LETTER_SPACINGS.micro,
                     }}
                   >
                     TODAY
@@ -222,8 +222,8 @@ const ExamTimelineItem = React.memo(
                   <Text
                     style={{
                       color: colors.success,
-                      fontSize: 10,
-                      fontFamily: "DMSans-Bold",
+                      fontSize: FONT_SIZES.micro,
+                      fontFamily: FONTS.bold,
                     }}
                   >
                     MARKS OUT
@@ -249,8 +249,8 @@ const ExamTimelineItem = React.memo(
             >
               <Text
                 style={{
-                  fontSize: 12,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.sm,
+                  fontFamily: FONTS.bold,
                   color: past
                     ? colors.onSurfaceVariant
                     : today
@@ -266,8 +266,8 @@ const ExamTimelineItem = React.memo(
           {/* Subject Name */}
           <Text
             style={{
-              fontSize: 16,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.lg,
+              fontFamily: FONTS.bold,
               color: colors.onSurface,
               marginBottom: 4,
             }}
@@ -294,8 +294,8 @@ const ExamTimelineItem = React.memo(
               />
               <Text
                 style={{
-                  fontSize: 12,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.sm,
+                  fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                 }}
               >
@@ -312,8 +312,8 @@ const ExamTimelineItem = React.memo(
               />
               <Text
                 style={{
-                  fontSize: 12,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.sm,
+                  fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                 }}
               >
@@ -331,8 +331,8 @@ const ExamTimelineItem = React.memo(
                 />
                 <Text
                   style={{
-                    fontSize: 12,
-                    fontFamily: "DMSans-Medium",
+                    fontSize: FONT_SIZES.sm,
+                    fontFamily: FONTS.medium,
                     color: colors.onSurfaceVariant,
                   }}
                 >
@@ -439,8 +439,8 @@ export default function ExamTimeline({ exams = [], onExamPress }) {
         <Text
           style={{
             color: colors.onSurfaceVariant,
-            fontSize: 15,
-            fontFamily: "DMSans-Medium",
+            fontSize: FONT_SIZES.mdLg,
+            fontFamily: FONTS.medium,
           }}
         >
           No exams scheduled

@@ -14,7 +14,7 @@ import Card from "../../components/Card";
 import apiConfig from "../../config/apiConfig";
 import { useToast } from "../../components/ToastProvider";
 import { useRouter } from "expo-router";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
 import { CACHE_TIERS } from "../../utils/cacheConfig";
 
@@ -99,7 +99,7 @@ export default function StudentFeesScreen() {
               <Text
                 style={{
                   color: colors.onSurfaceVariant,
-                  fontSize: 12,
+                  fontSize: FONT_SIZES.sm,
                   marginBottom: 4,
                 }}
               >
@@ -107,8 +107,8 @@ export default function StudentFeesScreen() {
               </Text>
               <Text
                 style={{
-                  fontSize: 16,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.lg,
+                  fontFamily: FONTS.bold,
                   color: colors.onSurface,
                 }}
               >
@@ -124,7 +124,7 @@ export default function StudentFeesScreen() {
                 <Text
                   style={{
                     color: colors.onSurfaceVariant,
-                    fontSize: 12,
+                    fontSize: FONT_SIZES.sm,
                     marginBottom: 4,
                   }}
                 >
@@ -132,8 +132,8 @@ export default function StudentFeesScreen() {
                 </Text>
                 <Text
                   style={{
-                    fontSize: 16,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.lg,
+                    fontFamily: FONTS.bold,
                     color: "#FF9800",
                   }}
                 >
@@ -148,7 +148,7 @@ export default function StudentFeesScreen() {
               <Text
                 style={{
                   color: colors.onSurfaceVariant,
-                  fontSize: 12,
+                  fontSize: FONT_SIZES.sm,
                   marginBottom: 4,
                 }}
               >
@@ -156,8 +156,8 @@ export default function StudentFeesScreen() {
               </Text>
               <Text
                 style={{
-                  fontSize: 16,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.lg,
+                  fontFamily: FONTS.bold,
                   color: colors.success,
                 }}
               >
@@ -171,7 +171,7 @@ export default function StudentFeesScreen() {
               <Text
                 style={{
                   color: colors.onSurfaceVariant,
-                  fontSize: 12,
+                  fontSize: FONT_SIZES.sm,
                   marginBottom: 4,
                 }}
               >
@@ -179,8 +179,8 @@ export default function StudentFeesScreen() {
               </Text>
               <Text
                 style={{
-                  fontSize: 16,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.lg,
+                  fontFamily: FONTS.bold,
                   color: colors.error,
                 }}
               >
@@ -193,8 +193,8 @@ export default function StudentFeesScreen() {
           <View style={{ marginTop: 24 }}>
             <Text
               style={{
-                fontSize: 18,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.xl,
+                fontFamily: FONTS.bold,
                 color: colors.textPrimary,
                 marginBottom: 16,
               }}
@@ -220,7 +220,7 @@ export default function StudentFeesScreen() {
                   <Text
                     style={{
                       color: colors.textPrimary,
-                      fontFamily: "DMSans-Medium",
+                      fontFamily: FONTS.medium,
                     }}
                   >
                     {comp.name}
@@ -228,7 +228,7 @@ export default function StudentFeesScreen() {
                   <Text
                     style={{
                       color: colors.textPrimary,
-                      fontFamily: "DMSans-Bold",
+                      fontFamily: FONTS.bold,
                     }}
                   >
                     ₹{comp.amount}
@@ -246,12 +246,12 @@ export default function StudentFeesScreen() {
                   <Text
                     style={{
                       color: colors.textPrimary,
-                      fontFamily: "DMSans-Medium",
+                      fontFamily: FONTS.medium,
                     }}
                   >
                     {t("student.lessConcession", "Less: Concession")}
                   </Text>
-                  <Text style={{ color: "#FF9800", fontFamily: "DMSans-Bold" }}>
+                  <Text style={{ color: "#FF9800", fontFamily: FONTS.bold }}>
                     -₹{feeData.concession}
                   </Text>
                 </View>
@@ -272,13 +272,13 @@ export default function StudentFeesScreen() {
                 <Text
                   style={{
                     color: colors.textPrimary,
-                    fontFamily: "DMSans-Bold",
+                    fontFamily: FONTS.bold,
                   }}
                 >
                   {t("student.netPayable", "Net Payable")}
                 </Text>
                 <Text
-                  style={{ color: colors.primary, fontFamily: "DMSans-Bold" }}
+                  style={{ color: colors.primary, fontFamily: FONTS.bold }}
                 >
                   ₹
                   {(
@@ -295,8 +295,8 @@ export default function StudentFeesScreen() {
               <View style={{ marginTop: 24 }}>
                 <Text
                   style={{
-                    fontSize: 18,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.xl,
+                    fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                     marginBottom: 16,
                   }}
@@ -354,9 +354,9 @@ export default function StudentFeesScreen() {
                         <View style={{ flex: 1, marginRight: 12 }}>
                           <Text
                             style={{
-                              fontFamily: "DMSans-Bold",
+                              fontFamily: FONTS.bold,
                               color: colors.textPrimary,
-                              fontSize: 15,
+                              fontSize: FONT_SIZES.mdLg,
                             }}
                           >
                             {inst.description}
@@ -364,7 +364,7 @@ export default function StudentFeesScreen() {
                           <Text
                             style={{
                               color: colors.textSecondary,
-                              fontSize: 12,
+                              fontSize: FONT_SIZES.sm,
                               marginTop: 2,
                             }}
                           >
@@ -388,8 +388,8 @@ export default function StudentFeesScreen() {
                           <Text
                             style={{
                               color: badgeColor,
-                              fontSize: 11,
-                              fontFamily: "DMSans-Bold",
+                              fontSize: FONT_SIZES.xs,
+                              fontFamily: FONTS.bold,
                             }}
                           >
                             {badgeText}
@@ -406,8 +406,8 @@ export default function StudentFeesScreen() {
           <View style={{ marginTop: 24 }}>
             <Text
               style={{
-                fontSize: 18,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.xl,
+                fontFamily: FONTS.bold,
                 color: colors.textPrimary,
                 marginBottom: 16,
               }}
@@ -441,9 +441,9 @@ export default function StudentFeesScreen() {
                   <View>
                     <Text
                       style={{
-                        fontFamily: "DMSans-Bold",
+                        fontFamily: FONTS.bold,
                         color: colors.onSurface,
-                        fontSize: 16,
+                        fontSize: FONT_SIZES.lg,
                       }}
                     >
                       ₹{payment.amount.toLocaleString()}
@@ -451,7 +451,7 @@ export default function StudentFeesScreen() {
                     <Text
                       style={{
                         color: colors.onSurfaceVariant,
-                        fontSize: 12,
+                        fontSize: FONT_SIZES.sm,
                         marginTop: 4,
                       }}
                     >
@@ -463,7 +463,7 @@ export default function StudentFeesScreen() {
                       <Text
                         style={{
                           color: colors.primary,
-                          fontSize: 12,
+                          fontSize: FONT_SIZES.sm,
                           marginTop: 2,
                           fontWeight: "600",
                         }}
@@ -475,7 +475,7 @@ export default function StudentFeesScreen() {
                     <Text
                       style={{
                         color: colors.onSurfaceVariant,
-                        fontSize: 12,
+                        fontSize: FONT_SIZES.sm,
                         marginTop: 2,
                       }}
                     >
@@ -491,7 +491,7 @@ export default function StudentFeesScreen() {
                     {(payment.bookNumber || payment.manualReceiptNumber) && (
                       <Text
                         style={{
-                          fontSize: 12,
+                          fontSize: FONT_SIZES.sm,
                           color: colors.onSurfaceVariant,
                           marginTop: 2,
                         }}
@@ -524,8 +524,8 @@ export default function StudentFeesScreen() {
                       <Text
                         style={{
                           color: colors.success,
-                          fontSize: 10,
-                          fontFamily: "DMSans-Bold",
+                          fontSize: FONT_SIZES.micro,
+                          fontFamily: FONTS.bold,
                           textTransform: "uppercase",
                         }}
                       >

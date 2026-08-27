@@ -8,12 +8,16 @@ import {
   StyleSheet,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
 import apiConfig from "../../config/apiConfig";
 import { CACHE_TIERS } from "../../utils/cacheConfig";
 import SkeletonLoader from "../SkeletonLoader";
 import UserAvatar from "../ui/UserAvatar";
+import {
+  formatUserName,
+  formatUserDesignationOrRole,
+} from "../../utils/userFormatters";
 
 export default function VibeLikesModal({ visible, onClose, vibeId }) {
   const { colors } = useTheme();
@@ -33,30 +37,20 @@ export default function VibeLikesModal({ visible, onClose, vibeId }) {
 
   const renderUserItem = useCallback(
     ({ item }) => {
-      const roleText =
-        item.role === "student"
-          ? item.currentClass?.name
-            ? `Student • ${item.currentClass.name}`
-            : "Student"
-          : item.role === "teacher"
-          ? item.designation
-            ? `Teacher • ${item.designation}`
-            : "Teacher"
-          : item.role === "admin" || item.role === "super admin"
-          ? "Administrator"
-          : item.role;
+      const displayName = formatUserName(item.name || "User");
+      const roleText = formatUserDesignationOrRole(item);
 
       return (
         <View style={styles.userRow}>
           <UserAvatar
             photoUrl={item.profilePhoto}
-            name={item.name || "User"}
+            name={displayName}
             role={item.role}
             size={38}
           />
           <View style={styles.userDetails}>
             <Text style={[styles.userName, { color: colors.onSurface }]}>
-              {item.name}
+              {displayName}
             </Text>
             <Text style={[styles.userRole, { color: colors.onSurfaceVariant }]}>
               {roleText}
@@ -85,17 +79,20 @@ export default function VibeLikesModal({ visible, onClose, vibeId }) {
               { borderBottomColor: colors.outlineVariant || "rgba(0,0,0,0.06)" },
             ]}
           >
-            <View style={styles.headerTitleGroup}>
-              <View style={styles.heartBadge}>
-                <MaterialIcons name="favorite" size={14} color="#FF2D55" />
+            <View style={styles.handleBar} />
+            <View style={styles.headerContentRow}>
+              <View style={styles.headerTitleGroup}>
+                <View style={styles.heartBadge}>
+                  <MaterialIcons name="favorite" size={13} color="#FF2D55" />
+                </View>
+                <Text style={[styles.headerTitle, { color: colors.onSurface }]}>
+                  Likes {users.length > 0 ? `(${users.length})` : ""}
+                </Text>
               </View>
-              <Text style={[styles.headerTitle, { color: colors.onSurface }]}>
-                Likes {users.length > 0 ? `(${users.length})` : ""}
-              </Text>
+              <Pressable onPress={onClose} hitSlop={12} style={styles.closeBtn}>
+                <MaterialIcons name="close" size={20} color={colors.onSurface} />
+              </Pressable>
             </View>
-            <Pressable onPress={onClose} hitSlop={12} style={styles.closeBtn}>
-              <MaterialIcons name="close" size={20} color={colors.onSurface} />
-            </Pressable>
           </View>
 
           {/* List */}
@@ -143,22 +140,34 @@ export default function VibeLikesModal({ visible, onClose, vibeId }) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: "rgba(0,0,0,0.45)",
     justifyContent: "flex-end",
   },
   container: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: "70%",
-    minHeight: "40%",
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    maxHeight: "72%",
+    minHeight: "42%",
   },
   header: {
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  handleBar: {
+    width: 38,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "rgba(128,128,128,0.3)",
+    marginBottom: 12,
+  },
+  headerContentRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    width: "100%",
   },
   headerTitleGroup: {
     flexDirection: "row",
@@ -174,8 +183,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   headerTitle: {
-    fontSize: 16,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.lg,
+    fontFamily: FONTS.bold,
   },
   closeBtn: {
     width: 32,
@@ -205,8 +214,8 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   emptyText: {
-    fontSize: 14,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.regular,
   },
   userRow: {
     flexDirection: "row",
@@ -222,18 +231,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   avatarText: {
-    fontSize: 14,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.bold,
   },
   userDetails: {
     flex: 1,
   },
   userName: {
-    fontSize: 14,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.bold,
   },
   userRole: {
-    fontSize: 12,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.regular,
   },
 });

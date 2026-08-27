@@ -23,6 +23,7 @@ import {
   getBlurPlaceholderUrl,
 } from "../../utils/cloudinaryUpload";
 import useNetworkQuality from "../../hooks/useNetworkQuality";
+import { FONTS, FONT_SIZES, LETTER_SPACINGS } from "../../theme";
 import useDoubleTap from "../../hooks/useDoubleTap";
 
 // Global mute state across the app session (Instagram pattern)
@@ -233,7 +234,7 @@ const VibeVideoPlayer = React.memo(
               style={styles.video}
               contentFit="contain"
               nativeControls={false}
-              allowsFullscreen={false}
+              fullscreenOptions={{ isEnabled: false }}
             />
           </Pressable>
         )}
@@ -356,9 +357,9 @@ const styles = StyleSheet.create({
   },
   videoBadgeText: {
     color: "#fff",
-    fontSize: 9,
-    fontFamily: "DMSans-Bold",
-    letterSpacing: 0.5,
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.bold,
+    letterSpacing: LETTER_SPACINGS.xs,
   },
   loadingContainer: {
     ...StyleSheet.absoluteFillObject,

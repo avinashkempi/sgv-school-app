@@ -11,13 +11,14 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { useTheme } from "../../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../../theme";
 import { useApiQuery } from "../../../hooks/useApi";
 import AppHeader from "../../../components/Header";
 import Card from "../../../components/Card";
 import SegmentedControl from "../../../components/SegmentedControl";
 import UserDetailModal from "../../../components/UserDetailModal";
 import UserAvatar from "../../../components/ui/UserAvatar";
+import { formatUserName } from "../../../utils/userFormatters";
 import apiConfig from "../../../config/apiConfig";
 import { LineChart } from "react-native-chart-kit";
 import { useLabel } from "../../../context/LabelsContext";
@@ -218,8 +219,8 @@ export default function ClassPerformanceScreen() {
                 style={{
                   color: colors.onSurfaceVariant,
                   marginTop: 16,
-                  fontSize: 14,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.base,
+                  fontFamily: FONTS.medium,
                 }}
               >
                 {t(
@@ -246,8 +247,8 @@ export default function ClassPerformanceScreen() {
                 style={{
                   color: colors.onSurfaceVariant,
                   marginTop: 16,
-                  fontSize: 15,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.mdLg,
+                  fontFamily: FONTS.medium,
                   textAlign: "center",
                 }}
               >
@@ -283,9 +284,9 @@ export default function ClassPerformanceScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: 12,
+                        fontSize: FONT_SIZES.sm,
                         color: colors.onSurfaceVariant,
-                        fontFamily: "DMSans-Medium",
+                        fontFamily: FONTS.medium,
                       }}
                     >
                       {t("teacher.classAverage", "Class Average")}
@@ -303,8 +304,8 @@ export default function ClassPerformanceScreen() {
                     >
                       <Text
                         style={{
-                          fontSize: 11,
-                          fontFamily: "DMSans-Bold",
+                          fontSize: FONT_SIZES.xs,
+                          fontFamily: FONTS.bold,
                           color: insights.grade
                             ? GRADE_COLORS[insights.grade] || colors.primary
                             : colors.primary,
@@ -317,7 +318,7 @@ export default function ClassPerformanceScreen() {
                   <Text
                     style={{
                       fontSize: 26,
-                      fontFamily: "DMSans-Bold",
+                      fontFamily: FONTS.bold,
                       color: getGradeColor(insights.classAverage),
                       marginTop: 6,
                     }}
@@ -328,9 +329,9 @@ export default function ClassPerformanceScreen() {
                   </Text>
                   <Text
                     style={{
-                      fontSize: 11,
+                      fontSize: FONT_SIZES.xs,
                       color: colors.onSurfaceVariant,
-                      fontFamily: "DMSans-Regular",
+                      fontFamily: FONTS.regular,
                       marginTop: 2,
                     }}
                   >
@@ -356,9 +357,9 @@ export default function ClassPerformanceScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: 12,
+                        fontSize: FONT_SIZES.sm,
                         color: colors.onSurfaceVariant,
-                        fontFamily: "DMSans-Medium",
+                        fontFamily: FONTS.medium,
                       }}
                     >
                       {t("teacher.passRateLimit", "Pass Rate (≥35%)")}
@@ -372,7 +373,7 @@ export default function ClassPerformanceScreen() {
                   <Text
                     style={{
                       fontSize: 26,
-                      fontFamily: "DMSans-Bold",
+                      fontFamily: FONTS.bold,
                       color: colors.success,
                       marginTop: 6,
                     }}
@@ -383,9 +384,9 @@ export default function ClassPerformanceScreen() {
                   </Text>
                   <Text
                     style={{
-                      fontSize: 11,
+                      fontSize: FONT_SIZES.xs,
                       color: colors.onSurfaceVariant,
-                      fontFamily: "DMSans-Regular",
+                      fontFamily: FONTS.regular,
                       marginTop: 2,
                     }}
                   >
@@ -410,20 +411,20 @@ export default function ClassPerformanceScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: 12,
+                        fontSize: FONT_SIZES.sm,
                         color: colors.onSurfaceVariant,
-                        fontFamily: "DMSans-Medium",
+                        fontFamily: FONTS.medium,
                       }}
                     >
                       {t("teacher.topPerformer", "Top Performer")}
                     </Text>
-                    <Text style={{ fontSize: 16 }}>🥇</Text>
+                    <Text style={{ fontSize: FONT_SIZES.lg }}>🥇</Text>
                   </View>
                   <Text
                     numberOfLines={1}
                     style={{
-                      fontSize: 18,
-                      fontFamily: "DMSans-Bold",
+                      fontSize: FONT_SIZES.xl,
+                      fontFamily: FONTS.bold,
                       color: colors.onSurface,
                       marginTop: 6,
                     }}
@@ -432,9 +433,9 @@ export default function ClassPerformanceScreen() {
                   </Text>
                   <Text
                     style={{
-                      fontSize: 12,
+                      fontSize: FONT_SIZES.sm,
                       color: colors.success,
-                      fontFamily: "DMSans-Bold",
+                      fontFamily: FONTS.bold,
                       marginTop: 2,
                     }}
                   >
@@ -461,9 +462,9 @@ export default function ClassPerformanceScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: 12,
+                        fontSize: FONT_SIZES.sm,
                         color: colors.onSurfaceVariant,
-                        fontFamily: "DMSans-Medium",
+                        fontFamily: FONTS.medium,
                       }}
                     >
                       {t("teacher.subjectsAndExams", "Subjects & Exams")}
@@ -477,7 +478,7 @@ export default function ClassPerformanceScreen() {
                   <Text
                     style={{
                       fontSize: 26,
-                      fontFamily: "DMSans-Bold",
+                      fontFamily: FONTS.bold,
                       color: colors.primary,
                       marginTop: 6,
                     }}
@@ -486,9 +487,9 @@ export default function ClassPerformanceScreen() {
                   </Text>
                   <Text
                     style={{
-                      fontSize: 11,
+                      fontSize: FONT_SIZES.xs,
                       color: colors.onSurfaceVariant,
-                      fontFamily: "DMSans-Regular",
+                      fontFamily: FONTS.regular,
                       marginTop: 2,
                     }}
                   >
@@ -546,8 +547,8 @@ export default function ClassPerformanceScreen() {
                         <View>
                           <Text
                             style={{
-                              fontSize: 16,
-                              fontFamily: "DMSans-Bold",
+                              fontSize: FONT_SIZES.lg,
+                              fontFamily: FONTS.bold,
                               color: colors.onSurface,
                             }}
                           >
@@ -555,9 +556,9 @@ export default function ClassPerformanceScreen() {
                           </Text>
                           <Text
                             style={{
-                              fontSize: 12,
+                              fontSize: FONT_SIZES.sm,
                               color: colors.onSurfaceVariant,
-                              fontFamily: "DMSans-Regular",
+                              fontFamily: FONTS.regular,
                               marginTop: 2,
                             }}
                           >
@@ -610,8 +611,8 @@ export default function ClassPerformanceScreen() {
                     >
                       <Text
                         style={{
-                          fontSize: 16,
-                          fontFamily: "DMSans-Bold",
+                          fontSize: FONT_SIZES.lg,
+                          fontFamily: FONTS.bold,
                           color: colors.onSurface,
                           marginBottom: 12,
                         }}
@@ -648,8 +649,8 @@ export default function ClassPerformanceScreen() {
                               >
                                 <Text
                                   style={{
-                                    fontSize: 13,
-                                    fontFamily: "DMSans-Bold",
+                                    fontSize: FONT_SIZES.md,
+                                    fontFamily: FONTS.bold,
                                     color: gradeColor,
                                   }}
                                 >
@@ -657,8 +658,8 @@ export default function ClassPerformanceScreen() {
                                 </Text>
                                 <Text
                                   style={{
-                                    fontSize: 18,
-                                    fontFamily: "DMSans-Bold",
+                                    fontSize: FONT_SIZES.xl,
+                                    fontFamily: FONTS.bold,
                                     color: colors.onSurface,
                                     marginTop: 4,
                                   }}
@@ -667,9 +668,9 @@ export default function ClassPerformanceScreen() {
                                 </Text>
                                 <Text
                                   style={{
-                                    fontSize: 10,
+                                    fontSize: FONT_SIZES.micro,
                                     color: colors.onSurfaceVariant,
-                                    fontFamily: "DMSans-Regular",
+                                    fontFamily: FONTS.regular,
                                   }}
                                 >
                                   {pct}%
@@ -694,8 +695,8 @@ export default function ClassPerformanceScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: 18,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.xl,
+                        fontFamily: FONTS.bold,
                         color: colors.onSurface,
                       }}
                     >
@@ -706,9 +707,9 @@ export default function ClassPerformanceScreen() {
                     </Text>
                     <Text
                       style={{
-                        fontSize: 12,
+                        fontSize: FONT_SIZES.sm,
                         color: colors.onSurfaceVariant,
-                        fontFamily: "DMSans-Medium",
+                        fontFamily: FONTS.medium,
                       }}
                     >
                       {t("teacher.tapCardForSubjects", "Tap card for subjects")}
@@ -757,8 +758,8 @@ export default function ClassPerformanceScreen() {
                                 <Text
                                   style={{
                                     color: examColor,
-                                    fontFamily: "DMSans-Bold",
-                                    fontSize: 13,
+                                    fontFamily: FONTS.bold,
+                                    fontSize: FONT_SIZES.md,
                                   }}
                                 >
                                   {exam.examType}
@@ -768,7 +769,7 @@ export default function ClassPerformanceScreen() {
                                 <Text
                                   style={{
                                     fontSize: 17,
-                                    fontFamily: "DMSans-Bold",
+                                    fontFamily: FONTS.bold,
                                     color: colors.onSurface,
                                   }}
                                 >
@@ -777,9 +778,9 @@ export default function ClassPerformanceScreen() {
                                 </Text>
                                 <Text
                                   style={{
-                                    fontSize: 12,
+                                    fontSize: FONT_SIZES.sm,
                                     color: colors.onSurfaceVariant,
-                                    fontFamily: "DMSans-Regular",
+                                    fontFamily: FONTS.regular,
                                     marginTop: 2,
                                   }}
                                 >
@@ -812,8 +813,8 @@ export default function ClassPerformanceScreen() {
                                   <Text
                                     style={{
                                       color: colors.success,
-                                      fontFamily: "DMSans-Bold",
-                                      fontSize: 11,
+                                      fontFamily: FONTS.bold,
+                                      fontSize: FONT_SIZES.xs,
                                     }}
                                   >
                                     {t("common.complete", "COMPLETE")}
@@ -832,8 +833,8 @@ export default function ClassPerformanceScreen() {
                                   <Text
                                     style={{
                                       color: colors.onSurfaceVariant,
-                                      fontFamily: "DMSans-Bold",
-                                      fontSize: 11,
+                                      fontFamily: FONTS.bold,
+                                      fontSize: FONT_SIZES.xs,
                                     }}
                                   >
                                     {t("common.pending", "PENDING")}
@@ -871,17 +872,17 @@ export default function ClassPerformanceScreen() {
                             <View style={{ flex: 1 }}>
                               <Text
                                 style={{
-                                  fontSize: 11,
+                                  fontSize: FONT_SIZES.xs,
                                   color: colors.onSurfaceVariant,
-                                  fontFamily: "DMSans-Medium",
+                                  fontFamily: FONTS.medium,
                                 }}
                               >
                                 Class Average
                               </Text>
                               <Text
                                 style={{
-                                  fontSize: 22,
-                                  fontFamily: "DMSans-Bold",
+                                  fontSize: FONT_SIZES.title,
+                                  fontFamily: FONTS.bold,
                                   color: getGradeColor(exam.avgPercentage),
                                 }}
                               >
@@ -891,17 +892,17 @@ export default function ClassPerformanceScreen() {
                             <View style={{ flex: 1, alignItems: "center" }}>
                               <Text
                                 style={{
-                                  fontSize: 11,
+                                  fontSize: FONT_SIZES.xs,
                                   color: colors.onSurfaceVariant,
-                                  fontFamily: "DMSans-Medium",
+                                  fontFamily: FONTS.medium,
                                 }}
                               >
                                 Highest
                               </Text>
                               <Text
                                 style={{
-                                  fontSize: 18,
-                                  fontFamily: "DMSans-Bold",
+                                  fontSize: FONT_SIZES.xl,
+                                  fontFamily: FONTS.bold,
                                   color: colors.success,
                                 }}
                               >
@@ -911,17 +912,17 @@ export default function ClassPerformanceScreen() {
                             <View style={{ flex: 1, alignItems: "flex-end" }}>
                               <Text
                                 style={{
-                                  fontSize: 11,
+                                  fontSize: FONT_SIZES.xs,
                                   color: colors.onSurfaceVariant,
-                                  fontFamily: "DMSans-Medium",
+                                  fontFamily: FONTS.medium,
                                 }}
                               >
                                 Lowest
                               </Text>
                               <Text
                                 style={{
-                                  fontSize: 18,
-                                  fontFamily: "DMSans-Bold",
+                                  fontSize: FONT_SIZES.xl,
+                                  fontFamily: FONTS.bold,
                                   color: colors.error,
                                 }}
                               >
@@ -945,8 +946,8 @@ export default function ClassPerformanceScreen() {
                             >
                               <Text
                                 style={{
-                                  fontSize: 13,
-                                  fontFamily: "DMSans-Bold",
+                                  fontSize: FONT_SIZES.md,
+                                  fontFamily: FONTS.bold,
                                   color: colors.onSurface,
                                   marginBottom: 8,
                                 }}
@@ -976,8 +977,8 @@ export default function ClassPerformanceScreen() {
                                   >
                                     <Text
                                       style={{
-                                        fontSize: 14,
-                                        fontFamily: "DMSans-Bold",
+                                        fontSize: FONT_SIZES.base,
+                                        fontFamily: FONTS.bold,
                                         color: colors.onSurface,
                                       }}
                                     >
@@ -985,8 +986,8 @@ export default function ClassPerformanceScreen() {
                                     </Text>
                                     <Text
                                       style={{
-                                        fontSize: 14,
-                                        fontFamily: "DMSans-Bold",
+                                        fontSize: FONT_SIZES.base,
+                                        fontFamily: FONTS.bold,
                                         color: getGradeColor(sub.avgPercentage),
                                       }}
                                     >
@@ -1002,9 +1003,9 @@ export default function ClassPerformanceScreen() {
                                   >
                                     <Text
                                       style={{
-                                        fontSize: 11,
+                                        fontSize: FONT_SIZES.xs,
                                         color: colors.onSurfaceVariant,
-                                        fontFamily: "DMSans-Regular",
+                                        fontFamily: FONTS.regular,
                                       }}
                                     >
                                       {t("common.max", "Max")}: {sub.totalMarks}{" "}
@@ -1014,16 +1015,16 @@ export default function ClassPerformanceScreen() {
                                     </Text>
                                     <Text
                                       style={{
-                                        fontSize: 11,
+                                        fontSize: FONT_SIZES.xs,
                                         color: colors.onSurfaceVariant,
-                                        fontFamily: "DMSans-Regular",
+                                        fontFamily: FONTS.regular,
                                       }}
                                     >
                                       {t("common.high", "High")}:{" "}
                                       <Text
                                         style={{
                                           color: colors.success,
-                                          fontFamily: "DMSans-Bold",
+                                          fontFamily: FONTS.bold,
                                         }}
                                       >
                                         {sub.highest}%
@@ -1032,7 +1033,7 @@ export default function ClassPerformanceScreen() {
                                       <Text
                                         style={{
                                           color: colors.error,
-                                          fontFamily: "DMSans-Bold",
+                                          fontFamily: FONTS.bold,
                                         }}
                                       >
                                         {sub.lowest}%
@@ -1064,7 +1065,7 @@ export default function ClassPerformanceScreen() {
                         style={{
                           color: colors.onSurfaceVariant,
                           marginTop: 16,
-                          fontSize: 15,
+                          fontSize: FONT_SIZES.mdLg,
                           textAlign: "center",
                         }}
                       >
@@ -1108,11 +1109,11 @@ export default function ClassPerformanceScreen() {
                               gap: 6,
                             }}
                           >
-                            <Text style={{ fontSize: 14 }}>🌟</Text>
+                            <Text style={{ fontSize: FONT_SIZES.base }}>🌟</Text>
                             <Text
                               style={{
-                                fontSize: 11,
-                                fontFamily: "DMSans-Bold",
+                                fontSize: FONT_SIZES.xs,
+                                fontFamily: FONTS.bold,
                                 color: colors.success,
                               }}
                             >
@@ -1121,8 +1122,8 @@ export default function ClassPerformanceScreen() {
                           </View>
                           <Text
                             style={{
-                              fontSize: 15,
-                              fontFamily: "DMSans-Bold",
+                              fontSize: FONT_SIZES.mdLg,
+                              fontFamily: FONTS.bold,
                               color: colors.onSurface,
                               marginTop: 4,
                             }}
@@ -1131,9 +1132,9 @@ export default function ClassPerformanceScreen() {
                           </Text>
                           <Text
                             style={{
-                              fontSize: 12,
+                              fontSize: FONT_SIZES.sm,
                               color: colors.success,
-                              fontFamily: "DMSans-Medium",
+                              fontFamily: FONTS.medium,
                               marginTop: 2,
                             }}
                           >
@@ -1161,11 +1162,11 @@ export default function ClassPerformanceScreen() {
                               gap: 6,
                             }}
                           >
-                            <Text style={{ fontSize: 14 }}>⚠️</Text>
+                            <Text style={{ fontSize: FONT_SIZES.base }}>⚠️</Text>
                             <Text
                               style={{
-                                fontSize: 11,
-                                fontFamily: "DMSans-Bold",
+                                fontSize: FONT_SIZES.xs,
+                                fontFamily: FONTS.bold,
                                 color: colors.error,
                               }}
                             >
@@ -1174,8 +1175,8 @@ export default function ClassPerformanceScreen() {
                           </View>
                           <Text
                             style={{
-                              fontSize: 15,
-                              fontFamily: "DMSans-Bold",
+                              fontSize: FONT_SIZES.mdLg,
+                              fontFamily: FONTS.bold,
                               color: colors.onSurface,
                               marginTop: 4,
                             }}
@@ -1184,9 +1185,9 @@ export default function ClassPerformanceScreen() {
                           </Text>
                           <Text
                             style={{
-                              fontSize: 12,
+                              fontSize: FONT_SIZES.sm,
                               color: colors.error,
-                              fontFamily: "DMSans-Medium",
+                              fontFamily: FONTS.medium,
                               marginTop: 2,
                             }}
                           >
@@ -1208,8 +1209,8 @@ export default function ClassPerformanceScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: 18,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.xl,
+                        fontFamily: FONTS.bold,
                         color: colors.onSurface,
                       }}
                     >
@@ -1218,9 +1219,9 @@ export default function ClassPerformanceScreen() {
                     </Text>
                     <Text
                       style={{
-                        fontSize: 12,
+                        fontSize: FONT_SIZES.sm,
                         color: colors.onSurfaceVariant,
-                        fontFamily: "DMSans-Medium",
+                        fontFamily: FONTS.medium,
                       }}
                     >
                       {t("teacher.rankedByAverage", "Ranked by Average")}
@@ -1276,8 +1277,8 @@ export default function ClassPerformanceScreen() {
                               <View style={{ flex: 1 }}>
                                 <Text
                                   style={{
-                                    fontSize: 16,
-                                    fontFamily: "DMSans-Bold",
+                                    fontSize: FONT_SIZES.lg,
+                                    fontFamily: FONTS.bold,
                                     color: colors.onSurface,
                                   }}
                                 >
@@ -1285,9 +1286,9 @@ export default function ClassPerformanceScreen() {
                                 </Text>
                                 <Text
                                   style={{
-                                    fontSize: 12,
+                                    fontSize: FONT_SIZES.sm,
                                     color: colors.onSurfaceVariant,
-                                    fontFamily: "DMSans-Regular",
+                                    fontFamily: FONTS.regular,
                                     marginTop: 2,
                                   }}
                                 >
@@ -1312,8 +1313,8 @@ export default function ClassPerformanceScreen() {
                               >
                                 <Text
                                   style={{
-                                    fontSize: 12,
-                                    fontFamily: "DMSans-Bold",
+                                    fontSize: FONT_SIZES.sm,
+                                    fontFamily: FONTS.bold,
                                     color: gradeColor,
                                   }}
                                 >
@@ -1322,8 +1323,8 @@ export default function ClassPerformanceScreen() {
                               </View>
                               <Text
                                 style={{
-                                  fontSize: 20,
-                                  fontFamily: "DMSans-Bold",
+                                  fontSize: FONT_SIZES.xxl,
+                                  fontFamily: FONTS.bold,
                                   color: getGradeColor(subject.avgPercentage),
                                 }}
                               >
@@ -1367,16 +1368,16 @@ export default function ClassPerformanceScreen() {
                           >
                             <Text
                               style={{
-                                fontSize: 12,
+                                fontSize: FONT_SIZES.sm,
                                 color: colors.onSurfaceVariant,
-                                fontFamily: "DMSans-Regular",
+                                fontFamily: FONTS.regular,
                               }}
                             >
                               {t("common.highest", "Highest")}:{" "}
                               <Text
                                 style={{
                                   color: colors.success,
-                                  fontFamily: "DMSans-Bold",
+                                  fontFamily: FONTS.bold,
                                 }}
                               >
                                 {subject.highest}%
@@ -1384,16 +1385,16 @@ export default function ClassPerformanceScreen() {
                             </Text>
                             <Text
                               style={{
-                                fontSize: 12,
+                                fontSize: FONT_SIZES.sm,
                                 color: colors.onSurfaceVariant,
-                                fontFamily: "DMSans-Regular",
+                                fontFamily: FONTS.regular,
                               }}
                             >
                               {t("common.lowest", "Lowest")}:{" "}
                               <Text
                                 style={{
                                   color: colors.error,
-                                  fontFamily: "DMSans-Bold",
+                                  fontFamily: FONTS.bold,
                                 }}
                               >
                                 {subject.lowest}%
@@ -1408,9 +1409,9 @@ export default function ClassPerformanceScreen() {
                             >
                               <Text
                                 style={{
-                                  fontSize: 11,
+                                  fontSize: FONT_SIZES.xs,
                                   color: colors.primary,
-                                  fontFamily: "DMSans-Bold",
+                                  fontFamily: FONTS.bold,
                                 }}
                               >
                                 {isExpanded
@@ -1448,8 +1449,8 @@ export default function ClassPerformanceScreen() {
                           >
                             <Text
                               style={{
-                                fontSize: 13,
-                                fontFamily: "DMSans-Bold",
+                                fontSize: FONT_SIZES.md,
+                                fontFamily: FONTS.bold,
                                 color: colors.onSurface,
                                 marginBottom: 8,
                               }}
@@ -1481,8 +1482,8 @@ export default function ClassPerformanceScreen() {
                                 >
                                   <Text
                                     style={{
-                                      fontSize: 11,
-                                      fontFamily: "DMSans-Bold",
+                                      fontSize: FONT_SIZES.xs,
+                                      fontFamily: FONTS.bold,
                                       color:
                                         EXAM_COLORS[es.examType] ||
                                         colors.primary,
@@ -1492,8 +1493,8 @@ export default function ClassPerformanceScreen() {
                                   </Text>
                                   <Text
                                     style={{
-                                      fontSize: 15,
-                                      fontFamily: "DMSans-Bold",
+                                      fontSize: FONT_SIZES.mdLg,
+                                      fontFamily: FONTS.bold,
                                       color:
                                         es.conducted &&
                                         es.avgPercentage !== null
@@ -1510,7 +1511,7 @@ export default function ClassPerformanceScreen() {
                                     style={{
                                       fontSize: 9,
                                       color: colors.onSurfaceVariant,
-                                      fontFamily: "DMSans-Regular",
+                                      fontFamily: FONTS.regular,
                                       marginTop: 1,
                                     }}
                                   >
@@ -1547,7 +1548,7 @@ export default function ClassPerformanceScreen() {
                         style={{
                           color: colors.onSurfaceVariant,
                           marginTop: 16,
-                          fontSize: 15,
+                          fontSize: FONT_SIZES.mdLg,
                           textAlign: "center",
                         }}
                       >
@@ -1593,8 +1594,8 @@ export default function ClassPerformanceScreen() {
                         flex: 1,
                         paddingHorizontal: 10,
                         color: colors.onSurface,
-                        fontSize: 14,
-                        fontFamily: "DMSans-Regular",
+                        fontSize: FONT_SIZES.base,
+                        fontFamily: FONTS.regular,
                       }}
                     />
                     {searchQuery.length > 0 && (
@@ -1657,10 +1658,10 @@ export default function ClassPerformanceScreen() {
                           >
                             <Text
                               style={{
-                                fontSize: 12,
+                                fontSize: FONT_SIZES.sm,
                                 fontFamily: isActive
-                                  ? "DMSans-Bold"
-                                  : "DMSans-Medium",
+                                  ? FONTS.bold
+                                  : FONTS.medium,
                                 color: isActive
                                   ? colors.onPrimary
                                   : colors.onSurfaceVariant,
@@ -1689,9 +1690,9 @@ export default function ClassPerformanceScreen() {
                     >
                       <Text
                         style={{
-                          fontSize: 12,
+                          fontSize: FONT_SIZES.sm,
                           color: colors.onSurfaceVariant,
-                          fontFamily: "DMSans-Medium",
+                          fontFamily: FONTS.medium,
                           marginRight: 4,
                         }}
                       >
@@ -1718,10 +1719,10 @@ export default function ClassPerformanceScreen() {
                           >
                             <Text
                               style={{
-                                fontSize: 11,
+                                fontSize: FONT_SIZES.xs,
                                 fontFamily: isActive
-                                  ? "DMSans-Bold"
-                                  : "DMSans-Medium",
+                                  ? FONTS.bold
+                                  : FONTS.medium,
                                 color: isActive
                                   ? "#FFFFFF"
                                   : colors.onSurfaceVariant,
@@ -1746,9 +1747,9 @@ export default function ClassPerformanceScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: 13,
+                        fontSize: FONT_SIZES.md,
                         color: colors.onSurfaceVariant,
-                        fontFamily: "DMSans-Medium",
+                        fontFamily: FONTS.medium,
                       }}
                     >
                       {t("common.showing", "Showing")} {filteredStudents.length}{" "}
@@ -1783,8 +1784,8 @@ export default function ClassPerformanceScreen() {
                         />
                         <Text
                           style={{
-                            fontSize: 11,
-                            fontFamily: "DMSans-Bold",
+                            fontSize: FONT_SIZES.xs,
+                            fontFamily: FONTS.bold,
                             color: colors.primary,
                           }}
                         >
@@ -1863,7 +1864,7 @@ export default function ClassPerformanceScreen() {
                                 <Text
                                   style={{
                                     fontSize: rank <= 3 ? 18 : 13,
-                                    fontFamily: "DMSans-Bold",
+                                    fontFamily: FONTS.bold,
                                     color: colors.onSurface,
                                   }}
                                 >
@@ -1874,7 +1875,7 @@ export default function ClassPerformanceScreen() {
                               {/* Student Avatar */}
                               <UserAvatar
                                 photoUrl={student.profilePhoto}
-                                name={student.name}
+                                name={formatUserName(student.name)}
                                 role="student"
                                 size={40}
                               />
@@ -1883,18 +1884,18 @@ export default function ClassPerformanceScreen() {
                               <View style={{ flex: 1 }}>
                                 <Text
                                   style={{
-                                    fontSize: 16,
-                                    fontFamily: "DMSans-Bold",
+                                    fontSize: FONT_SIZES.lg,
+                                    fontFamily: FONTS.bold,
                                     color: colors.onSurface,
                                   }}
                                 >
-                                  {student.name}
+                                  {formatUserName(student.name)}
                                 </Text>
                                 <Text
                                   style={{
-                                    fontSize: 12,
+                                    fontSize: FONT_SIZES.sm,
                                     color: colors.onSurfaceVariant,
-                                    fontFamily: "DMSans-Regular",
+                                    fontFamily: FONTS.regular,
                                     marginTop: 2,
                                   }}
                                 >
@@ -1930,8 +1931,8 @@ export default function ClassPerformanceScreen() {
                                     >
                                       <Text
                                         style={{
-                                          fontSize: 10,
-                                          fontFamily: "DMSans-Medium",
+                                          fontSize: FONT_SIZES.micro,
+                                          fontFamily: FONTS.medium,
                                           color: colors.success,
                                         }}
                                       >
@@ -1952,8 +1953,8 @@ export default function ClassPerformanceScreen() {
                                       >
                                         <Text
                                           style={{
-                                            fontSize: 10,
-                                            fontFamily: "DMSans-Medium",
+                                            fontSize: FONT_SIZES.micro,
+                                            fontFamily: FONTS.medium,
                                             color: colors.error,
                                           }}
                                         >
@@ -1978,8 +1979,8 @@ export default function ClassPerformanceScreen() {
                               >
                                 <Text
                                   style={{
-                                    fontSize: 12,
-                                    fontFamily: "DMSans-Bold",
+                                    fontSize: FONT_SIZES.sm,
+                                    fontFamily: FONTS.bold,
                                     color: gradeColor,
                                   }}
                                 >
@@ -1988,8 +1989,8 @@ export default function ClassPerformanceScreen() {
                               </View>
                               <Text
                                 style={{
-                                  fontSize: 20,
-                                  fontFamily: "DMSans-Bold",
+                                  fontSize: FONT_SIZES.xxl,
+                                  fontFamily: FONTS.bold,
                                   color: getGradeColor(
                                     student.overallPercentage
                                   ),
@@ -2013,9 +2014,9 @@ export default function ClassPerformanceScreen() {
                           >
                             <Text
                               style={{
-                                fontSize: 11,
+                                fontSize: FONT_SIZES.xs,
                                 color: colors.onSurfaceVariant,
-                                fontFamily: "DMSans-Regular",
+                                fontFamily: FONTS.regular,
                               }}
                             >
                               {student.examsAttempted}{" "}
@@ -2033,9 +2034,9 @@ export default function ClassPerformanceScreen() {
                             >
                               <Text
                                 style={{
-                                  fontSize: 11,
+                                  fontSize: FONT_SIZES.xs,
                                   color: colors.primary,
-                                  fontFamily: "DMSans-Bold",
+                                  fontFamily: FONTS.bold,
                                 }}
                               >
                                 {isExpanded
@@ -2071,8 +2072,8 @@ export default function ClassPerformanceScreen() {
                             {/* Subject wise marks table */}
                             <Text
                               style={{
-                                fontSize: 13,
-                                fontFamily: "DMSans-Bold",
+                                fontSize: FONT_SIZES.md,
+                                fontFamily: FONTS.bold,
                                 color: colors.onSurface,
                                 marginBottom: 8,
                               }}
@@ -2101,8 +2102,8 @@ export default function ClassPerformanceScreen() {
                                   <View style={{ flex: 1 }}>
                                     <Text
                                       style={{
-                                        fontSize: 13,
-                                        fontFamily: "DMSans-Bold",
+                                        fontSize: FONT_SIZES.md,
+                                        fontFamily: FONTS.bold,
                                         color: colors.onSurface,
                                       }}
                                     >
@@ -2110,9 +2111,9 @@ export default function ClassPerformanceScreen() {
                                     </Text>
                                     <Text
                                       style={{
-                                        fontSize: 11,
+                                        fontSize: FONT_SIZES.xs,
                                         color: colors.onSurfaceVariant,
-                                        fontFamily: "DMSans-Regular",
+                                        fontFamily: FONTS.regular,
                                       }}
                                     >
                                       {t("teacher.obtained", "Obtained")}:{" "}
@@ -2123,8 +2124,8 @@ export default function ClassPerformanceScreen() {
                                   <View style={{ alignItems: "flex-end" }}>
                                     <Text
                                       style={{
-                                        fontSize: 14,
-                                        fontFamily: "DMSans-Bold",
+                                        fontSize: FONT_SIZES.base,
+                                        fontFamily: FONTS.bold,
                                         color:
                                           sub.percentage !== null
                                             ? getGradeColor(sub.percentage)
@@ -2137,11 +2138,11 @@ export default function ClassPerformanceScreen() {
                                     </Text>
                                     <Text
                                       style={{
-                                        fontSize: 10,
+                                        fontSize: FONT_SIZES.micro,
                                         color:
                                           GRADE_COLORS[sub.grade] ||
                                           colors.onSurfaceVariant,
-                                        fontFamily: "DMSans-Bold",
+                                        fontFamily: FONTS.bold,
                                       }}
                                     >
                                       {t("common.grade", "Grade")} {sub.grade}
@@ -2152,7 +2153,7 @@ export default function ClassPerformanceScreen() {
                             ) : (
                               <Text
                                 style={{
-                                  fontSize: 12,
+                                  fontSize: FONT_SIZES.sm,
                                   color: colors.onSurfaceVariant,
                                   fontStyle: "italic",
                                 }}
@@ -2167,8 +2168,8 @@ export default function ClassPerformanceScreen() {
                             {/* Exam-wise score row */}
                             <Text
                               style={{
-                                fontSize: 13,
-                                fontFamily: "DMSans-Bold",
+                                fontSize: FONT_SIZES.md,
+                                fontFamily: FONTS.bold,
                                 color: colors.onSurface,
                                 marginTop: 12,
                                 marginBottom: 8,
@@ -2206,8 +2207,8 @@ export default function ClassPerformanceScreen() {
                                     >
                                       <Text
                                         style={{
-                                          fontSize: 10,
-                                          fontFamily: "DMSans-Bold",
+                                          fontSize: FONT_SIZES.micro,
+                                          fontFamily: FONTS.bold,
                                           color:
                                             EXAM_COLORS[type] || colors.primary,
                                         }}
@@ -2216,8 +2217,8 @@ export default function ClassPerformanceScreen() {
                                       </Text>
                                       <Text
                                         style={{
-                                          fontSize: 13,
-                                          fontFamily: "DMSans-Bold",
+                                          fontSize: FONT_SIZES.md,
+                                          fontFamily: FONTS.bold,
                                           color:
                                             pct !== null
                                               ? getGradeColor(pct)
@@ -2231,7 +2232,7 @@ export default function ClassPerformanceScreen() {
                                         style={{
                                           fontSize: 8,
                                           color: colors.onSurfaceVariant,
-                                          fontFamily: "DMSans-Regular",
+                                          fontFamily: FONTS.regular,
                                         }}
                                       >
                                         {examData
@@ -2267,8 +2268,8 @@ export default function ClassPerformanceScreen() {
                               />
                               <Text
                                 style={{
-                                  fontSize: 12,
-                                  fontFamily: "DMSans-Bold",
+                                  fontSize: FONT_SIZES.sm,
+                                  fontFamily: FONTS.bold,
                                   color: colors.onPrimaryContainer,
                                 }}
                               >
@@ -2302,8 +2303,8 @@ export default function ClassPerformanceScreen() {
                         style={{
                           color: colors.onSurfaceVariant,
                           marginTop: 12,
-                          fontSize: 15,
-                          fontFamily: "DMSans-Medium",
+                          fontSize: FONT_SIZES.mdLg,
+                          fontFamily: FONTS.medium,
                           textAlign: "center",
                         }}
                       >

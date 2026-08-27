@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
 import apiConfig from "../../config/apiConfig";
 import Header from "../../components/Header";
@@ -152,8 +152,8 @@ export default function TeacherExamDashboard() {
               />
               <Text
                 style={{
-                  fontSize: 10,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.micro,
+                  fontFamily: FONTS.bold,
                   color: exists ? "#FFFFFF" : colors.onSurfaceVariant,
                 }}
               >
@@ -184,8 +184,8 @@ export default function TeacherExamDashboard() {
       <View style={{ marginBottom: 12 }}>
         <Text
           style={{
-            fontSize: 18,
-            fontFamily: "DMSans-Bold",
+            fontSize: FONT_SIZES.xl,
+            fontFamily: FONTS.bold,
             color: colors.onSurface,
             marginBottom: 4,
           }}
@@ -194,8 +194,8 @@ export default function TeacherExamDashboard() {
         </Text>
         <Text
           style={{
-            fontSize: 15,
-            fontFamily: "DMSans-Medium",
+            fontSize: FONT_SIZES.mdLg,
+            fontFamily: FONTS.medium,
             color: colors.primary,
           }}
         >
@@ -203,8 +203,8 @@ export default function TeacherExamDashboard() {
         </Text>
         <Text
           style={{
-            fontSize: 12,
-            fontFamily: "DMSans-Regular",
+            fontSize: FONT_SIZES.xs,
+            fontFamily: FONTS.regular,
             color: colors.onSurfaceVariant,
             marginTop: 4,
           }}
@@ -230,8 +230,8 @@ export default function TeacherExamDashboard() {
         <View style={{ flex: 1 }}>
           <Text
             style={{
-              fontSize: 20,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.xxl,
+              fontFamily: FONTS.bold,
               color: colors.primary,
             }}
           >
@@ -239,8 +239,8 @@ export default function TeacherExamDashboard() {
           </Text>
           <Text
             style={{
-              fontSize: 11,
-              fontFamily: "DMSans-Medium",
+              fontSize: FONT_SIZES.xs,
+              fontFamily: FONTS.medium,
               color: colors.onSurfaceVariant,
             }}
           >
@@ -250,8 +250,8 @@ export default function TeacherExamDashboard() {
         <View style={{ flex: 1 }}>
           <Text
             style={{
-              fontSize: 20,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.xxl,
+              fontFamily: FONTS.bold,
               color: colors.success,
             }}
           >
@@ -259,8 +259,8 @@ export default function TeacherExamDashboard() {
           </Text>
           <Text
             style={{
-              fontSize: 11,
-              fontFamily: "DMSans-Medium",
+              fontSize: FONT_SIZES.xs,
+              fontFamily: FONTS.medium,
               color: colors.onSurfaceVariant,
             }}
           >
@@ -270,8 +270,8 @@ export default function TeacherExamDashboard() {
         <View style={{ flex: 1 }}>
           <Text
             style={{
-              fontSize: 20,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.xxl,
+              fontFamily: FONTS.bold,
               color: colors.error,
             }}
           >
@@ -279,8 +279,8 @@ export default function TeacherExamDashboard() {
           </Text>
           <Text
             style={{
-              fontSize: 11,
-              fontFamily: "DMSans-Medium",
+              fontSize: FONT_SIZES.xs,
+              fontFamily: FONTS.medium,
               color: colors.onSurfaceVariant,
             }}
           >
@@ -306,8 +306,8 @@ export default function TeacherExamDashboard() {
                 style={{
                   textAlign: "center",
                   color: colors.onSurfaceVariant,
-                  fontFamily: "DMSans-Medium",
-                  fontSize: 13,
+                  fontFamily: FONTS.medium,
+                  fontSize: FONT_SIZES.md,
                 }}
               >
                 {t(
@@ -322,8 +322,8 @@ export default function TeacherExamDashboard() {
           <View style={{ marginTop: 14 }}>
             <Text
               style={{
-                fontSize: 12,
-                fontFamily: "DMSans-Medium",
+                fontSize: FONT_SIZES.xs,
+                fontFamily: FONTS.medium,
                 color: colors.onSurfaceVariant,
                 marginBottom: 8,
                 textTransform: "uppercase",
@@ -361,8 +361,8 @@ export default function TeacherExamDashboard() {
                   <Text
                     style={{
                       color: "#FFFFFF",
-                      fontSize: 13,
-                      fontFamily: "DMSans-Bold",
+                      fontSize: FONT_SIZES.md,
+                      fontFamily: FONTS.bold,
                     }}
                   >
                     {exam.type}
@@ -395,8 +395,8 @@ export default function TeacherExamDashboard() {
         <Text
           style={{
             color: colors.onSurface,
-            fontSize: 13,
-            fontFamily: "DMSans-Bold",
+            fontSize: FONT_SIZES.md,
+            fontFamily: FONTS.bold,
           }}
         >
           {t("common.reports", "Reports")}
@@ -413,8 +413,8 @@ export default function TeacherExamDashboard() {
       <View style={{ marginBottom: 20 }}>
         <Text
           style={{
-            fontSize: 20,
-            fontFamily: "DMSans-Bold",
+            fontSize: FONT_SIZES.xl,
+            fontFamily: FONTS.bold,
             color: colors.onSurface,
             marginBottom: 16,
           }}
@@ -440,8 +440,8 @@ export default function TeacherExamDashboard() {
             <Text
               style={{
                 color: colors.onSurfaceVariant,
-                fontSize: 16,
-                fontFamily: "DMSans-Medium",
+                fontSize: FONT_SIZES.lg,
+                fontFamily: FONTS.medium,
                 marginTop: 16,
                 textAlign: "center",
               }}
@@ -464,8 +464,8 @@ export default function TeacherExamDashboard() {
         <View style={{ marginBottom: 20 }}>
           <Text
             style={{
-              fontSize: 18,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.xl,
+              fontFamily: FONTS.bold,
               color: colors.onSurface,
               marginBottom: 16,
             }}
@@ -489,8 +489,8 @@ export default function TeacherExamDashboard() {
               />
               <Text
                 style={{
-                  fontSize: 16,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.lg,
+                  fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                   marginTop: 12,
                 }}
@@ -523,8 +523,8 @@ export default function TeacherExamDashboard() {
                   <View>
                     <Text
                       style={{
-                        fontSize: 15,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.mdLg,
+                        fontFamily: FONTS.bold,
                         color: colors.onSurface,
                       }}
                     >
@@ -532,8 +532,8 @@ export default function TeacherExamDashboard() {
                     </Text>
                     <Text
                       style={{
-                        fontSize: 13,
-                        fontFamily: "DMSans-Regular",
+                        fontSize: FONT_SIZES.md,
+                        fontFamily: FONTS.regular,
                         color: colors.primary,
                         marginTop: 2,
                       }}
@@ -632,8 +632,8 @@ export default function TeacherExamDashboard() {
                 />
                 <Text
                   style={{
-                    fontSize: 14,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.base,
+                    fontFamily: FONTS.bold,
                     color:
                       selectedTab === tab.id
                         ? "#FFFFFF"
@@ -657,8 +657,8 @@ export default function TeacherExamDashboard() {
               <ActivityIndicator size="large" color={colors.primary} />
               <Text
                 style={{
-                  fontSize: 14,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.base,
+                  fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                   marginTop: 12,
                 }}

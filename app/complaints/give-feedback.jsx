@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import apiConfig from "../../config/apiConfig";
 import {
   useApiMutation,
@@ -214,7 +214,7 @@ export default function GiveFeedbackScreen() {
                 style={{
                   color: colors.textSecondary,
                   marginBottom: 8,
-                  fontFamily: "DMSans-Medium",
+                  fontFamily: FONTS.medium,
                 }}
               >
                 {t("common.classRequired", "Class *")}
@@ -238,9 +238,9 @@ export default function GiveFeedbackScreen() {
                       ? colors.textPrimary
                       : colors.textSecondary,
                     fontFamily: selectedClass
-                      ? "DMSans-SemiBold"
-                      : "DMSans-Regular",
-                    fontSize: 16,
+                      ? FONTS.semiBold
+                      : FONTS.regular,
+                    fontSize: FONT_SIZES.lg,
                   }}
                 >
                   {selectedClass
@@ -273,7 +273,7 @@ export default function GiveFeedbackScreen() {
                     style={{
                       color: colors.textSecondary,
                       marginBottom: 8,
-                      fontFamily: "DMSans-Medium",
+                      fontFamily: FONTS.medium,
                     }}
                   >
                     ${t("common.subject", "Subject")}{" "}
@@ -304,7 +304,7 @@ export default function GiveFeedbackScreen() {
                               color: !selectedSubject
                                 ? "#fff"
                                 : colors.textPrimary,
-                              fontFamily: "DMSans-Medium",
+                              fontFamily: FONTS.medium,
                             }}
                           >
                             ${t("common.general", "General")}
@@ -336,7 +336,7 @@ export default function GiveFeedbackScreen() {
                                 selectedSubject?._id === sub._id
                                   ? "#fff"
                                   : colors.textPrimary,
-                              fontFamily: "DMSans-Medium",
+                              fontFamily: FONTS.medium,
                             }}
                           >
                             {sub.name}
@@ -354,7 +354,7 @@ export default function GiveFeedbackScreen() {
                 style={{
                   color: colors.textSecondary,
                   marginBottom: 8,
-                  fontFamily: "DMSans-Medium",
+                  fontFamily: FONTS.medium,
                 }}
               >
                 {t("common.studentRequired", "Student *")}
@@ -400,9 +400,9 @@ export default function GiveFeedbackScreen() {
                         ? colors.textPrimary
                         : colors.textSecondary,
                       fontFamily: selectedStudent
-                        ? "DMSans-SemiBold"
-                        : "DMSans-Regular",
-                      fontSize: 16,
+                        ? FONTS.semiBold
+                        : FONTS.regular,
+                      fontSize: FONT_SIZES.lg,
                     }}
                   >
                     {selectedStudent
@@ -428,7 +428,7 @@ export default function GiveFeedbackScreen() {
                 style={{
                   color: colors.textSecondary,
                   marginBottom: 8,
-                  fontFamily: "DMSans-Medium",
+                  fontFamily: FONTS.medium,
                 }}
               >
                 {t("feedback.feedbackMessageRequired", "Feedback Message *")}
@@ -449,8 +449,8 @@ export default function GiveFeedbackScreen() {
                   padding: 16,
                   borderRadius: 12,
                   color: colors.textPrimary,
-                  fontFamily: "DMSans-Medium",
-                  fontSize: 16,
+                  fontFamily: FONTS.medium,
+                  fontSize: FONT_SIZES.lg,
                   minHeight: 120,
                   borderWidth: 1,
                   borderColor: colors.border,
@@ -482,8 +482,8 @@ export default function GiveFeedbackScreen() {
                 <Text
                   style={{
                     color: "#fff",
-                    fontFamily: "DMSans-Bold",
-                    fontSize: 18,
+                    fontFamily: FONTS.bold,
+                    fontSize: FONT_SIZES.xl,
                   }}
                 >
                   ${t("feedback.sendFeedback", "Send Feedback")}
@@ -529,8 +529,8 @@ export default function GiveFeedbackScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: 18,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.xl,
+                        fontFamily: FONTS.bold,
                         color: colors.textPrimary,
                       }}
                     >
@@ -585,8 +585,8 @@ export default function GiveFeedbackScreen() {
                           <View>
                             <Text
                               style={{
-                                fontSize: 16,
-                                fontFamily: "DMSans-SemiBold",
+                                fontSize: FONT_SIZES.lg,
+                                fontFamily: FONTS.semiBold,
                                 color: colors.textPrimary,
                               }}
                             >
@@ -594,7 +594,7 @@ export default function GiveFeedbackScreen() {
                             </Text>
                             <Text
                               style={{
-                                fontSize: 12,
+                                fontSize: FONT_SIZES.sm,
                                 color: colors.textSecondary,
                                 marginTop: 4,
                               }}
@@ -624,7 +624,7 @@ export default function GiveFeedbackScreen() {
                     style={{ padding: 20, alignItems: "center" }}
                   >
                     <Text
-                      style={{ color: colors.error, fontFamily: "DMSans-Bold" }}
+                      style={{ color: colors.error, fontFamily: FONTS.bold }}
                     >
                       ${t("common.cancel", "Cancel")}
                     </Text>
@@ -671,8 +671,8 @@ export default function GiveFeedbackScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: 18,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.xl,
+                        fontFamily: FONTS.bold,
                         color: colors.textPrimary,
                       }}
                     >
@@ -735,8 +735,8 @@ export default function GiveFeedbackScreen() {
                             <View style={{ flex: 1 }}>
                               <Text
                                 style={{
-                                  fontSize: 16,
-                                  fontFamily: "DMSans-SemiBold",
+                                  fontSize: FONT_SIZES.lg,
+                                  fontFamily: FONTS.semiBold,
                                   color: colors.textPrimary,
                                 }}
                               >
@@ -745,7 +745,7 @@ export default function GiveFeedbackScreen() {
                               {student.phone ? (
                                 <Text
                                   style={{
-                                    fontSize: 12,
+                                    fontSize: FONT_SIZES.sm,
                                     color: colors.textSecondary,
                                     marginTop: 2,
                                   }}
@@ -771,7 +771,7 @@ export default function GiveFeedbackScreen() {
                     style={{ padding: 20, alignItems: "center" }}
                   >
                     <Text
-                      style={{ color: colors.error, fontFamily: "DMSans-Bold" }}
+                      style={{ color: colors.error, fontFamily: FONTS.bold }}
                     >
                       Cancel
                     </Text>

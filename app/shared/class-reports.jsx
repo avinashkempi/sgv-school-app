@@ -10,7 +10,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
 import apiConfig from "../../config/apiConfig";
 import Header from "../../components/Header";
@@ -143,8 +143,8 @@ export default function ClassReportsDashboard() {
       <View>
         <Text
           style={{
-            fontSize: 18,
-            fontFamily: "DMSans-Bold",
+            fontSize: FONT_SIZES.xl,
+            fontFamily: FONTS.bold,
             color: colors.onSurface,
             marginBottom: 16,
           }}
@@ -280,8 +280,8 @@ export default function ClassReportsDashboard() {
         >
           <Text
             style={{
-              fontSize: 18,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.xl,
+              fontFamily: FONTS.bold,
               color: colors.onSurface,
             }}
           >
@@ -289,8 +289,8 @@ export default function ClassReportsDashboard() {
           </Text>
           <Text
             style={{
-              fontSize: 13,
-              fontFamily: "DMSans-Medium",
+              fontSize: FONT_SIZES.md,
+              fontFamily: FONTS.medium,
               color: colors.onSurfaceVariant,
             }}
           >
@@ -370,8 +370,8 @@ export default function ClassReportsDashboard() {
                     ) : (
                       <Text
                         style={{
-                          fontSize: 14,
-                          fontFamily: "DMSans-Bold",
+                          fontSize: FONT_SIZES.base,
+                          fontFamily: FONTS.bold,
                           color: colors.onSurface,
                         }}
                       >
@@ -383,8 +383,8 @@ export default function ClassReportsDashboard() {
                   <View style={{ flex: 1 }}>
                     <Text
                       style={{
-                        fontSize: 15,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.mdLg,
+                        fontFamily: FONTS.bold,
                         color: colors.onSurface,
                       }}
                     >
@@ -392,8 +392,8 @@ export default function ClassReportsDashboard() {
                     </Text>
                     <Text
                       style={{
-                        fontSize: 12,
-                        fontFamily: "DMSans-Medium",
+                        fontSize: FONT_SIZES.sm,
+                        fontFamily: FONTS.medium,
                         color: colors.primary,
                         marginTop: 2,
                       }}
@@ -418,8 +418,8 @@ export default function ClassReportsDashboard() {
                   >
                     <Text
                       style={{
-                        fontSize: 12,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.sm,
+                        fontFamily: FONTS.bold,
                         color: getGradeColor(student.grade),
                       }}
                     >
@@ -435,8 +435,8 @@ export default function ClassReportsDashboard() {
                   >
                     <Text
                       style={{
-                        fontSize: 11,
-                        fontFamily: "DMSans-Medium",
+                        fontSize: FONT_SIZES.xs,
+                        fontFamily: FONTS.medium,
                         color: colors.onSurfaceVariant,
                       }}
                     >
@@ -466,8 +466,8 @@ export default function ClassReportsDashboard() {
                 >
                   <Text
                     style={{
-                      fontSize: 11,
-                      fontFamily: "DMSans-Bold",
+                      fontSize: FONT_SIZES.xs,
+                      fontFamily: FONTS.bold,
                       color: colors.onSurfaceVariant,
                       textTransform: "uppercase",
                       letterSpacing: 0.5,
@@ -494,8 +494,8 @@ export default function ClassReportsDashboard() {
                       >
                         <Text
                           style={{
-                            fontSize: 12,
-                            fontFamily: "DMSans-Bold",
+                            fontSize: FONT_SIZES.sm,
+                            fontFamily: FONTS.bold,
                             color: colors.onSurface,
                           }}
                         >
@@ -503,8 +503,8 @@ export default function ClassReportsDashboard() {
                         </Text>
                         <Text
                           style={{
-                            fontSize: 12,
-                            fontFamily: "DMSans-Bold",
+                            fontSize: FONT_SIZES.sm,
+                            fontFamily: FONTS.bold,
                             color: getGradeColor(subj.grade),
                           }}
                         >
@@ -512,8 +512,8 @@ export default function ClassReportsDashboard() {
                         </Text>
                         <Text
                           style={{
-                            fontSize: 10,
-                            fontFamily: "DMSans-Medium",
+                            fontSize: FONT_SIZES.micro,
+                            fontFamily: FONTS.medium,
                             color: colors.onSurfaceVariant,
                           }}
                         >
@@ -565,8 +565,8 @@ export default function ClassReportsDashboard() {
             >
               <Text
                 style={{
-                  fontSize: 13,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.md,
+                  fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                 }}
               >
@@ -579,8 +579,8 @@ export default function ClassReportsDashboard() {
                   <ActivityIndicator size="small" color={colors.primary} />
                   <Text
                     style={{
-                      fontSize: 11,
-                      fontFamily: "DMSans-Medium",
+                      fontSize: FONT_SIZES.xs,
+                      fontFamily: FONTS.medium,
                       color: colors.primary,
                     }}
                   >
@@ -606,8 +606,8 @@ export default function ClassReportsDashboard() {
                 >
                   <Text
                     style={{
-                      fontSize: 13,
-                      fontFamily: "DMSans-Bold",
+                      fontSize: FONT_SIZES.md,
+                      fontFamily: FONTS.bold,
                       color: !selectedExamType ? "#FFFFFF" : colors.onSurface,
                     }}
                   >
@@ -633,8 +633,8 @@ export default function ClassReportsDashboard() {
                   >
                     <Text
                       style={{
-                        fontSize: 13,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.md,
+                        fontFamily: FONTS.bold,
                         color:
                           selectedExamType === type
                             ? "#FFFFFF"
@@ -661,8 +661,8 @@ export default function ClassReportsDashboard() {
               <ActivityIndicator size="large" color={colors.primary} />
               <Text
                 style={{
-                  fontSize: 14,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.base,
+                  fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                   marginTop: 12,
                 }}
@@ -689,8 +689,8 @@ export default function ClassReportsDashboard() {
               />
               <Text
                 style={{
-                  fontSize: 15,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.mdLg,
+                  fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                   marginTop: 12,
                   textAlign: "center",

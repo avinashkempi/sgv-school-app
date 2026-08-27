@@ -7,7 +7,7 @@ import {
   RefreshControl,
   Dimensions,
 } from "react-native";
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES } from "../theme";
 import Header from "./Header";
 import ModernCalendar from "./ModernCalendar";
 import Button from "./Button";
@@ -64,7 +64,7 @@ export default function AttendanceView({
           },
           text: {
             color: color,
-            fontFamily: "DMSans-Bold",
+            fontFamily: FONTS.bold,
           },
         },
       };
@@ -173,9 +173,9 @@ export default function AttendanceView({
               />
               <Text
                 style={{
-                  fontSize: 11,
+                  fontSize: FONT_SIZES.xs,
                   color: colors.textSecondary,
-                  fontFamily: "DMSans-Medium",
+                  fontFamily: FONTS.medium,
                 }}
               >
                 {label}
@@ -210,12 +210,13 @@ export default function AttendanceView({
                 elevation: 1,
               }}
             >
-              <View>
+              <View style={{ flex: 1, minWidth: 0, marginRight: 12 }}>
                 <Text
                   style={[
                     styles.bodyLarge,
-                    { fontFamily: "DMSans-SemiBold", color: colors.onSurface },
+                    { fontFamily: FONTS.semiBold, color: colors.onSurface },
                   ]}
+                  numberOfLines={1}
                 >
                   {month.month}
                 </Text>
@@ -224,6 +225,7 @@ export default function AttendanceView({
                     styles.bodySmall,
                     { color: colors.onSurfaceVariant, marginTop: 2 },
                   ]}
+                  numberOfLines={1}
                 >
                   {month.present} / {month.total} days
                 </Text>
@@ -232,6 +234,7 @@ export default function AttendanceView({
                 style={[
                   styles.titleLarge,
                   {
+                    flexShrink: 0,
                     color:
                       parseFloat(month.percentage) >= 75
                         ? colors.success
@@ -290,8 +293,8 @@ export default function AttendanceView({
         <View>
           <Text
             style={{
-              fontSize: 14,
-              fontFamily: "DMSans-SemiBold",
+              fontSize: FONT_SIZES.base,
+              fontFamily: FONTS.semiBold,
               color: colors.textPrimary,
             }}
           >
@@ -300,10 +303,10 @@ export default function AttendanceView({
           {item.remarks ? (
             <Text
               style={{
-                fontSize: 12,
+                fontSize: FONT_SIZES.sm,
                 color: colors.textSecondary,
                 marginTop: 2,
-                fontFamily: "DMSans-Regular",
+                fontFamily: FONTS.regular,
               }}
             >
               {item.remarks}
@@ -320,8 +323,8 @@ export default function AttendanceView({
         >
           <Text
             style={{
-              fontSize: 12,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.sm,
+              fontFamily: FONTS.bold,
               color,
               textTransform: "capitalize",
             }}
@@ -347,8 +350,8 @@ export default function AttendanceView({
           style={{
             textAlign: "center",
             color: colors.textSecondary,
-            fontSize: 13,
-            fontFamily: "DMSans-Regular",
+            fontSize: FONT_SIZES.md,
+            fontFamily: FONTS.regular,
             marginVertical: 16,
           }}
         >

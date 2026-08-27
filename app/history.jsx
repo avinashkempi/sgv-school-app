@@ -10,7 +10,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 
 import { useRouter } from "expo-router";
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
 import { useApiQuery } from "../hooks/useApi";
 import apiConfig from "../config/apiConfig";
 import { useToast } from "../components/ToastProvider";
@@ -73,7 +73,7 @@ export default function HistoryScreen() {
             style={{
               color: colors.textSecondary,
               marginTop: 16,
-              fontSize: 16,
+              fontSize: FONT_SIZES.lg,
               textAlign: "center",
             }}
           >
@@ -110,7 +110,7 @@ export default function HistoryScreen() {
               style={{
                 color: colors.textSecondary,
                 marginTop: 16,
-                fontSize: 16,
+                fontSize: FONT_SIZES.lg,
               }}
             >
               {t("historyScreen.noPastExams")}
@@ -143,8 +143,8 @@ export default function HistoryScreen() {
               >
                 <Text
                   style={{
-                    fontSize: 16,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.lg,
+                    fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                     flex: 1,
                   }}
@@ -161,9 +161,9 @@ export default function HistoryScreen() {
                 >
                   <Text
                     style={{
-                      fontSize: 12,
+                      fontSize: FONT_SIZES.sm,
                       color: colors.secondary,
-                      fontFamily: "DMSans-Bold",
+                      fontFamily: FONTS.bold,
                     }}
                   >
                     {item.subject?.name}
@@ -182,7 +182,7 @@ export default function HistoryScreen() {
                 >
                   <Text
                     style={{
-                      fontSize: 12,
+                      fontSize: FONT_SIZES.sm,
                       color: colors.textSecondary,
                       textTransform: "capitalize",
                     }}
@@ -203,7 +203,7 @@ export default function HistoryScreen() {
                       size={14}
                       color={colors.textSecondary}
                     />
-                    <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                    <Text style={{ fontSize: FONT_SIZES.sm, color: colors.textSecondary }}>
                       {t("common.room")}: {item.room}
                     </Text>
                   </View>
@@ -228,7 +228,7 @@ export default function HistoryScreen() {
                     size={16}
                     color={colors.textSecondary}
                   />
-                  <Text style={{ fontSize: 13, color: colors.textSecondary }}>
+                  <Text style={{ fontSize: FONT_SIZES.md, color: colors.textSecondary }}>
                     {formatClassName(item.class)}
                   </Text>
                 </View>
@@ -240,7 +240,7 @@ export default function HistoryScreen() {
                     size={16}
                     color={colors.textSecondary}
                   />
-                  <Text style={{ fontSize: 13, color: colors.textSecondary }}>
+                  <Text style={{ fontSize: FONT_SIZES.md, color: colors.textSecondary }}>
                     {formatDate(item.date)}
                   </Text>
                 </View>

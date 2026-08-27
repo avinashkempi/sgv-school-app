@@ -18,10 +18,11 @@ import Animated, {
   useAnimatedScrollHandler,
   FadeIn,
 } from "react-native-reanimated";
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
 import { getOptimizedCloudinaryUrl } from "../utils/cloudinaryUpload";
 import SkeletonLoader from "./SkeletonLoader";
 import UserAvatar from "./ui/UserAvatar";
+import { formatUserName } from "../utils/userFormatters";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_WIDTH = SCREEN_WIDTH - 32;
@@ -392,7 +393,7 @@ const PostCard = ({ post, isAdmin, onEdit, onDelete, onTogglePin }) => {
             <View style={styles.postedByRow}>
               <UserAvatar
                 photoUrl={post.postedBy.profilePhoto}
-                name={post.postedBy.name}
+                name={formatUserName(post.postedBy.name)}
                 role={post.postedBy.role}
                 size={20}
               />
@@ -402,7 +403,7 @@ const PostCard = ({ post, isAdmin, onEdit, onDelete, onTogglePin }) => {
                   { color: colors.onSurfaceVariant },
                 ]}
               >
-                {post.postedBy.name}
+                {formatUserName(post.postedBy.name)}
               </Text>
             </View>
           )}
@@ -449,8 +450,8 @@ const styles = StyleSheet.create({
   },
   imageCountText: {
     color: "#fff",
-    fontSize: 11,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
   },
   dotsContainer: {
     flexDirection: "row",
@@ -487,10 +488,10 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   categoryText: {
-    fontSize: 11,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
     textTransform: "uppercase",
-    letterSpacing: 0.5,
+    letterSpacing: LETTER_SPACINGS.xs,
   },
   pinBadge: {
     flexDirection: "row",
@@ -501,28 +502,28 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   pinText: {
-    fontSize: 10,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.medium,
   },
   timeText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.regular,
     marginLeft: "auto",
   },
   title: {
-    fontSize: 17,
-    fontFamily: "DMSans-Bold",
-    lineHeight: 22,
+    fontSize: FONT_SIZES.lg,
+    fontFamily: FONTS.bold,
+    lineHeight: LINE_HEIGHTS.xl,
     marginBottom: 4,
   },
   description: {
-    fontSize: 14,
-    fontFamily: "DMSans-Regular",
-    lineHeight: 20,
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.regular,
+    lineHeight: LINE_HEIGHTS.base,
   },
   readMore: {
-    fontSize: 13,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.medium,
     marginTop: 4,
   },
   postedByRow: {
@@ -532,8 +533,8 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   postedByText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.medium,
   },
   adminMenuButton: {
     padding: 4,

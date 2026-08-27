@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme } from "../../../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../../../theme";
 import { useAuth } from "../../../../context/AuthContext";
 import {
   useApiQuery,
@@ -22,6 +22,7 @@ import apiConfig from "../../../../config/apiConfig";
 import { useToast } from "../../../../components/ToastProvider";
 import AppHeader from "../../../../components/Header";
 import UserAvatar from "../../../../components/ui/UserAvatar";
+import { formatUserName } from "../../../../utils/userFormatters";
 import { useLabel } from "../../../../context/LabelsContext";
 import { formatDate } from "../../../../utils/date";
 
@@ -170,8 +171,8 @@ export default function SubjectDetailScreen() {
               <MaterialIcons name="leaderboard" size={20} color="#fff" />
               <Text
                 style={{
-                  fontSize: 14,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.base,
+                  fontFamily: FONTS.bold,
                   color: "#fff",
                 }}
               >
@@ -199,7 +200,7 @@ export default function SubjectDetailScreen() {
                     style={{
                       color: colors.textSecondary,
                       marginTop: 16,
-                      fontSize: 16,
+                      fontSize: FONT_SIZES.lg,
                     }}
                   >
                     {t("teacher.noContentPostedYet", "No content posted yet.")}
@@ -254,7 +255,7 @@ export default function SubjectDetailScreen() {
                         </View>
                         <Text
                           style={{
-                            fontSize: 16,
+                            fontSize: FONT_SIZES.lg,
                             fontWeight: "700",
                             color: colors.textPrimary,
                           }}
@@ -263,7 +264,7 @@ export default function SubjectDetailScreen() {
                         </Text>
                       </View>
                       <Text
-                        style={{ fontSize: 12, color: colors.textSecondary }}
+                        style={{ fontSize: FONT_SIZES.sm, color: colors.textSecondary }}
                       >
                         {formatDate(item.createdAt)}
                       </Text>
@@ -271,7 +272,7 @@ export default function SubjectDetailScreen() {
 
                     <Text
                       style={{
-                        fontSize: 14,
+                        fontSize: FONT_SIZES.base,
                         color: colors.textSecondary,
                         lineHeight: 20,
                       }}
@@ -290,21 +291,19 @@ export default function SubjectDetailScreen() {
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                         <UserAvatar
                           photoUrl={item.author?.profilePhoto || item.teacher?.profilePhoto}
-                          name={item.author?.name || item.teacher?.name || "Teacher"}
+                          name={formatUserName(item.author?.name || item.teacher?.name, "Teacher")}
                           role="teacher"
                           size={18}
                         />
                         <Text
                           style={{
-                            fontSize: 12,
+                            fontSize: FONT_SIZES.sm,
                             color: colors.textSecondary,
                             fontWeight: "500",
                           }}
                         >
                           {t("common.by", "By")}:{" "}
-                          {item.author?.name ||
-                            item.teacher?.name ||
-                            t("common.teacher", "Teacher")}
+                          {formatUserName(item.author?.name || item.teacher?.name, t("common.teacher", "Teacher"))}
                         </Text>
                       </View>
                       <View
@@ -317,7 +316,7 @@ export default function SubjectDetailScreen() {
                       >
                         <Text
                           style={{
-                            fontSize: 10,
+                            fontSize: FONT_SIZES.micro,
                             fontWeight: "600",
                             color: colors.textSecondary,
                             textTransform: "uppercase",

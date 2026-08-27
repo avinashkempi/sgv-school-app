@@ -14,8 +14,9 @@ import {
 } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { MaterialIcons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 import {
   useApiQuery,
@@ -26,6 +27,7 @@ import apiConfig from "../../config/apiConfig";
 import { CACHE_TIERS } from "../../utils/cacheConfig";
 import formatTimeAgo from "../../utils/formatTimeAgo";
 import UserAvatar from "../ui/UserAvatar";
+import { formatUserName } from "../../utils/userFormatters";
 
 const QUICK_EMOJIS = ["❤️", "🔥", "👏", "🎓", "🎉", "🌟", "🙌"];
 
@@ -104,7 +106,7 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
         createdAt: new Date().toISOString(),
         user: {
           _id: user?.id || user?._id,
-          name: isSchool ? "SGV School" : user?.name || "Me",
+          name: isSchool ? "SGV School" : formatUserName(user?.name, "Me"),
           profilePhoto: isSchool ? null : user?.profilePhoto,
           role: user?.role,
         },
@@ -241,12 +243,16 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
                 },
               ]}
             >
-              <MaterialIcons name="school" size={16} color="#F57F17" />
+              <Image
+                source={require("../../assets/images/icon.png")}
+                style={{ width: "100%", height: "100%", borderRadius: 16 }}
+                contentFit="cover"
+              />
             </View>
           ) : (
             <UserAvatar
               photoUrl={item.user?.profilePhoto}
-              name={item.user?.name || "User"}
+              name={formatUserName(item.user?.name, "User")}
               role={item.user?.role}
               size={32}
             />
@@ -256,7 +262,7 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
           <View style={styles.commentBody}>
             <View style={styles.commentHeaderRow}>
               <Text style={[styles.commentAuthor, { color: colors.onSurface }]}>
-                {isSchool ? "SGV School" : item.user?.name || "User"}
+                {isSchool ? "SGV School" : formatUserName(item.user?.name, "User")}
               </Text>
               {isSchool && (
                 <MaterialIcons name="verified" size={12} color="#FFB300" />
@@ -401,11 +407,19 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
                   },
                 ]}
               >
-                <MaterialIcons
-                  name={postAsSchool ? "school" : "person"}
-                  size={14}
-                  color={postAsSchool ? "#F57F17" : colors.primary}
-                />
+                {postAsSchool ? (
+                  <Image
+                    source={require("../../assets/images/icon.png")}
+                    style={{ width: 16, height: 16, borderRadius: 8 }}
+                    contentFit="cover"
+                  />
+                ) : (
+                  <MaterialIcons
+                    name="person"
+                    size={14}
+                    color={colors.primary}
+                  />
+                )}
                 <Text
                   style={[
                     styles.adminToggleText,
@@ -471,13 +485,13 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: "rgba(0,0,0,0.45)",
     justifyContent: "flex-end",
   },
   container: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: "80%",
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    maxHeight: "82%",
     minHeight: "55%",
   },
   header: {
@@ -485,14 +499,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 14,
-    borderBottomWidth: 1,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   handleBar: {
-    width: 40,
+    width: 38,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "rgba(128,128,128,0.4)",
-    marginBottom: 10,
+    backgroundColor: "rgba(128,128,128,0.3)",
+    marginBottom: 12,
   },
   headerTitleRow: {
     flexDirection: "row",
@@ -501,12 +515,12 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   headerTitle: {
-    fontSize: 16,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.lg,
+    fontFamily: FONTS.bold,
   },
   listContent: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 14,
   },
   loadingContainer: {
     flex: 1,
@@ -521,12 +535,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   emptyTitle: {
-    fontSize: 16,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.lg,
+    fontFamily: FONTS.bold,
   },
   emptySubtitle: {
-    fontSize: 13,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.regular,
   },
   commentRow: {
     flexDirection: "row",
@@ -535,15 +549,15 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   commentAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     justifyContent: "center",
     alignItems: "center",
   },
   avatarText: {
-    fontSize: 13,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.bold,
   },
   commentBody: {
     flex: 1,
@@ -555,18 +569,18 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   commentAuthor: {
-    fontSize: 13,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.bold,
   },
   commentTime: {
-    fontSize: 11,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.regular,
     marginLeft: 4,
   },
   commentText: {
-    fontSize: 14,
-    fontFamily: "DMSans-Regular",
-    lineHeight: 19,
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.regular,
+    lineHeight: LINE_HEIGHTS.base,
   },
   deleteButton: {
     padding: 4,
@@ -578,10 +592,12 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   emojiButton: {
-    padding: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   emojiText: {
-    fontSize: 20,
+    fontSize: FONT_SIZES.xxl,
   },
   adminCommentRow: {
     flexDirection: "row",
@@ -591,8 +607,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   adminCommentLabel: {
-    fontSize: 11,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.medium,
   },
   adminTogglePill: {
     flexDirection: "row",
@@ -603,8 +619,8 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   adminToggleText: {
-    fontSize: 11,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
   },
   inputRow: {
     flexDirection: "row",
@@ -616,11 +632,11 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 20,
-    fontSize: 14,
-    fontFamily: "DMSans-Regular",
+    borderRadius: 22,
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.regular,
     maxHeight: 90,
   },
   sendButton: {

@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import apiFetch from "../../utils/apiFetch";
 import apiConfig from "../../config/apiConfig";
 import { useAcademicYear } from "../../context/AcademicYearContext";
@@ -17,7 +17,7 @@ import storage from "../../utils/storage";
 
 const CACHED_YEARS_KEY = "@cached_academic_years";
 
-const YearSelector = ({ onYearChanged }) => {
+const YearSelector = ({ onYearChanged, style, compact = false }) => {
   const { colors, styles } = useTheme();
   const { selectedYear, setYear } = useAcademicYear();
   const { showToast } = useToast();
@@ -128,8 +128,8 @@ const YearSelector = ({ onYearChanged }) => {
           <View>
             <Text
               style={{
-                fontSize: 16,
-                fontFamily: isSelected ? "DMSans-Bold" : "DMSans-Medium",
+                fontSize: FONT_SIZES.lg,
+                fontFamily: isSelected ? FONTS.bold : FONTS.medium,
                 color: isSelected
                   ? colors.onPrimaryContainer
                   : colors.onSurface,
@@ -159,8 +159,8 @@ const YearSelector = ({ onYearChanged }) => {
               />
               <Text
                 style={{
-                  fontSize: 12,
-                  fontFamily: "DMSans-Regular",
+                  fontSize: FONT_SIZES.sm,
+                  fontFamily: FONTS.regular,
                   color: colors.onSurfaceVariant,
                   textTransform: "capitalize",
                 }}
@@ -178,43 +178,38 @@ const YearSelector = ({ onYearChanged }) => {
     );
   };
 
-  if (!selectedYear) {
-    return (
-      <View style={{ padding: 8, opacity: loading ? 0.5 : 1 }}>
-        {loading ? (
-          <ActivityIndicator size="small" color={colors.primary} />
-        ) : (
-          <Text style={{ color: colors.onSurfaceVariant, fontSize: 12 }}>
-            Time Travel Syncing...
-          </Text>
-        )}
-      </View>
-    );
-  }
+  if (!selectedYear) return null;
 
   return (
     <>
       <Pressable
         onPress={() => setModalVisible(true)}
-        style={({ pressed }) => ({
-          flexDirection: "row",
-          alignItems: "center",
-          backgroundColor: selectedYear.isActive
-            ? colors.primaryContainer
-            : colors.errorContainer,
-          paddingHorizontal: 12,
-          paddingVertical: 6,
-          borderRadius: 20,
-          opacity: pressed ? 0.8 : 1,
-          borderWidth: 1,
-          borderColor: selectedYear.isActive ? colors.primary : colors.error,
-          marginBottom: 16,
-          alignSelf: "flex-start",
-        })}
+        style={({ pressed }) => [
+          {
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: selectedYear.isActive
+              ? colors.primaryContainer
+              : colors.errorContainer,
+            paddingHorizontal: compact ? 8 : 12,
+            paddingVertical: compact ? 4 : 6,
+            borderRadius: 20,
+            borderWidth: 1,
+            borderColor: selectedYear.isActive
+              ? colors.primary + "40"
+              : colors.error + "40",
+            opacity: pressed ? 0.8 : 1,
+          },
+          style,
+        ]}
       >
         <MaterialIcons
           name={
-            selectedYear.status === "archived" ? "history" : "calendar-today"
+            selectedYear.isArchived
+              ? "history"
+              : selectedYear.isActive
+              ? "event-available"
+              : "event"
           }
           size={16}
           color={
@@ -222,17 +217,20 @@ const YearSelector = ({ onYearChanged }) => {
               ? colors.onPrimaryContainer
               : colors.onErrorContainer
           }
+          style={{ flexShrink: 0 }}
         />
         <Text
           style={{
-            fontSize: 13,
-            fontFamily: "DMSans-Bold",
+            fontSize: FONT_SIZES.md,
+            fontFamily: FONTS.bold,
             marginLeft: 6,
             marginRight: 4,
             color: selectedYear.isActive
               ? colors.onPrimaryContainer
               : colors.onErrorContainer,
+            flexShrink: 1,
           }}
+          numberOfLines={1}
         >
           {selectedYear.name}
         </Text>
@@ -244,6 +242,7 @@ const YearSelector = ({ onYearChanged }) => {
               ? colors.onPrimaryContainer
               : colors.onErrorContainer
           }
+          style={{ flexShrink: 0 }}
         />
 
         {/* Visual marker if looking at historical data to prevent confusion */}
@@ -261,9 +260,9 @@ const YearSelector = ({ onYearChanged }) => {
           >
             <Text
               style={{
-                fontSize: 9,
+                fontSize: FONT_SIZES.micro,
                 color: colors.onError,
-                fontFamily: "DMSans-Bold",
+                fontFamily: FONTS.bold,
                 textTransform: "uppercase",
               }}
             >
@@ -327,7 +326,7 @@ const YearSelector = ({ onYearChanged }) => {
                   style={{
                     marginTop: 12,
                     color: colors.onSurfaceVariant,
-                    fontFamily: "DMSans-Medium",
+                    fontFamily: FONTS.medium,
                   }}
                 >
                   Loading Timelines...

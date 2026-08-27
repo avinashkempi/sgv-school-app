@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
 import { useApiMutation, createApiMutationFn } from "../hooks/useApi";
 import { useToast } from "./ToastProvider";
 import apiConfig from "../config/apiConfig";
@@ -179,8 +179,8 @@ export default function CSVImportModal({
           >
             <Text
               style={{
-                fontSize: 20,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.xxl,
+                fontFamily: FONTS.bold,
                 color: colors.onSurface,
               }}
             >
@@ -204,8 +204,8 @@ export default function CSVImportModal({
               >
                 <Text
                   style={{
-                    fontSize: 14,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.base,
+                    fontFamily: FONTS.bold,
                     color: colors.onSurface,
                     marginBottom: 8,
                   }}
@@ -214,10 +214,10 @@ export default function CSVImportModal({
                 </Text>
                 <Text
                   style={{
-                    fontSize: 13,
-                    fontFamily: "DMSans-Regular",
+                    fontSize: FONT_SIZES.md,
+                    fontFamily: FONTS.regular,
                     color: colors.onSurfaceVariant,
-                    lineHeight: 20,
+                    lineHeight: LINE_HEIGHTS.md,
                   }}
                 >
                   1. Download the CSV template{"\n"}
@@ -263,8 +263,8 @@ export default function CSVImportModal({
                 <View style={{ flex: 1 }}>
                   <Text
                     style={{
-                      fontSize: 15,
-                      fontFamily: "DMSans-Bold",
+                      fontSize: FONT_SIZES.mdLg,
+                      fontFamily: FONTS.bold,
                       color: colors.onSurface,
                     }}
                   >
@@ -272,8 +272,8 @@ export default function CSVImportModal({
                   </Text>
                   <Text
                     style={{
-                      fontSize: 12,
-                      fontFamily: "DMSans-Regular",
+                      fontSize: FONT_SIZES.sm,
+                      fontFamily: FONTS.regular,
                       color: colors.onSurfaceVariant,
                       marginTop: 2,
                     }}
@@ -322,8 +322,8 @@ export default function CSVImportModal({
                 <View style={{ flex: 1 }}>
                   <Text
                     style={{
-                      fontSize: 15,
-                      fontFamily: "DMSans-Bold",
+                      fontSize: FONT_SIZES.mdLg,
+                      fontFamily: FONTS.bold,
                       color: colors.onSurface,
                     }}
                   >
@@ -331,8 +331,8 @@ export default function CSVImportModal({
                   </Text>
                   <Text
                     style={{
-                      fontSize: 12,
-                      fontFamily: "DMSans-Regular",
+                      fontSize: FONT_SIZES.sm,
+                      fontFamily: FONTS.regular,
                       color: colors.onSurfaceVariant,
                       marginTop: 2,
                     }}
@@ -358,8 +358,8 @@ export default function CSVImportModal({
                 >
                   <Text
                     style={{
-                      fontSize: 16,
-                      fontFamily: "DMSans-Bold",
+                      fontSize: FONT_SIZES.lg,
+                      fontFamily: FONTS.bold,
                       color: colors.onSurface,
                       marginBottom: 12,
                     }}
@@ -381,8 +381,8 @@ export default function CSVImportModal({
                     >
                       <Text
                         style={{
-                          fontSize: 20,
-                          fontFamily: "DMSans-Bold",
+                          fontSize: FONT_SIZES.xxl,
+                          fontFamily: FONTS.bold,
                           color: colors.success,
                         }}
                       >
@@ -390,8 +390,8 @@ export default function CSVImportModal({
                       </Text>
                       <Text
                         style={{
-                          fontSize: 11,
-                          fontFamily: "DMSans-Medium",
+                          fontSize: FONT_SIZES.xs,
+                          fontFamily: FONTS.medium,
                           color: colors.onSurfaceVariant,
                           marginTop: 4,
                         }}
@@ -411,8 +411,8 @@ export default function CSVImportModal({
                     >
                       <Text
                         style={{
-                          fontSize: 20,
-                          fontFamily: "DMSans-Bold",
+                          fontSize: FONT_SIZES.xxl,
+                          fontFamily: FONTS.bold,
                           color: colors.primary,
                         }}
                       >
@@ -420,8 +420,8 @@ export default function CSVImportModal({
                       </Text>
                       <Text
                         style={{
-                          fontSize: 11,
-                          fontFamily: "DMSans-Medium",
+                          fontSize: FONT_SIZES.xs,
+                          fontFamily: FONTS.medium,
                           color: colors.onSurfaceVariant,
                           marginTop: 4,
                         }}
@@ -441,8 +441,8 @@ export default function CSVImportModal({
                     >
                       <Text
                         style={{
-                          fontSize: 20,
-                          fontFamily: "DMSans-Bold",
+                          fontSize: FONT_SIZES.xxl,
+                          fontFamily: FONTS.bold,
                           color: colors.error,
                         }}
                       >
@@ -450,8 +450,8 @@ export default function CSVImportModal({
                       </Text>
                       <Text
                         style={{
-                          fontSize: 11,
-                          fontFamily: "DMSans-Medium",
+                          fontSize: FONT_SIZES.xs,
+                          fontFamily: FONTS.medium,
                           color: colors.onSurfaceVariant,
                           marginTop: 4,
                         }}
@@ -474,8 +474,8 @@ export default function CSVImportModal({
                   >
                     <Text
                       style={{
-                        fontSize: 14,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.base,
+                        fontFamily: FONTS.bold,
                         color: colors.error,
                         marginBottom: 8,
                       }}
@@ -486,8 +486,8 @@ export default function CSVImportModal({
                       <Text
                         key={index}
                         style={{
-                          fontSize: 12,
-                          fontFamily: "DMSans-Regular",
+                          fontSize: FONT_SIZES.sm,
+                          fontFamily: FONTS.regular,
                           color: colors.onErrorContainer,
                           marginBottom: 4,
                         }}
@@ -498,8 +498,8 @@ export default function CSVImportModal({
                     {importResults.errors.length > 5 && (
                       <Text
                         style={{
-                          fontSize: 12,
-                          fontFamily: "DMSans-Medium",
+                          fontSize: FONT_SIZES.sm,
+                          fontFamily: FONTS.medium,
                           color: colors.onErrorContainer,
                           marginTop: 4,
                         }}
@@ -530,8 +530,8 @@ export default function CSVImportModal({
                   >
                     <Text
                       style={{
-                        fontFamily: "DMSans-Bold",
-                        fontSize: 15,
+                        fontFamily: FONTS.bold,
+                        fontSize: FONT_SIZES.mdLg,
                         color: colors.onSurface,
                       }}
                     >
@@ -570,8 +570,8 @@ export default function CSVImportModal({
                         />
                         <Text
                           style={{
-                            fontFamily: "DMSans-Bold",
-                            fontSize: 15,
+                            fontFamily: FONTS.bold,
+                            fontSize: FONT_SIZES.mdLg,
                             color: "#FFFFFF",
                           }}
                         >
@@ -598,8 +598,8 @@ export default function CSVImportModal({
                 >
                   <Text
                     style={{
-                      fontFamily: "DMSans-Bold",
-                      fontSize: 15,
+                      fontFamily: FONTS.bold,
+                      fontSize: FONT_SIZES.mdLg,
                       color: "#FFFFFF",
                     }}
                   >

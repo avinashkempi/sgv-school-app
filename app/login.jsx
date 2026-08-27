@@ -6,8 +6,8 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme } from "../theme";
+import { Image } from "expo-image";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import apiConfig from "../config/apiConfig";
@@ -24,6 +24,8 @@ import { useToast } from "../components/ToastProvider";
 export default function Login() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   // eslint-disable-next-line no-unused-vars
   const { styles, colors, mode } = useTheme();
@@ -60,9 +62,26 @@ export default function Login() {
 
   const handleLogin = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    if (!phone || !password) {
+    let hasError = false;
+    if (!phone || phone.trim().length === 0) {
+      setPhoneError("Phone number is required");
+      hasError = true;
+    } else if (phone.trim().length < 10) {
+      setPhoneError("Enter a valid 10-digit number");
+      hasError = true;
+    } else {
+      setPhoneError("");
+    }
+
+    if (!password) {
+      setPasswordError("Password is required");
+      hasError = true;
+    } else {
+      setPasswordError("");
+    }
+
+    if (hasError) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      showToast(t("toasts.enterBothFields"), "error");
       return;
     }
     loginMutation.mutate({ phone, password });
@@ -96,40 +115,59 @@ export default function Login() {
         keyboardShouldPersistTaps="handled"
       >
         {/* Header Section */}
-        <View style={{ alignItems: "center", marginBottom: 48 }}>
+        <View style={{ alignItems: "center", marginBottom: 40 }}>
           <View
             style={{
-              width: 80,
-              height: 80,
-              backgroundColor: colors.primaryContainer,
-              borderRadius: 24,
+              width: 88,
+              height: 88,
+              backgroundColor: colors.surfaceContainerLowest || "#ffffff",
+              borderRadius: 26,
               justifyContent: "center",
               alignItems: "center",
-              marginBottom: 24,
+              marginBottom: 20,
+              shadowColor: colors.primary,
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.12,
+              shadowRadius: 14,
+              elevation: 4,
+              borderWidth: 1,
+              borderColor: colors.outlineVariant || "rgba(0,0,0,0.08)",
+              padding: 6,
             }}
           >
-            <MaterialIcons
-              name="school"
-              size={40}
-              color={colors.onPrimaryContainer}
+            <Image
+              source={require("../assets/images/icon.png")}
+              style={{ width: "100%", height: "100%", borderRadius: 20 }}
+              contentFit="contain"
             />
           </View>
           <Text
             style={{
-              fontSize: 32,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.hero,
+              fontFamily: FONTS.bold,
               color: colors.onBackground,
-              marginBottom: 8,
+              marginBottom: 4,
               textAlign: "center",
-              letterSpacing: -1,
+              letterSpacing: LETTER_SPACINGS.hero,
             }}
           >
             {t("login.title")}
           </Text>
           <Text
             style={{
-              fontSize: 16,
-              fontFamily: "DMSans-Regular",
+              fontSize: FONT_SIZES.mdLg,
+              fontFamily: FONTS.bold,
+              color: colors.primary,
+              textAlign: "center",
+              marginBottom: 4,
+            }}
+          >
+            Shri Guru Vidya English Medium School
+          </Text>
+          <Text
+            style={{
+              fontSize: FONT_SIZES.base,
+              fontFamily: FONTS.regular,
               color: colors.onSurfaceVariant,
               textAlign: "center",
             }}
@@ -144,11 +182,15 @@ export default function Login() {
             label={t("login.phoneLabel")}
             icon="phone"
             value={phone}
-            onChangeText={setPhone}
+            onChangeText={(text) => {
+              setPhone(text);
+              if (phoneError) setPhoneError("");
+            }}
             placeholder={t("login.phonePlaceholder")}
             keyboardType="number-pad"
             maxLength={10}
             editable={!loading}
+            error={phoneError}
             variant="outlined"
           />
 
@@ -156,12 +198,16 @@ export default function Login() {
             label={t("login.passwordLabel")}
             icon="lock"
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(text) => {
+              setPassword(text);
+              if (passwordError) setPasswordError("");
+            }}
             placeholder={t("login.passwordPlaceholder")}
             secureTextEntry={!showPassword}
             rightIcon={showPassword ? "visibility" : "visibility-off"}
             onRightIconPress={() => setShowPassword(!showPassword)}
             editable={!loading}
+            error={passwordError}
             variant="outlined"
           />
 
@@ -193,7 +239,8 @@ export default function Login() {
                 style={{
                   marginHorizontal: 16,
                   color: colors.onSurfaceVariant,
-                  fontSize: 14,
+                  fontSize: FONT_SIZES.base,
+                  fontFamily: FONTS.medium,
                 }}
               >
                 {t("common.or")}

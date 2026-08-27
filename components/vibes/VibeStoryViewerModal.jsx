@@ -34,6 +34,7 @@ import { useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../ToastProvider";
+import { formatUserName } from "../../utils/userFormatters";
 import { useApiMutation, createApiMutationFn } from "../../hooks/useApi";
 import apiConfig from "../../config/apiConfig";
 import {
@@ -42,6 +43,7 @@ import {
   getBlurPlaceholderUrl,
 } from "../../utils/cloudinaryUpload";
 import useNetworkQuality from "../../hooks/useNetworkQuality";
+import { FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import formatTimeAgo from "../../utils/formatTimeAgo";
 import VibeVideoPlayer from "./VibeVideoPlayer";
 import VibeCommentsModal from "./VibeCommentsModal";
@@ -547,13 +549,13 @@ const VibeStoryViewerModal = ({
                       <View
                         style={[
                           styles.avatarPlaceholder,
-                          { backgroundColor: "#FFF8E1" },
+                          { backgroundColor: "#FFF8E1", overflow: "hidden" },
                         ]}
                       >
-                        <MaterialIcons
-                          name="school"
-                          size={18}
-                          color="#F57F17"
+                        <Image
+                          source={require("../../assets/images/icon.png")}
+                          style={styles.avatarImg}
+                          contentFit="cover"
                         />
                       </View>
                     ) : authorAvatar ? (
@@ -590,7 +592,7 @@ const VibeStoryViewerModal = ({
                       <Text style={styles.authorNameText} numberOfLines={1}>
                         {currentVibe.postAs === "school"
                           ? "SGV Official"
-                          : currentVibe.author?.name || groupTitle}
+                          : formatUserName(currentVibe.author?.name || groupTitle)}
                       </Text>
                       {currentVibe.postAs === "school" && (
                         <MaterialIcons
@@ -842,8 +844,8 @@ const styles = StyleSheet.create({
   },
   authorNameText: {
     color: "#fff",
-    fontSize: 14,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.bold,
     textShadowColor: "rgba(0, 0, 0, 0.75)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
@@ -856,12 +858,12 @@ const styles = StyleSheet.create({
   },
   timeAgoText: {
     color: "rgba(255, 255, 255, 0.85)",
-    fontSize: 11,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.medium,
   },
   dotSeparator: {
     color: "rgba(255, 255, 255, 0.6)",
-    fontSize: 11,
+    fontSize: FONT_SIZES.xs,
   },
   categoryBadge: {
     paddingHorizontal: 6,
@@ -870,9 +872,9 @@ const styles = StyleSheet.create({
   },
   categoryBadgeText: {
     color: "#fff",
-    fontSize: 9,
-    fontFamily: "DMSans-Bold",
-    letterSpacing: 0.5,
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.bold,
+    letterSpacing: LETTER_SPACINGS.xs,
   },
   closeBtn: {
     width: 36,
@@ -915,9 +917,9 @@ const styles = StyleSheet.create({
   },
   captionText: {
     color: "#fff",
-    fontSize: 13,
-    fontFamily: "DMSans-Regular",
-    lineHeight: 18,
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.regular,
+    lineHeight: LINE_HEIGHTS.md,
   },
   actionsRow: {
     flexDirection: "row",
@@ -937,8 +939,8 @@ const styles = StyleSheet.create({
   },
   actionCountText: {
     color: "#fff",
-    fontSize: 13,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.bold,
   },
   viewInFeedBtn: {
     flexDirection: "row",
@@ -952,8 +954,8 @@ const styles = StyleSheet.create({
   },
   viewInFeedText: {
     color: "#fff",
-    fontSize: 12,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
   },
 });
 

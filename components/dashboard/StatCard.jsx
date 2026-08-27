@@ -1,7 +1,8 @@
 import React from "react";
 import { View, Text, Pressable } from "react-native";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES } from "../../theme";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 
 const StatCard = ({
   title,
@@ -14,21 +15,32 @@ const StatCard = ({
   onPress,
   loading = false,
 }) => {
-  const { colors, styles } = useTheme();
+  const { colors, mode } = useTheme();
+  const isDark = mode === "dark";
 
   const isPositive = trendValue >= 0;
   const trendColor = isPositive ? colors.success : colors.error;
+  const cardColor = color || colors.primary;
+
+  const handlePress = () => {
+    if (onPress) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      onPress();
+    }
+  };
 
   const content = (
     <View
       style={[
         {
-          backgroundColor: colors.surfaceContainer,
-          borderRadius: 24,
-          padding: 20,
+          backgroundColor: isDark ? colors.surfaceContainer : "#FFFFFF",
+          borderRadius: 16,
+          padding: 12,
           flex: 1,
-          minWidth: 150,
-          margin: 6,
+          minWidth: 95,
+          margin: 4,
+          borderWidth: 1,
+          borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
         },
       ]}
     >
@@ -37,18 +49,22 @@ const StatCard = ({
           style={{
             alignItems: "center",
             justifyContent: "center",
-            height: 100,
+            height: 75,
           }}
         >
           <MaterialCommunityIcons
             name="loading"
-            size={32}
+            size={22}
             color={colors.onSurfaceVariant}
           />
           <Text
             style={[
-              styles.bodySmall,
-              { marginTop: 8, color: colors.onSurfaceVariant },
+              {
+                fontSize: FONT_SIZES.xs,
+                fontFamily: FONTS.medium,
+                marginTop: 6,
+                color: colors.onSurfaceVariant,
+              },
             ]}
           >
             Loading...
@@ -60,41 +76,43 @@ const StatCard = ({
             style={{
               flexDirection: "row",
               justifyContent: "space-between",
-              alignItems: "flex-start",
-              marginBottom: 12,
+              alignItems: "center",
+              marginBottom: 8,
             }}
           >
             <View
               style={{
-                backgroundColor: color + "20",
-                padding: 10,
-                borderRadius: 14,
+                backgroundColor: isDark ? `${cardColor}25` : `${cardColor}15`,
+                padding: 6,
+                borderRadius: 8,
+                borderWidth: 1,
+                borderColor: isDark ? `${cardColor}40` : `${cardColor}28`,
               }}
             >
-              <MaterialCommunityIcons name={icon} size={24} color={color} />
+              <MaterialCommunityIcons name={icon} size={16} color={cardColor} />
             </View>
             {trend && trendValue !== undefined && (
               <View
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
-                  backgroundColor: trendColor + "15",
-                  paddingHorizontal: 8,
-                  paddingVertical: 4,
-                  borderRadius: 100,
+                  backgroundColor: isDark ? `${trendColor}25` : `${trendColor}15`,
+                  paddingHorizontal: 5,
+                  paddingVertical: 2,
+                  borderRadius: 6,
                 }}
               >
                 <MaterialCommunityIcons
                   name={isPositive ? "arrow-up" : "arrow-down"}
-                  size={14}
+                  size={10}
                   color={trendColor}
                 />
                 <Text
                   style={{
-                    fontSize: 12,
+                    fontSize: FONT_SIZES.micro,
                     color: trendColor,
-                    fontFamily: styles.labelMedium.fontFamily,
-                    marginLeft: 2,
+                    fontFamily: FONTS.bold,
+                    marginLeft: 1,
                   }}
                 >
                   {Math.abs(trendValue)}%
@@ -103,18 +121,38 @@ const StatCard = ({
             )}
           </View>
 
-          <Text style={[styles.titleSmall, { opacity: 0.7, marginBottom: 4 }]}>
-            {title}
-          </Text>
-          <Text style={[styles.headlineMedium, { color: colors.onSurface }]}>
+          <Text
+            style={{
+              fontSize: FONT_SIZES.lg,
+              fontFamily: FONTS.bold,
+              color: colors.onSurface,
+              letterSpacing: -0.3,
+              marginBottom: 1,
+            }}
+            numberOfLines={1}
+          >
             {value}
           </Text>
+
+          <Text
+            style={{
+              fontSize: FONT_SIZES.xs,
+              fontFamily: FONTS.medium,
+              color: colors.onSurfaceVariant,
+            }}
+            numberOfLines={1}
+          >
+            {title}
+          </Text>
+
           {subtitle && (
             <Text
-              style={[
-                styles.labelSmall,
-                { color: colors.onSurfaceVariant, marginTop: 2 },
-              ]}
+              style={{
+                fontSize: FONT_SIZES.micro,
+                fontFamily: FONTS.regular,
+                color: colors.onSurfaceVariant,
+                marginTop: 1,
+              }}
               numberOfLines={1}
             >
               {subtitle}
@@ -128,10 +166,11 @@ const StatCard = ({
   if (onPress) {
     return (
       <Pressable
-        onPress={onPress}
+        onPress={handlePress}
         style={({ pressed }) => ({
-          opacity: pressed ? 0.8 : 1,
-          transform: [{ scale: pressed ? 0.98 : 1 }],
+          opacity: pressed ? 0.75 : 1,
+          flex: 1,
+          minWidth: 95,
         })}
       >
         {content}

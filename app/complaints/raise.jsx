@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import apiConfig from "../../config/apiConfig";
 import { useApiMutation, createApiMutationFn } from "../../hooks/useApi";
 import Header from "../../components/Header";
@@ -109,7 +109,7 @@ export default function RaiseComplaintScreen() {
                   style={{
                     color: colors.textSecondary,
                     marginBottom: 8,
-                    fontFamily: "DMSans-Medium",
+                    fontFamily: FONTS.medium,
                   }}
                 >
                   {t("common.to", "To")}
@@ -145,7 +145,7 @@ export default function RaiseComplaintScreen() {
                     <Text
                       style={{
                         marginTop: 8,
-                        fontFamily: "DMSans-Bold",
+                        fontFamily: FONTS.bold,
                         color:
                           visibility === "teacher"
                             ? colors.primary
@@ -184,7 +184,7 @@ export default function RaiseComplaintScreen() {
                     <Text
                       style={{
                         marginTop: 8,
-                        fontFamily: "DMSans-Bold",
+                        fontFamily: FONTS.bold,
                         color:
                           visibility === "admin"
                             ? colors.primary
@@ -205,7 +205,7 @@ export default function RaiseComplaintScreen() {
                   style={{
                     color: colors.textSecondary,
                     marginBottom: 8,
-                    fontFamily: "DMSans-Medium",
+                    fontFamily: FONTS.medium,
                   }}
                 >
                   To
@@ -227,7 +227,7 @@ export default function RaiseComplaintScreen() {
                   />
                   <Text
                     style={{
-                      fontFamily: "DMSans-Bold",
+                      fontFamily: FONTS.bold,
                       color: colors.textPrimary,
                     }}
                   >
@@ -247,7 +247,7 @@ export default function RaiseComplaintScreen() {
                 style={{
                   color: colors.textSecondary,
                   marginBottom: 8,
-                  fontFamily: "DMSans-Medium",
+                  fontFamily: FONTS.medium,
                 }}
               >
                 {t("common.category", "Category")}
@@ -271,7 +271,7 @@ export default function RaiseComplaintScreen() {
                       <Text
                         style={{
                           color: category === cat ? "#fff" : colors.textPrimary,
-                          fontFamily: "DMSans-Medium",
+                          fontFamily: FONTS.medium,
                         }}
                       >
                         {t("complaints.category_" + cat, cat)}
@@ -288,7 +288,7 @@ export default function RaiseComplaintScreen() {
                 style={{
                   color: colors.textSecondary,
                   marginBottom: 8,
-                  fontFamily: "DMSans-Medium",
+                  fontFamily: FONTS.medium,
                 }}
               >
                 {t("common.subjectLabel", "Subject")}
@@ -306,8 +306,8 @@ export default function RaiseComplaintScreen() {
                   padding: 16,
                   borderRadius: 12,
                   color: colors.textPrimary,
-                  fontFamily: "DMSans-Medium",
-                  fontSize: 16,
+                  fontFamily: FONTS.medium,
+                  fontSize: FONT_SIZES.lg,
                 }}
               />
             </View>
@@ -318,7 +318,7 @@ export default function RaiseComplaintScreen() {
                 style={{
                   color: colors.textSecondary,
                   marginBottom: 8,
-                  fontFamily: "DMSans-Medium",
+                  fontFamily: FONTS.medium,
                 }}
               >
                 {t("common.description", "Description")}
@@ -339,8 +339,8 @@ export default function RaiseComplaintScreen() {
                   padding: 16,
                   borderRadius: 12,
                   color: colors.textPrimary,
-                  fontFamily: "DMSans-Medium",
-                  fontSize: 16,
+                  fontFamily: FONTS.medium,
+                  fontSize: FONT_SIZES.lg,
                   minHeight: 120,
                 }}
               />
@@ -369,8 +369,8 @@ export default function RaiseComplaintScreen() {
                 <Text
                   style={{
                     color: "#fff",
-                    fontFamily: "DMSans-Bold",
-                    fontSize: 18,
+                    fontFamily: FONTS.bold,
+                    fontSize: FONT_SIZES.xl,
                   }}
                 >
                   ${t("complaints.submitComplaint", "Submit Complaint")}

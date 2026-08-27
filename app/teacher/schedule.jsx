@@ -10,7 +10,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 
 import { useRouter } from "expo-router";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import apiConfig from "../../config/apiConfig";
 import { useApiQuery } from "../../hooks/useApi";
 import { useToast } from "../../components/ToastProvider";
@@ -156,8 +156,8 @@ export default function TeacherScheduleScreen() {
               <Text
                 style={{
                   color: colors.onPrimaryContainer,
-                  fontFamily: "DMSans-Bold",
-                  fontSize: 13,
+                  fontFamily: FONTS.bold,
+                  fontSize: FONT_SIZES.md,
                 }}
               >
                 {t("teacher.allClasses", "All Classes")}
@@ -193,7 +193,7 @@ export default function TeacherScheduleScreen() {
                         color:
                           selectedDay === day ? "#fff" : colors.textPrimary,
                         fontFamily:
-                          selectedDay === day ? "DMSans-Bold" : "DMSans-Medium",
+                          selectedDay === day ? FONTS.bold : FONTS.medium,
                       }}
                     >
                       {day.slice(0, 3)}
@@ -216,8 +216,8 @@ export default function TeacherScheduleScreen() {
             >
               <Text
                 style={{
-                  fontSize: 18,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.xl,
+                  fontFamily: FONTS.bold,
                   color: colors.textPrimary,
                 }}
               >
@@ -234,9 +234,9 @@ export default function TeacherScheduleScreen() {
                 >
                   <Text
                     style={{
-                      fontSize: 12,
+                      fontSize: FONT_SIZES.sm,
                       color: colors.success,
-                      fontFamily: "DMSans-Bold",
+                      fontFamily: FONTS.bold,
                     }}
                   >
                     {t("common.today", "TODAY")}
@@ -258,7 +258,7 @@ export default function TeacherScheduleScreen() {
                   style={{
                     color: colors.textSecondary,
                     marginTop: 16,
-                    fontSize: 16,
+                    fontSize: FONT_SIZES.lg,
                   }}
                 >
                   {t("teacher.noClassesScheduled", "No classes scheduled")}
@@ -294,8 +294,8 @@ export default function TeacherScheduleScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: 14,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.base,
+                        fontFamily: FONTS.bold,
                         color: colors.textPrimary,
                       }}
                     >
@@ -309,7 +309,7 @@ export default function TeacherScheduleScreen() {
                         marginVertical: 2,
                       }}
                     />
-                    <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                    <Text style={{ fontSize: FONT_SIZES.sm, color: colors.textSecondary }}>
                       {period.endTime}
                     </Text>
                   </View>
@@ -326,8 +326,8 @@ export default function TeacherScheduleScreen() {
                   <View style={{ flex: 1, justifyContent: "center" }}>
                     <Text
                       style={{
-                        fontSize: 16,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.lg,
+                        fontFamily: FONTS.bold,
                         color: colors.textPrimary,
                         marginBottom: 4,
                       }}
@@ -336,9 +336,9 @@ export default function TeacherScheduleScreen() {
                     </Text>
                     <Text
                       style={{
-                        fontSize: 14,
+                        fontSize: FONT_SIZES.base,
                         color: colors.primary,
-                        fontFamily: "DMSans-Medium",
+                        fontFamily: FONTS.medium,
                         marginBottom: 4,
                       }}
                     >
@@ -359,7 +359,7 @@ export default function TeacherScheduleScreen() {
                           color={colors.textSecondary}
                         />
                         <Text
-                          style={{ fontSize: 13, color: colors.textSecondary }}
+                          style={{ fontSize: FONT_SIZES.md, color: colors.textSecondary }}
                         >
                           {t("common.room", "Room")} {period.roomNumber}
                         </Text>

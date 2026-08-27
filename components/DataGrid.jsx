@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES } from "../theme";
 
 /**
  * DataGrid Component
@@ -233,9 +233,9 @@ export default function DataGrid({
         >
           <Text
             style={{
-              fontSize: 14,
+              fontSize: FONT_SIZES.base,
               fontFamily:
-                column.type === "grade" ? "DMSans-Bold" : "DMSans-Medium",
+                column.type === "grade" ? FONTS.bold : FONTS.medium,
               color: cellColor,
             }}
             numberOfLines={1}
@@ -267,8 +267,8 @@ export default function DataGrid({
           onKeyPress={(e) => handleKeyPress(e, rowIndex, colIndex)}
           keyboardType={column.type === "number" ? "numeric" : "default"}
           style={{
-            fontSize: 14,
-            fontFamily: "DMSans-Medium",
+            fontSize: FONT_SIZES.base,
+            fontFamily: FONTS.medium,
             color: hasError ? colors.error : colors.onSurface,
             padding: 6,
             borderWidth: isEditing ? 2 : 1,
@@ -286,8 +286,8 @@ export default function DataGrid({
         {hasError && (
           <Text
             style={{
-              fontSize: 10,
-              fontFamily: "DMSans-Medium",
+              fontSize: FONT_SIZES.micro,
+              fontFamily: FONTS.medium,
               color: colors.error,
               marginTop: 2,
             }}
@@ -342,8 +342,8 @@ export default function DataGrid({
         >
           <Text
             style={{
-              fontSize: 13,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.md,
+              fontFamily: FONTS.bold,
               color: colors.onSurface,
             }}
             numberOfLines={1}
@@ -384,8 +384,8 @@ export default function DataGrid({
           >
             <Text
               style={{
-                fontSize: 13,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.md,
+                fontFamily: FONTS.bold,
                 color: colors.onSurfaceVariant,
               }}
             >
@@ -445,8 +445,8 @@ export default function DataGrid({
       >
         <Text
           style={{
-            fontSize: 12,
-            fontFamily: "DMSans-Medium",
+            fontSize: FONT_SIZES.sm,
+            fontFamily: FONTS.medium,
             color: colors.onSurfaceVariant,
           }}
         >
@@ -457,8 +457,8 @@ export default function DataGrid({
             <MaterialIcons name="error" size={16} color={colors.error} />
             <Text
               style={{
-                fontSize: 12,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.sm,
+                fontFamily: FONTS.bold,
                 color: colors.error,
               }}
             >
@@ -490,8 +490,8 @@ export default function DataGrid({
             <Text
               style={{
                 color: "#FFFFFF",
-                fontSize: 13,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.md,
+                fontFamily: FONTS.bold,
               }}
             >
               Save All

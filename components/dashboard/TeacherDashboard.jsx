@@ -2,13 +2,12 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  ScrollView,
-  RefreshControl,
   Pressable,
+  StyleSheet,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES } from "../../theme";
 import StatCard from "./StatCard";
 import TeacherAttendanceTrendCard from "./TeacherAttendanceTrendCard";
 import TeacherPerformanceCard from "./TeacherPerformanceCard";
@@ -18,19 +17,19 @@ import apiConfig from "../../config/apiConfig";
 import { useApiQuery } from "../../hooks/useApi";
 import { formatClassName } from "../../utils/formatClassName";
 import { getISTDateString, getISTToday } from "../../utils/date";
+import HomeModuleContainer from "../home/HomeModuleContainer";
 
 const TeacherDashboard = () => {
   const router = useRouter();
-  const { colors, styles } = useTheme();
+  const { colors, mode } = useTheme();
+  const isDark = mode === "dark";
   const [dateRange, setDateRange] = useState("thisWeek");
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
 
   // Dashboard Stats Query
   const {
     data,
     isLoading: loading,
-    refetch: refetchStats,
   } = useApiQuery(
     ["teacherDashboard", dateRange],
     `${apiConfig.baseUrl}/dashboard/teacher?range=${dateRange}`,
@@ -39,7 +38,7 @@ const TeacherDashboard = () => {
 
   // Missing Attendance Query
   const todayStr = getISTToday();
-  const { data: missingData, refetch: refetchMissing } = useApiQuery(
+  const { data: missingData } = useApiQuery(
     ["teacherMissingAttendance", todayStr],
     (() => {
       const endDate = new Date();
@@ -65,20 +64,6 @@ const TeacherDashboard = () => {
       ? missingData.className
       : null;
 
-  // React Query handles stale-while-revalidate based on CACHE_TIERS.MODERATE
-  // Manual refetch is only needed on pull-to-refresh (onRefresh)
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    try {
-      await Promise.all([refetchStats(), refetchMissing()]);
-    } catch (err) {
-      console.error("TeacherDashboard refresh error:", err);
-    } finally {
-      setRefreshing(false);
-    }
-  };
-
   const handleDateRangeChange = (range) => {
     setDateRange(range);
   };
@@ -96,6 +81,10 @@ const TeacherDashboard = () => {
     return labels[dateRange] || "This Week";
   };
 
+  const indigoAccent = colors.primary;
+  const cardSurface = isDark ? colors.surfaceContainer : "#FFFFFF";
+  const subBorder = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
+
   if (loading && !data) {
     return <LoadingState message="Loading dashboard..." />;
   }
@@ -110,122 +99,94 @@ const TeacherDashboard = () => {
     );
   }
 
-  return (
-    <ScrollView
-      contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          colors={[colors.primary]}
-          tintColor={colors.primary}
-        />
-      }
-      alwaysBounceVertical={true}
-      showsVerticalScrollIndicator={false}
+  const datePickerTrigger = (
+    <Pressable
+      onPress={() => setShowDatePicker(true)}
+      style={({ pressed }) => [
+        localStyles.datePickerBtn,
+        {
+          backgroundColor: isDark
+            ? "rgba(208, 188, 255, 0.2)"
+            : colors.primaryContainer,
+          opacity: pressed ? 0.8 : 1,
+        },
+      ]}
+      accessibilityRole="button"
+      accessibilityLabel="Select date range"
     >
-      {/* Date Range Selector */}
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 16,
-          marginTop: 8,
-        }}
+      <MaterialIcons
+        name="calendar-today"
+        size={13}
+        color={colors.onPrimaryContainer}
+      />
+      <Text
+        style={[
+          localStyles.datePickerBtnText,
+          { color: colors.onPrimaryContainer },
+        ]}
       >
-        <View>
-          <Text style={styles.titleLarge}>My Dashboard</Text>
-          {data.overview?.className && (
-            <Text
-              style={{
-                fontSize: 14,
-                fontFamily: "DMSans-Medium",
-                color: colors.textSecondary,
-                marginTop: 2,
-              }}
-            >
-              Class Teacher — {formatClassName(data.overview.className)}
-            </Text>
-          )}
-        </View>
-        <Pressable
-          onPress={() => setShowDatePicker(true)}
-          style={({ pressed }) => ({
-            flexDirection: "row",
-            alignItems: "center",
-            paddingHorizontal: 16,
-            paddingVertical: 8,
-            borderRadius: 20,
-            backgroundColor: colors.primaryContainer,
-            opacity: pressed ? 0.8 : 1,
-          })}
-        >
-          <MaterialIcons
-            name="calendar-today"
-            size={16}
-            color={colors.onPrimaryContainer}
-          />
-          <Text
-            style={{
-              fontSize: 13,
-              fontFamily: "DMSans-Bold",
-              color: colors.onPrimaryContainer,
-              marginLeft: 6,
-            }}
-          >
-            {getDateRangeLabel()}
-          </Text>
-          <MaterialIcons
-            name="arrow-drop-down"
-            size={18}
-            color={colors.onPrimaryContainer}
-          />
-        </Pressable>
-      </View>
+        {getDateRangeLabel()}
+      </Text>
+      <MaterialIcons
+        name="arrow-drop-down"
+        size={16}
+        color={colors.onPrimaryContainer}
+      />
+    </Pressable>
+  );
 
+  return (
+    <HomeModuleContainer
+      title="Teacher Space"
+      icon="co-present"
+      accentColor={indigoAccent}
+      badge={
+        data.overview?.className
+          ? `Class: ${formatClassName(data.overview.className)}`
+          : undefined
+      }
+      headerRight={datePickerTrigger}
+      lightBg="rgba(79, 55, 139, 0.045)"
+      darkBg="rgba(208, 188, 255, 0.07)"
+      lightBorder="rgba(79, 55, 139, 0.14)"
+      darkBorder="rgba(208, 188, 255, 0.18)"
+    >
       {/* Missing Attendance Alert */}
       {missingDays.length > 0 && (
         <View
-          style={{
-            backgroundColor: colors.error + "10",
-            borderWidth: 1,
-            borderColor: colors.error + "40",
-            borderRadius: 16,
-            padding: 16,
-            marginBottom: 16,
-          }}
+          style={[
+            localStyles.missingAlertCard,
+            {
+              backgroundColor: isDark
+                ? "rgba(242, 184, 181, 0.12)"
+                : "rgba(179, 38, 30, 0.08)",
+              borderColor: isDark
+                ? "rgba(242, 184, 181, 0.3)"
+                : "rgba(179, 38, 30, 0.25)",
+            },
+          ]}
         >
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              marginBottom: 12,
-            }}
-          >
+          <View style={localStyles.missingHeaderRow}>
             <MaterialIcons
               name="warning"
-              size={22}
+              size={20}
               color={colors.error}
-              style={{ marginRight: 10 }}
+              style={{ marginRight: 8 }}
             />
             <View style={{ flex: 1 }}>
               <Text
-                style={{
-                  fontFamily: "DMSans-Bold",
-                  color: colors.error,
-                  fontSize: 15,
-                }}
+                style={[
+                  localStyles.missingTitle,
+                  { color: colors.error },
+                ]}
               >
                 Missing Attendance!
               </Text>
               <Text
-                style={{
-                  fontFamily: "DMSans-Medium",
-                  color: colors.textSecondary,
-                  fontSize: 12,
-                  marginTop: 2,
-                }}
+                style={[
+                  localStyles.missingSubtitle,
+                  { color: colors.onSurfaceVariant },
+                ]}
               >
                 {missingClassName ? `${missingClassName} — ` : ""}
                 {missingDays.length} day{missingDays.length > 1 ? "s" : ""} not
@@ -235,14 +196,7 @@ const TeacherDashboard = () => {
           </View>
 
           {/* Missed dates list */}
-          <View
-            style={{
-              flexDirection: "row",
-              flexWrap: "wrap",
-              gap: 6,
-              marginBottom: 12,
-            }}
-          >
+          <View style={localStyles.missedChipsRow}>
             {missingDays.slice(0, 7).map((day) => {
               const d = new Date(day + "T00:00:00");
               const today = new Date();
@@ -267,22 +221,24 @@ const TeacherDashboard = () => {
                       params: { classId: missingClassId, date: day },
                     })
                   }
-                  style={({ pressed }) => ({
-                    backgroundColor: colors.error + "18",
-                    borderWidth: 1,
-                    borderColor: colors.error + "30",
-                    borderRadius: 8,
-                    paddingHorizontal: 10,
-                    paddingVertical: 5,
-                    opacity: pressed ? 0.7 : 1,
-                  })}
+                  style={({ pressed }) => [
+                    localStyles.dateChip,
+                    {
+                      backgroundColor: isDark
+                        ? "rgba(242, 184, 181, 0.18)"
+                        : "rgba(179, 38, 30, 0.10)",
+                      borderColor: isDark
+                        ? "rgba(242, 184, 181, 0.35)"
+                        : "rgba(179, 38, 30, 0.25)",
+                      opacity: pressed ? 0.7 : 1,
+                    },
+                  ]}
                 >
                   <Text
-                    style={{
-                      fontSize: 12,
-                      fontFamily: "DMSans-Bold",
-                      color: colors.error,
-                    }}
+                    style={[
+                      localStyles.dateChipText,
+                      { color: colors.error },
+                    ]}
                   >
                     {label}
                   </Text>
@@ -291,19 +247,23 @@ const TeacherDashboard = () => {
             })}
             {missingDays.length > 7 && (
               <View
-                style={{
-                  backgroundColor: colors.error + "18",
-                  borderRadius: 8,
-                  paddingHorizontal: 10,
-                  paddingVertical: 5,
-                }}
+                style={[
+                  localStyles.dateChip,
+                  {
+                    backgroundColor: isDark
+                      ? "rgba(242, 184, 181, 0.18)"
+                      : "rgba(179, 38, 30, 0.10)",
+                    borderColor: isDark
+                      ? "rgba(242, 184, 181, 0.35)"
+                      : "rgba(179, 38, 30, 0.25)",
+                  },
+                ]}
               >
                 <Text
-                  style={{
-                    fontSize: 12,
-                    fontFamily: "DMSans-Bold",
-                    color: colors.error,
-                  }}
+                  style={[
+                    localStyles.dateChipText,
+                    { color: colors.error },
+                  ]}
                 >
                   +{missingDays.length - 7} more
                 </Text>
@@ -320,21 +280,16 @@ const TeacherDashboard = () => {
                 params: { classId: missingClassId },
               })
             }
-            style={({ pressed }) => ({
-              backgroundColor: colors.error,
-              borderRadius: 10,
-              paddingVertical: 10,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 6,
-              opacity: pressed ? 0.8 : 1,
-            })}
+            style={({ pressed }) => [
+              localStyles.markNowBtn,
+              {
+                backgroundColor: colors.error,
+                opacity: pressed ? 0.8 : 1,
+              },
+            ]}
           >
-            <MaterialIcons name="edit" size={18} color="#fff" />
-            <Text
-              style={{ fontSize: 13, fontFamily: "DMSans-Bold", color: "#fff" }}
-            >
+            <MaterialIcons name="edit" size={16} color="#fff" />
+            <Text style={localStyles.markNowBtnText}>
               Mark Attendance Now
             </Text>
           </Pressable>
@@ -344,37 +299,36 @@ const TeacherDashboard = () => {
       {/* Class Attendance Today Card */}
       {data.classAttendance ? (
         <View
-          style={{
-            backgroundColor: colors.cardBackground,
-            borderRadius: 16,
-            padding: 20,
-            marginBottom: 16,
-            elevation: 2,
-          }}
+          style={[
+            localStyles.innerCard,
+            {
+              backgroundColor: cardSurface,
+              borderColor: subBorder,
+              marginBottom: 12,
+            },
+          ]}
         >
           <Text
-            style={{
-              fontSize: 17,
-              fontFamily: "DMSans-Bold",
-              color: colors.textPrimary,
-              marginBottom: 16,
-            }}
+            style={[
+              localStyles.cardHeaderTitle,
+              { color: colors.onSurface, marginBottom: 12 },
+            ]}
           >
             Class Attendance Today
           </Text>
           {data.classAttendance.marked === 0 ? (
-            <View style={{ alignItems: "center", paddingVertical: 12 }}>
+            <View style={{ alignItems: "center", paddingVertical: 10 }}>
               <MaterialIcons
                 name="event-busy"
-                size={32}
-                color={colors.textSecondary}
+                size={28}
+                color={colors.onSurfaceVariant}
               />
               <Text
                 style={{
-                  fontSize: 14,
-                  fontFamily: "DMSans-Medium",
-                  color: colors.textSecondary,
-                  marginTop: 8,
+                  fontSize: FONT_SIZES.md,
+                  fontFamily: FONTS.medium,
+                  color: colors.onSurfaceVariant,
+                  marginTop: 6,
                 }}
               >
                 Attendance not marked yet today
@@ -384,13 +338,15 @@ const TeacherDashboard = () => {
             <>
               {/* Progress Bar */}
               <View
-                style={{
-                  height: 8,
-                  backgroundColor: colors.error + "30",
-                  borderRadius: 4,
-                  marginBottom: 16,
-                  overflow: "hidden",
-                }}
+                style={[
+                  localStyles.progressBarTrack,
+                  {
+                    backgroundColor: isDark
+                      ? "rgba(242, 184, 181, 0.25)"
+                      : "rgba(179, 38, 30, 0.15)",
+                    marginBottom: 12,
+                  },
+                ]}
               >
                 <View
                   style={{
@@ -408,115 +364,111 @@ const TeacherDashboard = () => {
                 />
               </View>
               {/* Stats Row */}
-              <View style={{ flexDirection: "row", gap: 10 }}>
+              <View style={{ flexDirection: "row", gap: 8 }}>
                 <View
-                  style={{
-                    flex: 1,
-                    backgroundColor: colors.success + "15",
-                    padding: 12,
-                    borderRadius: 12,
-                    alignItems: "center",
-                  }}
+                  style={[
+                    localStyles.statTile,
+                    {
+                      backgroundColor: isDark
+                        ? "rgba(109, 213, 140, 0.15)"
+                        : "rgba(20, 108, 46, 0.09)",
+                    },
+                  ]}
                 >
                   <Text
-                    style={{
-                      fontSize: 22,
-                      fontFamily: "DMSans-Bold",
-                      color: colors.success,
-                    }}
+                    style={[
+                      localStyles.statNumber,
+                      { color: colors.success },
+                    ]}
                   >
                     {data.classAttendance.present}
                   </Text>
                   <Text
-                    style={{
-                      fontSize: 12,
-                      fontFamily: "DMSans-Medium",
-                      color: colors.success,
-                    }}
+                    style={[
+                      localStyles.statLabel,
+                      { color: colors.success },
+                    ]}
                   >
                     Present
                   </Text>
                 </View>
                 <View
-                  style={{
-                    flex: 1,
-                    backgroundColor: colors.error + "15",
-                    padding: 12,
-                    borderRadius: 12,
-                    alignItems: "center",
-                  }}
+                  style={[
+                    localStyles.statTile,
+                    {
+                      backgroundColor: isDark
+                        ? "rgba(242, 184, 181, 0.15)"
+                        : "rgba(179, 38, 30, 0.09)",
+                    },
+                  ]}
                 >
                   <Text
-                    style={{
-                      fontSize: 22,
-                      fontFamily: "DMSans-Bold",
-                      color: colors.error,
-                    }}
+                    style={[
+                      localStyles.statNumber,
+                      { color: colors.error },
+                    ]}
                   >
                     {data.classAttendance.absent}
                   </Text>
                   <Text
-                    style={{
-                      fontSize: 12,
-                      fontFamily: "DMSans-Medium",
-                      color: colors.error,
-                    }}
+                    style={[
+                      localStyles.statLabel,
+                      { color: colors.error },
+                    ]}
                   >
                     Absent
                   </Text>
                 </View>
                 <View
-                  style={{
-                    flex: 1,
-                    backgroundColor: "#FF9800" + "15",
-                    padding: 12,
-                    borderRadius: 12,
-                    alignItems: "center",
-                  }}
+                  style={[
+                    localStyles.statTile,
+                    {
+                      backgroundColor: isDark
+                        ? "rgba(255, 183, 77, 0.15)"
+                        : "rgba(226, 114, 0, 0.09)",
+                    },
+                  ]}
                 >
                   <Text
-                    style={{
-                      fontSize: 22,
-                      fontFamily: "DMSans-Bold",
-                      color: "#FF9800",
-                    }}
+                    style={[
+                      localStyles.statNumber,
+                      { color: isDark ? "#FFB74D" : "#D97706" },
+                    ]}
                   >
                     {data.classAttendance.late}
                   </Text>
                   <Text
-                    style={{
-                      fontSize: 12,
-                      fontFamily: "DMSans-Medium",
-                      color: "#FF9800",
-                    }}
+                    style={[
+                      localStyles.statLabel,
+                      { color: isDark ? "#FFB74D" : "#D97706" },
+                    ]}
                   >
                     Late
                   </Text>
                 </View>
                 <View
-                  style={{
-                    flex: 1,
-                    backgroundColor: colors.primary + "15",
-                    padding: 12,
-                    borderRadius: 12,
-                    alignItems: "center",
-                  }}
+                  style={[
+                    localStyles.statTile,
+                    {
+                      backgroundColor: isDark
+                        ? "rgba(208, 188, 255, 0.15)"
+                        : "rgba(79, 55, 139, 0.09)",
+                    },
+                  ]}
                 >
                   <Text
-                    style={{
-                      fontSize: 22,
-                      fontFamily: "DMSans-Bold",
-                      color: colors.primary,
-                    }}
+                    style={[
+                      localStyles.statNumber,
+                      { color: colors.primary },
+                    ]}
                   >
                     {data.classAttendance.total}
                   </Text>
                   <Text
-                    style={{
-                      fontSize: 12,
-                      fontFamily: "DMSans-Medium",
-                      color: colors.primary,
-                    }}
+                    style={[
+                      localStyles.statLabel,
+                      { color: colors.primary },
+                    ]}
                   >
                     Total
                   </Text>
@@ -528,39 +480,40 @@ const TeacherDashboard = () => {
       ) : (
         !data.overview?.className && (
           <View
-            style={{
-              backgroundColor: colors.cardBackground,
-              borderRadius: 16,
-              padding: 20,
-              marginBottom: 16,
-              elevation: 2,
-              alignItems: "center",
-            }}
+            style={[
+              localStyles.innerCard,
+              {
+                backgroundColor: cardSurface,
+                borderColor: subBorder,
+                marginBottom: 12,
+                alignItems: "center",
+                paddingVertical: 14,
+              },
+            ]}
           >
             <MaterialIcons
               name="info-outline"
-              size={32}
-              color={colors.textSecondary}
+              size={24}
+              color={colors.onSurfaceVariant}
             />
             <Text
               style={{
-                fontSize: 15,
-                fontFamily: "DMSans-Medium",
-                color: colors.textSecondary,
-                marginTop: 8,
+                fontSize: FONT_SIZES.md,
+                fontFamily: FONTS.medium,
+                color: colors.onSurfaceVariant,
+                marginTop: 6,
                 textAlign: "center",
               }}
             >
-              You are not assigned as a class teacher.{"\n"}Class attendance
-              summary is not available.
+              Not assigned as class teacher.
             </Text>
           </View>
         )
       )}
 
-      {/* Stat Cards */}
+      {/* Stat Cards Grid */}
       <View
-        style={{ flexDirection: "row", flexWrap: "wrap", marginHorizontal: -6 }}
+        style={{ flexDirection: "row", flexWrap: "wrap", marginHorizontal: -4 }}
       >
         <StatCard
           title="Classes Today"
@@ -568,7 +521,6 @@ const TeacherDashboard = () => {
           icon="human-male-board"
           color={colors.primary}
           onPress={() => router.push("/teacher/timetable")}
-          loading={refreshing}
         />
         <StatCard
           title="My Students"
@@ -576,7 +528,6 @@ const TeacherDashboard = () => {
           icon="account-group"
           color={colors.tertiary}
           onPress={() => router.push("/teacher/classes")}
-          loading={refreshing}
         />
         <StatCard
           title="Low Attendance"
@@ -591,7 +542,6 @@ const TeacherDashboard = () => {
                 })
               : router.push("/teacher/classes")
           }
-          loading={refreshing}
         />
         <StatCard
           title="Total Classes"
@@ -599,58 +549,15 @@ const TeacherDashboard = () => {
           icon="school"
           color={colors.secondary || colors.primary}
           onPress={() => router.push("/teacher/classes")}
-          loading={refreshing}
         />
       </View>
 
-      {/* Insights Section Header */}
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 16,
-          marginTop: 28,
-        }}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-          <View
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 10,
-              backgroundColor: (colors.primary || "#6750A4") + "1A",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <MaterialIcons
-              name="insights"
-              size={20}
-              color={colors.primary || "#6750A4"}
-            />
-          </View>
-          <View>
-            <Text
-              style={[
-                styles.titleLarge,
-                { marginBottom: 0, fontSize: 19, letterSpacing: 0.1 },
-              ]}
-            >
-              Insights & Analytics
-            </Text>
-            <Text
-              style={{
-                fontSize: 12,
-                fontFamily: "DMSans-Medium",
-                color: colors.textSecondary,
-                marginTop: 2,
-              }}
-            >
-              Class presence trends & academic performance
-            </Text>
-          </View>
-        </View>
+      {/* Insights & Analytics Header */}
+      <View style={localStyles.sectionHeader}>
+        <MaterialIcons name="insights" size={18} color={indigoAccent} />
+        <Text style={[localStyles.sectionTitle, { color: colors.onSurface }]}>
+          Insights & Analytics
+        </Text>
       </View>
 
       {data.charts?.attendanceTrend &&
@@ -692,8 +599,113 @@ const TeacherDashboard = () => {
         onRangeSelect={handleDateRangeChange}
         onClose={() => setShowDatePicker(false)}
       />
-    </ScrollView>
+    </HomeModuleContainer>
   );
 };
+
+const localStyles = StyleSheet.create({
+  datePickerBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 14,
+    gap: 3,
+  },
+  datePickerBtnText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+  },
+  missingAlertCard: {
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 12,
+    marginBottom: 12,
+  },
+  missingHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  missingTitle: {
+    fontFamily: FONTS.bold,
+    fontSize: FONT_SIZES.base,
+  },
+  missingSubtitle: {
+    fontFamily: FONTS.medium,
+    fontSize: FONT_SIZES.xs,
+    marginTop: 1,
+  },
+  missedChipsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 5,
+    marginBottom: 10,
+  },
+  dateChip: {
+    borderWidth: 1,
+    borderRadius: 7,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  dateChipText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+  },
+  markNowBtn: {
+    borderRadius: 9,
+    paddingVertical: 7,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 5,
+  },
+  markNowBtnText: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
+    color: "#fff",
+  },
+  innerCard: {
+    borderRadius: 18,
+    borderWidth: 1,
+    padding: 14,
+  },
+  cardHeaderTitle: {
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.bold,
+  },
+  progressBarTrack: {
+    height: 8,
+    borderRadius: 4,
+    overflow: "hidden",
+  },
+  statTile: {
+    flex: 1,
+    padding: 8,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  statNumber: {
+    fontSize: FONT_SIZES.xl,
+    fontFamily: FONTS.bold,
+  },
+  statLabel: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.medium,
+    marginTop: 1,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 10,
+    marginTop: 14,
+  },
+  sectionTitle: {
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.bold,
+    letterSpacing: 0.1,
+  },
+});
 
 export default TeacherDashboard;

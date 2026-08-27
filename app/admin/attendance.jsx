@@ -8,10 +8,10 @@ import {
   Pressable,
   ActivityIndicator,
   ScrollView,
-  RefreshControl,
   Alert,
   Platform,
 } from "react-native";
+import AppRefreshControl from "../../components/ui/AppRefreshControl";
 import { useRouter } from "expo-router";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 
@@ -26,12 +26,16 @@ import apiFetch from "../../utils/apiFetch";
 import { useQueryClient } from "@tanstack/react-query";
 import apiConfig from "../../config/apiConfig";
 import { useToast } from "../../components/ToastProvider";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import { EmptyState } from "../../components/StateComponents";
 
 import AttendanceView from "../../components/AttendanceView";
 import UserAvatar from "../../components/ui/UserAvatar";
 import { formatClassName } from "../../utils/formatClassName";
+import {
+  formatUserName,
+  formatUserDesignationOrRole,
+} from "../../utils/userFormatters";
 import {
   getISTDateString,
   isISTSunday,
@@ -538,34 +542,29 @@ export default function AdminAttendance() {
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}>
           <UserAvatar
             photoUrl={item.user.profilePhoto}
-            name={item.user.name}
+            name={formatUserName(item.user.name)}
             role={item.user.role}
             size={38}
           />
           <View style={{ flex: 1 }}>
             <Text
               style={{
-                fontSize: 16,
-                fontFamily: "DMSans-SemiBold",
+                fontSize: FONT_SIZES.lg,
+                fontFamily: FONTS.semiBold,
                 color: colors.textPrimary,
               }}
             >
-              {item.user.name}
+              {formatUserName(item.user.name)}
             </Text>
             <Text
               style={{
-                fontSize: 12,
+                fontSize: FONT_SIZES.sm,
                 color: colors.textSecondary,
                 marginTop: 2,
-                fontFamily: "DMSans-Regular",
-                textTransform: "capitalize",
+                fontFamily: FONTS.regular,
               }}
             >
-              {item.user.designation
-                ? item.user.designation
-                : item.user.role === "support_staff"
-                ? "Support Staff"
-                : item.user.role}
+              {formatUserDesignationOrRole(item.user)}
             </Text>
           </View>
         </View>
@@ -603,8 +602,8 @@ export default function AdminAttendance() {
           >
             <Text
               style={{
-                fontSize: 11,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.xs,
+                fontFamily: FONTS.bold,
                 color:
                   item.status === status
                     ? getStatusColor(status)
@@ -843,7 +842,7 @@ export default function AdminAttendance() {
                     />
                     <Text
                       style={{
-                        fontSize: 13,
+                        fontSize: FONT_SIZES.md,
                         fontWeight: "600",
                         color: colors.error || "#EF4444",
                       }}
@@ -886,7 +885,7 @@ export default function AdminAttendance() {
           >
             <Text
               style={{
-                fontSize: 18,
+                fontSize: FONT_SIZES.xl,
                 fontWeight: "bold",
                 color: colors.primary,
               }}
@@ -895,7 +894,7 @@ export default function AdminAttendance() {
             </Text>
             <Text
               style={{
-                fontSize: 14,
+                fontSize: FONT_SIZES.base,
                 color: colors.textSecondary,
                 marginTop: 4,
                 textAlign: "center",
@@ -942,7 +941,7 @@ export default function AdminAttendance() {
                       />
                       <Text
                         style={{
-                          fontSize: 13,
+                          fontSize: FONT_SIZES.md,
                           fontWeight: "600",
                           color: colors.error || "#EF4444",
                         }}
@@ -969,7 +968,7 @@ export default function AdminAttendance() {
               style={{ flex: 1, padding: 16 }}
               contentContainerStyle={{ paddingBottom: 24 }}
               refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                <AppRefreshControl refreshing={refreshing} onRefresh={onRefresh} />
               }
             >
               {/* Summary Cards */}
@@ -990,7 +989,7 @@ export default function AdminAttendance() {
                   <Text
                     style={[
                       styles.summaryValue,
-                      { color: colors.primary, fontSize: 24, marginBottom: 8 },
+                      { color: colors.primary, fontSize: FONT_SIZES.headline, marginBottom: 8 },
                     ]}
                   >
                     {schoolSummary?.students?.present || 0}/
@@ -1036,7 +1035,7 @@ export default function AdminAttendance() {
                   <Text
                     style={[
                       styles.summaryValue,
-                      { color: colors.success, fontSize: 24, marginBottom: 8 },
+                      { color: colors.success, fontSize: FONT_SIZES.headline, marginBottom: 8 },
                     ]}
                   >
                     {schoolSummary?.teachers?.present || 0}/
@@ -1101,16 +1100,16 @@ export default function AdminAttendance() {
                 <View>
                   <Text
                     style={{
-                      fontSize: 20,
-                      fontFamily: "DMSans-Bold",
+                      fontSize: FONT_SIZES.xxl,
+                      fontFamily: FONTS.bold,
                       color: colors.textPrimary,
                     }}
                   >
                     {classesMarked.length}{" "}
                     <Text
                       style={{
-                        fontSize: 14,
-                        fontFamily: "DMSans-Medium",
+                        fontSize: FONT_SIZES.base,
+                        fontFamily: FONTS.medium,
                         color: colors.textSecondary,
                       }}
                     >
@@ -1119,8 +1118,8 @@ export default function AdminAttendance() {
                   </Text>
                   <Text
                     style={{
-                      fontSize: 13,
-                      fontFamily: "DMSans-Regular",
+                      fontSize: FONT_SIZES.md,
+                      fontFamily: FONTS.regular,
                       color: colors.textSecondary,
                       marginTop: 2,
                     }}
@@ -1141,13 +1140,9 @@ export default function AdminAttendance() {
                     .map((item) => (
                       <View key={item._id} style={styles.absentRow}>
                         <View>
-                          <Text style={styles.absentName}>{item.name}</Text>
+                          <Text style={styles.absentName}>{formatUserName(item.name)}</Text>
                           <Text style={styles.absentRole}>
-                            {item.designation
-                              ? item.designation
-                              : item.role === "support_staff"
-                              ? "Support Staff"
-                              : item.role}{" "}
+                            {formatUserDesignationOrRole(item)}{" "}
                             {item.className
                               ? `• ${formatClassName(item.className)}`
                               : ""}
@@ -1172,8 +1167,8 @@ export default function AdminAttendance() {
                     >
                       <Text
                         style={{
-                          fontSize: 14,
-                          fontFamily: "DMSans-SemiBold",
+                          fontSize: FONT_SIZES.base,
+                          fontFamily: FONTS.semiBold,
                           color: colors.primary,
                         }}
                       >
@@ -1270,7 +1265,7 @@ export default function AdminAttendance() {
                       <Text
                         style={{
                           color: colors.textSecondary,
-                          fontSize: 16,
+                          fontSize: FONT_SIZES.lg,
                           marginTop: 12,
                         }}
                       >
@@ -1329,18 +1324,18 @@ export default function AdminAttendance() {
                                 >
                                   <UserAvatar
                                     photoUrl={item.student?.profilePhoto}
-                                    name={item.student?.name}
+                                    name={formatUserName(item.student?.name)}
                                     role="student"
                                     size={34}
                                   />
                                   <Text
                                     style={{
-                                      fontSize: 15,
-                                      fontFamily: "DMSans-SemiBold",
+                                      fontSize: FONT_SIZES.mdLg,
+                                      fontFamily: FONTS.semiBold,
                                       color: colors.textPrimary,
                                     }}
                                   >
-                                    {index + 1}. {item.student.name}
+                                    {index + 1}. {formatUserName(item.student?.name)}
                                   </Text>
                                   {item.onLeave && (
                                     <View
@@ -1353,8 +1348,8 @@ export default function AdminAttendance() {
                                     >
                                       <Text
                                         style={{
-                                          fontSize: 10,
-                                          fontFamily: "DMSans-Bold",
+                                          fontSize: FONT_SIZES.micro,
+                                          fontFamily: FONTS.bold,
                                           color: "#FF9800",
                                         }}
                                       >
@@ -1383,8 +1378,8 @@ export default function AdminAttendance() {
                                     />
                                     <Text
                                       style={{
-                                        fontSize: 12,
-                                        fontFamily: "DMSans-Bold",
+                                        fontSize: FONT_SIZES.sm,
+                                        fontFamily: FONTS.bold,
                                         color: getStatusColor(item.status),
                                         textTransform: "capitalize",
                                       }}
@@ -1395,8 +1390,8 @@ export default function AdminAttendance() {
                                 ) : (
                                   <Text
                                     style={{
-                                      fontSize: 12,
-                                      fontFamily: "DMSans-Medium",
+                                      fontSize: FONT_SIZES.sm,
+                                      fontFamily: FONTS.medium,
                                       color: colors.textSecondary,
                                     }}
                                   >
@@ -1407,10 +1402,10 @@ export default function AdminAttendance() {
                               {item.onLeave && item.leaveReason && (
                                 <Text
                                   style={{
-                                    fontSize: 11,
+                                    fontSize: FONT_SIZES.xs,
                                     color: "#FF9800",
                                     marginTop: 4,
-                                    fontFamily: "DMSans-Medium",
+                                    fontFamily: FONTS.medium,
                                   }}
                                 >
                                   Reason: {item.leaveReason}
@@ -1454,8 +1449,8 @@ export default function AdminAttendance() {
                                       >
                                         <Text
                                           style={{
-                                            fontSize: 10,
-                                            fontFamily: "DMSans-Bold",
+                                            fontSize: FONT_SIZES.micro,
+                                            fontFamily: FONTS.bold,
                                             color:
                                               item.status === status
                                                 ? getStatusColor(status)
@@ -1529,8 +1524,8 @@ export default function AdminAttendance() {
                             />
                             <Text
                               style={{
-                                fontSize: 13,
-                                fontFamily: "DMSans-Bold",
+                                fontSize: FONT_SIZES.md,
+                                fontFamily: FONTS.bold,
                                 color: colors.success,
                               }}
                             >
@@ -1559,8 +1554,8 @@ export default function AdminAttendance() {
                             />
                             <Text
                               style={{
-                                fontSize: 13,
-                                fontFamily: "DMSans-Bold",
+                                fontSize: FONT_SIZES.md,
+                                fontFamily: FONTS.bold,
                                 color: colors.error,
                               }}
                             >
@@ -1574,8 +1569,8 @@ export default function AdminAttendance() {
                           </View>
                           <Text
                             style={{
-                              fontSize: 13,
-                              fontFamily: "DMSans-Bold",
+                              fontSize: FONT_SIZES.md,
+                              fontFamily: FONTS.bold,
                               color: colors.textSecondary,
                             }}
                           >
@@ -1605,8 +1600,8 @@ export default function AdminAttendance() {
                             />
                             <Text
                               style={{
-                                fontSize: 14,
-                                fontFamily: "DMSans-Bold",
+                                fontSize: FONT_SIZES.base,
+                                fontFamily: FONTS.bold,
                                 color: colors.success,
                               }}
                             >
@@ -1642,8 +1637,8 @@ export default function AdminAttendance() {
                                 />
                                 <Text
                                   style={{
-                                    fontSize: 14,
-                                    fontFamily: "DMSans-Bold",
+                                    fontSize: FONT_SIZES.base,
+                                    fontFamily: FONTS.bold,
                                     color: "#fff",
                                   }}
                                 >
@@ -1680,7 +1675,7 @@ export default function AdminAttendance() {
                   <Text
                     style={{
                       color: colors.textSecondary,
-                      fontSize: 16,
+                      fontSize: FONT_SIZES.lg,
                       marginTop: 12,
                     }}
                   >
@@ -1711,7 +1706,7 @@ export default function AdminAttendance() {
                     keyExtractor={(item) => item.user._id}
                     contentContainerStyle={styles.listContent}
                     refreshControl={
-                      <RefreshControl
+                      <AppRefreshControl
                         refreshing={refreshing}
                         onRefresh={onRefresh}
                       />
@@ -1745,17 +1740,17 @@ export default function AdminAttendance() {
               <Text style={styles.titleMedium}>Missing Attendance Tracker</Text>
               <Text
                 style={{
-                  fontSize: 13,
+                  fontSize: FONT_SIZES.md,
                   color: colors.textSecondary,
                   marginBottom: 16,
-                  fontFamily: "DMSans-Regular",
+                  fontFamily: FONTS.regular,
                 }}
               >
                 Shows days where classes missed marking attendance.
               </Text>
               <ScrollView
                 refreshControl={
-                  <RefreshControl
+                  <AppRefreshControl
                     refreshing={refreshing}
                     onRefresh={onRefresh}
                   />
@@ -1796,8 +1791,8 @@ export default function AdminAttendance() {
                         >
                           <Text
                             style={{
-                              fontSize: 16,
-                              fontFamily: "DMSans-Bold",
+                              fontSize: FONT_SIZES.lg,
+                              fontFamily: FONTS.bold,
                               color: colors.textPrimary,
                             }}
                           >
@@ -1816,8 +1811,8 @@ export default function AdminAttendance() {
                           >
                             <Text
                               style={{
-                                fontSize: 12,
-                                fontFamily: "DMSans-Bold",
+                                fontSize: FONT_SIZES.sm,
+                                fontFamily: FONTS.bold,
                                 color:
                                   item.missingCount > 0
                                     ? colors.error
@@ -1834,10 +1829,10 @@ export default function AdminAttendance() {
                           <View>
                             <Text
                               style={{
-                                fontSize: 13,
+                                fontSize: FONT_SIZES.md,
                                 color: colors.textSecondary,
                                 marginBottom: 4,
-                                fontFamily: "DMSans-Medium",
+                                fontFamily: FONTS.medium,
                               }}
                             >
                               Classes that missed attendance:
@@ -1853,7 +1848,7 @@ export default function AdminAttendance() {
                                 <Text
                                   key={idx}
                                   style={{
-                                    fontSize: 12,
+                                    fontSize: FONT_SIZES.sm,
                                     backgroundColor: colors.surfaceContainer,
                                     paddingHorizontal: 8,
                                     paddingVertical: 4,
@@ -1869,9 +1864,9 @@ export default function AdminAttendance() {
                         ) : (
                           <Text
                             style={{
-                              fontSize: 13,
+                              fontSize: FONT_SIZES.md,
                               color: colors.textSecondary,
-                              fontFamily: "DMSans-Regular",
+                              fontFamily: FONTS.regular,
                             }}
                           >
                             All {item.totalCount} classes marked attendance on
@@ -1897,8 +1892,8 @@ export default function AdminAttendance() {
                       >
                         <Text
                           style={{
-                            fontSize: 14,
-                            fontFamily: "DMSans-SemiBold",
+                            fontSize: FONT_SIZES.base,
+                            fontFamily: FONTS.semiBold,
                             color: colors.primary,
                           }}
                         >
@@ -1945,7 +1940,7 @@ const createStyles = (colors) =>
       elevation: 2,
     },
     headerTitle: {
-      fontSize: 18,
+      fontSize: FONT_SIZES.xl,
       fontWeight: "bold",
       color: colors.textPrimary,
     },
@@ -1965,7 +1960,7 @@ const createStyles = (colors) =>
       borderBottomWidth: 2,
       borderBottomColor: "transparent",
     },
-    tabText: { fontSize: 16, color: colors.textSecondary, fontWeight: "500" },
+    tabText: { fontSize: FONT_SIZES.lg, color: colors.textSecondary, fontWeight: "500" },
     dateBar: {
       flexDirection: "row",
       justifyContent: "center",
@@ -1995,8 +1990,8 @@ const createStyles = (colors) =>
       elevation: 1,
     },
     staffInfo: { flex: 1 },
-    staffName: { fontSize: 16, fontWeight: "bold", color: colors.textPrimary },
-    staffRole: { fontSize: 12, color: colors.textSecondary },
+    staffName: { fontSize: FONT_SIZES.lg, fontWeight: "bold", color: colors.textPrimary },
+    staffRole: { fontSize: FONT_SIZES.sm, color: colors.textSecondary },
     statusIndicator: {
       paddingHorizontal: 12,
       paddingVertical: 6,
@@ -2004,7 +1999,7 @@ const createStyles = (colors) =>
       minWidth: 80,
       alignItems: "center",
     },
-    statusText: { color: "#fff", fontWeight: "bold", fontSize: 12 },
+    statusText: { color: "#fff", fontWeight: "bold", fontSize: FONT_SIZES.sm },
     footer: {
       padding: 16,
       paddingBottom: 16,
@@ -2013,7 +2008,7 @@ const createStyles = (colors) =>
       borderTopColor: colors.border,
     },
     saveButton: { padding: 16, borderRadius: 12, alignItems: "center" },
-    saveButtonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
+    saveButtonText: { color: "#fff", fontWeight: "bold", fontSize: FONT_SIZES.lg },
     summaryCard: {
       flexDirection: "row",
       justifyContent: "space-around",
@@ -2025,11 +2020,11 @@ const createStyles = (colors) =>
     },
     summaryItem: { alignItems: "center" },
     summaryValue: {
-      fontSize: 20,
+      fontSize: FONT_SIZES.xxl,
       fontWeight: "bold",
       color: colors.textPrimary,
     },
-    summaryLabel: { fontSize: 12, color: colors.textSecondary },
+    summaryLabel: { fontSize: FONT_SIZES.sm, color: colors.textSecondary },
     historyCard: {
       flexDirection: "row",
       alignItems: "center",
@@ -2047,17 +2042,17 @@ const createStyles = (colors) =>
       alignItems: "center",
       marginRight: 16,
     },
-    historyStatusText: { color: "#fff", fontWeight: "bold", fontSize: 18 },
+    historyStatusText: { color: "#fff", fontWeight: "bold", fontSize: FONT_SIZES.xl },
     historyInfo: { flex: 1 },
-    historyDate: { fontSize: 16, fontWeight: "600", color: colors.textPrimary },
-    historyTime: { fontSize: 12, color: colors.textSecondary },
+    historyDate: { fontSize: FONT_SIZES.lg, fontWeight: "600", color: colors.textPrimary },
+    historyTime: { fontSize: FONT_SIZES.sm, color: colors.textSecondary },
     historyRemarks: {
-      fontSize: 12,
+      fontSize: FONT_SIZES.sm,
       color: colors.textSecondary,
       fontStyle: "italic",
     },
     sectionTitle: {
-      fontSize: 16,
+      fontSize: FONT_SIZES.lg,
       fontWeight: "bold",
       color: colors.textPrimary,
       marginBottom: 12,
@@ -2082,9 +2077,9 @@ const createStyles = (colors) =>
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
-    studentName: { fontSize: 16, color: colors.textPrimary },
+    studentName: { fontSize: FONT_SIZES.lg, color: colors.textPrimary },
     miniStatus: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
-    miniStatusText: { color: "#fff", fontSize: 10, fontWeight: "bold" },
+    miniStatusText: { color: "#fff", fontSize: FONT_SIZES.micro, fontWeight: "bold" },
     emptyText: {
       textAlign: "center",
       marginTop: 20,
@@ -2105,15 +2100,15 @@ const createStyles = (colors) =>
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
-    absentName: { fontSize: 16, fontWeight: "bold", color: colors.textPrimary },
-    absentRole: { fontSize: 12, color: colors.textSecondary },
+    absentName: { fontSize: FONT_SIZES.lg, fontWeight: "bold", color: colors.textPrimary },
+    absentRole: { fontSize: FONT_SIZES.sm, color: colors.textSecondary },
     absentTag: {
       backgroundColor: colors.error + "20",
       paddingHorizontal: 8,
       paddingVertical: 4,
       borderRadius: 4,
     },
-    absentTagText: { color: colors.error, fontSize: 10, fontWeight: "bold" },
+    absentTagText: { color: colors.error, fontSize: FONT_SIZES.micro, fontWeight: "bold" },
     actionHeader: {
       flexDirection: "row",
       justifyContent: "flex-end",

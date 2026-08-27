@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { useTheme } from "../../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../../theme";
 import { useAuth } from "../../../context/AuthContext";
 import {
   useApiQuery,
@@ -31,6 +31,7 @@ import SegmentedControl from "../../../components/SegmentedControl";
 import { EmptyState } from "../../../components/StateComponents";
 import { useLabel } from "../../../context/LabelsContext";
 import UserAvatar from "../../../components/ui/UserAvatar";
+import { formatUserName, toTitleCase } from "../../../utils/userFormatters";
 
 export default function ClassDetailsScreen() {
   const { id } = useLocalSearchParams();
@@ -394,8 +395,8 @@ export default function ClassDetailsScreen() {
                 />
                 <Text
                   style={{
-                    fontSize: 13,
-                    fontFamily: "DMSans-SemiBold",
+                    fontSize: FONT_SIZES.md,
+                    fontFamily: FONTS.semiBold,
                     color: colors.onSurface,
                     marginTop: 8,
                   }}
@@ -427,8 +428,8 @@ export default function ClassDetailsScreen() {
                 />
                 <Text
                   style={{
-                    fontSize: 13,
-                    fontFamily: "DMSans-SemiBold",
+                    fontSize: FONT_SIZES.md,
+                    fontFamily: FONTS.semiBold,
                     color: colors.onSurface,
                     marginTop: 8,
                   }}
@@ -516,8 +517,8 @@ export default function ClassDetailsScreen() {
                       <View style={{ flex: 1 }}>
                         <Text
                           style={{
-                            fontSize: 16,
-                            fontFamily: "DMSans-Bold",
+                            fontSize: FONT_SIZES.lg,
+                            fontFamily: FONTS.bold,
                             color: colors.onSurface,
                           }}
                         >
@@ -526,10 +527,10 @@ export default function ClassDetailsScreen() {
                         {subject.teachers && subject.teachers.length > 0 ? (
                           <Text
                             style={{
-                              fontSize: 13,
+                              fontSize: FONT_SIZES.md,
                               color: colors.onSurfaceVariant,
                               marginTop: 2,
-                              fontFamily: "DMSans-Medium",
+                              fontFamily: FONTS.medium,
                             }}
                           >
                             {subject.teachers.map((t) => t.name).join(", ")}
@@ -537,7 +538,7 @@ export default function ClassDetailsScreen() {
                         ) : (
                           <Text
                             style={{
-                              fontSize: 12,
+                              fontSize: FONT_SIZES.sm,
                               color: colors.onSurfaceVariant,
                               marginTop: 2,
                               fontStyle: "italic",
@@ -621,7 +622,7 @@ export default function ClassDetailsScreen() {
                     >
                       <UserAvatar
                         photoUrl={student.profilePhoto}
-                        name={student.name}
+                        name={formatUserName(student.name)}
                         role="student"
                         size={42}
                         onPress={
@@ -646,29 +647,29 @@ export default function ClassDetailsScreen() {
                           >
                             <Text
                               style={{
-                                fontSize: 16,
-                                fontFamily: "DMSans-Bold",
+                                fontSize: FONT_SIZES.lg,
+                                fontFamily: FONTS.bold,
                                 color: colors.primary,
                                 textDecorationLine: "underline",
                               }}
                             >
-                              {student.name}
+                              {formatUserName(student.name)}
                             </Text>
                           </Pressable>
                         ) : (
                           <Text
                             style={{
-                              fontSize: 16,
-                              fontFamily: "DMSans-Bold",
+                              fontSize: FONT_SIZES.lg,
+                              fontFamily: FONTS.bold,
                               color: colors.onSurface,
                             }}
                           >
-                            {student.name}
+                            {formatUserName(student.name)}
                           </Text>
                         )}
                         <Text
                           style={{
-                            fontSize: 14,
+                            fontSize: FONT_SIZES.base,
                             color: colors.onSurfaceVariant,
                             marginTop: 4,
                           }}
@@ -678,7 +679,7 @@ export default function ClassDetailsScreen() {
                         {student.email && (
                           <Text
                             style={{
-                              fontSize: 14,
+                              fontSize: FONT_SIZES.base,
                               color: colors.onSurfaceVariant,
                               marginTop: 2,
                             }}
@@ -689,13 +690,13 @@ export default function ClassDetailsScreen() {
                         {student.guardianName && (
                           <Text
                             style={{
-                              fontSize: 13,
+                              fontSize: FONT_SIZES.md,
                               color: colors.onSurfaceVariant,
                               marginTop: 6,
                             }}
                           >
                             {t("teacher.guardian", "Guardian")}:{" "}
-                            {student.guardianName}
+                            {toTitleCase(student.guardianName)}
                             {student.guardianPhone &&
                               ` (${student.guardianPhone})`}
                           </Text>
@@ -703,7 +704,7 @@ export default function ClassDetailsScreen() {
                         {student.admissionDate && (
                           <Text
                             style={{
-                              fontSize: 12,
+                              fontSize: FONT_SIZES.sm,
                               color: colors.onSurfaceVariant,
                               marginTop: 4,
                             }}
@@ -811,8 +812,8 @@ export default function ClassDetailsScreen() {
             >
               <Text
                 style={{
-                  fontSize: 20,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.xl,
+                  fontFamily: FONTS.bold,
                   color: colors.onSurface,
                   marginBottom: 16,
                 }}
@@ -845,8 +846,8 @@ export default function ClassDetailsScreen() {
                   style={{
                     flex: 1,
                     paddingVertical: 12,
-                    fontSize: 16,
-                    fontFamily: "DMSans-Regular",
+                    fontSize: FONT_SIZES.base,
+                    fontFamily: FONTS.regular,
                     color: colors.onSurface,
                   }}
                   value={searchQuery}
@@ -864,8 +865,8 @@ export default function ClassDetailsScreen() {
                       searchQuery
                         ? t("teacher.noSubjectsFound", "No Subjects Found")
                         : t(
-                            "teacher.noSubjectsAvailable",
-                            "No Subjects Available"
+                            "teacher.noAvailableSubjects",
+                            "No Available Subjects"
                           )
                     }
                     message={
@@ -875,8 +876,8 @@ export default function ClassDetailsScreen() {
                             "Try a different search term."
                           )
                         : t(
-                            "teacher.askAdminAddSubjects",
-                            "Please ask admin to add subjects to the master list."
+                            "teacher.noGlobalSubjectsCreated",
+                            "No global subjects have been created yet."
                           )
                     }
                   />
@@ -886,27 +887,25 @@ export default function ClassDetailsScreen() {
                       s.name.toLowerCase().includes(searchQuery.toLowerCase())
                     )
                     .map((item) => {
+                      const isAlreadyAdded = subjects.some(
+                        (s) =>
+                          s.name.toLowerCase() === item.name.toLowerCase() ||
+                          (item.code &&
+                            s.code &&
+                            s.code.toLowerCase() === item.code.toLowerCase())
+                      );
                       const isSelected = selectedGlobalSubjectIds.includes(
                         item._id
                       );
-                      // Check if this subject is already added to the class
-                      const isAlreadyAdded = subjects.some(
-                        (s) =>
-                          s.globalSubject &&
-                          (typeof s.globalSubject === "object"
-                            ? s.globalSubject._id === item._id
-                            : s.globalSubject === item._id)
-                      );
+
                       return (
                         <Pressable
                           key={item._id}
-                          onPress={() =>
-                            !isAlreadyAdded && toggleSubjectSelection(item._id)
-                          }
                           disabled={isAlreadyAdded}
+                          onPress={() => toggleGlobalSubjectSelection(item._id)}
                           style={({ pressed }) => ({
                             backgroundColor: isAlreadyAdded
-                              ? colors.onSurface + "08"
+                              ? colors.surfaceContainerHighest
                               : isSelected
                               ? colors.primary + "10"
                               : pressed
@@ -917,14 +916,13 @@ export default function ClassDetailsScreen() {
                             marginBottom: 8,
                             borderWidth: 1,
                             borderColor: isAlreadyAdded
-                              ? colors.onSurfaceVariant
+                              ? colors.outlineVariant
                               : isSelected
                               ? colors.primary
                               : colors.outlineVariant,
                             flexDirection: "row",
                             alignItems: "center",
                             gap: 12,
-                            opacity: isAlreadyAdded ? 0.6 : 1,
                           })}
                         >
                           <View
@@ -933,19 +931,19 @@ export default function ClassDetailsScreen() {
                               height: 24,
                               borderRadius: 12,
                               borderWidth: 2,
-                              borderColor:
-                                isAlreadyAdded || isSelected
-                                  ? colors.primary
-                                  : colors.onSurfaceVariant,
+                              borderColor: isAlreadyAdded
+                                ? colors.outlineVariant
+                                : isSelected
+                                ? colors.primary
+                                : colors.onSurfaceVariant,
                               alignItems: "center",
                               justifyContent: "center",
-                              backgroundColor:
-                                isAlreadyAdded || isSelected
-                                  ? colors.primary
-                                  : "transparent",
+                              backgroundColor: isSelected
+                                ? colors.primary
+                                : "transparent",
                             }}
                           >
-                            {(isSelected || isAlreadyAdded) && (
+                            {isSelected && (
                               <MaterialIcons
                                 name="check"
                                 size={16}
@@ -963,8 +961,8 @@ export default function ClassDetailsScreen() {
                             >
                               <Text
                                 style={{
-                                  fontSize: 16,
-                                  fontFamily: "DMSans-SemiBold",
+                                  fontSize: FONT_SIZES.lg,
+                                  fontFamily: FONTS.semiBold,
                                   color: colors.onSurface,
                                 }}
                               >
@@ -981,9 +979,9 @@ export default function ClassDetailsScreen() {
                                 >
                                   <Text
                                     style={{
-                                      fontSize: 11,
+                                      fontSize: FONT_SIZES.xs,
                                       color: colors.success,
-                                      fontWeight: "600",
+                                      fontFamily: FONTS.bold,
                                     }}
                                   >
                                     {t("common.added", "ADDED")}
@@ -994,10 +992,10 @@ export default function ClassDetailsScreen() {
                             {item.code && (
                               <Text
                                 style={{
-                                  fontSize: 14,
+                                  fontSize: FONT_SIZES.base,
                                   color: colors.onSurfaceVariant,
                                   marginTop: 2,
-                                  fontFamily: "DMSans-Regular",
+                                  fontFamily: FONTS.regular,
                                 }}
                               >
                                 {t("common.code", "Code")}: {item.code}
@@ -1086,8 +1084,8 @@ export default function ClassDetailsScreen() {
             >
               <Text
                 style={{
-                  fontSize: 20,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.xl,
+                  fontFamily: FONTS.bold,
                   color: colors.onSurface,
                   marginBottom: 16,
                 }}
@@ -1120,8 +1118,8 @@ export default function ClassDetailsScreen() {
                   style={{
                     flex: 1,
                     paddingVertical: 12,
-                    fontSize: 16,
-                    fontFamily: "DMSans-Regular",
+                    fontSize: FONT_SIZES.base,
+                    fontFamily: FONTS.regular,
                     color: colors.onSurface,
                   }}
                   value={searchQuery}
@@ -1205,8 +1203,8 @@ export default function ClassDetailsScreen() {
                         <View style={{ flex: 1 }}>
                           <Text
                             style={{
-                              fontSize: 16,
-                              fontFamily: "DMSans-SemiBold",
+                              fontSize: FONT_SIZES.lg,
+                              fontFamily: FONTS.semiBold,
                               color: colors.onSurface,
                             }}
                           >
@@ -1214,10 +1212,10 @@ export default function ClassDetailsScreen() {
                           </Text>
                           <Text
                             style={{
-                              fontSize: 14,
+                              fontSize: FONT_SIZES.base,
                               color: colors.onSurfaceVariant,
                               marginTop: 2,
-                              fontFamily: "DMSans-Regular",
+                              fontFamily: FONTS.regular,
                             }}
                           >
                             {student.phone}
@@ -1225,10 +1223,10 @@ export default function ClassDetailsScreen() {
                           {student.admissionDate && (
                             <Text
                               style={{
-                                fontSize: 12,
+                                fontSize: FONT_SIZES.sm,
                                 color: colors.onSurfaceVariant,
                                 marginTop: 4,
-                                fontFamily: "DMSans-Regular",
+                                fontFamily: FONTS.regular,
                               }}
                             >
                               {t("teacher.admitted", "Admitted")}:{" "}

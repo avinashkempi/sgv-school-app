@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, Pressable } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
 import Card from "./Card";
 
 /**
@@ -110,8 +110,8 @@ export default function ExamCard({
                 <Text
                   style={{
                     color: typeColor,
-                    fontSize: 12,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.sm,
+                    fontFamily: FONTS.bold,
                   }}
                 >
                   {exam.standardizedType}
@@ -137,8 +137,8 @@ export default function ExamCard({
                   <Text
                     style={{
                       color: colors.success,
-                      fontSize: 10,
-                      fontFamily: "DMSans-Medium",
+                      fontSize: FONT_SIZES.micro,
+                      fontFamily: FONTS.medium,
                     }}
                   >
                     Published
@@ -148,8 +148,8 @@ export default function ExamCard({
             </View>
             <Text
               style={{
-                fontSize: 18,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.xl,
+                fontFamily: FONTS.bold,
                 color: colors.onSurface,
                 marginBottom: 4,
               }}
@@ -159,8 +159,8 @@ export default function ExamCard({
             {exam.subject && (
               <Text
                 style={{
-                  fontSize: 14,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.base,
+                  fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                 }}
               >
@@ -179,8 +179,8 @@ export default function ExamCard({
             <Text
               style={{
                 color: statusColor,
-                fontSize: 12,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.sm,
+                fontFamily: FONTS.bold,
                 textTransform: "capitalize",
               }}
             >
@@ -216,8 +216,8 @@ export default function ExamCard({
             <Text
               style={{
                 color: colors.onSurface,
-                fontSize: 13,
-                fontFamily: "DMSans-Medium",
+                fontSize: FONT_SIZES.md,
+                fontFamily: FONTS.medium,
               }}
             >
               {formatDate(exam.date)}
@@ -232,8 +232,8 @@ export default function ExamCard({
             <Text
               style={{
                 color: colors.onSurface,
-                fontSize: 13,
-                fontFamily: "DMSans-Medium",
+                fontSize: FONT_SIZES.md,
+                fontFamily: FONTS.medium,
               }}
             >
               {exam.totalMarks} marks
@@ -251,8 +251,8 @@ export default function ExamCard({
               <Text
                 style={{
                   color: colors.onSurface,
-                  fontSize: 13,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.md,
+                  fontFamily: FONTS.medium,
                 }}
               >
                 {exam.duration} mins
@@ -271,8 +271,8 @@ export default function ExamCard({
               <Text
                 style={{
                   color: colors.onSurface,
-                  fontSize: 13,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.md,
+                  fontFamily: FONTS.medium,
                 }}
               >
                 {exam.startTime}
@@ -293,8 +293,8 @@ export default function ExamCard({
             >
               <Text
                 style={{
-                  fontSize: 12,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.sm,
+                  fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                 }}
               >
@@ -302,8 +302,8 @@ export default function ExamCard({
               </Text>
               <Text
                 style={{
-                  fontSize: 12,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.sm,
+                  fontFamily: FONTS.bold,
                   color: colors.primary,
                 }}
               >
@@ -359,8 +359,8 @@ export default function ExamCard({
                 <Text
                   style={{
                     color: "#FFFFFF",
-                    fontSize: 13,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.md,
+                    fontFamily: FONTS.bold,
                   }}
                 >
                   Enter Marks
@@ -386,8 +386,8 @@ export default function ExamCard({
                 <Text
                   style={{
                     color: "#FFFFFF",
-                    fontSize: 13,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.md,
+                    fontFamily: FONTS.bold,
                   }}
                 >
                   Publish

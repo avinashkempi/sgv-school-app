@@ -16,7 +16,7 @@ import {
 import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import apiConfig from "../../config/apiConfig";
 import {
   useApiQuery,
@@ -30,6 +30,10 @@ import { useToast } from "../../components/ToastProvider";
 import formatClassName from "../../utils/formatClassName";
 import UserAvatar from "../../components/ui/UserAvatar";
 import { useAuth } from "../../context/AuthContext";
+import {
+  formatUserName,
+  formatUserDesignationOrRole,
+} from "../../utils/userFormatters";
 
 export default function ComplaintsScreen() {
   const router = useRouter();
@@ -305,8 +309,8 @@ export default function ComplaintsScreen() {
               <Text
                 style={{
                   color: colors.primary,
-                  fontSize: 11,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.xs,
+                  fontFamily: FONTS.bold,
                 }}
               >
                 {item.category}
@@ -323,8 +327,8 @@ export default function ComplaintsScreen() {
               <Text
                 style={{
                   color: getStatusColor(item.status),
-                  fontSize: 11,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.xs,
+                  fontFamily: FONTS.bold,
                 }}
               >
                 {item.status}
@@ -342,8 +346,8 @@ export default function ComplaintsScreen() {
                 <Text
                   style={{
                     color: getPriorityColor(item.priority),
-                    fontSize: 11,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.xs,
+                    fontFamily: FONTS.bold,
                   }}
                 >
                   {item.priority}
@@ -354,8 +358,8 @@ export default function ComplaintsScreen() {
           <Text
             style={{
               color: colors.textSecondary,
-              fontSize: 12,
-              fontFamily: "DMSans-Medium",
+              fontSize: FONT_SIZES.sm,
+              fontFamily: FONTS.medium,
             }}
           >
             {new Date(item.createdAt).toLocaleDateString()}
@@ -364,8 +368,8 @@ export default function ComplaintsScreen() {
 
         <Text
           style={{
-            fontSize: 16,
-            fontFamily: "DMSans-Bold",
+            fontSize: FONT_SIZES.lg,
+            fontFamily: FONTS.bold,
             color: colors.textPrimary,
             marginBottom: 6,
           }}
@@ -375,8 +379,8 @@ export default function ComplaintsScreen() {
         <Text
           style={{
             color: colors.textSecondary,
-            fontFamily: "DMSans-Regular",
-            fontSize: 14,
+            fontFamily: FONTS.regular,
+            fontSize: FONT_SIZES.base,
             lineHeight: 20,
           }}
           numberOfLines={isExpanded ? undefined : 3}
@@ -391,8 +395,8 @@ export default function ComplaintsScreen() {
             <Text
               style={{
                 color: colors.primary,
-                fontSize: 12,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.sm,
+                fontFamily: FONTS.bold,
               }}
             >
               {isExpanded
@@ -434,14 +438,14 @@ export default function ComplaintsScreen() {
               >
                 <UserAvatar
                   photoUrl={item.raisedBy?.profilePhoto}
-                  name={item.raisedBy?.name || "Unknown"}
+                  name={formatUserName(item.raisedBy?.name, "Unknown")}
                   role={item.raisedBy?.role}
                   size={24}
                 />
                 <Text
                   style={{
-                    fontSize: 13,
-                    fontFamily: "DMSans-Regular",
+                    fontSize: FONT_SIZES.md,
+                    fontFamily: FONTS.regular,
                     color: colors.textSecondary,
                     flex: 1,
                   }}
@@ -449,21 +453,14 @@ export default function ComplaintsScreen() {
                 >
                   <Text
                     style={{
-                      fontFamily: "DMSans-Bold",
+                      fontFamily: FONTS.bold,
                       color: colors.textPrimary,
                     }}
                   >
-                    {item.raisedBy?.name || "Unknown"}
+                    {formatUserName(item.raisedBy?.name, "Unknown")}
                   </Text>
                   {item.raisedBy?.role
-                    ? ` (${
-                        item.raisedBy.role !== "student" &&
-                        item.raisedBy.designation
-                          ? item.raisedBy.designation
-                          : item.raisedBy.role === "support_staff"
-                          ? "Support Staff"
-                          : item.raisedBy.role
-                      })`
+                    ? ` (${formatUserDesignationOrRole(item.raisedBy)})`
                     : ""}
                 </Text>
               </View>
@@ -486,8 +483,8 @@ export default function ComplaintsScreen() {
                 <Text
                   style={{
                     color: colors.primary,
-                    fontSize: 12,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.sm,
+                    fontFamily: FONTS.bold,
                   }}
                 >
                   ${t("common.update", "Update")}
@@ -513,8 +510,8 @@ export default function ComplaintsScreen() {
               <Text
                 style={{
                   color: colors.primary,
-                  fontSize: 11,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.xs,
+                  fontFamily: FONTS.bold,
                   marginBottom: 2,
                 }}
               >
@@ -523,8 +520,8 @@ export default function ComplaintsScreen() {
               <Text
                 style={{
                   color: colors.textSecondary,
-                  fontSize: 13,
-                  fontFamily: "DMSans-Regular",
+                  fontSize: FONT_SIZES.md,
+                  fontFamily: FONTS.regular,
                   lineHeight: 18,
                 }}
                 numberOfLines={isExpanded ? undefined : 3}
@@ -571,9 +568,9 @@ export default function ComplaintsScreen() {
           <View>
             <Text
               style={{
-                fontSize: 12,
+                fontSize: FONT_SIZES.sm,
                 color: colors.textSecondary,
-                fontFamily: "DMSans-Bold",
+                fontFamily: FONTS.bold,
                 textTransform: "uppercase",
                 letterSpacing: 0.5,
               }}
@@ -584,8 +581,8 @@ export default function ComplaintsScreen() {
             </Text>
             <Text
               style={{
-                fontSize: 16,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.lg,
+                fontFamily: FONTS.bold,
                 color: colors.textPrimary,
                 marginTop: 4,
               }}
@@ -600,8 +597,8 @@ export default function ComplaintsScreen() {
           <Text
             style={{
               color: colors.textSecondary,
-              fontSize: 12,
-              fontFamily: "DMSans-Medium",
+              fontSize: FONT_SIZES.sm,
+              fontFamily: FONTS.medium,
             }}
           >
             {new Date(item.createdAt).toLocaleDateString()}
@@ -612,8 +609,8 @@ export default function ComplaintsScreen() {
           <Text
             style={{
               color: colors.textPrimary,
-              fontFamily: "DMSans-Regular",
-              fontSize: 15,
+              fontFamily: FONTS.regular,
+              fontSize: FONT_SIZES.mdLg,
               lineHeight: 22,
             }}
             numberOfLines={isExpanded ? undefined : 4}
@@ -631,8 +628,8 @@ export default function ComplaintsScreen() {
               <Text
                 style={{
                   color: colors.primary,
-                  fontSize: 12,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.sm,
+                  fontFamily: FONTS.bold,
                 }}
               >
                 {isExpanded ? "Show Less" : "Read Full Message"}
@@ -659,27 +656,27 @@ export default function ComplaintsScreen() {
           <View style={{ flex: 1, marginRight: 8 }}>
             {activeTab === "teacher_feedback" ||
             activeTab === "feedback_logs" ? (
-              <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
-                ${t("common.from", "From")}:{" "}
+              <Text style={{ color: colors.textSecondary, fontSize: FONT_SIZES.sm }}>
+                {t("common.from", "From")}:{" "}
                 <Text
                   style={{
-                    fontFamily: "DMSans-Bold",
+                    fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                   }}
                 >
-                  {item.teacher?.name}
+                  {formatUserName(item.teacher?.name)}
                 </Text>
               </Text>
             ) : (
-              <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
-                ${t("common.to", "To")}:{" "}
+              <Text style={{ color: colors.textSecondary, fontSize: FONT_SIZES.sm }}>
+                {t("common.to", "To")}:{" "}
                 <Text
                   style={{
-                    fontFamily: "DMSans-Bold",
+                    fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                   }}
                 >
-                  {item.student?.name}
+                  {formatUserName(item.student?.name)}
                 </Text>
               </Text>
             )}
@@ -726,9 +723,9 @@ export default function ComplaintsScreen() {
     >
       <Text
         style={{
-          fontFamily: "DMSans-Bold",
+          fontFamily: FONTS.bold,
           color: activeTab === id ? "#fff" : colors.textSecondary,
-          fontSize: 13,
+          fontSize: FONT_SIZES.md,
         }}
         numberOfLines={1}
       >
@@ -828,8 +825,8 @@ export default function ComplaintsScreen() {
                           adminFilter === f
                             ? colors.primary
                             : colors.textSecondary,
-                        fontFamily: "DMSans-Bold",
-                        fontSize: 12,
+                        fontFamily: FONTS.bold,
+                        fontSize: FONT_SIZES.sm,
                       }}
                     >
                       {t("common." + f.toLowerCase().replace(" ", ""), f)}
@@ -890,8 +887,8 @@ export default function ComplaintsScreen() {
                 style={{
                   color: colors.textSecondary,
                   marginTop: 16,
-                  fontFamily: "DMSans-Bold",
-                  fontSize: 16,
+                  fontFamily: FONTS.bold,
+                  fontSize: FONT_SIZES.lg,
                 }}
               >
                 {activeTab === "my_complaints"
@@ -908,8 +905,8 @@ export default function ComplaintsScreen() {
                 style={{
                   color: colors.textSecondary,
                   marginTop: 8,
-                  fontFamily: "DMSans-Regular",
-                  fontSize: 13,
+                  fontFamily: FONTS.regular,
+                  fontSize: FONT_SIZES.md,
                   textAlign: "center",
                 }}
               >
@@ -1012,9 +1009,9 @@ export default function ComplaintsScreen() {
                 </View>
                 <Text
                   style={{
-                    fontFamily: "DMSans-Bold",
+                    fontFamily: FONTS.bold,
                     color: colors.textPrimary,
-                    fontSize: 14,
+                    fontSize: FONT_SIZES.base,
                     marginLeft: 12,
                   }}
                 >
@@ -1051,9 +1048,9 @@ export default function ComplaintsScreen() {
                 </View>
                 <Text
                   style={{
-                    fontFamily: "DMSans-Bold",
+                    fontFamily: FONTS.bold,
                     color: colors.textPrimary,
-                    fontSize: 14,
+                    fontSize: FONT_SIZES.base,
                     marginLeft: 12,
                   }}
                 >
@@ -1122,9 +1119,9 @@ export default function ComplaintsScreen() {
                 </View>
                 <Text
                   style={{
-                    fontFamily: "DMSans-Bold",
+                    fontFamily: FONTS.bold,
                     color: colors.textPrimary,
-                    fontSize: 14,
+                    fontSize: FONT_SIZES.base,
                     marginLeft: 12,
                   }}
                 >
@@ -1190,8 +1187,8 @@ export default function ComplaintsScreen() {
             >
               <Text
                 style={{
-                  fontSize: 20,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.xxl,
+                  fontFamily: FONTS.bold,
                   color: colors.textPrimary,
                   marginBottom: 20,
                 }}
@@ -1209,8 +1206,8 @@ export default function ComplaintsScreen() {
                   borderRadius: 16,
                   padding: 16,
                   color: colors.textPrimary,
-                  fontFamily: "DMSans-Medium",
-                  fontSize: 15,
+                  fontFamily: FONTS.medium,
+                  fontSize: FONT_SIZES.mdLg,
                   minHeight: 120,
                   textAlignVertical: "top",
                   marginBottom: 24,
@@ -1238,7 +1235,7 @@ export default function ComplaintsScreen() {
                   <Text
                     style={{
                       color: colors.textSecondary,
-                      fontFamily: "DMSans-Bold",
+                      fontFamily: FONTS.bold,
                     }}
                   >
                     Cancel
@@ -1262,7 +1259,7 @@ export default function ComplaintsScreen() {
                   {updateFeedbackMutation.isPending ? (
                     <ActivityIndicator size="small" color="#fff" />
                   ) : (
-                    <Text style={{ color: "#fff", fontFamily: "DMSans-Bold" }}>
+                    <Text style={{ color: "#fff", fontFamily: FONTS.bold }}>
                       Update
                     </Text>
                   )}
@@ -1316,8 +1313,8 @@ export default function ComplaintsScreen() {
                 >
                   <Text
                     style={{
-                      fontSize: 20,
-                      fontFamily: "DMSans-Bold",
+                      fontSize: FONT_SIZES.xxl,
+                      fontFamily: FONTS.bold,
                       color: colors.textPrimary,
                     }}
                   >
@@ -1343,14 +1340,14 @@ export default function ComplaintsScreen() {
                 </View>
 
                 <View style={{ marginBottom: 20 }}>
-                  <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
+                  <Text style={{ color: colors.textSecondary, fontSize: FONT_SIZES.md }}>
                     {t("complaints.complaintLabel", "Complaint:")}
                   </Text>
                   <Text
                     style={{
-                      fontSize: 16,
+                      fontSize: FONT_SIZES.lg,
                       color: colors.textPrimary,
-                      fontFamily: "DMSans-Bold",
+                      fontFamily: FONTS.bold,
                       marginTop: 4,
                     }}
                   >
@@ -1362,7 +1359,7 @@ export default function ComplaintsScreen() {
                   style={{
                     color: colors.textSecondary,
                     marginBottom: 12,
-                    fontFamily: "DMSans-Medium",
+                    fontFamily: FONTS.medium,
                   }}
                 >
                   {t("complaints.setStatusLabel", "Set Status")}
@@ -1389,8 +1386,8 @@ export default function ComplaintsScreen() {
                       <Text
                         style={{
                           color: status === s ? "#fff" : colors.textPrimary,
-                          fontSize: 13,
-                          fontFamily: "DMSans-Bold",
+                          fontSize: FONT_SIZES.md,
+                          fontFamily: FONTS.bold,
                         }}
                       >
                         {t("common." + s.toLowerCase().replace(" ", ""), s)}
@@ -1403,7 +1400,7 @@ export default function ComplaintsScreen() {
                   style={{
                     color: colors.textSecondary,
                     marginBottom: 8,
-                    fontFamily: "DMSans-Medium",
+                    fontFamily: FONTS.medium,
                   }}
                 >
                   {t("complaints.adminResponseTitle", "Admin Response")}
@@ -1423,7 +1420,7 @@ export default function ComplaintsScreen() {
                     borderRadius: 16,
                     padding: 16,
                     color: colors.textPrimary,
-                    fontFamily: "DMSans-Medium",
+                    fontFamily: FONTS.medium,
                     minHeight: 100,
                     textAlignVertical: "top",
                     marginBottom: 24,
@@ -1454,8 +1451,8 @@ export default function ComplaintsScreen() {
                     <Text
                       style={{
                         color: "#fff",
-                        fontFamily: "DMSans-Bold",
-                        fontSize: 16,
+                        fontFamily: FONTS.bold,
+                        fontSize: FONT_SIZES.lg,
                       }}
                     >
                       ${t("complaints.updateComplaint", "Update Complaint")}

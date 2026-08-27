@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { MotiView } from "moti";
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES } from "../theme";
 import Card from "./Card";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -51,23 +51,26 @@ export default function StatCard({
     if (variant === "compact") {
       return {
         iconSize: 20,
-        valueSize: 20,
-        labelSize: 11,
+        valueSize: FONT_SIZES.xxl,
+        labelSize: FONT_SIZES.xs,
+        subtitleSize: FONT_SIZES.micro,
         padding: 12,
       };
     }
     if (variant === "large") {
       return {
         iconSize: 32,
-        valueSize: 32,
-        labelSize: 14,
+        valueSize: FONT_SIZES.displayMd,
+        labelSize: FONT_SIZES.base,
+        subtitleSize: FONT_SIZES.sm,
         padding: 20,
       };
     }
     return {
       iconSize: 24,
-      valueSize: 24,
-      labelSize: 12,
+      valueSize: FONT_SIZES.headline,
+      labelSize: FONT_SIZES.sm,
+      subtitleSize: FONT_SIZES.xs,
       padding: 16,
     };
   };
@@ -110,7 +113,7 @@ export default function StatCard({
                   <Text
                     style={{
                       fontSize: size.labelSize,
-                      fontFamily: "DMSans-Medium",
+                      fontFamily: FONTS.medium,
                       color: "#FFFFFF",
                       marginBottom: 8,
                       opacity: 0.9,
@@ -121,7 +124,7 @@ export default function StatCard({
                   <Text
                     style={{
                       fontSize: size.valueSize,
-                      fontFamily: "DMSans-Bold",
+                      fontFamily: FONTS.bold,
                       color: "#FFFFFF",
                       marginBottom: subtitle || trend ? 6 : 0,
                     }}
@@ -131,8 +134,8 @@ export default function StatCard({
                   {subtitle && (
                     <Text
                       style={{
-                        fontSize: size.labelSize - 1,
-                        fontFamily: "DMSans-Regular",
+                        fontSize: size.subtitleSize,
+                        fontFamily: FONTS.regular,
                         color: "#FFFFFF",
                         opacity: 0.8,
                       }}
@@ -157,8 +160,8 @@ export default function StatCard({
                       {trendValue && (
                         <Text
                           style={{
-                            fontSize: 11,
-                            fontFamily: "DMSans-Bold",
+                            fontSize: FONT_SIZES.xs,
+                            fontFamily: FONTS.bold,
                             color: "#FFFFFF",
                           }}
                         >
@@ -221,7 +224,7 @@ export default function StatCard({
               <Text
                 style={{
                   fontSize: size.labelSize,
-                  fontFamily: "DMSans-Medium",
+                  fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                   marginBottom: 8,
                 }}
@@ -231,7 +234,7 @@ export default function StatCard({
               <Text
                 style={{
                   fontSize: size.valueSize,
-                  fontFamily: "DMSans-Bold",
+                  fontFamily: FONTS.bold,
                   color: colors.onSurface,
                   marginBottom: subtitle || trend ? 6 : 0,
                 }}
@@ -241,8 +244,8 @@ export default function StatCard({
               {subtitle && (
                 <Text
                   style={{
-                    fontSize: size.labelSize - 1,
-                    fontFamily: "DMSans-Regular",
+                    fontSize: size.subtitleSize,
+                    fontFamily: FONTS.regular,
                     color: colors.onSurfaceVariant,
                     opacity: 0.7,
                   }}
@@ -267,8 +270,8 @@ export default function StatCard({
                   {trendValue && (
                     <Text
                       style={{
-                        fontSize: 11,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.xs,
+                        fontFamily: FONTS.bold,
                         color: getTrendColor(),
                       }}
                     >

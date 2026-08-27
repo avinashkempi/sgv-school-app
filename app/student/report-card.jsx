@@ -3,15 +3,15 @@ import {
   View,
   Text,
   ScrollView,
-  RefreshControl,
   Dimensions,
   TouchableOpacity,
   ActivityIndicator,
   Animated,
 } from "react-native";
+import AppRefreshControl from "../../components/ui/AppRefreshControl";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 import { useApiQuery } from "../../hooks/useApi";
 import Header from "../../components/Header";
@@ -51,7 +51,7 @@ function AnimatedPercentage({ value, color, fontSize = 64 }) {
       <Text
         style={{
           fontSize,
-          fontFamily: "DMSans-Bold",
+          fontFamily: FONTS.bold,
           color,
           lineHeight: fontSize + 6,
         }}
@@ -61,7 +61,7 @@ function AnimatedPercentage({ value, color, fontSize = 64 }) {
       <Text
         style={{
           fontSize: fontSize * 0.37,
-          fontFamily: "DMSans-Bold",
+          fontFamily: FONTS.bold,
           color,
           marginBottom: fontSize * 0.18,
           marginLeft: 4,
@@ -166,9 +166,9 @@ export default function StudentReportCardScreen() {
           >
             <Text
               style={{
-                fontSize: 12,
+                fontSize: FONT_SIZES.sm,
                 color: colors.onPrimary,
-                fontFamily: "DMSans-Bold",
+                fontFamily: FONTS.bold,
                 opacity: 0.7,
                 textTransform: "uppercase",
                 letterSpacing: 1.5,
@@ -214,8 +214,8 @@ export default function StudentReportCardScreen() {
                   <Text
                     style={{
                       color: colors.onPrimary,
-                      fontFamily: "DMSans-Bold",
-                      fontSize: 14,
+                      fontFamily: FONTS.bold,
+                      fontSize: FONT_SIZES.base,
                     }}
                   >
                     {t("common.grade", "Grade")} {reportCard?.overall?.grade}
@@ -244,14 +244,14 @@ export default function StudentReportCardScreen() {
                   <Text
                     style={{
                       color: colors.onPrimary,
-                      fontFamily: "DMSans-Bold",
-                      fontSize: 14,
+                      fontFamily: FONTS.bold,
+                      fontSize: FONT_SIZES.base,
                     }}
                   >
                     {t("common.rank", "Rank")} {reportCard.overall.classRank}
                     {reportCard.overall.totalInClass && (
                       <Text
-                        style={{ opacity: 0.7, fontFamily: "DMSans-Medium" }}
+                        style={{ opacity: 0.7, fontFamily: FONTS.medium }}
                       >
                         {" "}
                         / {reportCard.overall.totalInClass}
@@ -278,8 +278,8 @@ export default function StudentReportCardScreen() {
       >
         <Text
           style={{
-            fontSize: 20,
-            fontFamily: "DMSans-Bold",
+            fontSize: FONT_SIZES.xxl,
+            fontFamily: FONTS.bold,
             color: colors.onBackground,
           }}
         >
@@ -295,9 +295,9 @@ export default function StudentReportCardScreen() {
         >
           <Text
             style={{
-              fontSize: 12,
+              fontSize: FONT_SIZES.sm,
               color: colors.onSurfaceVariant,
-              fontFamily: "DMSans-Medium",
+              fontFamily: FONTS.medium,
             }}
           >
             {reportCard?.exams?.length || 0} {t("student.exams", "Exams")}
@@ -323,8 +323,8 @@ export default function StudentReportCardScreen() {
             <View style={{ flex: 1 }}>
               <Text
                 style={{
-                  fontSize: 18,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.xl,
+                  fontFamily: FONTS.bold,
                   color: colors.onSurface,
                 }}
               >
@@ -350,9 +350,9 @@ export default function StudentReportCardScreen() {
                 />
                 <Text
                   style={{
-                    fontSize: 13,
+                    fontSize: FONT_SIZES.md,
                     color: colors.onSurfaceVariant,
-                    fontFamily: "DMSans-Medium",
+                    fontFamily: FONTS.medium,
                   }}
                 >
                   {exam.isCompleted
@@ -376,8 +376,8 @@ export default function StudentReportCardScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: 14,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.base,
+                        fontFamily: FONTS.bold,
                         color: colors.primary,
                       }}
                     >
@@ -395,8 +395,8 @@ export default function StudentReportCardScreen() {
                 >
                   <Text
                     style={{
-                      fontSize: 18,
-                      fontFamily: "DMSans-Bold",
+                      fontSize: FONT_SIZES.xl,
+                      fontFamily: FONTS.bold,
                       color: getGradeColor(exam.grade),
                     }}
                   >
@@ -427,9 +427,9 @@ export default function StudentReportCardScreen() {
                     >
                       <Text
                         style={{
-                          fontSize: 15,
+                          fontSize: FONT_SIZES.mdLg,
                           color: colors.onSurface,
-                          fontFamily: "DMSans-Medium",
+                          fontFamily: FONTS.medium,
                           flex: 1,
                         }}
                       >
@@ -444,9 +444,9 @@ export default function StudentReportCardScreen() {
                       >
                         <Text
                           style={{
-                            fontSize: 14,
+                            fontSize: FONT_SIZES.base,
                             color: colors.onSurfaceVariant,
-                            fontFamily: "DMSans-Regular",
+                            fontFamily: FONTS.regular,
                           }}
                         >
                           {sub.obtainedMarks}
@@ -464,9 +464,9 @@ export default function StudentReportCardScreen() {
                         >
                           <Text
                             style={{
-                              fontSize: 12,
+                              fontSize: FONT_SIZES.sm,
                               color: getGradeColor(sub.grade),
-                              fontFamily: "DMSans-Bold",
+                              fontFamily: FONTS.bold,
                             }}
                           >
                             {sub.grade}
@@ -509,7 +509,7 @@ export default function StudentReportCardScreen() {
           <Text
             style={{
               color: colors.onSurfaceVariant,
-              fontFamily: "DMSans-Medium",
+              fontFamily: FONTS.medium,
               letterSpacing: 1,
             }}
           >
@@ -534,8 +534,8 @@ export default function StudentReportCardScreen() {
       <View>
         <Text
           style={{
-            fontSize: 18,
-            fontFamily: "DMSans-Bold",
+            fontSize: FONT_SIZES.xl,
+            fontFamily: FONTS.bold,
             color: colors.onBackground,
             marginTop: 24,
             marginBottom: 16,
@@ -574,8 +574,8 @@ export default function StudentReportCardScreen() {
 
         <Text
           style={{
-            fontSize: 18,
-            fontFamily: "DMSans-Bold",
+            fontSize: FONT_SIZES.xl,
+            fontFamily: FONTS.bold,
             color: colors.onBackground,
             marginTop: 32,
             marginBottom: 16,
@@ -588,8 +588,8 @@ export default function StudentReportCardScreen() {
           <Card key={subject} variant="outlined" style={{ marginBottom: 20 }}>
             <Text
               style={{
-                fontSize: 16,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.lg,
+                fontFamily: FONTS.bold,
                 color: colors.onSurface,
                 marginBottom: 20,
               }}
@@ -625,9 +625,9 @@ export default function StudentReportCardScreen() {
                       >
                         <Text
                           style={{
-                            fontSize: 10,
+                            fontSize: FONT_SIZES.micro,
                             color: "#fff",
-                            fontFamily: "DMSans-Bold",
+                            fontFamily: FONTS.bold,
                           }}
                         >
                           {t.percentage}%
@@ -636,10 +636,10 @@ export default function StudentReportCardScreen() {
                     </View>
                     <Text
                       style={{
-                        fontSize: 12,
+                        fontSize: FONT_SIZES.sm,
                         color: colors.onSurfaceVariant,
                         marginTop: 8,
-                        fontFamily: "DMSans-Medium",
+                        fontFamily: FONTS.medium,
                       }}
                     >
                       {t.exam}
@@ -667,10 +667,9 @@ export default function StudentReportCardScreen() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView
         refreshControl={
-          <RefreshControl
+          <AppRefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[colors.primary]}
           />
         }
         contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
@@ -716,8 +715,8 @@ export default function StudentReportCardScreen() {
               />
               <Text
                 style={{
-                  fontFamily: "DMSans-Bold",
-                  fontSize: 14,
+                  fontFamily: FONTS.bold,
+                  fontSize: FONT_SIZES.base,
                   color:
                     activeTab === "overview" ? "#fff" : colors.onSurfaceVariant,
                 }}
@@ -750,8 +749,8 @@ export default function StudentReportCardScreen() {
               />
               <Text
                 style={{
-                  fontFamily: "DMSans-Bold",
-                  fontSize: 14,
+                  fontFamily: FONTS.bold,
+                  fontSize: FONT_SIZES.base,
                   color:
                     activeTab === "insights" ? "#fff" : colors.onSurfaceVariant,
                 }}

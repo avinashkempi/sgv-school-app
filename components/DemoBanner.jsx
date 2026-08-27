@@ -1,10 +1,11 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { FONTS, FONT_SIZES, LETTER_SPACINGS } from "../theme";
 
 export default function DemoBanner() {
   return (
     <View style={styles.container}>
-      <Text style={styles.labelSmall}>Demo Mode • Log in for full access</Text>
+      <Text style={styles.text}>Demo Mode • Log in for full access</Text>
     </View>
   );
 }
@@ -19,9 +20,9 @@ const styles = StyleSheet.create({
   },
   text: {
     color: "#fff",
-    fontSize: 12,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
     textTransform: "uppercase",
-    letterSpacing: 1,
+    letterSpacing: LETTER_SPACINGS.micro,
   },
 });

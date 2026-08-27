@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import { useApiQuery, useApiMutation } from "../../hooks/useApi";
 import { useToast } from "../../components/ToastProvider";
 import AppHeader from "../../components/Header";
@@ -165,7 +165,8 @@ export default function AssessmentDashboard() {
                       selectedClass?._id === cls._id
                         ? "#fff"
                         : colors.textPrimary,
-                    fontFamily: "DMSans-Medium",
+                    fontFamily: FONTS.medium,
+                    fontSize: FONT_SIZES.base,
                   }}
                 >
                   {formatClassName(cls.name, cls.section)}
@@ -213,7 +214,8 @@ export default function AssessmentDashboard() {
                           selectedSubject?._id === sub._id
                             ? "#fff"
                             : colors.textPrimary,
-                        fontFamily: "DMSans-Medium",
+                        fontFamily: FONTS.medium,
+                        fontSize: FONT_SIZES.base,
                       }}
                     >
                       {sub.name}
@@ -253,8 +255,8 @@ export default function AssessmentDashboard() {
                   >
                     <Text
                       style={{
-                        fontSize: 18,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.xl,
+                        fontFamily: FONTS.bold,
                         color: colors.textPrimary,
                       }}
                     >
@@ -280,9 +282,9 @@ export default function AssessmentDashboard() {
                       <View style={{ marginBottom: 16 }}>
                         <Text
                           style={{
-                            fontSize: 12,
+                            fontSize: FONT_SIZES.xs,
                             color: colors.textSecondary,
-                            fontFamily: "DMSans-Regular",
+                            fontFamily: FONTS.regular,
                           }}
                         >
                           {t("common.status", "Status")}:{" "}
@@ -292,9 +294,9 @@ export default function AssessmentDashboard() {
                         </Text>
                         <Text
                           style={{
-                            fontSize: 12,
+                            fontSize: FONT_SIZES.xs,
                             color: colors.textSecondary,
-                            fontFamily: "DMSans-Regular",
+                            fontFamily: FONTS.regular,
                             marginTop: 4,
                           }}
                         >
@@ -319,9 +321,9 @@ export default function AssessmentDashboard() {
                       <View style={{ marginBottom: 16 }}>
                         <Text
                           style={{
-                            fontSize: 12,
+                            fontSize: FONT_SIZES.xs,
                             color: colors.textSecondary,
-                            fontFamily: "DMSans-Regular",
+                            fontFamily: FONTS.regular,
                           }}
                         >
                           {t("teacher.notCreatedYet", "Not Created Yet")}
@@ -364,7 +366,8 @@ export default function AssessmentDashboard() {
               style={{
                 color: colors.textSecondary,
                 marginTop: 16,
-                fontFamily: "DMSans-Medium",
+                fontSize: FONT_SIZES.base,
+                fontFamily: FONTS.medium,
               }}
             >
               {t(
@@ -381,8 +384,8 @@ export default function AssessmentDashboard() {
 
 const localStyles = StyleSheet.create({
   label: {
-    fontSize: 14,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.bold,
     marginBottom: 12,
     marginLeft: 4,
   },
@@ -415,7 +418,7 @@ const localStyles = StyleSheet.create({
   },
   buttonText: {
     color: "#fff",
-    fontSize: 12,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
   },
 });

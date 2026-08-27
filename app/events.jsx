@@ -11,7 +11,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
 import { useToast } from "../components/ToastProvider";
 import Header from "../components/Header";
 import EventFormModal from "../components/EventFormModal";
@@ -149,8 +149,8 @@ const EventCard = React.memo(
           <View style={{ flex: 1, marginRight: 12 }}>
             <Text
               style={{
-                fontSize: 18,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.xl,
+                fontFamily: FONTS.bold,
                 color: colors.onSurface,
                 marginBottom: 8,
               }}
@@ -161,10 +161,10 @@ const EventCard = React.memo(
             {hasValidDescription && (
               <Text
                 style={{
-                  fontSize: 14,
-                  fontFamily: "DMSans-Regular",
+                  fontSize: FONT_SIZES.base,
+                  fontFamily: FONTS.regular,
                   color: colors.onSurfaceVariant,
-                  lineHeight: 20,
+                  lineHeight: LINE_HEIGHTS.base,
                   marginBottom: 12,
                 }}
                 numberOfLines={2}
@@ -185,11 +185,12 @@ const EventCard = React.memo(
                   style={{
                     backgroundColor: "#FFD700" + "20",
                     paddingVertical: 4,
-                    paddingHorizontal: 12,
+                    paddingHorizontal: 10,
                     borderRadius: 20,
                     alignSelf: "flex-start",
                     flexDirection: "row",
                     alignItems: "center",
+                    gap: 6,
                   }}
                 >
                   <MaterialIcons
@@ -200,8 +201,8 @@ const EventCard = React.memo(
                   />
                   <Text
                     style={{
-                      fontSize: 12,
-                      fontFamily: "DMSans-Bold",
+                      fontSize: FONT_SIZES.sm,
+                      fontFamily: FONTS.bold,
                       color: "#F59E0B",
                     }}
                   >
@@ -227,8 +228,8 @@ const EventCard = React.memo(
                 <MaterialIcons name="auto-awesome" size={13} color="#FF9800" />
                 <Text
                   style={{
-                    fontSize: 11,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.xs,
+                    fontFamily: FONTS.bold,
                     color: colors.onSurface,
                   }}
                 >
@@ -563,7 +564,8 @@ export default function EventsScreen() {
                   style={{
                     color: colors.textSecondary,
                     marginTop: 8,
-                    fontFamily: "DMSans-Regular",
+                    fontFamily: FONTS.regular,
+                    fontSize: FONT_SIZES.sm,
                   }}
                 >
                   {t("common.loading")}
@@ -580,8 +582,8 @@ export default function EventsScreen() {
                   style={{
                     color: colors.textSecondary,
                     marginTop: 16,
-                    fontSize: 16,
-                    fontFamily: "DMSans-Medium",
+                    fontSize: FONT_SIZES.lg,
+                    fontFamily: FONTS.medium,
                   }}
                 >
                   {t("events.noEventsMessage", "No events on this date.")}

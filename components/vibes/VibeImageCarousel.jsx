@@ -21,7 +21,7 @@ import Animated, {
   useAnimatedScrollHandler,
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import {
   getOptimizedCloudinaryUrl,
   getBlurPlaceholderUrl,
@@ -446,8 +446,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   errorText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.regular,
   },
   retryBtn: {
     flexDirection: "row",
@@ -460,8 +460,8 @@ const styles = StyleSheet.create({
   },
   retryBtnText: {
     color: "#fff",
-    fontSize: 11,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
   },
   heartBurstContainer: {
     ...StyleSheet.absoluteFillObject,
@@ -484,8 +484,8 @@ const styles = StyleSheet.create({
   },
   imageCountText: {
     color: "#fff",
-    fontSize: 11,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
   },
   dotsContainer: {
     position: "absolute",
@@ -516,8 +516,8 @@ const styles = StyleSheet.create({
   },
   slowNetworkText: {
     color: "#fff",
-    fontSize: 11,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.medium,
   },
 });
 

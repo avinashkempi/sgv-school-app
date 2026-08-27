@@ -25,7 +25,7 @@ import { FlashList } from "@shopify/flash-list";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
 import apiConfig from "../config/apiConfig";
 import {
   useApiQuery,
@@ -398,7 +398,7 @@ const NotificationItem = memo(
                   styles.title,
                   {
                     color: colors.onSurface,
-                    fontFamily: notif.isRead ? "DMSans-Medium" : "DMSans-Bold",
+                    fontFamily: notif.isRead ? FONTS.medium : FONTS.bold,
                   },
                 ]}
                 numberOfLines={isExpanded ? undefined : 2}
@@ -782,8 +782,8 @@ export default function NotificationsScreen() {
                       {
                         color: isSelected ? "#FFFFFF" : colors.onSurfaceVariant,
                         fontFamily: isSelected
-                          ? "DMSans-Bold"
-                          : "DMSans-Medium",
+                          ? FONTS.bold
+                          : FONTS.medium,
                       },
                     ]}
                   >
@@ -1177,8 +1177,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   headerTitle: {
-    fontSize: 20,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xxl,
+    fontFamily: FONTS.bold,
     letterSpacing: -0.2,
   },
   headerBadge: {
@@ -1196,8 +1196,8 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   headerBadgeText: {
-    fontSize: 11,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
     textTransform: "uppercase",
     letterSpacing: 0.3,
   },
@@ -1216,8 +1216,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   markAllText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
   },
 
   // Filter Chips
@@ -1239,7 +1239,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   filterChipText: {
-    fontSize: 13,
+    fontSize: FONT_SIZES.md,
   },
   filterCountBadge: {
     marginLeft: 6,
@@ -1248,8 +1248,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   filterCountText: {
-    fontSize: 11,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
   },
 
   // List Content
@@ -1320,8 +1320,8 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   categoryPillText: {
-    fontSize: 10,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.bold,
     letterSpacing: 0.5,
   },
   timeWrapper: {
@@ -1329,8 +1329,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   timeText: {
-    fontSize: 11,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.regular,
   },
   actionRow: {
     flexDirection: "row",
@@ -1362,14 +1362,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   title: {
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: FONT_SIZES.mdLg,
+    lineHeight: LINE_HEIGHTS.mdLg,
     marginBottom: 3,
   },
   message: {
-    fontSize: 13.5,
-    fontFamily: "DMSans-Regular",
-    lineHeight: 19,
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.regular,
+    lineHeight: LINE_HEIGHTS.base,
   },
   expandButton: {
     flexDirection: "row",
@@ -1379,8 +1379,8 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   expandButtonText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
   },
 
   // Loading State
@@ -1392,8 +1392,8 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   loadingText: {
-    fontSize: 14,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.medium,
   },
 
   // Empty State
@@ -1420,14 +1420,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   emptyTitle: {
-    fontSize: 18,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xl,
+    fontFamily: FONTS.bold,
     marginBottom: 6,
     textAlign: "center",
   },
   emptySubtitle: {
-    fontSize: 14,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.regular,
     textAlign: "center",
     lineHeight: 20,
     maxWidth: 320,
@@ -1440,8 +1440,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   resetFilterText: {
-    fontSize: 13,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.bold,
   },
 
   // Modal
@@ -1499,12 +1499,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   modalTitle: {
-    fontSize: 18,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xl,
+    fontFamily: FONTS.bold,
   },
   modalSubtitle: {
-    fontSize: 13,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.regular,
     marginTop: 1,
   },
   modalCloseButton: {
@@ -1537,13 +1537,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   preferenceLabel: {
-    fontSize: 14,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.bold,
     marginBottom: 2,
   },
   preferenceDesc: {
-    fontSize: 12,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.regular,
     lineHeight: 16,
   },
   modalDoneButton: {
@@ -1555,7 +1555,7 @@ const styles = StyleSheet.create({
   },
   modalDoneButtonText: {
     color: "#FFFFFF",
-    fontSize: 15,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.mdLg,
+    fontFamily: FONTS.bold,
   },
 });

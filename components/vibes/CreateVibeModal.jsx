@@ -15,12 +15,14 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
 import { MaterialIcons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import { useToast } from "../ToastProvider";
 import { useAuth } from "../../context/AuthContext";
 import { createApiMutationFn } from "../../hooks/useApi";
 import UserAvatar from "../ui/UserAvatar";
+import { formatUserName } from "../../utils/userFormatters";
 import apiConfig from "../../config/apiConfig";
 import {
   pickVibeMedia,
@@ -82,6 +84,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
     editVibe?.postAs || (isAdmin ? "school" : "self")
   );
   const [location, setLocation] = useState(editVibe?.location || "");
+  const [isSpotlight, setIsSpotlight] = useState(Boolean(editVibe?.isSpotlight));
   const [images, setImages] = useState(
     editVibe?.images?.map((img) => ({
       type: img.type || "image",
@@ -141,6 +144,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
     setCategory(isAdmin ? "official" : "general");
     setPostAs(isAdmin ? "school" : "self");
     setLocation("");
+    setIsSpotlight(false);
     setImages([]);
     setSubmitting(false);
     clearDraft();
@@ -467,6 +471,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
         postAs: isAdmin ? postAs : "self",
         location: location.trim(),
         images: finalImages,
+        ...(isAdmin ? { isSpotlight } : {}),
       };
 
       const url = isEditing
@@ -479,6 +484,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
       const mutationFn = createApiMutationFn(url, method);
       const res = await mutationFn(vibePayload);
 
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       showToast(
         res.message ||
           (isAdmin ? "Vibe published!" : "Vibe submitted for admin approval!"),
@@ -510,6 +516,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
     isAdmin,
     postAs,
     location,
+    isSpotlight,
     isEditing,
     editVibe,
     showToast,
@@ -630,14 +637,10 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                     ]}
                   >
                     <View style={styles.identityIconBox}>
-                      <MaterialIcons
-                        name="school"
-                        size={20}
-                        color={
-                          postAs === "school"
-                            ? "#F57F17"
-                            : colors.onSurfaceVariant
-                        }
+                      <Image
+                        source={require("../../assets/images/icon.png")}
+                        style={{ width: "100%", height: "100%", borderRadius: 18 }}
+                        contentFit="cover"
                       />
                     </View>
                     <View style={{ flex: 1 }}>
@@ -701,7 +704,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                   >
                     <UserAvatar
                       photoUrl={user?.profilePhoto}
-                      name={user?.name || "User"}
+                      name={formatUserName(user?.name, "User")}
                       role={user?.role}
                       size={32}
                     />
@@ -725,7 +728,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                           { color: colors.onSurfaceVariant },
                         ]}
                       >
-                        {user?.name || "Personal Account"}
+                        {formatUserName(user?.name, "Personal Account")}
                       </Text>
                     </View>
                     {postAs === "self" && (
@@ -737,6 +740,75 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                     )}
                   </Pressable>
                 </View>
+              </View>
+            )}
+
+            {/* ──── Admin Feature on Home Spotlight Toggle ──── */}
+            {isAdmin && (
+              <View style={styles.section}>
+                <Pressable
+                  onPress={() => {
+                    Haptics.impactAsync(
+                      Haptics.ImpactFeedbackStyle.Light
+                    ).catch(() => {});
+                    setIsSpotlight((prev) => !prev);
+                  }}
+                  style={[
+                    styles.spotlightToggleCard,
+                    {
+                      backgroundColor: isSpotlight
+                        ? "#FFFBEB"
+                        : colors.surfaceContainerHighest,
+                      borderColor: isSpotlight
+                        ? "#F59E0B"
+                        : colors.outlineVariant,
+                    },
+                  ]}
+                  accessibilityRole="switch"
+                  accessibilityState={{ checked: isSpotlight }}
+                >
+                  <View
+                    style={[
+                      styles.spotlightIconWrap,
+                      {
+                        backgroundColor: isSpotlight
+                          ? "#FDE68A"
+                          : colors.surfaceContainer,
+                      },
+                    ]}
+                  >
+                    <MaterialIcons
+                      name="auto-awesome"
+                      size={20}
+                      color={isSpotlight ? "#D97706" : colors.onSurfaceVariant}
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={[
+                        styles.spotlightToggleTitle,
+                        {
+                          color: isSpotlight ? "#B45309" : colors.onSurface,
+                        },
+                      ]}
+                    >
+                      Feature on Home Spotlight
+                    </Text>
+                    <Text
+                      style={[
+                        styles.spotlightToggleSub,
+                        { color: colors.onSurfaceVariant },
+                      ]}
+                    >
+                      Show this vibe prominently in the Home Screen Spotlight card
+                    </Text>
+                  </View>
+                  <MaterialIcons
+                    name={isSpotlight ? "toggle-on" : "toggle-off"}
+                    size={36}
+                    color={isSpotlight ? "#D97706" : colors.onSurfaceVariant}
+                  />
+                </Pressable>
               </View>
             )}
 
@@ -763,9 +835,9 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                 </Text>
                 <Text
                   style={{
-                    fontSize: 11,
+                    fontSize: FONT_SIZES.xs,
                     color: colors.onSurfaceVariant,
-                    fontFamily: "DMSans-Regular",
+                    fontFamily: FONTS.regular,
                   }}
                 >
                   {hasVideo ? "Max 30s video" : "Up to 5 photos"}
@@ -807,7 +879,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                       <View style={styles.uploadOverlay}>
                         <ActivityIndicator size="small" color="#fff" />
                         <Text style={styles.uploadPercent}>
-                          {img.progress}%
+                          {img.progress > 0 ? `${img.progress}%` : "Optimizing..."}
                         </Text>
                       </View>
                     )}
@@ -1122,8 +1194,8 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   container: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     maxHeight: "94%",
     minHeight: "75%",
   },
@@ -1132,12 +1204,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   headerTitle: {
-    fontSize: 18,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xl,
+    fontFamily: FONTS.bold,
   },
   publishButton: {
     paddingHorizontal: 18,
@@ -1147,8 +1219,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   publishText: {
-    fontSize: 14,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.bold,
   },
   scrollContent: {
     flex: 1,
@@ -1159,22 +1231,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
     padding: 12,
-    borderRadius: 12,
+    borderRadius: 14,
     marginTop: 16,
   },
   infoBannerText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.medium,
     flex: 1,
-    lineHeight: 16,
+    lineHeight: LINE_HEIGHTS.sm,
   },
   section: {
     marginTop: 18,
   },
   sectionLabel: {
-    fontSize: 11,
-    fontFamily: "DMSans-Bold",
-    letterSpacing: 0.8,
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+    letterSpacing: LETTER_SPACINGS.xs,
     marginBottom: 8,
   },
   identityRow: {
@@ -1184,25 +1256,25 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 12,
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1.5,
     gap: 12,
   },
   identityIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: "rgba(0,0,0,0.05)",
     justifyContent: "center",
     alignItems: "center",
   },
   identityTitle: {
-    fontSize: 14,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.bold,
   },
   identitySub: {
-    fontSize: 11,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.regular,
   },
   imageScroll: {
     gap: 10,
@@ -1211,7 +1283,7 @@ const styles = StyleSheet.create({
   imageThumbWrapper: {
     width: 100,
     height: 100,
-    borderRadius: 14,
+    borderRadius: 16,
     overflow: "hidden",
     position: "relative",
   },
@@ -1228,8 +1300,8 @@ const styles = StyleSheet.create({
   },
   uploadPercent: {
     color: "#fff",
-    fontSize: 11,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
   },
   removeButton: {
     position: "absolute",
@@ -1256,26 +1328,26 @@ const styles = StyleSheet.create({
   },
   videoDurationText: {
     color: "#fff",
-    fontSize: 9,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.bold,
   },
   addMediaLargeButton: {
     width: 100,
     height: 100,
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
     justifyContent: "center",
     alignItems: "center",
     gap: 2,
   },
   addMediaSubtext: {
-    fontSize: 10,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.regular,
   },
   addImageButton: {
     width: 100,
     height: 100,
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
     borderStyle: "dashed",
     justifyContent: "center",
@@ -1283,8 +1355,8 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   addImageText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
   },
   categoryScroll: {
     gap: 8,
@@ -1294,25 +1366,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 18,
+    borderRadius: 16,
     gap: 6,
   },
   categoryPillText: {
-    fontSize: 13,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
   },
   captionInput: {
     padding: 14,
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
-    fontSize: 14,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.regular,
     minHeight: 100,
     textAlignVertical: "top",
   },
   charCount: {
-    fontSize: 11,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.regular,
     textAlign: "right",
     marginTop: 4,
   },
@@ -1326,22 +1398,47 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   tagChipText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
   },
   locationRow: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 12,
     paddingVertical: 10,
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
     gap: 8,
   },
   locationInput: {
     flex: 1,
-    fontSize: 14,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.regular,
     padding: 0,
+  },
+  spotlightToggleCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    padding: 12,
+    borderRadius: 18,
+    borderWidth: 1,
+  },
+  spotlightIconWrap: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  spotlightToggleTitle: {
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.bold,
+    marginBottom: 2,
+  },
+  spotlightToggleSub: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.regular,
+    lineHeight: LINE_HEIGHTS.xs,
   },
 });

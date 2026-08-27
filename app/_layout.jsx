@@ -4,7 +4,7 @@ import { Text, Platform, ActivityIndicator } from "react-native";
 import { useEffect, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { ThemeProvider, useTheme } from "../theme";
+import { ThemeProvider, useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
 import { ToastProvider, useToast } from "../components/ToastProvider";
 import { StatusBar } from "expo-status-bar";
 
@@ -223,10 +223,30 @@ export default function RootLayout() {
       Text.defaultProps = {
         ...(Text.defaultProps || {}),
         style: {
+          flexShrink: 1,
+          fontFamily: FONTS.regular,
           ...(Text.defaultProps?.style || {}),
-          fontFamily: "DMSans-Regular",
         },
       };
+    }
+
+    // Global web text-wrapping and overflow prevention
+    if (Platform.OS === "web" && typeof document !== "undefined") {
+      const styleId = "sgv-global-text-overflow-styles";
+      if (!document.getElementById(styleId)) {
+        const style = document.createElement("style");
+        style.id = styleId;
+        style.textContent = `
+          *, *::before, *::after {
+            box-sizing: border-box;
+          }
+          body, #root, [data-testid="root"], div[dir="auto"], span[dir="auto"], [dir="auto"] {
+            overflow-wrap: anywhere;
+            word-break: break-word;
+          }
+        `;
+        document.head.appendChild(style);
+      }
     }
   }, [fontsLoaded]);
 

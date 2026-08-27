@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { useTheme } from "../../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../../theme";
 import apiConfig from "../../../config/apiConfig";
 import {
   useApiQuery,
@@ -294,8 +294,8 @@ export default function EnterMarksScreen() {
         <MaterialIcons name="error-outline" size={64} color={colors.error} />
         <Text
           style={{
-            fontSize: 18,
-            fontFamily: "DMSans-SemiBold",
+            fontSize: FONT_SIZES.xl,
+            fontFamily: FONTS.semiBold,
             color: colors.onSurface,
             marginTop: 16,
           }}
@@ -404,17 +404,17 @@ export default function EnterMarksScreen() {
             >
               <Text
                 style={{
-                  fontSize: 14,
+                  fontSize: FONT_SIZES.base,
                   color: colors.onSurfaceVariant,
-                  fontFamily: "DMSans-Medium",
+                  fontFamily: FONTS.medium,
                 }}
               >
                 Class
               </Text>
               <Text
                 style={{
-                  fontSize: 14,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.base,
+                  fontFamily: FONTS.bold,
                   color: colors.onSurface,
                 }}
               >
@@ -430,17 +430,17 @@ export default function EnterMarksScreen() {
             >
               <Text
                 style={{
-                  fontSize: 14,
+                  fontSize: FONT_SIZES.base,
                   color: colors.onSurfaceVariant,
-                  fontFamily: "DMSans-Medium",
+                  fontFamily: FONTS.medium,
                 }}
               >
                 Type
               </Text>
               <Text
                 style={{
-                  fontSize: 14,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.base,
+                  fontFamily: FONTS.bold,
                   color: colors.onSurface,
                   textTransform: "capitalize",
                 }}
@@ -453,17 +453,17 @@ export default function EnterMarksScreen() {
             >
               <Text
                 style={{
-                  fontSize: 14,
+                  fontSize: FONT_SIZES.base,
                   color: colors.onSurfaceVariant,
-                  fontFamily: "DMSans-Medium",
+                  fontFamily: FONTS.medium,
                 }}
               >
                 Total Marks
               </Text>
               <Text
                 style={{
-                  fontSize: 18,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.xl,
+                  fontFamily: FONTS.bold,
                   color: colors.primary,
                 }}
               >
@@ -478,8 +478,8 @@ export default function EnterMarksScreen() {
           {/* Content */}
           <Text
             style={{
-              fontSize: 18,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.xl,
+              fontFamily: FONTS.bold,
               color: colors.onSurface,
               marginBottom: 16,
             }}

@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
 import AppHeader from "../../components/Header";
 import apiConfig from "../../config/apiConfig";
@@ -89,10 +89,10 @@ export default function AdminPerformanceScreen() {
       >
         <Text
           style={{
-            fontSize: 16,
+            fontSize: FONT_SIZES.lg,
             color: "#fff",
             opacity: 0.9,
-            fontFamily: "DMSans-Medium",
+            fontFamily: FONTS.medium,
             textAlign: "center",
           }}
         >
@@ -101,7 +101,7 @@ export default function AdminPerformanceScreen() {
         <Text
           style={{
             fontSize: 64,
-            fontFamily: "DMSans-Bold",
+            fontFamily: FONTS.bold,
             color: "#fff",
             marginTop: 12,
             textAlign: "center",
@@ -111,8 +111,8 @@ export default function AdminPerformanceScreen() {
         </Text>
         <Text
           style={{
-            fontSize: 14,
-            fontFamily: "DMSans-Regular",
+            fontSize: FONT_SIZES.base,
+            fontFamily: FONTS.regular,
             color: "#fff",
             marginTop: 4,
             textAlign: "center",
@@ -143,8 +143,8 @@ export default function AdminPerformanceScreen() {
           <MaterialIcons name="school" size={32} color={colors.primary} />
           <Text
             style={{
-              fontSize: 24,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.headline,
+              fontFamily: FONTS.bold,
               color: colors.textPrimary,
               marginTop: 8,
             }}
@@ -153,9 +153,9 @@ export default function AdminPerformanceScreen() {
           </Text>
           <Text
             style={{
-              fontSize: 12,
+              fontSize: FONT_SIZES.sm,
               color: colors.textSecondary,
-              fontFamily: "DMSans-Regular",
+              fontFamily: FONTS.regular,
             }}
           >
             Classes
@@ -173,8 +173,8 @@ export default function AdminPerformanceScreen() {
           <MaterialIcons name="book" size={32} color={colors.success} />
           <Text
             style={{
-              fontSize: 24,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.headline,
+              fontFamily: FONTS.bold,
               color: colors.textPrimary,
               marginTop: 8,
             }}
@@ -183,9 +183,9 @@ export default function AdminPerformanceScreen() {
           </Text>
           <Text
             style={{
-              fontSize: 12,
+              fontSize: FONT_SIZES.sm,
               color: colors.textSecondary,
-              fontFamily: "DMSans-Regular",
+              fontFamily: FONTS.regular,
             }}
           >
             Subjects
@@ -203,8 +203,8 @@ export default function AdminPerformanceScreen() {
           <MaterialIcons name="assessment" size={32} color={EXAM_COLORS.FA1} />
           <Text
             style={{
-              fontSize: 24,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.headline,
+              fontFamily: FONTS.bold,
               color: colors.textPrimary,
               marginTop: 8,
             }}
@@ -213,9 +213,9 @@ export default function AdminPerformanceScreen() {
           </Text>
           <Text
             style={{
-              fontSize: 12,
+              fontSize: FONT_SIZES.sm,
               color: colors.textSecondary,
-              fontFamily: "DMSans-Regular",
+              fontFamily: FONTS.regular,
             }}
           >
             Completed
@@ -226,8 +226,8 @@ export default function AdminPerformanceScreen() {
       {/* Exam-wise Performance */}
       <Text
         style={{
-          fontSize: 18,
-          fontFamily: "DMSans-Bold",
+          fontSize: FONT_SIZES.xl,
+          fontFamily: FONTS.bold,
           color: colors.textPrimary,
           marginTop: 28,
           marginBottom: 12,
@@ -258,8 +258,8 @@ export default function AdminPerformanceScreen() {
             <View style={{ flex: 1 }}>
               <Text
                 style={{
-                  fontSize: 18,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.xl,
+                  fontFamily: FONTS.bold,
                   color: colors.textPrimary,
                 }}
               >
@@ -267,9 +267,9 @@ export default function AdminPerformanceScreen() {
               </Text>
               <Text
                 style={{
-                  fontSize: 12,
+                  fontSize: FONT_SIZES.sm,
                   color: colors.textSecondary,
-                  fontFamily: "DMSans-Regular",
+                  fontFamily: FONTS.regular,
                   marginTop: 2,
                 }}
               >
@@ -279,8 +279,8 @@ export default function AdminPerformanceScreen() {
             </View>
             <Text
               style={{
-                fontSize: 28,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.displaySm,
+                fontFamily: FONTS.bold,
                 color: getGradeColor(exam.avgPercentage),
               }}
             >
@@ -296,8 +296,8 @@ export default function AdminPerformanceScreen() {
     <View>
       <Text
         style={{
-          fontSize: 18,
-          fontFamily: "DMSans-Bold",
+          fontSize: FONT_SIZES.xl,
+          fontFamily: FONTS.bold,
           color: colors.textPrimary,
           marginTop: 20,
           marginBottom: 12,
@@ -340,8 +340,8 @@ export default function AdminPerformanceScreen() {
               >
                 <Text
                   style={{
-                    fontSize: 16,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.lg,
+                    fontFamily: FONTS.bold,
                     color: idx < 3 ? colors.primary : colors.textSecondary,
                   }}
                 >
@@ -351,8 +351,8 @@ export default function AdminPerformanceScreen() {
               <View style={{ flex: 1 }}>
                 <Text
                   style={{
-                    fontSize: 16,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.lg,
+                    fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                   }}
                 >
@@ -360,9 +360,9 @@ export default function AdminPerformanceScreen() {
                 </Text>
                 <Text
                   style={{
-                    fontSize: 12,
+                    fontSize: FONT_SIZES.sm,
                     color: colors.textSecondary,
-                    fontFamily: "DMSans-Regular",
+                    fontFamily: FONTS.regular,
                   }}
                 >
                   {cls.examsCount} exam{cls.examsCount !== 1 ? "s" : ""}{" "}
@@ -372,8 +372,8 @@ export default function AdminPerformanceScreen() {
             </View>
             <Text
               style={{
-                fontSize: 24,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.headline,
+                fontFamily: FONTS.bold,
                 color: getGradeColor(cls.avgPercentage),
               }}
             >
@@ -386,7 +386,7 @@ export default function AdminPerformanceScreen() {
         <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
           <MaterialIcons name="school" size={64} color={colors.textSecondary} />
           <Text
-            style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16 }}
+            style={{ color: colors.textSecondary, marginTop: 16, fontSize: FONT_SIZES.lg }}
           >
             No class data available
           </Text>
@@ -399,8 +399,8 @@ export default function AdminPerformanceScreen() {
     <View>
       <Text
         style={{
-          fontSize: 18,
-          fontFamily: "DMSans-Bold",
+          fontSize: FONT_SIZES.xl,
+          fontFamily: FONTS.bold,
           color: colors.textPrimary,
           marginTop: 20,
           marginBottom: 12,
@@ -443,8 +443,8 @@ export default function AdminPerformanceScreen() {
               >
                 <Text
                   style={{
-                    fontSize: 16,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.lg,
+                    fontFamily: FONTS.bold,
                     color: idx < 3 ? colors.success : colors.textSecondary,
                   }}
                 >
@@ -454,8 +454,8 @@ export default function AdminPerformanceScreen() {
               <View style={{ flex: 1 }}>
                 <Text
                   style={{
-                    fontSize: 16,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.lg,
+                    fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                   }}
                 >
@@ -463,9 +463,9 @@ export default function AdminPerformanceScreen() {
                 </Text>
                 <Text
                   style={{
-                    fontSize: 12,
+                    fontSize: FONT_SIZES.sm,
                     color: colors.textSecondary,
-                    fontFamily: "DMSans-Regular",
+                    fontFamily: FONTS.regular,
                   }}
                 >
                   {subj.examsCount} exam{subj.examsCount !== 1 ? "s" : ""}{" "}
@@ -475,8 +475,8 @@ export default function AdminPerformanceScreen() {
             </View>
             <Text
               style={{
-                fontSize: 24,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.headline,
+                fontFamily: FONTS.bold,
                 color: getGradeColor(subj.avgPercentage),
               }}
             >
@@ -489,7 +489,7 @@ export default function AdminPerformanceScreen() {
         <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
           <MaterialIcons name="book" size={64} color={colors.textSecondary} />
           <Text
-            style={{ color: colors.textSecondary, marginTop: 16, fontSize: 16 }}
+            style={{ color: colors.textSecondary, marginTop: 16, fontSize: FONT_SIZES.lg }}
           >
             No subject data available
           </Text>
@@ -540,8 +540,8 @@ export default function AdminPerformanceScreen() {
             >
               <Text
                 style={{
-                  fontFamily: "DMSans-Bold",
-                  fontSize: 13,
+                  fontFamily: FONTS.bold,
+                  fontSize: FONT_SIZES.md,
                   color:
                     activeTab === "overview" ? "#fff" : colors.textSecondary,
                 }}
@@ -562,8 +562,8 @@ export default function AdminPerformanceScreen() {
             >
               <Text
                 style={{
-                  fontFamily: "DMSans-Bold",
-                  fontSize: 13,
+                  fontFamily: FONTS.bold,
+                  fontSize: FONT_SIZES.md,
                   color:
                     activeTab === "classes" ? "#fff" : colors.textSecondary,
                 }}
@@ -584,8 +584,8 @@ export default function AdminPerformanceScreen() {
             >
               <Text
                 style={{
-                  fontFamily: "DMSans-Bold",
-                  fontSize: 13,
+                  fontFamily: FONTS.bold,
+                  fontSize: FONT_SIZES.md,
                   color:
                     activeTab === "subjects" ? "#fff" : colors.textSecondary,
                 }}
@@ -609,8 +609,8 @@ export default function AdminPerformanceScreen() {
                 style={{
                   color: colors.textSecondary,
                   marginTop: 12,
-                  fontSize: 14,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.base,
+                  fontFamily: FONTS.medium,
                 }}
               >
                 Loading performance overview...
@@ -634,8 +634,8 @@ export default function AdminPerformanceScreen() {
                 style={{
                   color: colors.textSecondary,
                   marginTop: 12,
-                  fontSize: 15,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.mdLg,
+                  fontFamily: FONTS.medium,
                   textAlign: "center",
                 }}
               >

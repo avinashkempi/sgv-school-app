@@ -5,17 +5,17 @@ import {
   ScrollView,
   Pressable,
   TextInput,
-  RefreshControl,
   ActivityIndicator,
   Modal,
   Alert,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import AppRefreshControl from "../../components/ui/AppRefreshControl";
 import { MaterialIcons } from "@expo/vector-icons";
 
 import { useRouter } from "expo-router";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import {
   useApiQuery,
   useApiMutation,
@@ -26,6 +26,7 @@ import { useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useToast } from "../../components/ToastProvider";
 import AppHeader from "../../components/Header";
 import UserAvatar from "../../components/ui/UserAvatar";
+import { formatUserName } from "../../utils/userFormatters";
 import { formatClassName } from "../../utils/formatClassName";
 
 export default function ClassesScreen() {
@@ -165,10 +166,9 @@ export default function ClassesScreen() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView
         refreshControl={
-          <RefreshControl
+          <AppRefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[colors.primary]}
           />
         }
         contentContainerStyle={{ paddingBottom: 24 }}
@@ -200,9 +200,9 @@ export default function ClassesScreen() {
               <Text
                 style={{
                   color: colors.warning,
-                  fontSize: 13,
+                  fontSize: FONT_SIZES.md,
                   flex: 1,
-                  fontFamily: "DMSans-Medium",
+                  fontFamily: FONTS.medium,
                 }}
               >
                 You are currently offline. Showing cached classes from your last
@@ -238,7 +238,7 @@ export default function ClassesScreen() {
                 <View>
                   <Text
                     style={{
-                      fontSize: 18,
+                      fontSize: FONT_SIZES.xl,
                       fontWeight: "700",
                       color: colors.textPrimary,
                     }}
@@ -247,7 +247,7 @@ export default function ClassesScreen() {
                   </Text>
                   <Text
                     style={{
-                      fontSize: 14,
+                      fontSize: FONT_SIZES.base,
                       color: colors.textSecondary,
                       marginTop: 4,
                     }}
@@ -258,18 +258,18 @@ export default function ClassesScreen() {
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 }}>
                       <UserAvatar
                         photoUrl={cls.classTeacher?.profilePhoto}
-                        name={cls.classTeacher?.name}
+                        name={formatUserName(cls.classTeacher?.name)}
                         role="teacher"
                         size={20}
                       />
                       <Text
                         style={{
-                          fontSize: 13,
+                          fontSize: FONT_SIZES.md,
                           color: colors.primary,
                           fontWeight: "500",
                         }}
                       >
-                        Class Teacher: {cls.classTeacher.name}
+                        Class Teacher: {formatUserName(cls.classTeacher.name)}
                       </Text>
                     </View>
                   )}
@@ -383,7 +383,7 @@ export default function ClassesScreen() {
             >
               <Text
                 style={{
-                  fontSize: 20,
+                  fontSize: FONT_SIZES.xxl,
                   fontWeight: "700",
                   color: colors.textPrimary,
                   marginBottom: 16,
@@ -426,7 +426,7 @@ export default function ClassesScreen() {
                   style={{
                     color: colors.textSecondary,
                     marginBottom: 4,
-                    fontSize: 12,
+                    fontSize: FONT_SIZES.sm,
                   }}
                 >
                   Class Teacher (Optional)

@@ -6,7 +6,7 @@ import React, {
   useRef,
 } from "react";
 import { StyleSheet, Text, View, Platform } from "react-native";
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS } from "../theme";
 import Animated, {
   SlideInUp,
   SlideOutUp,
@@ -165,6 +165,13 @@ function ToastItem({ msg, type, _onDismiss }) {
 }
 
 function ToastContent({ msg, config, textColor }) {
+  const displayText =
+    typeof msg === "string"
+      ? msg
+      : typeof msg === "number"
+      ? String(msg)
+      : msg?.message || (typeof msg === "object" ? JSON.stringify(msg) : String(msg || ""));
+
   return (
     <View style={styles.contentContainer}>
       <View
@@ -176,7 +183,7 @@ function ToastContent({ msg, config, textColor }) {
         <Feather name={config.icon} size={18} color={config.accentColor} />
       </View>
       <Text style={[styles.text, { color: textColor || "#1F2937" }]}>
-        {msg}
+        {displayText}
       </Text>
     </View>
   );
@@ -229,9 +236,9 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   text: {
-    fontSize: 14,
-    fontWeight: "600",
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.semiBold,
+    lineHeight: LINE_HEIGHTS.base,
     color: "#1F2937", // Dark gray
     flex: 1,
   },

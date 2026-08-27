@@ -9,7 +9,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
 import { LoadingState, EmptyState } from "./StateComponents";
 import apiFetch from "../utils/apiFetch";
 import apiConfig from "../config/apiConfig";
@@ -201,10 +201,10 @@ const NotificationCenter = () => {
             >
               <Text
                 style={{
-                  fontSize: 15,
+                  fontSize: FONT_SIZES.mdLg,
                   fontFamily: notification.isRead
-                    ? "DMSans-Medium"
-                    : "DMSans-Bold",
+                    ? FONTS.medium
+                    : FONTS.bold,
                   color: colors.onSurface,
                   flex: 1,
                   marginRight: 8,
@@ -226,8 +226,8 @@ const NotificationCenter = () => {
 
             <Text
               style={{
-                fontSize: 14,
-                fontFamily: "DMSans-Regular",
+                fontSize: FONT_SIZES.base,
+                fontFamily: FONTS.regular,
                 color: colors.onSurfaceVariant,
                 marginBottom: 8,
               }}
@@ -245,9 +245,9 @@ const NotificationCenter = () => {
             >
               <Text
                 style={{
-                  fontSize: 12,
+                  fontSize: FONT_SIZES.sm,
                   color: colors.onSurfaceVariant,
-                  fontFamily: "DMSans-Regular",
+                  fontFamily: FONTS.regular,
                 }}
               >
                 {timeAgo}
@@ -371,8 +371,8 @@ const NotificationCenter = () => {
               >
                 <Text
                   style={{
-                    fontSize: 13,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.md,
+                    fontFamily: FONTS.bold,
                     color: colors.onPrimaryContainer,
                   }}
                 >
@@ -435,8 +435,8 @@ const NotificationCenter = () => {
               />
               <Text
                 style={{
-                  fontSize: 14,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.base,
+                  fontFamily: FONTS.bold,
                   color:
                     selectedCategory === cat.id
                       ? colors.onPrimary
@@ -476,8 +476,8 @@ const NotificationCenter = () => {
             >
               <Text
                 style={{
-                  fontSize: 13,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.md,
+                  fontFamily: FONTS.bold,
                   color:
                     filterRead === filter
                       ? colors.onPrimaryContainer

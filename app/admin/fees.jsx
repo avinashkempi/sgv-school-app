@@ -7,12 +7,12 @@ import {
   ActivityIndicator,
   TextInput,
   FlatList,
-  RefreshControl,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import AppRefreshControl from "../../components/ui/AppRefreshControl";
 import storage from "../../utils/storage";
 import { useRouter } from "expo-router";
-import { useTheme } from "../../theme";
+import { useTheme, FONT_FAMILIES, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import {
   useApiQuery,
   useApiMutation,
@@ -25,6 +25,7 @@ import Header from "../../components/Header";
 import { useToast } from "../../components/ToastProvider";
 import { formatClassName } from "../../utils/formatClassName";
 import UserAvatar from "../../components/ui/UserAvatar";
+import { formatUserName } from "../../utils/userFormatters";
 
 export default function AdminFeesScreen() {
   const _router = useRouter();
@@ -323,9 +324,9 @@ export default function AdminFeesScreen() {
                   color:
                     activeTab === tab ? colors.primary : colors.textSecondary,
                   fontFamily:
-                    activeTab === tab ? "DMSans-Bold" : "DMSans-Medium",
+                    activeTab === tab ? FONTS.bold : FONTS.medium,
                   textTransform: "capitalize",
-                  fontSize: 13,
+                  fontSize: FONT_SIZES.md,
                 }}
               >
                 {tab}
@@ -338,11 +339,9 @@ export default function AdminFeesScreen() {
       <ScrollView
         contentContainerStyle={{ paddingBottom: 24 }}
         refreshControl={
-          <RefreshControl
+          <AppRefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
           />
         }
       >
@@ -359,8 +358,8 @@ export default function AdminFeesScreen() {
             >
               <Text
                 style={{
-                  fontSize: 18,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.xl,
+                  fontFamily: FONTS.bold,
                   color: colors.textPrimary,
                 }}
               >
@@ -368,9 +367,9 @@ export default function AdminFeesScreen() {
               </Text>
               <Text
                 style={{
-                  fontSize: 12,
+                  fontSize: FONT_SIZES.sm,
                   color: colors.textSecondary,
-                  fontFamily: "DMSans-Medium",
+                  fontFamily: FONTS.medium,
                 }}
               >
                 Collection Rate:{" "}
@@ -401,8 +400,8 @@ export default function AdminFeesScreen() {
               <Text
                 style={{
                   color: "rgba(255,255,255,0.8)",
-                  fontSize: 14,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.base,
+                  fontFamily: FONTS.medium,
                   marginBottom: 8,
                 }}
               >
@@ -410,8 +409,8 @@ export default function AdminFeesScreen() {
               </Text>
               <Text
                 style={{
-                  fontSize: 36,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.displayMd,
+                  fontFamily: FONTS.bold,
                   color: "#fff",
                 }}
               >
@@ -438,8 +437,8 @@ export default function AdminFeesScreen() {
                 <Text
                   style={{
                     color: "#fff",
-                    fontFamily: "DMSans-Bold",
-                    fontSize: 12,
+                    fontFamily: FONTS.bold,
+                    fontSize: FONT_SIZES.sm,
                   }}
                 >
                   Updated just now
@@ -482,16 +481,16 @@ export default function AdminFeesScreen() {
                 <Text
                   style={{
                     color: colors.textSecondary,
-                    fontSize: 13,
-                    fontFamily: "DMSans-Medium",
+                    fontSize: FONT_SIZES.md,
+                    fontFamily: FONTS.medium,
                   }}
                 >
                   Collected Today
                 </Text>
                 <Text
                   style={{
-                    fontSize: 22,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.title,
+                    fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                     marginTop: 4,
                   }}
@@ -532,16 +531,16 @@ export default function AdminFeesScreen() {
                 <Text
                   style={{
                     color: colors.textSecondary,
-                    fontSize: 13,
-                    fontFamily: "DMSans-Medium",
+                    fontSize: FONT_SIZES.md,
+                    fontFamily: FONTS.medium,
                   }}
                 >
                   This Month
                 </Text>
                 <Text
                   style={{
-                    fontSize: 22,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.title,
+                    fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                     marginTop: 4,
                   }}
@@ -554,8 +553,8 @@ export default function AdminFeesScreen() {
             {/* Extended Insights Grid */}
             <Text
               style={{
-                fontSize: 18,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.xl,
+                fontFamily: FONTS.bold,
                 color: colors.textPrimary,
                 marginTop: 24,
                 marginBottom: 12,
@@ -575,8 +574,8 @@ export default function AdminFeesScreen() {
                 <Text
                   style={{
                     color: colors.error,
-                    fontSize: 12,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.sm,
+                    fontFamily: FONTS.bold,
                     textTransform: "uppercase",
                   }}
                 >
@@ -585,8 +584,8 @@ export default function AdminFeesScreen() {
                 <Text
                   style={{
                     color: colors.error,
-                    fontSize: 20,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.xxl,
+                    fontFamily: FONTS.bold,
                     marginTop: 8,
                   }}
                 >
@@ -604,8 +603,8 @@ export default function AdminFeesScreen() {
                 <Text
                   style={{
                     color: "#FF9800",
-                    fontSize: 12,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.sm,
+                    fontFamily: FONTS.bold,
                     textTransform: "uppercase",
                   }}
                 >
@@ -614,8 +613,8 @@ export default function AdminFeesScreen() {
                 <Text
                   style={{
                     color: "#FF9800",
-                    fontSize: 20,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.xxl,
+                    fontFamily: FONTS.bold,
                     marginTop: 8,
                   }}
                 >
@@ -635,8 +634,8 @@ export default function AdminFeesScreen() {
                 <Text
                   style={{
                     color: colors.warning || "#FFB020",
-                    fontSize: 12,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.sm,
+                    fontFamily: FONTS.bold,
                     textTransform: "uppercase",
                   }}
                 >
@@ -645,8 +644,8 @@ export default function AdminFeesScreen() {
                 <Text
                   style={{
                     color: colors.warning || "#FFB020",
-                    fontSize: 20,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.xxl,
+                    fontFamily: FONTS.bold,
                     marginTop: 4,
                   }}
                 >
@@ -668,8 +667,8 @@ export default function AdminFeesScreen() {
                 <Text
                   style={{
                     color: colors.textSecondary,
-                    fontSize: 13,
-                    fontFamily: "DMSans-Medium",
+                    fontSize: FONT_SIZES.md,
+                    fontFamily: FONTS.medium,
                   }}
                 >
                   Total Expected Revenue (To Pay)
@@ -677,8 +676,8 @@ export default function AdminFeesScreen() {
                 <Text
                   style={{
                     color: colors.textPrimary,
-                    fontSize: 24,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.headline,
+                    fontFamily: FONTS.bold,
                     marginTop: 4,
                   }}
                 >
@@ -717,8 +716,8 @@ export default function AdminFeesScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: 18,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.xl,
+                        fontFamily: FONTS.bold,
                         color: colors.textPrimary,
                       }}
                     >
@@ -726,9 +725,9 @@ export default function AdminFeesScreen() {
                     </Text>
                     <Text
                       style={{
-                        fontSize: 12,
+                        fontSize: FONT_SIZES.sm,
                         color: colors.textSecondary,
-                        fontFamily: "DMSans-Medium",
+                        fontFamily: FONTS.medium,
                       }}
                     >
                       {analytics.classBreakdown.length} Classes
@@ -792,9 +791,9 @@ export default function AdminFeesScreen() {
                               />
                               <Text
                                 style={{
-                                  fontFamily: "DMSans-Bold",
+                                  fontFamily: FONTS.bold,
                                   color: colors.textPrimary,
-                                  fontSize: 15,
+                                  fontSize: FONT_SIZES.mdLg,
                                 }}
                               >
                                 {formatClassName(item.className, item.section)}
@@ -802,8 +801,8 @@ export default function AdminFeesScreen() {
                               <Text
                                 style={{
                                   color: colors.textSecondary,
-                                  fontSize: 12,
-                                  fontFamily: "DMSans-Regular",
+                                  fontSize: FONT_SIZES.sm,
+                                  fontFamily: FONTS.regular,
                                 }}
                               >
                                 ({item.studentCount}{" "}
@@ -824,8 +823,8 @@ export default function AdminFeesScreen() {
                               <Text
                                 style={{
                                   color: rateColor,
-                                  fontFamily: "DMSans-Bold",
-                                  fontSize: 12,
+                                  fontFamily: FONTS.bold,
+                                  fontSize: FONT_SIZES.sm,
                                 }}
                               >
                                 {rate}%
@@ -863,16 +862,16 @@ export default function AdminFeesScreen() {
                           >
                             <Text
                               style={{
-                                fontSize: 12,
+                                fontSize: FONT_SIZES.sm,
                                 color: colors.textSecondary,
-                                fontFamily: "DMSans-Medium",
+                                fontFamily: FONTS.medium,
                               }}
                             >
                               Collected:{" "}
                               <Text
                                 style={{
                                   color: colors.success,
-                                  fontFamily: "DMSans-Bold",
+                                  fontFamily: FONTS.bold,
                                 }}
                               >
                                 ₹{(item.totalPaid || 0).toLocaleString()}
@@ -880,16 +879,16 @@ export default function AdminFeesScreen() {
                             </Text>
                             <Text
                               style={{
-                                fontSize: 12,
+                                fontSize: FONT_SIZES.sm,
                                 color: colors.textSecondary,
-                                fontFamily: "DMSans-Medium",
+                                fontFamily: FONTS.medium,
                               }}
                             >
                               Pending:{" "}
                               <Text
                                 style={{
                                   color: colors.error,
-                                  fontFamily: "DMSans-Bold",
+                                  fontFamily: FONTS.bold,
                                 }}
                               >
                                 ₹{(item.totalPending || 0).toLocaleString()}
@@ -913,7 +912,7 @@ export default function AdminFeesScreen() {
                 style={{
                   color: colors.textSecondary,
                   marginBottom: 8,
-                  fontFamily: "DMSans-Medium",
+                  fontFamily: FONTS.medium,
                 }}
               >
                 Select Class & Year
@@ -945,7 +944,7 @@ export default function AdminFeesScreen() {
                             selectedClassId === cls._id
                               ? "#fff"
                               : colors.textPrimary,
-                          fontFamily: "DMSans-Medium",
+                          fontFamily: FONTS.medium,
                         }}
                       >
                         {formatClassName(cls.name, cls.section)}
@@ -996,7 +995,7 @@ export default function AdminFeesScreen() {
                           structureType === "class_default"
                             ? colors.primary
                             : colors.textSecondary,
-                        fontFamily: "DMSans-Bold",
+                        fontFamily: FONTS.bold,
                       }}
                     >
                       Class Default
@@ -1030,7 +1029,7 @@ export default function AdminFeesScreen() {
                           structureType === "student_specific"
                             ? colors.primary
                             : colors.textSecondary,
-                        fontFamily: "DMSans-Bold",
+                        fontFamily: FONTS.bold,
                       }}
                     >
                       Specific Student
@@ -1059,7 +1058,7 @@ export default function AdminFeesScreen() {
                           padding: 12,
                           borderRadius: 12,
                           color: colors.textPrimary,
-                          fontFamily: "DMSans-Medium",
+                          fontFamily: FONTS.medium,
                         }}
                       />
                       <Pressable
@@ -1121,15 +1120,15 @@ export default function AdminFeesScreen() {
                               <Text
                                 style={{
                                   color: colors.textPrimary,
-                                  fontFamily: "DMSans-Medium",
+                                  fontFamily: FONTS.medium,
                                 }}
                               >
-                                {student.name}
+                                {formatUserName(student.name)}
                               </Text>
                               <Text
                                 style={{
                                   color: colors.textSecondary,
-                                  fontSize: 12,
+                                  fontSize: FONT_SIZES.sm,
                                 }}
                               >
                                 {student.phone}
@@ -1167,10 +1166,10 @@ export default function AdminFeesScreen() {
                               style={{
                                 color: colors.primary,
                                 marginRight: 6,
-                                fontFamily: "DMSans-Medium",
+                                fontFamily: FONTS.medium,
                               }}
                             >
-                              {student.name}
+                              {formatUserName(student.name)}
                             </Text>
                             <Pressable
                               onPress={() => {
@@ -1211,8 +1210,8 @@ export default function AdminFeesScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: 18,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.xl,
+                        fontFamily: FONTS.bold,
                         color: colors.textPrimary,
                       }}
                     >
@@ -1229,8 +1228,8 @@ export default function AdminFeesScreen() {
                       <Text
                         style={{
                           color: colors.success,
-                          fontFamily: "DMSans-Bold",
-                          fontSize: 12,
+                          fontFamily: FONTS.bold,
+                          fontSize: FONT_SIZES.sm,
                         }}
                       >
                         {structureComponents.length} Items
@@ -1243,7 +1242,7 @@ export default function AdminFeesScreen() {
                       <Text
                         style={{
                           color: colors.textSecondary,
-                          fontFamily: "DMSans-Medium",
+                          fontFamily: FONTS.medium,
                         }}
                       >
                         No fee components added yet.
@@ -1267,8 +1266,8 @@ export default function AdminFeesScreen() {
                           <Text
                             style={{
                               color: colors.textPrimary,
-                              fontFamily: "DMSans-Medium",
-                              fontSize: 16,
+                              fontFamily: FONTS.medium,
+                              fontSize: FONT_SIZES.lg,
                             }}
                           >
                             {comp.name}
@@ -1283,8 +1282,8 @@ export default function AdminFeesScreen() {
                             <Text
                               style={{
                                 color: colors.textPrimary,
-                                fontFamily: "DMSans-Bold",
-                                fontSize: 16,
+                                fontFamily: FONTS.bold,
+                                fontSize: FONT_SIZES.lg,
                               }}
                             >
                               ₹{comp.amount}
@@ -1317,7 +1316,7 @@ export default function AdminFeesScreen() {
                         <Text
                           style={{
                             color: colors.textSecondary,
-                            fontFamily: "DMSans-Medium",
+                            fontFamily: FONTS.medium,
                           }}
                         >
                           Total Amount
@@ -1325,8 +1324,8 @@ export default function AdminFeesScreen() {
                         <Text
                           style={{
                             color: colors.primary,
-                            fontFamily: "DMSans-Bold",
-                            fontSize: 20,
+                            fontFamily: FONTS.bold,
+                            fontSize: FONT_SIZES.xxl,
                           }}
                         >
                           ₹
@@ -1346,7 +1345,7 @@ export default function AdminFeesScreen() {
                     style={{
                       color: colors.textSecondary,
                       marginBottom: 12,
-                      fontFamily: "DMSans-Medium",
+                      fontFamily: FONTS.medium,
                     }}
                   >
                     Add New Component
@@ -1365,7 +1364,7 @@ export default function AdminFeesScreen() {
                         padding: 16,
                         borderRadius: 12,
                         color: colors.textPrimary,
-                        fontFamily: "DMSans-Medium",
+                        fontFamily: FONTS.medium,
                       }}
                     />
                     <TextInput
@@ -1382,7 +1381,7 @@ export default function AdminFeesScreen() {
                         padding: 16,
                         borderRadius: 12,
                         color: colors.textPrimary,
-                        fontFamily: "DMSans-Medium",
+                        fontFamily: FONTS.medium,
                       }}
                     />
                     <Pressable
@@ -1423,8 +1422,8 @@ export default function AdminFeesScreen() {
                     <Text
                       style={{
                         color: "#fff",
-                        fontFamily: "DMSans-Bold",
-                        fontSize: 18,
+                        fontFamily: FONTS.bold,
+                        fontSize: FONT_SIZES.xl,
                       }}
                     >
                       Save Fee Structure
@@ -1443,7 +1442,7 @@ export default function AdminFeesScreen() {
                   style={{
                     color: colors.textSecondary,
                     marginTop: 16,
-                    fontFamily: "DMSans-Medium",
+                    fontFamily: FONTS.medium,
                   }}
                 >
                   Select a class to manage fees
@@ -1486,7 +1485,7 @@ export default function AdminFeesScreen() {
                   <Text
                     style={{
                       color: colors.textSecondary,
-                      fontFamily: "DMSans-Medium",
+                      fontFamily: FONTS.medium,
                     }}
                   >
                     Back to List
@@ -1505,7 +1504,7 @@ export default function AdminFeesScreen() {
                 >
                   <UserAvatar
                     photoUrl={selectedStudent.profilePhoto}
-                    name={selectedStudent.name}
+                    name={formatUserName(selectedStudent.name)}
                     role="student"
                     size={72}
                     showBorder
@@ -1514,13 +1513,13 @@ export default function AdminFeesScreen() {
                   />
                   <Text
                     style={{
-                      fontSize: 22,
-                      fontFamily: "DMSans-Bold",
+                      fontSize: FONT_SIZES.title,
+                      fontFamily: FONTS.bold,
                       color: colors.textPrimary,
                       marginBottom: 4,
                     }}
                   >
-                    {selectedStudent.name}
+                    {formatUserName(selectedStudent.name)}
                   </Text>
                   <View
                     style={{
@@ -1541,8 +1540,8 @@ export default function AdminFeesScreen() {
                       <Text
                         style={{
                           color: colors.textSecondary,
-                          fontSize: 13,
-                          fontFamily: "DMSans-Medium",
+                          fontSize: FONT_SIZES.md,
+                          fontFamily: FONTS.medium,
                         }}
                       >
                         {feeDetails?.feeStructure
@@ -1576,7 +1575,7 @@ export default function AdminFeesScreen() {
                       <Text
                         style={{
                           color: colors.textSecondary,
-                          fontSize: 11,
+                          fontSize: FONT_SIZES.xs,
                           marginBottom: 4,
                         }}
                       >
@@ -1584,9 +1583,9 @@ export default function AdminFeesScreen() {
                       </Text>
                       <Text
                         style={{
-                          fontFamily: "DMSans-Bold",
+                          fontFamily: FONTS.bold,
                           color: colors.textPrimary,
-                          fontSize: 16,
+                          fontSize: FONT_SIZES.lg,
                         }}
                       >
                         ₹{(feeDetails?.totalFees || 0).toLocaleString()}
@@ -1606,7 +1605,7 @@ export default function AdminFeesScreen() {
                         <Text
                           style={{
                             color: "#FF9800",
-                            fontSize: 11,
+                            fontSize: FONT_SIZES.xs,
                             marginBottom: 4,
                           }}
                         >
@@ -1614,9 +1613,9 @@ export default function AdminFeesScreen() {
                         </Text>
                         <Text
                           style={{
-                            fontFamily: "DMSans-Bold",
+                            fontFamily: FONTS.bold,
                             color: "#FF9800",
-                            fontSize: 16,
+                            fontSize: FONT_SIZES.lg,
                           }}
                         >
                           ₹{feeDetails.concession.toLocaleString()}
@@ -1636,7 +1635,7 @@ export default function AdminFeesScreen() {
                       <Text
                         style={{
                           color: colors.success,
-                          fontSize: 11,
+                          fontSize: FONT_SIZES.xs,
                           marginBottom: 4,
                         }}
                       >
@@ -1644,9 +1643,9 @@ export default function AdminFeesScreen() {
                       </Text>
                       <Text
                         style={{
-                          fontFamily: "DMSans-Bold",
+                          fontFamily: FONTS.bold,
                           color: colors.success,
-                          fontSize: 16,
+                          fontSize: FONT_SIZES.lg,
                         }}
                       >
                         ₹{(feeDetails?.paidAmount || 0).toLocaleString()}
@@ -1665,7 +1664,7 @@ export default function AdminFeesScreen() {
                       <Text
                         style={{
                           color: colors.error,
-                          fontSize: 11,
+                          fontSize: FONT_SIZES.xs,
                           marginBottom: 4,
                         }}
                       >
@@ -1673,9 +1672,9 @@ export default function AdminFeesScreen() {
                       </Text>
                       <Text
                         style={{
-                          fontFamily: "DMSans-Bold",
+                          fontFamily: FONTS.bold,
                           color: colors.error,
-                          fontSize: 16,
+                          fontSize: FONT_SIZES.lg,
                         }}
                       >
                         ₹{(feeDetails?.pendingAmount || 0).toLocaleString()}
@@ -1690,8 +1689,8 @@ export default function AdminFeesScreen() {
                     <View style={{ marginBottom: 24 }}>
                       <Text
                         style={{
-                          fontSize: 18,
-                          fontFamily: "DMSans-Bold",
+                          fontSize: FONT_SIZES.xl,
+                          fontFamily: FONTS.bold,
                           color: colors.textPrimary,
                           marginBottom: 12,
                         }}
@@ -1750,9 +1749,9 @@ export default function AdminFeesScreen() {
                               <View style={{ flex: 1, marginRight: 12 }}>
                                 <Text
                                   style={{
-                                    fontFamily: "DMSans-Bold",
+                                    fontFamily: FONTS.bold,
                                     color: colors.textPrimary,
-                                    fontSize: 15,
+                                    fontSize: FONT_SIZES.mdLg,
                                   }}
                                 >
                                   {inst.description}
@@ -1760,7 +1759,7 @@ export default function AdminFeesScreen() {
                                 <Text
                                   style={{
                                     color: colors.textSecondary,
-                                    fontSize: 12,
+                                    fontSize: FONT_SIZES.sm,
                                     marginTop: 2,
                                   }}
                                 >
@@ -1783,8 +1782,8 @@ export default function AdminFeesScreen() {
                                 <Text
                                   style={{
                                     color: badgeColor,
-                                    fontSize: 11,
-                                    fontFamily: "DMSans-Bold",
+                                    fontSize: FONT_SIZES.xs,
+                                    fontFamily: FONTS.bold,
                                   }}
                                 >
                                   {badgeText}
@@ -1799,8 +1798,8 @@ export default function AdminFeesScreen() {
 
                 <Text
                   style={{
-                    fontSize: 18,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.xl,
+                    fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                     marginBottom: 16,
                   }}
@@ -1832,9 +1831,9 @@ export default function AdminFeesScreen() {
                         <View>
                           <Text
                             style={{
-                              fontFamily: "DMSans-Bold",
+                              fontFamily: FONTS.bold,
                               color: colors.textPrimary,
-                              fontSize: 16,
+                              fontSize: FONT_SIZES.lg,
                             }}
                           >
                             ₹{payment.amount}
@@ -1842,7 +1841,7 @@ export default function AdminFeesScreen() {
                           <Text
                             style={{
                               color: colors.textSecondary,
-                              fontSize: 12,
+                              fontSize: FONT_SIZES.sm,
                               marginTop: 4,
                             }}
                           >
@@ -1853,8 +1852,8 @@ export default function AdminFeesScreen() {
                             <Text
                               style={{
                                 color: colors.textSecondary,
-                                fontSize: 12,
-                                fontFamily: "DMSans-Mono",
+                                fontSize: FONT_SIZES.sm,
+                                fontFamily: FONT_FAMILIES.mono,
                                 marginTop: 2,
                               }}
                             >
@@ -1873,8 +1872,8 @@ export default function AdminFeesScreen() {
                           <Text
                             style={{
                               color: colors.success,
-                              fontSize: 12,
-                              fontFamily: "DMSans-Bold",
+                              fontSize: FONT_SIZES.sm,
+                              fontFamily: FONTS.bold,
                               textTransform: "capitalize",
                             }}
                           >
@@ -1902,7 +1901,7 @@ export default function AdminFeesScreen() {
                       style={{
                         color: colors.textSecondary,
                         marginTop: 16,
-                        fontFamily: "DMSans-Medium",
+                        fontFamily: FONTS.medium,
                       }}
                     >
                       No payment history found
@@ -1927,7 +1926,7 @@ export default function AdminFeesScreen() {
                       padding: 12,
                       borderRadius: 12,
                       color: colors.textPrimary,
-                      fontFamily: "DMSans-Medium",
+                      fontFamily: FONTS.medium,
                     }}
                   />
                   <Pressable
@@ -1950,7 +1949,7 @@ export default function AdminFeesScreen() {
                   >
                     <Text
                       style={{
-                        fontFamily: "DMSans-Medium",
+                        fontFamily: FONTS.medium,
                         color:
                           sortBy === "className"
                             ? colors.primary
@@ -1987,9 +1986,9 @@ export default function AdminFeesScreen() {
                   <Text
                     style={{
                       flex: 2,
-                      fontFamily: "DMSans-Bold",
+                      fontFamily: FONTS.bold,
                       color: colors.primary,
-                      fontSize: 13,
+                      fontSize: FONT_SIZES.md,
                     }}
                   >
                     Student
@@ -1997,9 +1996,9 @@ export default function AdminFeesScreen() {
                   <Text
                     style={{
                       flex: 1.5,
-                      fontFamily: "DMSans-Bold",
+                      fontFamily: FONTS.bold,
                       color: colors.primary,
-                      fontSize: 13,
+                      fontSize: FONT_SIZES.md,
                       textAlign: "center",
                     }}
                   >
@@ -2008,9 +2007,9 @@ export default function AdminFeesScreen() {
                   <Text
                     style={{
                       flex: 1.5,
-                      fontFamily: "DMSans-Bold",
+                      fontFamily: FONTS.bold,
                       color: colors.primary,
-                      fontSize: 13,
+                      fontSize: FONT_SIZES.md,
                       textAlign: "right",
                     }}
                   >
@@ -2077,25 +2076,25 @@ export default function AdminFeesScreen() {
                         >
                           <UserAvatar
                             photoUrl={item.profilePhoto}
-                            name={item.name}
+                            name={formatUserName(item.name)}
                             role="student"
                             size={36}
                           />
                           <View style={{ flex: 1 }}>
                             <Text
                               style={{
-                                fontFamily: "DMSans-Bold",
+                                fontFamily: FONTS.bold,
                                 color: colors.textPrimary,
-                                fontSize: 14,
+                                fontSize: FONT_SIZES.base,
                               }}
                               numberOfLines={1}
                             >
-                              {item.name}
+                              {formatUserName(item.name)}
                             </Text>
                             <Text
                               style={{
                                 color: colors.textSecondary,
-                                fontSize: 11,
+                                fontSize: FONT_SIZES.xs,
                               }}
                               numberOfLines={1}
                             >
@@ -2114,9 +2113,9 @@ export default function AdminFeesScreen() {
                           >
                             <Text
                               style={{
-                                fontFamily: "DMSans-Medium",
+                                fontFamily: FONTS.medium,
                                 color: colors.textSecondary,
-                                fontSize: 12,
+                                fontSize: FONT_SIZES.sm,
                               }}
                             >
                               {formatClassName(item.className)}{" "}
@@ -2127,8 +2126,8 @@ export default function AdminFeesScreen() {
                         <View style={{ flex: 1.5, alignItems: "flex-end" }}>
                           <Text
                             style={{
-                              fontFamily: "DMSans-Bold",
-                              fontSize: 14,
+                              fontFamily: FONTS.bold,
+                              fontSize: FONT_SIZES.base,
                               color:
                                 item.pendingAmount > 0
                                   ? colors.error
@@ -2138,7 +2137,7 @@ export default function AdminFeesScreen() {
                             ₹{item.pendingAmount || 0}
                           </Text>
                           {item.pendingAmount > 0 && (
-                            <Text style={{ color: colors.error, fontSize: 10 }}>
+                            <Text style={{ color: colors.error, fontSize: FONT_SIZES.micro }}>
                               Due
                             </Text>
                           )}
@@ -2156,7 +2155,7 @@ export default function AdminFeesScreen() {
                           style={{
                             color: colors.textSecondary,
                             marginTop: 16,
-                            fontFamily: "DMSans-Medium",
+                            fontFamily: FONTS.medium,
                           }}
                         >
                           No students found

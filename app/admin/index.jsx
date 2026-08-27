@@ -12,7 +12,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 
 import { useRouter } from "expo-router";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import apiConfig from "../../config/apiConfig";
 
 import { useToast } from "../../components/ToastProvider";
@@ -267,7 +267,7 @@ export default function AdminScreen() {
             style={{
               marginTop: 16,
               color: colors.textSecondary,
-              fontFamily: "DMSans-Medium",
+              fontFamily: FONTS.medium,
             }}
           >
             {t("admin.loadingUsers", "Loading users...")}
@@ -291,7 +291,7 @@ export default function AdminScreen() {
             style={{
               marginTop: 8,
               color: colors.error,
-              fontFamily: "DMSans-Bold",
+              fontFamily: FONTS.bold,
             }}
           >
             {t("admin.failedToLoadProfile", "Failed to load user profile")}
@@ -324,7 +324,7 @@ export default function AdminScreen() {
             style={{
               marginTop: 8,
               color: colors.warning,
-              fontFamily: "DMSans-Bold",
+              fontFamily: FONTS.bold,
             }}
           >
             {t("common.accessDenied", "Access Denied")}
@@ -342,7 +342,7 @@ export default function AdminScreen() {
             )}
           </Text>
           <Text
-            style={{ marginTop: 4, color: colors.textSecondary, fontSize: 12 }}
+            style={{ marginTop: 4, color: colors.textSecondary, fontSize: FONT_SIZES.sm }}
           >
             ${t("common.currentRole", "Current Role")}:{" "}
             {user?.role || t("common.unknown", "Unknown")}
@@ -366,7 +366,7 @@ export default function AdminScreen() {
             style={{
               marginTop: 8,
               color: colors.error,
-              fontFamily: "DMSans-Bold",
+              fontFamily: FONTS.bold,
             }}
           >
             {t("admin.failedToLoadUsers", "Failed to load users")}
@@ -390,7 +390,7 @@ export default function AdminScreen() {
               borderRadius: 8,
             }}
           >
-            <Text style={{ color: "#fff", fontFamily: "DMSans-Bold" }}>
+            <Text style={{ color: "#fff", fontFamily: FONTS.bold }}>
               {t("common.retry", "Retry")}
             </Text>
           </Pressable>
@@ -408,8 +408,8 @@ export default function AdminScreen() {
           style={{
             color: colors.textSecondary,
             marginTop: 16,
-            fontSize: 16,
-            fontFamily: "DMSans-Medium",
+            fontSize: FONT_SIZES.lg,
+            fontFamily: FONTS.medium,
           }}
         >
           {t("admin.noUsersFound", "No users found")}
@@ -539,8 +539,8 @@ const MenuCard = ({ title, icon, color, onPress }) => {
       </View>
       <Text
         style={{
-          fontSize: 14,
-          fontFamily: "DMSans-Bold",
+          fontSize: FONT_SIZES.base,
+          fontFamily: FONTS.bold,
           color: colors.textPrimary,
           textAlign: "center",
         }}
@@ -712,7 +712,7 @@ const AdminHeader = React.memo(function AdminHeader({
               style={{ marginRight: 4 }}
             />
             <Text
-              style={{ fontSize: 14, fontFamily: "DMSans-Bold", color: "#fff" }}
+              style={{ fontSize: FONT_SIZES.base, fontFamily: FONTS.bold, color: "#fff" }}
             >
               {t("admin.addUser", "Add User")}
             </Text>
@@ -749,9 +749,9 @@ const AdminHeader = React.memo(function AdminHeader({
               style={{
                 flex: 1,
                 marginLeft: 12,
-                fontSize: 16,
+                fontSize: FONT_SIZES.lg,
                 color: colors.textPrimary,
-                fontFamily: "DMSans-Regular",
+                fontFamily: FONTS.regular,
                 paddingVertical: 0,
               }}
               placeholder={t("admin.searchUsersPlaceholder", "Search users...")}
@@ -818,9 +818,9 @@ const AdminHeader = React.memo(function AdminHeader({
                   style={{
                     color: roleFilter === role ? "#fff" : colors.textSecondary,
                     fontFamily:
-                      roleFilter === role ? "DMSans-Bold" : "DMSans-Medium",
+                      roleFilter === role ? FONTS.bold : FONTS.medium,
                     textTransform: "capitalize",
-                    fontSize: 14,
+                    fontSize: FONT_SIZES.base,
                   }}
                 >
                   {role === "all"

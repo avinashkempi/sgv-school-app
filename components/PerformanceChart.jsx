@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, Dimensions, ScrollView } from "react-native";
 import { LineChart, BarChart, PieChart } from "react-native-chart-kit";
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
 
 /**
  * PerformanceChart Component
@@ -109,8 +109,8 @@ export default function PerformanceChart({
         population: item.value || item.count || 0,
         color: item.color || getPieColor(index),
         legendFontColor: colors.onSurface,
-        legendFontSize: 13,
-        legendFontFamily: "DMSans-Medium",
+        legendFontSize: FONT_SIZES.md,
+        legendFontFamily: FONTS.medium,
       }));
 
     // If no data after filtering, show empty state
@@ -158,8 +158,8 @@ export default function PerformanceChart({
                 />
                 <Text
                   style={{
-                    fontSize: 12,
-                    fontFamily: "DMSans-Medium",
+                    fontSize: FONT_SIZES.sm,
+                    fontFamily: FONTS.medium,
                     color: colors.onSurface,
                   }}
                 >
@@ -186,8 +186,8 @@ export default function PerformanceChart({
     >
       <Text
         style={{
-          fontSize: 14,
-          fontFamily: "DMSans-Medium",
+          fontSize: FONT_SIZES.base,
+          fontFamily: FONTS.medium,
           color: colors.onSurfaceVariant,
           opacity: 0.7,
         }}
@@ -224,8 +224,8 @@ export default function PerformanceChart({
       {title && (
         <Text
           style={{
-            fontSize: 16,
-            fontFamily: "DMSans-Bold",
+            fontSize: FONT_SIZES.lg,
+            fontFamily: FONTS.bold,
             color: colors.onSurface,
             marginBottom: 12,
           }}

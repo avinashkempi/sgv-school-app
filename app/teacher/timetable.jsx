@@ -5,15 +5,16 @@ import {
   ScrollView,
   Pressable,
   ActivityIndicator,
-  RefreshControl,
 } from "react-native";
+import AppRefreshControl from "../../components/ui/AppRefreshControl";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
 import { CACHE_TIERS } from "../../utils/cacheConfig";
 import AppHeader from "../../components/Header";
 import Card from "../../components/Card";
 import UserAvatar from "../../components/ui/UserAvatar";
+import { formatUserName } from "../../utils/userFormatters";
 import apiConfig from "../../config/apiConfig";
 import formatClassName from "../../utils/formatClassName";
 import { useLabel } from "../../context/LabelsContext";
@@ -120,10 +121,9 @@ export default function SchoolTimetableScreen() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView
         refreshControl={
-          <RefreshControl
+          <AppRefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[colors.primary]}
           />
         }
         contentContainerStyle={{ paddingBottom: 24 }}
@@ -139,10 +139,10 @@ export default function SchoolTimetableScreen() {
           <View style={{ marginTop: 20 }}>
             <Text
               style={{
-                fontSize: 13,
+                fontSize: FONT_SIZES.md,
                 color: colors.textSecondary,
                 marginBottom: 8,
-                fontFamily: "DMSans-Medium",
+                fontFamily: FONTS.medium,
               }}
             >
               {t("teacher.selectClass", "Select Class")}
@@ -174,9 +174,9 @@ export default function SchoolTimetableScreen() {
                         style={{
                           color: isSelected ? "#fff" : colors.textPrimary,
                           fontFamily: isSelected
-                            ? "DMSans-Bold"
-                            : "DMSans-Medium",
-                          fontSize: 14,
+                            ? FONTS.bold
+                            : FONTS.medium,
+                          fontSize: FONT_SIZES.base,
                         }}
                       >
                         {formatClassName(cls.name)} {cls.section || ""}
@@ -216,7 +216,8 @@ export default function SchoolTimetableScreen() {
                         color:
                           selectedDay === day ? "#fff" : colors.textPrimary,
                         fontFamily:
-                          selectedDay === day ? "DMSans-Bold" : "DMSans-Medium",
+                          selectedDay === day ? FONTS.bold : FONTS.medium,
+                        fontSize: FONT_SIZES.base,
                       }}
                     >
                       {day.slice(0, 3)}
@@ -239,8 +240,8 @@ export default function SchoolTimetableScreen() {
             >
               <Text
                 style={{
-                  fontSize: 18,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.xl,
+                  fontFamily: FONTS.bold,
                   color: colors.textPrimary,
                 }}
               >
@@ -257,9 +258,9 @@ export default function SchoolTimetableScreen() {
                 >
                   <Text
                     style={{
-                      fontSize: 12,
+                      fontSize: FONT_SIZES.xs,
                       color: colors.success,
-                      fontFamily: "DMSans-Bold",
+                      fontFamily: FONTS.bold,
                     }}
                   >
                     {t("common.today", "TODAY")}
@@ -281,8 +282,8 @@ export default function SchoolTimetableScreen() {
                   style={{
                     color: colors.textSecondary,
                     marginTop: 12,
-                    fontSize: 14,
-                    fontFamily: "DMSans-Medium",
+                    fontSize: FONT_SIZES.base,
+                    fontFamily: FONTS.medium,
                   }}
                 >
                   {t("teacher.loadingTimetable", "Loading timetable...")}
@@ -307,7 +308,8 @@ export default function SchoolTimetableScreen() {
                       style={{
                         color: colors.textSecondary,
                         marginTop: 16,
-                        fontSize: 16,
+                        fontSize: FONT_SIZES.lg,
+                        fontFamily: FONTS.medium,
                       }}
                     >
                       {t("teacher.noClassesScheduled", "No classes scheduled")}
@@ -336,8 +338,8 @@ export default function SchoolTimetableScreen() {
                       >
                         <Text
                           style={{
-                            fontSize: 14,
-                            fontFamily: "DMSans-Bold",
+                            fontSize: FONT_SIZES.base,
+                            fontFamily: FONTS.bold,
                             color: colors.textPrimary,
                           }}
                         >
@@ -352,7 +354,7 @@ export default function SchoolTimetableScreen() {
                           }}
                         />
                         <Text
-                          style={{ fontSize: 12, color: colors.textSecondary }}
+                          style={{ fontSize: FONT_SIZES.xs, fontFamily: FONTS.medium, color: colors.textSecondary }}
                         >
                           {period.endTime}
                         </Text>
@@ -370,8 +372,8 @@ export default function SchoolTimetableScreen() {
                       <View style={{ flex: 1, justifyContent: "center" }}>
                         <Text
                           style={{
-                            fontSize: 16,
-                            fontFamily: "DMSans-Bold",
+                            fontSize: FONT_SIZES.lg,
+                            fontFamily: FONTS.bold,
                             color: colors.textPrimary,
                             marginBottom: 4,
                           }}
@@ -388,18 +390,18 @@ export default function SchoolTimetableScreen() {
                         >
                           <UserAvatar
                             photoUrl={period.teacher?.profilePhoto}
-                            name={period.teacher?.name || "Teacher"}
+                            name={formatUserName(period.teacher?.name, "Teacher")}
                             role="teacher"
                             size={18}
                           />
                           <Text
                             style={{
-                              fontSize: 13,
+                              fontSize: FONT_SIZES.md,
+                              fontFamily: FONTS.medium,
                               color: colors.textSecondary,
                             }}
                           >
-                            {period.teacher?.name ||
-                              t("common.teacher", "Teacher")}
+                            {formatUserName(period.teacher?.name, t("common.teacher", "Teacher"))}
                           </Text>
                         </View>
                         {period.roomNumber && (
@@ -418,7 +420,8 @@ export default function SchoolTimetableScreen() {
                             />
                             <Text
                               style={{
-                                fontSize: 13,
+                                fontSize: FONT_SIZES.md,
+                                fontFamily: FONTS.regular,
                                 color: colors.textSecondary,
                               }}
                             >
@@ -442,9 +445,9 @@ export default function SchoolTimetableScreen() {
                       >
                         <Text
                           style={{
-                            fontFamily: "DMSans-Bold",
+                            fontFamily: FONTS.bold,
                             color: colors.primary,
-                            fontSize: 14,
+                            fontSize: FONT_SIZES.base,
                           }}
                         >
                           {period.periodNumber}

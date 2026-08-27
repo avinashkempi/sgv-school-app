@@ -1,117 +1,115 @@
-import React, { useRef } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  Pressable,
-  Switch,
-  Linking,
-} from "react-native";
+import React, { useRef, useState, useMemo } from "react";
+import { View, ScrollView, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
-import { MaterialIcons, FontAwesome } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "../theme";
 import { useToast } from "../components/ToastProvider";
 import Header from "../components/Header";
 import { useAuth } from "../context/AuthContext";
 import { useLabel } from "../context/LabelsContext";
-import { SCHOOL } from "../constants/basic-info";
 import useTabScrollToTop from "../hooks/useTabScrollToTop";
 import useDoubleBackToExit from "../hooks/useDoubleBackToExit";
-import Card from "../components/Card";
-import Button from "../components/Button";
-import UserAvatar from "../components/ui/UserAvatar";
+
+// Clean Subcomponents
+import MenuHeroProfile from "../components/menu/MenuHeroProfile";
+import MenuCategorySection from "../components/menu/MenuCategorySection";
+import SchoolContactSection from "../components/menu/SchoolContactSection";
+import SchoolInfoModal from "../components/menu/SchoolInfoModal";
+import PrivacyPolicyModal from "../components/menu/PrivacyPolicyModal";
+import LogoutConfirmModal from "../components/menu/LogoutConfirmModal";
+import MenuPreferences from "../components/menu/MenuPreferences";
+import MenuFooter from "../components/menu/MenuFooter";
 
 export default function MenuScreen() {
   const router = useRouter();
-  const { styles, colors, mode, toggle } = useTheme();
+  const { styles, colors } = useTheme();
   const { showToast } = useToast();
   const { user, logout } = useAuth();
   const { t } = useLabel();
   const scrollRef = useRef(null);
 
+  // Modals state
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showAboutModal, setShowAboutModal] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+
   // Mobile standard gestures
   useTabScrollToTop(scrollRef, "/menu");
   useDoubleBackToExit(true);
 
-  const handleLogout = async () => {
-    await logout(router, null, showToast);
-  };
-
-  const handlePress = async (appUrl, fallbackUrl) => {
+  const handleLogoutConfirm = async () => {
     try {
-      const supported = await Linking.canOpenURL(appUrl);
-      if (supported) {
-        await Linking.openURL(appUrl);
-      } else {
-        await Linking.openURL(fallbackUrl);
-      }
+      setIsLoggingOut(true);
+      await logout(router, null, showToast);
     } catch (err) {
-      console.error("Failed to open link:", err);
+      console.warn("Logout error:", err);
+    } finally {
+      setIsLoggingOut(false);
+      setShowLogoutModal(false);
     }
   };
 
-  const navigateToComplaints = () => {
-    router.push("/complaints");
-  };
+  // ONLY items that are NOT present in any bottom navigation tabs or headers
+  const exclusiveMenuItems = useMemo(() => {
+    const items = [
+      {
+        id: "events",
+        title: t("menu.events", "Events & Calendar"),
+        subtitle: t(
+          "menu.eventsSubtitle",
+          "School calendar, activities & upcoming holidays"
+        ),
+        icon: "event",
+        color: "#E11D48",
+        route: "/events",
+      },
+    ];
 
-  const menuItems = [
-    ...(user
-      ? []
-      : [
-          {
-            title: t("menu.profile"),
-            subtitle: t("menu.profileSubtitle"),
-            icon: "person",
-            route: "/profile",
-            color: colors.primary,
-          },
-        ]),
-    {
-      title: "SGV Vibes",
-      subtitle: "Community feed",
-      icon: "auto-awesome",
-      route: "/vibes",
-      color: "#FF9800",
-    },
-    {
-      title: t("menu.events"),
-      subtitle: t("menu.eventsSubtitle"),
-      icon: "event",
-      route: "/events",
-      color: colors.tertiary,
-    },
-    ...(user && (user.role === "admin" || user.role === "super admin")
-      ? [
-          {
-            title: "Vibes Approvals",
-            subtitle: "Review community posts",
-            icon: "verified-user",
-            route: "/admin/vibe-approvals",
-            color: "#2E7D32",
-          },
-        ]
-      : []),
-    // Only show Complaints if user is logged in
-    ...(user
-      ? [
-          {
-            title: t("menu.complaints"),
-            subtitle: t("menu.complaintsSubtitle"),
-            icon: "feedback",
-            action: navigateToComplaints,
-            color: colors.error,
-          },
-        ]
-      : []),
-  ];
+    // Admin / Super Admin moderation tool (not in bottom tabs or admin page)
+    if (user && (user.role === "admin" || user.role === "super admin")) {
+      items.push({
+        id: "vibe_approvals",
+        title: t("menu.vibeApprovals", "Vibes Approvals"),
+        subtitle: t(
+          "menu.vibeApprovalsSubtitle",
+          "Review & moderate community posts"
+        ),
+        icon: "verified-user",
+        color: "#15803D",
+        route: "/admin/vibe-approvals",
+      });
+    }
+
+    // Complaints & Grievances (not in any other tab)
+    if (user) {
+      items.push({
+        id: "complaints",
+        title: t("menu.complaints", "Complaints & Feedback"),
+        subtitle: t(
+          "menu.complaintsSubtitle",
+          "Raise issues or track resolutions"
+        ),
+        icon: "feedback",
+        color: "#EF4444",
+        route: "/complaints",
+      });
+    }
+
+    return items;
+  }, [user, t]);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
-        <Header title={t("menu.title")} subtitle={t("menu.subtitle")} />
+      {/* Top Header */}
+      <View style={localStyles.headerWrapper}>
+        <Header
+          title={t("menu.title", "Menu")}
+          subtitle={t("menu.subtitle", "Settings & More")}
+        />
       </View>
 
+      {/* Main Scrollable Content */}
       <ScrollView
         ref={scrollRef}
         showsVerticalScrollIndicator={false}
@@ -119,341 +117,70 @@ export default function MenuScreen() {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[
           styles.contentPaddingBottom,
-          { paddingHorizontal: 20 },
+          localStyles.scrollContainer,
         ]}
       >
-        {/* Logged-in User Profile Header Card */}
-        {user && (
-          <Card
-            variant="elevated"
-            onPress={() => router.push("/profile")}
-            style={{ marginBottom: 16 }}
-            contentStyle={{
-              flexDirection: "row",
-              alignItems: "center",
-              padding: 16,
-              gap: 16,
-            }}
-          >
-            <UserAvatar
-              photoUrl={user.profilePhoto}
-              name={user.name}
-              role={user.role}
-              size={54}
-              showBorder
-              borderColor={colors.primary + "30"}
-            />
-            <View style={{ flex: 1 }}>
-              <Text
-                style={{
-                  fontSize: 17,
-                  fontFamily: "DMSans-Bold",
-                  color: colors.onSurface,
-                }}
-                numberOfLines={1}
-              >
-                {user.name}
-              </Text>
-              <Text
-                style={{
-                  fontSize: 13,
-                  fontFamily: "DMSans-Medium",
-                  color: colors.onSurfaceVariant,
-                  marginTop: 2,
-                  textTransform: "capitalize",
-                }}
-                numberOfLines={1}
-              >
-                {user.role === "student" && user.currentClass?.name
-                  ? `Class ${user.currentClass.name}`
-                  : user.designation || user.role?.replace("_", " ")}
-              </Text>
-            </View>
-            <View
-              style={{
-                backgroundColor: colors.surfaceContainerHighest,
-                borderRadius: 20,
-                padding: 6,
-              }}
-            >
-              <MaterialIcons
-                name="chevron-right"
-                size={22}
-                color={colors.onSurfaceVariant}
-              />
-            </View>
-          </Card>
-        )}
+        {/* 1. User Profile Card (if logged in) or Guest Welcome Banner */}
+        <MenuHeroProfile user={user} />
 
-        {/* Quick Actions Grid */}
-        <View
-          style={{
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: 12,
-            marginTop: user ? 4 : 10,
-          }}
-        >
-          {menuItems.map((item, index) => (
-            <Card
-              key={index}
-              variant="elevated"
-              onPress={() =>
-                item.route ? router.push(item.route) : item.action()
-              }
-              style={{
-                width: "48%",
-                marginBottom: 4,
-              }}
-              contentStyle={{ padding: 16 }}
-            >
-              <View
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 14,
-                  backgroundColor: item.color + "15",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginBottom: 12,
-                }}
-              >
-                <MaterialIcons name={item.icon} size={24} color={item.color} />
-              </View>
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontFamily: "DMSans-Bold",
-                  color: colors.onSurface,
-                  marginBottom: 4,
-                }}
-              >
-                {item.title}
-              </Text>
-              <Text
-                style={{
-                  fontSize: 12,
-                  color: colors.onSurfaceVariant,
-                  fontFamily: "DMSans-Medium",
-                  lineHeight: 16,
-                }}
-              >
-                {item.subtitle}
-              </Text>
-            </Card>
-          ))}
+        {/* 2. Exclusive School Features (Events, Complaints, Vibes Approvals) */}
+        <View style={{ marginTop: 4 }}>
+          <MenuCategorySection
+            title="School Services"
+            icon="auto-awesome"
+            iconColor={colors.primary}
+            items={exclusiveMenuItems}
+          />
         </View>
 
-        {/* Settings Section */}
-        <Text style={[styles.titleMedium, { marginTop: 24, marginBottom: 12 }]}>
-          {t("menu.preferences")}
-        </Text>
+        {/* 3. Preferences & Privacy */}
+        <MenuPreferences
+          onOpenPrivacyPolicy={() => setShowPrivacyModal(true)}
+        />
 
-        <Card variant="filled" style={{ padding: 0, overflow: "hidden" }}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: 16,
-            }}
-          >
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 16 }}
-            >
-              <View
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 12,
-                  backgroundColor: colors.primaryContainer,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <MaterialIcons
-                  name={mode === "dark" ? "dark-mode" : "light-mode"}
-                  size={22}
-                  color={colors.onPrimaryContainer}
-                />
-              </View>
-              <View>
-                <Text
-                  style={{
-                    fontSize: 16,
-                    fontFamily: "DMSans-Bold",
-                    color: colors.onSurface,
-                  }}
-                >
-                  {t("menu.darkMode")}
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    color: colors.onSurfaceVariant,
-                    fontFamily: "DMSans-Regular",
-                  }}
-                >
-                  {mode === "dark"
-                    ? t("menu.darkModeOnSubtitle")
-                    : t("menu.darkModeOffSubtitle")}
-                </Text>
-              </View>
-            </View>
-            <Switch
-              value={mode === "dark"}
-              onValueChange={() => {
-                Haptics.selectionAsync().catch(() => {});
-                toggle();
-              }}
-              trackColor={{
-                false: colors.surfaceContainerHighest,
-                true: colors.primary,
-              }}
-              thumbColor={mode === "dark" ? colors.onPrimary : colors.outline}
-            />
-          </View>
-        </Card>
+        {/* 4. School Information, Mission & Direct Connect */}
+        <SchoolContactSection onOpenAbout={() => setShowAboutModal(true)} />
 
-        {/* Socials Section */}
-        <Text style={[styles.titleMedium, { marginTop: 24, marginBottom: 12 }]}>
-          {t("menu.followUs")}
-        </Text>
-        <Card
-          variant="outlined"
-          contentStyle={{
-            flexDirection: "row",
-            justifyContent: "space-around",
-            paddingVertical: 24,
+        {/* 5. Logout / Login & Official School Brand Identity */}
+        <MenuFooter
+          user={user}
+          onLogoutPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+            setShowLogoutModal(true);
           }}
-        >
-          <Pressable
-            onPress={() =>
-              handlePress(SCHOOL.socials.youtubeAppUrl, SCHOOL.socials.youtube)
-            }
-            style={({ pressed }) => ({
-              alignItems: "center",
-              opacity: pressed ? 0.7 : 1,
-            })}
-          >
-            <View
-              style={{
-                width: 56,
-                height: 56,
-                borderRadius: 18,
-                backgroundColor: "#FF000015",
-                alignItems: "center",
-                justifyContent: "center",
-                marginBottom: 8,
-              }}
-            >
-              <FontAwesome name="youtube-play" size={28} color="#FF0000" />
-            </View>
-            <Text
-              style={{
-                fontSize: 12,
-                fontFamily: "DMSans-Medium",
-                color: colors.onSurfaceVariant,
-              }}
-            >
-              {t("menu.youtube")}
-            </Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() =>
-              handlePress(
-                SCHOOL.socials.instagramAppUrl,
-                SCHOOL.socials.instagram
-              )
-            }
-            style={({ pressed }) => ({
-              alignItems: "center",
-              opacity: pressed ? 0.7 : 1,
-            })}
-          >
-            <View
-              style={{
-                width: 56,
-                height: 56,
-                borderRadius: 18,
-                backgroundColor: "#E1306C15",
-                alignItems: "center",
-                justifyContent: "center",
-                marginBottom: 8,
-              }}
-            >
-              <FontAwesome name="instagram" size={28} color="#E1306C" />
-            </View>
-            <Text
-              style={{
-                fontSize: 12,
-                fontFamily: "DMSans-Medium",
-                color: colors.onSurfaceVariant,
-              }}
-            >
-              {t("menu.instagram")}
-            </Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => handlePress(SCHOOL.mapAppUrl, SCHOOL.mapUrl)}
-            style={({ pressed }) => ({
-              alignItems: "center",
-              opacity: pressed ? 0.7 : 1,
-            })}
-          >
-            <View
-              style={{
-                width: 56,
-                height: 56,
-                borderRadius: 18,
-                backgroundColor: colors.primary + "15",
-                alignItems: "center",
-                justifyContent: "center",
-                marginBottom: 8,
-              }}
-            >
-              <MaterialIcons
-                name="location-on"
-                size={28}
-                color={colors.primary}
-              />
-            </View>
-            <Text
-              style={{
-                fontSize: 12,
-                fontFamily: "DMSans-Medium",
-                color: colors.onSurfaceVariant,
-              }}
-            >
-              {t("menu.location")}
-            </Text>
-          </Pressable>
-        </Card>
-
-        {/* Logout / Login Button */}
-        {user ? (
-          <Button
-            variant="tonal"
-            onPress={handleLogout}
-            style={{ marginTop: 24, backgroundColor: colors.errorContainer }}
-            textStyle={{ color: colors.onErrorContainer }}
-            icon="logout"
-          >
-            {t("common.logOut")}
-          </Button>
-        ) : (
-          <Button
-            variant="filled"
-            onPress={() => router.replace("/login")}
-            style={{ marginTop: 24 }}
-            icon="login"
-          >
-            {t("common.logIn")}
-          </Button>
-        )}
+          onLoginPress={() => router.push("/login")}
+        />
       </ScrollView>
+
+      {/* Modals */}
+      <SchoolInfoModal
+        visible={showAboutModal}
+        onClose={() => setShowAboutModal(false)}
+      />
+
+      <PrivacyPolicyModal
+        visible={showPrivacyModal}
+        onClose={() => setShowPrivacyModal(false)}
+      />
+
+      <LogoutConfirmModal
+        visible={showLogoutModal}
+        isLoading={isLoggingOut}
+        onConfirm={handleLogoutConfirm}
+        onCancel={() => setShowLogoutModal(false)}
+      />
     </View>
   );
 }
+
+const localStyles = StyleSheet.create({
+  headerWrapper: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 4,
+  },
+  scrollContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+  },
+});

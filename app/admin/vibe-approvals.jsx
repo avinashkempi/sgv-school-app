@@ -14,7 +14,7 @@ import {
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import { useToast } from "../../components/ToastProvider";
 import {
   useApiInfiniteQuery,
@@ -26,12 +26,15 @@ import { CACHE_TIERS } from "../../utils/cacheConfig";
 import VibeImageCarousel from "../../components/vibes/VibeImageCarousel";
 import RoleGuard from "../../components/RoleGuard";
 import UserAvatar from "../../components/ui/UserAvatar";
+import {
+  formatUserName,
+  formatUserDesignationOrRole,
+} from "../../utils/userFormatters";
 
 import {
   getAvatarUrl,
   getBlurPlaceholderUrl,
 } from "../../utils/cloudinaryUpload";
-import { Image } from "expo-image";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -166,7 +169,7 @@ export default function VibeApprovalsScreen() {
       const authorAvatarUri = item.author?.profilePhoto
         ? getAvatarUrl(item.author.profilePhoto, 80)
         : null;
-      const authorAvatarBlur = authorAvatarUri
+      const _authorAvatarBlur = authorAvatarUri
         ? getBlurPlaceholderUrl(authorAvatarUri)
         : null;
 
@@ -181,24 +184,18 @@ export default function VibeApprovalsScreen() {
           <View style={styles.authorHeader}>
             <UserAvatar
               photoUrl={item.author?.profilePhoto}
-              name={item.author?.name || "Community Member"}
+              name={formatUserName(item.author?.name, "Community Member")}
               role={item.author?.role}
               size={40}
             />
             <View style={{ flex: 1 }}>
               <Text style={[styles.authorName, { color: colors.onSurface }]}>
-                {item.author?.name || "Community Member"}
+                {formatUserName(item.author?.name, "Community Member")}
               </Text>
               <Text
                 style={[styles.authorRole, { color: colors.onSurfaceVariant }]}
               >
-                {item.author?.role === "student"
-                  ? `Student • ${
-                      item.author?.currentClass?.name || "Class Student"
-                    }`
-                  : item.author?.role === "teacher"
-                  ? `Teacher • ${item.author?.designation || "Staff"}`
-                  : item.author?.role}
+                {formatUserDesignationOrRole(item.author)}
                 {item.author?.phone ? ` • ${item.author.phone}` : ""}
               </Text>
             </View>
@@ -486,8 +483,8 @@ export default function VibeApprovalsScreen() {
                                 : colors.onSurface,
                             fontFamily:
                               selectedReason === r && !customReason
-                                ? "DMSans-Bold"
-                                : "DMSans-Regular",
+                                ? FONTS.bold
+                                : FONTS.regular,
                           },
                         ]}
                       >
@@ -566,12 +563,12 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   headerTitle: {
-    fontSize: 18,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xl,
+    fontFamily: FONTS.bold,
   },
   headerSubtitle: {
-    fontSize: 12,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.regular,
   },
   pendingPill: {
     paddingHorizontal: 10,
@@ -579,8 +576,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   pendingPillText: {
-    fontSize: 11,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
   },
   listContent: {
     paddingTop: 12,
@@ -593,8 +590,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   loadingText: {
-    fontSize: 14,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.regular,
   },
   emptyContainer: {
     flex: 1,
@@ -604,12 +601,12 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   emptyTitle: {
-    fontSize: 18,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xl,
+    fontFamily: FONTS.bold,
   },
   emptySubtitle: {
-    fontSize: 13,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.regular,
     textAlign: "center",
     lineHeight: 18,
   },
@@ -624,8 +621,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   refreshBtnText: {
-    fontSize: 13,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.medium,
   },
   reviewCard: {
     marginBottom: 24,
@@ -646,16 +643,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   avatarText: {
-    fontSize: 16,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.lg,
+    fontFamily: FONTS.bold,
   },
   authorName: {
-    fontSize: 14,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.bold,
   },
   authorRole: {
-    fontSize: 12,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.regular,
   },
   categoryBadge: {
     paddingHorizontal: 8,
@@ -663,8 +660,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   categoryBadgeText: {
-    fontSize: 11,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
     textTransform: "uppercase",
   },
   captionBox: {
@@ -673,9 +670,9 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   captionText: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.base,
     lineHeight: 20,
-    fontFamily: "DMSans-Regular",
+    fontFamily: FONTS.regular,
   },
   timeRow: {
     flexDirection: "row",
@@ -685,8 +682,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   timeText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.regular,
   },
   actionRow: {
     flexDirection: "row",
@@ -706,8 +703,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   rejectBtnText: {
-    fontSize: 14,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.bold,
   },
   approveBtn: {
     flex: 2,
@@ -720,8 +717,8 @@ const styles = StyleSheet.create({
   },
   approveBtnText: {
     color: "#fff",
-    fontSize: 14,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.bold,
   },
   loadingMore: {
     paddingVertical: 16,
@@ -746,11 +743,11 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 17,
-    fontFamily: "DMSans-Bold",
+    fontFamily: FONTS.bold,
   },
   modalHint: {
-    fontSize: 13,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.regular,
     marginBottom: 16,
   },
   reasonsContainer: {
@@ -766,7 +763,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   reasonOptionText: {
-    fontSize: 13,
+    fontSize: FONT_SIZES.md,
     flex: 1,
   },
   customReasonInput: {
@@ -774,8 +771,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 12,
     borderWidth: 1,
-    fontSize: 14,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.regular,
     marginBottom: 16,
   },
   modalActions: {
@@ -790,8 +787,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalCancelText: {
-    fontSize: 14,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.bold,
   },
   modalRejectBtn: {
     flex: 2,
@@ -801,7 +798,7 @@ const styles = StyleSheet.create({
   },
   modalRejectText: {
     color: "#fff",
-    fontSize: 14,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.bold,
   },
 });

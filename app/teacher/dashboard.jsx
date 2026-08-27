@@ -4,12 +4,12 @@ import {
   Text,
   ScrollView,
   Pressable,
-  RefreshControl,
 } from "react-native";
+import AppRefreshControl from "../../components/ui/AppRefreshControl";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import apiConfig from "../../config/apiConfig";
 import { useApiQuery } from "../../hooks/useApi";
 import { CACHE_TIERS } from "../../utils/cacheConfig";
@@ -68,11 +68,9 @@ export default function TeacherDashboard() {
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         <ScrollView
           refreshControl={
-            <RefreshControl
+            <AppRefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={[colors.primary]}
-              tintColor={colors.primary}
             />
           }
           contentContainerStyle={{
@@ -125,8 +123,8 @@ export default function TeacherDashboard() {
                 <View style={{ flex: 1 }}>
                   <Text
                     style={{
-                      fontSize: 17,
-                      fontFamily: "DMSans-Bold",
+                      fontSize: FONT_SIZES.lg,
+                      fontFamily: FONTS.bold,
                       color: colors.onSurface,
                       marginBottom: 4,
                     }}
@@ -135,9 +133,9 @@ export default function TeacherDashboard() {
                   </Text>
                   <Text
                     style={{
-                      fontSize: 13,
+                      fontSize: FONT_SIZES.md,
                       color: colors.onSurfaceVariant,
-                      fontFamily: "DMSans-Regular",
+                      fontFamily: FONTS.regular,
                     }}
                   >
                     {t("teacher.viewAllSchedules")}
@@ -199,8 +197,8 @@ export default function TeacherDashboard() {
               >
                 <Text
                   style={{
-                    fontSize: 18,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.xl,
+                    fontFamily: FONTS.bold,
                     color: colors.onSurface,
                   }}
                 >
@@ -226,9 +224,9 @@ export default function TeacherDashboard() {
                   />
                   <Text
                     style={{
-                      fontSize: 13,
+                      fontSize: FONT_SIZES.md,
                       color: colors.onSurfaceVariant,
-                      fontFamily: "DMSans-Medium",
+                      fontFamily: FONTS.medium,
                     }}
                   >
                     {cls.studentCount} {t("common.students")}
@@ -251,9 +249,9 @@ export default function TeacherDashboard() {
                     />
                     <Text
                       style={{
-                        fontSize: 13,
+                        fontSize: FONT_SIZES.md,
                         color: colors.onSurfaceVariant,
-                        fontFamily: "DMSans-Medium",
+                        fontFamily: FONTS.medium,
                         flex: 1,
                       }}
                     >
@@ -276,8 +274,8 @@ export default function TeacherDashboard() {
                 <Text
                   style={{
                     color: colors.primary,
-                    fontSize: 11,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.xs,
+                    fontFamily: FONTS.bold,
                     textTransform: "uppercase",
                   }}
                 >
@@ -337,8 +335,8 @@ export default function TeacherDashboard() {
               >
                 <Text
                   style={{
-                    fontSize: 16,
-                    fontFamily: "DMSans-SemiBold",
+                    fontSize: FONT_SIZES.lg,
+                    fontFamily: FONTS.semiBold,
                     color: colors.onSurface,
                     flex: 1,
                   }}
@@ -356,9 +354,9 @@ export default function TeacherDashboard() {
                   >
                     <Text
                       style={{
-                        fontSize: 10,
+                        fontSize: FONT_SIZES.micro,
                         color: colors.success,
-                        fontFamily: "DMSans-Bold",
+                        fontFamily: FONTS.bold,
                       }}
                     >
                       {t("teacher.myClass")}
@@ -382,11 +380,9 @@ export default function TeacherDashboard() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView
         refreshControl={
-          <RefreshControl
+          <AppRefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
           />
         }
         contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}
@@ -441,8 +437,8 @@ export default function TeacherDashboard() {
               </View>
               <Text
                 style={{
-                  fontSize: 14,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.base,
+                  fontFamily: FONTS.bold,
                   color: colors.onSurface,
                   textAlign: "center",
                 }}
@@ -484,8 +480,8 @@ export default function TeacherDashboard() {
               </View>
               <Text
                 style={{
-                  fontSize: 14,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.base,
+                  fontFamily: FONTS.bold,
                   color: colors.onSurface,
                   textAlign: "center",
                 }}

@@ -9,7 +9,7 @@ import {
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
 import apiConfig from "../config/apiConfig";
 import apiFetch from "../utils/apiFetch";
 import { useApiQuery } from "../hooks/useApi";
@@ -113,7 +113,7 @@ export default function SubjectsScreen() {
             style={{
               color: colors.onSurfaceVariant,
               marginTop: 16,
-              fontSize: 16,
+              fontSize: FONT_SIZES.lg,
             }}
           >
             No subjects assigned.
@@ -156,8 +156,8 @@ export default function SubjectsScreen() {
               <View>
                 <Text
                   style={{
-                    fontSize: 16,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.lg,
+                    fontFamily: FONTS.bold,
                     color: colors.onSurface,
                   }}
                 >
@@ -165,7 +165,7 @@ export default function SubjectsScreen() {
                 </Text>
                 <Text
                   style={{
-                    fontSize: 12,
+                    fontSize: FONT_SIZES.sm,
                     color: colors.onSurfaceVariant,
                     marginTop: 2,
                   }}
@@ -198,7 +198,7 @@ export default function SubjectsScreen() {
             style={{
               color: colors.onSurfaceVariant,
               marginTop: 16,
-              fontSize: 16,
+              fontSize: FONT_SIZES.lg,
             }}
           >
             No classes assigned.
@@ -209,8 +209,8 @@ export default function SubjectsScreen() {
           <View key={cls._id} style={{ marginBottom: 24 }}>
             <Text
               style={{
-                fontSize: 16,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.lg,
+                fontFamily: FONTS.bold,
                 color: colors.onSurface,
                 marginBottom: 12,
                 marginLeft: 4,
@@ -252,8 +252,8 @@ export default function SubjectsScreen() {
                 >
                   <Text
                     style={{
-                      fontSize: 15,
-                      fontFamily: "DMSans-SemiBold",
+                      fontSize: FONT_SIZES.mdLg,
+                      fontFamily: FONTS.semiBold,
                       color: colors.onSurface,
                     }}
                   >

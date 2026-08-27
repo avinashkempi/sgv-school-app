@@ -13,7 +13,7 @@ import Animated, {
   withTiming,
   Easing,
 } from "react-native-reanimated";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 import { useApiQuery } from "../../hooks/useApi";
 import apiConfig from "../../config/apiConfig";
@@ -24,16 +24,20 @@ import {
 } from "../../utils/cloudinaryUpload";
 import SkeletonLoader from "../SkeletonLoader";
 import VibeStoryViewerModal from "./VibeStoryViewerModal";
+import {
+  formatUserName,
+  formatUserDesignationOrRole,
+} from "../../utils/userFormatters";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-// Instagram-style vibrant gradient colors for unseen stories
-const UNSEEN_GRADIENT = ["#F59E0B", "#EF4444", "#EC4899", "#8B5CF6"];
+// Material 3 Expressive vibrant gradient colors for unseen stories
+const UNSEEN_GRADIENT = ["#8B5CF6", "#EC4899", "#EF4444", "#F59E0B"];
 const OFFICIAL_GRADIENT = ["#3B82F6", "#1D4ED8", "#60A5FA"];
 const ACHIEVEMENT_GRADIENT = ["#F59E0B", "#D97706", "#FCD34D"];
 
 /**
- * Single Story Ring Bubble with Instagram Gradient Ring & Seen/Unseen State
+ * Single Story Ring Bubble with Material 3 Expressive Gradient Ring & Seen/Unseen State
  */
 const StoryBubble = memo(
   ({
@@ -42,7 +46,7 @@ const StoryBubble = memo(
     imageUri,
     icon,
     ringColor,
-    isSpecial,
+    isSpecial: _isSpecial,
     isOfficial,
     isAchievement,
     isViewed,
@@ -88,7 +92,7 @@ const StoryBubble = memo(
         accessibilityRole="button"
         accessibilityLabel={title}
       >
-        {/* Outer Story Ring — Gradient for Unseen, Muted for Seen */}
+        {/* Outer Story Ring — Gradient for Unseen, Muted Tonal Outline for Seen */}
         {!isViewed ? (
           <LinearGradient
             colors={gradientColors}
@@ -99,7 +103,7 @@ const StoryBubble = memo(
             <View
               style={[
                 styles.ringInner,
-                { backgroundColor: colors.surfaceContainer },
+                { backgroundColor: colors.background },
               ]}
             >
               {optimizedImg ? (
@@ -110,36 +114,38 @@ const StoryBubble = memo(
                   }
                   style={styles.avatarImage}
                   contentFit="cover"
-                  transition={150}
-                  cachePolicy="memory-disk"
+                  transition={200}
                 />
+              ) : isOfficial ? (
+                <View
+                  style={[
+                    styles.iconWrapper,
+                    {
+                      backgroundColor: colors.surfaceContainerLowest || "#ffffff",
+                      padding: 4,
+                    },
+                  ]}
+                >
+                  <Image
+                    source={require("../../assets/images/icon.png")}
+                    style={{ width: "100%", height: "100%", borderRadius: 24 }}
+                    contentFit="contain"
+                  />
+                </View>
               ) : (
                 <View
                   style={[
                     styles.iconWrapper,
                     {
-                      backgroundColor: ringColor
-                        ? ringColor + "20"
-                        : colors.primaryContainer,
+                      backgroundColor: ringColor || colors.primary,
                     },
                   ]}
                 >
                   <MaterialIcons
-                    name={icon || "auto-awesome"}
-                    size={26}
-                    color={ringColor || colors.primary}
+                    name={icon || "school"}
+                    size={24}
+                    color="#fff"
                   />
-                </View>
-              )}
-
-              {badgeIcon && (
-                <View
-                  style={[
-                    styles.badgePill,
-                    { backgroundColor: ringColor || colors.primary },
-                  ]}
-                >
-                  <MaterialIcons name={badgeIcon} size={11} color="#fff" />
                 </View>
               )}
             </View>
@@ -148,13 +154,15 @@ const StoryBubble = memo(
           <View
             style={[
               styles.seenRingOuter,
-              { borderColor: colors.outlineVariant },
+              {
+                borderColor: colors.outlineVariant || "rgba(0,0,0,0.12)",
+              },
             ]}
           >
             <View
               style={[
                 styles.ringInner,
-                { backgroundColor: colors.surfaceContainer },
+                { backgroundColor: colors.background },
               ]}
             >
               {optimizedImg ? (
@@ -165,59 +173,91 @@ const StoryBubble = memo(
                   }
                   style={[styles.avatarImage, { opacity: 0.85 }]}
                   contentFit="cover"
-                  transition={150}
-                  cachePolicy="memory-disk"
+                  transition={200}
                 />
+              ) : isOfficial ? (
+                <View
+                  style={[
+                    styles.iconWrapper,
+                    {
+                      backgroundColor: colors.surfaceContainerLowest || "#ffffff",
+                      padding: 4,
+                    },
+                  ]}
+                >
+                  <Image
+                    source={require("../../assets/images/icon.png")}
+                    style={{ width: "100%", height: "100%", borderRadius: 24 }}
+                    contentFit="contain"
+                  />
+                </View>
               ) : (
                 <View
                   style={[
                     styles.iconWrapper,
-                    { backgroundColor: colors.surfaceContainerHighest },
+                    {
+                      backgroundColor: colors.surfaceContainerHighest,
+                    },
                   ]}
                 >
                   <MaterialIcons
-                    name={icon || "auto-awesome"}
+                    name={icon || "school"}
                     size={24}
                     color={colors.onSurfaceVariant}
                   />
-                </View>
-              )}
-
-              {badgeIcon && (
-                <View
-                  style={[
-                    styles.badgePill,
-                    { backgroundColor: colors.onSurfaceVariant },
-                  ]}
-                >
-                  <MaterialIcons name={badgeIcon} size={10} color="#fff" />
                 </View>
               )}
             </View>
           </View>
         )}
 
+        {/* Floating Mini Badge */}
+        {badgeIcon && (
+          <View
+            style={[
+              styles.badgePill,
+              {
+                backgroundColor: isOfficial
+                  ? "#2563EB"
+                  : isAchievement
+                  ? "#F59E0B"
+                  : "#8B5CF6",
+                borderColor: colors.background,
+              },
+            ]}
+          >
+            <MaterialIcons name={badgeIcon} size={10} color="#fff" />
+          </View>
+        )}
+
+        {/* Title */}
         <Text
           style={[
             styles.bubbleLabel,
             {
               color: isViewed ? colors.onSurfaceVariant : colors.onSurface,
-              fontFamily:
-                isSpecial || !isViewed ? "DMSans-Bold" : "DMSans-Medium",
+              fontFamily: isViewed ? FONTS.medium : FONTS.bold,
             },
           ]}
           numberOfLines={1}
         >
           {title}
         </Text>
-        {subtitle && (
+
+        {/* Subtitle */}
+        {subtitle ? (
           <Text
-            style={[styles.bubbleSublabel, { color: colors.onSurfaceVariant }]}
+            style={[
+              styles.bubbleSublabel,
+              {
+                color: colors.onSurfaceVariant,
+              },
+            ]}
             numberOfLines={1}
           >
             {subtitle}
           </Text>
-        )}
+        ) : null}
       </AnimatedPressable>
     );
   }
@@ -226,28 +266,22 @@ const StoryBubble = memo(
 StoryBubble.displayName = "StoryBubble";
 
 /**
- * Animated Pulsing Green Live Dot Component
+ * Pulsing Live Indicator Dot
  */
 const PulsingLiveDot = memo(() => {
-  const pulseScale = useSharedValue(1);
-  const pulseOpacity = useSharedValue(1);
+  const pulse = useSharedValue(1);
 
   useEffect(() => {
-    pulseScale.value = withRepeat(
-      withTiming(1.4, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
+    pulse.value = withRepeat(
+      withTiming(1.6, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
       -1,
       true
     );
-    pulseOpacity.value = withRepeat(
-      withTiming(0.4, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
-      -1,
-      true
-    );
-  }, [pulseScale, pulseOpacity]);
+  }, [pulse]);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pulseScale.value }],
-    opacity: pulseOpacity.value,
+    transform: [{ scale: pulse.value }],
+    opacity: 2 - pulse.value,
   }));
 
   return (
@@ -261,9 +295,18 @@ const PulsingLiveDot = memo(() => {
 PulsingLiveDot.displayName = "PulsingLiveDot";
 
 /**
- * VibeStoriesTray — horizontal story bar displayed near the top of the Home Page.
+ * Format author's first name for story circle labels in Title Case
  */
-const VibeStoriesTray = ({ onOpenCreate }) => {
+const formatAuthorName = (name) => {
+  const formatted = formatUserName(name, "Campus");
+  const first = formatted.trim().split(/\s+/)[0];
+  return first;
+};
+
+/**
+ * VibeStoriesTray — horizontal story bar displayed near the top of the Home Page and Vibes feed.
+ */
+const VibeStoriesTray = ({ onOpenCreate, hideHeader = false }) => {
   const { colors } = useTheme();
   const router = useRouter();
   const { isAuthenticated } = useAuth();
@@ -308,10 +351,10 @@ const VibeStoriesTray = ({ onOpenCreate }) => {
     if (officialVibes.length > 0) {
       setActiveStoryGroup({
         stories: officialVibes,
-        title: "SGV Official",
+        title: "SGV Official Broadcasts",
       });
     } else {
-      router.push({ pathname: "/vibes", params: { category: "official" } });
+      router.push("/vibes");
     }
   }, [officialVibes, router]);
 
@@ -319,10 +362,10 @@ const VibeStoriesTray = ({ onOpenCreate }) => {
     if (achievementVibes.length > 0) {
       setActiveStoryGroup({
         stories: achievementVibes,
-        title: "Achievements Spotlight",
+        title: "Campus Achievements",
       });
     } else {
-      router.push({ pathname: "/vibes", params: { category: "achievement" } });
+      router.push("/vibes");
     }
   }, [achievementVibes, router]);
 
@@ -331,7 +374,7 @@ const VibeStoriesTray = ({ onOpenCreate }) => {
       if (story.vibes && story.vibes.length > 0) {
         setActiveStoryGroup({
           stories: story.vibes,
-          title: story.author?.name || "Campus Moment",
+          title: formatUserName(story.author?.name, "Campus Moment"),
         });
       } else {
         router.push("/vibes");
@@ -354,7 +397,11 @@ const VibeStoriesTray = ({ onOpenCreate }) => {
         type: "official",
         title: "Official",
         subtitle:
-          officialVibes.length > 0 ? `${officialVibes.length} live` : "Notices",
+          officialVibes.length === 1
+            ? "1 live"
+            : officialVibes.length > 1
+            ? `${officialVibes.length} live`
+            : "Notices",
         icon: "school",
         ringColor: "#2563EB",
         isSpecial: true,
@@ -371,7 +418,9 @@ const VibeStoriesTray = ({ onOpenCreate }) => {
         type: "achievement",
         title: "Achievements",
         subtitle:
-          achievementVibes.length > 0
+          achievementVibes.length === 1
+            ? "1 win"
+            : achievementVibes.length > 1
             ? `${achievementVibes.length} wins`
             : "Spotlight",
         icon: "emoji-events",
@@ -388,13 +437,8 @@ const VibeStoriesTray = ({ onOpenCreate }) => {
     ];
 
     authorStories.forEach((story, idx) => {
-      const authorName = story.author?.name
-        ? story.author.name.split(" ")[0]
-        : "Campus";
-      const role =
-        story.author?.role === "teacher"
-          ? "Faculty"
-          : story.author?.currentClass || "Student";
+      const authorName = formatAuthorName(story.author?.name);
+      const role = formatUserDesignationOrRole(story.author);
       const isStoryViewed = story.isViewed || story.unviewedCount === 0;
 
       items.push({
@@ -441,7 +485,7 @@ const VibeStoriesTray = ({ onOpenCreate }) => {
             <View
               style={[
                 styles.addOuterRing,
-                { borderColor: colors.outlineVariant },
+                { borderColor: colors.outlineVariant || "rgba(0,0,0,0.15)" },
               ]}
             >
               <View
@@ -450,14 +494,17 @@ const VibeStoriesTray = ({ onOpenCreate }) => {
                   { backgroundColor: colors.surfaceContainerHighest },
                 ]}
               >
-                <MaterialIcons name="add" size={26} color={colors.primary} />
+                <MaterialIcons name="add" size={24} color={colors.primary} />
               </View>
             </View>
             <Text
               style={[
                 styles.bubbleLabel,
-                { color: colors.onSurface, fontFamily: "DMSans-Bold" },
+                { color: colors.onSurface, fontFamily: FONTS.bold },
               ]}
+              numberOfLines={1}
+              adjustsFontSizeToFit={true}
+              minimumFontScale={0.85}
             >
               {isAuthenticated ? "Post Vibe" : "Share"}
             </Text>
@@ -466,6 +513,9 @@ const VibeStoriesTray = ({ onOpenCreate }) => {
                 styles.bubbleSublabel,
                 { color: colors.onSurfaceVariant },
               ]}
+              numberOfLines={1}
+              adjustsFontSizeToFit={true}
+              minimumFontScale={0.85}
             >
               New Moment
             </Text>
@@ -493,29 +543,31 @@ const VibeStoriesTray = ({ onOpenCreate }) => {
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <View style={styles.titleGroup}>
-          <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>
-            Campus Moments
-          </Text>
-          <PulsingLiveDot />
+    <View style={[styles.container, hideHeader && styles.containerNoHeader]}>
+      {!hideHeader && (
+        <View style={styles.headerRow}>
+          <View style={styles.titleGroup}>
+            <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>
+              Campus Moments
+            </Text>
+            <PulsingLiveDot />
+          </View>
+          <Pressable
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
+                () => {}
+              );
+              router.push("/vibes");
+            }}
+            hitSlop={8}
+            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+          >
+            <Text style={[styles.viewAllText, { color: colors.primary }]}>
+              View All
+            </Text>
+          </Pressable>
         </View>
-        <Pressable
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
-              () => {}
-            );
-            router.push("/vibes");
-          }}
-          hitSlop={8}
-          style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
-        >
-          <Text style={[styles.viewAllText, { color: colors.primary }]}>
-            View All
-          </Text>
-        </Pressable>
-      </View>
+      )}
 
       {isLoading && authorStories.length === 0 ? (
         <View style={{ flexDirection: "row", gap: 14, paddingHorizontal: 2 }}>
@@ -560,8 +612,12 @@ const VibeStoriesTray = ({ onOpenCreate }) => {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 20,
+    marginBottom: 16,
     marginTop: 4,
+  },
+  containerNoHeader: {
+    marginBottom: 8,
+    marginTop: 2,
   },
   headerRow: {
     flexDirection: "row",
@@ -576,8 +632,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.lg,
+    fontFamily: FONTS.bold,
     letterSpacing: -0.2,
   },
   liveDotContainer: {
@@ -595,23 +651,23 @@ const styles = StyleSheet.create({
     backgroundColor: "#10B981",
   },
   liveDotCore: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     backgroundColor: "#10B981",
   },
   viewAllText: {
-    fontSize: 13,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.bold,
   },
   scrollContent: {
     paddingHorizontal: 2,
-    gap: 14,
+    gap: 12,
     paddingVertical: 2,
   },
   bubbleContainer: {
     alignItems: "center",
-    width: 68,
+    width: 72,
   },
   gradientRingOuter: {
     width: 68,
@@ -620,7 +676,7 @@ const styles = StyleSheet.create({
     padding: 2.5,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 6,
+    marginBottom: 5,
   },
   seenRingOuter: {
     width: 68,
@@ -630,7 +686,7 @@ const styles = StyleSheet.create({
     padding: 2,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 6,
+    marginBottom: 5,
   },
   ringInner: {
     width: "100%",
@@ -653,24 +709,25 @@ const styles = StyleSheet.create({
   },
   badgePill: {
     position: "absolute",
-    bottom: 0,
-    right: 0,
-    width: 17,
-    height: 17,
+    bottom: 22,
+    right: 4,
+    width: 18,
+    height: 18,
     borderRadius: 9,
-    borderWidth: 1.5,
-    borderColor: "#fff",
+    borderWidth: 2,
     alignItems: "center",
     justifyContent: "center",
+    zIndex: 2,
   },
   bubbleLabel: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.medium,
     textAlign: "center",
     width: "100%",
   },
   bubbleSublabel: {
-    fontSize: 10,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.regular,
     textAlign: "center",
     marginTop: 1,
     width: "100%",
@@ -684,7 +741,7 @@ const styles = StyleSheet.create({
     padding: 3,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 6,
+    marginBottom: 5,
   },
   addInnerBox: {
     width: "100%",

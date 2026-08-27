@@ -15,7 +15,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 
 import { useRouter } from "expo-router";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import {
   useApiQuery,
   useApiMutation,
@@ -25,6 +25,10 @@ import apiConfig from "../../config/apiConfig";
 import { useQueryClient } from "@tanstack/react-query";
 import AppHeader from "../../components/Header";
 import UserAvatar from "../../components/ui/UserAvatar";
+import {
+  formatUserName,
+  formatUserDesignationOrRole,
+} from "../../utils/userFormatters";
 import { useToast } from "../../components/ToastProvider";
 
 export default function TeacherSubjectsScreen() {
@@ -203,7 +207,7 @@ export default function TeacherSubjectsScreen() {
               style={{
                 flex: 1,
                 marginLeft: 12,
-                fontSize: 16,
+                fontSize: FONT_SIZES.lg,
                 color: colors.textPrimary,
                 height: "100%",
               }}
@@ -250,8 +254,8 @@ export default function TeacherSubjectsScreen() {
                     style={{
                       color: colors.textSecondary,
                       marginTop: 20,
-                      fontSize: 16,
-                      fontFamily: "DMSans-Medium",
+                      fontSize: FONT_SIZES.lg,
+                      fontFamily: FONTS.medium,
                     }}
                   >
                     No teachers found
@@ -289,19 +293,19 @@ export default function TeacherSubjectsScreen() {
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}>
                         <UserAvatar
                           photoUrl={teacher?.profilePhoto}
-                          name={teacher?.name}
+                          name={formatUserName(teacher?.name, "Teacher")}
                           role={teacher?.role || "teacher"}
                           size={42}
                         />
                         <View style={{ flex: 1 }}>
                           <Text
                             style={{
-                              fontSize: 18,
-                              fontFamily: "DMSans-Bold",
+                              fontSize: FONT_SIZES.xl,
+                              fontFamily: FONTS.bold,
                               color: colors.textPrimary,
                             }}
                           >
-                            {teacher?.name || "Unknown Teacher"}
+                            {formatUserName(teacher?.name, "Unknown Teacher")}
                           </Text>
                           <View
                             style={{
@@ -320,25 +324,21 @@ export default function TeacherSubjectsScreen() {
                           >
                             <Text
                               style={{
-                                fontSize: 11,
+                                fontSize: FONT_SIZES.xs,
                                 color: colors.primary,
-                                fontFamily: "DMSans-Bold",
+                                fontFamily: FONTS.bold,
                                 textTransform: "uppercase",
                               }}
                             >
-                              {teacher.role !== "student" && teacher.designation
-                                ? teacher.designation
-                                : teacher.role === "support_staff"
-                                ? "Support Staff"
-                                : teacher.role}
+                              {formatUserDesignationOrRole(teacher, { fallback: teacher?.role || "Teacher" })}
                             </Text>
                           </View>
                           <Text
                             style={{
-                              fontSize: 12,
+                              fontSize: FONT_SIZES.sm,
                               color: colors.textSecondary,
                               marginLeft: 8,
-                              fontFamily: "DMSans-Medium",
+                              fontFamily: FONTS.medium,
                             }}
                           >
                             {teacher.subjects?.length || 0} Subject
@@ -373,8 +373,8 @@ export default function TeacherSubjectsScreen() {
                           <Text
                             style={{
                               color: "#fff",
-                              fontSize: 12,
-                              fontFamily: "DMSans-Bold",
+                              fontSize: FONT_SIZES.sm,
+                              fontFamily: FONTS.bold,
                             }}
                           >
                             Assign
@@ -408,8 +408,8 @@ export default function TeacherSubjectsScreen() {
                           <>
                             <Text
                               style={{
-                                fontSize: 12,
-                                fontFamily: "DMSans-Bold",
+                                fontSize: FONT_SIZES.sm,
+                                fontFamily: FONTS.bold,
                                 color: colors.textSecondary,
                                 marginBottom: 8,
                                 textTransform: "uppercase",
@@ -435,8 +435,8 @@ export default function TeacherSubjectsScreen() {
                                   <View style={{ flex: 1 }}>
                                     <Text
                                       style={{
-                                        fontSize: 15,
-                                        fontFamily: "DMSans-SemiBold",
+                                        fontSize: FONT_SIZES.mdLg,
+                                        fontFamily: FONTS.semiBold,
                                         color: colors.textPrimary,
                                       }}
                                     >
@@ -444,9 +444,9 @@ export default function TeacherSubjectsScreen() {
                                     </Text>
                                     <Text
                                       style={{
-                                        fontSize: 12,
+                                        fontSize: FONT_SIZES.sm,
                                         color: colors.textSecondary,
-                                        fontFamily: "DMSans-Regular",
+                                        fontFamily: FONTS.regular,
                                         marginTop: 2,
                                       }}
                                     >
@@ -488,10 +488,10 @@ export default function TeacherSubjectsScreen() {
                           >
                             <Text
                               style={{
-                                fontSize: 13,
+                                fontSize: FONT_SIZES.md,
                                 color: colors.textSecondary,
                                 fontStyle: "italic",
-                                fontFamily: "DMSans-Regular",
+                                fontFamily: FONTS.regular,
                               }}
                             >
                               No subjects assigned yet
@@ -548,8 +548,8 @@ export default function TeacherSubjectsScreen() {
               <View style={{ flex: 1 }}>
                 <Text
                   style={{
-                    fontSize: 20,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.xxl,
+                    fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                   }}
                 >
@@ -557,9 +557,9 @@ export default function TeacherSubjectsScreen() {
                 </Text>
                 <Text
                   style={{
-                    fontSize: 14,
+                    fontSize: FONT_SIZES.base,
                     color: colors.textSecondary,
-                    fontFamily: "DMSans-Regular",
+                    fontFamily: FONTS.regular,
                     marginTop: 2,
                   }}
                 >
@@ -604,7 +604,7 @@ export default function TeacherSubjectsScreen() {
                 style={{
                   flex: 1,
                   marginLeft: 8,
-                  fontSize: 15,
+                  fontSize: FONT_SIZES.mdLg,
                   color: colors.textPrimary,
                   height: "100%",
                 }}
@@ -639,8 +639,8 @@ export default function TeacherSubjectsScreen() {
               >
                 <Text
                   style={{
-                    fontSize: 14,
-                    fontFamily: "DMSans-SemiBold",
+                    fontSize: FONT_SIZES.base,
+                    fontFamily: FONTS.semiBold,
                     color: colors.primary,
                   }}
                 >
@@ -650,8 +650,8 @@ export default function TeacherSubjectsScreen() {
                 <Pressable onPress={() => setSelectedSubjects([])}>
                   <Text
                     style={{
-                      fontSize: 13,
-                      fontFamily: "DMSans-Bold",
+                      fontSize: FONT_SIZES.md,
+                      fontFamily: FONTS.bold,
                       color: colors.primary,
                     }}
                   >
@@ -731,8 +731,8 @@ export default function TeacherSubjectsScreen() {
                         <View style={{ flex: 1, marginRight: 12 }}>
                           <Text
                             style={{
-                              fontSize: 16,
-                              fontFamily: "DMSans-SemiBold",
+                              fontSize: FONT_SIZES.lg,
+                              fontFamily: FONTS.semiBold,
                               color: colors.textPrimary,
                             }}
                           >
@@ -740,9 +740,9 @@ export default function TeacherSubjectsScreen() {
                           </Text>
                           <Text
                             style={{
-                              fontSize: 13,
+                              fontSize: FONT_SIZES.md,
                               color: colors.textSecondary,
-                              fontFamily: "DMSans-Regular",
+                              fontFamily: FONTS.regular,
                               marginTop: 2,
                             }}
                           >
@@ -770,8 +770,8 @@ export default function TeacherSubjectsScreen() {
                             />
                             <Text
                               style={{
-                                fontSize: 11,
-                                fontFamily: "DMSans-Bold",
+                                fontSize: FONT_SIZES.xs,
+                                fontFamily: FONTS.bold,
                                 color: colors.success,
                                 marginLeft: 4,
                               }}
@@ -845,8 +845,8 @@ export default function TeacherSubjectsScreen() {
                   <Text
                     style={{
                       color: "#fff",
-                      fontSize: 16,
-                      fontFamily: "DMSans-Bold",
+                      fontSize: FONT_SIZES.lg,
+                      fontFamily: FONTS.bold,
                     }}
                   >
                     Assign{" "}

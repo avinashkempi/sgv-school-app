@@ -16,7 +16,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import SkeletonLoader from "../../components/SkeletonLoader";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import {
   useApiQuery,
   useApiMutation,
@@ -27,6 +27,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import Header from "../../components/Header";
 import Card from "../../components/Card";
 import UserAvatar from "../../components/ui/UserAvatar";
+import { formatUserName } from "../../utils/userFormatters";
 import ModernTimePicker from "../../components/ModernTimePicker";
 import { useToast } from "../../components/ToastProvider";
 import apiConfig from "../../config/apiConfig";
@@ -147,8 +148,8 @@ export default function AdminTimetableScreen() {
                   : subjectObj?.name || "Unknown";
               const teacherName =
                 typeof p.teacher === "object" && p.teacher?.name
-                  ? p.teacher.name
-                  : teacherObj?.name || "No Teacher";
+                  ? formatUserName(p.teacher.name)
+                  : teacherObj?.name ? formatUserName(teacherObj.name) : "No Teacher";
               const teacherPhoto =
                 typeof p.teacher === "object" && p.teacher?.profilePhoto
                   ? p.teacher.profilePhoto
@@ -517,11 +518,11 @@ export default function AdminTimetableScreen() {
         <View style={{ marginBottom: 20 }}>
           <Text
             style={{
-              fontSize: 14,
+              fontSize: FONT_SIZES.base,
               color: colors.textSecondary,
               marginLeft: 16,
               marginBottom: 8,
-              fontFamily: "DMSans-Medium",
+              fontFamily: FONTS.medium,
             }}
           >
             Select Class
@@ -557,8 +558,8 @@ export default function AdminTimetableScreen() {
                       selectedClassId === cls._id ? "#fff" : colors.textPrimary,
                     fontFamily:
                       selectedClassId === cls._id
-                        ? "DMSans-Bold"
-                        : "DMSans-Medium",
+                        ? FONTS.bold
+                        : FONTS.medium,
                   }}
                 >
                   {formatClassName(cls.name, cls.section)}
@@ -596,7 +597,7 @@ export default function AdminTimetableScreen() {
                       style={{
                         color:
                           selectedDay === day ? "#fff" : colors.textSecondary,
-                        fontFamily: "DMSans-Bold",
+                        fontFamily: FONTS.bold,
                       }}
                     >
                       {day.slice(0, 3)}
@@ -618,8 +619,8 @@ export default function AdminTimetableScreen() {
               >
                 <Text
                   style={{
-                    fontSize: 18,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.xl,
+                    fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                   }}
                 >
@@ -649,7 +650,7 @@ export default function AdminTimetableScreen() {
                     <Text
                       style={{
                         color: colors.secondary,
-                        fontFamily: "DMSans-Bold",
+                        fontFamily: FONTS.bold,
                       }}
                     >
                       Clone
@@ -674,7 +675,7 @@ export default function AdminTimetableScreen() {
                     <Text
                       style={{
                         color: colors.primary,
-                        fontFamily: "DMSans-Bold",
+                        fontFamily: FONTS.bold,
                       }}
                     >
                       Add
@@ -704,7 +705,7 @@ export default function AdminTimetableScreen() {
                     style={{
                       color: colors.textSecondary,
                       marginTop: 12,
-                      fontFamily: "DMSans-Medium",
+                      fontFamily: FONTS.medium,
                     }}
                   >
                     No periods scheduled
@@ -735,9 +736,9 @@ export default function AdminTimetableScreen() {
                     >
                       <Text
                         style={{
-                          fontFamily: "DMSans-Bold",
+                          fontFamily: FONTS.bold,
                           color: colors.primary,
-                          fontSize: 18,
+                          fontSize: FONT_SIZES.xl,
                         }}
                       >
                         {period.periodNumber}
@@ -747,9 +748,9 @@ export default function AdminTimetableScreen() {
                     <View style={{ flex: 1 }}>
                       <Text
                         style={{
-                          fontFamily: "DMSans-Bold",
+                          fontFamily: FONTS.bold,
                           color: colors.textPrimary,
-                          fontSize: 16,
+                          fontSize: FONT_SIZES.lg,
                           marginBottom: 4,
                         }}
                       >
@@ -770,8 +771,8 @@ export default function AdminTimetableScreen() {
                         <Text
                           style={{
                             color: colors.textSecondary,
-                            fontSize: 12,
-                            fontFamily: "DMSans-Medium",
+                            fontSize: FONT_SIZES.sm,
+                            fontFamily: FONTS.medium,
                           }}
                         >
                           {period.startTime} - {period.endTime}
@@ -781,7 +782,7 @@ export default function AdminTimetableScreen() {
                         {period.teacherName && period.teacherName !== "No Teacher" && (
                           <UserAvatar
                             photoUrl={period.teacherPhoto}
-                            name={period.teacherName}
+                            name={formatUserName(period.teacherName)}
                             role="teacher"
                             size={18}
                           />
@@ -789,11 +790,11 @@ export default function AdminTimetableScreen() {
                         <Text
                           style={{
                             color: colors.textSecondary,
-                            fontSize: 12,
-                            fontFamily: "DMSans-Regular",
+                            fontSize: FONT_SIZES.sm,
+                            fontFamily: FONTS.regular,
                           }}
                         >
-                          {period.teacherName}
+                          {formatUserName(period.teacherName)}
                         </Text>
                       </View>
                     </View>
@@ -843,8 +844,8 @@ export default function AdminTimetableScreen() {
                     <Text
                       style={{
                         color: "#fff",
-                        fontFamily: "DMSans-Bold",
-                        fontSize: 16,
+                        fontFamily: FONTS.bold,
+                        fontSize: FONT_SIZES.lg,
                       }}
                     >
                       Save Changes
@@ -873,8 +874,8 @@ export default function AdminTimetableScreen() {
               style={{
                 marginTop: 16,
                 color: colors.textSecondary,
-                fontFamily: "DMSans-Medium",
-                fontSize: 16,
+                fontFamily: FONTS.medium,
+                fontSize: FONT_SIZES.lg,
               }}
             >
               Select a class to manage schedule
@@ -922,8 +923,8 @@ export default function AdminTimetableScreen() {
               >
                 <Text
                   style={{
-                    fontSize: 20,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.xxl,
+                    fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                   }}
                 >
@@ -955,7 +956,7 @@ export default function AdminTimetableScreen() {
                   style={{
                     color: colors.textSecondary,
                     marginBottom: 8,
-                    fontFamily: "DMSans-Medium",
+                    fontFamily: FONTS.medium,
                   }}
                 >
                   Period Number
@@ -974,7 +975,7 @@ export default function AdminTimetableScreen() {
                     marginBottom: 20,
                     borderWidth: 1,
                     borderColor: colors.outlineVariant,
-                    fontFamily: "DMSans-Regular",
+                    fontFamily: FONTS.regular,
                   }}
                 />
 
@@ -987,7 +988,7 @@ export default function AdminTimetableScreen() {
                       style={{
                         color: colors.textSecondary,
                         marginBottom: 8,
-                        fontFamily: "DMSans-Medium",
+                        fontFamily: FONTS.medium,
                       }}
                     >
                       Start Time
@@ -1010,7 +1011,7 @@ export default function AdminTimetableScreen() {
                       <Text
                         style={{
                           color: colors.textPrimary,
-                          fontFamily: "DMSans-Regular",
+                          fontFamily: FONTS.regular,
                         }}
                       >
                         {tempPeriod.startTime.toLocaleTimeString([], {
@@ -1031,7 +1032,7 @@ export default function AdminTimetableScreen() {
                       style={{
                         color: colors.textSecondary,
                         marginBottom: 8,
-                        fontFamily: "DMSans-Medium",
+                        fontFamily: FONTS.medium,
                       }}
                     >
                       End Time
@@ -1054,7 +1055,7 @@ export default function AdminTimetableScreen() {
                       <Text
                         style={{
                           color: colors.textPrimary,
-                          fontFamily: "DMSans-Regular",
+                          fontFamily: FONTS.regular,
                         }}
                       >
                         {tempPeriod.endTime.toLocaleTimeString([], {
@@ -1077,7 +1078,7 @@ export default function AdminTimetableScreen() {
                   style={{
                     color: colors.textSecondary,
                     marginBottom: 8,
-                    fontFamily: "DMSans-Medium",
+                    fontFamily: FONTS.medium,
                   }}
                 >
                   Subject
@@ -1092,7 +1093,7 @@ export default function AdminTimetableScreen() {
                     <Text
                       style={{
                         color: colors.error,
-                        fontFamily: "DMSans-Regular",
+                        fontFamily: FONTS.regular,
                       }}
                     >
                       No subjects found for this class.
@@ -1131,8 +1132,8 @@ export default function AdminTimetableScreen() {
                                 : colors.textPrimary,
                             fontFamily:
                               tempPeriod.subject === sub._id
-                                ? "DMSans-Bold"
-                                : "DMSans-Medium",
+                                ? FONTS.bold
+                                : FONTS.medium,
                           }}
                         >
                           {sub.name}
@@ -1149,7 +1150,7 @@ export default function AdminTimetableScreen() {
                       style={{
                         color: colors.textSecondary,
                         marginBottom: 8,
-                        fontFamily: "DMSans-Medium",
+                        fontFamily: FONTS.medium,
                       }}
                     >
                       Teacher
@@ -1166,7 +1167,7 @@ export default function AdminTimetableScreen() {
                         <Text
                           style={{
                             color: colors.error,
-                            fontFamily: "DMSans-Regular",
+                            fontFamily: FONTS.regular,
                           }}
                         >
                           No teachers assigned to this subject.
@@ -1203,8 +1204,8 @@ export default function AdminTimetableScreen() {
                                       : colors.textPrimary,
                                   fontFamily:
                                     tempPeriod.teacher === t._id
-                                      ? "DMSans-Bold"
-                                      : "DMSans-Medium",
+                                      ? FONTS.bold
+                                      : FONTS.medium,
                                 }}
                               >
                                 {t.name}
@@ -1233,8 +1234,8 @@ export default function AdminTimetableScreen() {
                   <Text
                     style={{
                       color: "#fff",
-                      fontFamily: "DMSans-Bold",
-                      fontSize: 16,
+                      fontFamily: FONTS.bold,
+                      fontSize: FONT_SIZES.lg,
                     }}
                   >
                     {editingPeriod ? "Update Period" : "Add Period"}
@@ -1281,8 +1282,8 @@ export default function AdminTimetableScreen() {
             >
               <Text
                 style={{
-                  fontSize: 20,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.xxl,
+                  fontFamily: FONTS.bold,
                   color: colors.textPrimary,
                 }}
               >
@@ -1308,16 +1309,16 @@ export default function AdminTimetableScreen() {
             <ScrollView showsVerticalScrollIndicator={false}>
               <Text
                 style={{
-                  fontSize: 14,
+                  fontSize: FONT_SIZES.base,
                   color: colors.textSecondary,
                   marginBottom: 16,
-                  fontFamily: "DMSans-Regular",
+                  fontFamily: FONTS.regular,
                 }}
               >
                 Copy the timing structure from{" "}
                 <Text
                   style={{
-                    fontFamily: "DMSans-Bold",
+                    fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                   }}
                 >
@@ -1335,7 +1336,7 @@ export default function AdminTimetableScreen() {
                 style={{
                   color: colors.textSecondary,
                   marginBottom: 8,
-                  fontFamily: "DMSans-Medium",
+                  fontFamily: FONTS.medium,
                 }}
               >
                 Select Target Days
@@ -1376,7 +1377,7 @@ export default function AdminTimetableScreen() {
                         color: cloneTargetDays.includes(day)
                           ? "#fff"
                           : colors.textPrimary,
-                        fontFamily: "DMSans-Medium",
+                        fontFamily: FONTS.medium,
                       }}
                     >
                       {day.slice(0, 3)}
@@ -1389,7 +1390,7 @@ export default function AdminTimetableScreen() {
                 style={{
                   color: colors.textSecondary,
                   marginBottom: 8,
-                  fontFamily: "DMSans-Medium",
+                  fontFamily: FONTS.medium,
                 }}
               >
                 Select Target Classes
@@ -1431,7 +1432,7 @@ export default function AdminTimetableScreen() {
                         color: cloneTargetClasses.includes(cls._id)
                           ? "#fff"
                           : colors.textPrimary,
-                        fontFamily: "DMSans-Medium",
+                        fontFamily: FONTS.medium,
                       }}
                     >
                       {formatClassName(cls.name, cls.section)}
@@ -1470,8 +1471,8 @@ export default function AdminTimetableScreen() {
                   <Text
                     style={{
                       color: "#fff",
-                      fontFamily: "DMSans-Bold",
-                      fontSize: 16,
+                      fontFamily: FONTS.bold,
+                      fontSize: FONT_SIZES.lg,
                     }}
                   >
                     {!schedule[selectedDay] ||

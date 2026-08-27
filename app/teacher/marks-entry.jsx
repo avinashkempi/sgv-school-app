@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import {} from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import { useApiQuery, useApiMutation } from "../../hooks/useApi";
 import { useToast } from "../../components/ToastProvider";
 import AppHeader from "../../components/Header";
@@ -199,14 +199,14 @@ export default function MarksEntryScreen() {
               <View style={{ flex: 2 }}>
                 <Text
                   style={{
-                    fontSize: 16,
-                    fontFamily: "DMSans-Medium",
+                    fontSize: FONT_SIZES.lg,
+                    fontFamily: FONTS.medium,
                     color: colors.textPrimary,
                   }}
                 >
                   {student.name}
                 </Text>
-                <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                <Text style={{ fontSize: FONT_SIZES.sm, color: colors.textSecondary }}>
                   {t("common.roll", "Roll")}: {student.rollNumber || "-"}
                 </Text>
               </View>
@@ -284,8 +284,8 @@ const localStyles = StyleSheet.create({
     borderBottomColor: "#e0e0e0",
   },
   headerText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
     textTransform: "uppercase",
   },
   row: {
@@ -316,7 +316,7 @@ const localStyles = StyleSheet.create({
   },
   saveButtonText: {
     color: "#fff",
-    fontSize: 16,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.lg,
+    fontFamily: FONTS.bold,
   },
 });

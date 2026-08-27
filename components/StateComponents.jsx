@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, ActivityIndicator, Pressable } from "react-native";
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES } from "../theme";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLabel } from "../context/LabelsContext";
 
@@ -68,8 +68,8 @@ const EmptyState = ({
         >
           <Text
             style={{
-              fontSize: 14,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.base,
+              fontFamily: FONTS.bold,
               color: colors.onPrimary,
             }}
           >
@@ -171,8 +171,8 @@ const ErrorState = ({ title, message, onRetry }) => {
         >
           <Text
             style={{
-              fontSize: 14,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.base,
+              fontFamily: FONTS.bold,
               color: colors.onPrimary,
             }}
           >

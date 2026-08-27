@@ -13,7 +13,7 @@ import {
   useDerivedValue,
   Easing,
 } from "react-native-reanimated";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 
 /**
  * SkiaProgressRing - Ultra-smooth 60 FPS GPU-accelerated circular progress gauge
@@ -151,11 +151,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   valueText: {
-    fontFamily: "DMSans-Bold",
+    fontFamily: FONTS.bold,
     includeFontPadding: false,
   },
   labelText: {
-    fontFamily: "DMSans-Medium",
+    fontFamily: FONTS.medium,
     marginTop: 2,
   },
 });

@@ -1,114 +1,69 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
   ScrollView,
-  RefreshControl,
-  ActivityIndicator,
+  StyleSheet,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
-import storage from "../../../../utils/storage";
-import { useTheme } from "../../../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../../../theme";
 import apiConfig from "../../../../config/apiConfig";
-import apiFetch from "../../../../utils/apiFetch";
-import { useToast } from "../../../../components/ToastProvider";
+import { useApiQuery } from "../../../../hooks/useApi";
+import { CACHE_TIERS } from "../../../../utils/cacheConfig";
 import Header from "../../../../components/Header";
 import UserAvatar from "../../../../components/ui/UserAvatar";
+import { formatUserName } from "../../../../utils/userFormatters";
 import { useLabel } from "../../../../context/LabelsContext";
 import { formatDate } from "../../../../utils/date";
-
-import { getCachedData, setCachedData } from "../../../../utils/cache";
-import { useNetworkStatus } from "../../../../components/NetworkStatusProvider";
+import SkeletonLoader from "../../../../components/SkeletonLoader";
+import { EmptyState } from "../../../../components/StateComponents";
+import AppRefreshControl from "../../../../components/ui/AppRefreshControl";
 
 export default function StudentSubjectDetailScreen() {
   const { id, subjectId } = useLocalSearchParams(); // classId and subjectId
-  const _router = useRouter();
-  const { _styles, colors } = useTheme();
+  const { styles: themeStyles, colors } = useTheme();
   const { t } = useLabel();
-  const { showToast } = useToast();
-  const { isConnected } = useNetworkStatus();
-
-  const [subjectName, setSubjectName] = useState("");
-  const [content, setContent] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const loadData = async () => {
-    const cacheKeyContent = `@subject_content_${subjectId}`;
-    try {
-      const token = await storage.getItem("@auth_token");
-
-      // 1. Try cache
-      const cachedContent = await getCachedData(cacheKeyContent);
-      if (cachedContent) {
-        setContent(cachedContent);
-        setLoading(false);
-      }
-
-      // 2. Fetch API
-      const fetchFromApi = async () => {
-        // Fetch Subject Details (to get name)
-        const subjectsRes = await apiFetch(
-          `${apiConfig.baseUrl}/classes/${id}/subjects`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-            silent: !!cachedContent,
-          }
-        );
-
-        if (subjectsRes.ok) {
-          const subjects = await subjectsRes.json();
-          const currentSubject = subjects.find((s) => s._id === subjectId);
-          if (currentSubject) setSubjectName(currentSubject.name);
-        }
-
-        // Fetch Content for this subject
-        const contentRes = await apiFetch(
-          `${apiConfig.baseUrl}/classes/${id}/subjects/${subjectId}/content`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-            silent: !!cachedContent,
-          }
-        );
-
-        if (contentRes.ok) {
-          const contentData = await contentRes.json();
-          setContent(contentData);
-          setCachedData(cacheKeyContent, contentData);
-        } else {
-          if (!cachedContent)
-            showToast(
-              t("student.failedLoadContent", "Failed to load content"),
-              "error"
-            );
-        }
-      };
-
-      if (isConnected) {
-        await fetchFromApi();
-      } else if (!cachedContent) {
-        showToast(t("common.noInternet", "No internet connection"), "error");
-      }
-    } catch (error) {
-      console.error(error);
-      if (!content.length)
-        showToast(t("common.errorLoadingData", "Error loading data"), "error");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+  // 1. Fetch Subject List (to retrieve subject name)
+  const { data: subjectsData, refetch: refetchSubjects } = useApiQuery(
+    ["classSubjects", id],
+    `${apiConfig.baseUrl}/classes/${id}/subjects`,
+    {
+      ...CACHE_TIERS.MODERATE,
+      enabled: !!id,
     }
-  };
+  );
+
+  const subjectName = useMemo(() => {
+    if (Array.isArray(subjectsData)) {
+      const currentSubject = subjectsData.find((s) => s._id === subjectId);
+      return currentSubject?.name || "";
+    }
+    return "";
+  }, [subjectsData, subjectId]);
+
+  // 2. Fetch Content for this subject
+  const {
+    data: contentData,
+    isLoading: loading,
+    refetch: refetchContent,
+  } = useApiQuery(
+    ["subjectContent", id, subjectId],
+    `${apiConfig.baseUrl}/classes/${id}/subjects/${subjectId}/content`,
+    {
+      ...CACHE_TIERS.MODERATE,
+      enabled: !!(id && subjectId),
+    }
+  );
+
+  const content = contentData || [];
 
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      await loadData();
+      await Promise.all([refetchSubjects(), refetchContent()]);
     } finally {
       setRefreshing(false);
     }
@@ -140,177 +95,198 @@ export default function StudentSubjectDetailScreen() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[colors.primary]}
-          />
+          <AppRefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        contentContainerStyle={{ paddingBottom: 24 }}
+        contentContainerStyle={[themeStyles.contentPaddingBottom, { paddingHorizontal: 16, paddingTop: 16 }]}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
-        <View style={{ padding: 16, paddingTop: 24 }}>
-          <Header
-            title={
-              subjectName || t("student.subjectDetails", "Subject Details")
-            }
-            subtitle={t("student.classContent", "Class Content")}
-            showBack
-          />
+        <Header
+          title={
+            subjectName || t("student.subjectDetails", "Subject Details")
+          }
+          subtitle={t("student.classContent", "Class Content")}
+          showBack
+        />
 
-          {loading ? (
-            <View style={{ marginTop: 100, alignItems: "center" }}>
-              <ActivityIndicator size="large" color={colors.primary} />
-            </View>
-          ) : (
-            <View style={{ marginTop: 24 }}>
-              {content.length === 0 ? (
+        {loading ? (
+          <View style={{ marginTop: 16, gap: 12 }}>
+            <SkeletonLoader height={120} borderRadius={16} />
+            <SkeletonLoader height={120} borderRadius={16} />
+            <SkeletonLoader height={120} borderRadius={16} />
+          </View>
+        ) : content.length === 0 ? (
+          <View style={{ marginTop: 24 }}>
+            <EmptyState
+              icon="article"
+              title={t("student.noContentTitle", "No Content Posted")}
+              message={t("student.noContentPosted", "Homework, notices, and notes posted by your teacher will appear here.")}
+            />
+          </View>
+        ) : (
+          <View style={{ marginTop: 12, gap: 12 }}>
+            {content.map((item) => {
+              const typeColor = getContentTypeColor(item.type);
+              return (
                 <View
-                  style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}
+                  key={item._id}
+                  style={[
+                    localStyles.contentCard,
+                    {
+                      backgroundColor: colors.surfaceContainer,
+                      borderLeftColor: typeColor,
+                      borderColor: colors.outlineVariant,
+                    },
+                  ]}
                 >
-                  <MaterialIcons
-                    name="article"
-                    size={48}
-                    color={colors.textSecondary}
-                  />
-                  <Text
-                    style={{
-                      color: colors.textSecondary,
-                      marginTop: 16,
-                      fontSize: 16,
-                    }}
-                  >
-                    {t("student.noContentPosted", "No content posted yet.")}
-                  </Text>
-                </View>
-              ) : (
-                content.map((item) => (
                   <View
-                    key={item._id}
                     style={{
-                      backgroundColor: colors.cardBackground,
-                      borderRadius: 16,
-                      padding: 16,
-                      marginBottom: 12,
-                      borderLeftWidth: 4,
-                      borderLeftColor: getContentTypeColor(item.type),
-                      shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 1 },
-                      shadowOpacity: 0.05,
-                      shadowRadius: 4,
-                      elevation: 1,
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      marginBottom: 8,
                     }}
                   >
                     <View
                       style={{
                         flexDirection: "row",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                        marginBottom: 8,
+                        alignItems: "center",
+                        gap: 10,
+                        flex: 1,
+                        marginRight: 8,
                       }}
                     >
                       <View
                         style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          gap: 8,
+                          backgroundColor: typeColor + "20",
+                          padding: 6,
+                          borderRadius: 8,
                         }}
                       >
-                        <View
-                          style={{
-                            backgroundColor:
-                              getContentTypeColor(item.type) + "20",
-                            padding: 6,
-                            borderRadius: 8,
-                          }}
-                        >
-                          <MaterialIcons
-                            name={getContentTypeIcon(item.type)}
-                            size={20}
-                            color={getContentTypeColor(item.type)}
-                          />
-                        </View>
-                        <Text
-                          style={{
-                            fontSize: 16,
-                            fontWeight: "700",
-                            color: colors.textPrimary,
-                          }}
-                        >
-                          {item.title}
-                        </Text>
+                        <MaterialIcons
+                          name={getContentTypeIcon(item.type)}
+                          size={20}
+                          color={typeColor}
+                        />
                       </View>
                       <Text
-                        style={{ fontSize: 12, color: colors.textSecondary }}
+                        style={{
+                          fontSize: FONT_SIZES.lg,
+                          fontFamily: FONTS.bold,
+                          color: colors.onSurface,
+                          flex: 1,
+                        }}
                       >
-                        {formatDate(item.createdAt)}
+                        {item.title}
                       </Text>
                     </View>
-
                     <Text
                       style={{
-                        fontSize: 14,
-                        color: colors.textSecondary,
-                        lineHeight: 20,
+                        fontSize: FONT_SIZES.sm,
+                        fontFamily: FONTS.medium,
+                        color: colors.onSurfaceVariant,
                       }}
                     >
-                      {item.description}
+                      {formatDate(item.createdAt)}
                     </Text>
+                  </View>
 
+                  <Text
+                    style={{
+                      fontSize: FONT_SIZES.base,
+                      fontFamily: FONTS.regular,
+                      color: colors.onSurfaceVariant,
+                      lineHeight: 20,
+                      marginBottom: 12,
+                    }}
+                  >
+                    {item.description}
+                  </Text>
+
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      borderTopWidth: StyleSheet.hairlineWidth,
+                      borderTopColor: colors.outlineVariant,
+                      paddingTop: 10,
+                    }}
+                  >
                     <View
                       style={{
                         flexDirection: "row",
-                        justifyContent: "space-between",
-                        marginTop: 12,
                         alignItems: "center",
+                        gap: 8,
                       }}
                     >
-                      <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                        <UserAvatar
-                          photoUrl={item.author?.profilePhoto || item.teacher?.profilePhoto}
-                          name={item.author?.name || item.teacher?.name || "Teacher"}
-                          role="teacher"
-                          size={18}
-                        />
-                        <Text
-                          style={{
-                            fontSize: 12,
-                            color: colors.textSecondary,
-                            fontWeight: "500",
-                          }}
-                        >
-                          {t("common.by", "By")}:{" "}
-                          {item.author?.name ||
-                            item.teacher?.name ||
-                            t("common.teacher", "Teacher")}
-                        </Text>
-                      </View>
-                      <View
+                      <UserAvatar
+                        photoUrl={
+                          item.author?.profilePhoto ||
+                          item.teacher?.profilePhoto
+                        }
+                        name={formatUserName(
+                          item.author?.name || item.teacher?.name,
+                          "Teacher"
+                        )}
+                        role="teacher"
+                        size={22}
+                      />
+                      <Text
                         style={{
-                          backgroundColor: colors.background,
-                          paddingHorizontal: 8,
-                          paddingVertical: 4,
-                          borderRadius: 4,
+                          fontSize: FONT_SIZES.sm,
+                          fontFamily: FONTS.medium,
+                          color: colors.onSurfaceVariant,
                         }}
                       >
-                        <Text
-                          style={{
-                            fontSize: 10,
-                            fontWeight: "600",
-                            color: colors.textSecondary,
-                            textTransform: "uppercase",
-                          }}
-                        >
-                          {t("student.contentType_" + item.type, item.type)}
-                        </Text>
-                      </View>
+                        {t("common.by", "By")}:{" "}
+                        {formatUserName(
+                          item.author?.name || item.teacher?.name,
+                          t("common.teacher", "Teacher")
+                        )}
+                      </Text>
+                    </View>
+                    <View
+                      style={{
+                        backgroundColor: colors.surfaceContainerHighest,
+                        paddingHorizontal: 8,
+                        paddingVertical: 3,
+                        borderRadius: 6,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: FONT_SIZES.micro,
+                          fontFamily: FONTS.bold,
+                          color: typeColor,
+                          textTransform: "uppercase",
+                          letterSpacing: 0.5,
+                        }}
+                      >
+                        {t("student.contentType_" + item.type, item.type)}
+                      </Text>
                     </View>
                   </View>
-                ))
-              )}
-            </View>
-          )}
-        </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
       </ScrollView>
     </View>
   );
 }
+
+const localStyles = StyleSheet.create({
+  contentCard: {
+    borderRadius: 16,
+    padding: 16,
+    borderLeftWidth: 4,
+    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+});

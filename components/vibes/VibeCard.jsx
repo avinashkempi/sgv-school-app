@@ -23,11 +23,16 @@ import Animated, {
   withSequence,
   FadeIn,
 } from "react-native-reanimated";
+import { Image } from "expo-image";
 import * as Haptics from "expo-haptics";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS } from "../../theme";
 import formatTimeAgo from "../../utils/formatTimeAgo";
 import VibeImageCarousel from "./VibeImageCarousel";
 import UserAvatar from "../ui/UserAvatar";
+import {
+  formatUserName,
+  formatVibeAuthorSubtitle,
+} from "../../utils/userFormatters";
 
 if (
   Platform.OS === "android" &&
@@ -58,29 +63,29 @@ export const formatCount = (count) => {
 /**
  * Render caption with highlighted clickable hashtags
  */
-const RichCaption = ({ caption, onTagPress, colors }) => {
-  if (!caption) return null;
+const renderRichCaption = (caption, onTagPress, colors) => {
+  if (!caption || typeof caption !== "string") return null;
 
   const parts = caption.split(/(#[a-zA-Z0-9_]+)/g);
 
-  return (
-    <Text style={[styles.captionText, { color: colors.onSurface }]}>
-      {parts.map((part, index) => {
-        if (part.startsWith("#")) {
-          return (
-            <Text
-              key={index}
-              onPress={() => onTagPress?.(part)}
-              style={[styles.hashtag, { color: colors.primary }]}
-            >
-              {part}{" "}
-            </Text>
-          );
-        }
-        return <Text key={index}>{part}</Text>;
-      })}
-    </Text>
-  );
+  return parts.map((part, index) => {
+    if (part.startsWith("#")) {
+      return (
+        <Text
+          key={index}
+          onPress={() => onTagPress?.(part)}
+          style={[styles.hashtag, { color: colors.primary }]}
+        >
+          {part}{" "}
+        </Text>
+      );
+    }
+    return (
+      <Text key={index} style={{ color: colors.onSurface }}>
+        {part}
+      </Text>
+    );
+  });
 };
 
 const VibeCard = ({
@@ -95,6 +100,7 @@ const VibeCard = ({
   onEdit,
   onDelete,
   onTogglePin,
+  onToggleSpotlight,
   onTagPress,
 }) => {
   const { colors } = useTheme();
@@ -122,7 +128,9 @@ const VibeCard = ({
   const bookmarkScale = useSharedValue(1);
 
   const isSchoolPost = vibe.postAs === "school" || vibe.category === "official";
-  const isAuthor = currentUserId && (vibe.author?._id === currentUserId || vibe.author === currentUserId);
+  const isAuthor =
+    currentUserId &&
+    (vibe.author?._id === currentUserId || vibe.author === currentUserId);
   const canModerate = isAdmin || isAuthor;
 
   const toggleExpand = useCallback(() => {
@@ -295,7 +303,13 @@ const VibeCard = ({
 
     if (isAdmin) {
       options.push({
-        text: vibe.isPinned ? "Unpin from Top" : "Pin to Top",
+        text: vibe.isSpotlight
+          ? "⭐ Remove from Home Spotlight"
+          : "⭐ Feature on Home Spotlight",
+        onPress: () => onToggleSpotlight?.(vibe),
+      });
+      options.push({
+        text: vibe.isPinned ? "📌 Unpin from Top" : "📌 Pin to Top",
         onPress: () => onTogglePin?.(vibe),
       });
     }
@@ -331,6 +345,7 @@ const VibeCard = ({
     handleBookmarkPress,
     isAdmin,
     vibe,
+    onToggleSpotlight,
     onTogglePin,
     canModerate,
     onEdit,
@@ -388,18 +403,8 @@ const VibeCard = ({
   }, [vibe.category]);
 
   const authorRoleLabel = useMemo(() => {
-    if (isSchoolPost) return "Official";
-    const role = vibe.authorRole || vibe.author?.role;
-    if (role === "student") {
-      return vibe.author?.currentClass ? `Student • ${vibe.author.currentClass}` : "Student";
-    }
-    if (role === "teacher") {
-      return vibe.author?.designation ? `Faculty • ${vibe.author.designation}` : "Faculty";
-    }
-    if (role === "admin" || role === "super admin") return "Admin";
-    if (role === "staff") return "Staff";
-    return role || "Member";
-  }, [isSchoolPost, vibe.authorRole, vibe.author]);
+    return formatVibeAuthorSubtitle(vibe);
+  }, [vibe]);
 
   return (
     <Animated.View
@@ -408,7 +413,7 @@ const VibeCard = ({
         styles.card,
         {
           backgroundColor: colors.surfaceContainer,
-          borderColor: colors.outlineVariant || "rgba(0,0,0,0.06)",
+          borderColor: colors.outlineVariant || "rgba(0,0,0,0.08)",
         },
       ]}
     >
@@ -418,12 +423,16 @@ const VibeCard = ({
           {/* Avatar Icon / UserAvatar */}
           {isSchoolPost ? (
             <View style={styles.schoolAvatarCircle}>
-              <MaterialIcons name="school" size={20} color="#2563EB" />
+              <Image
+                source={require("../../assets/images/icon.png")}
+                style={{ width: "100%", height: "100%", borderRadius: 20 }}
+                contentFit="cover"
+              />
             </View>
           ) : (
             <UserAvatar
               photoUrl={vibe.author?.profilePhoto}
-              name={vibe.author?.name || "Community Member"}
+              name={formatUserName(vibe.author?.name, "Community Member")}
               role={vibe.authorRole || vibe.author?.role}
               size={40}
             />
@@ -435,13 +444,19 @@ const VibeCard = ({
               <Text
                 style={[styles.authorName, { color: colors.onSurface }]}
                 numberOfLines={1}
+                ellipsizeMode="tail"
               >
                 {isSchoolPost
-                  ? "SGV English Medium School"
-                  : vibe.author?.name || "Community Member"}
+                  ? "SGV School"
+                  : formatUserName(vibe.author?.name, "Community Member")}
               </Text>
               {isSchoolPost && (
-                <MaterialIcons name="verified" size={15} color="#2563EB" style={styles.verifiedBadge} />
+                <MaterialIcons
+                  name="verified"
+                  size={15}
+                  color="#2563EB"
+                  style={styles.verifiedBadge}
+                />
               )}
             </View>
 
@@ -471,15 +486,16 @@ const VibeCard = ({
                 </Text>
               </View>
 
-              {vibe.location ? (
+              {typeof vibe.location === "string" && vibe.location.trim() ? (
                 <Text
                   style={[
                     styles.metaDotText,
                     { color: colors.onSurfaceVariant },
                   ]}
                   numberOfLines={1}
+                  ellipsizeMode="tail"
                 >
-                  • {vibe.location}
+                  • {vibe.location.trim()}
                 </Text>
               ) : null}
 
@@ -488,6 +504,7 @@ const VibeCard = ({
                   styles.metaDotText,
                   { color: colors.onSurfaceVariant },
                 ]}
+                numberOfLines={1}
               >
                 • {formatTimeAgo(vibe.createdAt)}
               </Text>
@@ -514,6 +531,18 @@ const VibeCard = ({
               >
                 {categoryMeta.label}
               </Text>
+            </View>
+          )}
+
+          {vibe.isSpotlight && (
+            <View
+              style={[
+                styles.spotlightBadge,
+                { backgroundColor: "#FEF3C7" },
+              ]}
+            >
+              <MaterialIcons name="star" size={12} color="#D97706" />
+              <Text style={styles.spotlightBadgeText}>Spotlight</Text>
             </View>
           )}
 
@@ -561,10 +590,10 @@ const VibeCard = ({
         </View>
       )}
 
-      {/* ──── Action Bar (Interactive Like, Comment, Share, Bookmark Capsules) ──── */}
+      {/* ──── Action Bar (Material 3 Tonal Capsules for Like, Comment, Share, Bookmark) ──── */}
       <View style={styles.actionBar}>
         <View style={styles.actionLeft}>
-          {/* Like Pill Button with clear count */}
+          {/* Like Pill Button with animated spring feedback */}
           <Pressable
             onPress={handleLikePress}
             hitSlop={6}
@@ -575,20 +604,22 @@ const VibeCard = ({
                   ? "rgba(255, 45, 85, 0.12)"
                   : colors.surfaceContainerHighest,
                 borderColor: isLiked
-                  ? "rgba(255, 45, 85, 0.3)"
+                  ? "rgba(255, 45, 85, 0.28)"
                   : colors.outlineVariant || "transparent",
               },
             ]}
             accessibilityRole="button"
-            accessibilityLabel={`${likesCount} likes, ${isLiked ? 'liked' : 'not liked'}`}
+            accessibilityLabel={`${likesCount} likes, ${
+              isLiked ? "liked" : "not liked"
+            }`}
           >
             <Animated.View style={likeAnimatedStyle}>
               {isLiked ? (
-                <MaterialIcons name="favorite" size={20} color="#FF2D55" />
+                <MaterialIcons name="favorite" size={19} color="#FF2D55" />
               ) : (
                 <MaterialIcons
                   name="favorite-border"
-                  size={20}
+                  size={19}
                   color={colors.onSurface}
                 />
               )}
@@ -598,7 +629,7 @@ const VibeCard = ({
                 styles.actionCountText,
                 {
                   color: isLiked ? "#FF2D55" : colors.onSurface,
-                  fontFamily: "DMSans-Bold",
+                  fontFamily: FONTS.bold,
                 },
               ]}
             >
@@ -622,14 +653,14 @@ const VibeCard = ({
           >
             <FontAwesome
               name="comment-o"
-              size={18}
+              size={17}
               color={colors.onSurface}
               style={{ marginTop: 1 }}
             />
             <Text
               style={[
                 styles.actionCountText,
-                { color: colors.onSurface, fontFamily: "DMSans-Bold" },
+                { color: colors.onSurface, fontFamily: FONTS.bold },
               ]}
             >
               {formatCount(commentsCount)}
@@ -651,7 +682,7 @@ const VibeCard = ({
             {isSharing ? (
               <ActivityIndicator size="small" color={colors.primary} />
             ) : (
-              <MaterialIcons name="send" size={18} color={colors.onSurface} />
+              <MaterialIcons name="send" size={17} color={colors.onSurface} />
             )}
           </Pressable>
         </View>
@@ -664,7 +695,7 @@ const VibeCard = ({
             styles.circleActionBtn,
             {
               backgroundColor: isBookmarked
-                ? "rgba(37, 99, 235, 0.12)"
+                ? "rgba(79, 55, 139, 0.12)"
                 : colors.surfaceContainerHighest,
             },
           ]}
@@ -673,11 +704,11 @@ const VibeCard = ({
         >
           <Animated.View style={bookmarkAnimatedStyle}>
             {isBookmarked ? (
-              <MaterialIcons name="bookmark" size={20} color={colors.primary} />
+              <MaterialIcons name="bookmark" size={19} color={colors.primary} />
             ) : (
               <MaterialIcons
                 name="bookmark-border"
-                size={20}
+                size={19}
                 color={colors.onSurface}
               />
             )}
@@ -695,22 +726,22 @@ const VibeCard = ({
             style={styles.likesLinkBtn}
           >
             <View style={styles.tinyHeartIcon}>
-              <MaterialIcons name="favorite" size={12} color="#FF2D55" />
+              <MaterialIcons name="favorite" size={11} color="#FF2D55" />
             </View>
             <Text style={[styles.likesDetailedText, { color: colors.onSurface }]}>
               {likesCount > 0 ? (
-                <>
-                  <Text style={{ fontFamily: "DMSans-Bold" }}>
-                    {likesCount.toLocaleString()}{" "}
-                    {likesCount === 1 ? "person liked" : "people liked"}
-                  </Text>
-                  <Text style={[styles.viewLikesHint, { color: colors.primary }]}>
-                    {" "}• View all
-                  </Text>
-                </>
+                <Text style={{ fontFamily: FONTS.bold }}>
+                  {likesCount.toLocaleString()}{" "}
+                  {likesCount === 1 ? "person liked" : "people liked"}
+                </Text>
               ) : (
                 <Text style={{ color: colors.onSurfaceVariant }}>
                   Be the first to like this
+                </Text>
+              )}
+              {likesCount > 0 && (
+                <Text style={[styles.viewLikesHint, { color: colors.primary }]}>
+                  {" "}• View all
                 </Text>
               )}
             </Text>
@@ -727,18 +758,19 @@ const VibeCard = ({
               <Text style={[styles.captionAuthor, { color: colors.onSurface }]}>
                 {isSchoolPost
                   ? "SGV School"
-                  : vibe.author?.name
-                  ? vibe.author.name.split(" ")[0]
+                  : typeof vibe.author?.name === "string" &&
+                    vibe.author.name.trim()
+                  ? vibe.author.name.trim().split(/\s+/)[0]
                   : "Author"}{" "}
               </Text>
-              <RichCaption
-                caption={vibe.caption}
-                onTagPress={onTagPress}
-                colors={colors}
-              />
+              {renderRichCaption(vibe.caption, onTagPress, colors)}
             </Text>
             {vibe.caption.length > 110 && (
-              <Pressable onPress={toggleExpand} hitSlop={8} style={styles.morePressable}>
+              <Pressable
+                onPress={toggleExpand}
+                hitSlop={8}
+                style={styles.morePressable}
+              >
                 <Text
                   style={[styles.moreText, { color: colors.primary }]}
                 >
@@ -763,7 +795,9 @@ const VibeCard = ({
               ]}
             >
               {commentsCount > 0
-                ? `View all ${commentsCount} ${commentsCount === 1 ? "comment" : "comments"}`
+                ? `View all ${commentsCount} ${
+                    commentsCount === 1 ? "comment" : "comments"
+                  }`
                 : "Add a comment..."}
             </Text>
             {commentsCount > 0 && (
@@ -787,12 +821,15 @@ const VibeCard = ({
             ]}
           >
             <Text
-              style={[styles.addCommentPlaceholder, { color: colors.onSurfaceVariant }]}
+              style={[
+                styles.addCommentPlaceholder,
+                { color: colors.onSurfaceVariant },
+              ]}
             >
               Write a comment...
             </Text>
             <View style={styles.quickEmojisRow}>
-              {["❤️", "🔥", "👏"].map((emoji) => (
+              {["❤️", "🔥", "👏", "🎉"].map((emoji) => (
                 <Text key={emoji} style={styles.quickEmojiText}>
                   {emoji}
                 </Text>
@@ -809,14 +846,14 @@ const styles = StyleSheet.create({
   card: {
     marginHorizontal: 12,
     marginBottom: 16,
-    borderRadius: 20,
+    borderRadius: 24,
     overflow: "hidden",
     borderWidth: StyleSheet.hairlineWidth,
+    elevation: 1,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
   },
   header: {
     flexDirection: "row",
@@ -829,7 +866,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
+    minWidth: 0,
     gap: 10,
+    marginRight: 6,
   },
   schoolAvatarCircle: {
     width: 40,
@@ -840,9 +879,12 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     justifyContent: "center",
     alignItems: "center",
+    flexShrink: 0,
+    overflow: "hidden",
   },
   authorDetails: {
     flex: 1,
+    minWidth: 0,
     justifyContent: "center",
   },
   nameRow: {
@@ -851,12 +893,14 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   authorName: {
-    fontSize: 14,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.bold,
     letterSpacing: -0.2,
+    flexShrink: 1,
   },
   verifiedBadge: {
     marginLeft: 1,
+    flexShrink: 0,
   },
   subMetaRow: {
     flexDirection: "row",
@@ -864,42 +908,59 @@ const styles = StyleSheet.create({
     gap: 4,
     marginTop: 2,
     flexWrap: "nowrap",
+    overflow: "hidden",
   },
   roleBadge: {
     paddingHorizontal: 6,
     paddingVertical: 1.5,
     borderRadius: 6,
+    flexShrink: 1,
   },
   roleBadgeText: {
-    fontSize: 10,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.bold,
     textTransform: "uppercase",
     letterSpacing: 0.3,
   },
   metaDotText: {
-    fontSize: 11,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.regular,
+    flexShrink: 0,
   },
   headerRight: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 4,
+    flexShrink: 0,
   },
   categoryBadge: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 8,
     paddingVertical: 3.5,
-    borderRadius: 10,
-    gap: 3.5,
+    borderRadius: 8,
+    gap: 3,
   },
   categoryText: {
-    fontSize: 10.5,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+  },
+  spotlightBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
+    borderRadius: 8,
+    gap: 3,
+  },
+  spotlightBadgeText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+    color: "#D97706",
   },
   pinBadge: {
     paddingHorizontal: 6,
-    paddingVertical: 3,
+    paddingVertical: 3.5,
     borderRadius: 6,
   },
   menuButton: {
@@ -907,7 +968,7 @@ const styles = StyleSheet.create({
   },
   mediaContainer: {
     width: "100%",
-    borderRadius: 14,
+    borderRadius: 18,
     overflow: "hidden",
     alignSelf: "center",
   },
@@ -934,7 +995,8 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   actionCountText: {
-    fontSize: 13,
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.medium,
     letterSpacing: 0.1,
   },
   circleActionBtn: {
@@ -969,37 +1031,37 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   likesDetailedText: {
-    fontSize: 12.5,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.regular,
   },
   viewLikesHint: {
-    fontFamily: "DMSans-Bold",
+    fontFamily: FONTS.bold,
   },
   captionContainer: {
     marginTop: 2,
     marginBottom: 6,
   },
   captionWrapper: {
-    fontSize: 13.5,
-    lineHeight: 19,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.base,
+    lineHeight: LINE_HEIGHTS.base,
+    fontFamily: FONTS.regular,
   },
   captionAuthor: {
-    fontFamily: "DMSans-Bold",
+    fontFamily: FONTS.bold,
   },
   captionText: {
-    fontFamily: "DMSans-Regular",
+    fontFamily: FONTS.regular,
   },
   hashtag: {
-    fontFamily: "DMSans-Bold",
+    fontFamily: FONTS.bold,
   },
   morePressable: {
     marginTop: 2,
     alignSelf: "flex-start",
   },
   moreText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
   },
   commentsSection: {
     marginTop: 2,
@@ -1012,8 +1074,8 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   viewCommentsText: {
-    fontSize: 12.5,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.medium,
   },
   addCommentPrompt: {
     flexDirection: "row",
@@ -1026,8 +1088,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   addCommentPlaceholder: {
-    fontSize: 12.5,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.regular,
   },
   quickEmojisRow: {
     flexDirection: "row",
@@ -1035,7 +1097,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   quickEmojiText: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.base,
   },
 });
 
@@ -1047,9 +1109,12 @@ export default React.memo(VibeCard, (prevProps, nextProps) => {
     prevProps.vibe.isBookmarked === nextProps.vibe.isBookmarked &&
     prevProps.vibe.commentsCount === nextProps.vibe.commentsCount &&
     prevProps.vibe.isPinned === nextProps.vibe.isPinned &&
-    prevProps.vibe.author?.profilePhoto === nextProps.vibe.author?.profilePhoto &&
+    prevProps.vibe.isSpotlight === nextProps.vibe.isSpotlight &&
+    prevProps.vibe.author?.profilePhoto ===
+      nextProps.vibe.author?.profilePhoto &&
     prevProps.isVisible === nextProps.isVisible &&
     prevProps.isAdmin === nextProps.isAdmin &&
     prevProps.currentUserId === nextProps.currentUserId
   );
 });
+

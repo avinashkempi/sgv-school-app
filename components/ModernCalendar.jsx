@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { View } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES } from "../theme";
 
 const ModernCalendar = ({
   current,
@@ -31,12 +31,12 @@ const ModernCalendar = ({
       arrowColor: colors.primary,
       monthTextColor: colors.textPrimary,
       indicatorColor: colors.primary,
-      textDayFontFamily: "DMSans-Medium",
-      textMonthFontFamily: "DMSans-Bold",
-      textDayHeaderFontFamily: "DMSans-Bold",
-      textDayFontSize: 14,
-      textMonthFontSize: 16,
-      textDayHeaderFontSize: 12,
+      textDayFontFamily: FONTS.medium,
+      textMonthFontFamily: FONTS.bold,
+      textDayHeaderFontFamily: FONTS.bold,
+      textDayFontSize: FONT_SIZES.base,
+      textMonthFontSize: FONT_SIZES.lg,
+      textDayHeaderFontSize: FONT_SIZES.sm,
       "stylesheet.calendar.header": {
         header: {
           flexDirection: "row",
@@ -48,8 +48,8 @@ const ModernCalendar = ({
           alignItems: "center",
         },
         monthText: {
-          fontSize: 18,
-          fontFamily: "DMSans-Bold",
+          fontSize: FONT_SIZES.xl,
+          fontFamily: FONTS.bold,
           color: colors.textPrimary,
           margin: 10,
         },

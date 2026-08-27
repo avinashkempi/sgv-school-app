@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS } from "../theme";
 import {
   useApiInfiniteQuery,
   useApiMutation,
@@ -251,16 +251,16 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   emptyTitle: {
-    fontSize: 18,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xl,
+    fontFamily: FONTS.bold,
     marginBottom: 8,
     textAlign: "center",
   },
   emptySubtitle: {
-    fontSize: 14,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.regular,
     textAlign: "center",
-    lineHeight: 20,
+    lineHeight: LINE_HEIGHTS.base,
     marginBottom: 20,
   },
   retryButton: {
@@ -273,8 +273,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   retryText: {
-    fontSize: 13,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.medium,
   },
   loadingMore: {
     flexDirection: "row",
@@ -284,8 +284,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   loadingMoreText: {
-    fontSize: 13,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.regular,
   },
 });
 

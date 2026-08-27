@@ -15,7 +15,7 @@ import {
 import { Image } from "expo-image";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
 import { useToast } from "./ToastProvider";
 import { createApiMutationFn } from "../hooks/useApi";
 import apiConfig from "../config/apiConfig";
@@ -525,8 +525,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   headerTitle: {
-    fontSize: 18,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xl,
+    fontFamily: FONTS.bold,
   },
   publishButton: {
     paddingHorizontal: 20,
@@ -536,8 +536,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   publishText: {
-    fontSize: 14,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.bold,
   },
   scrollContent: {
     flex: 1,
@@ -547,9 +547,9 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   sectionLabel: {
-    fontSize: 11,
-    fontFamily: "DMSans-Bold",
-    letterSpacing: 1,
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+    letterSpacing: LETTER_SPACINGS.xs,
     marginBottom: 10,
   },
   categoryRow: {
@@ -565,8 +565,8 @@ const styles = StyleSheet.create({
     borderRadius: 24,
   },
   categoryPillText: {
-    fontSize: 14,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.bold,
   },
   notifHint: {
     flexDirection: "row",
@@ -578,8 +578,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   notifHintText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.medium,
     flex: 1,
   },
   imageScroll: {
@@ -608,8 +608,8 @@ const styles = StyleSheet.create({
   },
   uploadPercent: {
     color: "#fff",
-    fontSize: 11,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
   },
   removeButton: {
     position: "absolute",
@@ -633,30 +633,30 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   addImageText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.medium,
   },
   titleInput: {
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 12,
-    fontSize: 16,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.lg,
+    fontFamily: FONTS.medium,
     borderWidth: 1,
   },
   descInput: {
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 12,
-    fontSize: 14,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.regular,
     borderWidth: 1,
     minHeight: 100,
     textAlignVertical: "top",
   },
   charCount: {
-    fontSize: 11,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.regular,
     textAlign: "right",
     marginTop: 4,
   },

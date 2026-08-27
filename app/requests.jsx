@@ -3,7 +3,7 @@ import { View, Text, ScrollView } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "expo-router";
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
 import Header from "../components/Header";
 import Card from "../components/Card";
 import apiConfig from "../config/apiConfig";
@@ -119,7 +119,7 @@ export default function RequestsScreen() {
           <Text
             style={{
               fontSize: 17,
-              fontFamily: "DMSans-Bold",
+              fontFamily: FONTS.bold,
               color: colors.onSurface,
               marginBottom: 4,
             }}
@@ -128,9 +128,9 @@ export default function RequestsScreen() {
           </Text>
           <Text
             style={{
-              fontSize: 13,
+              fontSize: FONT_SIZES.md,
               color: colors.onSurfaceVariant,
-              fontFamily: "DMSans-Regular",
+              fontFamily: FONTS.regular,
             }}
           >
             {subtitle}

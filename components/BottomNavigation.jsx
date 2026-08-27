@@ -12,7 +12,7 @@ import { useRouter, usePathname } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { BlurView } from "expo-blur";
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
 import { ROUTES } from "../constants/routes";
 import { useAuth } from "../context/AuthContext";
 import { useNavigationContext } from "../context/NavigationContext";
@@ -258,10 +258,12 @@ const TabItem = memo(({ item, isActive, onPress, colors }) => {
             styles.label,
             {
               color: isActive ? colors.onSurface : colors.onSurfaceVariant,
-              fontFamily: isActive ? "DMSans-Bold" : "DMSans-Medium",
+              fontFamily: isActive ? FONTS.bold : FONTS.medium,
             },
           ]}
           numberOfLines={1}
+          adjustsFontSizeToFit={true}
+          minimumFontScale={0.75}
         >
           {item.label}
         </Text>
@@ -278,32 +280,34 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-around",
-    paddingTop: 12, // Increased top padding for floating feel
-    paddingHorizontal: 8,
+    paddingTop: 8,
+    paddingHorizontal: 4,
   },
   tabItem: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    height: 64,
+    height: 56,
+    paddingHorizontal: 1,
   },
   iconContainer: {
-    width: 64, // Standard M3 Pill Width
-    height: 32, // Standard M3 Pill Height
-    borderRadius: 16,
+    width: 52,
+    height: 28,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 4,
+    marginBottom: 2,
     position: "relative",
-    overflow: "hidden", // Contain the pill background
+    overflow: "hidden",
   },
   activePill: {
-    borderRadius: 16,
+    borderRadius: 14,
   },
   label: {
-    fontSize: 12,
-    letterSpacing: 0.4,
+    fontSize: FONT_SIZES.xs,
+    lineHeight: LINE_HEIGHTS.xs,
+    letterSpacing: LETTER_SPACINGS.xs,
     textAlign: "center",
-    marginTop: 4,
+    marginTop: 2,
   },
 });

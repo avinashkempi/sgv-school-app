@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, Pressable } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import AppBottomSheet from "./AppBottomSheet";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 
 /**
  * FilterBottomSheet - Standardized, accessible filter bottom sheet
@@ -119,7 +119,7 @@ const FilterBottomSheet = forwardRef((props, ref) => {
                     color: active
                       ? colors.onPrimaryContainer
                       : colors.onSurface,
-                    fontFamily: active ? "DMSans-Bold" : "DMSans-Medium",
+                    fontFamily: active ? FONTS.bold : FONTS.medium,
                   },
                 ]}
               >
@@ -170,12 +170,12 @@ const styles = StyleSheet.create({
     borderBottomColor: "rgba(150, 150, 150, 0.2)",
   },
   title: {
-    fontSize: 18,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xl,
+    fontFamily: FONTS.bold,
   },
   resetText: {
-    fontSize: 14,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.medium,
   },
   chipContainer: {
     flexDirection: "row",
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   chipText: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.base,
   },
   applyButton: {
     width: "100%",
@@ -207,8 +207,8 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   applyButtonText: {
-    fontSize: 16,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.lg,
+    fontFamily: FONTS.bold,
   },
 });
 

@@ -11,7 +11,7 @@ import Svg, {
   Rect,
 } from "react-native-svg";
 import { useRouter } from "expo-router";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES } from "../../theme";
 
 /**
  * Format raw subject labels into clean, human-friendly titles
@@ -278,8 +278,8 @@ const TeacherPerformanceCard = ({
           <View style={{ flex: 1 }}>
             <Text
               style={{
-                fontSize: 16,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.lg,
+                fontFamily: FONTS.bold,
                 color: colors.onSurface || (isDark ? "#FFFFFF" : "#1D1B20"),
                 letterSpacing: 0.1,
                 lineHeight: 22,
@@ -289,8 +289,8 @@ const TeacherPerformanceCard = ({
             </Text>
             <Text
               style={{
-                fontSize: 12,
-                fontFamily: "DMSans-Medium",
+                fontSize: FONT_SIZES.sm,
+                fontFamily: FONTS.medium,
                 color:
                   colors.onSurfaceVariant || (isDark ? "#CAC4D0" : "#49454F"),
                 marginTop: 1,
@@ -318,8 +318,8 @@ const TeacherPerformanceCard = ({
         >
           <Text
             style={{
-              fontSize: 12,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.sm,
+              fontFamily: FONTS.bold,
               color: "#6366F1",
               marginRight: 2,
             }}
@@ -330,16 +330,16 @@ const TeacherPerformanceCard = ({
         </Pressable>
       </View>
 
-      {/* KPI Summary Metrics Strip */}
+      {/* Quick Summary Metrics Row */}
       <View
         style={{
           flexDirection: "row",
-          flexWrap: "wrap",
           gap: 8,
           marginBottom: 16,
+          flexWrap: "wrap",
         }}
       >
-        {/* Class Average Marks */}
+        {/* Class Avg Score */}
         <View
           style={{
             flex: 1,
@@ -356,8 +356,8 @@ const TeacherPerformanceCard = ({
         >
           <Text
             style={{
-              fontSize: 11,
-              fontFamily: "DMSans-Medium",
+              fontSize: FONT_SIZES.xs,
+              fontFamily: FONTS.medium,
               color:
                 colors.onSurfaceVariant || (isDark ? "#CAC4D0" : "#79747E"),
               marginBottom: 2,
@@ -370,8 +370,8 @@ const TeacherPerformanceCard = ({
           >
             <Text
               style={{
-                fontSize: 18,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.xl,
+                fontFamily: FONTS.bold,
                 color: colors.onSurface || (isDark ? "#FFFFFF" : "#1D1B20"),
               }}
             >
@@ -379,8 +379,8 @@ const TeacherPerformanceCard = ({
             </Text>
             <Text
               style={{
-                fontSize: 11,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.xs,
+                fontFamily: FONTS.bold,
                 color: getScoreGrade(classAvg, chartMaxY).color,
               }}
             >
@@ -406,8 +406,8 @@ const TeacherPerformanceCard = ({
         >
           <Text
             style={{
-              fontSize: 11,
-              fontFamily: "DMSans-Medium",
+              fontSize: FONT_SIZES.xs,
+              fontFamily: FONTS.medium,
               color:
                 colors.onSurfaceVariant || (isDark ? "#CAC4D0" : "#79747E"),
               marginBottom: 2,
@@ -421,8 +421,8 @@ const TeacherPerformanceCard = ({
           >
             <Text
               style={{
-                fontSize: 18,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.xl,
+                fontFamily: FONTS.bold,
                 color: "#10B981",
               }}
             >
@@ -430,8 +430,8 @@ const TeacherPerformanceCard = ({
             </Text>
             <Text
               style={{
-                fontSize: 11,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.xs,
+                fontFamily: FONTS.bold,
                 color: "#10B981",
               }}
             >
@@ -457,8 +457,8 @@ const TeacherPerformanceCard = ({
         >
           <Text
             style={{
-              fontSize: 11,
-              fontFamily: "DMSans-Medium",
+              fontSize: FONT_SIZES.xs,
+              fontFamily: FONTS.medium,
               color:
                 colors.onSurfaceVariant || (isDark ? "#CAC4D0" : "#79747E"),
               marginBottom: 2,
@@ -471,8 +471,8 @@ const TeacherPerformanceCard = ({
           >
             <Text
               style={{
-                fontSize: 18,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.xl,
+                fontFamily: FONTS.bold,
                 color: colors.onSurface || (isDark ? "#FFFFFF" : "#1D1B20"),
               }}
             >
@@ -480,8 +480,8 @@ const TeacherPerformanceCard = ({
             </Text>
             <Text
               style={{
-                fontSize: 11,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.xs,
+                fontFamily: FONTS.bold,
                 color: colors.onSurfaceVariant || "#79747E",
               }}
             >
@@ -532,8 +532,8 @@ const TeacherPerformanceCard = ({
           />
           <Text
             style={{
-              fontSize: 12,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.sm,
+              fontFamily: FONTS.bold,
               color:
                 viewMode === "chart"
                   ? "#FFFFFF"
@@ -569,8 +569,8 @@ const TeacherPerformanceCard = ({
           />
           <Text
             style={{
-              fontSize: 12,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.sm,
+              fontFamily: FONTS.bold,
               color:
                 viewMode === "list"
                   ? "#FFFFFF"
@@ -654,8 +654,8 @@ const TeacherPerformanceCard = ({
                       colors.onSurfaceVariant ||
                       (isDark ? "#9E9E9E" : "#757575")
                     }
-                    fontSize="10"
-                    fontFamily="DMSans-Medium"
+                    fontSize={FONT_SIZES.micro}
+                    fontFamily={FONTS.medium}
                     textAnchor="end"
                     opacity="0.8"
                   >
@@ -742,9 +742,8 @@ const TeacherPerformanceCard = ({
                     fill={
                       isSelected ? "#FFFFFF" : isDark ? "#FFFFFF" : "#1D1B20"
                     }
-                    fontSize="10"
-                    fontFamily="DMSans-Bold"
-                    fontWeight="bold"
+                    fontSize={FONT_SIZES.micro}
+                    fontFamily={FONTS.bold}
                     textAnchor="middle"
                   >
                     {d.marks}
@@ -759,9 +758,8 @@ const TeacherPerformanceCard = ({
                         ? colors.primary || "#6750A4"
                         : colors.onSurfaceVariant || "#757575"
                     }
-                    fontSize={isSelected ? "11.5" : "10.5"}
-                    fontFamily={isSelected ? "DMSans-Bold" : "DMSans-Medium"}
-                    fontWeight={isSelected ? "bold" : "normal"}
+                    fontSize={isSelected ? FONT_SIZES.xs : FONT_SIZES.micro}
+                    fontFamily={isSelected ? FONTS.bold : FONTS.medium}
                     textAnchor="middle"
                   >
                     {d.name.length > 8 ? `${d.name.substring(0, 7)}…` : d.name}
@@ -800,23 +798,28 @@ const TeacherPerformanceCard = ({
           {sortedSubjects.map((sub, rankIdx) => {
             const grade = getScoreGrade(sub.marks, chartMaxY);
             const ratio = chartMaxY > 0 ? (sub.marks / chartMaxY) * 100 : 0;
-            const isSelected = sub.rawIndex === activeIdx;
+            const originalIndex = normalizedData.findIndex(
+              (item) => item.name === sub.name
+            );
+            const isSelected = originalIndex === activeIdx;
 
             return (
               <Pressable
-                key={`ranked-${sub.name}-${rankIdx}`}
-                onPress={() => setSelectedIndex(sub.rawIndex)}
+                key={`rank-${sub.name}-${rankIdx}`}
+                onPress={() =>
+                  setSelectedIndex(originalIndex !== -1 ? originalIndex : 0)
+                }
                 style={({ pressed }) => ({
                   backgroundColor: isSelected
-                    ? grade.bg
+                    ? (colors.primary || "#6750A4") + "15"
                     : colors.surface || (isDark ? "#2B2832" : "#FFFFFF"),
-                  borderRadius: 16,
+                  borderRadius: 14,
                   padding: 12,
                   borderWidth: 1,
                   borderColor: isSelected
-                    ? grade.color
+                    ? colors.primary || "#6750A4"
                     : colors.outlineVariant
-                    ? colors.outlineVariant + "25"
+                    ? colors.outlineVariant + "30"
                     : "rgba(0,0,0,0.06)",
                   opacity: pressed ? 0.8 : 1,
                 })}
@@ -826,23 +829,22 @@ const TeacherPerformanceCard = ({
                     flexDirection: "row",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    marginBottom: 8,
+                    marginBottom: 6,
                   }}
                 >
                   <View
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
-                      gap: 10,
+                      gap: 8,
                       flex: 1,
                     }}
                   >
-                    {/* Rank Badge */}
                     <View
                       style={{
-                        width: 26,
-                        height: 26,
-                        borderRadius: 8,
+                        width: 22,
+                        height: 22,
+                        borderRadius: 11,
                         backgroundColor:
                           rankIdx === 0
                             ? "#10B98120"
@@ -855,8 +857,8 @@ const TeacherPerformanceCard = ({
                     >
                       <Text
                         style={{
-                          fontSize: 12,
-                          fontFamily: "DMSans-Bold",
+                          fontSize: FONT_SIZES.sm,
+                          fontFamily: FONTS.bold,
                           color:
                             rankIdx === 0
                               ? "#10B981"
@@ -871,8 +873,8 @@ const TeacherPerformanceCard = ({
                     <View style={{ flex: 1 }}>
                       <Text
                         style={{
-                          fontSize: 14,
-                          fontFamily: "DMSans-Bold",
+                          fontSize: FONT_SIZES.base,
+                          fontFamily: FONTS.bold,
                           color:
                             colors.onSurface ||
                             (isDark ? "#FFFFFF" : "#1D1B20"),
@@ -894,8 +896,8 @@ const TeacherPerformanceCard = ({
                   >
                     <Text
                       style={{
-                        fontSize: 16,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.lg,
+                        fontFamily: FONTS.bold,
                         color: grade.color,
                       }}
                     >
@@ -911,8 +913,8 @@ const TeacherPerformanceCard = ({
                     >
                       <Text
                         style={{
-                          fontSize: 10,
-                          fontFamily: "DMSans-Bold",
+                          fontSize: FONT_SIZES.micro,
+                          fontFamily: FONTS.bold,
                           color: "#FFFFFF",
                         }}
                       >
@@ -977,8 +979,8 @@ const TeacherPerformanceCard = ({
             >
               <Text
                 style={{
-                  fontSize: 15,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.mdLg,
+                  fontFamily: FONTS.bold,
                   color: colors.onSurface || (isDark ? "#FFFFFF" : "#1D1B20"),
                 }}
               >
@@ -994,8 +996,8 @@ const TeacherPerformanceCard = ({
               >
                 <Text
                   style={{
-                    fontSize: 10,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.micro,
+                    fontFamily: FONTS.bold,
                     color: "#FFFFFF",
                   }}
                 >
@@ -1005,8 +1007,8 @@ const TeacherPerformanceCard = ({
             </View>
             <Text
               style={{
-                fontSize: 12,
-                fontFamily: "DMSans-Regular",
+                fontSize: FONT_SIZES.sm,
+                fontFamily: FONTS.regular,
                 color:
                   colors.onSurfaceVariant || (isDark ? "#CAC4D0" : "#49454F"),
               }}
@@ -1022,16 +1024,16 @@ const TeacherPerformanceCard = ({
           <View style={{ alignItems: "flex-end" }}>
             <Text
               style={{
-                fontSize: 22,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.title,
+                fontFamily: FONTS.bold,
                 color: activeGrade.color,
               }}
             >
               {activeSubject.marks}{" "}
               <Text
                 style={{
-                  fontSize: 13,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.md,
+                  fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                 }}
               >

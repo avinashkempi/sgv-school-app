@@ -11,7 +11,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
 import { useToast } from "../../components/ToastProvider";
 import apiConfig from "../../config/apiConfig";
@@ -81,8 +81,8 @@ export default function YearDetailsScreen() {
           <Text
             style={{
               marginTop: 16,
-              fontSize: 14,
-              fontFamily: "DMSans-Medium",
+              fontSize: FONT_SIZES.base,
+              fontFamily: FONTS.medium,
               color: colors.onSurfaceVariant,
             }}
           >
@@ -162,8 +162,8 @@ export default function YearDetailsScreen() {
           >
             <Text
               style={{
-                fontSize: 12,
-                fontFamily: "DMSans-Medium",
+                fontSize: FONT_SIZES.sm,
+                fontFamily: FONTS.medium,
                 color: colors.onSurfaceVariant,
               }}
             >
@@ -180,12 +180,10 @@ export default function YearDetailsScreen() {
     <View
       style={{
         flexDirection: "row",
-        gap: 8,
-        marginTop: 20,
-        marginBottom: 20,
-        backgroundColor: colors.surfaceContainerHighest,
-        padding: 4,
+        backgroundColor: colors.surfaceContainerLow,
         borderRadius: 12,
+        padding: 4,
+        marginVertical: 16,
       }}
     >
       {[
@@ -203,9 +201,7 @@ export default function YearDetailsScreen() {
             borderRadius: 8,
             backgroundColor:
               selectedTab === tab.id
-                ? pressed
-                  ? colors.primary + "DD"
-                  : colors.primary
+                ? colors.primary
                 : pressed
                 ? colors.surfaceContainerHigh
                 : "transparent",
@@ -215,8 +211,8 @@ export default function YearDetailsScreen() {
         >
           <Text
             style={{
-              fontSize: 12,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.sm,
+              fontFamily: FONTS.bold,
               color:
                 selectedTab === tab.id ? "#FFFFFF" : colors.onSurfaceVariant,
             }}
@@ -258,8 +254,8 @@ export default function YearDetailsScreen() {
               <ActivityIndicator size="large" color={colors.primary} />
               <Text
                 style={{
-                  fontSize: 14,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.base,
+                  fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                   marginTop: 12,
                 }}
@@ -283,8 +279,8 @@ export default function YearDetailsScreen() {
               />
               <Text
                 style={{
-                  fontSize: 16,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.lg,
+                  fontFamily: FONTS.bold,
                   color: colors.onSurface,
                   marginTop: 16,
                 }}
@@ -322,11 +318,11 @@ export default function YearDetailsScreen() {
                       <MaterialIcons name="star" size={18} color="#FFF" />
                       <Text
                         style={{
-                          fontSize: 12,
-                          fontFamily: "DMSans-Bold",
+                          fontSize: FONT_SIZES.sm,
+                          fontFamily: FONTS.bold,
                           color: "#FFF",
                           textTransform: "uppercase",
-                          letterSpacing: 1,
+                          letterSpacing: LETTER_SPACINGS.micro,
                         }}
                       >
                         CURRENT ACADEMIC YEAR
@@ -363,8 +359,8 @@ export default function YearDetailsScreen() {
                       />
                       <Text
                         style={{
-                          fontSize: 12,
-                          fontFamily: "DMSans-Bold",
+                          fontSize: FONT_SIZES.sm,
+                          fontFamily: FONTS.bold,
                           color: getStatusColor(),
                           textTransform: "uppercase",
                         }}
@@ -385,8 +381,8 @@ export default function YearDetailsScreen() {
                     <View style={{ flex: 1 }}>
                       <Text
                         style={{
-                          fontSize: 11,
-                          fontFamily: "DMSans-Medium",
+                          fontSize: FONT_SIZES.xs,
+                          fontFamily: FONTS.medium,
                           color: colors.onSurfaceVariant,
                           marginBottom: 4,
                         }}
@@ -395,8 +391,8 @@ export default function YearDetailsScreen() {
                       </Text>
                       <Text
                         style={{
-                          fontSize: 15,
-                          fontFamily: "DMSans-Bold",
+                          fontSize: FONT_SIZES.mdLg,
+                          fontFamily: FONTS.bold,
                           color: colors.onSurface,
                         }}
                       >
@@ -410,8 +406,8 @@ export default function YearDetailsScreen() {
                     <View style={{ flex: 1 }}>
                       <Text
                         style={{
-                          fontSize: 11,
-                          fontFamily: "DMSans-Medium",
+                          fontSize: FONT_SIZES.xs,
+                          fontFamily: FONTS.medium,
                           color: colors.onSurfaceVariant,
                           marginBottom: 4,
                         }}
@@ -420,8 +416,8 @@ export default function YearDetailsScreen() {
                       </Text>
                       <Text
                         style={{
-                          fontSize: 15,
-                          fontFamily: "DMSans-Bold",
+                          fontSize: FONT_SIZES.mdLg,
+                          fontFamily: FONTS.bold,
                           color: colors.onSurface,
                         }}
                       >
@@ -438,8 +434,8 @@ export default function YearDetailsScreen() {
                   {year.description && (
                     <Text
                       style={{
-                        fontSize: 13,
-                        fontFamily: "DMSans-Regular",
+                        fontSize: FONT_SIZES.md,
+                        fontFamily: FONTS.regular,
                         color: colors.onSurfaceVariant,
                         marginTop: 8,
                       }}
@@ -555,8 +551,8 @@ function MetricCard({ icon, label, value, color }) {
         </View>
         <Text
           style={{
-            fontSize: 11,
-            fontFamily: "DMSans-Medium",
+            fontSize: FONT_SIZES.xs,
+            fontFamily: FONTS.medium,
             color: colors.onSurfaceVariant,
             flex: 1,
           }}
@@ -564,7 +560,7 @@ function MetricCard({ icon, label, value, color }) {
           {label}
         </Text>
       </View>
-      <Text style={{ fontSize: 24, fontFamily: "DMSans-Bold", color }}>
+      <Text style={{ fontSize: FONT_SIZES.xxl, fontFamily: FONTS.bold, color }}>
         {value}
       </Text>
     </View>
@@ -591,8 +587,8 @@ function ComingSoonPlaceholder({ icon, text }) {
       <Text
         style={{
           marginTop: 16,
-          fontSize: 14,
-          fontFamily: "DMSans-Medium",
+          fontSize: FONT_SIZES.base,
+          fontFamily: FONTS.medium,
           color: colors.onSurfaceVariant,
         }}
       >

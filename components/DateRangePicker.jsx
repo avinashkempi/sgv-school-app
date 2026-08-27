@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, Pressable, Modal, ScrollView } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES } from "../theme";
 import Button from "./Button";
 
 const DateRangePicker = ({
@@ -143,11 +143,11 @@ const DateRangePicker = ({
                   </View>
                   <Text
                     style={{
-                      fontSize: 16,
+                      fontSize: FONT_SIZES.lg,
                       fontFamily:
                         activePreset === preset.id
-                          ? "DMSans-Bold"
-                          : "DMSans-Medium",
+                          ? FONTS.bold
+                          : FONTS.medium,
                       color:
                         activePreset === preset.id
                           ? colors.onPrimaryContainer

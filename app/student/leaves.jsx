@@ -24,7 +24,7 @@ import {
 import apiConfig from "../../config/apiConfig";
 import { useToast } from "../../components/ToastProvider";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import Header from "../../components/Header";
 import { useLabel } from "../../context/LabelsContext";
 import { useAuth } from "../../context/AuthContext";
@@ -247,7 +247,7 @@ export default function StudentLeaves() {
                 {item.leaveType === "full" && item.startDate !== item.endDate && ` – ${formatDate(item.endDate)}`}
               </Text>
             </View>
-            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginTop: 1, fontFamily: "DMSans-Medium" }}>
+            <Text style={{ fontSize: FONT_SIZES.sm, color: colors.onSurfaceVariant, marginTop: 1, fontFamily: FONTS.medium }}>
               {item.leaveType === "half" ? `Half Day (${item.halfDaySlot})` : "Full Day"} • {durationLabel}
             </Text>
           </View>
@@ -270,11 +270,11 @@ export default function StudentLeaves() {
         {/* Decision details */}
         {item.status === "rejected" && (
           <View style={[styles.decisionBox, { backgroundColor: "#FFEBEE", borderColor: "#FFCDD2" }]}>
-            <Text style={{ fontSize: 11, fontFamily: "DMSans-Bold", color: "#D32F2F" }}>
+            <Text style={{ fontSize: FONT_SIZES.xs, fontFamily: FONTS.bold, color: "#D32F2F" }}>
               Rejection: {item.rejectionReason}
             </Text>
             {item.rejectionComments && (
-              <Text style={{ fontSize: 11, color: colors.onSurfaceVariant, fontFamily: "DMSans-Regular", marginTop: 1 }}>
+              <Text style={{ fontSize: FONT_SIZES.xs, color: colors.onSurfaceVariant, fontFamily: FONTS.regular, marginTop: 1 }}>
                 Teacher Note: {item.rejectionComments}
               </Text>
             )}
@@ -283,7 +283,7 @@ export default function StudentLeaves() {
 
         {item.status === "approved" && item.actionReason && (
           <View style={[styles.decisionBox, { backgroundColor: "#E8F5E9", borderColor: "#C8E6C9" }]}>
-            <Text style={{ fontSize: 11, fontFamily: "DMSans-Bold", color: "#2E7D32" }}>
+            <Text style={{ fontSize: FONT_SIZES.xs, fontFamily: FONTS.bold, color: "#2E7D32" }}>
               Teacher Note: {item.actionReason}
             </Text>
           </View>
@@ -411,7 +411,7 @@ export default function StudentLeaves() {
           onPress={() => setModalVisible(true)}
         >
           <Ionicons name="add" size={16} color={colors.onPrimary} />
-          <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 12 }}>
+          <Text style={{ color: colors.onPrimary, fontFamily: FONTS.bold, fontSize: FONT_SIZES.sm }}>
             Apply Leave
           </Text>
         </TouchableOpacity>
@@ -421,7 +421,7 @@ export default function StudentLeaves() {
       {loading ? (
         <View style={styles.loaderBox}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={{ marginTop: 8, color: colors.onSurfaceVariant, fontFamily: "DMSans-Medium", fontSize: 12 }}>
+          <Text style={{ marginTop: 8, color: colors.onSurfaceVariant, fontFamily: FONTS.medium, fontSize: FONT_SIZES.sm }}>
             Loading your leave history...
           </Text>
         </View>
@@ -456,7 +456,7 @@ export default function StudentLeaves() {
         activeOpacity={0.85}
       >
         <Ionicons name="add" size={24} color={colors.onPrimary} />
-        <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 13 }}>
+        <Text style={{ color: colors.onPrimary, fontFamily: FONTS.bold, fontSize: FONT_SIZES.md }}>
           Apply
         </Text>
       </TouchableOpacity>
@@ -624,8 +624,8 @@ export default function StudentLeaves() {
                     >
                       <Text
                         style={{
-                          fontFamily: "DMSans-Bold",
-                          fontSize: 12,
+                          fontFamily: FONTS.bold,
+                          fontSize: FONT_SIZES.sm,
                           color:
                             halfDaySlot === "morning"
                               ? colors.onPrimaryContainer
@@ -653,8 +653,8 @@ export default function StudentLeaves() {
                     >
                       <Text
                         style={{
-                          fontFamily: "DMSans-Bold",
-                          fontSize: 12,
+                          fontFamily: FONTS.bold,
+                          fontSize: FONT_SIZES.sm,
                           color:
                             halfDaySlot === "afternoon"
                               ? colors.onPrimaryContainer
@@ -678,7 +678,7 @@ export default function StudentLeaves() {
                     style={[styles.datePickerInput, { backgroundColor: colors.surfaceContainer }]}
                     onPress={() => setShowStartPicker(true)}
                   >
-                    <Text style={{ fontSize: 13, color: colors.onSurface, fontFamily: "DMSans-Medium" }}>
+                    <Text style={{ fontSize: FONT_SIZES.md, color: colors.onSurface, fontFamily: FONTS.medium }}>
                       {formatDate(startDate)}
                     </Text>
                     <Ionicons name="calendar-outline" size={16} color={colors.primary} />
@@ -708,7 +708,7 @@ export default function StudentLeaves() {
                       style={[styles.datePickerInput, { backgroundColor: colors.surfaceContainer }]}
                       onPress={() => setShowEndPicker(true)}
                     >
-                      <Text style={{ fontSize: 13, color: colors.onSurface, fontFamily: "DMSans-Medium" }}>
+                      <Text style={{ fontSize: FONT_SIZES.md, color: colors.onSurface, fontFamily: FONTS.medium }}>
                         {formatDate(endDate)}
                       </Text>
                       <Ionicons name="calendar-outline" size={16} color={colors.primary} />
@@ -759,7 +759,7 @@ export default function StudentLeaves() {
                 {applyLeaveMutation.isPending ? (
                   <ActivityIndicator color="#FFF" />
                 ) : (
-                  <Text style={{ color: "#FFF", fontFamily: "DMSans-Bold", fontSize: 15 }}>
+                  <Text style={{ color: "#FFF", fontFamily: FONTS.bold, fontSize: FONT_SIZES.mdLg }}>
                     Submit Leave Request
                   </Text>
                 )}
@@ -793,8 +793,8 @@ const styles = StyleSheet.create({
   },
   yearFilterBtnText: {
     flex: 1,
-    fontSize: 12,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.medium,
   },
   applyTopBtn: {
     flexDirection: "row",
@@ -826,12 +826,12 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   kpiCapsuleNum: {
-    fontSize: 12,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
   },
   kpiCapsuleLabel: {
-    fontSize: 10,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.medium,
   },
   activeFiltersRow: {
     flexDirection: "row",
@@ -849,8 +849,8 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   activeFilterText: {
-    fontSize: 10,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.bold,
   },
   leaveCard: {
     borderRadius: 14,
@@ -875,8 +875,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   dateRangeText: {
-    fontSize: 13,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.bold,
   },
   statusBadge: {
     flexDirection: "row",
@@ -888,8 +888,8 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   statusBadgeText: {
-    fontSize: 10,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.bold,
     textTransform: "uppercase",
   },
   reasonBox: {
@@ -898,8 +898,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   reasonText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.regular,
     lineHeight: 16,
     fontStyle: "italic",
   },
@@ -921,14 +921,14 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   emptyTitle: {
-    fontSize: 15,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.mdLg,
+    fontFamily: FONTS.bold,
     marginTop: 8,
     marginBottom: 2,
   },
   emptySub: {
-    fontSize: 12,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.regular,
     textAlign: "center",
   },
   fabBtn: {
@@ -975,8 +975,8 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   sheetChipText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.medium,
   },
   applySheetCard: {
     borderTopLeftRadius: 22,
@@ -985,12 +985,12 @@ const styles = StyleSheet.create({
     maxHeight: "90%",
   },
   modalHeading: {
-    fontSize: 16,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.lg,
+    fontFamily: FONTS.bold,
   },
   fieldLabel: {
-    fontSize: 10,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.bold,
     letterSpacing: 0.5,
     marginBottom: 4,
   },
@@ -1009,8 +1009,8 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   segmentText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
   },
   slotBtn: {
     flex: 1,
@@ -1029,8 +1029,8 @@ const styles = StyleSheet.create({
   textArea: {
     borderRadius: 8,
     padding: 10,
-    fontSize: 13,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.regular,
     minHeight: 70,
     textAlignVertical: "top",
   },

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, TextInput as RNTextInput, Text, Pressable } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES } from "../theme";
 
 /**
  * Material 3 Text Input
@@ -136,8 +136,8 @@ const TextInput = ({
           style={[
             {
               flex: 1,
-              fontSize: 16,
-              fontFamily: "DMSans-Regular",
+              fontSize: FONT_SIZES.lg,
+              fontFamily: FONTS.regular,
               color: colors.onSurface,
               height: "100%",
             },

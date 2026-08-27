@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, Dimensions } from "react-native";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES } from "../../theme";
 import { LineChart, BarChart, PieChart } from "react-native-chart-kit";
 
 const ChartCard = ({
@@ -44,8 +44,8 @@ const ChartCard = ({
       stroke: chartColor,
     },
     propsForLabels: {
-      fontSize: 11,
-      fontFamily: "DMSans-Medium",
+      fontSize: FONT_SIZES.xs,
+      fontFamily: FONTS.medium,
     },
     propsForBackgroundLines: {
       strokeDasharray: "4,4",
@@ -66,8 +66,8 @@ const ChartCard = ({
         >
           <Text
             style={{
-              fontSize: 13,
-              fontFamily: "DMSans-Medium",
+              fontSize: FONT_SIZES.md,
+              fontFamily: FONTS.medium,
               color: colors.onSurfaceVariant,
               opacity: 0.7,
             }}
@@ -129,8 +129,8 @@ const ChartCard = ({
               ? colors.secondary
               : colors.tertiary,
           legendFontColor: colors.onSurfaceVariant,
-          legendFontSize: 12,
-          legendFontFamily: "DMSans-Medium",
+          legendFontSize: FONT_SIZES.sm,
+          legendFontFamily: FONTS.medium,
         }));
         return (
           <PieChart
@@ -176,7 +176,7 @@ const ChartCard = ({
             styles.titleMedium,
             {
               color: colors.onSurface || (isDark ? "#FFFFFF" : "#1D1B20"),
-              fontFamily: "DMSans-Bold",
+              fontFamily: FONTS.bold,
             },
           ]}
         >
@@ -185,8 +185,8 @@ const ChartCard = ({
         {subtitle && (
           <Text
             style={{
-              fontSize: 12,
-              fontFamily: "DMSans-Medium",
+              fontSize: FONT_SIZES.sm,
+              fontFamily: FONTS.medium,
               color:
                 colors.onSurfaceVariant || (isDark ? "#CAC4D0" : "#49454F"),
               marginTop: 2,

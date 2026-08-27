@@ -1,7 +1,9 @@
 import React from "react";
 import { View, Text, Pressable, Alert } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { FONTS, FONT_SIZES, LETTER_SPACINGS } from "../theme";
 import UserAvatar from "./ui/UserAvatar";
+import { formatUserName } from "../utils/userFormatters";
 
 const getTimeAgo = (dateString) => {
   if (!dateString) return "";
@@ -27,6 +29,8 @@ const UserCard = ({
   onDelete,
   onPress,
 }) => {
+  const displayName = formatUserName(userItem.name);
+
   return (
     <Pressable
       onPress={onPress}
@@ -49,7 +53,7 @@ const UserCard = ({
         {/* User Profile Avatar */}
         <UserAvatar
           photoUrl={userItem.profilePhoto}
-          name={userItem.name}
+          name={displayName}
           role={userItem.role}
           size={46}
           showBorder
@@ -68,15 +72,15 @@ const UserCard = ({
           >
             <Text
               style={{
-                fontSize: 16,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.lg,
+                fontFamily: FONTS.bold,
                 color: colors.textPrimary,
                 flex: 1,
                 paddingRight: 8,
               }}
               numberOfLines={1}
             >
-              {userItem.name}
+              {displayName}
             </Text>
 
             {/* Actions */}
@@ -149,10 +153,10 @@ const UserCard = ({
             >
               <Text
                 style={{
-                  fontSize: 10,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.micro,
+                  fontFamily: FONTS.bold,
                   color: getRoleColor(userItem.role),
-                  letterSpacing: 0.5,
+                  letterSpacing: LETTER_SPACINGS.xs,
                 }}
               >
                 {getRoleDisplay(userItem).toUpperCase()}
@@ -173,10 +177,10 @@ const UserCard = ({
               >
                 <Text
                   style={{
-                    fontSize: 10,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.micro,
+                    fontFamily: FONTS.bold,
                     color: colors.primary,
-                    letterSpacing: 0.5,
+                    letterSpacing: LETTER_SPACINGS.xs,
                   }}
                 >
                   {userItem.currentClass.name.toUpperCase()}
@@ -205,9 +209,9 @@ const UserCard = ({
                   />
                   <Text
                     style={{
-                      fontSize: 12,
+                      fontSize: FONT_SIZES.sm,
                       color: colors.textSecondary,
-                      fontFamily: "DMSans-Medium",
+                      fontFamily: FONTS.medium,
                     }}
                   >
                     {userItem.phone}
@@ -228,9 +232,9 @@ const UserCard = ({
                 />
                 <Text
                   style={{
-                    fontSize: 11,
+                    fontSize: FONT_SIZES.xs,
                     color: colors.textSecondary,
-                    fontFamily: "DMSans-Medium",
+                    fontFamily: FONTS.medium,
                   }}
                 >
                   Active {getTimeAgo(userItem.lastActiveAt)}

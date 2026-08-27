@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import apiConfig from "../../config/apiConfig";
 import { useToast } from "../../components/ToastProvider";
 import Header from "../../components/Header";
@@ -73,8 +73,8 @@ export default function StudentClassScreen() {
         <MaterialIcons name="school" size={64} color={colors.textSecondary} />
         <Text
           style={{
-            fontSize: 18,
-            fontFamily: "DMSans-Bold",
+            fontSize: FONT_SIZES.xl,
+            fontFamily: FONTS.bold,
             color: colors.textPrimary,
             marginTop: 16,
             textAlign: "center",
@@ -84,11 +84,11 @@ export default function StudentClassScreen() {
         </Text>
         <Text
           style={{
-            fontSize: 14,
+            fontSize: FONT_SIZES.base,
             color: colors.textSecondary,
             marginTop: 8,
             textAlign: "center",
-            fontFamily: "DMSans-Regular",
+            fontFamily: FONTS.regular,
           }}
         >
           {t(
@@ -157,8 +157,8 @@ export default function StudentClassScreen() {
                   <View style={{ flex: 1 }}>
                     <Text
                       style={{
-                        fontSize: 11,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.xs,
+                        fontFamily: FONTS.bold,
                         color: colors.primary,
                         textTransform: "uppercase",
                         letterSpacing: 0.5,
@@ -168,8 +168,8 @@ export default function StudentClassScreen() {
                     </Text>
                     <Text
                       style={{
-                        fontSize: 15,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.mdLg,
+                        fontFamily: FONTS.bold,
                         color: colors.textPrimary,
                         marginTop: 1,
                       }}
@@ -229,8 +229,8 @@ export default function StudentClassScreen() {
                       style={{
                         color: colors.textSecondary,
                         marginTop: 16,
-                        fontSize: 16,
-                        fontFamily: "DMSans-Medium",
+                        fontSize: FONT_SIZES.lg,
+                        fontFamily: FONTS.medium,
                       }}
                     >
                       {t("student.noSubjectsYet", "No subjects added yet.")}
@@ -285,8 +285,8 @@ export default function StudentClassScreen() {
                           <View style={{ flex: 1 }}>
                             <Text
                               style={{
-                                fontSize: 16,
-                                fontFamily: "DMSans-Bold",
+                                fontSize: FONT_SIZES.lg,
+                                fontFamily: FONTS.bold,
                                 color: colors.textPrimary,
                                 marginBottom: 4,
                               }}
@@ -310,9 +310,9 @@ export default function StudentClassScreen() {
                                 />
                                 <Text
                                   style={{
-                                    fontSize: 13,
+                                    fontSize: FONT_SIZES.md,
                                     color: colors.textSecondary,
-                                    fontFamily: "DMSans-Medium",
+                                    fontFamily: FONTS.medium,
                                   }}
                                 >
                                   {subject.teachers
@@ -323,10 +323,10 @@ export default function StudentClassScreen() {
                             ) : (
                               <Text
                                 style={{
-                                  fontSize: 12,
+                                  fontSize: FONT_SIZES.sm,
                                   color: colors.textSecondary,
                                   fontStyle: "italic",
-                                  fontFamily: "DMSans-Regular",
+                                  fontFamily: FONTS.regular,
                                 }}
                               >
                                 {t(
@@ -391,8 +391,8 @@ const MenuCard = ({ title, icon, color, onPress }) => {
       </View>
       <Text
         style={{
-          fontSize: 15,
-          fontFamily: "DMSans-Bold",
+          fontSize: FONT_SIZES.mdLg,
+          fontFamily: FONTS.bold,
           color: colors.textPrimary,
           textAlign: "center",
         }}

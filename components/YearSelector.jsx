@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, Pressable, ScrollView } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
 
 /**
  * YearSelector Component
@@ -91,26 +91,31 @@ export default function YearSelector({
             alignItems: "center",
             gap: 10,
             flex: 1,
+            minWidth: 0,
           }}
         >
-          <MaterialIcons name="date-range" size={20} color={colors.primary} />
-          <View style={{ flex: 1 }}>
+          <MaterialIcons name="date-range" size={20} color={colors.primary} style={{ flexShrink: 0 }} />
+          <View style={{ flex: 1, minWidth: 0 }}>
             <Text
               style={{
-                fontSize: 13,
-                fontFamily: "DMSans-Medium",
+                fontSize: FONT_SIZES.md,
+                fontFamily: FONTS.medium,
                 color: colors.onSurfaceVariant,
                 marginBottom: 2,
+                flexShrink: 1,
               }}
+              numberOfLines={1}
             >
               Academic Year
             </Text>
             <Text
               style={{
-                fontSize: 15,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.mdLg,
+                fontFamily: FONTS.bold,
                 color: colors.onSurface,
+                flexShrink: 1,
               }}
+              numberOfLines={1}
             >
               {currentYear?.name || "Select Year"}
             </Text>
@@ -133,6 +138,7 @@ export default function YearSelector({
             left: -1000,
             right: -1000,
             bottom: -1000,
+            zIndex: 999,
           }}
         />
       )}
@@ -145,21 +151,25 @@ export default function YearSelector({
             top: "100%",
             left: 0,
             right: 0,
-            marginTop: 4,
-            backgroundColor: colors.surface,
-            borderRadius: 12,
+            marginTop: 8,
+            backgroundColor: colors.surfaceContainer,
+            borderRadius: 16,
+            overflow: "hidden",
+            elevation: 8,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.15,
+            shadowRadius: 12,
+            zIndex: 1000,
             borderWidth: 1,
             borderColor: colors.outlineVariant,
-            elevation: 4,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 8,
             maxHeight: 300,
-            overflow: "hidden",
           }}
         >
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <ScrollView
+            nestedScrollEnabled={true}
+            showsVerticalScrollIndicator={false}
+          >
             {showAll && (
               <Pressable
                 onPress={() => {
@@ -191,8 +201,8 @@ export default function YearSelector({
                 />
                 <Text
                   style={{
-                    fontSize: 14,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.base,
+                    fontFamily: FONTS.bold,
                     color: colors.onSurface,
                     flex: 1,
                   }}
@@ -240,8 +250,8 @@ export default function YearSelector({
                   <View style={{ flex: 1 }}>
                     <Text
                       style={{
-                        fontSize: 15,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.mdLg,
+                        fontFamily: FONTS.bold,
                         color: colors.onSurface,
                       }}
                     >
@@ -250,8 +260,8 @@ export default function YearSelector({
                     {year.description && (
                       <Text
                         style={{
-                          fontSize: 12,
-                          fontFamily: "DMSans-Regular",
+                          fontSize: FONT_SIZES.sm,
+                          fontFamily: FONTS.regular,
                           color: colors.onSurfaceVariant,
                           marginTop: 2,
                         }}
@@ -271,8 +281,8 @@ export default function YearSelector({
                     >
                       <Text
                         style={{
-                          fontSize: 11,
-                          fontFamily: "DMSans-Bold",
+                          fontSize: FONT_SIZES.xs,
+                          fontFamily: FONTS.bold,
                           color: statusColor,
                         }}
                       >

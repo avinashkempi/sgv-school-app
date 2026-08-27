@@ -24,13 +24,14 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import apiConfig from "../../config/apiConfig";
 import { useToast } from "../../components/ToastProvider";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import Header from "../../components/Header";
 import formatClassName from "../../utils/formatClassName";
 import { useAuth } from "../../context/AuthContext";
 import { getISTDateString } from "../../utils/date";
 import UserAvatar from "../../components/ui/UserAvatar";
 import { useAcademicYear } from "../../context/AcademicYearContext";
+import { formatUserName } from "../../utils/userFormatters";
 
 const REJECTION_PRESETS = [
   "Exam / Test Schedule",
@@ -383,14 +384,14 @@ export default function TeacherLeaves() {
           <View style={{ flexDirection: "row", alignItems: "center", flex: 1, gap: 10 }}>
             <UserAvatar
               photoUrl={item.applicant?.profilePhoto}
-              name={item.applicant?.name || "Student"}
+              name={formatUserName(item.applicant?.name, "Student")}
               role="student"
               size={40}
             />
             <View style={{ flex: 1 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                 <Text style={[styles.applicantName, { color: colors.onSurface }]} numberOfLines={1}>
-                  {item.applicant?.name || "Student"}
+                  {formatUserName(item.applicant?.name, "Student")}
                 </Text>
                 {item.academicYear?.name && (
                   <View style={[styles.tinyYearPill, { backgroundColor: colors.surfaceContainerHigh }]}>
@@ -449,11 +450,11 @@ export default function TeacherLeaves() {
         {/* Decision details */}
         {item.status === "rejected" && (
           <View style={[styles.decisionBox, { backgroundColor: "#FFEBEE", borderColor: "#FFCDD2" }]}>
-            <Text style={{ color: "#D32F2F", fontFamily: "DMSans-Bold", fontSize: 11 }}>
+            <Text style={{ color: "#D32F2F", fontFamily: FONTS.bold, fontSize: FONT_SIZES.xs }}>
               Rejected: {item.rejectionReason}
             </Text>
             {item.rejectionComments && (
-              <Text style={{ color: colors.onSurfaceVariant, fontSize: 11, marginTop: 1 }}>
+              <Text style={{ color: colors.onSurfaceVariant, fontSize: FONT_SIZES.xs, marginTop: 1 }}>
                 Note: {item.rejectionComments}
               </Text>
             )}
@@ -462,7 +463,7 @@ export default function TeacherLeaves() {
 
         {item.status === "approved" && item.actionReason && (
           <View style={[styles.decisionBox, { backgroundColor: "#E8F5E9", borderColor: "#C8E6C9" }]}>
-            <Text style={{ color: "#2E7D32", fontFamily: "DMSans-Bold", fontSize: 11 }}>
+            <Text style={{ color: "#2E7D32", fontFamily: FONTS.bold, fontSize: FONT_SIZES.xs }}>
               Approval Note: {item.actionReason}
             </Text>
           </View>
@@ -531,7 +532,7 @@ export default function TeacherLeaves() {
                 {item.leaveType === "full" && item.startDate !== item.endDate && ` – ${formatDate(item.endDate)}`}
               </Text>
             </View>
-            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginTop: 1, fontFamily: "DMSans-Regular" }}>
+            <Text style={{ fontSize: FONT_SIZES.sm, color: colors.onSurfaceVariant, marginTop: 1, fontFamily: FONTS.regular }}>
               {item.leaveType === "half" ? `Half Day (${item.halfDaySlot})` : "Full Day"} • {calculateDays(item.startDate, item.endDate, item.leaveType)}
             </Text>
           </View>
@@ -551,11 +552,11 @@ export default function TeacherLeaves() {
 
         {item.status === "rejected" && (
           <View style={[styles.decisionBox, { backgroundColor: "#FFEBEE", borderColor: "#FFCDD2", marginTop: 6 }]}>
-            <Text style={{ color: "#D32F2F", fontFamily: "DMSans-Bold", fontSize: 11 }}>
+            <Text style={{ color: "#D32F2F", fontFamily: FONTS.bold, fontSize: FONT_SIZES.xs }}>
               Rejected: {item.rejectionReason}
             </Text>
             {item.rejectionComments && (
-              <Text style={{ color: colors.onSurfaceVariant, fontSize: 11, marginTop: 1 }}>
+              <Text style={{ color: colors.onSurfaceVariant, fontSize: FONT_SIZES.xs, marginTop: 1 }}>
                 Note: {item.rejectionComments}
               </Text>
             )}
@@ -663,7 +664,7 @@ export default function TeacherLeaves() {
               }}
               style={styles.clearAllBtn}
             >
-              <Text style={{ fontSize: 11, color: colors.primary, fontFamily: "DMSans-Bold" }}>
+              <Text style={{ fontSize: FONT_SIZES.xs, color: colors.primary, fontFamily: FONTS.bold }}>
                 Reset Filters
               </Text>
             </TouchableOpacity>
@@ -700,7 +701,7 @@ export default function TeacherLeaves() {
                 style={[
                   styles.tabBtnText,
                   { color: activeTab === "requests" ? colors.primary : colors.onSurfaceVariant },
-                  activeTab === "requests" && { fontFamily: "DMSans-Bold" },
+                  activeTab === "requests" && { fontFamily: FONTS.bold },
                 ]}
               >
                 Student Requests
@@ -724,7 +725,7 @@ export default function TeacherLeaves() {
                 style={[
                   styles.tabBtnText,
                   { color: activeTab === "my_leaves" ? colors.primary : colors.onSurfaceVariant },
-                  activeTab === "my_leaves" && { fontFamily: "DMSans-Bold" },
+                  activeTab === "my_leaves" && { fontFamily: FONTS.bold },
                 ]}
               >
                 My Leaves & Balance
@@ -825,7 +826,7 @@ export default function TeacherLeaves() {
                 <Text style={[styles.allowanceTitle, { color: colors.onSurface }]}>
                   My Leave Balance
                 </Text>
-                <Text style={{ fontSize: 11, color: colors.onSurfaceVariant, fontFamily: "DMSans-Regular" }}>
+                <Text style={{ fontSize: FONT_SIZES.xs, color: colors.onSurfaceVariant, fontFamily: FONTS.regular }}>
                   Year {activeYearObj?.name || new Date().getFullYear()}
                 </Text>
               </View>
@@ -835,7 +836,7 @@ export default function TeacherLeaves() {
                 onPress={() => setApplyModalVisible(true)}
               >
                 <Ionicons name="add" size={15} color={colors.onPrimary} />
-                <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 12 }}>
+                <Text style={{ color: colors.onPrimary, fontFamily: FONTS.bold, fontSize: FONT_SIZES.sm }}>
                   Apply Leave
                 </Text>
               </TouchableOpacity>
@@ -893,7 +894,7 @@ export default function TeacherLeaves() {
             activeOpacity={0.85}
           >
             <Ionicons name="add" size={24} color={colors.onPrimary} />
-            <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 13 }}>
+            <Text style={{ color: colors.onPrimary, fontFamily: FONTS.bold, fontSize: FONT_SIZES.md }}>
               Apply
             </Text>
           </TouchableOpacity>
@@ -1025,7 +1026,7 @@ export default function TeacherLeaves() {
                   setFilterModalVisible(false);
                 }}
               >
-                <Text style={{ color: colors.onSurfaceVariant, fontFamily: "DMSans-Bold", fontSize: 13 }}>
+                <Text style={{ color: colors.onSurfaceVariant, fontFamily: FONTS.bold, fontSize: FONT_SIZES.md }}>
                   Reset All
                 </Text>
               </TouchableOpacity>
@@ -1034,7 +1035,7 @@ export default function TeacherLeaves() {
                 style={[styles.sheetApplyBtn, { backgroundColor: colors.primary }]}
                 onPress={() => setFilterModalVisible(false)}
               >
-                <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 14 }}>
+                <Text style={{ color: colors.onPrimary, fontFamily: FONTS.bold, fontSize: FONT_SIZES.base }}>
                   Apply Filters
                 </Text>
               </TouchableOpacity>
@@ -1082,15 +1083,15 @@ export default function TeacherLeaves() {
               <View style={[styles.applicantMiniSummary, { backgroundColor: colors.surfaceContainerLow }]}>
                 <UserAvatar
                   photoUrl={selectedRequest.applicant?.profilePhoto}
-                  name={selectedRequest.applicant?.name || "Student"}
+                  name={formatUserName(selectedRequest.applicant?.name, "Student")}
                   role="student"
                   size={32}
                 />
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 13, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
-                    {selectedRequest.applicant?.name}
+                  <Text style={{ fontSize: FONT_SIZES.md, fontFamily: FONTS.bold, color: colors.onSurface }}>
+                    {formatUserName(selectedRequest.applicant?.name, "Student")}
                   </Text>
-                  <Text style={{ fontSize: 11, color: colors.onSurfaceVariant, fontFamily: "DMSans-Regular" }}>
+                  <Text style={{ fontSize: FONT_SIZES.xs, color: colors.onSurfaceVariant, fontFamily: FONTS.regular }}>
                     {formatDate(selectedRequest.startDate)} – {formatDate(selectedRequest.endDate)} (
                     {calculateDays(selectedRequest.startDate, selectedRequest.endDate, selectedRequest.leaveType)})
                   </Text>
@@ -1120,9 +1121,9 @@ export default function TeacherLeaves() {
                       >
                         <Text
                           style={{
-                            fontSize: 11,
+                            fontSize: FONT_SIZES.xs,
                             color: isPresetSelected ? "#D32F2F" : colors.onSurface,
-                            fontFamily: isPresetSelected ? "DMSans-Bold" : "DMSans-Medium",
+                            fontFamily: isPresetSelected ? FONTS.bold : FONTS.medium,
                           }}
                         >
                           {preset}
@@ -1183,7 +1184,7 @@ export default function TeacherLeaves() {
                 style={styles.modalCancelBtn}
                 onPress={() => setActionModalVisible(false)}
               >
-                <Text style={{ color: colors.onSurfaceVariant, fontFamily: "DMSans-Bold", fontSize: 13 }}>
+                <Text style={{ color: colors.onSurfaceVariant, fontFamily: FONTS.bold, fontSize: FONT_SIZES.md }}>
                   Cancel
                 </Text>
               </TouchableOpacity>
@@ -1199,7 +1200,7 @@ export default function TeacherLeaves() {
                 {actionMutation.isPending ? (
                   <ActivityIndicator color="#FFF" size="small" />
                 ) : (
-                  <Text style={{ color: "#FFF", fontFamily: "DMSans-Bold", fontSize: 13 }}>
+                  <Text style={{ color: "#FFF", fontFamily: FONTS.bold, fontSize: FONT_SIZES.md }}>
                     {actionType === "approved" ? "Approve" : "Reject"}
                   </Text>
                 )}
@@ -1268,8 +1269,8 @@ export default function TeacherLeaves() {
                     >
                       <Text
                         style={{
-                          fontFamily: "DMSans-Bold",
-                          fontSize: 12,
+                          fontFamily: FONTS.bold,
+                          fontSize: FONT_SIZES.sm,
                           color: halfDaySlot === "morning" ? colors.onPrimaryContainer : colors.onSurfaceVariant,
                         }}
                       >
@@ -1288,8 +1289,8 @@ export default function TeacherLeaves() {
                     >
                       <Text
                         style={{
-                          fontFamily: "DMSans-Bold",
-                          fontSize: 12,
+                          fontFamily: FONTS.bold,
+                          fontSize: FONT_SIZES.sm,
                           color: halfDaySlot === "afternoon" ? colors.onPrimaryContainer : colors.onSurfaceVariant,
                         }}
                       >
@@ -1308,7 +1309,7 @@ export default function TeacherLeaves() {
                     style={[styles.datePickerInput, { backgroundColor: colors.surfaceContainer }]}
                     onPress={() => setShowStartPicker(true)}
                   >
-                    <Text style={{ fontSize: 13, color: colors.onSurface, fontFamily: "DMSans-Medium" }}>
+                    <Text style={{ fontSize: FONT_SIZES.md, color: colors.onSurface, fontFamily: FONTS.medium }}>
                       {formatDate(startDate)}
                     </Text>
                     <Ionicons name="calendar-outline" size={16} color={colors.primary} />
@@ -1336,7 +1337,7 @@ export default function TeacherLeaves() {
                       style={[styles.datePickerInput, { backgroundColor: colors.surfaceContainer }]}
                       onPress={() => setShowEndPicker(true)}
                     >
-                      <Text style={{ fontSize: 13, color: colors.onSurface, fontFamily: "DMSans-Medium" }}>
+                      <Text style={{ fontSize: FONT_SIZES.md, color: colors.onSurface, fontFamily: FONTS.medium }}>
                         {formatDate(endDate)}
                       </Text>
                       <Ionicons name="calendar-outline" size={16} color={colors.primary} />
@@ -1379,7 +1380,7 @@ export default function TeacherLeaves() {
                 {applyLeaveMutation.isPending ? (
                   <ActivityIndicator color="#FFF" />
                 ) : (
-                  <Text style={{ color: "#FFF", fontFamily: "DMSans-Bold", fontSize: 15 }}>
+                  <Text style={{ color: "#FFF", fontFamily: FONTS.bold, fontSize: FONT_SIZES.mdLg }}>
                     Submit Application
                   </Text>
                 )}
@@ -1415,8 +1416,8 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   tabBtnText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.medium,
   },
   tabBadge: {
     paddingHorizontal: 5,
@@ -1426,7 +1427,7 @@ const styles = StyleSheet.create({
   tabBadgeText: {
     color: "#FFFFFF",
     fontSize: 9,
-    fontFamily: "DMSans-Bold",
+    fontFamily: FONTS.bold,
   },
   searchFilterBar: {
     flexDirection: "row",
@@ -1447,8 +1448,8 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    fontSize: 12,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.regular,
     padding: 0,
   },
   filterSheetBtn: {
@@ -1473,7 +1474,7 @@ const styles = StyleSheet.create({
   filterBadgeText: {
     color: "#FFF",
     fontSize: 9,
-    fontFamily: "DMSans-Bold",
+    fontFamily: FONTS.bold,
   },
   compactKpiBar: {
     flexDirection: "row",
@@ -1497,12 +1498,12 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   kpiCapsuleNum: {
-    fontSize: 12,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
   },
   kpiCapsuleLabel: {
-    fontSize: 10,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.medium,
   },
   activeFiltersRow: {
     flexDirection: "row",
@@ -1521,8 +1522,8 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   activeFilterText: {
-    fontSize: 10,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.bold,
   },
   clearAllBtn: {
     paddingHorizontal: 6,
@@ -1551,8 +1552,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   applicantName: {
-    fontSize: 14,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.bold,
   },
   tinyYearPill: {
     paddingHorizontal: 4,
@@ -1561,7 +1562,7 @@ const styles = StyleSheet.create({
   },
   tinyYearText: {
     fontSize: 9,
-    fontFamily: "DMSans-Medium",
+    fontFamily: FONTS.medium,
   },
   classChip: {
     flexDirection: "row",
@@ -1573,8 +1574,8 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   classChipText: {
-    fontSize: 10,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.bold,
   },
   statusBadge: {
     flexDirection: "row",
@@ -1586,8 +1587,8 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   statusBadgeText: {
-    fontSize: 10,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.bold,
     textTransform: "uppercase",
   },
   dateBar: {
@@ -1600,8 +1601,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   dateText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
   },
   durationBadge: {
     paddingHorizontal: 6,
@@ -1609,8 +1610,8 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   durationBadgeText: {
-    fontSize: 10,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.bold,
   },
   reasonBox: {
     padding: 8,
@@ -1618,8 +1619,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   reasonText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.regular,
     fontStyle: "italic",
     lineHeight: 16,
   },
@@ -1661,8 +1662,8 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   btnLabel: {
-    fontSize: 11,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
   },
   allowanceCard: {
     marginHorizontal: 16,
@@ -1672,8 +1673,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   allowanceTitle: {
-    fontSize: 14,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.bold,
   },
   applyBtnSmall: {
     flexDirection: "row",
@@ -1695,12 +1696,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   allowanceNum: {
-    fontSize: 16,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.lg,
+    fontFamily: FONTS.bold,
   },
   allowanceLabel: {
-    fontSize: 10,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.medium,
     marginTop: 1,
   },
   fabBtn: {
@@ -1723,8 +1724,8 @@ const styles = StyleSheet.create({
   },
   loaderText: {
     marginTop: 8,
-    fontSize: 12,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.medium,
   },
   emptyContainer: {
     alignItems: "center",
@@ -1733,14 +1734,14 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   emptyTitle: {
-    fontSize: 15,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.mdLg,
+    fontFamily: FONTS.bold,
     marginTop: 8,
     marginBottom: 2,
   },
   emptySub: {
-    fontSize: 12,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.regular,
     textAlign: "center",
   },
   modalOverlay: {
@@ -1761,12 +1762,12 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   filterSheetTitle: {
-    fontSize: 16,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.lg,
+    fontFamily: FONTS.bold,
   },
   filterGroupLabel: {
-    fontSize: 10,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.bold,
     letterSpacing: 0.5,
     marginBottom: 8,
   },
@@ -1785,8 +1786,8 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   sheetChipText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.medium,
   },
   filterSheetFooter: {
     flexDirection: "row",
@@ -1826,8 +1827,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   modalHeading: {
-    fontSize: 16,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.lg,
+    fontFamily: FONTS.bold,
   },
   applicantMiniSummary: {
     flexDirection: "row",
@@ -1838,8 +1839,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   fieldLabel: {
-    fontSize: 10,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.bold,
     letterSpacing: 0.5,
     marginBottom: 4,
   },
@@ -1853,8 +1854,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     padding: 8,
-    fontSize: 12,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.regular,
     minHeight: 60,
     textAlignVertical: "top",
     marginBottom: 10,
@@ -1896,8 +1897,8 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   segmentText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
   },
   slotBtn: {
     flex: 1,

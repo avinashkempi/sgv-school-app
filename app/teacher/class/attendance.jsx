@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { useTheme } from "../../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../../theme";
 import apiConfig from "../../../config/apiConfig";
 import {
   useApiQuery,
@@ -28,6 +28,7 @@ import {
 } from "../../../utils/date";
 import { useLabel } from "../../../context/LabelsContext";
 import UserAvatar from "../../../components/ui/UserAvatar";
+import { formatUserName } from "../../../utils/userFormatters";
 
 export default function MarkAttendanceScreen() {
   const _router = useRouter();
@@ -329,17 +330,17 @@ export default function MarkAttendanceScreen() {
               <View style={{ alignItems: "center" }}>
                 <Text
                   style={{
-                    fontSize: 12,
+                    fontSize: FONT_SIZES.xs,
                     color: colors.textSecondary,
-                    fontFamily: "DMSans-Medium",
+                    fontFamily: FONTS.medium,
                   }}
                 >
                   {t("teacher.selectedDate", "Selected Date")}
                 </Text>
                 <Text
                   style={{
-                    fontSize: 16,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.lg,
+                    fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                     marginTop: 2,
                   }}
@@ -407,8 +408,8 @@ export default function MarkAttendanceScreen() {
             >
               <Text
                 style={{
-                  fontSize: 18,
-                  fontWeight: "bold",
+                  fontSize: FONT_SIZES.xl,
+                  fontFamily: FONTS.bold,
                   color: colors.primary,
                 }}
               >
@@ -416,10 +417,11 @@ export default function MarkAttendanceScreen() {
               </Text>
               <Text
                 style={{
-                  fontSize: 14,
+                  fontSize: FONT_SIZES.base,
                   color: colors.textSecondary,
                   marginTop: 4,
                   textAlign: "center",
+                  fontFamily: FONTS.regular,
                 }}
               >
                 {holidayReason}
@@ -453,8 +455,8 @@ export default function MarkAttendanceScreen() {
                 />
                 <Text
                   style={{
-                    fontSize: 13,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.md,
+                    fontFamily: FONTS.bold,
                     color: colors.success,
                   }}
                 >
@@ -485,8 +487,8 @@ export default function MarkAttendanceScreen() {
                     <MaterialIcons name="save" size={18} color="#fff" />
                     <Text
                       style={{
-                        fontSize: 13,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.md,
+                        fontFamily: FONTS.bold,
                         color: "#fff",
                       }}
                     >
@@ -533,8 +535,8 @@ export default function MarkAttendanceScreen() {
                 />
                 <Text
                   style={{
-                    fontSize: 13,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.md,
+                    fontFamily: FONTS.bold,
                     color: colors.success,
                   }}
                 >
@@ -554,8 +556,8 @@ export default function MarkAttendanceScreen() {
                 />
                 <Text
                   style={{
-                    fontSize: 13,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.md,
+                    fontFamily: FONTS.bold,
                     color: colors.error,
                   }}
                 >
@@ -576,8 +578,8 @@ export default function MarkAttendanceScreen() {
                   />
                   <Text
                     style={{
-                      fontSize: 13,
-                      fontFamily: "DMSans-Bold",
+                      fontSize: FONT_SIZES.md,
+                      fontFamily: FONTS.bold,
                       color: "#FF9800",
                     }}
                   >
@@ -599,8 +601,8 @@ export default function MarkAttendanceScreen() {
                   />
                   <Text
                     style={{
-                      fontSize: 13,
-                      fontFamily: "DMSans-Bold",
+                      fontSize: FONT_SIZES.md,
+                      fontFamily: FONTS.bold,
                       color: "#FF9800",
                     }}
                   >
@@ -610,8 +612,8 @@ export default function MarkAttendanceScreen() {
               )}
               <Text
                 style={{
-                  fontSize: 13,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.md,
+                  fontFamily: FONTS.bold,
                   color: colors.textSecondary,
                 }}
               >
@@ -634,8 +636,8 @@ export default function MarkAttendanceScreen() {
               >
                 <Text
                   style={{
-                    fontSize: 18,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.xl,
+                    fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                   }}
                 >
@@ -704,7 +706,7 @@ export default function MarkAttendanceScreen() {
                         >
                           <UserAvatar
                             photoUrl={studentData.student.profilePhoto}
-                            name={studentData.student.name}
+                            name={formatUserName(studentData.student.name)}
                             role="student"
                             size={34}
                           />
@@ -719,12 +721,12 @@ export default function MarkAttendanceScreen() {
                           >
                             <Text
                               style={{
-                                fontSize: 15,
-                                fontFamily: "DMSans-SemiBold",
+                                fontSize: FONT_SIZES.mdLg,
+                                fontFamily: FONTS.semiBold,
                                 color: colors.textPrimary,
                               }}
                             >
-                              {index + 1}. {studentData.student.name}
+                              {index + 1}. {formatUserName(studentData.student.name)}
                             </Text>
                             {studentData.onLeave && (
                               <View
@@ -737,8 +739,8 @@ export default function MarkAttendanceScreen() {
                               >
                                 <Text
                                   style={{
-                                    fontSize: 10,
-                                    fontFamily: "DMSans-Bold",
+                                    fontSize: FONT_SIZES.micro,
+                                    fontFamily: FONTS.bold,
                                     color: "#FF9800",
                                   }}
                                 >
@@ -768,8 +770,8 @@ export default function MarkAttendanceScreen() {
                             />
                             <Text
                               style={{
-                                fontSize: 12,
-                                fontFamily: "DMSans-Bold",
+                                fontSize: FONT_SIZES.sm,
+                                fontFamily: FONTS.bold,
                                 color: getStatusColor(studentData.status),
                                 textTransform: "capitalize",
                               }}
@@ -780,8 +782,8 @@ export default function MarkAttendanceScreen() {
                         ) : (
                           <Text
                             style={{
-                              fontSize: 12,
-                              fontFamily: "DMSans-Medium",
+                              fontSize: FONT_SIZES.sm,
+                              fontFamily: FONTS.medium,
                               color: colors.textSecondary,
                             }}
                           >
@@ -794,10 +796,10 @@ export default function MarkAttendanceScreen() {
                       {studentData.onLeave && studentData.leaveReason && (
                         <Text
                           style={{
-                            fontSize: 11,
+                            fontSize: FONT_SIZES.xs,
                             color: "#FF9800",
                             marginTop: 4,
-                            fontFamily: "DMSans-Medium",
+                            fontFamily: FONTS.medium,
                           }}
                         >
                           {t("common.reason", "Reason")}:{" "}
@@ -840,8 +842,8 @@ export default function MarkAttendanceScreen() {
                               >
                                 <Text
                                   style={{
-                                    fontSize: 10,
-                                    fontFamily: "DMSans-Bold",
+                                    fontSize: FONT_SIZES.micro,
+                                    fontFamily: FONTS.bold,
                                     color:
                                       studentData.status === status
                                         ? getStatusColor(status)
@@ -892,8 +894,8 @@ export default function MarkAttendanceScreen() {
                     />
                     <Text
                       style={{
-                        fontSize: 13,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.md,
+                        fontFamily: FONTS.bold,
                         color: colors.success,
                       }}
                     >
@@ -924,8 +926,8 @@ export default function MarkAttendanceScreen() {
                         <MaterialIcons name="save" size={18} color="#fff" />
                         <Text
                           style={{
-                            fontSize: 13,
-                            fontFamily: "DMSans-Bold",
+                            fontSize: FONT_SIZES.md,
+                            fontFamily: FONTS.bold,
                             color: "#fff",
                           }}
                         >

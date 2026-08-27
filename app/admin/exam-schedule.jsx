@@ -15,7 +15,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 
 import { useRouter } from "expo-router";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import {
   useApiQuery,
   useApiMutation,
@@ -80,8 +80,8 @@ const SubjectMarkRow = memo(function SubjectMarkRow({
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text
           style={{
-            fontSize: 13,
-            fontFamily: "DMSans-SemiBold",
+            fontSize: FONT_SIZES.md,
+            fontFamily: FONTS.semiBold,
             color: isExcluded ? colors.textSecondary : colors.textPrimary,
             lineHeight: 18,
           }}
@@ -91,9 +91,9 @@ const SubjectMarkRow = memo(function SubjectMarkRow({
         </Text>
         <Text
           style={{
-            fontSize: 11,
+            fontSize: FONT_SIZES.xs,
             color: colors.textSecondary,
-            fontFamily: "DMSans-Regular",
+            fontFamily: FONTS.regular,
             lineHeight: 15,
           }}
           numberOfLines={1}
@@ -122,8 +122,8 @@ const SubjectMarkRow = memo(function SubjectMarkRow({
           paddingVertical: 5,
           textAlign: "center",
           color: isExcluded ? colors.textSecondary + "60" : colors.textPrimary,
-          fontSize: 14,
-          fontFamily: "DMSans-SemiBold",
+          fontSize: FONT_SIZES.base,
+          fontFamily: FONTS.semiBold,
           backgroundColor: isExcluded
             ? colors.textSecondary + "08"
             : colors.cardBackground,
@@ -454,8 +454,8 @@ export default function AdminExamScheduleScreen() {
           <Text
             style={{
               color: colors.primary,
-              fontFamily: "DMSans-Bold",
-              fontSize: 16,
+              fontFamily: FONTS.bold,
+              fontSize: FONT_SIZES.lg,
             }}
           >
             Initialize School Exams
@@ -468,8 +468,8 @@ export default function AdminExamScheduleScreen() {
           style={{
             color: colors.textSecondary,
             marginBottom: 8,
-            fontSize: 13,
-            fontFamily: "DMSans-Medium",
+            fontSize: FONT_SIZES.md,
+            fontFamily: FONTS.medium,
           }}
         >
           Filter by Class
@@ -499,7 +499,7 @@ export default function AdminExamScheduleScreen() {
                   style={{
                     color:
                       selectedClassId === cls._id ? "#fff" : colors.textPrimary,
-                    fontFamily: "DMSans-Medium",
+                    fontFamily: FONTS.medium,
                   }}
                 >
                   {formatClassName(cls.name, cls.section)}
@@ -553,8 +553,8 @@ export default function AdminExamScheduleScreen() {
               <View style={{ flex: 1 }}>
                 <Text
                   style={{
-                    fontSize: 16,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.lg,
+                    fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                   }}
                 >
@@ -579,8 +579,8 @@ export default function AdminExamScheduleScreen() {
                     <Text
                       style={{
                         color: colors.primary,
-                        fontSize: 10,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.micro,
+                        fontFamily: FONTS.bold,
                       }}
                     >
                       {exam.standardizedType || "EXAM"}
@@ -610,8 +610,8 @@ export default function AdminExamScheduleScreen() {
                     <Text
                       style={{
                         color: colors.textPrimary,
-                        fontSize: 13,
-                        fontFamily: "DMSans-Medium",
+                        fontSize: FONT_SIZES.md,
+                        fontFamily: FONTS.medium,
                       }}
                     >
                       {new Date(exam.date).toLocaleDateString()}
@@ -633,8 +633,8 @@ export default function AdminExamScheduleScreen() {
                       <Text
                         style={{
                           color: colors.textSecondary,
-                          fontSize: 13,
-                          fontFamily: "DMSans-Medium",
+                          fontSize: FONT_SIZES.md,
+                          fontFamily: FONTS.medium,
                         }}
                       >
                         {exam.room}
@@ -718,8 +718,8 @@ export default function AdminExamScheduleScreen() {
             >
               <Text
                 style={{
-                  fontSize: 18,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.xl,
+                  fontFamily: FONTS.bold,
                   color: colors.textPrimary,
                   marginBottom: 16,
                 }}
@@ -735,7 +735,7 @@ export default function AdminExamScheduleScreen() {
                   style={{
                     color: colors.textSecondary,
                     marginBottom: 8,
-                    fontSize: 14,
+                    fontSize: FONT_SIZES.base,
                   }}
                 >
                   Date
@@ -770,7 +770,7 @@ export default function AdminExamScheduleScreen() {
                         color={colors.primary}
                         style={{ marginRight: 8 }}
                       />
-                      <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
+                      <Text style={{ color: colors.textPrimary, fontSize: FONT_SIZES.lg }}>
                         {newDate.toLocaleDateString()}
                       </Text>
                     </Pressable>
@@ -783,7 +783,7 @@ export default function AdminExamScheduleScreen() {
                   style={{
                     color: colors.textSecondary,
                     marginBottom: 8,
-                    fontSize: 14,
+                    fontSize: FONT_SIZES.base,
                   }}
                 >
                   Room Number
@@ -799,8 +799,8 @@ export default function AdminExamScheduleScreen() {
                     borderRadius: 8,
                     padding: 12,
                     color: colors.textPrimary,
-                    fontSize: 16,
-                    fontFamily: "DMSans-Medium",
+                    fontSize: FONT_SIZES.lg,
+                    fontFamily: FONTS.medium,
                   }}
                 />
               </View>
@@ -819,7 +819,7 @@ export default function AdminExamScheduleScreen() {
                   <Text
                     style={{
                       color: colors.textPrimary,
-                      fontFamily: "DMSans-Bold",
+                      fontFamily: FONTS.bold,
                     }}
                   >
                     Cancel
@@ -839,7 +839,7 @@ export default function AdminExamScheduleScreen() {
                   {updateExamMutation.isPending ? (
                     <ActivityIndicator color="#fff" size="small" />
                   ) : (
-                    <Text style={{ color: "#fff", fontFamily: "DMSans-Bold" }}>
+                    <Text style={{ color: "#fff", fontFamily: FONTS.bold }}>
                       Save
                     </Text>
                   )}
@@ -888,8 +888,8 @@ export default function AdminExamScheduleScreen() {
               >
                 <Text
                   style={{
-                    fontSize: 20,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.xxl,
+                    fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                   }}
                 >
@@ -906,10 +906,10 @@ export default function AdminExamScheduleScreen() {
 
               <Text
                 style={{
-                  fontSize: 14,
+                  fontSize: FONT_SIZES.base,
                   color: colors.textSecondary,
                   marginBottom: 20,
-                  fontFamily: "DMSans-Regular",
+                  fontFamily: FONTS.regular,
                 }}
               >
                 This will create the selected exam type for the selected scope
@@ -920,8 +920,8 @@ export default function AdminExamScheduleScreen() {
               <View style={{ marginBottom: 16 }}>
                 <Text
                   style={{
-                    fontSize: 14,
-                    fontFamily: "DMSans-Medium",
+                    fontSize: FONT_SIZES.base,
+                    fontFamily: FONTS.medium,
                     color: colors.textSecondary,
                     marginBottom: 8,
                   }}
@@ -951,7 +951,7 @@ export default function AdminExamScheduleScreen() {
                       style={{
                         color:
                           initScope === "all" ? "#fff" : colors.textPrimary,
-                        fontFamily: "DMSans-Medium",
+                        fontFamily: FONTS.medium,
                       }}
                     >
                       All Classes
@@ -981,7 +981,7 @@ export default function AdminExamScheduleScreen() {
                           initScope === "selected"
                             ? "#fff"
                             : colors.textPrimary,
-                        fontFamily: "DMSans-Medium",
+                        fontFamily: FONTS.medium,
                       }}
                     >
                       Specific Classes
@@ -995,8 +995,8 @@ export default function AdminExamScheduleScreen() {
                 <View style={{ marginBottom: 16 }}>
                   <Text
                     style={{
-                      fontSize: 14,
-                      fontFamily: "DMSans-Medium",
+                      fontSize: FONT_SIZES.base,
+                      fontFamily: FONTS.medium,
                       color: colors.textSecondary,
                       marginBottom: 8,
                     }}
@@ -1054,7 +1054,7 @@ export default function AdminExamScheduleScreen() {
                     </View>
                   </ScrollView>
                   {initSelectedClassIds.length === 0 && (
-                    <Text style={{ color: "red", fontSize: 12, marginTop: 4 }}>
+                    <Text style={{ color: "red", fontSize: FONT_SIZES.sm, marginTop: 4 }}>
                       Please select at least one class
                     </Text>
                   )}
@@ -1065,8 +1065,8 @@ export default function AdminExamScheduleScreen() {
               <View style={{ marginBottom: 16 }}>
                 <Text
                   style={{
-                    fontSize: 14,
-                    fontFamily: "DMSans-Medium",
+                    fontSize: FONT_SIZES.base,
+                    fontFamily: FONTS.medium,
                     color: colors.textSecondary,
                     marginBottom: 8,
                   }}
@@ -1098,7 +1098,7 @@ export default function AdminExamScheduleScreen() {
                           style={{
                             color:
                               initType === type ? "#fff" : colors.textPrimary,
-                            fontFamily: "DMSans-Medium",
+                            fontFamily: FONTS.medium,
                           }}
                         >
                           {type}
@@ -1113,8 +1113,8 @@ export default function AdminExamScheduleScreen() {
               <View style={{ marginBottom: 16 }}>
                 <Text
                   style={{
-                    fontSize: 14,
-                    fontFamily: "DMSans-Medium",
+                    fontSize: FONT_SIZES.base,
+                    fontFamily: FONTS.medium,
                     color: colors.textSecondary,
                     marginBottom: 8,
                   }}
@@ -1135,8 +1135,8 @@ export default function AdminExamScheduleScreen() {
                     padding: 14,
                     borderRadius: 12,
                     color: colors.textPrimary,
-                    fontSize: 16,
-                    fontFamily: "DMSans-Regular",
+                    fontSize: FONT_SIZES.lg,
+                    fontFamily: FONTS.regular,
                     borderWidth: 1,
                     borderColor: colors.textSecondary + "20",
                   }}
@@ -1175,8 +1175,8 @@ export default function AdminExamScheduleScreen() {
                 </View>
                 <Text
                   style={{
-                    fontSize: 14,
-                    fontFamily: "DMSans-Medium",
+                    fontSize: FONT_SIZES.base,
+                    fontFamily: FONTS.medium,
                     color: colors.textPrimary,
                   }}
                 >
@@ -1241,8 +1241,8 @@ export default function AdminExamScheduleScreen() {
               <View style={{ marginBottom: 16 }}>
                 <Text
                   style={{
-                    fontSize: 14,
-                    fontFamily: "DMSans-Medium",
+                    fontSize: FONT_SIZES.base,
+                    fontFamily: FONTS.medium,
                     color: colors.textSecondary,
                     marginBottom: 8,
                   }}
@@ -1264,8 +1264,8 @@ export default function AdminExamScheduleScreen() {
                 >
                   <Text
                     style={{
-                      fontSize: 16,
-                      fontFamily: "DMSans-Regular",
+                      fontSize: FONT_SIZES.lg,
+                      fontFamily: FONTS.regular,
                       color: colors.textPrimary,
                     }}
                   >
@@ -1295,8 +1295,8 @@ export default function AdminExamScheduleScreen() {
               <View style={{ marginBottom: 16 }}>
                 <Text
                   style={{
-                    fontSize: 14,
-                    fontFamily: "DMSans-Medium",
+                    fontSize: FONT_SIZES.base,
+                    fontFamily: FONTS.medium,
                     color: colors.textSecondary,
                     marginBottom: 8,
                   }}
@@ -1314,8 +1314,8 @@ export default function AdminExamScheduleScreen() {
                     padding: 14,
                     borderRadius: 12,
                     color: colors.textPrimary,
-                    fontSize: 16,
-                    fontFamily: "DMSans-Regular",
+                    fontSize: FONT_SIZES.lg,
+                    fontFamily: FONTS.regular,
                     borderWidth: 1,
                     borderColor: colors.textSecondary + "20",
                   }}
@@ -1326,8 +1326,8 @@ export default function AdminExamScheduleScreen() {
               <View style={{ marginBottom: 24 }}>
                 <Text
                   style={{
-                    fontSize: 14,
-                    fontFamily: "DMSans-Medium",
+                    fontSize: FONT_SIZES.base,
+                    fontFamily: FONTS.medium,
                     color: colors.textSecondary,
                     marginBottom: 8,
                   }}
@@ -1347,8 +1347,8 @@ export default function AdminExamScheduleScreen() {
                     padding: 14,
                     borderRadius: 12,
                     color: colors.textPrimary,
-                    fontSize: 16,
-                    fontFamily: "DMSans-Regular",
+                    fontSize: FONT_SIZES.lg,
+                    fontFamily: FONTS.regular,
                     borderWidth: 1,
                     borderColor: colors.textSecondary + "20",
                     minHeight: 80,
@@ -1383,7 +1383,7 @@ export default function AdminExamScheduleScreen() {
                     <Text
                       style={{
                         fontSize: 17,
-                        fontFamily: "DMSans-Bold",
+                        fontFamily: FONTS.bold,
                         color: "#fff",
                       }}
                     >

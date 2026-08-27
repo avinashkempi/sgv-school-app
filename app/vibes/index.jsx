@@ -8,10 +8,11 @@ import {
   StyleSheet,
   Platform,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTheme } from "../../theme";
+import * as Haptics from "expo-haptics";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../components/ToastProvider";
 import {
@@ -41,12 +42,13 @@ const CATEGORIES = [
   { key: "official", label: "Official", icon: "school" },
   { key: "achievement", label: "Achievements", icon: "emoji-events" },
   { key: "sports", label: "Sports", icon: "sports-soccer" },
-  { key: "arts", label: "Arts & Culture", icon: "palette" },
+  { key: "arts", label: "Arts & Events", icon: "palette" },
   { key: "life", label: "Campus Life", icon: "local-florist" },
 ];
 
 export default function VibesScreen() {
   const router = useRouter();
+  const searchParams = useLocalSearchParams();
   const { colors, styles: themeStyles } = useTheme();
   const { user, isAuthenticated } = useAuth();
   const { showToast } = useToast();
@@ -62,8 +64,12 @@ export default function VibesScreen() {
 
   // Navigation / View Tabs: 'feed' | 'my-vibes' | 'saved'
   const [activeTab, setActiveTab] = useState("feed");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedTag, setSelectedTag] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(
+    typeof searchParams?.category === "string" ? searchParams.category : "all"
+  );
+  const [selectedTag, setSelectedTag] = useState(
+    typeof searchParams?.tag === "string" ? searchParams.tag : null
+  );
 
   // Modals state
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -82,7 +88,7 @@ export default function VibesScreen() {
   );
   const pendingCount = pendingData?.pendingCount || 0;
 
-  // Viewport visibility tracking for high-performance video autoplay (Instagram pattern)
+  // Viewport visibility tracking for high-performance video autoplay
   const [visibleItemIds, setVisibleItemIds] = useState(new Set());
 
   const onViewableItemsChanged = useRef(({ viewableItems }) => {
@@ -347,6 +353,23 @@ export default function VibesScreen() {
     },
   });
 
+  const spotlightMutation = useApiMutation({
+    mutationFn: async (vibeId) => {
+      return createApiMutationFn(
+        `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.adminSpotlight(
+          vibeId
+        )}`,
+        "PATCH"
+      )({});
+    },
+    onSuccess: (res) => {
+      showToast(res.message || "Updated Home Spotlight", "success");
+      queryClient.invalidateQueries({ queryKey: ["vibes"] });
+      queryClient.invalidateQueries({ queryKey: ["vibeHighlights"] });
+      queryClient.invalidateQueries({ queryKey: ["vibeSpotlight"] });
+    },
+  });
+
   // Action handlers with instant optimistic invocation
   const handleLike = useCallback(
     (vibeId, nextLiked) => {
@@ -384,6 +407,13 @@ export default function VibesScreen() {
     [pinMutation]
   );
 
+  const handleToggleSpotlight = useCallback(
+    (vibe) => {
+      spotlightMutation.mutate(vibe._id);
+    },
+    [spotlightMutation]
+  );
+
   const handleEdit = useCallback((vibe) => {
     setEditingVibe(vibe);
     setShowCreateModal(true);
@@ -415,6 +445,7 @@ export default function VibesScreen() {
         onEdit={handleEdit}
         onDelete={handleDelete}
         onTogglePin={handleTogglePin}
+        onToggleSpotlight={handleToggleSpotlight}
         onTagPress={handleTagPress}
       />
     ),
@@ -427,6 +458,7 @@ export default function VibesScreen() {
       handleEdit,
       handleDelete,
       handleTogglePin,
+      handleToggleSpotlight,
       handleTagPress,
     ]
   );
@@ -459,7 +491,10 @@ export default function VibesScreen() {
         <View
           style={[
             styles.myVibeCardWrapper,
-            { backgroundColor: colors.surfaceContainer, borderColor: colors.outlineVariant || "rgba(0,0,0,0.06)" },
+            {
+              backgroundColor: colors.surfaceContainer,
+              borderColor: colors.outlineVariant || "rgba(0,0,0,0.08)",
+            },
           ]}
         >
           {/* Status Header */}
@@ -511,6 +546,7 @@ export default function VibesScreen() {
             onEdit={handleEdit}
             onDelete={handleDelete}
             onTogglePin={handleTogglePin}
+            onToggleSpotlight={handleToggleSpotlight}
             onTagPress={handleTagPress}
           />
         </View>
@@ -525,6 +561,7 @@ export default function VibesScreen() {
       handleEdit,
       handleDelete,
       handleTogglePin,
+      handleToggleSpotlight,
       handleTagPress,
     ]
   );
@@ -558,6 +595,7 @@ export default function VibesScreen() {
       <View style={styles.feedHeaderContainer}>
         {/* Top Stories Tray */}
         <VibeStoriesTray
+          hideHeader={true}
           onOpenCreate={() => {
             if (!isAuthenticated) {
               showToast("Please log in to post Vibes", "info");
@@ -570,10 +608,24 @@ export default function VibesScreen() {
 
         {/* Active Tag Filter Indicator */}
         {selectedTag && (
-          <View style={styles.activeTagBanner}>
+          <View
+            style={[
+              styles.activeTagBanner,
+              { backgroundColor: colors.primaryContainer },
+            ]}
+          >
             <View style={styles.activeTagBadge}>
-              <MaterialIcons name="tag" size={14} color={colors.primary} />
-              <Text style={[styles.activeTagText, { color: colors.primary }]}>
+              <MaterialIcons
+                name="tag"
+                size={14}
+                color={colors.onPrimaryContainer}
+              />
+              <Text
+                style={[
+                  styles.activeTagText,
+                  { color: colors.onPrimaryContainer },
+                ]}
+              >
                 {selectedTag}
               </Text>
             </View>
@@ -582,15 +634,24 @@ export default function VibesScreen() {
               hitSlop={8}
               style={styles.clearTagBtn}
             >
-              <MaterialIcons name="close" size={14} color={colors.primary} />
-              <Text style={[styles.clearTagText, { color: colors.primary }]}>
+              <MaterialIcons
+                name="close"
+                size={14}
+                color={colors.onPrimaryContainer}
+              />
+              <Text
+                style={[
+                  styles.clearTagText,
+                  { color: colors.onPrimaryContainer },
+                ]}
+              >
                 Clear
               </Text>
             </Pressable>
           </View>
         )}
 
-        {/* Horizontal Category Filter Pills */}
+        {/* Horizontal Category Filter Pills (Material 3 Filter Chips) */}
         <View style={styles.categoriesContainer}>
           <FlatList
             horizontal
@@ -603,6 +664,9 @@ export default function VibesScreen() {
               return (
                 <Pressable
                   onPress={() => {
+                    Haptics.impactAsync(
+                      Haptics.ImpactFeedbackStyle.Light
+                    ).catch(() => {});
                     setSelectedCategory(item.key);
                     setSelectedTag(null);
                   }}
@@ -610,8 +674,8 @@ export default function VibesScreen() {
                     styles.categoryChip,
                     {
                       backgroundColor: isSelected
-                        ? colors.primary
-                        : colors.surfaceContainerHighest,
+                        ? colors.primaryContainer
+                        : colors.surfaceContainerLow,
                       borderColor: isSelected
                         ? colors.primary
                         : colors.outlineVariant || "transparent",
@@ -621,12 +685,23 @@ export default function VibesScreen() {
                   <MaterialIcons
                     name={item.icon}
                     size={14}
-                    color={isSelected ? "#fff" : colors.onSurfaceVariant}
+                    color={
+                      isSelected
+                        ? colors.onPrimaryContainer
+                        : colors.onSurfaceVariant
+                    }
                   />
                   <Text
                     style={[
                       styles.categoryChipText,
-                      { color: isSelected ? "#fff" : colors.onSurfaceVariant },
+                      {
+                        color: isSelected
+                          ? colors.onPrimaryContainer
+                          : colors.onSurfaceVariant,
+                        fontFamily: isSelected
+                          ? FONTS.bold
+                          : FONTS.medium,
+                      },
                     ]}
                   >
                     {item.label}
@@ -666,7 +741,7 @@ export default function VibesScreen() {
         </View>
       ) : null}
 
-      {/* ──── Top App Bar ──── */}
+      {/* ──── Top App Bar (Material 3 Clean Header) ──── */}
       <View
         style={[
           styles.topBar,
@@ -682,7 +757,7 @@ export default function VibesScreen() {
               Vibes
             </Text>
             <View style={styles.sparkleBadge}>
-              <MaterialIcons name="auto-awesome" size={15} color="#F59E0B" />
+              <MaterialIcons name="auto-awesome" size={16} color="#F59E0B" />
             </View>
           </View>
         </View>
@@ -714,7 +789,7 @@ export default function VibesScreen() {
             </Pressable>
           )}
 
-          {/* Create Vibe Action */}
+          {/* Quick Post Action in Top Bar */}
           <Pressable
             onPress={() => {
               if (!isAuthenticated) {
@@ -724,26 +799,43 @@ export default function VibesScreen() {
               setEditingVibe(null);
               setShowCreateModal(true);
             }}
-            style={[styles.createButton, { backgroundColor: colors.primary }]}
+            style={[
+              styles.createButton,
+              { backgroundColor: colors.primaryContainer },
+            ]}
             accessibilityRole="button"
             accessibilityLabel="Create Vibe Post"
           >
-            <MaterialIcons name="add" size={18} color="#fff" />
-            <Text style={styles.createButtonText}>Post</Text>
+            <MaterialIcons
+              name="add"
+              size={18}
+              color={colors.onPrimaryContainer}
+            />
+            <Text
+              style={[
+                styles.createButtonText,
+                { color: colors.onPrimaryContainer },
+              ]}
+            >
+              Post
+            </Text>
           </Pressable>
         </View>
       </View>
 
-      {/* ──── Segmented Pill Navigation: Feed / My Posts / Saved ──── */}
+      {/* ──── Material 3 Segmented Button: Feed / My Posts / Saved ──── */}
       <View style={[styles.segmentWrapper, { backgroundColor: colors.surface }]}>
         <View
           style={[
             styles.segmentContainer,
-            { backgroundColor: colors.surfaceContainerHighest },
+            { backgroundColor: colors.surfaceContainerHigh },
           ]}
         >
           <Pressable
             onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
+                () => {}
+              );
               setActiveTab("feed");
               setSelectedTag(null);
             }}
@@ -774,7 +866,7 @@ export default function VibesScreen() {
                       ? colors.primary
                       : colors.onSurfaceVariant,
                   fontFamily:
-                    activeTab === "feed" ? "DMSans-Bold" : "DMSans-Medium",
+                    activeTab === "feed" ? FONTS.bold : FONTS.medium,
                 },
               ]}
             >
@@ -784,7 +876,12 @@ export default function VibesScreen() {
 
           {isAuthenticated && (
             <Pressable
-              onPress={() => setActiveTab("my-vibes")}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
+                  () => {}
+                );
+                setActiveTab("my-vibes");
+              }}
               style={[
                 styles.segmentItem,
                 activeTab === "my-vibes" && [
@@ -815,8 +912,8 @@ export default function VibesScreen() {
                         : colors.onSurfaceVariant,
                     fontFamily:
                       activeTab === "my-vibes"
-                        ? "DMSans-Bold"
-                        : "DMSans-Medium",
+                        ? FONTS.bold
+                        : FONTS.medium,
                   },
                 ]}
               >
@@ -827,7 +924,12 @@ export default function VibesScreen() {
 
           {isAuthenticated && (
             <Pressable
-              onPress={() => setActiveTab("saved")}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
+                  () => {}
+                );
+                setActiveTab("saved");
+              }}
               style={[
                 styles.segmentItem,
                 activeTab === "saved" && [
@@ -857,7 +959,7 @@ export default function VibesScreen() {
                         ? colors.primary
                         : colors.onSurfaceVariant,
                     fontFamily:
-                      activeTab === "saved" ? "DMSans-Bold" : "DMSans-Medium",
+                      activeTab === "saved" ? FONTS.bold : FONTS.medium,
                   },
                 ]}
               >
@@ -1024,6 +1126,42 @@ export default function VibesScreen() {
         />
       )}
 
+      {/* ──── Material 3 Extended Floating Action Button (FAB) ──── */}
+      {isAuthenticated && (
+        <Pressable
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(
+              () => {}
+            );
+            setEditingVibe(null);
+            setShowCreateModal(true);
+          }}
+          style={[
+            styles.extendedFab,
+            {
+              backgroundColor: colors.primaryContainer,
+              shadowColor: colors.shadow || "#000",
+            },
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel="Post New Vibe"
+        >
+          <MaterialIcons
+            name="add"
+            size={22}
+            color={colors.onPrimaryContainer}
+          />
+          <Text
+            style={[
+              styles.extendedFabText,
+              { color: colors.onPrimaryContainer },
+            ]}
+          >
+            Post Vibe
+          </Text>
+        </Pressable>
+      )}
+
       {/* ──── Create / Edit Modal ──── */}
       <CreateVibeModal
         visible={showCreateModal}
@@ -1062,8 +1200,8 @@ const styles = StyleSheet.create({
   },
   offlineBannerText: {
     color: "#F3F4F6",
-    fontSize: 11,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.medium,
   },
   topBar: {
     flexDirection: "row",
@@ -1085,8 +1223,8 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   brandTitle: {
-    fontSize: 22,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.title,
+    fontFamily: FONTS.bold,
     letterSpacing: -0.6,
   },
   sparkleBadge: {
@@ -1095,7 +1233,7 @@ const styles = StyleSheet.create({
   topActions: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 8,
   },
   actionIconBtn: {
     width: 36,
@@ -1109,37 +1247,23 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: -2,
     right: -2,
-    backgroundColor: "#EF4444",
-    width: 17,
-    height: 17,
-    borderRadius: 8.5,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1.5,
-    borderColor: "#fff",
   },
   pendingBadgeText: {
     color: "#fff",
-    fontSize: 9.5,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.bold,
   },
   createButton: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    paddingHorizontal: 13,
+    paddingVertical: 6.5,
+    borderRadius: 18,
   },
   createButtonText: {
-    color: "#fff",
-    fontSize: 13,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.bold,
   },
   segmentWrapper: {
     paddingHorizontal: 16,
@@ -1149,7 +1273,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 3,
-    borderRadius: 16,
+    borderRadius: 18,
   },
   segmentItem: {
     flex: 1,
@@ -1158,7 +1282,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 5,
     paddingVertical: 7,
-    borderRadius: 13,
+    borderRadius: 15,
   },
   segmentItemActive: {
     shadowOffset: { width: 0, height: 1 },
@@ -1167,7 +1291,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   segmentText: {
-    fontSize: 12.5,
+    fontSize: FONT_SIZES.sm,
   },
   feedHeaderContainer: {
     paddingBottom: 4,
@@ -1184,13 +1308,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 5,
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 6.5,
     borderRadius: 16,
     borderWidth: StyleSheet.hairlineWidth,
   },
   categoryChipText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.sm,
   },
   activeTagBanner: {
     flexDirection: "row",
@@ -1201,8 +1324,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 12,
-    backgroundColor: "rgba(37, 99, 235, 0.08)",
+    borderRadius: 14,
   },
   activeTagBadge: {
     flexDirection: "row",
@@ -1210,8 +1332,8 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   activeTagText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
   },
   clearTagBtn: {
     flexDirection: "row",
@@ -1219,12 +1341,12 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   clearTagText: {
-    fontSize: 11.5,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
   },
   listContent: {
     paddingTop: 4,
-    paddingBottom: 24,
+    paddingBottom: 80,
   },
   skeletonContainer: {
     paddingTop: 12,
@@ -1232,7 +1354,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   skeletonCard: {
-    borderRadius: 20,
+    borderRadius: 24,
     overflow: "hidden",
   },
   emptyContainer: {
@@ -1252,13 +1374,13 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   emptyTitle: {
-    fontSize: 18,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xl,
+    fontFamily: FONTS.bold,
     letterSpacing: -0.2,
   },
   emptySubtitle: {
-    fontSize: 13,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.regular,
     textAlign: "center",
     lineHeight: 18,
     paddingHorizontal: 10,
@@ -1271,8 +1393,8 @@ const styles = StyleSheet.create({
   },
   emptyActionText: {
     color: "#fff",
-    fontSize: 13,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.bold,
   },
   loadingMore: {
     flexDirection: "row",
@@ -1282,13 +1404,13 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   loadingMoreText: {
-    fontSize: 13,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.regular,
   },
   myVibeCardWrapper: {
     marginHorizontal: 12,
     marginBottom: 16,
-    borderRadius: 20,
+    borderRadius: 24,
     overflow: "hidden",
     borderWidth: StyleSheet.hairlineWidth,
   },
@@ -1309,13 +1431,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   myVibeStatusText: {
-    fontSize: 11,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
     textTransform: "uppercase",
   },
   myVibeDate: {
-    fontSize: 12,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.regular,
   },
   rejectionBox: {
     marginHorizontal: 14,
@@ -1327,15 +1449,35 @@ const styles = StyleSheet.create({
     borderLeftColor: "#DC2626",
   },
   rejectionTitle: {
-    fontSize: 12,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
     color: "#DC2626",
   },
   rejectionReason: {
-    fontSize: 12,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.regular,
     color: "#333",
     marginTop: 2,
   },
+  extendedFab: {
+    position: "absolute",
+    bottom: 24,
+    right: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 20,
+    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+  },
+  extendedFabText: {
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.bold,
+  },
 });
+
 

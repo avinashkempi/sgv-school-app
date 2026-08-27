@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LETTER_SPACINGS } from "../theme";
 
 /**
  * Material 3 Segmented Control / Tab Bar
@@ -44,12 +44,12 @@ const SegmentedControl = ({ tabs, activeTab, onTabChange, style }) => {
           >
             <Text
               style={[
-                styles.labelMedium,
+                styles.label,
                 {
                   color: isActive
                     ? colors.onSecondaryContainer
                     : colors.onSurfaceVariant,
-                  fontFamily: isActive ? "DMSans-Bold" : "DMSans-Medium",
+                  fontFamily: isActive ? FONTS.bold : FONTS.medium,
                 },
               ]}
             >
@@ -75,8 +75,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   label: {
-    fontSize: 14,
-    letterSpacing: 0.1,
+    fontSize: FONT_SIZES.base,
+    letterSpacing: LETTER_SPACINGS.xs,
   },
 });
 

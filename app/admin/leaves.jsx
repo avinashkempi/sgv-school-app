@@ -25,12 +25,16 @@ import {
 import apiConfig from "../../config/apiConfig";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "../../components/ToastProvider";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import Header from "../../components/Header";
 import formatClassName from "../../utils/formatClassName";
 import { getISTDateString } from "../../utils/date";
 import UserAvatar from "../../components/ui/UserAvatar";
 import { useAcademicYear } from "../../context/AcademicYearContext";
+import {
+  formatUserName,
+  toTitleCase,
+} from "../../utils/userFormatters";
 
 const REJECTION_PRESETS = [
   "Exam / Assessment Period",
@@ -413,7 +417,10 @@ export default function AdminLeaves() {
     return diff === 1 ? "1 Day" : `${diff} Days`;
   };
 
-  const getRoleBadgeStyle = (role) => {
+  const getRoleBadgeStyle = (role, designation) => {
+    if (designation && String(designation).trim()) {
+      return { bg: "#EDE7F6", border: "#D1C4E9", text: "#512DA8", label: toTitleCase(String(designation).trim()), icon: "badge" };
+    }
     switch (role) {
       case "student":
         return { bg: "#FFF3E0", border: "#FFE0B2", text: "#E65100", label: "Student", icon: "school" };
@@ -421,12 +428,12 @@ export default function AdminLeaves() {
         return { bg: "#EDE7F6", border: "#D1C4E9", text: "#512DA8", label: "Teacher", icon: "person" };
       case "staff":
       case "support_staff":
-        return { bg: "#E0F2F1", border: "#B2DFDB", text: "#00695C", label: "Staff", icon: "work" };
+        return { bg: "#E0F2F1", border: "#B2DFDB", text: "#00695C", label: role === "support_staff" ? "Support Staff" : "Staff", icon: "work" };
       case "admin":
       case "super admin":
         return { bg: "#E8F5E9", border: "#C8E6C9", text: "#2E7D32", label: "Admin", icon: "security" };
       default:
-        return { bg: colors.surfaceContainer, border: colors.outlineVariant, text: colors.onSurface, label: "USER", icon: "person" };
+        return { bg: colors.surfaceContainer, border: colors.outlineVariant, text: colors.onSurface, label: "Member", icon: "person" };
     }
   };
 
@@ -443,10 +450,11 @@ export default function AdminLeaves() {
 
   // Render Request Card
   const renderRequestCard = ({ item }) => {
-    const roleStyle = getRoleBadgeStyle(item.applicantRole);
+    const roleStyle = getRoleBadgeStyle(item.applicantRole, item.applicant?.designation);
     const statusBadge = getStatusBadge(item.status);
     const isStudent = item.applicantRole === "student";
     const durationLabel = calculateDays(item.startDate, item.endDate, item.leaveType);
+    const applicantDisplayName = formatUserName(item.applicant?.name, "Unknown");
 
     return (
       <View
@@ -462,14 +470,14 @@ export default function AdminLeaves() {
           <View style={{ flexDirection: "row", alignItems: "center", flex: 1, gap: 10 }}>
             <UserAvatar
               photoUrl={item.applicant?.profilePhoto}
-              name={item.applicant?.name || "Unknown"}
+              name={applicantDisplayName}
               role={item.applicantRole}
               size={40}
             />
             <View style={{ flex: 1 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                 <Text style={[styles.applicantName, { color: colors.onSurface }]} numberOfLines={1}>
-                  {item.applicant?.name || "Unknown"}
+                  {applicantDisplayName}
                 </Text>
                 {item.academicYear?.name && (
                   <View style={[styles.tinyYearPill, { backgroundColor: colors.surfaceContainerHigh }]}>
@@ -536,11 +544,11 @@ export default function AdminLeaves() {
         {/* Decision details */}
         {item.status === "rejected" && (
           <View style={[styles.decisionBox, { backgroundColor: "#FFEBEE", borderColor: "#FFCDD2" }]}>
-            <Text style={{ color: "#D32F2F", fontFamily: "DMSans-Bold", fontSize: 11 }}>
+            <Text style={{ color: "#D32F2F", fontFamily: FONTS.bold, fontSize: FONT_SIZES.xs }}>
               Rejected: {item.rejectionReason}
             </Text>
             {item.rejectionComments && (
-              <Text style={{ color: colors.onSurfaceVariant, fontSize: 11, marginTop: 1 }}>
+              <Text style={{ color: colors.onSurfaceVariant, fontSize: FONT_SIZES.xs, marginTop: 1 }}>
                 Note: {item.rejectionComments}
               </Text>
             )}
@@ -549,7 +557,7 @@ export default function AdminLeaves() {
 
         {item.status === "approved" && item.actionReason && (
           <View style={[styles.decisionBox, { backgroundColor: "#E8F5E9", borderColor: "#C8E6C9" }]}>
-            <Text style={{ color: "#2E7D32", fontFamily: "DMSans-Bold", fontSize: 11 }}>
+            <Text style={{ color: "#2E7D32", fontFamily: FONTS.bold, fontSize: FONT_SIZES.xs }}>
               Approval Note: {item.actionReason}
             </Text>
           </View>
@@ -594,20 +602,22 @@ export default function AdminLeaves() {
 
   // Render Daily Absence Card
   const renderDailyCard = ({ item }) => {
-    const roleStyle = getRoleBadgeStyle(item.applicantRole);
+    const roleStyle = getRoleBadgeStyle(item.applicantRole, item.applicant?.designation);
+    const applicantDisplayName = formatUserName(item.applicant?.name, "Unknown");
+
     return (
-      <View style={[styles.requestCard, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + "50" }]}>
+      <View style={[styles.dailyCard, { backgroundColor: colors.surface }]}>
         <View style={[styles.cardAccent, { backgroundColor: roleStyle.text }]} />
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 }}>
           <UserAvatar
             photoUrl={item.applicant?.profilePhoto}
-            name={item.applicant?.name || "Unknown"}
+            name={applicantDisplayName}
             role={item.applicantRole}
             size={38}
           />
           <View style={{ flex: 1 }}>
             <Text style={[styles.applicantName, { color: colors.onSurface }]}>
-              {item.applicant?.name || "Unknown"}
+              {applicantDisplayName}
             </Text>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 }}>
               <View style={[styles.roleChip, { backgroundColor: roleStyle.bg, borderColor: roleStyle.border }]}>
@@ -615,19 +625,19 @@ export default function AdminLeaves() {
                 <Text style={[styles.roleChipText, { color: roleStyle.text }]}>{roleStyle.label}</Text>
               </View>
               {item.applicantRole === "student" && item.class && (
-                <Text style={{ fontSize: 11, color: colors.onSurfaceVariant, fontFamily: "DMSans-Medium" }}>
+                <Text style={{ fontSize: FONT_SIZES.xs, color: colors.onSurfaceVariant, fontFamily: FONTS.medium }}>
                   {formatClassName(item.class.name || item.class.label)}
                 </Text>
               )}
             </View>
           </View>
           <View style={[styles.awayBadge, { backgroundColor: "#FFEBEE", borderColor: "#FFCDD2" }]}>
-            <Text style={{ color: "#D32F2F", fontSize: 10, fontFamily: "DMSans-Bold" }}>ON LEAVE</Text>
+            <Text style={{ color: "#D32F2F", fontSize: FONT_SIZES.micro, fontFamily: FONTS.bold }}>ON LEAVE</Text>
           </View>
         </View>
 
         <View style={[styles.dateBar, { backgroundColor: colors.surfaceContainerLow }]}>
-          <Text style={{ fontSize: 12, color: colors.onSurface, fontFamily: "DMSans-Medium" }}>
+          <Text style={{ fontSize: FONT_SIZES.sm, color: colors.onSurface, fontFamily: FONTS.medium }}>
             Until: {formatDate(item.endDate)} ({item.leaveType === "half" ? "Half Day" : "Full Day"})
           </Text>
         </View>
@@ -654,7 +664,7 @@ export default function AdminLeaves() {
                 {item.leaveType === "full" && item.startDate !== item.endDate && ` – ${formatDate(item.endDate)}`}
               </Text>
             </View>
-            <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, marginTop: 1 }}>
+            <Text style={{ fontSize: FONT_SIZES.sm, color: colors.onSurfaceVariant, marginTop: 1 }}>
               {item.leaveType === "half" ? `Half Day (${item.halfDaySlot})` : "Full Day"} • {calculateDays(item.startDate, item.endDate, item.leaveType)}
             </Text>
           </View>
@@ -781,7 +791,7 @@ export default function AdminLeaves() {
               }}
               style={styles.clearAllBtn}
             >
-              <Text style={{ fontSize: 11, color: colors.primary, fontFamily: "DMSans-Bold" }}>
+              <Text style={{ fontSize: FONT_SIZES.xs, color: colors.primary, fontFamily: FONTS.bold }}>
                 Reset Filters
               </Text>
             </TouchableOpacity>
@@ -825,7 +835,7 @@ export default function AdminLeaves() {
                   style={[
                     styles.tabBtnText,
                     { color: isTabActive ? colors.primary : colors.onSurfaceVariant },
-                    isTabActive && { fontFamily: "DMSans-Bold" },
+                    isTabActive && { fontFamily: FONTS.bold },
                   ]}
                 >
                   {tab.label}
@@ -972,7 +982,7 @@ export default function AdminLeaves() {
                 style={[styles.quickBtn, { backgroundColor: colors.primaryContainer }]}
                 onPress={() => setDailyDate(new Date())}
               >
-                <Text style={{ color: colors.onPrimaryContainer, fontFamily: "DMSans-Bold", fontSize: 11 }}>
+                <Text style={{ color: colors.onPrimaryContainer, fontFamily: FONTS.bold, fontSize: FONT_SIZES.xs }}>
                   Today
                 </Text>
               </TouchableOpacity>
@@ -980,7 +990,7 @@ export default function AdminLeaves() {
                 style={[styles.quickBtn, { backgroundColor: colors.surfaceContainerHigh }]}
                 onPress={() => setShowDailyDatePicker(true)}
               >
-                <Text style={{ color: colors.onSurface, fontFamily: "DMSans-Medium", fontSize: 11 }}>
+                <Text style={{ color: colors.onSurface, fontFamily: FONTS.medium, fontSize: FONT_SIZES.xs }}>
                   Pick Date
                 </Text>
               </TouchableOpacity>
@@ -1002,17 +1012,17 @@ export default function AdminLeaves() {
           {/* Daily Quick Counts */}
           <View style={styles.dailyCountsRow}>
             <View style={[styles.dailyCountPill, { backgroundColor: "#FFF3E0" }]}>
-              <Text style={{ color: "#E65100", fontFamily: "DMSans-Bold", fontSize: 11 }}>
+              <Text style={{ color: "#E65100", fontFamily: FONTS.bold, fontSize: FONT_SIZES.xs }}>
                 {dailyLeavesGrouped.students.length} Students
               </Text>
             </View>
             <View style={[styles.dailyCountPill, { backgroundColor: "#EDE7F6" }]}>
-              <Text style={{ color: "#512DA8", fontFamily: "DMSans-Bold", fontSize: 11 }}>
+              <Text style={{ color: "#512DA8", fontFamily: FONTS.bold, fontSize: FONT_SIZES.xs }}>
                 {dailyLeavesGrouped.teachers.length} Teachers
               </Text>
             </View>
             <View style={[styles.dailyCountPill, { backgroundColor: "#E0F2F1" }]}>
-              <Text style={{ color: "#00695C", fontFamily: "DMSans-Bold", fontSize: 11 }}>
+              <Text style={{ color: "#00695C", fontFamily: FONTS.bold, fontSize: FONT_SIZES.xs }}>
                 {dailyLeavesGrouped.staff.length} Staff
               </Text>
             </View>
@@ -1052,7 +1062,7 @@ export default function AdminLeaves() {
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
               <View>
                 <Text style={[styles.allowanceTitle, { color: colors.onSurface }]}>Leave Allowance</Text>
-                <Text style={{ fontSize: 11, color: colors.onSurfaceVariant }}>
+                <Text style={{ fontSize: FONT_SIZES.xs, color: colors.onSurfaceVariant }}>
                   Year {activeYearObj?.name || new Date().getFullYear()}
                 </Text>
               </View>
@@ -1062,7 +1072,7 @@ export default function AdminLeaves() {
                 onPress={() => setApplyModalVisible(true)}
               >
                 <Ionicons name="add" size={15} color={colors.onPrimary} />
-                <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 12 }}>
+                <Text style={{ color: colors.onPrimary, fontFamily: FONTS.bold, fontSize: FONT_SIZES.sm }}>
                   Apply Leave
                 </Text>
               </TouchableOpacity>
@@ -1115,7 +1125,7 @@ export default function AdminLeaves() {
             activeOpacity={0.85}
           >
             <Ionicons name="add" size={24} color={colors.onPrimary} />
-            <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 13 }}>
+            <Text style={{ color: colors.onPrimary, fontFamily: FONTS.bold, fontSize: FONT_SIZES.md }}>
               Apply
             </Text>
           </TouchableOpacity>
@@ -1283,7 +1293,7 @@ export default function AdminLeaves() {
                   setFilterModalVisible(false);
                 }}
               >
-                <Text style={{ color: colors.onSurfaceVariant, fontFamily: "DMSans-Bold", fontSize: 13 }}>
+                <Text style={{ color: colors.onSurfaceVariant, fontFamily: FONTS.bold, fontSize: FONT_SIZES.md }}>
                   Reset All
                 </Text>
               </TouchableOpacity>
@@ -1292,7 +1302,7 @@ export default function AdminLeaves() {
                 style={[styles.sheetApplyBtn, { backgroundColor: colors.primary }]}
                 onPress={() => setFilterModalVisible(false)}
               >
-                <Text style={{ color: colors.onPrimary, fontFamily: "DMSans-Bold", fontSize: 14 }}>
+                <Text style={{ color: colors.onPrimary, fontFamily: FONTS.bold, fontSize: FONT_SIZES.base }}>
                   Apply Filters
                 </Text>
               </TouchableOpacity>
@@ -1340,15 +1350,15 @@ export default function AdminLeaves() {
               <View style={[styles.applicantMiniSummary, { backgroundColor: colors.surfaceContainerLow }]}>
                 <UserAvatar
                   photoUrl={selectedRequest.applicant?.profilePhoto}
-                  name={selectedRequest.applicant?.name || "Unknown"}
+                  name={formatUserName(selectedRequest.applicant?.name, "Unknown")}
                   role={selectedRequest.applicantRole}
                   size={32}
                 />
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 13, fontFamily: "DMSans-Bold", color: colors.onSurface }}>
-                    {selectedRequest.applicant?.name}
+                  <Text style={{ fontSize: FONT_SIZES.md, fontFamily: FONTS.bold, color: colors.onSurface }}>
+                    {formatUserName(selectedRequest.applicant?.name, "Unknown")}
                   </Text>
-                  <Text style={{ fontSize: 11, color: colors.onSurfaceVariant, fontFamily: "DMSans-Regular" }}>
+                  <Text style={{ fontSize: FONT_SIZES.xs, color: colors.onSurfaceVariant, fontFamily: FONTS.regular }}>
                     {formatDate(selectedRequest.startDate)} – {formatDate(selectedRequest.endDate)} (
                     {calculateDays(selectedRequest.startDate, selectedRequest.endDate, selectedRequest.leaveType)})
                   </Text>
@@ -1378,9 +1388,9 @@ export default function AdminLeaves() {
                       >
                         <Text
                           style={{
-                            fontSize: 11,
+                            fontSize: FONT_SIZES.xs,
                             color: isPresetSelected ? "#D32F2F" : colors.onSurface,
-                            fontFamily: isPresetSelected ? "DMSans-Bold" : "DMSans-Medium",
+                            fontFamily: isPresetSelected ? FONTS.bold : FONTS.medium,
                           }}
                         >
                           {preset}
@@ -1441,7 +1451,7 @@ export default function AdminLeaves() {
                 style={styles.modalCancelBtn}
                 onPress={() => setActionModalVisible(false)}
               >
-                <Text style={{ color: colors.onSurfaceVariant, fontFamily: "DMSans-Bold", fontSize: 13 }}>
+                <Text style={{ color: colors.onSurfaceVariant, fontFamily: FONTS.bold, fontSize: FONT_SIZES.md }}>
                   Cancel
                 </Text>
               </TouchableOpacity>
@@ -1457,7 +1467,7 @@ export default function AdminLeaves() {
                 {actionMutation.isPending ? (
                   <ActivityIndicator color="#FFF" size="small" />
                 ) : (
-                  <Text style={{ color: "#FFF", fontFamily: "DMSans-Bold", fontSize: 13 }}>
+                  <Text style={{ color: "#FFF", fontFamily: FONTS.bold, fontSize: FONT_SIZES.md }}>
                     {actionType === "approved" ? "Approve" : "Reject"}
                   </Text>
                 )}
@@ -1525,8 +1535,8 @@ export default function AdminLeaves() {
                     >
                       <Text
                         style={{
-                          fontFamily: "DMSans-Bold",
-                          fontSize: 12,
+                          fontFamily: FONTS.bold,
+                          fontSize: FONT_SIZES.sm,
                           color: halfDaySlot === "morning" ? colors.onPrimaryContainer : colors.onSurfaceVariant,
                         }}
                       >
@@ -1545,8 +1555,8 @@ export default function AdminLeaves() {
                     >
                       <Text
                         style={{
-                          fontFamily: "DMSans-Bold",
-                          fontSize: 12,
+                          fontFamily: FONTS.bold,
+                          fontSize: FONT_SIZES.sm,
                           color: halfDaySlot === "afternoon" ? colors.onPrimaryContainer : colors.onSurfaceVariant,
                         }}
                       >
@@ -1564,7 +1574,7 @@ export default function AdminLeaves() {
                     style={[styles.datePickerInput, { backgroundColor: colors.surfaceContainer }]}
                     onPress={() => setShowStartPicker(true)}
                   >
-                    <Text style={{ fontSize: 13, color: colors.onSurface, fontFamily: "DMSans-Medium" }}>
+                    <Text style={{ fontSize: FONT_SIZES.md, color: colors.onSurface, fontFamily: FONTS.medium }}>
                       {formatDate(startDate)}
                     </Text>
                     <Ionicons name="calendar-outline" size={16} color={colors.primary} />
@@ -1592,7 +1602,7 @@ export default function AdminLeaves() {
                       style={[styles.datePickerInput, { backgroundColor: colors.surfaceContainer }]}
                       onPress={() => setShowEndPicker(true)}
                     >
-                      <Text style={{ fontSize: 13, color: colors.onSurface, fontFamily: "DMSans-Medium" }}>
+                      <Text style={{ fontSize: FONT_SIZES.md, color: colors.onSurface, fontFamily: FONTS.medium }}>
                         {formatDate(endDate)}
                       </Text>
                       <Ionicons name="calendar-outline" size={16} color={colors.primary} />
@@ -1634,7 +1644,7 @@ export default function AdminLeaves() {
                 {applyLeaveMutation.isPending ? (
                   <ActivityIndicator color="#FFF" />
                 ) : (
-                  <Text style={{ color: "#FFF", fontFamily: "DMSans-Bold", fontSize: 15 }}>
+                  <Text style={{ color: "#FFF", fontFamily: FONTS.bold, fontSize: FONT_SIZES.mdLg }}>
                     Submit Application
                   </Text>
                 )}
@@ -1670,8 +1680,8 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   tabBtnText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.medium,
   },
   tabBadge: {
     paddingHorizontal: 5,
@@ -1681,7 +1691,7 @@ const styles = StyleSheet.create({
   tabBadgeText: {
     color: "#FFFFFF",
     fontSize: 9,
-    fontFamily: "DMSans-Bold",
+    fontFamily: FONTS.bold,
   },
   searchFilterBar: {
     flexDirection: "row",
@@ -1702,8 +1712,8 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    fontSize: 12,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.regular,
     padding: 0,
   },
   viewModeBtn: {
@@ -1736,7 +1746,7 @@ const styles = StyleSheet.create({
   filterBadgeText: {
     color: "#FFF",
     fontSize: 9,
-    fontFamily: "DMSans-Bold",
+    fontFamily: FONTS.bold,
   },
   compactKpiBar: {
     flexDirection: "row",
@@ -1760,12 +1770,12 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   kpiCapsuleNum: {
-    fontSize: 12,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
   },
   kpiCapsuleLabel: {
-    fontSize: 10,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.medium,
   },
   activeFiltersRow: {
     flexDirection: "row",
@@ -1784,8 +1794,8 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   activeFilterText: {
-    fontSize: 10,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.bold,
   },
   clearAllBtn: {
     paddingHorizontal: 6,
@@ -1802,12 +1812,12 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   sectionHeaderTitle: {
-    fontSize: 13,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.bold,
   },
   sectionCountText: {
-    fontSize: 11,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.medium,
   },
   requestCard: {
     borderRadius: 14,
@@ -1832,8 +1842,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   applicantName: {
-    fontSize: 14,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.bold,
   },
   tinyYearPill: {
     paddingHorizontal: 4,
@@ -1842,7 +1852,7 @@ const styles = StyleSheet.create({
   },
   tinyYearText: {
     fontSize: 9,
-    fontFamily: "DMSans-Medium",
+    fontFamily: FONTS.medium,
   },
   roleChip: {
     flexDirection: "row",
@@ -1855,7 +1865,7 @@ const styles = StyleSheet.create({
   },
   roleChipText: {
     fontSize: 9,
-    fontFamily: "DMSans-Bold",
+    fontFamily: FONTS.bold,
     textTransform: "uppercase",
   },
   classChip: {
@@ -1865,8 +1875,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   classChipText: {
-    fontSize: 10,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.bold,
   },
   statusBadge: {
     flexDirection: "row",
@@ -1878,8 +1888,8 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   statusBadgeText: {
-    fontSize: 10,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.bold,
     textTransform: "uppercase",
   },
   dateBar: {
@@ -1892,8 +1902,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   dateText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
   },
   durationBadge: {
     paddingHorizontal: 6,
@@ -1901,8 +1911,8 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   durationBadgeText: {
-    fontSize: 10,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.bold,
   },
   reasonBox: {
     padding: 8,
@@ -1910,8 +1920,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   reasonText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.regular,
     fontStyle: "italic",
     lineHeight: 16,
   },
@@ -1953,8 +1963,8 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   btnLabel: {
-    fontSize: 11,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
   },
   dailyBar: {
     flexDirection: "row",
@@ -1998,8 +2008,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   allowanceTitle: {
-    fontSize: 14,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.bold,
   },
   applyBtnSmall: {
     flexDirection: "row",
@@ -2021,12 +2031,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   allowanceNum: {
-    fontSize: 16,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.lg,
+    fontFamily: FONTS.bold,
   },
   allowanceLabel: {
-    fontSize: 10,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.medium,
     marginTop: 1,
   },
   fabBtn: {
@@ -2049,8 +2059,8 @@ const styles = StyleSheet.create({
   },
   loaderText: {
     marginTop: 8,
-    fontSize: 12,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.medium,
   },
   emptyContainer: {
     alignItems: "center",
@@ -2059,14 +2069,14 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   emptyTitle: {
-    fontSize: 15,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.mdLg,
+    fontFamily: FONTS.bold,
     marginTop: 8,
     marginBottom: 2,
   },
   emptySub: {
-    fontSize: 12,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.regular,
     textAlign: "center",
   },
   modalOverlay: {
@@ -2087,12 +2097,12 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   filterSheetTitle: {
-    fontSize: 16,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.lg,
+    fontFamily: FONTS.bold,
   },
   filterGroupLabel: {
-    fontSize: 10,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.bold,
     letterSpacing: 0.5,
     marginBottom: 8,
   },
@@ -2111,8 +2121,8 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   sheetChipText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.medium,
   },
   filterSheetFooter: {
     flexDirection: "row",
@@ -2152,8 +2162,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   modalHeading: {
-    fontSize: 16,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.lg,
+    fontFamily: FONTS.bold,
   },
   applicantMiniSummary: {
     flexDirection: "row",
@@ -2164,8 +2174,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   fieldLabel: {
-    fontSize: 10,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.bold,
     letterSpacing: 0.5,
     marginBottom: 4,
   },
@@ -2179,8 +2189,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     padding: 8,
-    fontSize: 12,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.regular,
     minHeight: 60,
     textAlignVertical: "top",
     marginBottom: 10,
@@ -2222,8 +2232,8 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   segmentText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
   },
   slotBtn: {
     flex: 1,

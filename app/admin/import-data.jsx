@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme } from "../../theme";
+import { useTheme, FONT_FAMILIES, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
 import Header from "../../components/Header";
 import Card from "../../components/Card";
@@ -172,10 +172,10 @@ export default function ImportDataScreen() {
           >
             <MaterialIcons name="storage" size={24} color={colors.primary} />
             <View style={{ marginLeft: 12 }}>
-              <Text style={{ fontFamily: "DMSans-Bold", fontSize: 14 }}>
+              <Text style={{ fontFamily: FONTS.bold, fontSize: FONT_SIZES.base }}>
                 Server Data Store
               </Text>
-              <Text style={{ fontSize: 12, color: colors.onSurfaceVariant }}>
+              <Text style={{ fontSize: FONT_SIZES.sm, color: colors.onSurfaceVariant }}>
                 backend/data/student_data.csv
               </Text>
             </View>
@@ -202,13 +202,13 @@ export default function ImportDataScreen() {
             <View style={{ marginLeft: 12, flex: 1 }}>
               <Text
                 style={{
-                  fontFamily: "DMSans-Bold",
+                  fontFamily: FONTS.bold,
                   color: wipeData ? colors.error : colors.onSurface,
                 }}
               >
                 Wipe Existing Data
               </Text>
-              <Text style={{ fontSize: 12, color: colors.onSurfaceVariant }}>
+              <Text style={{ fontSize: FONT_SIZES.sm, color: colors.onSurfaceVariant }}>
                 Delete all non-admin users & fees before import. Use for fresh
                 start.
               </Text>
@@ -234,13 +234,13 @@ export default function ImportDataScreen() {
             <View style={{ marginLeft: 12, flex: 1 }}>
               <Text
                 style={{
-                  fontFamily: "DMSans-Bold",
+                  fontFamily: FONTS.bold,
                   color: feesOnly ? colors.secondary : colors.onSurface,
                 }}
               >
                 Fees Only Mode
               </Text>
-              <Text style={{ fontSize: 12, color: colors.onSurfaceVariant }}>
+              <Text style={{ fontSize: FONT_SIZES.sm, color: colors.onSurfaceVariant }}>
                 Only update fee records. Student profiles, classes, and other
                 data remain untouched.
               </Text>
@@ -253,7 +253,7 @@ export default function ImportDataScreen() {
           <Text style={styles.titleMedium}>Target Academic Year</Text>
           <Text
             style={{
-              fontSize: 12,
+              fontSize: FONT_SIZES.sm,
               color: colors.onSurfaceVariant,
               marginTop: 4,
               marginBottom: 12,
@@ -283,8 +283,8 @@ export default function ImportDataScreen() {
             >
               <Text
                 style={{
-                  fontFamily: "DMSans-Bold",
-                  fontSize: 13,
+                  fontFamily: FONTS.bold,
+                  fontSize: FONT_SIZES.md,
                   color: selectedYearId === null ? "#fff" : colors.onSurface,
                 }}
               >
@@ -310,8 +310,8 @@ export default function ImportDataScreen() {
               >
                 <Text
                   style={{
-                    fontFamily: "DMSans-Bold",
-                    fontSize: 13,
+                    fontFamily: FONTS.bold,
+                    fontSize: FONT_SIZES.md,
                     color:
                       selectedYearId === yr._id ? "#fff" : colors.onSurface,
                   }}
@@ -350,7 +350,7 @@ export default function ImportDataScreen() {
                 style={{ marginRight: 10 }}
               />
               <Text
-                style={{ color: colors.onSurface, fontFamily: "DMSans-Bold" }}
+                style={{ color: colors.onSurface, fontFamily: FONTS.bold }}
               >
                 SYNCING DATA...
               </Text>
@@ -366,8 +366,8 @@ export default function ImportDataScreen() {
               <Text
                 style={{
                   color: colors.white,
-                  fontFamily: "DMSans-Bold",
-                  fontSize: 16,
+                  fontFamily: FONTS.bold,
+                  fontSize: FONT_SIZES.lg,
                 }}
               >
                 {wipeData ? "WIPE & SYNC NOW" : "RUN DIRECT SYNC"}
@@ -391,10 +391,10 @@ export default function ImportDataScreen() {
           >
             <MaterialIcons name="badge" size={24} color={colors.secondary} />
             <View style={{ marginLeft: 12 }}>
-              <Text style={{ fontFamily: "DMSans-Bold", fontSize: 14 }}>
+              <Text style={{ fontFamily: FONTS.bold, fontSize: FONT_SIZES.base }}>
                 Staff Data Store
               </Text>
-              <Text style={{ fontSize: 12, color: colors.onSurfaceVariant }}>
+              <Text style={{ fontSize: FONT_SIZES.sm, color: colors.onSurfaceVariant }}>
                 backend/data/staff_data.csv
               </Text>
             </View>
@@ -425,7 +425,7 @@ export default function ImportDataScreen() {
                   style={{ marginRight: 8 }}
                 />
                 <Text
-                  style={{ color: colors.white, fontFamily: "DMSans-Bold" }}
+                  style={{ color: colors.white, fontFamily: FONTS.bold }}
                 >
                   SYNC STAFF DATA
                 </Text>
@@ -489,8 +489,8 @@ export default function ImportDataScreen() {
                         >
                           <Text
                             style={{
-                              fontFamily: "DMSans-Bold",
-                              fontSize: 12,
+                              fontFamily: FONTS.bold,
+                              fontSize: FONT_SIZES.sm,
                               marginRight: 4,
                             }}
                           >
@@ -498,8 +498,8 @@ export default function ImportDataScreen() {
                           </Text>
                           <Text
                             style={{
-                              fontFamily: "DMSans-Regular",
-                              fontSize: 12,
+                              fontFamily: FONTS.regular,
+                              fontSize: FONT_SIZES.sm,
                             }}
                           >
                             {count}
@@ -538,8 +538,8 @@ export default function ImportDataScreen() {
                         >
                           <Text
                             style={{
-                              fontFamily: "DMSans-Bold",
-                              fontSize: 12,
+                              fontFamily: FONTS.bold,
+                              fontSize: FONT_SIZES.sm,
                               marginRight: 4,
                               color: colors.primary,
                             }}
@@ -548,8 +548,8 @@ export default function ImportDataScreen() {
                           </Text>
                           <Text
                             style={{
-                              fontFamily: "DMSans-Regular",
-                              fontSize: 12,
+                              fontFamily: FONTS.regular,
+                              fontSize: FONT_SIZES.sm,
                               color: colors.primary,
                             }}
                           >
@@ -577,7 +577,7 @@ export default function ImportDataScreen() {
                 }}
               >
                 <Text
-                  style={{ color: colors.secondary, fontFamily: "DMSans-Bold" }}
+                  style={{ color: colors.secondary, fontFamily: FONTS.bold }}
                 >
                   View {result.updated} Updated Students
                 </Text>
@@ -601,7 +601,7 @@ export default function ImportDataScreen() {
                 }}
               >
                 <Text
-                  style={{ color: colors.success, fontFamily: "DMSans-Bold" }}
+                  style={{ color: colors.success, fontFamily: FONTS.bold }}
                 >
                   View {result.created} Created Staff
                 </Text>
@@ -625,7 +625,7 @@ export default function ImportDataScreen() {
                 }}
               >
                 <Text
-                  style={{ color: colors.secondary, fontFamily: "DMSans-Bold" }}
+                  style={{ color: colors.secondary, fontFamily: FONTS.bold }}
                 >
                   View {result.updated} Updated Staff
                 </Text>
@@ -653,10 +653,10 @@ export default function ImportDataScreen() {
                       paddingBottom: 4,
                     }}
                   >
-                    <Text style={{ fontFamily: "DMSans-Bold", fontSize: 12 }}>
+                    <Text style={{ fontFamily: FONTS.bold, fontSize: FONT_SIZES.sm }}>
                       Row {err.row}: {err.name}
                     </Text>
-                    <Text style={{ fontSize: 12, color: colors.error }}>
+                    <Text style={{ fontSize: FONT_SIZES.sm, color: colors.error }}>
                       {err.error}
                     </Text>
                   </View>
@@ -729,15 +729,15 @@ export default function ImportDataScreen() {
                           <View>
                             <Text
                               style={{
-                                fontFamily: "DMSans-Bold",
-                                fontSize: 14,
+                                fontFamily: FONTS.bold,
+                                fontSize: FONT_SIZES.base,
                               }}
                             >
                               {stud.name}
                             </Text>
                             <Text
                               style={{
-                                fontSize: 12,
+                                fontSize: FONT_SIZES.sm,
                                 color: colors.onSurfaceVariant,
                               }}
                             >
@@ -746,8 +746,8 @@ export default function ImportDataScreen() {
                           </View>
                           <Text
                             style={{
-                              fontFamily: "DMSans-Mono",
-                              fontSize: 14,
+                              fontFamily: FONT_FAMILIES.mono,
+                              fontSize: FONT_SIZES.base,
                               color: colors.primary,
                             }}
                           >
@@ -835,15 +835,15 @@ export default function ImportDataScreen() {
                           <View>
                             <Text
                               style={{
-                                fontFamily: "DMSans-Bold",
-                                fontSize: 14,
+                                fontFamily: FONTS.bold,
+                                fontSize: FONT_SIZES.base,
                               }}
                             >
                               {staff.name}
                             </Text>
                             <Text
                               style={{
-                                fontSize: 12,
+                                fontSize: FONT_SIZES.sm,
                                 color: colors.onSurfaceVariant,
                               }}
                             >
@@ -852,8 +852,8 @@ export default function ImportDataScreen() {
                           </View>
                           <Text
                             style={{
-                              fontFamily: "DMSans-Mono",
-                              fontSize: 14,
+                              fontFamily: FONT_FAMILIES.mono,
+                              fontSize: FONT_SIZES.base,
                               color: colors.primary,
                             }}
                           >
@@ -941,15 +941,15 @@ export default function ImportDataScreen() {
                           <View>
                             <Text
                               style={{
-                                fontFamily: "DMSans-Bold",
-                                fontSize: 14,
+                                fontFamily: FONTS.bold,
+                                fontSize: FONT_SIZES.base,
                               }}
                             >
                               {staff.name}
                             </Text>
                             <Text
                               style={{
-                                fontSize: 12,
+                                fontSize: FONT_SIZES.sm,
                                 color: colors.onSurfaceVariant,
                               }}
                             >
@@ -958,8 +958,8 @@ export default function ImportDataScreen() {
                           </View>
                           <Text
                             style={{
-                              fontFamily: "DMSans-Mono",
-                              fontSize: 14,
+                              fontFamily: FONT_FAMILIES.mono,
+                              fontSize: FONT_SIZES.base,
                               color: colors.primary,
                             }}
                           >
@@ -999,9 +999,9 @@ const ResultCard = ({ label, value, color }) => (
       alignItems: "center",
     }}
   >
-    <Text style={{ fontFamily: "DMSans-Bold", fontSize: 18, color: color }}>
+    <Text style={{ fontFamily: FONTS.bold, fontSize: FONT_SIZES.xl, color: color }}>
       {value}
     </Text>
-    <Text style={{ fontSize: 12, color: color }}>{label}</Text>
+    <Text style={{ fontSize: FONT_SIZES.sm, color: color }}>{label}</Text>
   </View>
 );

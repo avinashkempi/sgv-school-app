@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { useTheme } from "../../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../../theme";
 import apiConfig from "../../../config/apiConfig";
 import {
   useApiQuery,
@@ -74,8 +74,8 @@ const ExamTypeCard = memo(function ExamTypeCard({
         </Pressable>
         <Text
           style={{
-            fontSize: 14,
-            fontFamily: "DMSans-Bold",
+            fontSize: FONT_SIZES.base,
+            fontFamily: FONTS.bold,
             color: isEnabled ? colors.onSurface : colors.onSurfaceVariant,
             flex: 1,
           }}
@@ -85,8 +85,8 @@ const ExamTypeCard = memo(function ExamTypeCard({
         {!isEnabled && (
           <Text
             style={{
-              fontSize: 11,
-              fontFamily: "DMSans-Medium",
+              fontSize: FONT_SIZES.xs,
+              fontFamily: FONTS.medium,
               color: colors.onSurfaceVariant,
             }}
           >
@@ -101,8 +101,8 @@ const ExamTypeCard = memo(function ExamTypeCard({
           <View style={{ flex: 2 }}>
             <Text
               style={{
-                fontSize: 11,
-                fontFamily: "DMSans-Medium",
+                fontSize: FONT_SIZES.xs,
+                fontFamily: FONTS.medium,
                 color: colors.onSurfaceVariant,
                 marginBottom: 4,
               }}
@@ -118,8 +118,8 @@ const ExamTypeCard = memo(function ExamTypeCard({
                 backgroundColor: colors.surface,
                 padding: 10,
                 borderRadius: 8,
-                fontSize: 13,
-                fontFamily: "DMSans-Medium",
+                fontSize: FONT_SIZES.md,
+                fontFamily: FONTS.medium,
                 color: colors.onSurface,
                 borderWidth: 1,
                 borderColor: colors.outline,
@@ -130,8 +130,8 @@ const ExamTypeCard = memo(function ExamTypeCard({
           <View style={{ flex: 1 }}>
             <Text
               style={{
-                fontSize: 11,
-                fontFamily: "DMSans-Medium",
+                fontSize: FONT_SIZES.xs,
+                fontFamily: FONTS.medium,
                 color: colors.onSurfaceVariant,
                 marginBottom: 4,
               }}
@@ -148,8 +148,8 @@ const ExamTypeCard = memo(function ExamTypeCard({
                 backgroundColor: colors.surface,
                 padding: 10,
                 borderRadius: 8,
-                fontSize: 13,
-                fontFamily: "DMSans-Medium",
+                fontSize: FONT_SIZES.md,
+                fontFamily: FONTS.medium,
                 color: colors.onSurface,
                 borderWidth: 1,
                 borderColor:
@@ -363,8 +363,8 @@ export default function QuickExamWizard() {
       <View>
         <Text
           style={{
-            fontSize: 18,
-            fontFamily: "DMSans-Bold",
+            fontSize: FONT_SIZES.xl,
+            fontFamily: FONTS.bold,
             color: colors.onSurface,
             marginBottom: 16,
           }}
@@ -376,8 +376,8 @@ export default function QuickExamWizard() {
           <View key={group.class._id} style={{ marginBottom: 20 }}>
             <Text
               style={{
-                fontSize: 16,
-                fontFamily: "DMSans-SemiBold",
+                fontSize: FONT_SIZES.lg,
+                fontFamily: FONTS.semiBold,
                 color: colors.onSurface,
                 marginBottom: 12,
               }}
@@ -419,8 +419,8 @@ export default function QuickExamWizard() {
                   <View style={{ flex: 1 }}>
                     <Text
                       style={{
-                        fontSize: 15,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.mdLg,
+                        fontFamily: FONTS.bold,
                         color: colors.onSurface,
                       }}
                     >
@@ -464,8 +464,8 @@ export default function QuickExamWizard() {
       <View>
         <Text
           style={{
-            fontSize: 18,
-            fontFamily: "DMSans-Bold",
+            fontSize: FONT_SIZES.xl,
+            fontFamily: FONTS.bold,
             color: colors.onSurface,
             marginBottom: 8,
           }}
@@ -474,8 +474,8 @@ export default function QuickExamWizard() {
         </Text>
         <Text
           style={{
-            fontSize: 13,
-            fontFamily: "DMSans-Regular",
+            fontSize: FONT_SIZES.md,
+            fontFamily: FONTS.regular,
             color: colors.onSurfaceVariant,
             marginBottom: 20,
           }}
@@ -494,8 +494,8 @@ export default function QuickExamWizard() {
         >
           <Text
             style={{
-              fontSize: 15,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.mdLg,
+              fontFamily: FONTS.bold,
               color: colors.onSurface,
               marginBottom: 12,
             }}
@@ -507,8 +507,8 @@ export default function QuickExamWizard() {
             <View style={{ flex: 1 }}>
               <Text
                 style={{
-                  fontSize: 12,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.sm,
+                  fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                   marginBottom: 6,
                 }}
@@ -523,8 +523,8 @@ export default function QuickExamWizard() {
                   backgroundColor: colors.surface,
                   padding: 12,
                   borderRadius: 8,
-                  fontSize: 14,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.base,
+                  fontFamily: FONTS.medium,
                   color: colors.onSurface,
                   borderWidth: 1,
                   borderColor: colors.outline,
@@ -535,8 +535,8 @@ export default function QuickExamWizard() {
             <View style={{ flex: 1 }}>
               <Text
                 style={{
-                  fontSize: 12,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.sm,
+                  fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                   marginBottom: 6,
                 }}
@@ -553,8 +553,8 @@ export default function QuickExamWizard() {
                   backgroundColor: colors.surface,
                   padding: 12,
                   borderRadius: 8,
-                  fontSize: 14,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.base,
+                  fontFamily: FONTS.medium,
                   color: colors.onSurface,
                   borderWidth: 1,
                   borderColor: colors.outline,
@@ -567,8 +567,8 @@ export default function QuickExamWizard() {
         {/* Individual Exam Configuration */}
         <Text
           style={{
-            fontSize: 15,
-            fontFamily: "DMSans-Bold",
+            fontSize: FONT_SIZES.mdLg,
+            fontFamily: FONTS.bold,
             color: colors.onSurface,
             marginBottom: 12,
           }}
@@ -600,8 +600,8 @@ export default function QuickExamWizard() {
       <View>
         <Text
           style={{
-            fontSize: 18,
-            fontFamily: "DMSans-Bold",
+            fontSize: FONT_SIZES.xl,
+            fontFamily: FONTS.bold,
             color: colors.onSurface,
             marginBottom: 20,
           }}
@@ -620,8 +620,8 @@ export default function QuickExamWizard() {
           <View style={{ marginBottom: 12 }}>
             <Text
               style={{
-                fontSize: 12,
-                fontFamily: "DMSans-Medium",
+                fontSize: FONT_SIZES.sm,
+                fontFamily: FONTS.medium,
                 color: colors.onSurfaceVariant,
               }}
             >
@@ -629,8 +629,8 @@ export default function QuickExamWizard() {
             </Text>
             <Text
               style={{
-                fontSize: 16,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.lg,
+                fontFamily: FONTS.bold,
                 color: colors.onSurface,
                 marginTop: 4,
               }}
@@ -643,8 +643,8 @@ export default function QuickExamWizard() {
           <View style={{ marginBottom: 12 }}>
             <Text
               style={{
-                fontSize: 12,
-                fontFamily: "DMSans-Medium",
+                fontSize: FONT_SIZES.sm,
+                fontFamily: FONTS.medium,
                 color: colors.onSurfaceVariant,
               }}
             >
@@ -652,8 +652,8 @@ export default function QuickExamWizard() {
             </Text>
             <Text
               style={{
-                fontSize: 16,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.lg,
+                fontFamily: FONTS.bold,
                 color: colors.onSurface,
                 marginTop: 4,
               }}
@@ -665,8 +665,8 @@ export default function QuickExamWizard() {
           <View style={{ marginBottom: 12 }}>
             <Text
               style={{
-                fontSize: 12,
-                fontFamily: "DMSans-Medium",
+                fontSize: FONT_SIZES.sm,
+                fontFamily: FONTS.medium,
                 color: colors.onSurfaceVariant,
               }}
             >
@@ -674,8 +674,8 @@ export default function QuickExamWizard() {
             </Text>
             <Text
               style={{
-                fontSize: 16,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.lg,
+                fontFamily: FONTS.bold,
                 color: colors.primary,
                 marginTop: 4,
               }}
@@ -687,8 +687,8 @@ export default function QuickExamWizard() {
           <View>
             <Text
               style={{
-                fontSize: 12,
-                fontFamily: "DMSans-Medium",
+                fontSize: FONT_SIZES.sm,
+                fontFamily: FONTS.medium,
                 color: colors.onSurfaceVariant,
               }}
             >
@@ -696,8 +696,8 @@ export default function QuickExamWizard() {
             </Text>
             <Text
               style={{
-                fontSize: 16,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.lg,
+                fontFamily: FONTS.bold,
                 color: colors.onSurface,
                 marginTop: 4,
               }}
@@ -709,8 +709,8 @@ export default function QuickExamWizard() {
 
         <Text
           style={{
-            fontSize: 15,
-            fontFamily: "DMSans-Bold",
+            fontSize: FONT_SIZES.mdLg,
+            fontFamily: FONTS.bold,
             color: colors.onSurface,
             marginBottom: 12,
           }}
@@ -746,8 +746,8 @@ export default function QuickExamWizard() {
               />
               <Text
                 style={{
-                  fontSize: 14,
-                  fontFamily: "DMSans-Medium",
+                  fontSize: FONT_SIZES.base,
+                  fontFamily: FONTS.medium,
                   color: isEnabled ? colors.onSurface : colors.onSurfaceVariant,
                   marginLeft: 10,
                   flex: 1,
@@ -759,8 +759,8 @@ export default function QuickExamWizard() {
                 <View style={{ alignItems: "flex-end" }}>
                   <Text
                     style={{
-                      fontSize: 13,
-                      fontFamily: "DMSans-SemiBold",
+                      fontSize: FONT_SIZES.md,
+                      fontFamily: FONTS.semiBold,
                       color: colors.primary,
                     }}
                   >
@@ -772,8 +772,8 @@ export default function QuickExamWizard() {
                   {examConfig[type].date ? (
                     <Text
                       style={{
-                        fontSize: 11,
-                        fontFamily: "DMSans-Regular",
+                        fontSize: FONT_SIZES.xs,
+                        fontFamily: FONTS.regular,
                         color: colors.onSurfaceVariant,
                         marginTop: 2,
                       }}
@@ -785,8 +785,8 @@ export default function QuickExamWizard() {
               ) : (
                 <Text
                   style={{
-                    fontSize: 12,
-                    fontFamily: "DMSans-Regular",
+                    fontSize: FONT_SIZES.sm,
+                    fontFamily: FONTS.regular,
                     color: colors.onSurfaceVariant,
                   }}
                 >
@@ -824,8 +824,8 @@ export default function QuickExamWizard() {
             ) : (
               <Text
                 style={{
-                  fontSize: 14,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.base,
+                  fontFamily: FONTS.bold,
                   color:
                     currentStep >= step ? "#FFFFFF" : colors.onSurfaceVariant,
                 }}
@@ -915,8 +915,8 @@ export default function QuickExamWizard() {
           >
             <Text
               style={{
-                fontFamily: "DMSans-Bold",
-                fontSize: 15,
+                fontFamily: FONTS.bold,
+                fontSize: FONT_SIZES.mdLg,
                 color: colors.onSurface,
               }}
             >
@@ -946,8 +946,8 @@ export default function QuickExamWizard() {
             <>
               <Text
                 style={{
-                  fontFamily: "DMSans-Bold",
-                  fontSize: 15,
+                  fontFamily: FONTS.bold,
+                  fontSize: FONT_SIZES.mdLg,
                   color: "#FFFFFF",
                 }}
               >

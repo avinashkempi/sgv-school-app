@@ -8,7 +8,7 @@ import {
   Platform,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
 
 /**
  * ModernTimePicker
@@ -90,7 +90,7 @@ export default function ModernTimePicker({
               <Text
                 style={[
                   styles.iosButtonText,
-                  { color: colors.primary, fontFamily: "DMSans-Bold" },
+                  { color: colors.primary, fontFamily: FONTS.bold },
                 ]}
               >
                 Done
@@ -139,11 +139,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   iosButtonText: {
-    fontSize: 16,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.lg,
+    fontFamily: FONTS.medium,
   },
   iosTitle: {
-    fontSize: 16,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.lg,
+    fontFamily: FONTS.bold,
   },
 });

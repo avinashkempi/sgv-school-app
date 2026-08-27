@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
 import apiConfig from "../../config/apiConfig";
 import Header from "../../components/Header";
@@ -55,8 +55,8 @@ export default function YearComparisonScreen() {
     <View style={{ marginBottom: 24 }}>
       <Text
         style={{
-          fontSize: 16,
-          fontFamily: "DMSans-Bold",
+          fontSize: FONT_SIZES.lg,
+          fontFamily: FONTS.bold,
           color: colors.onSurface,
           marginBottom: 12,
         }}
@@ -99,8 +99,8 @@ export default function YearComparisonScreen() {
               )}
               <Text
                 style={{
-                  fontSize: 13,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.md,
+                  fontFamily: FONTS.bold,
                   color: isSelected ? colors.primary : colors.onSurface,
                 }}
               >
@@ -113,8 +113,8 @@ export default function YearComparisonScreen() {
       {selectedYears.length > 0 && selectedYears.length < 2 && (
         <Text
           style={{
-            fontSize: 12,
-            fontFamily: "DMSans-Medium",
+            fontSize: FONT_SIZES.sm,
+            fontFamily: FONTS.medium,
             color: colors.error,
             marginTop: 8,
           }}
@@ -147,8 +147,8 @@ export default function YearComparisonScreen() {
       <View style={{ marginBottom: 24 }}>
         <Text
           style={{
-            fontSize: 16,
-            fontFamily: "DMSans-Bold",
+            fontSize: FONT_SIZES.lg,
+            fontFamily: FONTS.bold,
             color: colors.onSurface,
             marginBottom: 12,
           }}
@@ -162,8 +162,8 @@ export default function YearComparisonScreen() {
               <View style={{ width: 140, paddingVertical: 10 }}>
                 <Text
                   style={{
-                    fontSize: 13,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.md,
+                    fontFamily: FONTS.bold,
                     color: colors.onSurfaceVariant,
                   }}
                 >
@@ -181,8 +181,8 @@ export default function YearComparisonScreen() {
                 >
                   <Text
                     style={{
-                      fontSize: 12,
-                      fontFamily: "DMSans-Bold",
+                      fontSize: FONT_SIZES.sm,
+                      fontFamily: FONTS.bold,
                       color: colors.primary,
                     }}
                   >
@@ -223,8 +223,8 @@ export default function YearComparisonScreen() {
                   />
                   <Text
                     style={{
-                      fontSize: 13,
-                      fontFamily: "DMSans-Medium",
+                      fontSize: FONT_SIZES.md,
+                      fontFamily: FONTS.medium,
                       color: colors.onSurface,
                     }}
                   >
@@ -254,8 +254,8 @@ export default function YearComparisonScreen() {
                     >
                       <Text
                         style={{
-                          fontSize: 15,
-                          fontFamily: "DMSans-Bold",
+                          fontSize: FONT_SIZES.mdLg,
+                          fontFamily: FONTS.bold,
                           color: isMax ? colors.success : colors.onSurface,
                         }}
                       >
@@ -281,8 +281,8 @@ export default function YearComparisonScreen() {
       <View style={{ marginBottom: 24 }}>
         <Text
           style={{
-            fontSize: 16,
-            fontFamily: "DMSans-Bold",
+            fontSize: FONT_SIZES.lg,
+            fontFamily: FONTS.bold,
             color: colors.onSurface,
             marginBottom: 12,
           }}
@@ -344,8 +344,8 @@ export default function YearComparisonScreen() {
         <View style={{ marginBottom: 20 }}>
           <Text
             style={{
-              fontSize: 16,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.lg,
+              fontFamily: FONTS.bold,
               color: colors.onSurface,
               marginBottom: 12,
             }}
@@ -358,8 +358,8 @@ export default function YearComparisonScreen() {
         <View style={{ marginBottom: 20 }}>
           <Text
             style={{
-              fontSize: 16,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.lg,
+              fontFamily: FONTS.bold,
               color: colors.onSurface,
               marginBottom: 12,
             }}
@@ -413,8 +413,8 @@ export default function YearComparisonScreen() {
                   <Text
                     style={{
                       marginTop: 16,
-                      fontSize: 14,
-                      fontFamily: "DMSans-Medium",
+                      fontSize: FONT_SIZES.base,
+                      fontFamily: FONTS.medium,
                       color: colors.onSurfaceVariant,
                     }}
                   >
@@ -449,8 +449,8 @@ export default function YearComparisonScreen() {
               <Text
                 style={{
                   marginTop: 16,
-                  fontSize: 16,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.lg,
+                  fontFamily: FONTS.bold,
                   color: colors.onSurface,
                 }}
               >
@@ -459,8 +459,8 @@ export default function YearComparisonScreen() {
               <Text
                 style={{
                   marginTop: 8,
-                  fontSize: 14,
-                  fontFamily: "DMSans-Regular",
+                  fontSize: FONT_SIZES.base,
+                  fontFamily: FONTS.regular,
                   color: colors.onSurfaceVariant,
                   textAlign: "center",
                   paddingHorizontal: 32,
@@ -505,8 +505,8 @@ function TrendCard({ label, value, icon, color, suffix = "" }) {
         <MaterialIcons name={icon} size={20} color={color} />
         <Text
           style={{
-            fontSize: 12,
-            fontFamily: "DMSans-Medium",
+            fontSize: FONT_SIZES.sm,
+            fontFamily: FONTS.medium,
             color: colors.onSurfaceVariant,
           }}
         >
@@ -533,8 +533,8 @@ function TrendCard({ label, value, icon, color, suffix = "" }) {
         />
         <Text
           style={{
-            fontSize: 20,
-            fontFamily: "DMSans-Bold",
+            fontSize: FONT_SIZES.xl,
+            fontFamily: FONTS.bold,
             color: isPositive
               ? colors.success
               : isNegative

@@ -6,17 +6,17 @@ import {
   Pressable,
   TextInput,
   Alert,
-  RefreshControl,
   ActivityIndicator,
   Modal,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import AppRefreshControl from "../../components/ui/AppRefreshControl";
 import { MaterialIcons } from "@expo/vector-icons";
 
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import apiConfig from "../../config/apiConfig";
 import {
   useApiQuery,
@@ -28,6 +28,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "../../components/ToastProvider";
 import Header from "../../components/Header";
 import { formatDate } from "../../utils/date";
+import {
+  formatUserName,
+  formatUserDesignationOrRole,
+} from "../../utils/userFormatters";
 
 export default function AcademicYearScreen() {
   const _router = useRouter();
@@ -469,8 +473,8 @@ export default function AcademicYearScreen() {
           <View style={{ flex: 1 }}>
             <Text
               style={{
-                fontSize: 18,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.xl,
+                fontFamily: FONTS.bold,
                 color: colors.onSurface,
               }}
             >
@@ -478,8 +482,8 @@ export default function AcademicYearScreen() {
             </Text>
             <Text
               style={{
-                fontSize: 14,
-                fontFamily: "DMSans-Regular",
+                fontSize: FONT_SIZES.base,
+                fontFamily: FONTS.regular,
                 color: colors.onSurfaceVariant,
                 marginTop: 4,
               }}
@@ -500,8 +504,8 @@ export default function AcademicYearScreen() {
                 <Text
                   style={{
                     color: colors.primary,
-                    fontSize: 12,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.sm,
+                    fontFamily: FONTS.bold,
                   }}
                 >
                   ACTIVE
@@ -537,8 +541,8 @@ export default function AcademicYearScreen() {
               <Text
                 style={{
                   color: colors.primary,
-                  fontFamily: "DMSans-Bold",
-                  fontSize: 13,
+                  fontFamily: FONTS.bold,
+                  fontSize: FONT_SIZES.md,
                 }}
               >
                 {incrementYearMutation.isPending
@@ -591,8 +595,8 @@ export default function AcademicYearScreen() {
           </View>
           <Text
             style={{
-              fontSize: 13,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.md,
+              fontFamily: FONTS.bold,
               color: colors.onSurfaceVariant,
               letterSpacing: 0.3,
             }}
@@ -634,8 +638,8 @@ export default function AcademicYearScreen() {
             />
             <Text
               style={{
-                fontSize: 15,
-                fontFamily: "DMSans-Medium",
+                fontSize: FONT_SIZES.mdLg,
+                fontFamily: FONTS.medium,
                 color: colors.onSurface,
               }}
             >
@@ -654,8 +658,8 @@ export default function AcademicYearScreen() {
               >
                 <Text
                   style={{
-                    fontSize: 11,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.xs,
+                    fontFamily: FONTS.bold,
                     color: colors.primary,
                   }}
                 >
@@ -708,8 +712,8 @@ export default function AcademicYearScreen() {
                 >
                   <Text
                     style={{
-                      fontSize: 12,
-                      fontFamily: "DMSans-Bold",
+                      fontSize: FONT_SIZES.sm,
+                      fontFamily: FONTS.bold,
                       color: colors.onPrimaryContainer || colors.primary,
                     }}
                   >
@@ -739,8 +743,8 @@ export default function AcademicYearScreen() {
                 <View style={{ alignItems: "center", flex: 1 }}>
                   <Text
                     style={{
-                      fontSize: 18,
-                      fontFamily: "DMSans-Bold",
+                      fontSize: FONT_SIZES.xl,
+                      fontFamily: FONTS.bold,
                       color: colors.primary,
                     }}
                   >
@@ -748,8 +752,8 @@ export default function AcademicYearScreen() {
                   </Text>
                   <Text
                     style={{
-                      fontSize: 12,
-                      fontFamily: "DMSans-Medium",
+                      fontSize: FONT_SIZES.sm,
+                      fontFamily: FONTS.medium,
                       color: colors.onSurfaceVariant,
                       marginTop: 2,
                     }}
@@ -767,8 +771,8 @@ export default function AcademicYearScreen() {
                 <View style={{ alignItems: "center", flex: 1 }}>
                   <Text
                     style={{
-                      fontSize: 18,
-                      fontFamily: "DMSans-Bold",
+                      fontSize: FONT_SIZES.xl,
+                      fontFamily: FONTS.bold,
                       color: colors.onSurface,
                     }}
                   >
@@ -776,8 +780,8 @@ export default function AcademicYearScreen() {
                   </Text>
                   <Text
                     style={{
-                      fontSize: 12,
-                      fontFamily: "DMSans-Medium",
+                      fontSize: FONT_SIZES.sm,
+                      fontFamily: FONTS.medium,
                       color: colors.onSurfaceVariant,
                       marginTop: 2,
                     }}
@@ -795,8 +799,8 @@ export default function AcademicYearScreen() {
                 <View style={{ alignItems: "center", flex: 1 }}>
                   <Text
                     style={{
-                      fontSize: 18,
-                      fontFamily: "DMSans-Bold",
+                      fontSize: FONT_SIZES.xl,
+                      fontFamily: FONTS.bold,
                       color: colors.secondary,
                     }}
                   >
@@ -806,8 +810,8 @@ export default function AcademicYearScreen() {
                   </Text>
                   <Text
                     style={{
-                      fontSize: 12,
-                      fontFamily: "DMSans-Medium",
+                      fontSize: FONT_SIZES.sm,
+                      fontFamily: FONTS.medium,
                       color: colors.onSurfaceVariant,
                       marginTop: 2,
                     }}
@@ -855,8 +859,8 @@ export default function AcademicYearScreen() {
                       <Text
                         style={{
                           color: colors.onSurface,
-                          fontFamily: "DMSans-Medium",
-                          fontSize: 14,
+                          fontFamily: FONTS.medium,
+                          fontSize: FONT_SIZES.base,
                           flex: 1,
                         }}
                       >
@@ -880,8 +884,8 @@ export default function AcademicYearScreen() {
                             count > 0
                               ? colors.onPrimaryContainer || colors.primary
                               : colors.onSurfaceVariant,
-                          fontFamily: "DMSans-Bold",
-                          fontSize: 13,
+                          fontFamily: FONTS.bold,
+                          fontSize: FONT_SIZES.md,
                         }}
                       >
                         {count} {count === 1 ? "student" : "students"}
@@ -907,7 +911,7 @@ export default function AcademicYearScreen() {
                 <Text
                   style={{
                     color: colors.onSurfaceVariant,
-                    fontFamily: "DMSans-Medium",
+                    fontFamily: FONTS.medium,
                   }}
                 >
                   No student distribution data recorded for this academic year.
@@ -943,8 +947,8 @@ export default function AcademicYearScreen() {
                   <Text
                     style={{
                       color: colors.onSurface,
-                      fontFamily: "DMSans-Bold",
-                      fontSize: 14,
+                      fontFamily: FONTS.bold,
+                      fontSize: FONT_SIZES.base,
                     }}
                   >
                     {leave.applicant?.name}
@@ -952,8 +956,8 @@ export default function AcademicYearScreen() {
                   <Text
                     style={{
                       color: colors.onSurfaceVariant,
-                      fontFamily: "DMSans-Regular",
-                      fontSize: 12,
+                      fontFamily: FONTS.regular,
+                      fontSize: FONT_SIZES.sm,
                       marginTop: 2,
                     }}
                   >
@@ -963,8 +967,8 @@ export default function AcademicYearScreen() {
                   <Text
                     style={{
                       color: colors.onSurfaceVariant,
-                      fontFamily: "DMSans-Regular",
-                      fontSize: 12,
+                      fontFamily: FONTS.regular,
+                      fontSize: FONT_SIZES.sm,
                     }}
                   >
                     Reason: {leave.reason}
@@ -988,7 +992,7 @@ export default function AcademicYearScreen() {
                 <Text
                   style={{
                     color: colors.onSurfaceVariant,
-                    fontFamily: "DMSans-Medium",
+                    fontFamily: FONTS.medium,
                   }}
                 >
                   No leaves recorded.
@@ -1041,8 +1045,8 @@ export default function AcademicYearScreen() {
                   <View style={{ alignItems: "center", flex: 1 }}>
                     <Text
                       style={{
-                        fontSize: 18,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.xl,
+                        fontFamily: FONTS.bold,
                         color: colors.primary,
                       }}
                     >
@@ -1050,8 +1054,8 @@ export default function AcademicYearScreen() {
                     </Text>
                     <Text
                       style={{
-                        fontSize: 12,
-                        fontFamily: "DMSans-Medium",
+                        fontSize: FONT_SIZES.sm,
+                        fontFamily: FONTS.medium,
                         color: colors.onSurfaceVariant,
                         marginTop: 2,
                       }}
@@ -1069,8 +1073,8 @@ export default function AcademicYearScreen() {
                   <View style={{ alignItems: "center", flex: 1 }}>
                     <Text
                       style={{
-                        fontSize: 18,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.xl,
+                        fontFamily: FONTS.bold,
                         color: colors.onSurface,
                       }}
                     >
@@ -1080,8 +1084,8 @@ export default function AcademicYearScreen() {
                     </Text>
                     <Text
                       style={{
-                        fontSize: 12,
-                        fontFamily: "DMSans-Medium",
+                        fontSize: FONT_SIZES.sm,
+                        fontFamily: FONTS.medium,
                         color: colors.onSurfaceVariant,
                         marginTop: 2,
                       }}
@@ -1115,17 +1119,7 @@ export default function AcademicYearScreen() {
                     ? colors.onSecondaryContainer || "#d97706"
                     : colors.error || "#dc2626";
 
-                const displayRole = record.designation
-                  ? record.designation
-                  : record.role === "support_staff"
-                  ? "Support Staff"
-                  : record.role === "staff"
-                  ? "Staff"
-                  : record.role === "admin" || record.role === "super admin"
-                  ? "Admin"
-                  : record.role
-                  ? record.role.charAt(0).toUpperCase() + record.role.slice(1)
-                  : "";
+                const displayRole = formatUserDesignationOrRole(record);
 
                 return (
                   <View
@@ -1157,11 +1151,11 @@ export default function AcademicYearScreen() {
                           <Text
                             style={{
                               color: colors.onSurface,
-                              fontFamily: "DMSans-Bold",
-                              fontSize: 14,
+                              fontFamily: FONTS.bold,
+                              fontSize: FONT_SIZES.base,
                             }}
                           >
-                            {record.name}
+                            {formatUserName(record.name)}
                           </Text>
                           {displayRole ? (
                             <View
@@ -1176,8 +1170,8 @@ export default function AcademicYearScreen() {
                               <Text
                                 style={{
                                   color: colors.onSurfaceVariant,
-                                  fontFamily: "DMSans-Medium",
-                                  fontSize: 11,
+                                  fontFamily: FONTS.medium,
+                                  fontSize: FONT_SIZES.xs,
                                 }}
                               >
                                 {displayRole}
@@ -1199,8 +1193,8 @@ export default function AcademicYearScreen() {
                           <Text
                             style={{
                               color: colors.onSurfaceVariant,
-                              fontFamily: "DMSans-Regular",
-                              fontSize: 12,
+                              fontFamily: FONTS.regular,
+                              fontSize: FONT_SIZES.sm,
                             }}
                           >
                             {record.totalDays > 0
@@ -1226,8 +1220,8 @@ export default function AcademicYearScreen() {
                               <Text
                                 style={{
                                   color: colors.error || "#EF4444",
-                                  fontFamily: "DMSans-Medium",
-                                  fontSize: 11,
+                                  fontFamily: FONTS.medium,
+                                  fontSize: FONT_SIZES.xs,
                                 }}
                               >
                                 {record.absentDays} absent
@@ -1253,8 +1247,8 @@ export default function AcademicYearScreen() {
                               <Text
                                 style={{
                                   color: "#D97706",
-                                  fontFamily: "DMSans-Medium",
-                                  fontSize: 11,
+                                  fontFamily: FONTS.medium,
+                                  fontSize: FONT_SIZES.xs,
                                 }}
                               >
                                 {record.lateDays} late
@@ -1278,8 +1272,8 @@ export default function AcademicYearScreen() {
                         <Text
                           style={{
                             color: badgeTextColor,
-                            fontFamily: "DMSans-Bold",
-                            fontSize: 13,
+                            fontFamily: FONTS.bold,
+                            fontSize: FONT_SIZES.md,
                           }}
                         >
                           {record.totalDays > 0
@@ -1333,7 +1327,7 @@ export default function AcademicYearScreen() {
                 <Text
                   style={{
                     color: colors.onSurfaceVariant,
-                    fontFamily: "DMSans-Medium",
+                    fontFamily: FONTS.medium,
                   }}
                 >
                   No attendance data.
@@ -1353,7 +1347,7 @@ export default function AcademicYearScreen() {
           <Text
             style={{
               color: colors.onSurfaceVariant,
-              fontFamily: "DMSans-Medium",
+              fontFamily: FONTS.medium,
               marginTop: 12,
             }}
           >
@@ -1368,10 +1362,9 @@ export default function AcademicYearScreen() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView
         refreshControl={
-          <RefreshControl
+          <AppRefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[colors.primary]}
           />
         }
         contentContainerStyle={{ paddingBottom: 24 }}
@@ -1416,8 +1409,8 @@ export default function AcademicYearScreen() {
                   style={{
                     color:
                       activeTab === "years" ? "#fff" : colors.onSurfaceVariant,
-                    fontFamily: "DMSans-Bold",
-                    fontSize: 14,
+                    fontFamily: FONTS.bold,
+                    fontSize: FONT_SIZES.base,
                   }}
                 >
                   Management
@@ -1452,8 +1445,8 @@ export default function AcademicYearScreen() {
                       activeTab === "reports"
                         ? "#fff"
                         : colors.onSurfaceVariant,
-                    fontFamily: "DMSans-Bold",
-                    fontSize: 14,
+                    fontFamily: FONTS.bold,
+                    fontSize: FONT_SIZES.base,
                   }}
                 >
                   Reports
@@ -1521,8 +1514,8 @@ export default function AcademicYearScreen() {
             >
               <Text
                 style={{
-                  fontSize: 20,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.xxl,
+                  fontFamily: FONTS.bold,
                   color: colors.onSurface,
                   marginBottom: 20,
                 }}
@@ -1538,7 +1531,7 @@ export default function AcademicYearScreen() {
                   padding: 14,
                   borderRadius: 12,
                   color: colors.onSurface,
-                  fontFamily: "DMSans-Medium",
+                  fontFamily: FONTS.medium,
                   marginBottom: 12,
                   borderWidth: 1,
                   borderColor: colors.outlineVariant,
@@ -1555,7 +1548,7 @@ export default function AcademicYearScreen() {
                   padding: 14,
                   borderRadius: 12,
                   color: colors.onSurface,
-                  fontFamily: "DMSans-Medium",
+                  fontFamily: FONTS.medium,
                   marginBottom: 12,
                   borderWidth: 1,
                   borderColor: colors.outlineVariant,
@@ -1572,7 +1565,7 @@ export default function AcademicYearScreen() {
                   padding: 14,
                   borderRadius: 12,
                   color: colors.onSurface,
-                  fontFamily: "DMSans-Medium",
+                  fontFamily: FONTS.medium,
                   marginBottom: 24,
                   borderWidth: 1,
                   borderColor: colors.outlineVariant,
@@ -1601,7 +1594,7 @@ export default function AcademicYearScreen() {
                   <Text
                     style={{
                       color: colors.onSurfaceVariant,
-                      fontFamily: "DMSans-Bold",
+                      fontFamily: FONTS.bold,
                     }}
                   >
                     Cancel
@@ -1625,7 +1618,7 @@ export default function AcademicYearScreen() {
                   {createYearMutation.isPending ? (
                     <ActivityIndicator size="small" color="#fff" />
                   ) : (
-                    <Text style={{ color: "#fff", fontFamily: "DMSans-Bold" }}>
+                    <Text style={{ color: "#fff", fontFamily: FONTS.bold }}>
                       Create
                     </Text>
                   )}
@@ -1679,8 +1672,8 @@ export default function AcademicYearScreen() {
             >
               <Text
                 style={{
-                  fontSize: 18,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.xl,
+                  fontFamily: FONTS.bold,
                   color: colors.onSurface,
                 }}
               >
@@ -1744,10 +1737,10 @@ export default function AcademicYearScreen() {
                       />
                       <Text
                         style={{
-                          fontSize: 15,
+                          fontSize: FONT_SIZES.mdLg,
                           fontFamily: isSelected
-                            ? "DMSans-Bold"
-                            : "DMSans-Medium",
+                            ? FONTS.bold
+                            : FONTS.medium,
                           color: isSelected ? colors.primary : colors.onSurface,
                         }}
                       >
@@ -1764,8 +1757,8 @@ export default function AcademicYearScreen() {
                         >
                           <Text
                             style={{
-                              fontSize: 10,
-                              fontFamily: "DMSans-Bold",
+                              fontSize: FONT_SIZES.micro,
+                              fontFamily: FONTS.bold,
                               color: colors.primary,
                             }}
                           >
@@ -1802,8 +1795,8 @@ const localStyles = {
     borderColor: colors.outlineVariant + "30",
   }),
   cardTitle: (colors) => ({
-    fontSize: 16,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.lg,
+    fontFamily: FONTS.bold,
     color: colors.onSurface,
     flex: 1,
   }),

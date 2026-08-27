@@ -4,11 +4,11 @@ import {
   Text,
   FlatList,
   ActivityIndicator,
-  RefreshControl,
   TouchableOpacity,
 } from "react-native";
+import AppRefreshControl from "../../components/ui/AppRefreshControl";
 import { useRouter } from "expo-router";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
 import { CACHE_TIERS } from "../../utils/cacheConfig";
 import apiFetch from "../../utils/apiFetch";
@@ -154,7 +154,7 @@ export default function StudentAttendanceScreen() {
             borderColor: color,
             borderRadius: 8,
           },
-          text: { color, fontFamily: "DMSans-Bold" },
+          text: { color, fontFamily: FONTS.bold },
         },
       };
     });
@@ -208,10 +208,10 @@ export default function StudentAttendanceScreen() {
       >
         <Text
           style={{
-            fontSize: 16,
+            fontSize: FONT_SIZES.lg,
             color: "#fff",
             opacity: 0.9,
-            fontFamily: "DMSans-Medium",
+            fontFamily: FONTS.medium,
           }}
         >
           {t("student.overallAttendance", "Overall Attendance")}
@@ -219,7 +219,7 @@ export default function StudentAttendanceScreen() {
         <Text
           style={{
             fontSize: 64,
-            fontFamily: "DMSans-Bold",
+            fontFamily: FONTS.bold,
             color: "#fff",
             marginTop: 8,
           }}
@@ -229,16 +229,16 @@ export default function StudentAttendanceScreen() {
         <View style={{ flexDirection: "row", gap: 24, marginTop: 16 }}>
           <View style={{ alignItems: "center" }}>
             <Text
-              style={{ fontSize: 28, fontFamily: "DMSans-Bold", color: "#fff" }}
+              style={{ fontSize: FONT_SIZES.displaySm, fontFamily: FONTS.bold, color: "#fff" }}
             >
               {displayStats.present}
             </Text>
             <Text
               style={{
-                fontSize: 12,
+                fontSize: FONT_SIZES.sm,
                 color: "#fff",
                 opacity: 0.8,
-                fontFamily: "DMSans-Regular",
+                fontFamily: FONTS.regular,
               }}
             >
               {t("common.present", "Present")}
@@ -246,16 +246,16 @@ export default function StudentAttendanceScreen() {
           </View>
           <View style={{ alignItems: "center" }}>
             <Text
-              style={{ fontSize: 28, fontFamily: "DMSans-Bold", color: "#fff" }}
+              style={{ fontSize: FONT_SIZES.displaySm, fontFamily: FONTS.bold, color: "#fff" }}
             >
               {displayStats.total}
             </Text>
             <Text
               style={{
-                fontSize: 12,
+                fontSize: FONT_SIZES.sm,
                 color: "#fff",
                 opacity: 0.8,
-                fontFamily: "DMSans-Regular",
+                fontFamily: FONTS.regular,
               }}
             >
               {t("student.totalDays", "Total Days")}
@@ -269,8 +269,8 @@ export default function StudentAttendanceScreen() {
         <View style={{ marginTop: 24 }}>
           <Text
             style={{
-              fontSize: 18,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.xl,
+              fontFamily: FONTS.bold,
               color: colors.onSurface,
               marginBottom: 12,
             }}
@@ -298,8 +298,8 @@ export default function StudentAttendanceScreen() {
                 <View style={{ flex: 1 }}>
                   <Text
                     style={{
-                      fontSize: 16,
-                      fontFamily: "DMSans-SemiBold",
+                      fontSize: FONT_SIZES.lg,
+                      fontFamily: FONTS.semiBold,
                       color: colors.onSurface,
                     }}
                   >
@@ -307,10 +307,10 @@ export default function StudentAttendanceScreen() {
                   </Text>
                   <Text
                     style={{
-                      fontSize: 13,
+                      fontSize: FONT_SIZES.md,
                       color: colors.onSurfaceVariant,
                       marginTop: 4,
-                      fontFamily: "DMSans-Regular",
+                      fontFamily: FONTS.regular,
                     }}
                   >
                     {subject.present} / {subject.total}{" "}
@@ -320,8 +320,8 @@ export default function StudentAttendanceScreen() {
                 <View style={{ alignItems: "flex-end" }}>
                   <Text
                     style={{
-                      fontSize: 24,
-                      fontFamily: "DMSans-Bold",
+                      fontSize: FONT_SIZES.headline,
+                      fontFamily: FONTS.bold,
                       color:
                         parseFloat(subject.percentage) >= 75
                           ? colors.success
@@ -342,9 +342,9 @@ export default function StudentAttendanceScreen() {
                     >
                       <Text
                         style={{
-                          fontSize: 10,
+                          fontSize: FONT_SIZES.micro,
                           color: colors.error,
-                          fontFamily: "DMSans-Bold",
+                          fontFamily: FONTS.bold,
                         }}
                       >
                         {t("student.lowStatus", "LOW")}
@@ -370,8 +370,8 @@ export default function StudentAttendanceScreen() {
       >
         <Text
           style={{
-            fontSize: 18,
-            fontFamily: "DMSans-Bold",
+            fontSize: FONT_SIZES.xl,
+            fontFamily: FONTS.bold,
             color: colors.onSurface,
             marginBottom: 4,
           }}
@@ -417,9 +417,9 @@ export default function StudentAttendanceScreen() {
               />
               <Text
                 style={{
-                  fontSize: 11,
+                  fontSize: FONT_SIZES.xs,
                   color: colors.onSurfaceVariant,
-                  fontFamily: "DMSans-Medium",
+                  fontFamily: FONTS.medium,
                 }}
               >
                 {label}
@@ -434,8 +434,8 @@ export default function StudentAttendanceScreen() {
         <View style={{ marginTop: 24 }}>
           <Text
             style={{
-              fontSize: 18,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.xl,
+              fontFamily: FONTS.bold,
               color: colors.onSurface,
               marginBottom: 12,
             }}
@@ -459,8 +459,8 @@ export default function StudentAttendanceScreen() {
               <View>
                 <Text
                   style={{
-                    fontSize: 15,
-                    fontFamily: "DMSans-SemiBold",
+                    fontSize: FONT_SIZES.mdLg,
+                    fontFamily: FONTS.semiBold,
                     color: colors.onSurface,
                   }}
                 >
@@ -468,10 +468,10 @@ export default function StudentAttendanceScreen() {
                 </Text>
                 <Text
                   style={{
-                    fontSize: 12,
+                    fontSize: FONT_SIZES.sm,
                     color: colors.onSurfaceVariant,
                     marginTop: 2,
-                    fontFamily: "DMSans-Regular",
+                    fontFamily: FONTS.regular,
                   }}
                 >
                   {month.present} / {month.total} {t("common.days", "days")}
@@ -479,8 +479,8 @@ export default function StudentAttendanceScreen() {
               </View>
               <Text
                 style={{
-                  fontSize: 20,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.xxl,
+                  fontFamily: FONTS.bold,
                   color:
                     parseFloat(month.percentage) >= 75
                       ? colors.success
@@ -505,8 +505,8 @@ export default function StudentAttendanceScreen() {
             >
               <Text
                 style={{
-                  fontSize: 14,
-                  fontFamily: "DMSans-SemiBold",
+                  fontSize: FONT_SIZES.base,
+                  fontFamily: FONTS.semiBold,
                   color: colors.primary,
                 }}
               >
@@ -520,8 +520,8 @@ export default function StudentAttendanceScreen() {
       {allHistory.length > 0 && (
         <Text
           style={{
-            fontSize: 18,
-            fontFamily: "DMSans-Bold",
+            fontSize: FONT_SIZES.xl,
+            fontFamily: FONTS.bold,
             color: colors.onSurface,
             marginTop: 24,
             marginBottom: 12,
@@ -554,8 +554,8 @@ export default function StudentAttendanceScreen() {
         <View>
           <Text
             style={{
-              fontSize: 14,
-              fontFamily: "DMSans-SemiBold",
+              fontSize: FONT_SIZES.base,
+              fontFamily: FONTS.semiBold,
               color: colors.onSurface,
             }}
           >
@@ -564,10 +564,10 @@ export default function StudentAttendanceScreen() {
           {item.remarks ? (
             <Text
               style={{
-                fontSize: 12,
+                fontSize: FONT_SIZES.sm,
                 color: colors.onSurfaceVariant,
                 marginTop: 2,
-                fontFamily: "DMSans-Regular",
+                fontFamily: FONTS.regular,
               }}
             >
               {item.remarks}
@@ -584,8 +584,8 @@ export default function StudentAttendanceScreen() {
         >
           <Text
             style={{
-              fontSize: 12,
-              fontFamily: "DMSans-Bold",
+              fontSize: FONT_SIZES.sm,
+              fontFamily: FONTS.bold,
               color,
               textTransform: "capitalize",
             }}
@@ -611,8 +611,8 @@ export default function StudentAttendanceScreen() {
           style={{
             textAlign: "center",
             color: colors.onSurfaceVariant,
-            fontSize: 13,
-            fontFamily: "DMSans-Regular",
+            fontSize: FONT_SIZES.md,
+            fontFamily: FONTS.regular,
             marginVertical: 16,
           }}
         >
@@ -631,10 +631,9 @@ export default function StudentAttendanceScreen() {
         ListHeaderComponent={ListHeader}
         ListFooterComponent={ListFooter}
         refreshControl={
-          <RefreshControl
+          <AppRefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[colors.primary]}
           />
         }
         onEndReached={hasMore ? loadMore : undefined}

@@ -9,13 +9,14 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 
 import { useRouter } from "expo-router";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
 import { CACHE_TIERS } from "../../utils/cacheConfig";
 import AppHeader from "../../components/Header";
 import { useLabel } from "../../context/LabelsContext";
 import Card from "../../components/Card";
 import UserAvatar from "../../components/ui/UserAvatar";
+import { formatUserName } from "../../utils/userFormatters";
 import apiConfig from "../../config/apiConfig";
 import { useToast } from "../../components/ToastProvider";
 import { useAuth } from "../../context/AuthContext";
@@ -169,7 +170,7 @@ export default function StudentTimetableScreen() {
                             ? colors.onSecondaryContainer
                             : colors.onSurfaceVariant,
                         fontFamily:
-                          selectedDay === day ? "DMSans-Bold" : "DMSans-Medium",
+                          selectedDay === day ? FONTS.bold : FONTS.medium,
                       }}
                     >
                       {t("common.dayShort" + day, day.slice(0, 3))}
@@ -207,8 +208,8 @@ export default function StudentTimetableScreen() {
             >
               <Text
                 style={{
-                  fontSize: 18,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.xl,
+                  fontFamily: FONTS.bold,
                   color: colors.onSurface,
                 }}
               >
@@ -225,9 +226,9 @@ export default function StudentTimetableScreen() {
                 >
                   <Text
                     style={{
-                      fontSize: 12,
+                      fontSize: FONT_SIZES.sm,
                       color: colors.success,
-                      fontFamily: "DMSans-Bold",
+                      fontFamily: FONTS.bold,
                     }}
                   >
                     {t("common.todayUppercase", "TODAY")}
@@ -270,8 +271,8 @@ export default function StudentTimetableScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: 14,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.base,
+                        fontFamily: FONTS.bold,
                         color: colors.onSurface,
                       }}
                     >
@@ -286,7 +287,7 @@ export default function StudentTimetableScreen() {
                       }}
                     />
                     <Text
-                      style={{ fontSize: 12, color: colors.onSurfaceVariant }}
+                      style={{ fontSize: FONT_SIZES.sm, color: colors.onSurfaceVariant }}
                     >
                       {period.endTime}
                     </Text>
@@ -305,8 +306,8 @@ export default function StudentTimetableScreen() {
                   <View style={{ flex: 1, justifyContent: "center" }}>
                     <Text
                       style={{
-                        fontSize: 16,
-                        fontFamily: "DMSans-Bold",
+                        fontSize: FONT_SIZES.lg,
+                        fontFamily: FONTS.bold,
                         color: colors.onSurface,
                         marginBottom: 4,
                       }}
@@ -329,18 +330,17 @@ export default function StudentTimetableScreen() {
                       >
                         <UserAvatar
                           photoUrl={period.teacher?.profilePhoto}
-                          name={period.teacher?.name || "Teacher"}
+                          name={formatUserName(period.teacher?.name, "Teacher")}
                           role="teacher"
                           size={18}
                         />
                         <Text
                           style={{
-                            fontSize: 13,
+                            fontSize: FONT_SIZES.md,
                             color: colors.onSurfaceVariant,
                           }}
                         >
-                          {period.teacher?.name ||
-                            t("common.teacher", "Teacher")}
+                          {formatUserName(period.teacher?.name, t("common.teacher", "Teacher"))}
                         </Text>
                       </View>
                       {period.roomNumber && (
@@ -358,7 +358,7 @@ export default function StudentTimetableScreen() {
                           />
                           <Text
                             style={{
-                              fontSize: 13,
+                              fontSize: FONT_SIZES.md,
                               color: colors.onSurfaceVariant,
                             }}
                           >

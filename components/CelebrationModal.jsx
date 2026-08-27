@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { StyleSheet, View, Text, Modal, Pressable } from "react-native";
 import LottieView from "lottie-react-native";
 import * as Haptics from "expo-haptics";
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
 import Button from "./Button";
 
 /**
@@ -29,42 +29,41 @@ export default function CelebrationModal({
 
   useEffect(() => {
     if (visible) {
+      // Gentle vibration feedback on open
       try {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      } catch {
-        // Fallback on web/unsupported
+      } catch (err) {
+        // Haptics not available on some low-end Androids, ignore safely
       }
+    } else {
+      // Memory protection: reset animation memory when closed
       if (animationRef.current) {
-        animationRef.current.play();
+        animationRef.current.reset();
       }
     }
   }, [visible]);
 
-  if (!visible) return null;
-
   return (
     <Modal
-      transparent
       visible={visible}
+      transparent
       animationType="fade"
+      statusBarTranslucent
       onRequestClose={onDismiss}
     >
-      <View style={styles.overlay}>
-        {/* Background Scrim */}
-        <Pressable style={StyleSheet.absoluteFillObject} onPress={onDismiss} />
-
-        {/* Celebration Card */}
-        <View
+      <Pressable style={styles.overlay} onPress={onDismiss}>
+        <Pressable
           style={[
             styles.card,
             {
-              backgroundColor: colors.surfaceContainerLow || colors.surface,
-              borderColor: colors.outlineVariant,
+              backgroundColor: colors.surfaceContainerLowest || "#ffffff",
+              borderColor: colors.outlineVariant || "#e0e0e0",
             },
           ]}
+          onPress={(e) => e.stopPropagation()} // Prevent closing on card tap
         >
-          {/* Lottie Confetti Animation */}
-          <View style={styles.animationContainer}>
+          {/* Visual Highlight */}
+          <View style={styles.animationWrap}>
             {source ? (
               <LottieView
                 ref={animationRef}
@@ -72,15 +71,13 @@ export default function CelebrationModal({
                 autoPlay
                 loop={false}
                 style={styles.lottie}
-                onAnimationFinish={() => {
-                  // Keep static frame or let user dismiss
-                }}
+                renderMode="HARDWARE"
               />
             ) : (
               <View
                 style={[
                   styles.trophyBadge,
-                  { backgroundColor: colors.primaryContainer },
+                  { backgroundColor: colors.primaryContainer || "#e8f0fe" },
                 ]}
               >
                 <Text style={styles.trophyEmoji}>🎉</Text>
@@ -88,18 +85,33 @@ export default function CelebrationModal({
             )}
           </View>
 
-          <Text style={[styles.title, { color: colors.onSurface }]}>
+          {/* Texts */}
+          <Text
+            style={[
+              styles.title,
+              { color: colors.onSurface || "#1f1f1f" },
+            ]}
+          >
             {title}
           </Text>
-          <Text style={[styles.subtitle, { color: colors.onSurfaceVariant }]}>
+          <Text
+            style={[
+              styles.subtitle,
+              { color: colors.onSurfaceVariant || "#49454f" },
+            ]}
+          >
             {subtitle}
           </Text>
 
-          <Button variant="filled" onPress={onDismiss} style={styles.button}>
-            {buttonText}
-          </Button>
-        </View>
-      </View>
+          {/* Action Button */}
+          <Button
+            variant="filled"
+            label={buttonText}
+            onPress={onDismiss}
+            style={styles.button}
+          />
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 }
@@ -107,9 +119,9 @@ export default function CelebrationModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.55)",
     justifyContent: "center",
+    alignItems: "center",
     padding: 24,
   },
   card: {
@@ -119,13 +131,13 @@ const styles = StyleSheet.create({
     padding: 24,
     alignItems: "center",
     borderWidth: 1,
-    elevation: 12,
+    elevation: 8,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
     shadowRadius: 12,
   },
-  animationContainer: {
+  animationWrap: {
     width: 120,
     height: 120,
     alignItems: "center",
@@ -144,19 +156,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   trophyEmoji: {
-    fontSize: 40,
+    fontSize: FONT_SIZES.displayHero,
   },
   title: {
-    fontSize: 20,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xxl,
+    fontFamily: FONTS.bold,
     textAlign: "center",
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 14,
-    fontFamily: "DMSans-Regular",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.regular,
     textAlign: "center",
-    lineHeight: 20,
+    lineHeight: LINE_HEIGHTS.base,
     marginBottom: 20,
   },
   button: {

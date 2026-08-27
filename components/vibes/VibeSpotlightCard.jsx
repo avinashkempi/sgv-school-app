@@ -10,7 +10,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
 } from "react-native-reanimated";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
 import apiConfig from "../../config/apiConfig";
 import { CACHE_TIERS } from "../../utils/cacheConfig";
@@ -21,6 +21,8 @@ import {
 } from "../../utils/cloudinaryUpload";
 import SkeletonLoader from "../SkeletonLoader";
 import UserAvatar from "../ui/UserAvatar";
+import { formatUserName } from "../../utils/userFormatters";
+import HomeModuleContainer from "../home/HomeModuleContainer";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_WIDTH = SCREEN_WIDTH - 32;
@@ -35,7 +37,8 @@ const formatCount = (num) => {
 };
 
 const VibeSpotlightCard = () => {
-  const { colors } = useTheme();
+  const { colors, mode } = useTheme();
+  const isDark = mode === "dark";
   const router = useRouter();
   const scale = useSharedValue(1);
   const [imageError, setImageError] = useState(false);
@@ -49,7 +52,7 @@ const VibeSpotlightCard = () => {
   const vibe = spotlightData?.data;
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.97, { damping: 15, stiffness: 300 });
+    scale.value = withSpring(0.98, { damping: 15, stiffness: 300 });
   };
 
   const handlePressOut = () => {
@@ -61,80 +64,45 @@ const VibeSpotlightCard = () => {
   }));
 
   const handlePress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
     router.push("/vibes");
   };
 
+  const amberAccent = isDark ? "#FFB74D" : "#D97706";
+
   if (isLoading) {
     return (
-      <View style={styles.container}>
+      <HomeModuleContainer
+        title="Campus Spotlight"
+        icon="auto-awesome"
+        accentColor={amberAccent}
+        lightBg="rgba(226, 114, 0, 0.045)"
+        darkBg="rgba(255, 183, 77, 0.07)"
+        lightBorder="rgba(226, 114, 0, 0.14)"
+        darkBorder="rgba(255, 183, 77, 0.18)"
+      >
         <View
-          style={[styles.card, { backgroundColor: colors.surfaceContainer }]}
+          style={[
+            styles.card,
+            {
+              backgroundColor: isDark ? colors.surfaceContainer : "#FFFFFF",
+              borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+            },
+          ]}
         >
-          <SkeletonLoader width={CARD_WIDTH} height={200} borderRadius={0} />
-          <View style={{ padding: 16, gap: 8 }}>
+          <SkeletonLoader width={CARD_WIDTH} height={180} borderRadius={0} />
+          <View style={{ padding: 14, gap: 8 }}>
             <SkeletonLoader width={120} height={14} borderRadius={7} />
             <SkeletonLoader width={220} height={18} borderRadius={9} />
           </View>
         </View>
-      </View>
+      </HomeModuleContainer>
     );
   }
 
-  // If no spotlight vibe exists, show a modern community CTA card
+  // If no vibe is explicitly chosen by admin for spotlight, don't render the card
   if (!vibe) {
-    return (
-      <View style={styles.container}>
-        <AnimatedPressable
-          onPress={handlePress}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
-          style={[
-            styles.card,
-            animatedStyle,
-            {
-              backgroundColor: colors.surfaceContainer,
-              borderColor: colors.outlineVariant || "rgba(0,0,0,0.06)",
-              borderWidth: 1,
-            },
-          ]}
-        >
-          <View style={styles.fallbackHeader}>
-            <LinearGradient
-              colors={["#FFF3E0", "#FFE082"]}
-              style={styles.fallbackIconCircle}
-            >
-              <MaterialIcons name="auto-awesome" size={24} color="#D97706" />
-            </LinearGradient>
-            <View style={{ flex: 1 }}>
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
-              >
-                <Text style={[styles.cardTitle, { color: colors.onSurface }]}>
-                  SGV Campus Vibes
-                </Text>
-                <View style={styles.newBadge}>
-                  <Text style={styles.newBadgeText}>LIVE</Text>
-                </View>
-              </View>
-              <Text
-                style={[
-                  styles.cardSubtitle,
-                  { color: colors.onSurfaceVariant },
-                ]}
-              >
-                Campus moments, achievements & student highlights
-              </Text>
-            </View>
-            <MaterialIcons
-              name="arrow-forward-ios"
-              size={16}
-              color={colors.primary}
-            />
-          </View>
-        </AnimatedPressable>
-      </View>
-    );
+    return null;
   }
 
   const primaryMedia = vibe.images?.[0];
@@ -151,29 +119,21 @@ const VibeSpotlightCard = () => {
     vibe.category === "achievement"
       ? { label: "Achievement Spotlight", bg: "#D97706", icon: "emoji-events" }
       : vibe.postAs === "school" || vibe.category === "official"
-      ? { label: "Official Broadcast", bg: "#2563EB", icon: "school" }
-      : { label: "Campus Spotlight", bg: colors.primary, icon: "auto-awesome" };
+        ? { label: "Official Broadcast", bg: "#2563EB", icon: "school" }
+        : { label: "Campus Spotlight", bg: colors.primary, icon: "auto-awesome" };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <View style={styles.titleGroup}>
-          <MaterialIcons name="stars" size={18} color={badgeConfig.bg} />
-          <Text style={[styles.sectionHeading, { color: colors.onSurface }]}>
-            Spotlight
-          </Text>
-        </View>
-        <Pressable
-          onPress={handlePress}
-          hitSlop={8}
-          style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
-        >
-          <Text style={[styles.exploreText, { color: colors.primary }]}>
-            Explore All Vibes
-          </Text>
-        </Pressable>
-      </View>
-
+    <HomeModuleContainer
+      title="Campus Spotlight"
+      icon="auto-awesome"
+      accentColor={amberAccent}
+      actionText="All Vibes"
+      onActionPress={handlePress}
+      lightBg="rgba(226, 114, 0, 0.045)"
+      darkBg="rgba(255, 183, 77, 0.07)"
+      lightBorder="rgba(226, 114, 0, 0.14)"
+      darkBorder="rgba(255, 183, 77, 0.18)"
+    >
       <AnimatedPressable
         onPress={handlePress}
         onPressIn={handlePressIn}
@@ -182,9 +142,8 @@ const VibeSpotlightCard = () => {
           styles.card,
           animatedStyle,
           {
-            backgroundColor: colors.surfaceContainer,
-            borderColor: colors.outlineVariant || "rgba(0,0,0,0.06)",
-            borderWidth: StyleSheet.hairlineWidth,
+            backgroundColor: isDark ? colors.surfaceContainer : "#FFFFFF",
+            borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
           },
         ]}
         accessibilityRole="button"
@@ -210,14 +169,14 @@ const VibeSpotlightCard = () => {
                 vibe.category === "achievement"
                   ? ["#B45309", "#D97706", "#F59E0B"]
                   : vibe.postAs === "school" || vibe.category === "official"
-                  ? ["#1E40AF", "#2563EB", "#3B82F6"]
-                  : ["#1E293B", "#334155", "#475569"]
+                    ? ["#1E40AF", "#2563EB", "#3B82F6"]
+                    : ["#1E293B", "#334155", "#475569"]
               }
               style={styles.placeholderMedia}
             >
               <MaterialIcons
                 name={badgeConfig.icon}
-                size={54}
+                size={48}
                 color="rgba(255,255,255,0.85)"
               />
               <Text style={styles.placeholderText}>
@@ -236,7 +195,7 @@ const VibeSpotlightCard = () => {
           <View
             style={[styles.categoryPill, { backgroundColor: badgeConfig.bg }]}
           >
-            <MaterialIcons name={badgeConfig.icon} size={13} color="#fff" />
+            <MaterialIcons name={badgeConfig.icon} size={12} color="#fff" />
             <Text style={styles.categoryPillText}>{badgeConfig.label}</Text>
           </View>
 
@@ -262,23 +221,38 @@ const VibeSpotlightCard = () => {
                   },
                 ]}
               >
-                <MaterialIcons name="school" size={13} color="#F57F17" />
+                <Image
+                  source={require("../../assets/images/icon.png")}
+                  style={{ width: "100%", height: "100%", borderRadius: 10 }}
+                  contentFit="cover"
+                />
               </View>
             ) : (
               <UserAvatar
                 photoUrl={vibe.author?.profilePhoto}
-                name={vibe.author?.name || "SGV Member"}
+                name={formatUserName(vibe.author?.name, "SGV Member")}
                 role={vibe.authorRole || vibe.author?.role}
                 size={22}
               />
             )}
-            <Text style={[styles.authorName, { color: colors.onSurface }]}>
+            <Text
+              style={[
+                styles.authorName,
+                { color: colors.onSurface, flexShrink: 1 },
+              ]}
+              numberOfLines={1}
+            >
               {vibe.postAs === "school"
-                ? "SGV English Medium School"
-                : vibe.author?.name || "SGV Member"}
+                ? "SGV School"
+                : formatUserName(vibe.author?.name, "SGV Member")}
             </Text>
             {vibe.postAs === "school" && (
-              <MaterialIcons name="verified" size={15} color="#2563EB" />
+              <MaterialIcons
+                name="verified"
+                size={14}
+                color="#2563EB"
+                style={{ flexShrink: 0 }}
+              />
             )}
           </View>
 
@@ -292,10 +266,19 @@ const VibeSpotlightCard = () => {
           ) : null}
 
           {/* Footer with reactions and CTA */}
-          <View style={styles.cardFooter}>
+          <View
+            style={[
+              styles.cardFooter,
+              {
+                borderTopColor: isDark
+                  ? "rgba(255,255,255,0.08)"
+                  : "rgba(0,0,0,0.06)",
+              },
+            ]}
+          >
             <View style={styles.statsGroup}>
               <View style={styles.statItem}>
-                <MaterialIcons name="favorite" size={15} color="#FF2D55" />
+                <MaterialIcons name="favorite" size={14} color="#FF2D55" />
                 <Text
                   style={[
                     styles.statNumber,
@@ -308,7 +291,7 @@ const VibeSpotlightCard = () => {
               <View style={styles.statItem}>
                 <MaterialIcons
                   name="chat-bubble-outline"
-                  size={14}
+                  size={13}
                   color={colors.onSurfaceVariant}
                 />
                 <Text
@@ -323,58 +306,30 @@ const VibeSpotlightCard = () => {
             </View>
 
             <View style={styles.viewMomentCta}>
-              <Text style={[styles.ctaText, { color: colors.primary }]}>
+              <Text style={[styles.ctaText, { color: amberAccent }]}>
                 View Moment
               </Text>
               <MaterialIcons
-                name="chevron-right"
-                size={16}
-                color={colors.primary}
+                name="arrow-forward"
+                size={13}
+                color={amberAccent}
               />
             </View>
           </View>
         </View>
       </AnimatedPressable>
-    </View>
+    </HomeModuleContainer>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    marginBottom: 20,
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 4,
-    marginBottom: 10,
-  },
-  titleGroup: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  sectionHeading: {
-    fontSize: 16,
-    fontFamily: "DMSans-Bold",
-    letterSpacing: -0.2,
-  },
-  exploreText: {
-    fontSize: 13,
-    fontFamily: "DMSans-Bold",
-  },
   card: {
-    borderRadius: 20,
+    borderRadius: 18,
+    borderWidth: 1,
     overflow: "hidden",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
   },
   mediaContainer: {
-    height: 190,
+    height: 184,
     width: "100%",
     position: "relative",
     overflow: "hidden",
@@ -388,14 +343,14 @@ const styles = StyleSheet.create({
     height: "100%",
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
   },
   placeholderText: {
     color: "#fff",
-    fontSize: 14,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.bold,
     textAlign: "center",
-    marginTop: 8,
+    marginTop: 6,
     opacity: 0.9,
   },
   imageOverlay: {
@@ -403,32 +358,32 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: 70,
+    height: 60,
   },
   categoryPill: {
     position: "absolute",
-    top: 12,
-    left: 12,
+    top: 10,
+    left: 10,
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
     borderRadius: 12,
   },
   categoryPillText: {
     color: "#fff",
-    fontSize: 11,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
     letterSpacing: 0.2,
   },
   videoIndicator: {
     position: "absolute",
-    bottom: 10,
-    right: 12,
+    bottom: 8,
+    right: 10,
   },
   cardBody: {
-    padding: 16,
+    padding: 14,
   },
   authorRow: {
     flexDirection: "row",
@@ -437,35 +392,34 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   authorAvatarCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
     overflow: "hidden",
   },
   authorName: {
-    fontSize: 13,
-    fontFamily: "DMSans-Bold",
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.bold,
   },
   captionText: {
-    fontSize: 14,
-    fontFamily: "DMSans-Regular",
-    lineHeight: 20,
-    marginBottom: 12,
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.regular,
+    lineHeight: LINE_HEIGHTS.md,
+    marginBottom: 10,
   },
   cardFooter: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingTop: 8,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "rgba(150,150,150,0.15)",
+    paddingTop: 10,
+    borderTopWidth: 1,
   },
   statsGroup: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 14,
+    gap: 12,
   },
   statItem: {
     flexDirection: "row",
@@ -473,51 +427,17 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   statNumber: {
-    fontSize: 12,
-    fontFamily: "DMSans-Medium",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.medium,
   },
   viewMomentCta: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 2,
+    gap: 3,
   },
   ctaText: {
-    fontSize: 12,
-    fontFamily: "DMSans-Bold",
-  },
-  fallbackHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    gap: 12,
-  },
-  fallbackIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontFamily: "DMSans-Bold",
-  },
-  cardSubtitle: {
-    fontSize: 12,
-    fontFamily: "DMSans-Regular",
-    marginTop: 2,
-  },
-  newBadge: {
-    backgroundColor: "#FF9800",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  newBadgeText: {
-    color: "#fff",
-    fontSize: 9,
-    fontFamily: "DMSans-Bold",
-    letterSpacing: 0.5,
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
   },
 });
 

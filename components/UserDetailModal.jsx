@@ -2,8 +2,13 @@ import React from "react";
 import { View, Text, ScrollView, Pressable, Modal } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { useTheme } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
 import UserAvatar from "./ui/UserAvatar";
+import {
+  formatUserName,
+  formatUserDesignationOrRole,
+  toTitleCase,
+} from "../utils/userFormatters";
 import { useApiQuery } from "../hooks/useApi";
 import apiConfig from "../config/apiConfig";
 import { CACHE_TIERS } from "../utils/cacheConfig";
@@ -30,15 +35,8 @@ export default function UserDetailModal({ visible, onClose, user }) {
     }
   };
 
-  const getRoleDisplay = (user) => {
-    const role = user.role || "student";
-    if (
-      (role === "teacher" || role === "staff" || role === "support_staff") &&
-      user.designation
-    ) {
-      return user.designation;
-    }
-    return role.replace("_", " ");
+  const getRoleDisplay = (u) => {
+    return formatUserDesignationOrRole(u);
   };
 
   return (
@@ -76,8 +74,8 @@ export default function UserDetailModal({ visible, onClose, user }) {
           >
             <Text
               style={{
-                fontSize: 20,
-                fontFamily: "DMSans-Bold",
+                fontSize: FONT_SIZES.xl,
+                fontFamily: FONTS.bold,
                 color: colors.textPrimary,
               }}
             >
@@ -97,7 +95,7 @@ export default function UserDetailModal({ visible, onClose, user }) {
             <View style={{ alignItems: "center", marginBottom: 24 }}>
               <UserAvatar
                 photoUrl={user.profilePhoto}
-                name={user.name}
+                name={formatUserName(user.name)}
                 role={user.role}
                 size={80}
                 showBorder
@@ -105,12 +103,12 @@ export default function UserDetailModal({ visible, onClose, user }) {
               />
               <Text
                 style={{
-                  fontSize: 24,
-                  fontFamily: "DMSans-Bold",
+                  fontSize: FONT_SIZES.xxl,
+                  fontFamily: FONTS.bold,
                   color: colors.textPrimary,
                 }}
               >
-                {user.name}
+                {formatUserName(user.name)}
               </Text>
               <View
                 style={{
@@ -123,8 +121,8 @@ export default function UserDetailModal({ visible, onClose, user }) {
               >
                 <Text
                   style={{
-                    fontSize: 12,
-                    fontFamily: "DMSans-Bold",
+                    fontSize: FONT_SIZES.sm,
+                    fontFamily: FONTS.bold,
                     color: getRoleColor(user.role),
                   }}
                 >
@@ -238,7 +236,7 @@ export default function UserDetailModal({ visible, onClose, user }) {
                   />
                   <DetailRow
                     label="Guardian Name"
-                    value={user.guardianName || "N/A"}
+                    value={user.guardianName ? toTitleCase(user.guardianName) : "N/A"}
                   />
                   <DetailRow
                     label="Guardian Phone"
@@ -259,7 +257,7 @@ export default function UserDetailModal({ visible, onClose, user }) {
               <DetailSection title="EMPLOYMENT DETAILS">
                 <DetailRow
                   label="Designation"
-                  value={user.designation || "N/A"}
+                  value={user.designation ? toTitleCase(user.designation) : "N/A"}
                 />
                 <DetailRow
                   label="Joining Date"
@@ -276,7 +274,8 @@ export default function UserDetailModal({ visible, onClose, user }) {
               <DetailSection title="REMARKS">
                 <Text
                   style={{
-                    fontFamily: "DMSans-Regular",
+                    fontFamily: FONTS.regular,
+                    fontSize: FONT_SIZES.base,
                     color: colors.textPrimary,
                   }}
                 >
@@ -300,11 +299,11 @@ const DetailSection = ({ title, children }) => {
     <View style={{ marginBottom: 24 }}>
       <Text
         style={{
-          fontSize: 13,
-          fontFamily: "DMSans-Bold",
+          fontSize: FONT_SIZES.md,
+          fontFamily: FONTS.bold,
           color: colors.textSecondary,
           marginBottom: 12,
-          letterSpacing: 1,
+          letterSpacing: LETTER_SPACINGS.micro,
         }}
       >
         {title}
@@ -331,9 +330,9 @@ const DetailRow = ({ icon, label, value, style }) => {
     <View style={[{ marginBottom: 4 }, style]}>
       <Text
         style={{
-          fontSize: 11,
+          fontSize: FONT_SIZES.xs,
           color: colors.textSecondary,
-          fontFamily: "DMSans-Medium",
+          fontFamily: FONTS.medium,
           marginBottom: 2,
         }}
       >
@@ -345,14 +344,16 @@ const DetailRow = ({ icon, label, value, style }) => {
             name={icon}
             size={16}
             color={colors.primary}
-            style={{ marginRight: 8 }}
+            style={{ marginRight: 8, flexShrink: 0 }}
           />
         )}
         <Text
           style={{
-            fontSize: 15,
-            fontFamily: "DMSans-Medium",
+            fontSize: FONT_SIZES.mdLg,
+            fontFamily: FONTS.medium,
             color: colors.textPrimary,
+            flex: 1,
+            flexShrink: 1,
           }}
         >
           {value || "N/A"}

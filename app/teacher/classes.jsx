@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { useTheme } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import apiConfig from "../../config/apiConfig";
 import { useApiQuery } from "../../hooks/useApi";
 import { useToast } from "../../components/ToastProvider";
@@ -106,8 +106,8 @@ export default function TeacherClassesScreen() {
                       style={{
                         color: colors.textSecondary,
                         marginTop: 16,
-                        fontSize: 16,
-                        fontFamily: "DMSans-Medium",
+                        fontSize: FONT_SIZES.lg,
+                        fontFamily: FONTS.medium,
                       }}
                     >
                       {t(
@@ -145,8 +145,8 @@ export default function TeacherClassesScreen() {
                         <View>
                           <Text
                             style={{
-                              fontSize: 18,
-                              fontFamily: "DMSans-Bold",
+                              fontSize: FONT_SIZES.xl,
+                              fontFamily: FONTS.bold,
                               color: colors.textPrimary,
                             }}
                           >
@@ -154,10 +154,10 @@ export default function TeacherClassesScreen() {
                           </Text>
                           <Text
                             style={{
-                              fontSize: 14,
+                              fontSize: FONT_SIZES.base,
                               color: colors.textSecondary,
                               marginTop: 4,
-                              fontFamily: "DMSans-Regular",
+                              fontFamily: FONTS.regular,
                             }}
                           >
                             {cls.academicYear?.name} • {cls.branch}
@@ -175,8 +175,8 @@ export default function TeacherClassesScreen() {
                             <Text
                               style={{
                                 color: colors.primary,
-                                fontSize: 11,
-                                fontFamily: "DMSans-Bold",
+                                fontSize: FONT_SIZES.xs,
+                                fontFamily: FONTS.bold,
                               }}
                             >
                               {t("teacher.classTeacher", "CLASS TEACHER")}
