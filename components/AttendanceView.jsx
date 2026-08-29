@@ -679,7 +679,7 @@ export default function AttendanceView({
                 },
               ]}
             >
-              <Text style={{ fontSize: 16 }}>🔥</Text>
+              <Text style={{ fontSize: FONT_SIZES.mdLg }}>🔥</Text>
               <Text
                 style={[
                   styles.streakText,
@@ -1526,13 +1526,13 @@ const styles = StyleSheet.create({
     marginVertical: 4,
   },
   heroPercentageText: {
-    fontSize: 56,
+    fontSize: FONT_SIZES.displayLg,
     fontFamily: FONTS.bold,
     color: "#FFFFFF",
-    lineHeight: 64,
+    lineHeight: LINE_HEIGHTS.displayLg,
   },
   heroPercentSymbol: {
-    fontSize: 28,
+    fontSize: FONT_SIZES.displaySm,
     fontFamily: FONTS.semiBold,
     color: "rgba(255, 255, 255, 0.8)",
     marginLeft: 2,
@@ -1621,7 +1621,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
   kpiLabel: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.medium,
     color: "rgba(255, 255, 255, 0.8)",
     marginTop: 2,
@@ -1720,7 +1720,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   lowBadgeText: {
-    fontSize: 9,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
   },
   subjectProgressTrack: {
@@ -2010,7 +2010,7 @@ const styles = StyleSheet.create({
     borderColor: "#F59E0B",
   },
   holidayHistoryBadgeText: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
     color: "#B45309",
   },

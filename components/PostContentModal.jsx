@@ -312,7 +312,7 @@ export default function PostContentModal({
               >
                 <MaterialIcons
                   name="close"
-                  size={22}
+                  size={24}
                   color={colors.onSurfaceVariant}
                 />
               </Pressable>
@@ -359,7 +359,7 @@ export default function PostContentModal({
                     >
                       <MaterialIcons
                         name={item.icon}
-                        size={16}
+                        size={18}
                         color={isSelected ? typeColor : colors.onSurfaceVariant}
                       />
                       <Text
@@ -525,7 +525,7 @@ export default function PostContentModal({
                       : colors.surfaceContainerLow,
                     borderColor: colors.outlineVariant,
                     color: colors.onSurface,
-                    minHeight: 80,
+                    minHeight: 85,
                     textAlignVertical: "top",
                   },
                 ]}
@@ -563,7 +563,7 @@ export default function PostContentModal({
                     <ActivityIndicator size="small" color={colors.primary} />
                     <Text
                       style={{
-                        fontSize: 11,
+                        fontSize: FONT_SIZES.sm,
                         color: colors.primary,
                         fontFamily: FONTS.bold,
                       }}
@@ -589,7 +589,7 @@ export default function PostContentModal({
                     },
                   ]}
                 >
-                  <MaterialIcons name="photo-camera" size={18} color="#06B6D4" />
+                  <MaterialIcons name="photo-camera" size={20} color="#06B6D4" />
                   <Text
                     style={[
                       localStyles.attachBtnText,
@@ -613,7 +613,7 @@ export default function PostContentModal({
                     },
                   ]}
                 >
-                  <FontAwesome5 name="file-pdf" size={16} color="#EF4444" />
+                  <FontAwesome5 name="file-pdf" size={17} color="#EF4444" />
                   <Text
                     style={[
                       localStyles.attachBtnText,
@@ -637,7 +637,7 @@ export default function PostContentModal({
                     },
                   ]}
                 >
-                  <MaterialIcons name="videocam" size={18} color="#9333EA" />
+                  <MaterialIcons name="videocam" size={20} color="#9333EA" />
                   <Text
                     style={[
                       localStyles.attachBtnText,
@@ -661,7 +661,7 @@ export default function PostContentModal({
                     },
                   ]}
                 >
-                  <MaterialIcons name="link" size={18} color="#0D9488" />
+                  <MaterialIcons name="link" size={20} color="#0D9488" />
                   <Text
                     style={[
                       localStyles.attachBtnText,
@@ -699,7 +699,7 @@ export default function PostContentModal({
                         >
                           <MaterialIcons
                             name={meta.icon}
-                            size={16}
+                            size={18}
                             color={meta.color}
                           />
                         </View>
@@ -719,7 +719,7 @@ export default function PostContentModal({
                         >
                           <MaterialIcons
                             name="cancel"
-                            size={18}
+                            size={20}
                             color={colors.error}
                           />
                         </Pressable>
@@ -799,7 +799,7 @@ export default function PostContentModal({
           >
             <Text
               style={{
-                fontSize: FONT_SIZES.mdLg,
+                fontSize: FONT_SIZES.lg,
                 fontFamily: FONTS.bold,
                 color: colors.onSurface,
                 marginBottom: 8,
@@ -842,6 +842,7 @@ export default function PostContentModal({
               >
                 <Text
                   style={{
+                    fontSize: FONT_SIZES.base,
                     color: colors.onSurfaceVariant,
                     fontFamily: FONTS.medium,
                   }}
@@ -892,9 +893,9 @@ const localStyles = StyleSheet.create({
     marginBottom: 16,
   },
   headerIconBadge: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -903,7 +904,7 @@ const localStyles = StyleSheet.create({
     fontFamily: FONTS.bold,
   },
   headerSubtitle: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
   },
   closeBtn: {
@@ -911,7 +912,7 @@ const localStyles = StyleSheet.create({
     borderRadius: 8,
   },
   inputLabel: {
-    fontSize: 11,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
     letterSpacing: 0.5,
     marginBottom: 6,
@@ -925,7 +926,7 @@ const localStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingHorizontal: 8,
     borderRadius: 10,
     borderWidth: 1,
@@ -936,7 +937,7 @@ const localStyles = StyleSheet.create({
   },
   subjectChip: {
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1,
   },
@@ -945,7 +946,7 @@ const localStyles = StyleSheet.create({
   },
   textInput: {
     paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingVertical: 11,
     borderRadius: 10,
     borderWidth: 1,
     fontSize: FONT_SIZES.base,
@@ -961,37 +962,37 @@ const localStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 9,
+    paddingVertical: 10,
     paddingHorizontal: 4,
     borderRadius: 10,
     gap: 5,
   },
   attachBtnText: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   stagedList: {
-    gap: 6,
-    marginTop: 4,
+    gap: 8,
+    marginTop: 6,
   },
   stagedItem: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 8,
+    padding: 10,
     borderRadius: 10,
     borderWidth: 1,
-    gap: 8,
+    gap: 10,
   },
   stagedIcon: {
-    width: 28,
-    height: 28,
+    width: 32,
+    height: 32,
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
   },
   stagedName: {
     flex: 1,
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.base,
     fontFamily: FONTS.medium,
   },
   stagedRemove: {
@@ -1004,8 +1005,8 @@ const localStyles = StyleSheet.create({
     marginTop: 8,
   },
   cancelBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 18,
+    paddingVertical: 11,
     borderRadius: 10,
     borderWidth: 1,
     alignItems: "center",
@@ -1019,8 +1020,8 @@ const localStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingHorizontal: 22,
+    paddingVertical: 11,
     borderRadius: 10,
     justifyContent: "center",
   },

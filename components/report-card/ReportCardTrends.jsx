@@ -590,7 +590,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.medium,
   },
   subAvg: {
-    fontSize: 15,
+    fontSize: FONT_SIZES.mdLg,
     fontFamily: FONTS.bold,
   },
   topBadge: {
@@ -604,7 +604,7 @@ const styles = StyleSheet.create({
   },
   topBadgeText: {
     color: "#D97706",
-    fontSize: 9,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
   },
   focusBadge: {
@@ -615,7 +615,7 @@ const styles = StyleSheet.create({
   },
   focusBadgeText: {
     color: "#DC2626",
-    fontSize: 9,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
   },
   subTrack: {

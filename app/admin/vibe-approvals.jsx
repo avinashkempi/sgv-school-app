@@ -1112,7 +1112,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   modalTitle: {
-    fontSize: 17,
+    fontSize: FONT_SIZES.lg,
     fontFamily: FONTS.bold,
   },
   modalHint: {

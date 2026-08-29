@@ -332,7 +332,7 @@ export default function SubjectDetailScreen() {
                             />
                             <Text
                               style={{
-                                fontSize: 10,
+                                fontSize: FONT_SIZES.xs,
                                 fontFamily: FONTS.bold,
                                 color: typeColor,
                                 textTransform: "uppercase",
@@ -347,7 +347,7 @@ export default function SubjectDetailScreen() {
                         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.xs,
+                              fontSize: FONT_SIZES.sm,
                               fontFamily: FONTS.regular,
                               color: colors.onSurfaceVariant,
                             }}
@@ -363,7 +363,7 @@ export default function SubjectDetailScreen() {
                             >
                               <MaterialIcons
                                 name="delete-outline"
-                                size={18}
+                                size={20}
                                 color={colors.error}
                               />
                             </Pressable>
@@ -373,9 +373,10 @@ export default function SubjectDetailScreen() {
 
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.mdLg,
+                          fontSize: FONT_SIZES.lg,
                           fontFamily: FONTS.bold,
                           color: colors.onSurface,
+                          lineHeight: 24,
                         }}
                       >
                         {item.title}
@@ -384,10 +385,10 @@ export default function SubjectDetailScreen() {
                       {item.description ? (
                         <Text
                           style={{
-                            fontSize: FONT_SIZES.sm,
+                            fontSize: FONT_SIZES.base,
                             fontFamily: FONTS.regular,
                             color: colors.onSurfaceVariant,
-                            lineHeight: 20,
+                            lineHeight: 22,
                           }}
                         >
                           {item.description}
@@ -404,7 +405,7 @@ export default function SubjectDetailScreen() {
                           flexDirection: "row",
                           justifyContent: "space-between",
                           alignItems: "center",
-                          paddingTop: 8,
+                          paddingTop: 10,
                           borderTopWidth: 1,
                           borderTopColor: isDark
                             ? "rgba(255,255,255,0.06)"
@@ -415,7 +416,7 @@ export default function SubjectDetailScreen() {
                           style={{
                             flexDirection: "row",
                             alignItems: "center",
-                            gap: 6,
+                            gap: 8,
                           }}
                         >
                           <UserAvatar
@@ -428,20 +429,22 @@ export default function SubjectDetailScreen() {
                               "Teacher"
                             )}
                             role="teacher"
-                            size={20}
+                            size={24}
                           />
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.xs,
+                              fontSize: FONT_SIZES.sm,
                               color: colors.onSurfaceVariant,
-                              fontFamily: FONTS.medium,
+                              fontFamily: FONTS.regular,
                             }}
                           >
                             {t("common.by", "By")}:{" "}
-                            {formatUserName(
-                              item.author?.name || item.teacher?.name,
-                              t("common.teacher", "Teacher")
-                            )}
+                            <Text style={{ fontFamily: FONTS.bold, color: colors.onSurface }}>
+                              {formatUserName(
+                                item.author?.name || item.teacher?.name,
+                                t("common.teacher", "Teacher")
+                              )}
+                            </Text>
                           </Text>
                         </View>
                       </View>

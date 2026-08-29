@@ -201,14 +201,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   percentageText: {
-    fontSize: 27,
+    fontSize: FONT_SIZES.displaySm,
     fontFamily: FONTS.bold,
-    lineHeight: 31,
+    lineHeight: 32,
     letterSpacing: -0.5,
     color: "#FFFFFF",
   },
   percentSymbol: {
-    fontSize: 13,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
     marginTop: 2,
     marginLeft: 1,

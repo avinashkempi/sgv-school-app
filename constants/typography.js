@@ -52,17 +52,17 @@ export const FONTS = {
 
 // ── 2. STANDARDIZED FONT SIZES (14-Step Scale) ──────────────────────────────
 export const FONT_SIZES = {
-  micro: 10,     // Badges, micro tags, status pills, sub-badges, dense charts
-  xs: 11,        // Captions, micro-dates, tab labels, subtle metadata, chips
-  sm: 12,        // Secondary descriptions, timestamps, helper notes, subtext
-  md: 13,        // Dense body, table cell text, card descriptions, read more
-  base: 14,      // Standard body, input text, button labels, event titles
-  mdLg: 15,      // Prominent card headers, navigation list items, subheaders
-  lg: 16,        // Section titles, large inputs, modal subheads, user names
-  xl: 18,        // Card headers, subheadings, dialog titles, exam headings
-  xxl: 20,       // Page subheadings, metric highlights, modal titles
-  title: 22,     // Prominent screen titles, primary stats
-  headline: 24,  // Major section titles, large banners, hero tags
+  micro: 11,     // Badges, micro tags, status pills, sub-badges, dense charts
+  xs: 12,        // Captions, micro-dates, tab labels, subtle metadata, chips
+  sm: 13,        // Secondary descriptions, timestamps, helper notes, subtext
+  md: 14,        // Dense body, table cell text, card descriptions, read more
+  base: 15,      // Standard body, input text, button labels, event titles
+  mdLg: 16,      // Prominent card headers, navigation list items, subheaders
+  lg: 17,        // Section titles, large inputs, modal subheads, user names
+  xl: 19,        // Card headers, subheadings, dialog titles, exam headings
+  xxl: 21,       // Page subheadings, metric highlights, modal titles
+  title: 23,     // Prominent screen titles, primary stats
+  headline: 25,  // Major section titles, large banners, hero tags
   displaySm: 28, // Login titles, hero headings
   displayMd: 32, // Large display headers, big counters
   displayLg: 40, // Jumbo celebrations, attendance percentage
@@ -70,16 +70,16 @@ export const FONT_SIZES = {
 
 // ── 3. MATCHING LINE HEIGHTS ────────────────────────────────────────────────
 export const LINE_HEIGHTS = {
-  micro: 14,
-  xs: 16,
-  sm: 16,
-  md: 18,
-  base: 20,
-  mdLg: 22,
+  micro: 15,
+  xs: 17,
+  sm: 18,
+  md: 20,
+  base: 22,
+  mdLg: 23,
   lg: 24,
   xl: 26,
   xxl: 28,
-  title: 28,
+  title: 30,
   headline: 32,
   displaySm: 36,
   displayMd: 40,

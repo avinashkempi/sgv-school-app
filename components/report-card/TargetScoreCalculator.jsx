@@ -358,11 +358,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   kpiLabel: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.medium,
   },
   kpiValue: {
-    fontSize: 26,
+    fontSize: FONT_SIZES.headline,
     fontFamily: FONTS.bold,
     marginTop: 2,
     lineHeight: 30,

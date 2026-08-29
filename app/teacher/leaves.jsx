@@ -1426,7 +1426,7 @@ const styles = StyleSheet.create({
   },
   tabBadgeText: {
     color: "#FFFFFF",
-    fontSize: 9,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
   },
   searchFilterBar: {
@@ -1473,7 +1473,7 @@ const styles = StyleSheet.create({
   },
   filterBadgeText: {
     color: "#FFF",
-    fontSize: 9,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
   },
   compactKpiBar: {
@@ -1561,7 +1561,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   tinyYearText: {
-    fontSize: 9,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.medium,
   },
   classChip: {

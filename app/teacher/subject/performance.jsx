@@ -166,7 +166,7 @@ export default function SubjectPerformanceScreen() {
                 </Text>
                 <Text
                   style={{
-                    fontSize: 56,
+                    fontSize: FONT_SIZES.displayLg,
                     fontFamily: FONTS.bold,
                     color: "#fff",
                     marginTop: 8,

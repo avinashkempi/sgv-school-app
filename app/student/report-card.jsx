@@ -1185,7 +1185,7 @@ const styles = StyleSheet.create({
   },
   academicPillText: {
     color: "rgba(255, 255, 255, 0.9)",
-    fontSize: 10,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
   },
   studentClass: {
@@ -1205,7 +1205,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   gradeStatusText: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
     color: "#FFFFFF",
     letterSpacing: 0.3,
@@ -1230,20 +1230,20 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   kpiLabel: {
-    fontSize: 9,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
     color: "rgba(255, 255, 255, 0.85)",
     marginTop: 3,
     letterSpacing: 0.5,
   },
   kpiValue: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.base,
     fontFamily: FONTS.bold,
     color: "#FFFFFF",
     marginTop: 2,
   },
   kpiDenominator: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
     color: "rgba(255, 255, 255, 0.75)",
   },
@@ -1259,66 +1259,74 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    gap: 6,
-    borderRadius: 100,
-  },
-  tabText: {
-    fontSize: FONT_SIZES.xs,
-  },
-  tabContent: {
-    gap: 16,
-  },
-  filterScroll: {
     gap: 8,
-    paddingBottom: 4,
-  },
-  filterChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 14,
+    borderRadius: 100,
     paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
   },
-  filterDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+  tabBtnText: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
   },
-  filterChipText: {
+  tabCountBadge: {
+    paddingHorizontal: 7,
+    paddingVertical: 1.5,
+    borderRadius: 10,
+  },
+  tabCountBadgeText: {
     fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
   },
-  examList: {
-    gap: 14,
-  },
-  examCard: {
+  card: {
     borderRadius: 20,
     overflow: "hidden",
+    marginBottom: 16,
+    borderWidth: 1,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
   },
-  examHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  examCardHeader: {
     padding: 16,
   },
-  examTitleRow: {
+  examTopRow: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    flexWrap: "wrap",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: 12,
   },
-  examTypeName: {
+  examInfoColumn: {
+    flex: 1,
+  },
+  examTitle: {
     fontSize: FONT_SIZES.lg,
     fontFamily: FONTS.bold,
+    letterSpacing: -0.2,
+  },
+  examDateRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 4,
+  },
+  examDateText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.regular,
+  },
+  examBadgesRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    marginTop: 8,
   },
   weightBadge: {
     paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: 8,
+    borderRadius: 6,
   },
   weightBadgeText: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
   },
   statusPill: {
@@ -1330,7 +1338,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   statusPillText: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
   },
   highlightRow: {
@@ -1353,12 +1361,12 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   scorePillText: {
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     fontFamily: FONTS.bold,
     letterSpacing: -0.2,
   },
   rankSubText: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
     marginTop: 3,
   },
@@ -1373,7 +1381,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   subjectListHeaderText: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
     letterSpacing: 0.5,
   },
@@ -1396,12 +1404,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   obtainedText: {
-    fontSize: 15,
+    fontSize: FONT_SIZES.mdLg,
     fontFamily: FONTS.bold,
     letterSpacing: -0.2,
   },
   maxText: {
-    fontSize: 13,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.medium,
     opacity: 0.75,
   },
@@ -1414,7 +1422,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   subGradeText: {
-    fontSize: 11,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
     letterSpacing: 0.2,
   },
@@ -1438,7 +1446,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   remarksText: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
     fontStyle: "italic",
   },
@@ -1448,55 +1456,66 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   loadingText: {
-    fontSize: FONT_SIZES.xs,
-    fontFamily: FONTS.bold,
-    letterSpacing: 1,
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.medium,
   },
-  insightCard: {
+  emptyContainer: {
+    paddingVertical: 60,
+    alignItems: "center",
+    gap: 12,
+  },
+  emptyText: {
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.medium,
+  },
+  insightsTabContainer: {
+    gap: 18,
+  },
+  diagnosticsCard: {
     padding: 16,
-    borderRadius: 20,
+    borderRadius: 18,
+    borderWidth: 1,
+    gap: 14,
   },
-  cardHeader: {
-    marginBottom: 16,
-  },
-  cardTitle: {
-    fontSize: FONT_SIZES.lg,
-    fontFamily: FONTS.bold,
-  },
-  cardSub: {
-    fontSize: FONT_SIZES.xs,
-    fontFamily: FONTS.regular,
-    marginTop: 2,
-  },
-  diagSection: {
+  diagnosticsHeader: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
-  diagTitleRow: {
+  diagnosticsTitle: {
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.bold,
+  },
+  diagColumnsRow: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  diagColumn: {
+    flex: 1,
+    gap: 8,
+  },
+  diagColHeader: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    marginBottom: 4,
+    marginBottom: 2,
   },
-  diagHeading: {
+  diagColTitle: {
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   diagItem: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    padding: 10,
+    justifyContent: "space-between",
+    padding: 8,
     borderRadius: 10,
-    borderWidth: 1,
   },
   diagSubject: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.medium,
-  },
-  diagScoreRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
+    flex: 1,
+    marginRight: 4,
   },
   diagScore: {
     fontSize: FONT_SIZES.sm,
@@ -1509,7 +1528,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   starText: {
-    fontSize: 9,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
     color: "#065F46",
   },
@@ -1520,7 +1539,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   focusText: {
-    fontSize: 9,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
     color: "#075985",
   },
@@ -1549,7 +1568,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   consistencyScoreText: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
   },
   consistencyTitle: {
@@ -1557,9 +1576,9 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
   },
   consistencyDesc: {
-    fontSize: 11,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
-    lineHeight: 16,
+    lineHeight: 18,
     marginTop: 4,
   },
   historyBridgeCard: {

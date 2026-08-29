@@ -100,7 +100,7 @@ export default function AdminPerformanceScreen() {
         </Text>
         <Text
           style={{
-            fontSize: 64,
+            fontSize: FONT_SIZES.displayLg,
             fontFamily: FONTS.bold,
             color: "#fff",
             marginTop: 12,

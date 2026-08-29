@@ -422,7 +422,7 @@ export default function StudentClassScreen() {
                       >
                         <MaterialIcons
                           name="auto-awesome"
-                          size={13}
+                          size={14}
                           color={colors.primary}
                         />
                         <Text
@@ -492,7 +492,7 @@ export default function StudentClassScreen() {
                   >
                     <MaterialIcons
                       name="groups"
-                      size={18}
+                      size={20}
                       color={colors.primary}
                     />
                     <Text
@@ -525,7 +525,7 @@ export default function StudentClassScreen() {
                   >
                     <MaterialIcons
                       name="male"
-                      size={18}
+                      size={20}
                       color="#3B82F6"
                     />
                     <Text
@@ -558,7 +558,7 @@ export default function StudentClassScreen() {
                   >
                     <MaterialIcons
                       name="female"
-                      size={18}
+                      size={20}
                       color="#EC4899"
                     />
                     <Text
@@ -591,7 +591,7 @@ export default function StudentClassScreen() {
                   >
                     <MaterialIcons
                       name="library-books"
-                      size={18}
+                      size={20}
                       color="#10B981"
                     />
                     <Text
@@ -634,7 +634,7 @@ export default function StudentClassScreen() {
                       photoUrl={classData.classTeacher.profilePhoto}
                       name={classData.classTeacher.name}
                       role="teacher"
-                      size={44}
+                      size={46}
                     />
                     <View style={{ flex: 1, minWidth: 0 }}>
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
@@ -648,7 +648,7 @@ export default function StudentClassScreen() {
                         </Text>
                         <MaterialIcons
                           name="verified"
-                          size={13}
+                          size={14}
                           color={colors.primary}
                         />
                       </View>
@@ -681,7 +681,7 @@ export default function StudentClassScreen() {
                     >
                       <MaterialIcons
                         name="arrow-forward-ios"
-                        size={12}
+                        size={14}
                         color={colors.primary}
                       />
                     </View>
@@ -746,7 +746,7 @@ export default function StudentClassScreen() {
                     >
                       <MaterialIcons
                         name={item.icon}
-                        size={22}
+                        size={24}
                         color={item.color}
                       />
                     </View>
@@ -812,7 +812,7 @@ export default function StudentClassScreen() {
                     >
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.xs,
+                          fontSize: FONT_SIZES.sm,
                           fontFamily: FONTS.bold,
                           color: colors.primary,
                         }}
@@ -821,7 +821,7 @@ export default function StudentClassScreen() {
                       </Text>
                       <MaterialIcons
                         name="chevron-right"
-                        size={16}
+                        size={18}
                         color={colors.primary}
                       />
                     </Pressable>
@@ -856,7 +856,7 @@ export default function StudentClassScreen() {
                           >
                             <MaterialIcons
                               name={styling.icon}
-                              size={15}
+                              size={16}
                               color={styling.color}
                             />
                           </View>
@@ -935,7 +935,7 @@ export default function StudentClassScreen() {
                     >
                       <MaterialIcons
                         name="search"
-                        size={20}
+                        size={22}
                         color={colors.onSurfaceVariant}
                       />
                       <TextInput
@@ -970,7 +970,7 @@ export default function StudentClassScreen() {
                     <View style={localStyles.emptySubTab}>
                       <MaterialIcons
                         name="menu-book"
-                        size={42}
+                        size={48}
                         color={colors.onSurfaceVariant}
                       />
                       <Text
@@ -1027,7 +1027,7 @@ export default function StudentClassScreen() {
                           >
                             <MaterialIcons
                               name={styling.icon}
-                              size={26}
+                              size={28}
                               color={styling.color}
                             />
                           </View>
@@ -1076,7 +1076,7 @@ export default function StudentClassScreen() {
                                   photoUrl={primaryTeacher.profilePhoto}
                                   name={primaryTeacher.name}
                                   role="teacher"
-                                  size={20}
+                                  size={22}
                                 />
                                 <Text
                                   style={[
@@ -1092,7 +1092,7 @@ export default function StudentClassScreen() {
                               <Text
                                 style={[
                                   localStyles.noTeacherText,
-                                  { color: colors.onSurfaceVariant + "80" },
+                                  { color: colors.onSurfaceVariant + "90" },
                                 ]}
                               >
                                 {t("student.noTeacherAssigned", "No teacher assigned")}
@@ -1113,7 +1113,7 @@ export default function StudentClassScreen() {
                           >
                             <MaterialIcons
                               name="arrow-forward"
-                              size={16}
+                              size={18}
                               color={styling.color}
                             />
                           </View>
@@ -1143,7 +1143,7 @@ export default function StudentClassScreen() {
                   >
                     <MaterialIcons
                       name="search"
-                      size={20}
+                      size={22}
                       color={colors.onSurfaceVariant}
                     />
                     <TextInput
@@ -1208,7 +1208,7 @@ export default function StudentClassScreen() {
                         >
                           <MaterialIcons
                             name={chip.icon}
-                            size={15}
+                            size={16}
                             color={isSelected ? activeColor : colors.onSurfaceVariant}
                           />
                           <Text
@@ -1342,7 +1342,7 @@ export default function StudentClassScreen() {
                       >
                         <MaterialIcons
                           name="assignment"
-                          size={36}
+                          size={40}
                           color={colors.primary}
                         />
                       </View>
@@ -1401,7 +1401,7 @@ export default function StudentClassScreen() {
                               >
                                 <MaterialIcons
                                   name={typeConfig.icon}
-                                  size={12}
+                                  size={13}
                                   color={typeConfig.color}
                                 />
                                 <Text
@@ -1483,7 +1483,7 @@ export default function StudentClassScreen() {
                                 photoUrl={item.author.profilePhoto}
                                 name={item.author.name}
                                 role={item.author.role || "teacher"}
-                                size={22}
+                                size={24}
                               />
                               <Text
                                 style={[
@@ -1527,7 +1527,7 @@ export default function StudentClassScreen() {
                   >
                     <MaterialIcons
                       name="search"
-                      size={20}
+                      size={22}
                       color={colors.onSurfaceVariant}
                     />
                     <TextInput
@@ -1573,7 +1573,7 @@ export default function StudentClassScreen() {
                     <View style={localStyles.emptySubTab}>
                       <MaterialIcons
                         name="person-search"
-                        size={42}
+                        size={48}
                         color={colors.onSurfaceVariant}
                       />
                       <Text
@@ -1622,7 +1622,7 @@ export default function StudentClassScreen() {
                               photoUrl={student.profilePhoto}
                               name={student.name}
                               role="student"
-                              size={40}
+                              size={44}
                             />
                             <View style={{ flex: 1, minWidth: 0 }}>
                               <View
@@ -1691,12 +1691,12 @@ export default function StudentClassScreen() {
                                 >
                                   <MaterialIcons
                                     name={isBoy ? "male" : "female"}
-                                    size={11}
+                                    size={13}
                                     color={isBoy ? "#3B82F6" : "#EC4899"}
                                   />
                                   <Text
                                     style={{
-                                      fontSize: 10,
+                                      fontSize: FONT_SIZES.xs,
                                       fontFamily: FONTS.bold,
                                       color: isBoy ? "#3B82F6" : "#EC4899",
                                     }}
@@ -1709,7 +1709,7 @@ export default function StudentClassScreen() {
 
                             <MaterialIcons
                               name="chevron-right"
-                              size={20}
+                              size={22}
                               color={colors.onSurfaceVariant + "60"}
                             />
                           </Pressable>
@@ -1760,7 +1760,7 @@ const localStyles = StyleSheet.create({
     marginBottom: 16,
   },
   emptyTitle: {
-    fontSize: FONT_SIZES.xl,
+    fontSize: FONT_SIZES.xxl,
     fontFamily: FONTS.bold,
     textAlign: "center",
   },
@@ -1773,7 +1773,7 @@ const localStyles = StyleSheet.create({
   },
   heroBanner: {
     borderRadius: 20,
-    padding: 16,
+    padding: 18,
     borderWidth: 1,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -1800,23 +1800,24 @@ const localStyles = StyleSheet.create({
   gradeBadge: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingHorizontal: 9,
+    paddingVertical: 3.5,
     borderRadius: 6,
     gap: 4,
   },
   gradeBadgeText: {
-    fontSize: 11,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
     letterSpacing: 0.3,
   },
   heroClassName: {
-    fontSize: FONT_SIZES.xl,
+    fontSize: FONT_SIZES.headline,
     fontFamily: FONTS.bold,
+    marginTop: 2,
   },
   heroClassIcon: {
-    width: 48,
-    height: 48,
+    width: 52,
+    height: 52,
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
@@ -1829,44 +1830,44 @@ const localStyles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 4,
     borderRadius: 12,
     gap: 2,
   },
   heroStatNum: {
-    fontSize: FONT_SIZES.mdLg,
+    fontSize: FONT_SIZES.xl,
     fontFamily: FONTS.bold,
   },
   heroStatLabel: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.medium,
   },
   teacherSpotlight: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 12,
+    padding: 14,
     borderRadius: 14,
     borderWidth: 1,
     gap: 12,
   },
   teacherBadge: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
     letterSpacing: 0.5,
   },
   teacherName: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.lg,
     fontFamily: FONTS.bold,
   },
   teacherEmail: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
   },
   teacherInfoAction: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -1877,7 +1878,7 @@ const localStyles = StyleSheet.create({
   shortcutCard: {
     flex: 1,
     alignItems: "center",
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 4,
     borderRadius: 14,
     borderWidth: 1,
@@ -1889,20 +1890,20 @@ const localStyles = StyleSheet.create({
     elevation: 1,
   },
   shortcutIconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
   },
   shortcutTitle: {
-    fontSize: 11,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
     textAlign: "center",
   },
   todayScheduleCard: {
     borderRadius: 16,
-    padding: 14,
+    padding: 16,
     borderWidth: 1,
     gap: 10,
   },
@@ -1916,44 +1917,20 @@ const localStyles = StyleSheet.create({
     borderRadius: 10,
   },
   liveDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
     backgroundColor: "#10B981",
   },
   todayScheduleTitle: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.base,
     fontFamily: FONTS.bold,
   },
   todayScheduleDay: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.medium,
   },
   periodPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 10,
-    borderWidth: 1,
-    gap: 8,
-  },
-  periodIcon: {
-    width: 26,
-    height: 26,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  periodSubj: {
-    fontSize: FONT_SIZES.xs,
-    fontFamily: FONTS.bold,
-  },
-  periodTime: {
-    fontSize: 10,
-    fontFamily: FONTS.regular,
-  },
-  searchBarWrap: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 12,
@@ -1962,9 +1939,33 @@ const localStyles = StyleSheet.create({
     borderWidth: 1,
     gap: 8,
   },
+  periodIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  periodSubj: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
+  },
+  periodTime: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.regular,
+  },
+  searchBarWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 8,
+  },
   searchInput: {
     flex: 1,
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.base,
     fontFamily: FONTS.regular,
     padding: 0,
   },
@@ -1975,14 +1976,14 @@ const localStyles = StyleSheet.create({
     gap: 10,
   },
   emptySubTabText: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.base,
     fontFamily: FONTS.medium,
     textAlign: "center",
   },
   subjectCard: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 14,
+    padding: 16,
     borderRadius: 16,
     borderWidth: 1,
     gap: 14,
@@ -1993,24 +1994,24 @@ const localStyles = StyleSheet.create({
     elevation: 1,
   },
   subjectIconBox: {
-    width: 48,
-    height: 48,
+    width: 52,
+    height: 52,
     borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
   },
   subjectCardName: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.lg,
     fontFamily: FONTS.bold,
   },
   codeBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 1,
+    paddingHorizontal: 7,
+    paddingVertical: 1.5,
     borderRadius: 4,
   },
   codeBadgeText: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
   },
   subjectTeacherRow: {
@@ -2020,17 +2021,17 @@ const localStyles = StyleSheet.create({
     marginTop: 4,
   },
   subjectTeacherText: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.medium,
   },
   noTeacherText: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
     marginTop: 3,
   },
   subjectCardArrow: {
-    width: 30,
-    height: 30,
+    width: 32,
+    height: 32,
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
@@ -2038,22 +2039,22 @@ const localStyles = StyleSheet.create({
   filterChip: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 7,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 10,
     borderWidth: 1,
     gap: 6,
   },
   filterChipText: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.sm,
   },
   subjectFilterPill: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 8,
   },
   subjectFilterPillText: {
-    fontSize: 11,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   emptyFeedCard: {
@@ -2067,23 +2068,23 @@ const localStyles = StyleSheet.create({
     gap: 8,
   },
   emptyFeedIconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 68,
+    height: 68,
+    borderRadius: 34,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 4,
   },
   emptyFeedTitle: {
-    fontSize: FONT_SIZES.mdLg,
+    fontSize: FONT_SIZES.lg,
     fontFamily: FONTS.bold,
     textAlign: "center",
   },
   emptyFeedDesc: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.base,
     fontFamily: FONTS.regular,
     textAlign: "center",
-    lineHeight: 20,
+    lineHeight: 22,
     maxWidth: 320,
   },
   feedCard: {
@@ -2105,50 +2106,50 @@ const localStyles = StyleSheet.create({
   feedTypeBadge: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 7,
-    paddingVertical: 2.5,
-    borderRadius: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
     gap: 4,
   },
   feedTypeBadgeText: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
     letterSpacing: 0.4,
   },
   feedSubjectTag: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 5,
-    maxWidth: 140,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: 6,
+    maxWidth: 150,
   },
   feedSubjectTagText: {
-    fontSize: 11,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.medium,
   },
   feedDateText: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
   },
   feedTitle: {
-    fontSize: FONT_SIZES.mdLg,
+    fontSize: FONT_SIZES.lg,
     fontFamily: FONTS.bold,
-    lineHeight: 22,
+    lineHeight: 24,
   },
   feedDescription: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.base,
     fontFamily: FONTS.regular,
-    lineHeight: 20,
+    lineHeight: 22,
   },
   authorFooter: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    paddingTop: 8,
+    gap: 8,
+    paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: "rgba(0,0,0,0.05)",
+    borderTopColor: "rgba(0,0,0,0.06)",
   },
   authorNameText: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
   },
   classmateSummaryBar: {
@@ -2158,7 +2159,7 @@ const localStyles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   classmateCountText: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.medium,
   },
   classmatesGrid: {
@@ -2167,34 +2168,34 @@ const localStyles = StyleSheet.create({
   classmateCard: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 12,
+    padding: 14,
     borderRadius: 14,
     borderWidth: 1,
     gap: 12,
   },
   classmateName: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.lg,
     fontFamily: FONTS.bold,
   },
   youBadge: {
-    paddingHorizontal: 5,
-    paddingVertical: 1,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
     borderRadius: 4,
   },
   youBadgeText: {
-    fontSize: 9,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
   },
   classmateRegNo: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
   },
   genderPill: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-    borderRadius: 4,
-    gap: 2,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 5,
+    gap: 3,
   },
 });

@@ -80,8 +80,8 @@ const DayRenderer = React.memo(
         {/* Date text */}
         <Text
           style={{
-            fontSize: 16,
-            fontWeight: isSelected ? "600" : isToday ? "600" : "400",
+            fontSize: FONT_SIZES.mdLg,
+            fontFamily: isSelected || isToday ? FONTS.bold : FONTS.regular,
             color: isSelected
               ? colors.white
               : state === "disabled"

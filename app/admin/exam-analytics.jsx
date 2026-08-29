@@ -642,7 +642,7 @@ export default function ExamAnalyticsScreen() {
           <View>
             <Text
               style={{
-                fontSize: 17,
+                fontSize: FONT_SIZES.lg,
                 fontFamily: FONTS.bold,
                 color: colors.onBackground,
               }}

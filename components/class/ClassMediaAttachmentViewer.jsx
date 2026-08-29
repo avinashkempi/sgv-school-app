@@ -328,12 +328,12 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   extensionText: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
     letterSpacing: 0.5,
   },
   docLabel: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
   },
   actionIconWrap: {

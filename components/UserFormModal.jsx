@@ -464,7 +464,7 @@ export default function UserFormModal({
             <Text
               style={[
                 styles.titleLarge,
-                { fontSize: 16, marginBottom: 16, marginTop: 8 },
+                { marginBottom: 16, marginTop: 8 },
               ]}
             >
               Personal Details
@@ -504,7 +504,8 @@ export default function UserFormModal({
                           <Text
                             style={{
                               color: value === g ? "#fff" : colors.textPrimary,
-                              fontSize: 12,
+                              fontSize: FONT_SIZES.sm,
+                              fontFamily: FONTS.medium,
                             }}
                           >
                             {g}
@@ -672,7 +673,7 @@ export default function UserFormModal({
                 <Text
                   style={[
                     styles.titleLarge,
-                    { fontSize: 16, marginBottom: 16, marginTop: 8 },
+                    { marginBottom: 16, marginTop: 8 },
                   ]}
                 >
                   Guardian & Contact
@@ -770,7 +771,7 @@ export default function UserFormModal({
                 <Text
                   style={[
                     styles.titleLarge,
-                    { fontSize: 16, marginBottom: 16, marginTop: 8 },
+                    { marginBottom: 16, marginTop: 8 },
                   ]}
                 >
                   Academic & IDs
@@ -927,7 +928,7 @@ export default function UserFormModal({
                 <Text
                   style={[
                     styles.titleLarge,
-                    { fontSize: 16, marginBottom: 16, marginTop: 8 },
+                    { marginBottom: 16, marginTop: 8 },
                   ]}
                 >
                   Role Details

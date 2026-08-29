@@ -15,7 +15,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 
 import { useRouter } from "expo-router";
-import { useTheme } from "../../theme";
+import { useTheme, FONT_SIZES, FONTS } from "../../theme";
 import {
   useApiQuery,
   useApiMutation,
@@ -146,7 +146,8 @@ export default function ManageSubjectsScreen() {
             style={{
               flex: 1,
               marginLeft: 12,
-              fontSize: 16,
+              fontSize: FONT_SIZES.base,
+              fontFamily: FONTS.regular,
               color: colors.textPrimary,
             }}
             placeholder="Search subjects..."
@@ -211,8 +212,8 @@ export default function ManageSubjectsScreen() {
               <View>
                 <Text
                   style={{
-                    fontSize: 16,
-                    fontWeight: "600",
+                    fontSize: FONT_SIZES.lg,
+                    fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                   }}
                 >
@@ -222,7 +223,8 @@ export default function ManageSubjectsScreen() {
                   {subject.code && (
                     <Text
                       style={{
-                        fontSize: 12,
+                        fontSize: FONT_SIZES.xs,
+                        fontFamily: FONTS.medium,
                         color: colors.textSecondary,
                         backgroundColor: colors.background,
                         paddingHorizontal: 6,
@@ -235,7 +237,8 @@ export default function ManageSubjectsScreen() {
                   )}
                   <Text
                     style={{
-                      fontSize: 12,
+                      fontSize: FONT_SIZES.xs,
+                      fontFamily: FONTS.medium,
                       color: colors.textSecondary,
                       backgroundColor: colors.background,
                       paddingHorizontal: 6,
@@ -356,8 +359,8 @@ export default function ManageSubjectsScreen() {
             >
               <Text
                 style={{
-                  fontSize: 20,
-                  fontWeight: "700",
+                  fontSize: FONT_SIZES.headline,
+                  fontFamily: FONTS.bold,
                   color: colors.textPrimary,
                 }}
               >
@@ -374,8 +377,8 @@ export default function ManageSubjectsScreen() {
 
             <Text
               style={{
-                fontSize: 13,
-                fontWeight: "600",
+                fontSize: FONT_SIZES.sm,
+                fontFamily: FONTS.bold,
                 color: colors.textSecondary,
                 marginBottom: 8,
               }}
@@ -387,7 +390,8 @@ export default function ManageSubjectsScreen() {
                 backgroundColor: colors.background,
                 borderRadius: 12,
                 padding: 12,
-                fontSize: 16,
+                fontSize: FONT_SIZES.base,
+                fontFamily: FONTS.regular,
                 color: colors.textPrimary,
                 marginBottom: 16,
               }}
@@ -399,8 +403,8 @@ export default function ManageSubjectsScreen() {
 
             <Text
               style={{
-                fontSize: 13,
-                fontWeight: "600",
+                fontSize: FONT_SIZES.sm,
+                fontFamily: FONTS.bold,
                 color: colors.textSecondary,
                 marginBottom: 8,
               }}
@@ -412,7 +416,8 @@ export default function ManageSubjectsScreen() {
                 backgroundColor: colors.background,
                 borderRadius: 12,
                 padding: 12,
-                fontSize: 16,
+                fontSize: FONT_SIZES.base,
+                fontFamily: FONTS.regular,
                 color: colors.textPrimary,
                 marginBottom: 16,
               }}
@@ -425,8 +430,8 @@ export default function ManageSubjectsScreen() {
 
             <Text
               style={{
-                fontSize: 13,
-                fontWeight: "600",
+                fontSize: FONT_SIZES.sm,
+                fontFamily: FONTS.bold,
                 color: colors.textSecondary,
                 marginBottom: 8,
               }}
@@ -476,7 +481,7 @@ export default function ManageSubjectsScreen() {
                 <ActivityIndicator color="#fff" />
               ) : (
                 <Text
-                  style={{ color: "#fff", fontSize: 16, fontWeight: "600" }}
+                  style={{ color: "#fff", fontSize: FONT_SIZES.base, fontFamily: FONTS.bold }}
                 >
                   {modalMode === "add" ? "Create Subject" : "Save Changes"}
                 </Text>
@@ -520,14 +525,14 @@ export default function ManageSubjectsScreen() {
               <View>
                 <Text
                   style={{
-                    fontSize: 20,
-                    fontWeight: "700",
+                    fontSize: FONT_SIZES.headline,
+                    fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                   }}
                 >
                   {selectedSubject?.name}
                 </Text>
-                <Text style={{ color: colors.textSecondary, fontSize: 14 }}>
+                <Text style={{ color: colors.textSecondary, fontSize: FONT_SIZES.sm, fontFamily: FONTS.medium }}>
                   Usage Details
                 </Text>
               </View>
@@ -566,8 +571,8 @@ export default function ManageSubjectsScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: 16,
-                        fontWeight: "600",
+                        fontSize: FONT_SIZES.lg,
+                        fontFamily: FONTS.bold,
                         color: colors.textPrimary,
                       }}
                     >
@@ -576,8 +581,9 @@ export default function ManageSubjectsScreen() {
                     </Text>
                     <Text
                       style={{
-                        fontSize: 12,
+                        fontSize: FONT_SIZES.xs,
                         color: colors.textSecondary,
+                        fontFamily: FONTS.regular,
                         marginBottom: 8,
                       }}
                     >
@@ -586,8 +592,8 @@ export default function ManageSubjectsScreen() {
 
                     <Text
                       style={{
-                        fontSize: 13,
-                        fontWeight: "600",
+                        fontSize: FONT_SIZES.sm,
+                        fontFamily: FONTS.bold,
                         color: colors.textSecondary,
                         marginBottom: 4,
                       }}
@@ -612,7 +618,8 @@ export default function ManageSubjectsScreen() {
                           >
                             <Text
                               style={{
-                                fontSize: 12,
+                                fontSize: FONT_SIZES.xs,
+                                fontFamily: FONTS.medium,
                                 color: colors.textPrimary,
                               }}
                             >
@@ -623,7 +630,7 @@ export default function ManageSubjectsScreen() {
                       ) : (
                         <Text
                           style={{
-                            fontSize: 12,
+                            fontSize: FONT_SIZES.xs,
                             color: colors.textSecondary,
                             fontStyle: "italic",
                           }}

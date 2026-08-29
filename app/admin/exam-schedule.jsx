@@ -1382,7 +1382,7 @@ export default function AdminExamScheduleScreen() {
                     />
                     <Text
                       style={{
-                        fontSize: 17,
+                        fontSize: FONT_SIZES.lg,
                         fontFamily: FONTS.bold,
                         color: "#fff",
                       }}

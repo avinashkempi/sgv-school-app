@@ -867,7 +867,7 @@ const styles = StyleSheet.create({
     paddingLeft: 6,
   },
   commentLikeCount: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
     marginTop: 2,
   },

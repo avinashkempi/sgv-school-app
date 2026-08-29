@@ -7,6 +7,7 @@ import {
   ScrollView,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { FONT_SIZES, FONTS } from "../theme";
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -37,13 +38,11 @@ class ErrorBoundary extends React.Component {
       return (
         <View style={styles.container}>
           <View style={styles.content}>
-            <MaterialIcons name="error" size={64} color="#FF6B6B" />
-            <Text style={styles.title}>
-              Oops! Something went wrong.
-            </Text>
+            <MaterialIcons name="error-outline" size={64} color="#FF6B6B" />
+            <Text style={styles.title}>Oops! Something went wrong.</Text>
             <Text style={styles.subtitle}>
-              We{"'"}re sorry, but an unexpected error occurred. Please try
-              again.
+              We encountered an unexpected error. Don't worry, your data is
+              safe.
             </Text>
 
             <TouchableOpacity
@@ -60,6 +59,11 @@ class ErrorBoundary extends React.Component {
                 <Text style={styles.debugText}>
                   {this.state.error.toString()}
                 </Text>
+                {this.state.errorInfo && (
+                  <Text style={styles.debugText}>
+                    {this.state.errorInfo.componentStack}
+                  </Text>
+                )}
               </ScrollView>
             )}
           </View>
@@ -75,8 +79,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    justifyContent: "center",
     alignItems: "center",
+    justifyContent: "center",
     padding: 20,
   },
   content: {
@@ -85,15 +89,16 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   title: {
-    fontSize: 24,
-    fontWeight: "bold",
+    fontSize: FONT_SIZES.headline,
+    fontFamily: FONTS.bold,
     color: "#333",
     marginTop: 20,
     marginBottom: 10,
     textAlign: "center",
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: FONT_SIZES.mdLg,
+    fontFamily: FONTS.regular,
     color: "#666",
     textAlign: "center",
     marginBottom: 30,
@@ -112,8 +117,8 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: FONT_SIZES.base,
+    fontFamily: FONTS.bold,
   },
   debugBox: {
     marginTop: 30,
@@ -126,7 +131,7 @@ const styles = StyleSheet.create({
   debugText: {
     color: "#d63031",
     fontFamily: "monospace",
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
   },
 });
 

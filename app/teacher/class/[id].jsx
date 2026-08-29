@@ -800,7 +800,7 @@ export default function ClassDetailsScreen() {
                           >
                             <Text
                               style={{
-                                fontSize: 10,
+                                fontSize: FONT_SIZES.xs,
                                 fontFamily: FONTS.bold,
                                 color: typeColor,
                                 textTransform: "uppercase",
@@ -824,7 +824,7 @@ export default function ClassDetailsScreen() {
                             >
                               <Text
                                 style={{
-                                  fontSize: 11,
+                                  fontSize: FONT_SIZES.sm,
                                   fontFamily: FONTS.medium,
                                   color: colors.onSurface,
                                 }}
@@ -838,7 +838,7 @@ export default function ClassDetailsScreen() {
                         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.xs,
+                              fontSize: FONT_SIZES.sm,
                               fontFamily: FONTS.regular,
                               color: colors.onSurfaceVariant,
                             }}
@@ -853,7 +853,7 @@ export default function ClassDetailsScreen() {
                             >
                               <MaterialIcons
                                 name="delete-outline"
-                                size={18}
+                                size={20}
                                 color={colors.error}
                               />
                             </Pressable>
@@ -863,9 +863,10 @@ export default function ClassDetailsScreen() {
 
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.mdLg,
+                          fontSize: FONT_SIZES.lg,
                           fontFamily: FONTS.bold,
                           color: colors.onSurface,
+                          lineHeight: 24,
                         }}
                       >
                         {item.title}
@@ -874,10 +875,10 @@ export default function ClassDetailsScreen() {
                       {item.description ? (
                         <Text
                           style={{
-                            fontSize: FONT_SIZES.sm,
+                            fontSize: FONT_SIZES.base,
                             fontFamily: FONTS.regular,
                             color: colors.onSurfaceVariant,
-                            lineHeight: 20,
+                            lineHeight: 22,
                           }}
                         >
                           {item.description}
@@ -893,8 +894,8 @@ export default function ClassDetailsScreen() {
                         style={{
                           flexDirection: "row",
                           alignItems: "center",
-                          gap: 6,
-                          paddingTop: 8,
+                          gap: 8,
+                          paddingTop: 10,
                           borderTopWidth: 1,
                           borderTopColor: isDark
                             ? "rgba(255,255,255,0.06)"
@@ -905,13 +906,13 @@ export default function ClassDetailsScreen() {
                           photoUrl={item.author?.profilePhoto}
                           name={item.author?.name}
                           role={item.author?.role || "teacher"}
-                          size={20}
+                          size={24}
                         />
                         <Text
                           style={{
-                            fontSize: FONT_SIZES.xs,
+                            fontSize: FONT_SIZES.sm,
                             color: colors.onSurfaceVariant,
-                            fontFamily: FONTS.medium,
+                            fontFamily: FONTS.regular,
                           }}
                         >
                           Posted by{" "}
