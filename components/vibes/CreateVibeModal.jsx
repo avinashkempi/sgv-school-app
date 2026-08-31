@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -191,25 +191,50 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
     clearDraft();
   }, [isAdmin, clearDraft]);
 
+  const isDirty = useMemo(() => {
+    if (!isEditing) {
+      return Boolean(caption.trim() || images.length > 0 || location.trim());
+    }
+    if (!editVibe) return false;
+    const captionChanged =
+      (caption || "").trim() !== (editVibe.caption || "").trim();
+    const categoryChanged = (category || "") !== (editVibe.category || "");
+    const locationChanged =
+      (location || "").trim() !== (editVibe.location || "").trim();
+    const initialImageCount = editVibe.images?.length || 0;
+    const imagesChanged =
+      images.length !== initialImageCount ||
+      images.some((img) => img.localUri || img.uploading);
+    return (
+      captionChanged || categoryChanged || locationChanged || imagesChanged
+    );
+  }, [isEditing, editVibe, caption, category, location, images]);
+
   const handleClose = useCallback(() => {
     if (submitting) return;
-    if (caption || images.length > 0) {
-      Alert.alert("Discard Vibe?", "Your draft will be removed.", [
-        { text: "Keep Editing", style: "cancel" },
-        {
-          text: "Discard",
-          style: "destructive",
-          onPress: () => {
-            resetForm();
-            onClose();
+    if (isDirty) {
+      Alert.alert(
+        isEditing ? "Discard Changes?" : "Discard Vibe?",
+        isEditing
+          ? "Any unsaved changes will be lost."
+          : "Your draft will be removed.",
+        [
+          { text: "Keep Editing", style: "cancel" },
+          {
+            text: "Discard",
+            style: "destructive",
+            onPress: () => {
+              resetForm();
+              onClose();
+            },
           },
-        },
-      ]);
+        ]
+      );
     } else {
       resetForm();
       onClose();
     }
-  }, [submitting, caption, images, resetForm, onClose]);
+  }, [submitting, isDirty, isEditing, resetForm, onClose]);
 
   const hasVideo = images.some((img) => img.type === "video");
 
@@ -536,11 +561,16 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: ["vibes"] });
       queryClient.invalidateQueries({ queryKey: ["myVibes"] });
+      queryClient.invalidateQueries({ queryKey: ["savedVibes"] });
+      queryClient.invalidateQueries({ queryKey: ["userVibes"] });
       queryClient.invalidateQueries({ queryKey: ["vibeHighlights"] });
       queryClient.invalidateQueries({ queryKey: ["vibeSpotlight"] });
-      if (isAdmin) {
-        queryClient.invalidateQueries({ queryKey: ["pendingVibes"] });
-        queryClient.invalidateQueries({ queryKey: ["pendingVibesCount"] });
+      queryClient.invalidateQueries({ queryKey: ["pendingVibes"] });
+      queryClient.invalidateQueries({ queryKey: ["pendingVibesCount"] });
+      if (isEditing && editVibe?._id) {
+        queryClient.invalidateQueries({
+          queryKey: ["targetVibe", String(editVibe._id)],
+        });
       }
 
       resetForm();

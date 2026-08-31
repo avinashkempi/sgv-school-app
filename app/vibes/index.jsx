@@ -391,13 +391,19 @@ export default function VibesScreen() {
         "DELETE"
       )({});
     },
-    onSuccess: () => {
+    onSuccess: (_res, vibeId) => {
       showToast("Vibe deleted", "info");
       queryClient.invalidateQueries({ queryKey: ["vibes"] });
       queryClient.invalidateQueries({ queryKey: ["myVibes"] });
       queryClient.invalidateQueries({ queryKey: ["savedVibes"] });
+      queryClient.invalidateQueries({ queryKey: ["userVibes"] });
       queryClient.invalidateQueries({ queryKey: ["vibeHighlights"] });
       queryClient.invalidateQueries({ queryKey: ["vibeSpotlight"] });
+      queryClient.invalidateQueries({ queryKey: ["pendingVibes"] });
+      queryClient.invalidateQueries({ queryKey: ["pendingVibesCount"] });
+      if (vibeId) {
+        queryClient.invalidateQueries({ queryKey: ["targetVibe", String(vibeId)] });
+      }
     },
   });
 

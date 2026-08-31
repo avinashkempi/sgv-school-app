@@ -199,7 +199,7 @@ export default function StudentReportCardScreen() {
               },
             ]}
           >
-            All Assessments ({exams.length})
+            All Exams ({exams.length})
           </Text>
         </TouchableOpacity>
 
@@ -276,7 +276,7 @@ export default function StudentReportCardScreen() {
                 onPress={() => toggleExamExpand(exam.examType)}
                 activeOpacity={0.8}
               >
-                <View style={{ flex: 1 }}>
+                <View style={{ flex: 1, minWidth: 0, paddingRight: 6 }}>
                   <View style={styles.examTitleRow}>
                     <Text
                       style={[styles.examTypeName, { color: colors.onSurface }]}
@@ -343,12 +343,14 @@ export default function StudentReportCardScreen() {
                   {/* Highlights Subtitle */}
                   {exam.isCompleted && exam.topSubject && (
                     <View style={styles.highlightRow}>
-                      <MaterialIcons name="star" size={13} color="#D97706" />
+                      <MaterialIcons name="star" size={13} color="#D97706" style={{ flexShrink: 0 }} />
                       <Text
                         style={[
                           styles.highlightText,
                           { color: colors.onSurfaceVariant },
                         ]}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
                       >
                         Best: <Text style={{ fontFamily: FONTS.bold, color: colors.onSurface }}>{exam.topSubject.name}</Text> ({exam.topSubject.percentage}%)
                       </Text>
@@ -452,6 +454,7 @@ export default function StudentReportCardScreen() {
                               styles.subjectItemName,
                               { color: colors.onSurface },
                             ]}
+                            numberOfLines={2}
                           >
                             {sub.subject}
                           </Text>
@@ -625,7 +628,10 @@ export default function StudentReportCardScreen() {
                     },
                   ]}
                 >
-                  <Text style={[styles.diagSubject, { color: colors.onSurface }]}>
+                  <Text
+                    style={[styles.diagSubject, { color: colors.onSurface }]}
+                    numberOfLines={2}
+                  >
                     {item.subject}
                   </Text>
                   <View style={styles.diagScoreRow}>
@@ -668,7 +674,10 @@ export default function StudentReportCardScreen() {
                     },
                   ]}
                 >
-                  <Text style={[styles.diagSubject, { color: colors.onSurface }]}>
+                  <Text
+                    style={[styles.diagSubject, { color: colors.onSurface }]}
+                    numberOfLines={2}
+                  >
                     {item.subject}
                   </Text>
                   <View style={styles.diagScoreRow}>
@@ -1018,7 +1027,7 @@ export default function StudentReportCardScreen() {
                 },
               ]}
             >
-              Assessments
+              Exams
             </Text>
           </TouchableOpacity>
 
@@ -1415,13 +1424,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
     marginTop: 6,
+    flexShrink: 1,
   },
   highlightText: {
     fontSize: FONT_SIZES.xs,
+    flex: 1,
   },
   examScoreColumn: {
     alignItems: "flex-end",
+    justifyContent: "center",
     gap: 2,
+    flexShrink: 0,
+    minWidth: 64,
   },
   scorePill: {
     paddingHorizontal: 12,
@@ -1461,16 +1475,19 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    gap: 10,
   },
   subjectItemName: {
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.medium,
     flex: 1,
+    paddingRight: 4,
   },
   marksRatioRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+    flexShrink: 0,
   },
   obtainedText: {
     fontSize: FONT_SIZES.md,
@@ -1620,6 +1637,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+    flexShrink: 0,
   },
   diagScore: {
     fontSize: FONT_SIZES.sm,

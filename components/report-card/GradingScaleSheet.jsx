@@ -84,7 +84,7 @@ const GradingScaleSheet = forwardRef((props, ref) => {
                 { color: colors.onSurface },
               ]}
             >
-              Grading Scheme & CCE Weights
+              Grading Scheme & Weights
             </Text>
             <Text
               style={[
@@ -253,7 +253,7 @@ const GradingScaleSheet = forwardRef((props, ref) => {
             <Text
               style={[styles.infoNoteText, { color: colors.onSurfaceVariant }]}
             >
-              Overall percentage is computed by summing the weighted contributions of all completed assessments.
+              Overall percentage is computed by summing the weighted contributions of all completed exams.
             </Text>
           </View>
         </View>

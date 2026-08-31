@@ -591,10 +591,10 @@ export default function ProfileScreen() {
                     }}
                   >
                     {user.role === "student"
-                      ? t("profile.academicAndPersonalDetails")
+                      ? t("profile.academicAndPersonalDetails", "ACADEMIC & PERSONAL DETAILS")
                       : user.role === "teacher"
-                      ? t("profile.teacherDetails")
-                      : t("profile.staffDetails")}
+                      ? t("profile.teacherDetails", "TEACHER DETAILS")
+                      : t("profile.staffDetails", "STAFF DETAILS")}
                   </Text>
 
                   {user.role === "student" && (

@@ -185,7 +185,7 @@ export default function SubjectPerformanceScreen() {
                     opacity: 0.8,
                   }}
                 >
-                  Across {totalExamsWithData} completed assessments
+                  Across {totalExamsWithData} completed exams
                 </Text>
               </View>
 

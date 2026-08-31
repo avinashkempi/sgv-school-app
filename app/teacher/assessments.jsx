@@ -121,7 +121,7 @@ export default function AssessmentDashboard() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <AppHeader
-        title={t("teacher.assessmentsTitle", "Assessments")}
+        title={t("teacher.assessmentsTitle", "Exams")}
         subtitle={t("teacher.assessmentsSubtitle", "Manage Standardized Exams")}
       />
 

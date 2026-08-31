@@ -119,7 +119,7 @@ export default function AdminPerformanceScreen() {
             opacity: 0.8,
           }}
         >
-          Across all assessments
+          Across all exams
         </Text>
       </View>
 

@@ -129,9 +129,9 @@ const VibeCard = ({
   const bookmarkScale = useSharedValue(1);
 
   const isSchoolPost = vibe.postAs === "school" || vibe.category === "official";
+  const authorId = vibe.author?._id || vibe.author;
   const isAuthor =
-    currentUserId &&
-    (vibe.author?._id === currentUserId || vibe.author === currentUserId);
+    currentUserId && authorId && String(authorId) === String(currentUserId);
   const canModerate = isAdmin || isAuthor;
 
   const toggleExpand = useCallback(() => {

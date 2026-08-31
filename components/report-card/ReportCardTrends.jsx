@@ -160,7 +160,7 @@ export default function ReportCardTrends({
             <Text
               style={[styles.cardSub, { color: colors.onSurfaceVariant }]}
             >
-              Term progression across assessments
+              Term progression across exams
             </Text>
           </View>
 

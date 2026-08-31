@@ -15,6 +15,7 @@ import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../t
  */
 const Button = ({
   children,
+  title,
   onPress,
   variant = "filled",
   icon,
@@ -131,6 +132,15 @@ const Button = ({
     }
   };
 
+  const renderIcon = () => {
+    if (!icon || loading) return null;
+    if (React.isValidElement(icon)) return icon;
+    if (typeof icon === "string") {
+      return <MaterialIcons name={icon} size={18} color={themeColors.text} />;
+    }
+    return null;
+  };
+
   return (
     <Pressable
       onPress={!disabled && !loading ? handlePress : null}
@@ -153,15 +163,11 @@ const Button = ({
         />
       ) : null}
 
-      {!loading && icon && iconPosition === "left" && (
-        <MaterialIcons name={icon} size={18} color={themeColors.text} />
-      )}
+      {!loading && iconPosition === "left" && renderIcon()}
 
-      <Text style={labelStyle}>{children}</Text>
+      <Text style={labelStyle}>{children ?? title}</Text>
 
-      {!loading && icon && iconPosition === "right" && (
-        <MaterialIcons name={icon} size={18} color={themeColors.text} />
-      )}
+      {!loading && iconPosition === "right" && renderIcon()}
     </Pressable>
   );
 };

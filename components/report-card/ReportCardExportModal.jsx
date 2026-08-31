@@ -7,7 +7,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Platform,
-  ActivityIndicator,
   Share,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -161,7 +160,7 @@ export default function ReportCardExportModal({
           </table>
 
           <div style="font-size: 11px; color: #475569; margin-bottom: 24px; padding: 10px; background: #f8fafc; border-left: 3px solid #0284c7;">
-            <b>CCE Grading Scale:</b> A+ (90-100% Outstanding), A (70-89% Excellent), B+ (50-69% Good), B (30-49% Average), C (Below 30% Needs Focus).
+            <b>Grading Scale:</b> A+ (90-100% Outstanding), A (70-89% Excellent), B+ (50-69% Good), B (30-49% Average), C (Below 30% Needs Focus).
             Weightage: FA1 (10%), FA2 (10%), SA1 (30%), FA3 (10%), FA4 (10%), SA2 (30%).
           </div>
 
@@ -349,10 +348,10 @@ export default function ReportCardExportModal({
               {/* Mini Marks Preview Summary */}
               <View style={styles.previewStats}>
                 <Text style={[styles.statHeader, { color: colors.onSurfaceVariant }]}>
-                  {exams.filter((e) => e.isCompleted).length} of {exams.length} Assessments Completed
+                  {exams.filter((e) => e.isCompleted).length} of {exams.length} Exams Completed
                 </Text>
                 <Text style={[styles.statHelper, { color: colors.onSurfaceVariant }]}>
-                  Includes subject breakdowns for {allSubjects.length} subjects and CCE weight calculation.
+                  Includes subject breakdowns for {allSubjects.length} subjects and weight calculation.
                 </Text>
               </View>
             </View>
@@ -369,25 +368,22 @@ export default function ReportCardExportModal({
             ]}
           >
             <Button
-              title="Close"
               variant="outlined"
               onPress={onClose}
               style={{ flex: 1, marginRight: 8 }}
-            />
+            >
+              Close
+            </Button>
             <Button
-              title={exporting ? "Generating..." : "Share & Print"}
               variant="filled"
-              icon={
-                exporting ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <MaterialIcons name="share" size={18} color="#fff" />
-                )
-              }
+              icon="share"
+              loading={exporting}
               onPress={handleExportShare}
               disabled={exporting}
               style={{ flex: 1.5 }}
-            />
+            >
+              {exporting ? "Generating..." : "Share & Print"}
+            </Button>
           </View>
         </View>
       </View>
