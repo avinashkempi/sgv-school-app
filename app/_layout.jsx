@@ -12,6 +12,7 @@ import NetworkStatusProvider from "../components/NetworkStatusProvider";
 import BottomNavigation from "../components/BottomNavigation";
 import ErrorBoundary from "../components/ErrorBoundary";
 import * as Notifications from "expo-notifications";
+import "../utils/backgroundSync";
 import { NavigationProvider } from "../context/NavigationContext";
 import { NotificationProvider } from "../context/NotificationContext";
 import { AuthProvider, useAuth } from "../context/AuthContext";

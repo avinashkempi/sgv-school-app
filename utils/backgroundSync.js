@@ -18,52 +18,55 @@ import * as TaskManager from "expo-task-manager";
 import storage from "./storage";
 import apiConfig from "../config/apiConfig";
 
-const BACKGROUND_SYNC_TASK = "BACKGROUND_DATA_SYNC";
+export const BACKGROUND_SYNC_TASK = "BACKGROUND_DATA_SYNC";
 
 /**
  * Define the background task.
  * This runs even when the app is closed/backgrounded.
+ * Must be defined in the global scope outside React components.
  */
-TaskManager.defineTask(BACKGROUND_SYNC_TASK, async () => {
-  try {
-    const token = await storage.getItem("@auth_token");
-    if (!token || token === "demo-token") {
+if (!TaskManager.isTaskDefined(BACKGROUND_SYNC_TASK)) {
+  TaskManager.defineTask(BACKGROUND_SYNC_TASK, async () => {
+    try {
+      const token = await storage.getItem("@auth_token");
+      if (!token || token === "demo-token") {
+        return BackgroundFetch.BackgroundFetchResult.NoData;
+      }
+
+      // Fetch notification count silently
+      const response = await fetch(`${apiConfig.baseUrl}/notifications`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const unreadCount =
+          data.unreadCount ??
+          (data.notifications || []).filter((n) => !n.isRead).length;
+
+        // Store for immediate access on app open
+        await storage.setItem(
+          "@bg_notification_count",
+          JSON.stringify({
+            count: unreadCount,
+            timestamp: Date.now(),
+          })
+        );
+
+        console.log(`[BackgroundSync] Notification count synced: ${unreadCount}`);
+        return BackgroundFetch.BackgroundFetchResult.NewData;
+      }
+
       return BackgroundFetch.BackgroundFetchResult.NoData;
+    } catch (err) {
+      console.error("[BackgroundSync] Task failed:", err);
+      return BackgroundFetch.BackgroundFetchResult.Failed;
     }
-
-    // Fetch notification count silently
-    const response = await fetch(`${apiConfig.baseUrl}/notifications`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      const unreadCount =
-        data.unreadCount ??
-        (data.notifications || []).filter((n) => !n.isRead).length;
-
-      // Store for immediate access on app open
-      await storage.setItem(
-        "@bg_notification_count",
-        JSON.stringify({
-          count: unreadCount,
-          timestamp: Date.now(),
-        })
-      );
-
-      console.log(`[BackgroundSync] Notification count synced: ${unreadCount}`);
-      return BackgroundFetch.BackgroundFetchResult.NewData;
-    }
-
-    return BackgroundFetch.BackgroundFetchResult.NoData;
-  } catch (err) {
-    console.error("[BackgroundSync] Task failed:", err);
-    return BackgroundFetch.BackgroundFetchResult.Failed;
-  }
-});
+  });
+}
 
 /**
  * Register the background fetch task.
@@ -71,6 +74,14 @@ TaskManager.defineTask(BACKGROUND_SYNC_TASK, async () => {
  */
 export async function registerBackgroundSync() {
   try {
+    // 1. Verify task is defined in TaskManager before attempting registration
+    if (!TaskManager.isTaskDefined(BACKGROUND_SYNC_TASK)) {
+      console.warn(
+        `[BackgroundSync] Task '${BACKGROUND_SYNC_TASK}' is not defined. Skipping registration.`
+      );
+      return false;
+    }
+
     const status = await BackgroundFetch.getStatusAsync();
 
     if (status === BackgroundFetch.BackgroundFetchStatus.Denied) {
