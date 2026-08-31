@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   ActivityIndicator,
-  RefreshControl,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useAuth } from "../../context/AuthContext";
@@ -17,6 +16,7 @@ import { useRouter } from "expo-router";
 import { useTheme, FONTS, FONT_SIZES } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
 import { CACHE_TIERS } from "../../utils/cacheConfig";
+import AppRefreshControl from "../../components/ui/AppRefreshControl";
 
 export default function StudentFeesScreen() {
   const _router = useRouter();
@@ -65,13 +65,11 @@ export default function StudentFeesScreen() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[colors.primary]}
-          />
+          <AppRefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 32 }}
+        showsVerticalScrollIndicator={false}
+        scrollsToTop={true}
       >
         <View>
           <Header

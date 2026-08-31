@@ -1,38 +1,48 @@
 import React from "react";
-import { View, Text, Switch, Pressable, StyleSheet } from "react-native";
+import { View, Text, Switch, StyleSheet } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import { useLabel } from "../../context/LabelsContext";
 import Card from "../Card";
 
-export default function MenuPreferences({ onOpenPrivacyPolicy }) {
-  const { colors, mode, toggle } = useTheme();
+export default function MenuPreferences() {
+  const { colors, mode, toggleTheme } = useTheme();
   const { t } = useLabel();
 
   return (
     <View style={localStyles.container}>
-      <Text style={[localStyles.sectionTitle, { color: colors.onSurface }]}>
+      <Text style={[localStyles.sectionTitle, { color: colors.onSurfaceVariant }]}>
         {t("menu.preferences", "Preferences")}
       </Text>
 
       <Card
         variant="elevated"
-        style={localStyles.card}
+        style={[
+          localStyles.card,
+          {
+            backgroundColor:
+              mode === "dark" ? colors.surfaceContainer : "#FFFFFF",
+            borderColor: colors.outlineVariant || "rgba(0,0,0,0.06)",
+          },
+        ]}
         contentStyle={localStyles.cardContent}
       >
-        {/* Dark Mode Switch Row */}
+        {/* Dark Mode Toggle */}
         <View style={localStyles.itemRow}>
           <View
             style={[
               localStyles.iconWrap,
-              { backgroundColor: colors.primaryContainer },
+              {
+                backgroundColor:
+                  mode === "dark" ? "#38BDF820" : "#F59E0B20",
+              },
             ]}
           >
             <MaterialIcons
               name={mode === "dark" ? "dark-mode" : "light-mode"}
               size={22}
-              color={colors.onPrimaryContainer}
+              color={mode === "dark" ? "#38BDF8" : "#F59E0B"}
             />
           </View>
 
@@ -51,16 +61,16 @@ export default function MenuPreferences({ onOpenPrivacyPolicy }) {
               numberOfLines={1}
             >
               {mode === "dark"
-                ? t("menu.darkModeOnSubtitle", "Easy on the eyes in low light")
-                : t("menu.darkModeOffSubtitle", "Crisp and clear high-contrast mode")}
+                ? t("menu.darkModeOn", "Enabled for low light")
+                : t("menu.darkModeOff", "Disabled (Light theme)")}
             </Text>
           </View>
 
           <Switch
             value={mode === "dark"}
             onValueChange={() => {
-              Haptics.selectionAsync().catch(() => {});
-              toggle();
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+              toggleTheme();
             }}
             trackColor={{
               false: colors.surfaceContainerHighest,
@@ -69,70 +79,6 @@ export default function MenuPreferences({ onOpenPrivacyPolicy }) {
             thumbColor={mode === "dark" ? colors.onPrimary : colors.outline}
           />
         </View>
-
-        <View
-          style={[
-            localStyles.divider,
-            { backgroundColor: colors.outlineVariant || "rgba(0,0,0,0.06)" },
-          ]}
-        />
-
-        {/* Privacy Policy */}
-        <Pressable
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-            if (onOpenPrivacyPolicy) onOpenPrivacyPolicy();
-          }}
-          style={({ pressed }) => [
-            localStyles.itemRow,
-            {
-              backgroundColor: pressed
-                ? colors.surfaceContainerHighest
-                : "transparent",
-            },
-          ]}
-          android_ripple={{ color: colors.onSurface + "10" }}
-        >
-          <View
-            style={[
-              localStyles.iconWrap,
-              { backgroundColor: "#8B5CF618" },
-            ]}
-          >
-            <MaterialIcons
-              name="privacy-tip"
-              size={22}
-              color="#8B5CF6"
-            />
-          </View>
-
-          <View style={localStyles.textCol}>
-            <Text
-              style={[localStyles.itemTitle, { color: colors.onSurface }]}
-              numberOfLines={1}
-            >
-              {t("menu.privacyPolicy", "Privacy Policy")}
-            </Text>
-            <Text
-              style={[
-                localStyles.itemSubtitle,
-                { color: colors.onSurfaceVariant },
-              ]}
-              numberOfLines={1}
-            >
-              {t(
-                "menu.privacyPolicySubtitle",
-                "Data protection & student privacy"
-              )}
-            </Text>
-          </View>
-
-          <MaterialIcons
-            name="chevron-right"
-            size={20}
-            color={colors.onSurfaceVariant}
-          />
-        </Pressable>
       </Card>
     </View>
   );
@@ -183,10 +129,10 @@ const localStyles = StyleSheet.create({
     letterSpacing: LETTER_SPACINGS.md,
   },
   itemSubtitle: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
     marginTop: 2,
-    lineHeight: LINE_HEIGHTS.sm,
+    lineHeight: LINE_HEIGHTS.xs,
   },
   divider: {
     height: StyleSheet.hairlineWidth,

@@ -440,11 +440,11 @@ const localStyles = StyleSheet.create({
     borderRadius: 4,
   },
   codeText: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.bold,
   },
   teacherLabel: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.medium,
   },
   filterChip: {
@@ -484,23 +484,23 @@ const localStyles = StyleSheet.create({
     gap: 4,
   },
   typeBadgeText: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.bold,
     letterSpacing: 0.4,
   },
   dateText: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
   },
   itemTitle: {
     fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
-    lineHeight: 24,
+    lineHeight: 22,
   },
   itemDesc: {
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
-    lineHeight: 22,
+    lineHeight: 20,
   },
   authorRow: {
     flexDirection: "row",
@@ -511,7 +511,7 @@ const localStyles = StyleSheet.create({
     borderTopColor: "rgba(0,0,0,0.06)",
   },
   authorText: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
   },
 });

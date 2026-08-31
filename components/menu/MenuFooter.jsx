@@ -86,14 +86,6 @@ export default function MenuFooter({ user, onLogoutPress, onLoginPress }) {
             },
           ]}
         >
-          <Text
-            style={[
-              localStyles.versionText,
-              { color: colors.onSurfaceVariant },
-            ]}
-          >
-            v2.2.0 • Build 2026.08
-          </Text>
         </View>
 
         <Text
@@ -102,7 +94,7 @@ export default function MenuFooter({ user, onLogoutPress, onLoginPress }) {
             { color: colors.outline || colors.onSurfaceVariant },
           ]}
         >
-          © 2026 Shri Guru Vidya Education Society
+          © 2026 Ashok Kempi Institutions
         </Text>
       </View>
     </View>

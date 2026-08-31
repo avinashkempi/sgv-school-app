@@ -331,7 +331,7 @@ export default function ProfileScreen() {
       style={{ flex: 1, backgroundColor: colors.background }}
       contentContainerStyle={[
         styles.contentPaddingBottom,
-        { paddingHorizontal: 16, paddingTop: 16 },
+        { paddingHorizontal: 16, paddingTop: 12 },
       ]}
       refreshControl={
         <AppRefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -482,8 +482,8 @@ export default function ProfileScreen() {
               <View
                 style={{
                   backgroundColor: colors.primaryContainer,
-                  paddingVertical: 6,
-                  paddingHorizontal: 16,
+                  paddingVertical: 4,
+                  paddingHorizontal: 12,
                   borderRadius: 20,
                   marginTop: 4,
                   marginBottom: 24,
@@ -493,7 +493,7 @@ export default function ProfileScreen() {
                   style={{
                     color: colors.onPrimaryContainer,
                     fontFamily: FONTS.bold,
-                    fontSize: FONT_SIZES.sm,
+                    fontSize: FONT_SIZES.micro,
                     textTransform: "uppercase",
                   }}
                 >
@@ -511,9 +511,9 @@ export default function ProfileScreen() {
               <Card variant="filled" style={{ marginBottom: 16 }}>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.sm,
+                    fontSize: FONT_SIZES.md,
                     fontFamily: FONTS.bold,
-                    color: colors.onSurfaceVariant,
+                    color: colors.onSurface,
                     marginBottom: 16,
                   }}
                 >
@@ -584,14 +584,16 @@ export default function ProfileScreen() {
                 <Card variant="filled" style={{ marginBottom: 16 }}>
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.sm,
+                      fontSize: FONT_SIZES.md,
                       fontFamily: FONTS.bold,
-                      color: colors.onSurfaceVariant,
+                      color: colors.onSurface,
                       marginBottom: 16,
                     }}
                   >
                     {user.role === "student"
-                      ? t("profile.studentDetails")
+                      ? t("profile.academicAndPersonalDetails")
+                      : user.role === "teacher"
+                      ? t("profile.teacherDetails")
                       : t("profile.staffDetails")}
                   </Text>
 
@@ -609,7 +611,7 @@ export default function ProfileScreen() {
                           <View style={{ width: "50%", marginBottom: 16 }}>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.sm,
+                                fontSize: FONT_SIZES.xs,
                                 color: colors.onSurfaceVariant,
                                 marginBottom: 4,
                               }}
@@ -635,7 +637,7 @@ export default function ProfileScreen() {
                           <View style={{ width: "50%", marginBottom: 16 }}>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.sm,
+                                fontSize: FONT_SIZES.xs,
                                 color: colors.onSurfaceVariant,
                                 marginBottom: 4,
                               }}
@@ -659,7 +661,7 @@ export default function ProfileScreen() {
                         <View style={{ marginBottom: 16 }}>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.sm,
+                              fontSize: FONT_SIZES.xs,
                               color: colors.onSurfaceVariant,
                               marginBottom: 4,
                             }}
@@ -681,7 +683,7 @@ export default function ProfileScreen() {
                         <View style={{ marginBottom: 16 }}>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.sm,
+                              fontSize: FONT_SIZES.xs,
                               color: colors.onSurfaceVariant,
                               marginBottom: 4,
                             }}
@@ -724,7 +726,7 @@ export default function ProfileScreen() {
                           <View style={{ width: "50%", marginBottom: 16 }}>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.sm,
+                                fontSize: FONT_SIZES.xs,
                                 color: colors.onSurfaceVariant,
                                 marginBottom: 4,
                               }}
@@ -746,7 +748,7 @@ export default function ProfileScreen() {
                           <View style={{ width: "50%", marginBottom: 16 }}>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.sm,
+                                fontSize: FONT_SIZES.xs,
                                 color: colors.onSurfaceVariant,
                                 marginBottom: 4,
                               }}
@@ -768,7 +770,7 @@ export default function ProfileScreen() {
                           <View style={{ width: "50%", marginBottom: 16 }}>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.sm,
+                                fontSize: FONT_SIZES.xs,
                                 color: colors.onSurfaceVariant,
                                 marginBottom: 4,
                               }}
@@ -790,7 +792,7 @@ export default function ProfileScreen() {
                           <View style={{ width: "50%", marginBottom: 16 }}>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.sm,
+                                fontSize: FONT_SIZES.xs,
                                 color: colors.onSurfaceVariant,
                                 marginBottom: 4,
                               }}
@@ -814,7 +816,7 @@ export default function ProfileScreen() {
                         <View style={{ marginBottom: 16 }}>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.sm,
+                              fontSize: FONT_SIZES.xs,
                               color: colors.onSurfaceVariant,
                               marginBottom: 4,
                             }}
@@ -851,7 +853,7 @@ export default function ProfileScreen() {
                           <View style={{ width: "50%", marginBottom: 16 }}>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.sm,
+                                fontSize: FONT_SIZES.xs,
                                 color: colors.onSurfaceVariant,
                                 marginBottom: 4,
                               }}
@@ -873,7 +875,7 @@ export default function ProfileScreen() {
                           <View style={{ width: "50%", marginBottom: 16 }}>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.sm,
+                                fontSize: FONT_SIZES.xs,
                                 color: colors.onSurfaceVariant,
                                 marginBottom: 4,
                               }}
@@ -895,7 +897,7 @@ export default function ProfileScreen() {
                           <View style={{ width: "50%", marginBottom: 16 }}>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.sm,
+                                fontSize: FONT_SIZES.xs,
                                 color: colors.onSurfaceVariant,
                                 marginBottom: 4,
                               }}
@@ -917,7 +919,7 @@ export default function ProfileScreen() {
                           <View style={{ width: "50%", marginBottom: 16 }}>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.sm,
+                                fontSize: FONT_SIZES.xs,
                                 color: colors.onSurfaceVariant,
                                 marginBottom: 4,
                               }}
@@ -940,7 +942,7 @@ export default function ProfileScreen() {
                         <View>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.sm,
+                              fontSize: FONT_SIZES.xs,
                               color: colors.onSurfaceVariant,
                               marginBottom: 4,
                             }}
@@ -971,7 +973,7 @@ export default function ProfileScreen() {
                         <View style={{ marginBottom: 16 }}>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.sm,
+                              fontSize: FONT_SIZES.xs,
                               color: colors.onSurfaceVariant,
                               marginBottom: 4,
                             }}
@@ -1001,7 +1003,7 @@ export default function ProfileScreen() {
                           <View style={{ width: "50%", marginBottom: 16 }}>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.sm,
+                                fontSize: FONT_SIZES.xs,
                                 color: colors.onSurfaceVariant,
                                 marginBottom: 4,
                               }}
@@ -1023,7 +1025,7 @@ export default function ProfileScreen() {
                           <View style={{ width: "50%", marginBottom: 16 }}>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.sm,
+                                fontSize: FONT_SIZES.xs,
                                 color: colors.onSurfaceVariant,
                                 marginBottom: 4,
                               }}
@@ -1047,7 +1049,7 @@ export default function ProfileScreen() {
                         <View style={{ marginBottom: 16 }}>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.sm,
+                              fontSize: FONT_SIZES.xs,
                               color: colors.onSurfaceVariant,
                               marginBottom: 4,
                             }}
@@ -1070,7 +1072,7 @@ export default function ProfileScreen() {
                         <View>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.sm,
+                              fontSize: FONT_SIZES.xs,
                               color: colors.onSurfaceVariant,
                               marginBottom: 4,
                             }}

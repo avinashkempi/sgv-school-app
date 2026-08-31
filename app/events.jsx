@@ -80,7 +80,7 @@ const DayRenderer = React.memo(
         {/* Date text */}
         <Text
           style={{
-            fontSize: FONT_SIZES.md,
+            fontSize: FONT_SIZES.sm,
             fontFamily: isSelected || isToday ? FONTS.bold : FONTS.regular,
             color: isSelected
               ? colors.white
@@ -465,10 +465,10 @@ export default function EventsScreen() {
   }, [selectedDate, allEvents, refreshFlag]);
 
   return (
-    <View style={styles.container}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       <FlatList
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: 24 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 24 }}
         refreshControl={
           <AppRefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -508,7 +508,7 @@ export default function EventsScreen() {
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
         ListHeaderComponent={
           <>
-            <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
+            <View>
               <Header
                 title={t("events.title")}
                 subtitle={t("events.subtitle")}
@@ -555,7 +555,7 @@ export default function EventsScreen() {
               </View>
 
               {selectedDate && (
-                <Text style={[styles.titleMedium, { marginBottom: 16 }]}>
+                <Text style={[styles.titleMedium, { marginBottom: 16 }]} numberOfLines={1}>
                   {t("events.eventsOn", "Events on")}{" "}
                   {formatIndianDate(selectedDate)}
                 </Text>

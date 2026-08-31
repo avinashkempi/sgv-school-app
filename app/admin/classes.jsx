@@ -235,22 +235,25 @@ export default function ClassesScreen() {
                   elevation: 1,
                 })}
               >
-                <View>
+                <View style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.lg,
-                      fontWeight: "700",
+                      fontSize: FONT_SIZES.md,
+                      fontFamily: FONTS.bold,
                       color: colors.textPrimary,
                     }}
+                    numberOfLines={1}
                   >
                     {formatClassName(cls.name, cls.section)}
                   </Text>
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.sm,
+                      fontSize: FONT_SIZES.xs,
+                      fontFamily: FONTS.regular,
                       color: colors.textSecondary,
                       marginTop: 4,
                     }}
+                    numberOfLines={1}
                   >
                     {cls.branch} • {cls.studentCount || 0} Students
                   </Text>
@@ -264,10 +267,12 @@ export default function ClassesScreen() {
                       />
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.sm,
+                          fontSize: FONT_SIZES.xs,
                           color: colors.primary,
-                          fontWeight: "500",
+                          fontFamily: FONTS.medium,
+                          flex: 1,
                         }}
+                        numberOfLines={1}
                       >
                         Class Teacher: {formatUserName(cls.classTeacher.name)}
                       </Text>

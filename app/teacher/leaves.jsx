@@ -1731,7 +1731,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   applicantName: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   tinyYearPill: {
@@ -1740,7 +1740,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   tinyYearText: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.medium,
   },
   classChip: {

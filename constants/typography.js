@@ -271,6 +271,27 @@ export const TYPOGRAPHY = StyleSheet.create({
     letterSpacing: LETTER_SPACINGS.lg,
     flexShrink: 1,
   },
+  sectionTitle: {
+    fontFamily: FONT_FAMILIES.bold,
+    fontSize: FONT_SIZES.md,
+    lineHeight: LINE_HEIGHTS.md,
+    letterSpacing: LETTER_SPACINGS.md,
+    flexShrink: 1,
+  },
+  sectionTitleLarge: {
+    fontFamily: FONT_FAMILIES.bold,
+    fontSize: FONT_SIZES.lg,
+    lineHeight: LINE_HEIGHTS.lg,
+    letterSpacing: LETTER_SPACINGS.lg,
+    flexShrink: 1,
+  },
+  cardTitle: {
+    fontFamily: FONT_FAMILIES.bold,
+    fontSize: FONT_SIZES.md,
+    lineHeight: LINE_HEIGHTS.md,
+    letterSpacing: LETTER_SPACINGS.md,
+    flexShrink: 1,
+  },
   headlineSmall: {
     fontFamily: FONT_FAMILIES.bold,
     fontSize: FONT_SIZES.lg,

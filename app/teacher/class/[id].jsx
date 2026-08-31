@@ -599,35 +599,40 @@ export default function ClassDetailsScreen() {
                           color={colors.primary}
                         />
                       </View>
-                      <View style={{ flex: 1 }}>
+                      <View style={{ flex: 1, minWidth: 0 }}>
                         <Text
                           style={{
                             fontSize: FONT_SIZES.md,
                             fontFamily: FONTS.bold,
                             color: colors.onSurface,
                           }}
+                          numberOfLines={1}
                         >
                           {subject.name}
                         </Text>
                         {subject.teachers && subject.teachers.length > 0 ? (
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.sm,
+                              fontSize: FONT_SIZES.xs,
                               color: colors.onSurfaceVariant,
                               marginTop: 2,
                               fontFamily: FONTS.medium,
                             }}
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
                           >
                             {subject.teachers.map((t) => t.name).join(", ")}
                           </Text>
                         ) : (
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.sm,
+                              fontSize: FONT_SIZES.xs,
                               color: colors.onSurfaceVariant,
                               marginTop: 2,
                               fontStyle: "italic",
+                              fontFamily: FONTS.regular,
                             }}
+                            numberOfLines={1}
                           >
                             {t(
                               "teacher.noTeachersAssigned",
@@ -818,14 +823,14 @@ export default function ClassDetailsScreen() {
                                   ? colors.surfaceContainerHighest
                                   : colors.surfaceContainerHigh,
                                 paddingHorizontal: 8,
-                                paddingVertical: 3,
+                                paddingVertical: 2.5,
                                 borderRadius: 6,
                               }}
                             >
                               <Text
                                 style={{
-                                  fontSize: FONT_SIZES.sm,
-                                  fontFamily: FONTS.medium,
+                                  fontSize: FONT_SIZES.micro,
+                                  fontFamily: FONTS.bold,
                                   color: colors.onSurface,
                                 }}
                               >
@@ -838,7 +843,7 @@ export default function ClassDetailsScreen() {
                         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.sm,
+                              fontSize: FONT_SIZES.xs,
                               fontFamily: FONTS.regular,
                               color: colors.onSurfaceVariant,
                             }}
@@ -866,7 +871,7 @@ export default function ClassDetailsScreen() {
                           fontSize: FONT_SIZES.md,
                           fontFamily: FONTS.bold,
                           color: colors.onSurface,
-                          lineHeight: 24,
+                          lineHeight: 22,
                         }}
                       >
                         {item.title}
@@ -878,7 +883,7 @@ export default function ClassDetailsScreen() {
                             fontSize: FONT_SIZES.sm,
                             fontFamily: FONTS.regular,
                             color: colors.onSurfaceVariant,
-                            lineHeight: 22,
+                            lineHeight: 20,
                           }}
                         >
                           {item.description}
@@ -910,7 +915,7 @@ export default function ClassDetailsScreen() {
                         />
                         <Text
                           style={{
-                            fontSize: FONT_SIZES.sm,
+                            fontSize: FONT_SIZES.xs,
                             color: colors.onSurfaceVariant,
                             fontFamily: FONTS.regular,
                           }}
@@ -975,7 +980,7 @@ export default function ClassDetailsScreen() {
                             : undefined
                         }
                       />
-                      <View style={{ flex: 1 }}>
+                      <View style={{ flex: 1, minWidth: 0 }}>
                         {canManageClass ? (
                           <Pressable
                             onPress={() => {
@@ -993,6 +998,7 @@ export default function ClassDetailsScreen() {
                                 color: colors.primary,
                                 textDecorationLine: "underline",
                               }}
+                              numberOfLines={1}
                             >
                               {formatUserName(student.name)}
                             </Text>
@@ -1004,26 +1010,33 @@ export default function ClassDetailsScreen() {
                               fontFamily: FONTS.bold,
                               color: colors.onSurface,
                             }}
+                            numberOfLines={1}
                           >
                             {formatUserName(student.name)}
                           </Text>
                         )}
-                        <Text
-                          style={{
-                            fontSize: FONT_SIZES.sm,
-                            color: colors.onSurfaceVariant,
-                            marginTop: 4,
-                          }}
-                        >
-                          {student.phone}
-                        </Text>
+                        {student.phone && (
+                          <Text
+                            style={{
+                              fontSize: FONT_SIZES.xs,
+                              fontFamily: FONTS.regular,
+                              color: colors.onSurfaceVariant,
+                              marginTop: 4,
+                            }}
+                            numberOfLines={1}
+                          >
+                            {student.phone}
+                          </Text>
+                        )}
                         {student.email && (
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.sm,
+                              fontSize: FONT_SIZES.xs,
+                              fontFamily: FONTS.regular,
                               color: colors.onSurfaceVariant,
                               marginTop: 2,
                             }}
+                            numberOfLines={1}
                           >
                             {student.email}
                           </Text>
@@ -1031,10 +1044,12 @@ export default function ClassDetailsScreen() {
                         {student.guardianName && (
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.sm,
+                              fontSize: FONT_SIZES.xs,
+                              fontFamily: FONTS.regular,
                               color: colors.onSurfaceVariant,
-                              marginTop: 6,
+                              marginTop: 4,
                             }}
+                            numberOfLines={1}
                           >
                             {t("teacher.guardian", "Guardian")}:{" "}
                             {toTitleCase(student.guardianName)}
@@ -1045,10 +1060,12 @@ export default function ClassDetailsScreen() {
                         {student.admissionDate && (
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.sm,
+                              fontSize: FONT_SIZES.xs,
+                              fontFamily: FONTS.regular,
                               color: colors.onSurfaceVariant,
-                              marginTop: 4,
+                              marginTop: 2,
                             }}
+                            numberOfLines={1}
                           >
                             {t("teacher.admitted", "Admitted")}:{" "}
                             {formatDate(student.admissionDate)}

@@ -24,6 +24,7 @@ const SegmentedControl = ({ tabs, activeTab, onTabChange, style }) => {
     >
       {tabs.map((tab) => {
         const isActive = activeTab === tab.key;
+        const hasCount = tab.count !== undefined && tab.count !== null;
         return (
           <Pressable
             key={tab.key}
@@ -40,7 +41,7 @@ const SegmentedControl = ({ tabs, activeTab, onTabChange, style }) => {
             ]}
             accessibilityRole="tab"
             accessibilityState={{ selected: isActive }}
-            accessibilityLabel={tab.label}
+            accessibilityLabel={`${tab.label}${hasCount ? ` (${tab.count})` : ""}`}
           >
             <Text
               style={[
@@ -52,9 +53,27 @@ const SegmentedControl = ({ tabs, activeTab, onTabChange, style }) => {
                   fontFamily: isActive ? FONTS.bold : FONTS.medium,
                 },
               ]}
+              numberOfLines={1}
             >
               {tab.label}
             </Text>
+            {hasCount && (
+              <Text
+                style={[
+                  styles.countText,
+                  {
+                    color: isActive
+                      ? colors.onSecondaryContainer
+                      : colors.onSurfaceVariant,
+                    fontFamily: isActive ? FONTS.bold : FONTS.regular,
+                    opacity: isActive ? 1 : 0.8,
+                  },
+                ]}
+                numberOfLines={1}
+              >
+                ({tab.count})
+              </Text>
+            )}
           </Pressable>
         );
       })}
@@ -70,13 +89,20 @@ const styles = StyleSheet.create({
   },
   tab: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 8,
     alignItems: "center",
+    justifyContent: "center",
     borderRadius: 8,
   },
   label: {
     fontSize: FONT_SIZES.sm,
     letterSpacing: LETTER_SPACINGS.xs,
+    textAlign: "center",
+  },
+  countText: {
+    fontSize: FONT_SIZES.xs,
+    marginTop: 2,
+    textAlign: "center",
   },
 });
 

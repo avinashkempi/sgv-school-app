@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
   },
   subtitle: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
     marginTop: 2,
   },

@@ -148,7 +148,7 @@ export default function ExamCard({
             </View>
             <Text
               style={{
-                fontSize: FONT_SIZES.lg,
+                fontSize: FONT_SIZES.md,
                 fontFamily: FONTS.bold,
                 color: colors.onSurface,
                 marginBottom: 4,
@@ -159,7 +159,7 @@ export default function ExamCard({
             {exam.subject && (
               <Text
                 style={{
-                  fontSize: FONT_SIZES.sm,
+                  fontSize: FONT_SIZES.xs,
                   fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                 }}
@@ -171,15 +171,15 @@ export default function ExamCard({
           <View
             style={{
               backgroundColor: statusColor + "15",
-              paddingHorizontal: 10,
-              paddingVertical: 6,
+              paddingHorizontal: 8,
+              paddingVertical: 4,
               borderRadius: 8,
             }}
           >
             <Text
               style={{
                 color: statusColor,
-                fontSize: FONT_SIZES.sm,
+                fontSize: FONT_SIZES.micro,
                 fontFamily: FONTS.bold,
                 textTransform: "capitalize",
               }}

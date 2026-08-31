@@ -152,8 +152,8 @@ function createGlobalStyles(COLORS, mode) {
     container: {
       flex: 1,
       backgroundColor: COLORS.background,
-      paddingHorizontal: 20,
-      paddingTop: 16,
+      paddingHorizontal: 16,
+      paddingTop: 12,
       paddingBottom: 32,
     },
     // Typography System (with flexShrink: 1 to automatically prevent flex container text overflow)
@@ -215,10 +215,34 @@ function createGlobalStyles(COLORS, mode) {
     },
     titleLarge: {
       fontFamily: FONTS.titleLarge,
+      fontSize: FONT_SIZES.lg,
+      lineHeight: LINE_HEIGHTS.lg,
+      letterSpacing: LETTER_SPACINGS.lg,
+      color: COLORS.onBackground,
+      flexShrink: 1,
+    },
+    screenTitle: {
+      fontFamily: FONTS.bold,
       fontSize: FONT_SIZES.xl,
       lineHeight: LINE_HEIGHTS.xl,
       letterSpacing: LETTER_SPACINGS.xl,
       color: COLORS.onBackground,
+      flexShrink: 1,
+    },
+    sectionTitle: {
+      fontFamily: FONTS.bold,
+      fontSize: FONT_SIZES.md,
+      lineHeight: LINE_HEIGHTS.md,
+      letterSpacing: LETTER_SPACINGS.md,
+      color: COLORS.onBackground,
+      flexShrink: 1,
+    },
+    cardTitle: {
+      fontFamily: FONTS.bold,
+      fontSize: FONT_SIZES.md,
+      lineHeight: LINE_HEIGHTS.md,
+      letterSpacing: LETTER_SPACINGS.md,
+      color: COLORS.onSurface,
       flexShrink: 1,
     },
     titleMedium: {

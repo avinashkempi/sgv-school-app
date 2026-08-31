@@ -419,7 +419,7 @@ export default function AdminScreen() {
   };
 
   const renderUserItem = ({ item: userItem }) => (
-    <View style={{ paddingHorizontal: 20 }}>
+    <View style={{ marginBottom: 12 }}>
       <UserCard
         userItem={userItem}
         colors={colors}
@@ -440,11 +440,12 @@ export default function AdminScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       <FlatList
         data={users}
         keyExtractor={(item) => item._id}
         renderItem={renderUserItem}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 32 }}
         ListHeaderComponent={
           <AdminHeader
             user={user}
@@ -511,39 +512,40 @@ const MenuCard = ({ title, icon, color, onPress }) => {
       style={({ pressed }) => ({
         flex: 1,
         minWidth: "30%",
-        backgroundColor: colors.cardBackground,
-        padding: 20,
-        borderRadius: 24,
+        backgroundColor: colors.surfaceContainer,
+        padding: 16,
+        borderRadius: 20,
         alignItems: "center",
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
-        shadowRadius: 12,
-        elevation: 3,
-        borderWidth: 1,
-        borderColor: colors.border,
+        shadowRadius: 8,
+        elevation: 2,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: colors.outlineVariant || "transparent",
         opacity: pressed ? 0.9 : 1,
       })}
     >
       <View
         style={{
           backgroundColor: color + "15",
-          padding: 16,
-          borderRadius: 20,
-          marginBottom: 12,
+          padding: 14,
+          borderRadius: 16,
+          marginBottom: 10,
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        <MaterialIcons name={icon} size={28} color={color} />
+        <MaterialIcons name={icon} size={26} color={color} />
       </View>
       <Text
         style={{
           fontSize: FONT_SIZES.sm,
           fontFamily: FONTS.bold,
-          color: colors.textPrimary,
+          color: colors.onSurface,
           textAlign: "center",
         }}
+        numberOfLines={2}
       >
         {title}
       </Text>
@@ -564,7 +566,7 @@ const AdminHeader = React.memo(function AdminHeader({
 }) {
   const { t } = useLabel();
   return (
-    <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
+    <View style={{ marginBottom: 16 }}>
       {/* Minimal Header */}
       <Header
         title={t("admin.admin", "Admin")}

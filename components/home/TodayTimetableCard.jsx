@@ -12,7 +12,7 @@ import { useTheme, FONTS, FONT_SIZES } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 import { useLabel } from "../../context/LabelsContext";
 
-const TodayTimetableCard = () => {
+const TodayTimetableCard = ({ style }) => {
   const { colors, mode } = useTheme();
   const isDark = mode === "dark";
   const router = useRouter();
@@ -25,7 +25,7 @@ const TodayTimetableCard = () => {
   const handleNavigate = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     if (isTeacher) {
-      router.push("/teacher/schedule");
+      router.push("/teacher/timetable");
     } else if (isAdmin) {
       router.push("/admin/timetable");
     } else {
@@ -56,9 +56,10 @@ const TodayTimetableCard = () => {
           transform: [{ scale: pressed ? 0.98 : 1 }],
           opacity: pressed ? 0.9 : 1,
         },
+        style,
       ]}
       accessibilityRole="button"
-      accessibilityLabel={t("timetable.todayTitle", "Today's Timetable")}
+      accessibilityLabel={t("timetable.title", "Timetable")}
     >
       {/* Left Icon Container */}
       <View
@@ -78,8 +79,8 @@ const TodayTimetableCard = () => {
       {/* Center Title & Subtitle */}
       <View style={styles.textContainer}>
         <View style={styles.titleRow}>
-          <Text style={[styles.title, { color: colors.onSurface }]}>
-            {t("timetable.todayTitle", "Today's Timetable")}
+          <Text style={[styles.title, { color: colors.onSurface }]} numberOfLines={1}>
+            {t("timetable.title", "Timetable")}
           </Text>
           <View
             style={[
@@ -101,10 +102,10 @@ const TodayTimetableCard = () => {
           numberOfLines={1}
         >
           {isTeacher
-            ? "View your teaching schedule & classes"
+            ? t("timetable.teacherSubtitle", "View your teaching schedule & classes")
             : isAdmin
-            ? "View school-wide class timetables"
-            : "Tap to view your complete daily schedule"}
+            ? t("timetable.adminSubtitle", "View school-wide class timetables")
+            : t("timetable.studentSubtitle", "View class schedule & periods")}
         </Text>
       </View>
 
@@ -134,9 +135,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 14,
-    borderRadius: 18,
+    borderRadius: 16,
     borderWidth: 1,
-    marginBottom: 16,
     gap: 12,
   },
   iconWrap: {
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
   },
   title: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   dateBadge: {
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
   },
   subtitle: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
   },
   actionButton: {

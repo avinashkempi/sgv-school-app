@@ -122,7 +122,7 @@ const StudentDashboard = () => {
       {/* ═════════════════════════════════════════════════════════════ */}
       {/* CARD 2: Today's Timetable (Second Section)                   */}
       {/* ═════════════════════════════════════════════════════════════ */}
-      <TodayTimetableCard />
+      <TodayTimetableCard style={{ marginBottom: 14 }} />
 
       {/* ═════════════════════════════════════════════════════════════ */}
       {/* CARD 3: Academic Performance (Pastel Sky / Cyan Theme)       */}

@@ -515,7 +515,7 @@ const localStyles = StyleSheet.create({
     marginTop: 4,
   },
   sectionTitle: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
     letterSpacing: 0.1,
   },
@@ -531,7 +531,7 @@ const localStyles = StyleSheet.create({
     marginBottom: 12,
   },
   chartTitle: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   chartBarContainer: {

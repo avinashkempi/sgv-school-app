@@ -626,7 +626,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 4,
+    paddingHorizontal: 16,
     marginBottom: 12,
   },
   titleGroup: {
@@ -664,7 +664,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
   },
   scrollContent: {
-    paddingHorizontal: 2,
+    paddingHorizontal: 16,
     gap: 12,
     paddingVertical: 2,
   },

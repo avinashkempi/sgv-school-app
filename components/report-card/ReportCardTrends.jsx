@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   deltaText: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.bold,
   },
   inspectorBanner: {

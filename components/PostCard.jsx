@@ -402,6 +402,7 @@ const PostCard = ({ post, isAdmin, onEdit, onDelete, onTogglePin }) => {
                   styles.postedByText,
                   { color: colors.onSurfaceVariant },
                 ]}
+                numberOfLines={1}
               >
                 {formatUserName(post.postedBy.name)}
               </Text>
@@ -506,14 +507,14 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.medium,
   },
   timeText: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
     marginLeft: "auto",
   },
   title: {
     fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
-    lineHeight: LINE_HEIGHTS.lg,
+    lineHeight: LINE_HEIGHTS.md,
     marginBottom: 4,
   },
   description: {
@@ -533,7 +534,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   postedByText: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.medium,
   },
   adminMenuButton: {

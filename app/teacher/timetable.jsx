@@ -126,9 +126,11 @@ export default function SchoolTimetableScreen() {
             onRefresh={onRefresh}
           />
         }
-        contentContainerStyle={{ paddingBottom: 24 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 32 }}
+        showsVerticalScrollIndicator={false}
+        scrollsToTop={true}
       >
-        <View style={{ padding: 16, paddingTop: 24 }}>
+        <View>
           <AppHeader
             title={t("teacher.timetableTitle", "School Timetable")}
             subtitle={t("teacher.timetableSubtitle", "All classes schedule")}

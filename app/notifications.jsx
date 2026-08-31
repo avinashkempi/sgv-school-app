@@ -1196,7 +1196,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   headerBadgeText: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.bold,
     textTransform: "uppercase",
     letterSpacing: 0.3,
@@ -1248,7 +1248,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   filterCountText: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.bold,
   },
 

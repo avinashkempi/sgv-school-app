@@ -113,15 +113,15 @@ export default function UserDetailModal({ visible, onClose, user }) {
               <View
                 style={{
                   backgroundColor: getRoleColor(user.role) + "20",
-                  paddingHorizontal: 12,
-                  paddingVertical: 4,
+                  paddingHorizontal: 10,
+                  paddingVertical: 3,
                   borderRadius: 100,
                   marginTop: 4,
                 }}
               >
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.sm,
+                    fontSize: FONT_SIZES.micro,
                     fontFamily: FONTS.bold,
                     color: getRoleColor(user.role),
                   }}
@@ -176,7 +176,7 @@ export default function UserDetailModal({ visible, onClose, user }) {
             )}
 
             {/* Role Specific Details - Student */}
-            {(user.role === "student" || !user.role) && (
+            {(user.role === "student" || (!user.role && !user.designation && !user.joiningDate)) && (
               <>
                 <DetailSection title="ACADEMIC & IDENTITY">
                   <View style={{ flexDirection: "row", gap: 16 }}>
@@ -253,7 +253,8 @@ export default function UserDetailModal({ visible, onClose, user }) {
             {/* Role Specific Details - Teacher/Staff */}
             {(user.role === "teacher" ||
               user.role === "staff" ||
-              user.role === "support_staff") && (
+              user.role === "support_staff" ||
+              (Boolean(user.designation) && user.role !== "student")) && (
               <DetailSection title="EMPLOYMENT DETAILS">
                 <DetailRow
                   label="Designation"

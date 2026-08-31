@@ -172,7 +172,7 @@ const TextInput = ({
       {error && (
         <Text
           style={[
-            styles.bodySmall,
+            styles.caption,
             { color: colors.error, marginTop: 4, marginLeft: 4 },
           ]}
         >

@@ -51,7 +51,8 @@ const CATEGORIES = [
 export default function VibesScreen() {
   const router = useRouter();
   const searchParams = useLocalSearchParams();
-  const { colors, styles: themeStyles } = useTheme();
+  const { colors, styles: themeStyles, mode } = useTheme();
+  const isDark = mode === "dark";
   const { user, isAuthenticated } = useAuth();
   const { showToast } = useToast();
   const { isConnected, isSlow } = useNetworkQuality();
@@ -590,9 +591,9 @@ export default function VibesScreen() {
 
           {/* Rejection Note */}
           {item.status === "rejected" && item.rejectionReason && (
-            <View style={[styles.rejectionBox, { backgroundColor: "#FEF2F2" }]}>
+            <View style={[styles.rejectionBox, { backgroundColor: isDark ? "rgba(220,38,38,0.15)" : "#FEF2F2" }]}>
               <Text style={styles.rejectionTitle}>Admin Feedback:</Text>
-              <Text style={styles.rejectionReason}>{item.rejectionReason}</Text>
+              <Text style={[styles.rejectionReason, { color: colors.onSurfaceVariant }]} numberOfLines={3}>{item.rejectionReason}</Text>
             </View>
           )}
 
@@ -616,6 +617,7 @@ export default function VibesScreen() {
     },
     [
       colors,
+      isDark,
       user,
       isAdmin,
       handleLike,
@@ -1475,6 +1477,7 @@ const styles = StyleSheet.create({
   },
   segmentText: {
     fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.medium,
   },
   feedHeaderContainer: {
     paddingBottom: 4,
@@ -1639,7 +1642,6 @@ const styles = StyleSheet.create({
   rejectionReason: {
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
-    color: "#333",
     marginTop: 2,
   },
   extendedFab: {

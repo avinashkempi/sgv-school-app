@@ -4,10 +4,10 @@ import {
   Text,
   ScrollView,
   Pressable,
-  RefreshControl,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
+import AppRefreshControl from "../../components/ui/AppRefreshControl";
 import { useRouter } from "expo-router";
 import { useTheme, FONTS, FONT_SIZES } from "../../theme";
 import { useApiQuery } from "../../hooks/useApi";
@@ -129,19 +129,17 @@ export default function StudentTimetableScreen() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[colors.primary]}
-          />
+          <AppRefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        contentContainerStyle={{ paddingBottom: 24 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 32 }}
+        showsVerticalScrollIndicator={false}
+        scrollsToTop={true}
       >
-        <View style={{ padding: 16, paddingTop: 24 }}>
+        <View>
           <AppHeader title="My Timetable" subtitle="Class Schedule" showBack />
 
           {/* Day Tabs */}
-          <View style={{ marginTop: 24 }}>
+          <View style={{ marginTop: 16 }}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View style={{ flexDirection: "row", gap: 8 }}>
                 {DAYS.map((day) => (
@@ -165,6 +163,7 @@ export default function StudentTimetableScreen() {
                   >
                     <Text
                       style={{
+                        fontSize: FONT_SIZES.sm,
                         color:
                           selectedDay === day
                             ? colors.onSecondaryContainer
@@ -303,7 +302,7 @@ export default function StudentTimetableScreen() {
                   />
 
                   {/* Details Column */}
-                  <View style={{ flex: 1, justifyContent: "center" }}>
+                  <View style={{ flex: 1, minWidth: 0, justifyContent: "center" }}>
                     <Text
                       style={{
                         fontSize: FONT_SIZES.md,
@@ -311,6 +310,7 @@ export default function StudentTimetableScreen() {
                         color: colors.onSurface,
                         marginBottom: 4,
                       }}
+                      numberOfLines={1}
                     >
                       {period.subject?.name || t("common.subject", "Subject")}
                     </Text>
@@ -319,6 +319,7 @@ export default function StudentTimetableScreen() {
                         flexDirection: "row",
                         alignItems: "center",
                         gap: 12,
+                        flexWrap: "wrap",
                       }}
                     >
                       <View
@@ -326,6 +327,7 @@ export default function StudentTimetableScreen() {
                           flexDirection: "row",
                           alignItems: "center",
                           gap: 6,
+                          minWidth: 0,
                         }}
                       >
                         <UserAvatar
@@ -336,9 +338,11 @@ export default function StudentTimetableScreen() {
                         />
                         <Text
                           style={{
-                            fontSize: FONT_SIZES.sm,
+                            fontSize: FONT_SIZES.xs,
+                            fontFamily: FONTS.medium,
                             color: colors.onSurfaceVariant,
                           }}
+                          numberOfLines={1}
                         >
                           {formatUserName(period.teacher?.name, t("common.teacher", "Teacher"))}
                         </Text>
@@ -358,7 +362,8 @@ export default function StudentTimetableScreen() {
                           />
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.sm,
+                              fontSize: FONT_SIZES.xs,
+                              fontFamily: FONTS.regular,
                               color: colors.onSurfaceVariant,
                             }}
                           >

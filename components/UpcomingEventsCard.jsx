@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   eventTitle: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
     marginBottom: 2,
   },
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
   },
   eventDateSubtext: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.medium,
   },
 });

@@ -15,7 +15,6 @@ import MenuHeroProfile from "../components/menu/MenuHeroProfile";
 import MenuCategorySection from "../components/menu/MenuCategorySection";
 import SchoolContactSection from "../components/menu/SchoolContactSection";
 import SchoolInfoModal from "../components/menu/SchoolInfoModal";
-import PrivacyPolicyModal from "../components/menu/PrivacyPolicyModal";
 import LogoutConfirmModal from "../components/menu/LogoutConfirmModal";
 import MenuPreferences from "../components/menu/MenuPreferences";
 import MenuFooter from "../components/menu/MenuFooter";
@@ -32,7 +31,6 @@ export default function MenuScreen() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
-  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
   // Mobile standard gestures
   useTabScrollToTop(scrollRef, "/menu");
@@ -133,10 +131,8 @@ export default function MenuScreen() {
           />
         </View>
 
-        {/* 3. Preferences & Privacy */}
-        <MenuPreferences
-          onOpenPrivacyPolicy={() => setShowPrivacyModal(true)}
-        />
+        {/* 3. Preferences */}
+        <MenuPreferences />
 
         {/* 4. School Information, Mission & Direct Connect */}
         <SchoolContactSection onOpenAbout={() => setShowAboutModal(true)} />
@@ -158,11 +154,6 @@ export default function MenuScreen() {
         onClose={() => setShowAboutModal(false)}
       />
 
-      <PrivacyPolicyModal
-        visible={showPrivacyModal}
-        onClose={() => setShowPrivacyModal(false)}
-      />
-
       <LogoutConfirmModal
         visible={showLogoutModal}
         isLoading={isLoggingOut}
@@ -175,12 +166,12 @@ export default function MenuScreen() {
 
 const localStyles = StyleSheet.create({
   headerWrapper: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingHorizontal: 16,
+    paddingTop: 12,
     paddingBottom: 4,
   },
   scrollContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingHorizontal: 16,
+    paddingTop: 8,
   },
 });

@@ -920,12 +920,14 @@ export default function StudentReportCardScreen() {
               </View>
             </View>
 
-            {/* 4-Stat Metric Grid */}
+            {/* 4-Stat Metric Grid (2x2 Clean Layout) */}
             <View style={styles.kpiGrid}>
               {/* Stat 1: Class Rank */}
               <View style={styles.kpiBox}>
-                <MaterialIcons name="emoji-events" size={16} color="#FBBF24" />
-                <Text style={styles.kpiLabel}>CLASS RANK</Text>
+                <View style={styles.kpiTopRow}>
+                  <MaterialIcons name="emoji-events" size={16} color="#FBBF24" />
+                  <Text style={styles.kpiLabel}>CLASS RANK</Text>
+                </View>
                 <Text style={styles.kpiValue}>
                   {overall.classRank ? `#${overall.classRank}` : "-"}
                   {overall.totalInClass ? (
@@ -938,8 +940,10 @@ export default function StudentReportCardScreen() {
 
               {/* Stat 2: Total Marks */}
               <View style={styles.kpiBox}>
-                <MaterialIcons name="assessment" size={16} color="#60A5FA" />
-                <Text style={styles.kpiLabel}>MARKS SCORED</Text>
+                <View style={styles.kpiTopRow}>
+                  <MaterialIcons name="assessment" size={16} color="#60A5FA" />
+                  <Text style={styles.kpiLabel}>MARKS SCORED</Text>
+                </View>
                 <Text style={styles.kpiValue}>
                   {overall.totalMarksScored || exams.reduce((acc, curr) => acc + (curr.totalObtained || 0), 0) || 0}
                   {(overall.totalMaxMarks || exams.reduce((acc, curr) => acc + (curr.totalMax || 0), 0)) ? (
@@ -952,8 +956,10 @@ export default function StudentReportCardScreen() {
 
               {/* Stat 3: Attendance */}
               <View style={styles.kpiBox}>
-                <MaterialIcons name="event-available" size={16} color="#34D399" />
-                <Text style={styles.kpiLabel}>ATTENDANCE</Text>
+                <View style={styles.kpiTopRow}>
+                  <MaterialIcons name="event-available" size={16} color="#34D399" />
+                  <Text style={styles.kpiLabel}>ATTENDANCE</Text>
+                </View>
                 <Text style={styles.kpiValue}>
                   {attendance.percentage !== null && attendance.percentage !== undefined
                     ? `${attendance.percentage}%`
@@ -963,8 +969,10 @@ export default function StudentReportCardScreen() {
 
               {/* Stat 4: Class Benchmark */}
               <View style={styles.kpiBox}>
-                <MaterialIcons name="pie-chart" size={16} color="#F472B6" />
-                <Text style={styles.kpiLabel}>CLASS AVG</Text>
+                <View style={styles.kpiTopRow}>
+                  <MaterialIcons name="pie-chart" size={16} color="#F472B6" />
+                  <Text style={styles.kpiLabel}>CLASS AVG</Text>
+                </View>
                 <Text style={styles.kpiValue}>
                   {reportCard?.classStatistics?.classAverage || 68.4}%
                 </Text>
@@ -1212,32 +1220,38 @@ const styles = StyleSheet.create({
   },
   kpiGrid: {
     flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "space-between",
     marginTop: 18,
     paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: "rgba(255, 255, 255, 0.2)",
-    gap: 6,
+    gap: 10,
   },
   kpiBox: {
-    flex: 1,
-    alignItems: "center",
+    width: "48%",
+    alignItems: "flex-start",
     backgroundColor: "rgba(255, 255, 255, 0.12)",
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.18)",
     paddingVertical: 10,
-    paddingHorizontal: 4,
-    borderRadius: 12,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+  },
+  kpiTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 4,
   },
   kpiLabel: {
     fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
     color: "rgba(255, 255, 255, 0.85)",
-    marginTop: 3,
-    letterSpacing: 0.5,
+    letterSpacing: 0.4,
   },
   kpiValue: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
     color: "#FFFFFF",
     marginTop: 2,
@@ -1263,8 +1277,63 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     paddingVertical: 8,
   },
+  tabText: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.medium,
+  },
   tabBtnText: {
     fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
+  },
+  tabContent: {
+    paddingBottom: 24,
+  },
+  filterScroll: {
+    paddingVertical: 6,
+    gap: 8,
+    marginBottom: 16,
+  },
+  filterChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 100,
+    borderWidth: 1,
+  },
+  filterChipText: {
+    fontSize: FONT_SIZES.sm,
+  },
+  filterDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+  },
+  examList: {
+    gap: 14,
+  },
+  examCard: {
+    borderRadius: 18,
+    overflow: "hidden",
+    borderWidth: 1,
+  },
+  examHeader: {
+    padding: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  examTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flexWrap: "wrap",
+    marginBottom: 4,
+  },
+  examTypeName: {
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   tabCountBadge: {
@@ -1326,7 +1395,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   weightBadgeText: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.bold,
   },
   statusPill: {
@@ -1338,7 +1407,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   statusPillText: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.bold,
   },
   highlightRow: {
@@ -1471,6 +1540,35 @@ const styles = StyleSheet.create({
   insightsTabContainer: {
     gap: 18,
   },
+  insightCard: {
+    padding: 16,
+    borderRadius: 18,
+    marginBottom: 16,
+  },
+  cardHeader: {
+    marginBottom: 16,
+  },
+  cardTitle: {
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.bold,
+  },
+  cardSub: {
+    fontSize: FONT_SIZES.xs,
+    marginTop: 2,
+  },
+  diagSection: {
+    gap: 8,
+  },
+  diagTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 4,
+  },
+  diagHeading: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
+  },
   diagnosticsCard: {
     padding: 16,
     borderRadius: 18,
@@ -1508,14 +1606,20 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: 8,
+    padding: 10,
     borderRadius: 10,
+    borderWidth: 1,
   },
   diagSubject: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.medium,
     flex: 1,
-    marginRight: 4,
+    marginRight: 8,
+  },
+  diagScoreRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   diagScore: {
     fontSize: FONT_SIZES.sm,
@@ -1546,6 +1650,7 @@ const styles = StyleSheet.create({
   diagEmpty: {
     fontSize: FONT_SIZES.xs,
     fontStyle: "italic",
+    paddingVertical: 8,
   },
   consistencyBox: {
     flexDirection: "row",

@@ -450,7 +450,7 @@ export default function AttendanceView({
   if (loading && !summary && attendanceHistory.length === 0) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={{ paddingHorizontal: 20, paddingTop: 16 }}>
+        <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
           <Header title={title} subtitle={subtitle} />
         </View>
         <View style={styles.centerLoading}>
@@ -1489,8 +1489,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   headerContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingHorizontal: 16,
+    paddingTop: 12,
   },
 
   // HERO GAUGE CARD
@@ -1723,7 +1723,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   subjectName: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   subjectClassCount: {
@@ -1742,7 +1742,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   lowBadgeText: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.bold,
   },
   subjectProgressTrack: {
@@ -1804,19 +1804,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   inspectorDateText: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   holidayBadgePill: {
     backgroundColor: "#FEF3C7",
     borderWidth: 1,
     borderColor: "#F59E0B",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderRadius: 12,
   },
   holidayBadgePillText: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.bold,
     color: "#B45309",
   },
@@ -1824,12 +1824,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#EDE9FE",
     borderWidth: 1,
     borderColor: "#8B5CF6",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderRadius: 12,
   },
   sundayBadgePillText: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.bold,
     color: "#6D28D9",
   },

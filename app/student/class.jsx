@@ -11,7 +11,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { useTheme, FONTS, FONT_SIZES } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import apiConfig from "../../config/apiConfig";
 import Header from "../../components/Header";
 import { useLabel } from "../../context/LabelsContext";
@@ -25,16 +25,7 @@ import UserAvatar from "../../components/ui/UserAvatar";
 import SegmentedControl from "../../components/SegmentedControl";
 import UserDetailModal from "../../components/UserDetailModal";
 import ClassMediaAttachmentViewer from "../../components/class/ClassMediaAttachmentViewer";
-
-const DAYS = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-];
+import TodayTimetableCard from "../../components/home/TodayTimetableCard";
 
 const getSubjectStyling = (subjectName = "") => {
   const name = subjectName.toLowerCase();
@@ -213,17 +204,6 @@ export default function StudentClassScreen() {
     { ...CACHE_TIERS.MODERATE, enabled: !!classId }
   );
 
-  // 3. Fetch Timetable for Today's Schedule Preview
-  const {
-    data: timetableData,
-    isLoading: _loadingTimetable,
-    refetch: refetchTimetable,
-  } = useApiQuery(
-    ["studentTimetableSchedule", userId],
-    `${apiConfig.baseUrl}/timetable/my-timetable`,
-    { ...CACHE_TIERS.STABLE, enabled: !!userId }
-  );
-
   const classData = data?.classData;
   const subjects = useMemo(() => data?.subjects || [], [data?.subjects]);
   const students = useMemo(() => data?.students || [], [data?.students]);
@@ -240,19 +220,6 @@ export default function StudentClassScreen() {
     });
     return { total, boys, girls };
   }, [students]);
-
-  // Today's Live Schedule resolution
-  const todaySchedule = useMemo(() => {
-    if (!timetableData?.schedule) return [];
-    const todayName = DAYS[new Date().getDay()];
-    const dayObj = timetableData.schedule.find(
-      (d) => d.day?.toLowerCase() === todayName.toLowerCase()
-    );
-    if (!dayObj || !dayObj.periods) return [];
-    return [...dayObj.periods].sort(
-      (a, b) => (a.periodNumber || 0) - (b.periodNumber || 0)
-    );
-  }, [timetableData]);
 
   // Filtered Subjects
   const filteredSubjects = useMemo(() => {
@@ -313,7 +280,7 @@ export default function StudentClassScreen() {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([refetchClass(), refetchFeed(), refetchTimetable()]);
+    await Promise.all([refetchClass(), refetchFeed()]);
     setRefreshing(false);
   };
 
@@ -363,18 +330,18 @@ export default function StudentClassScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView
         ref={scrollRef}
         refreshControl={
           <AppRefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
         scrollsToTop={true}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={{ paddingHorizontal: 16, paddingTop: 16 }}>
+        <View>
           <Header
             title={t("student.classroom", "Classroom")}
             subtitle={
@@ -430,8 +397,9 @@ export default function StudentClassScreen() {
                             localStyles.gradeBadgeText,
                             { color: colors.primary },
                           ]}
+                          numberOfLines={1}
                         >
-                          {classData.branch?.name || "Main Campus"}
+                          {classData.branch?.name || classData.branch || "Main Campus"}
                         </Text>
                       </View>
                       {classData.academicYear?.name && (
@@ -446,6 +414,7 @@ export default function StudentClassScreen() {
                               localStyles.gradeBadgeText,
                               { color: colors.onSecondaryContainer },
                             ]}
+                            numberOfLines={1}
                           >
                             {classData.academicYear.name}
                           </Text>
@@ -458,6 +427,8 @@ export default function StudentClassScreen() {
                         localStyles.heroClassName,
                         { color: colors.onSurface },
                       ]}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
                     >
                       {formatClassName(classData.name)}
                       {classData.section ? ` - ${classData.section}` : ""}
@@ -707,12 +678,6 @@ export default function StudentClassScreen() {
                     route: "/student/exam-schedule",
                   },
                   {
-                    title: t("student.timetable", "Timetable"),
-                    icon: "calendar-month",
-                    color: "#009688",
-                    route: "/student/timetable",
-                  },
-                  {
                     title: t("student.fees", "Fees"),
                     icon: "account-balance-wallet",
                     color: "#10B981",
@@ -764,129 +729,9 @@ export default function StudentClassScreen() {
               </View>
 
               {/* ───────────────────────────────────────────────────────── */}
-              {/* 3. TODAY'S CLASS SCHEDULE (LIVE MINI TIMETABLE)           */}
+              {/* 3. TIMETABLE NAVIGATION CARD                              */}
               {/* ───────────────────────────────────────────────────────── */}
-              {todaySchedule.length > 0 && (
-                <View
-                  style={[
-                    localStyles.todayScheduleCard,
-                    {
-                      backgroundColor: isDark
-                        ? colors.surfaceContainer
-                        : "#FFFFFF",
-                      borderColor: colors.outlineVariant,
-                    },
-                  ]}
-                >
-                  <View style={localStyles.todayScheduleHeader}>
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                      <View
-                        style={[
-                          localStyles.liveDotWrap,
-                          { backgroundColor: "#10B98120" },
-                        ]}
-                      >
-                        <View style={localStyles.liveDot} />
-                      </View>
-                      <Text
-                        style={[
-                          localStyles.todayScheduleTitle,
-                          { color: colors.onSurface },
-                        ]}
-                      >
-                        {t("student.todaySchedule", "Today's Schedule")}
-                      </Text>
-                      <Text
-                        style={[
-                          localStyles.todayScheduleDay,
-                          { color: colors.primary },
-                        ]}
-                      >
-                        • {DAYS[new Date().getDay()]}
-                      </Text>
-                    </View>
-
-                    <Pressable
-                      onPress={() => router.push("/student/timetable")}
-                      style={{ flexDirection: "row", alignItems: "center", gap: 2 }}
-                    >
-                      <Text
-                        style={{
-                          fontSize: FONT_SIZES.sm,
-                          fontFamily: FONTS.bold,
-                          color: colors.primary,
-                        }}
-                      >
-                        {t("student.viewFullTimetable", "Full Timetable")}
-                      </Text>
-                      <MaterialIcons
-                        name="chevron-right"
-                        size={18}
-                        color={colors.primary}
-                      />
-                    </Pressable>
-                  </View>
-
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{ gap: 8, paddingVertical: 4 }}
-                  >
-                    {todaySchedule.map((period, idx) => {
-                      const subjName = period.subject?.name || period.subjectName || "Subject";
-                      const styling = getSubjectStyling(subjName);
-                      return (
-                        <View
-                          key={`period-${idx}`}
-                          style={[
-                            localStyles.periodPill,
-                            {
-                              backgroundColor: isDark
-                                ? colors.surfaceContainerLowest
-                                : colors.surfaceContainerLow,
-                              borderColor: styling.color + "30",
-                            },
-                          ]}
-                        >
-                          <View
-                            style={[
-                              localStyles.periodIcon,
-                              { backgroundColor: styling.color + "18" },
-                            ]}
-                          >
-                            <MaterialIcons
-                              name={styling.icon}
-                              size={16}
-                              color={styling.color}
-                            />
-                          </View>
-                          <View>
-                            <Text
-                              style={[
-                                localStyles.periodSubj,
-                                { color: colors.onSurface },
-                              ]}
-                              numberOfLines={1}
-                            >
-                              {subjName}
-                            </Text>
-                            <Text
-                              style={[
-                                localStyles.periodTime,
-                                { color: colors.onSurfaceVariant },
-                              ]}
-                            >
-                              {period.startTime && period.endTime
-                                ? `${period.startTime} - ${period.endTime}`
-                                : `Period ${period.periodNumber || idx + 1}`}
-                            </Text>
-                          </View>
-                        </View>
-                      );
-                    })}
-                  </ScrollView>
-                </View>
-              )}
+              <TodayTimetableCard style={{ marginBottom: 14 }} />
 
               {/* ───────────────────────────────────────────────────────── */}
               {/* 4. 3-TAB SEGMENTED HUB CONTROL                            */}
@@ -895,17 +740,18 @@ export default function StudentClassScreen() {
                 tabs={[
                   {
                     key: "subjects",
-                    label: `${t("student.subjectsAndFaculty", "Subjects")} (${subjects.length})`,
+                    label: t("student.subjectsAndFaculty", "Subjects"),
+                    count: subjects.length,
                   },
                   {
                     key: "feed",
-                    label: `${t("student.classFeed", "Feed & Notes")}${
-                      feedContent.length > 0 ? ` (${feedContent.length})` : ""
-                    }`,
+                    label: t("student.classFeed", "Feed & Notes"),
+                    count: feedContent.length,
                   },
                   {
                     key: "classmates",
-                    label: `${t("student.classmatesRoster", "Classmates")} (${students.length})`,
+                    label: t("student.classmatesRoster", "Classmates"),
+                    count: students.length,
                   },
                 ]}
                 activeTab={activeTab}
@@ -1392,7 +1238,7 @@ export default function StudentClassScreen() {
                         >
                           {/* Post Header: Type Badge, Subject & Date */}
                           <View style={localStyles.feedCardHeader}>
-                            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flex: 1, minWidth: 0, marginRight: 8 }}>
                               <View
                                 style={[
                                   localStyles.feedTypeBadge,
@@ -1409,6 +1255,7 @@ export default function StudentClassScreen() {
                                     localStyles.feedTypeBadgeText,
                                     { color: typeConfig.color },
                                   ]}
+                                  numberOfLines={1}
                                 >
                                   {typeConfig.label}
                                 </Text>
@@ -1439,6 +1286,7 @@ export default function StudentClassScreen() {
                                 localStyles.feedDateText,
                                 { color: colors.onSurfaceVariant },
                               ]}
+                              numberOfLines={1}
                             >
                               {formatPostDate(item.createdAt)}
                             </Text>
@@ -1450,6 +1298,7 @@ export default function StudentClassScreen() {
                               localStyles.feedTitle,
                               { color: colors.onSurface },
                             ]}
+                            numberOfLines={2}
                           >
                             {item.title}
                           </Text>
@@ -1461,6 +1310,7 @@ export default function StudentClassScreen() {
                                 localStyles.feedDescription,
                                 { color: colors.onSurfaceVariant },
                               ]}
+                              numberOfLines={4}
                             >
                               {item.description}
                             </Text>
@@ -1591,17 +1441,12 @@ export default function StudentClassScreen() {
                   ) : (
                     <View style={localStyles.classmatesGrid}>
                       {filteredClassmates.map((student) => {
-                        const isBoy =
-                          (student.gender || "").toLowerCase() === "male" ||
-                          (student.gender || "").toLowerCase() === "boy" ||
-                          (student.gender || "").toLowerCase() === "m";
                         const isCurrentStudent = student._id === userId;
 
                         return (
-                          <Pressable
+                          <View
                             key={student._id}
-                            onPress={() => handleOpenUserModal(student)}
-                            style={({ pressed }) => [
+                            style={[
                               localStyles.classmateCard,
                               {
                                 backgroundColor: isDark
@@ -1612,11 +1457,8 @@ export default function StudentClassScreen() {
                                   : isDark
                                   ? colors.outlineVariant
                                   : "rgba(0,0,0,0.06)",
-                                opacity: pressed ? 0.9 : 1,
                               },
                             ]}
-                            accessibilityRole="button"
-                            accessibilityLabel={`View student profile of ${student.name}`}
                           >
                             <UserAvatar
                               photoUrl={student.profilePhoto}
@@ -1659,60 +1501,8 @@ export default function StudentClassScreen() {
                                   </View>
                                 )}
                               </View>
-
-                              <View
-                                style={{
-                                  flexDirection: "row",
-                                  alignItems: "center",
-                                  gap: 8,
-                                  marginTop: 3,
-                                }}
-                              >
-                                {student.regNo || student.satsNumber ? (
-                                  <Text
-                                    style={[
-                                      localStyles.classmateRegNo,
-                                      { color: colors.onSurfaceVariant },
-                                    ]}
-                                  >
-                                    ID: {student.regNo || student.satsNumber}
-                                  </Text>
-                                ) : null}
-
-                                <View
-                                  style={[
-                                    localStyles.genderPill,
-                                    {
-                                      backgroundColor: isBoy
-                                        ? "rgba(59, 130, 246, 0.12)"
-                                        : "rgba(236, 72, 153, 0.12)",
-                                    },
-                                  ]}
-                                >
-                                  <MaterialIcons
-                                    name={isBoy ? "male" : "female"}
-                                    size={13}
-                                    color={isBoy ? "#3B82F6" : "#EC4899"}
-                                  />
-                                  <Text
-                                    style={{
-                                      fontSize: FONT_SIZES.xs,
-                                      fontFamily: FONTS.bold,
-                                      color: isBoy ? "#3B82F6" : "#EC4899",
-                                    }}
-                                  >
-                                    {isBoy ? "Boy" : "Girl"}
-                                  </Text>
-                                </View>
-                              </View>
                             </View>
-
-                            <MaterialIcons
-                              name="chevron-right"
-                              size={22}
-                              color={colors.onSurfaceVariant + "60"}
-                            />
-                          </Pressable>
+                          </View>
                         );
                       })}
                     </View>
@@ -1769,7 +1559,7 @@ const localStyles = StyleSheet.create({
     fontFamily: FONTS.regular,
     marginTop: 8,
     textAlign: "center",
-    lineHeight: 22,
+    lineHeight: LINE_HEIGHTS.sm,
   },
   heroBanner: {
     borderRadius: 20,
@@ -1800,25 +1590,25 @@ const localStyles = StyleSheet.create({
   gradeBadge: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 9,
-    paddingVertical: 3.5,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderRadius: 6,
     gap: 4,
   },
   gradeBadgeText: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.bold,
-    letterSpacing: 0.3,
+    letterSpacing: LETTER_SPACINGS.micro,
   },
   heroClassName: {
-    fontSize: FONT_SIZES.xl,
+    fontSize: FONT_SIZES.lg,
     fontFamily: FONTS.bold,
     marginTop: 2,
   },
   heroClassIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
+    width: 48,
+    height: 48,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -1828,40 +1618,42 @@ const localStyles = StyleSheet.create({
   },
   heroStatCard: {
     flex: 1,
+    minWidth: 0,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 4,
+    paddingVertical: 10,
+    paddingHorizontal: 2,
     borderRadius: 12,
     gap: 2,
   },
   heroStatNum: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   heroStatLabel: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.medium,
   },
   teacherSpotlight: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 14,
+    padding: 12,
     borderRadius: 14,
     borderWidth: 1,
     gap: 12,
   },
   teacherBadge: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.bold,
-    letterSpacing: 0.5,
+    letterSpacing: LETTER_SPACINGS.xs,
   },
   teacherName: {
     fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
+    flexShrink: 1,
   },
   teacherEmail: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
   },
   teacherInfoAction: {
@@ -1877,9 +1669,10 @@ const localStyles = StyleSheet.create({
   },
   shortcutCard: {
     flex: 1,
+    minWidth: 0,
     alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 4,
+    paddingVertical: 12,
+    paddingHorizontal: 2,
     borderRadius: 14,
     borderWidth: 1,
     gap: 6,
@@ -1890,69 +1683,16 @@ const localStyles = StyleSheet.create({
     elevation: 1,
   },
   shortcutIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
   },
   shortcutTitle: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
     textAlign: "center",
-  },
-  todayScheduleCard: {
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    gap: 10,
-  },
-  todayScheduleHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  liveDotWrap: {
-    padding: 4,
-    borderRadius: 10,
-  },
-  liveDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    backgroundColor: "#10B981",
-  },
-  todayScheduleTitle: {
-    fontSize: FONT_SIZES.sm,
-    fontFamily: FONTS.bold,
-  },
-  todayScheduleDay: {
-    fontSize: FONT_SIZES.sm,
-    fontFamily: FONTS.medium,
-  },
-  periodPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
-    borderWidth: 1,
-    gap: 8,
-  },
-  periodIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  periodSubj: {
-    fontSize: FONT_SIZES.sm,
-    fontFamily: FONTS.bold,
-  },
-  periodTime: {
-    fontSize: FONT_SIZES.xs,
-    fontFamily: FONTS.regular,
   },
   searchBarWrap: {
     flexDirection: "row",
@@ -1994,9 +1734,9 @@ const localStyles = StyleSheet.create({
     elevation: 1,
   },
   subjectIconBox: {
-    width: 52,
-    height: 52,
-    borderRadius: 14,
+    width: 48,
+    height: 48,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
@@ -2004,14 +1744,15 @@ const localStyles = StyleSheet.create({
   subjectCardName: {
     fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
+    flexShrink: 1,
   },
   codeBadge: {
-    paddingHorizontal: 7,
+    paddingHorizontal: 6,
     paddingVertical: 1.5,
     borderRadius: 4,
   },
   codeBadgeText: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.bold,
   },
   subjectTeacherRow: {
@@ -2021,11 +1762,11 @@ const localStyles = StyleSheet.create({
     marginTop: 4,
   },
   subjectTeacherText: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.medium,
   },
   noTeacherText: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
     marginTop: 3,
   },
@@ -2047,14 +1788,15 @@ const localStyles = StyleSheet.create({
   },
   filterChipText: {
     fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.medium,
   },
   subjectFilterPill: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 8,
   },
   subjectFilterPillText: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
   },
   emptyFeedCard: {
@@ -2064,13 +1806,13 @@ const localStyles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderStyle: "dashed",
-    borderColor: "rgba(0,0,0,0.12)",
+    borderColor: "rgba(128,128,128,0.25)",
     gap: 8,
   },
   emptyFeedIconCircle: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 4,
@@ -2084,7 +1826,7 @@ const localStyles = StyleSheet.create({
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
     textAlign: "center",
-    lineHeight: 22,
+    lineHeight: LINE_HEIGHTS.sm,
     maxWidth: 320,
   },
   feedCard: {
@@ -2106,39 +1848,39 @@ const localStyles = StyleSheet.create({
   feedTypeBadge: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingHorizontal: 7,
+    paddingVertical: 2.5,
     borderRadius: 6,
     gap: 4,
   },
   feedTypeBadgeText: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.bold,
-    letterSpacing: 0.4,
+    letterSpacing: LETTER_SPACINGS.xs,
   },
   feedSubjectTag: {
-    paddingHorizontal: 9,
-    paddingVertical: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 2.5,
     borderRadius: 6,
     maxWidth: 150,
   },
   feedSubjectTagText: {
-    fontSize: FONT_SIZES.sm,
-    fontFamily: FONTS.medium,
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.bold,
   },
   feedDateText: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
   },
   feedTitle: {
     fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
-    lineHeight: 24,
+    lineHeight: LINE_HEIGHTS.md,
   },
   feedDescription: {
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
-    lineHeight: 22,
+    lineHeight: LINE_HEIGHTS.sm,
   },
   authorFooter: {
     flexDirection: "row",
@@ -2146,10 +1888,10 @@ const localStyles = StyleSheet.create({
     gap: 8,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: "rgba(0,0,0,0.06)",
+    borderTopColor: "rgba(128,128,128,0.15)",
   },
   authorNameText: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
   },
   classmateSummaryBar: {
@@ -2159,7 +1901,7 @@ const localStyles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   classmateCountText: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.medium,
   },
   classmatesGrid: {
@@ -2176,6 +1918,7 @@ const localStyles = StyleSheet.create({
   classmateName: {
     fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
+    flexShrink: 1,
   },
   youBadge: {
     paddingHorizontal: 6,
@@ -2183,11 +1926,11 @@ const localStyles = StyleSheet.create({
     borderRadius: 4,
   },
   youBadgeText: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.bold,
   },
   classmateRegNo: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
   },
   genderPill: {

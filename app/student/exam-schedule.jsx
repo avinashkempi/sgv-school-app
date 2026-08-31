@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  RefreshControl,
   ActivityIndicator,
   Pressable,
   Animated,
@@ -19,6 +18,7 @@ import apiConfig from "../../config/apiConfig";
 import Header from "../../components/Header";
 import { useLabel } from "../../context/LabelsContext";
 import ExamTimeline from "../../components/ExamTimeline";
+import AppRefreshControl from "../../components/ui/AppRefreshControl";
 
 /**
  * Student Exam Schedule Screen — Enhanced
@@ -63,7 +63,7 @@ export default function StudentExamScheduleScreen() {
   } = useApiQuery(
     ["studentExamSchedule", userId],
     `${apiConfig.baseUrl}/exams/schedule/student`,
-    CACHE_TIERS.STABLE
+    { ...CACHE_TIERS.MODERATE, refetchOnMount: true }
   );
 
   const exams = examsData || [];
@@ -155,15 +155,13 @@ export default function StudentExamScheduleScreen() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[colors.primary]}
-          />
+          <AppRefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        contentContainerStyle={{ paddingBottom: 24 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 32 }}
+        showsVerticalScrollIndicator={false}
+        scrollsToTop={true}
       >
-        <View style={{ padding: 16, paddingTop: 24 }}>
+        <View>
           <Header
             title={t("student.examSchedule", "Exam Schedule")}
             subtitle={t("student.stayOnTopExams", "Stay on top of your exams")}

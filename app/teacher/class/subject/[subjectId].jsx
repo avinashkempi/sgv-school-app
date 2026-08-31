@@ -332,7 +332,7 @@ export default function SubjectDetailScreen() {
                             />
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.xs,
+                                fontSize: FONT_SIZES.micro,
                                 fontFamily: FONTS.bold,
                                 color: typeColor,
                                 textTransform: "uppercase",
@@ -347,7 +347,7 @@ export default function SubjectDetailScreen() {
                         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.sm,
+                              fontSize: FONT_SIZES.xs,
                               fontFamily: FONTS.regular,
                               color: colors.onSurfaceVariant,
                             }}
@@ -376,7 +376,7 @@ export default function SubjectDetailScreen() {
                           fontSize: FONT_SIZES.md,
                           fontFamily: FONTS.bold,
                           color: colors.onSurface,
-                          lineHeight: 24,
+                          lineHeight: 22,
                         }}
                       >
                         {item.title}
@@ -388,7 +388,7 @@ export default function SubjectDetailScreen() {
                             fontSize: FONT_SIZES.sm,
                             fontFamily: FONTS.regular,
                             color: colors.onSurfaceVariant,
-                            lineHeight: 22,
+                            lineHeight: 20,
                           }}
                         >
                           {item.description}
@@ -433,7 +433,7 @@ export default function SubjectDetailScreen() {
                           />
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.sm,
+                              fontSize: FONT_SIZES.xs,
                               color: colors.onSurfaceVariant,
                               fontFamily: FONTS.regular,
                             }}

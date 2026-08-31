@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  RefreshControl,
   ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -18,6 +17,7 @@ import { useToast } from "../components/ToastProvider";
 import Header from "../components/Header";
 import Card from "../components/Card";
 import { formatClassName } from "../utils/formatClassName";
+import AppRefreshControl from "../components/ui/AppRefreshControl";
 
 export default function SubjectsScreen() {
   const router = useRouter();
@@ -165,8 +165,9 @@ export default function SubjectsScreen() {
                 </Text>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.sm,
+                    fontSize: FONT_SIZES.xs,
                     color: colors.onSurfaceVariant,
+                    fontFamily: FONTS.regular,
                     marginTop: 2,
                   }}
                 >
@@ -277,15 +278,16 @@ export default function SubjectsScreen() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView
         refreshControl={
-          <RefreshControl
+          <AppRefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[colors.primary]}
           />
         }
-        contentContainerStyle={{ paddingBottom: 24 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 32 }}
+        showsVerticalScrollIndicator={false}
+        scrollsToTop={true}
       >
-        <View style={{ padding: 16, paddingTop: 24 }}>
+        <View>
           <Header title="Subjects" subtitle="Access your course materials" />
 
           {loading ? (

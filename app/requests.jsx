@@ -128,7 +128,7 @@ export default function RequestsScreen() {
           </Text>
           <Text
             style={{
-              fontSize: FONT_SIZES.sm,
+              fontSize: FONT_SIZES.xs,
               color: colors.onSurfaceVariant,
               fontFamily: FONTS.regular,
             }}

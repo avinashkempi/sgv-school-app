@@ -1053,7 +1053,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   dateRangeText: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   statusBadge: {

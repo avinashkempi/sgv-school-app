@@ -671,7 +671,7 @@ const localStyles = StyleSheet.create({
     padding: 14,
   },
   cardHeaderTitle: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   progressBarTrack: {
@@ -702,7 +702,7 @@ const localStyles = StyleSheet.create({
     marginTop: 14,
   },
   sectionTitle: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
     letterSpacing: 0.1,
   },

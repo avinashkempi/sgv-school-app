@@ -314,10 +314,10 @@ const localStyles = StyleSheet.create({
     letterSpacing: LETTER_SPACINGS.md,
   },
   itemSubtitle: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
     marginTop: 2,
-    lineHeight: LINE_HEIGHTS.sm,
+    lineHeight: LINE_HEIGHTS.xs,
   },
   divider: {
     height: StyleSheet.hairlineWidth,

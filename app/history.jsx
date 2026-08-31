@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  RefreshControl,
   ActivityIndicator,
   Pressable,
 } from "react-native";
@@ -18,6 +17,7 @@ import AppHeader from "../components/Header";
 import { formatDate } from "../utils/date";
 import { formatClassName } from "../utils/formatClassName";
 import { useLabel } from "../context/LabelsContext";
+import AppRefreshControl from "../components/ui/AppRefreshControl";
 
 export default function HistoryScreen() {
   const router = useRouter();
@@ -161,7 +161,7 @@ export default function HistoryScreen() {
                 >
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.sm,
+                      fontSize: FONT_SIZES.micro,
                       color: colors.secondary,
                       fontFamily: FONTS.bold,
                     }}
@@ -182,9 +182,10 @@ export default function HistoryScreen() {
                 >
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.sm,
+                      fontSize: FONT_SIZES.xs,
                       color: colors.textSecondary,
                       textTransform: "capitalize",
+                      fontFamily: FONTS.medium,
                     }}
                   >
                     {item.type}
@@ -203,7 +204,7 @@ export default function HistoryScreen() {
                       size={14}
                       color={colors.textSecondary}
                     />
-                    <Text style={{ fontSize: FONT_SIZES.sm, color: colors.textSecondary }}>
+                    <Text style={{ fontSize: FONT_SIZES.xs, color: colors.textSecondary, fontFamily: FONTS.regular }}>
                       {t("common.room")}: {item.room}
                     </Text>
                   </View>
@@ -228,7 +229,7 @@ export default function HistoryScreen() {
                     size={16}
                     color={colors.textSecondary}
                   />
-                  <Text style={{ fontSize: FONT_SIZES.sm, color: colors.textSecondary }}>
+                  <Text style={{ fontSize: FONT_SIZES.xs, color: colors.textSecondary, fontFamily: FONTS.regular }}>
                     {formatClassName(item.class)}
                   </Text>
                 </View>
@@ -240,7 +241,7 @@ export default function HistoryScreen() {
                     size={16}
                     color={colors.textSecondary}
                   />
-                  <Text style={{ fontSize: FONT_SIZES.sm, color: colors.textSecondary }}>
+                  <Text style={{ fontSize: FONT_SIZES.xs, color: colors.textSecondary, fontFamily: FONTS.regular }}>
                     {formatDate(item.date)}
                   </Text>
                 </View>
@@ -269,7 +270,7 @@ export default function HistoryScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <View style={{ padding: 16, paddingTop: 24 }}>
+      <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 }}>
         <AppHeader
           title={t("historyScreen.title")}
           subtitle={
@@ -283,17 +284,18 @@ export default function HistoryScreen() {
 
       <ScrollView
         refreshControl={
-          <RefreshControl
+          <AppRefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[colors.primary]}
           />
         }
         contentContainerStyle={{
-          padding: 16,
-          paddingTop: 0,
-          paddingBottom: 24,
+          paddingHorizontal: 16,
+          paddingTop: 8,
+          paddingBottom: 32,
         }}
+        showsVerticalScrollIndicator={false}
+        scrollsToTop={true}
       >
         {renderExams()}
       </ScrollView>

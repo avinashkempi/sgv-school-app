@@ -308,9 +308,9 @@ const localStyles = StyleSheet.create({
     marginBottom: 3,
   },
   guestSubtitle: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
-    lineHeight: LINE_HEIGHTS.sm,
+    lineHeight: LINE_HEIGHTS.xs,
   },
   loginButton: {
     flexDirection: "row",
@@ -363,7 +363,7 @@ const localStyles = StyleSheet.create({
     borderRadius: 8,
   },
   roleBadgeText: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.bold,
   },
   yearBadge: {
@@ -379,7 +379,7 @@ const localStyles = StyleSheet.create({
     fontFamily: FONTS.medium,
   },
   classText: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.medium,
     marginTop: 4,
   },

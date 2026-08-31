@@ -52,18 +52,18 @@ export default function TeacherClassesScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView
         ref={scrollRef}
         refreshControl={
           <AppRefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        contentContainerStyle={{ paddingBottom: 24, minHeight: "100%" }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 32, minHeight: "100%" }}
         showsVerticalScrollIndicator={false}
         scrollsToTop={true}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
+        <View>
           <AppHeader
             title={t("teacher.classesTitle", "My Classes")}
             subtitle={t(
@@ -142,23 +142,25 @@ export default function TeacherClassesScreen() {
                           },
                         ]}
                       >
-                        <View>
+                        <View style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.lg,
+                              fontSize: FONT_SIZES.md,
                               fontFamily: FONTS.bold,
                               color: colors.textPrimary,
                             }}
+                            numberOfLines={1}
                           >
                             {formatClassName(cls.name, cls.section)}
                           </Text>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.sm,
+                              fontSize: FONT_SIZES.xs,
                               color: colors.textSecondary,
                               marginTop: 4,
                               fontFamily: FONTS.regular,
                             }}
+                            numberOfLines={1}
                           >
                             {cls.academicYear?.name} • {cls.branch}
                           </Text>
@@ -166,8 +168,8 @@ export default function TeacherClassesScreen() {
                             style={{
                               backgroundColor: colors.primary + "15",
                               alignSelf: "flex-start",
-                              paddingHorizontal: 10,
-                              paddingVertical: 4,
+                              paddingHorizontal: 8,
+                              paddingVertical: 3,
                               borderRadius: 8,
                               marginTop: 10,
                             }}
@@ -175,7 +177,7 @@ export default function TeacherClassesScreen() {
                             <Text
                               style={{
                                 color: colors.primary,
-                                fontSize: FONT_SIZES.xs,
+                                fontSize: FONT_SIZES.micro,
                                 fontFamily: FONTS.bold,
                               }}
                             >

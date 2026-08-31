@@ -75,8 +75,8 @@ export default function TeacherDashboard() {
           }
           contentContainerStyle={{
             flexGrow: 1,
-            padding: 16,
-            paddingTop: 24,
+            paddingHorizontal: 16,
+            paddingTop: 12,
             paddingBottom: 32,
           }}
           alwaysBounceVertical={true}
@@ -197,10 +197,11 @@ export default function TeacherDashboard() {
               >
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.lg,
+                    fontSize: FONT_SIZES.md,
                     fontFamily: FONTS.bold,
                     color: colors.onSurface,
                   }}
+                  numberOfLines={1}
                 >
                   {formatClassName(cls.name, cls.section)}
                 </Text>
@@ -224,10 +225,11 @@ export default function TeacherDashboard() {
                   />
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.sm,
+                      fontSize: FONT_SIZES.xs,
                       color: colors.onSurfaceVariant,
                       fontFamily: FONTS.medium,
                     }}
+                    numberOfLines={1}
                   >
                     {cls.studentCount} {t("common.students")}
                   </Text>
@@ -240,6 +242,7 @@ export default function TeacherDashboard() {
                       alignItems: "center",
                       gap: 4,
                       flex: 1,
+                      minWidth: 0,
                     }}
                   >
                     <MaterialIcons
@@ -249,11 +252,13 @@ export default function TeacherDashboard() {
                     />
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.sm,
+                        fontSize: FONT_SIZES.xs,
                         color: colors.onSurfaceVariant,
                         fontFamily: FONTS.medium,
                         flex: 1,
                       }}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
                     >
                       {t("common.teaching")}: {cls.mySubjects.join(", ")}
                     </Text>
@@ -265,7 +270,7 @@ export default function TeacherDashboard() {
                 style={{
                   backgroundColor: colors.primary + "15",
                   alignSelf: "flex-start",
-                  paddingHorizontal: 10,
+                  paddingHorizontal: 8,
                   paddingVertical: 3,
                   borderRadius: 6,
                   marginTop: 10,
@@ -274,7 +279,7 @@ export default function TeacherDashboard() {
                 <Text
                   style={{
                     color: colors.primary,
-                    fontSize: FONT_SIZES.xs,
+                    fontSize: FONT_SIZES.micro,
                     fontFamily: FONTS.bold,
                     textTransform: "uppercase",
                   }}
@@ -340,6 +345,8 @@ export default function TeacherDashboard() {
                     color: colors.onSurface,
                     flex: 1,
                   }}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
                 >
                   {subj.name} • {subj.class.name}
                 </Text>
@@ -385,11 +392,11 @@ export default function TeacherDashboard() {
             onRefresh={onRefresh}
           />
         }
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 32 }}
         alwaysBounceVertical={true}
         showsVerticalScrollIndicator={false}
       >
-        <View style={{ padding: 16, paddingTop: 24 }}>
+        <View>
           <AppHeader
             title={t("teacher.dashboardTitle")}
             subtitle={t("teacher.dashboardSubtitle")}
