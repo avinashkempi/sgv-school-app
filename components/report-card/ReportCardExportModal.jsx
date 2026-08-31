@@ -423,7 +423,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   modalTitle: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   modalSub: {
@@ -453,7 +453,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   schoolTitle: {
-    fontSize: FONT_SIZES.mdLg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
     textAlign: "center",
     letterSpacing: 0.5,

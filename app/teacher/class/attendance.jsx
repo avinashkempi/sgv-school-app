@@ -339,7 +339,7 @@ export default function MarkAttendanceScreen() {
                 </Text>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.lg,
+                    fontSize: FONT_SIZES.md,
                     fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                     marginTop: 2,
@@ -408,7 +408,7 @@ export default function MarkAttendanceScreen() {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.xl,
+                  fontSize: FONT_SIZES.lg,
                   fontFamily: FONTS.bold,
                   color: colors.primary,
                 }}
@@ -417,7 +417,7 @@ export default function MarkAttendanceScreen() {
               </Text>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   color: colors.textSecondary,
                   marginTop: 4,
                   textAlign: "center",
@@ -455,7 +455,7 @@ export default function MarkAttendanceScreen() {
                 />
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.md,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.bold,
                     color: colors.success,
                   }}
@@ -487,7 +487,7 @@ export default function MarkAttendanceScreen() {
                     <MaterialIcons name="save" size={18} color="#fff" />
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.md,
+                        fontSize: FONT_SIZES.sm,
                         fontFamily: FONTS.bold,
                         color: "#fff",
                       }}
@@ -535,7 +535,7 @@ export default function MarkAttendanceScreen() {
                 />
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.md,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.bold,
                     color: colors.success,
                   }}
@@ -556,7 +556,7 @@ export default function MarkAttendanceScreen() {
                 />
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.md,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.bold,
                     color: colors.error,
                   }}
@@ -578,7 +578,7 @@ export default function MarkAttendanceScreen() {
                   />
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.md,
+                      fontSize: FONT_SIZES.sm,
                       fontFamily: FONTS.bold,
                       color: "#FF9800",
                     }}
@@ -601,7 +601,7 @@ export default function MarkAttendanceScreen() {
                   />
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.md,
+                      fontSize: FONT_SIZES.sm,
                       fontFamily: FONTS.bold,
                       color: "#FF9800",
                     }}
@@ -612,7 +612,7 @@ export default function MarkAttendanceScreen() {
               )}
               <Text
                 style={{
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.bold,
                   color: colors.textSecondary,
                 }}
@@ -636,7 +636,7 @@ export default function MarkAttendanceScreen() {
               >
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.xl,
+                    fontSize: FONT_SIZES.lg,
                     fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                   }}
@@ -694,11 +694,13 @@ export default function MarkAttendanceScreen() {
                           flexDirection: "row",
                           justifyContent: "space-between",
                           alignItems: "center",
+                          gap: 8,
                         }}
                       >
                         <View
                           style={{
                             flex: 1,
+                            minWidth: 0,
                             flexDirection: "row",
                             alignItems: "center",
                             gap: 10,
@@ -713,6 +715,7 @@ export default function MarkAttendanceScreen() {
                           <View
                             style={{
                               flex: 1,
+                              minWidth: 0,
                               flexDirection: "row",
                               alignItems: "center",
                               gap: 8,
@@ -721,10 +724,11 @@ export default function MarkAttendanceScreen() {
                           >
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.mdLg,
+                                fontSize: FONT_SIZES.md,
                                 fontFamily: FONTS.semiBold,
                                 color: colors.textPrimary,
                               }}
+                              numberOfLines={1}
                             >
                               {index + 1}. {formatUserName(studentData.student.name)}
                             </Text>
@@ -735,6 +739,7 @@ export default function MarkAttendanceScreen() {
                                   paddingHorizontal: 6,
                                   paddingVertical: 1,
                                   borderRadius: 6,
+                                  flexShrink: 0,
                                 }}
                               >
                                 <Text
@@ -761,6 +766,7 @@ export default function MarkAttendanceScreen() {
                               flexDirection: "row",
                               alignItems: "center",
                               gap: 4,
+                              flexShrink: 0,
                             }}
                           >
                             <MaterialIcons
@@ -785,6 +791,7 @@ export default function MarkAttendanceScreen() {
                               fontSize: FONT_SIZES.sm,
                               fontFamily: FONTS.medium,
                               color: colors.textSecondary,
+                              flexShrink: 0,
                             }}
                           >
                             {t("teacher.tapToMark", "Tap to mark")}
@@ -894,7 +901,7 @@ export default function MarkAttendanceScreen() {
                     />
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.md,
+                        fontSize: FONT_SIZES.sm,
                         fontFamily: FONTS.bold,
                         color: colors.success,
                       }}
@@ -926,7 +933,7 @@ export default function MarkAttendanceScreen() {
                         <MaterialIcons name="save" size={18} color="#fff" />
                         <Text
                           style={{
-                            fontSize: FONT_SIZES.md,
+                            fontSize: FONT_SIZES.sm,
                             fontFamily: FONTS.bold,
                             color: "#fff",
                           }}

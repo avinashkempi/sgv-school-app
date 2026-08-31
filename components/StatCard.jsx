@@ -51,7 +51,7 @@ export default function StatCard({
     if (variant === "compact") {
       return {
         iconSize: 20,
-        valueSize: FONT_SIZES.xxl,
+        valueSize: FONT_SIZES.lg,
         labelSize: FONT_SIZES.xs,
         subtitleSize: FONT_SIZES.micro,
         padding: 12,
@@ -60,15 +60,15 @@ export default function StatCard({
     if (variant === "large") {
       return {
         iconSize: 32,
-        valueSize: FONT_SIZES.displayMd,
-        labelSize: FONT_SIZES.base,
+        valueSize: FONT_SIZES.display,
+        labelSize: FONT_SIZES.sm,
         subtitleSize: FONT_SIZES.sm,
         padding: 20,
       };
     }
     return {
       iconSize: 24,
-      valueSize: FONT_SIZES.headline,
+      valueSize: FONT_SIZES.xl,
       labelSize: FONT_SIZES.sm,
       subtitleSize: FONT_SIZES.xs,
       padding: 16,

@@ -322,12 +322,16 @@ export default function VibeApprovalsScreen() {
               role={item.author?.role}
               size={36}
             />
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.authorName, { color: colors.onSurface }]}>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text
+                style={[styles.authorName, { color: colors.onSurface }]}
+                numberOfLines={1}
+              >
                 {formatUserName(item.author?.name, "Community Member")}
               </Text>
               <Text
                 style={[styles.authorRole, { color: colors.onSurfaceVariant }]}
+                numberOfLines={1}
               >
                 {formatUserDesignationOrRole(item.author)}
                 {item.author?.phone ? ` • ${item.author.phone}` : ""}
@@ -336,7 +340,7 @@ export default function VibeApprovalsScreen() {
             <View
               style={[
                 styles.categoryBadge,
-                { backgroundColor: colors.surfaceContainerHighest },
+                { backgroundColor: colors.surfaceContainerHighest, flexShrink: 0 },
               ]}
             >
               <Text
@@ -344,6 +348,7 @@ export default function VibeApprovalsScreen() {
                   styles.categoryBadgeText,
                   { color: colors.onSurfaceVariant },
                 ]}
+                numberOfLines={1}
               >
                 {item.category}
               </Text>
@@ -843,7 +848,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   headerTitle: {
-    fontSize: FONT_SIZES.xl,
+    fontSize: FONT_SIZES.lg,
     fontFamily: FONTS.bold,
   },
   headerSubtitle: {
@@ -903,7 +908,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   loadingText: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
   },
   emptyContainer: {
@@ -914,14 +919,14 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   emptyTitle: {
-    fontSize: FONT_SIZES.xl,
+    fontSize: FONT_SIZES.lg,
     fontFamily: FONTS.bold,
   },
   emptySubtitle: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
     textAlign: "center",
-    lineHeight: 18,
+    lineHeight: 20,
   },
   refreshBtn: {
     flexDirection: "row",
@@ -934,7 +939,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   refreshBtnText: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.medium,
   },
   reviewCard: {
@@ -954,7 +959,7 @@ const styles = StyleSheet.create({
     padding: 2,
   },
   authorName: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   authorRole: {
@@ -977,7 +982,7 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   captionText: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     lineHeight: 20,
     fontFamily: FONTS.regular,
   },
@@ -1021,7 +1026,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   rejectBtnText: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   approveBtn: {
@@ -1035,7 +1040,7 @@ const styles = StyleSheet.create({
   },
   approveBtnText: {
     color: "#fff",
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   batchActionBar: {
@@ -1057,7 +1062,7 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
   },
   batchCountText: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   batchBtnRow: {
@@ -1112,11 +1117,11 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   modalTitle: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   modalHint: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
     marginBottom: 16,
   },
@@ -1133,7 +1138,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   reasonOptionText: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     flex: 1,
   },
   customReasonInput: {
@@ -1141,7 +1146,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 12,
     borderWidth: 1,
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
     marginBottom: 16,
   },
@@ -1157,7 +1162,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalCancelText: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   modalRejectBtn: {
@@ -1168,7 +1173,7 @@ const styles = StyleSheet.create({
   },
   modalRejectText: {
     color: "#fff",
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
 });

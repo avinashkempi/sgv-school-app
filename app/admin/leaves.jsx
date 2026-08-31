@@ -25,7 +25,7 @@ import {
 import apiConfig from "../../config/apiConfig";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "../../components/ToastProvider";
-import { useTheme, FONTS, FONT_SIZES } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS } from "../../theme";
 import Header from "../../components/Header";
 import formatClassName from "../../utils/formatClassName";
 import { getISTDateString } from "../../utils/date";
@@ -76,8 +76,11 @@ export default function AdminLeaves() {
   const [rejectionReason, setRejectionReason] = useState("");
   const [rejectionComments, setRejectionComments] = useState("");
 
-  // Apply Leave Modal State
+  // Apply / Edit Leave Modal State
   const [applyModalVisible, setApplyModalVisible] = useState(false);
+  const [editingLeave, setEditingLeave] = useState(null);
+  const [cancelModalVisible, setCancelModalVisible] = useState(false);
+  const [leaveToCancel, setLeaveToCancel] = useState(null);
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
   const [reason, setReason] = useState("");
@@ -317,6 +320,7 @@ export default function AdminLeaves() {
     onSuccess: () => {
       showToast("Leave applied successfully", "success");
       setApplyModalVisible(false);
+      setEditingLeave(null);
       setReason("");
       setIsHalfDay(false);
       queryClient.invalidateQueries({ queryKey: ["adminMyLeaves"] });
@@ -327,6 +331,79 @@ export default function AdminLeaves() {
     onError: (error) =>
       showToast(error.message || "Error applying for leave", "error"),
   });
+
+  const editLeaveMutation = useApiMutation({
+    mutationFn: async ({ leaveId, payload }) => {
+      return createApiMutationFn(
+        `${apiConfig.baseUrl}/leaves/${leaveId}`,
+        "PUT"
+      )(payload);
+    },
+    onSuccess: () => {
+      showToast("Leave request updated successfully", "success");
+      setApplyModalVisible(false);
+      setEditingLeave(null);
+      setReason("");
+      setIsHalfDay(false);
+      queryClient.invalidateQueries({ queryKey: ["adminMyLeaves"] });
+      queryClient.invalidateQueries({ queryKey: ["adminLeaveBalance"] });
+      queryClient.invalidateQueries({ queryKey: ["adminLeaveRequests"] });
+      queryClient.invalidateQueries({ queryKey: ["adminLeaveRequestsSummary"] });
+    },
+    onError: (error) =>
+      showToast(error.message || "Error updating leave request", "error"),
+  });
+
+  const cancelLeaveMutation = useApiMutation({
+    mutationFn: async (leaveId) => {
+      return createApiMutationFn(
+        `${apiConfig.baseUrl}/leaves/${leaveId}`,
+        "DELETE"
+      )();
+    },
+    onSuccess: () => {
+      showToast("Leave request cancelled successfully", "success");
+      setCancelModalVisible(false);
+      setLeaveToCancel(null);
+      queryClient.invalidateQueries({ queryKey: ["adminMyLeaves"] });
+      queryClient.invalidateQueries({ queryKey: ["adminLeaveBalance"] });
+      queryClient.invalidateQueries({ queryKey: ["adminLeaveRequests"] });
+      queryClient.invalidateQueries({ queryKey: ["adminLeaveRequestsSummary"] });
+    },
+    onError: (error) =>
+      showToast(error.message || "Error cancelling leave request", "error"),
+  });
+
+  const openApplyModal = () => {
+    setEditingLeave(null);
+    setStartDate(new Date());
+    setEndDate(new Date());
+    setReason("");
+    setIsHalfDay(false);
+    setHalfDaySlot("morning");
+    setApplyModalVisible(true);
+  };
+
+  const openEditModal = (leave) => {
+    setEditingLeave(leave);
+    setStartDate(new Date(leave.startDate));
+    setEndDate(new Date(leave.endDate));
+    setReason(leave.reason || "");
+    setIsHalfDay(leave.leaveType === "half");
+    setHalfDaySlot(leave.halfDaySlot || "morning");
+    setApplyModalVisible(true);
+  };
+
+  const promptCancelLeave = (leave) => {
+    setLeaveToCancel(leave);
+    setCancelModalVisible(true);
+  };
+
+  const confirmCancelLeave = () => {
+    if (leaveToCancel) {
+      cancelLeaveMutation.mutate(leaveToCancel._id);
+    }
+  };
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -383,21 +460,30 @@ export default function AdminLeaves() {
       showToast("Please enter a reason for leave", "error");
       return;
     }
-    if (!isHalfDay && endDate < startDate) {
+
+    const startStr = getISTDateString(startDate);
+    const endStr = getISTDateString(endDate);
+
+    if (!isHalfDay && endStr < startStr) {
       showToast("End date cannot be before start date", "error");
       return;
     }
 
-    let finalEndDate = endDate;
-    if (isHalfDay) finalEndDate = startDate;
+    const finalEndDateStr = isHalfDay ? startStr : endStr;
 
-    applyLeaveMutation.mutate({
-      startDate: getISTDateString(startDate),
-      endDate: getISTDateString(finalEndDate),
-      reason,
+    const payload = {
+      startDate: startStr,
+      endDate: finalEndDateStr,
+      reason: reason.trim(),
       leaveType: isHalfDay ? "half" : "full",
       halfDaySlot: isHalfDay ? halfDaySlot : undefined,
-    });
+    };
+
+    if (editingLeave) {
+      editLeaveMutation.mutate({ leaveId: editingLeave._id, payload });
+    } else {
+      applyLeaveMutation.mutate(payload);
+    }
   };
 
   const formatDate = (dateString) => {
@@ -467,38 +553,38 @@ export default function AdminLeaves() {
 
         {/* Header */}
         <View style={styles.cardHeader}>
-          <View style={{ flexDirection: "row", alignItems: "center", flex: 1, gap: 10 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", flex: 1, minWidth: 0, gap: 10 }}>
             <UserAvatar
               photoUrl={item.applicant?.profilePhoto}
               name={applicantDisplayName}
               role={item.applicantRole}
               size={40}
             />
-            <View style={{ flex: 1 }}>
+            <View style={{ flex: 1, minWidth: 0 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                 <Text style={[styles.applicantName, { color: colors.onSurface }]} numberOfLines={1}>
                   {applicantDisplayName}
                 </Text>
                 {item.academicYear?.name && (
                   <View style={[styles.tinyYearPill, { backgroundColor: colors.surfaceContainerHigh }]}>
-                    <Text style={[styles.tinyYearText, { color: colors.onSurfaceVariant }]}>
+                    <Text style={[styles.tinyYearText, { color: colors.onSurfaceVariant }]} numberOfLines={1}>
                       {item.academicYear.name}
                     </Text>
                   </View>
                 )}
               </View>
 
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 3, flexWrap: "wrap" }}>
                 <View style={[styles.roleChip, { backgroundColor: roleStyle.bg, borderColor: roleStyle.border }]}>
                   <MaterialIcons name={roleStyle.icon} size={10} color={roleStyle.text} />
-                  <Text style={[styles.roleChipText, { color: roleStyle.text }]}>
+                  <Text style={[styles.roleChipText, { color: roleStyle.text }]} numberOfLines={1}>
                     {roleStyle.label}
                   </Text>
                 </View>
 
                 {isStudent && item.class && (
                   <View style={[styles.classChip, { backgroundColor: "#FFF3E0", borderColor: "#FFE0B2" }]}>
-                    <Text style={[styles.classChipText, { color: "#E65100" }]}>
+                    <Text style={[styles.classChipText, { color: "#E65100" }]} numberOfLines={1}>
                       {formatClassName(item.class.name || item.class.label)}{" "}
                       {item.class.section ? `(${item.class.section})` : ""}
                     </Text>
@@ -508,7 +594,7 @@ export default function AdminLeaves() {
             </View>
           </View>
 
-          <View style={[styles.statusBadge, { backgroundColor: statusBadge.bg, borderColor: statusBadge.color + "40" }]}>
+          <View style={[styles.statusBadge, { backgroundColor: statusBadge.bg, borderColor: statusBadge.color + "40", flexShrink: 0 }]}>
             <Ionicons name={statusBadge.icon} size={12} color={statusBadge.color} />
             <Text style={[styles.statusBadgeText, { color: statusBadge.color }]}>
               {statusBadge.label}
@@ -518,16 +604,16 @@ export default function AdminLeaves() {
 
         {/* Date & Duration */}
         <View style={[styles.dateBar, { backgroundColor: colors.surfaceContainerLow }]}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flex: 1 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flex: 1, minWidth: 0 }}>
             <Ionicons name="calendar-outline" size={14} color={colors.primary} />
-            <Text style={[styles.dateText, { color: colors.onSurface }]}>
+            <Text style={[styles.dateText, { color: colors.onSurface }]} numberOfLines={1}>
               {formatDate(item.startDate)}
               {item.leaveType === "full" && item.startDate !== item.endDate && ` – ${formatDate(item.endDate)}`}
             </Text>
           </View>
 
-          <View style={[styles.durationBadge, { backgroundColor: colors.primaryContainer }]}>
-            <Text style={[styles.durationBadgeText, { color: colors.onPrimaryContainer }]}>
+          <View style={[styles.durationBadge, { backgroundColor: colors.primaryContainer, flexShrink: 0 }]}>
+            <Text style={[styles.durationBadgeText, { color: colors.onPrimaryContainer }]} numberOfLines={1}>
               {durationLabel}
               {item.leaveType === "half" ? ` (${item.halfDaySlot})` : ""}
             </Text>
@@ -544,11 +630,11 @@ export default function AdminLeaves() {
         {/* Decision details */}
         {item.status === "rejected" && (
           <View style={[styles.decisionBox, { backgroundColor: "#FFEBEE", borderColor: "#FFCDD2" }]}>
-            <Text style={{ color: "#D32F2F", fontFamily: FONTS.bold, fontSize: FONT_SIZES.xs }}>
+            <Text style={{ color: "#D32F2F", fontFamily: FONTS.bold, fontSize: FONT_SIZES.xs, lineHeight: 18 }}>
               Rejected: {item.rejectionReason}
             </Text>
             {item.rejectionComments && (
-              <Text style={{ color: colors.onSurfaceVariant, fontSize: FONT_SIZES.xs, marginTop: 1 }}>
+              <Text style={{ color: colors.onSurfaceVariant, fontSize: FONT_SIZES.xs, marginTop: 2, lineHeight: 18 }}>
                 Note: {item.rejectionComments}
               </Text>
             )}
@@ -557,7 +643,7 @@ export default function AdminLeaves() {
 
         {item.status === "approved" && item.actionReason && (
           <View style={[styles.decisionBox, { backgroundColor: "#E8F5E9", borderColor: "#C8E6C9" }]}>
-            <Text style={{ color: "#2E7D32", fontFamily: FONTS.bold, fontSize: FONT_SIZES.xs }}>
+            <Text style={{ color: "#2E7D32", fontFamily: FONTS.bold, fontSize: FONT_SIZES.xs, lineHeight: 18 }}>
               Approval Note: {item.actionReason}
             </Text>
           </View>
@@ -606,38 +692,38 @@ export default function AdminLeaves() {
     const applicantDisplayName = formatUserName(item.applicant?.name, "Unknown");
 
     return (
-      <View style={[styles.dailyCard, { backgroundColor: colors.surface }]}>
+      <View style={[styles.dailyCard, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + "50" }]}>
         <View style={[styles.cardAccent, { backgroundColor: roleStyle.text }]} />
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8, minWidth: 0 }}>
           <UserAvatar
             photoUrl={item.applicant?.profilePhoto}
             name={applicantDisplayName}
             role={item.applicantRole}
             size={38}
           />
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.applicantName, { color: colors.onSurface }]}>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={[styles.applicantName, { color: colors.onSurface }]} numberOfLines={1}>
               {applicantDisplayName}
             </Text>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2, flexWrap: "wrap" }}>
               <View style={[styles.roleChip, { backgroundColor: roleStyle.bg, borderColor: roleStyle.border }]}>
                 <MaterialIcons name={roleStyle.icon} size={10} color={roleStyle.text} />
-                <Text style={[styles.roleChipText, { color: roleStyle.text }]}>{roleStyle.label}</Text>
+                <Text style={[styles.roleChipText, { color: roleStyle.text }]} numberOfLines={1}>{roleStyle.label}</Text>
               </View>
               {item.applicantRole === "student" && item.class && (
-                <Text style={{ fontSize: FONT_SIZES.xs, color: colors.onSurfaceVariant, fontFamily: FONTS.medium }}>
+                <Text style={{ fontSize: FONT_SIZES.xs, color: colors.onSurfaceVariant, fontFamily: FONTS.medium, flexShrink: 1 }} numberOfLines={1}>
                   {formatClassName(item.class.name || item.class.label)}
                 </Text>
               )}
             </View>
           </View>
-          <View style={[styles.awayBadge, { backgroundColor: "#FFEBEE", borderColor: "#FFCDD2" }]}>
+          <View style={[styles.awayBadge, { backgroundColor: "#FFEBEE", borderColor: "#FFCDD2", flexShrink: 0 }]}>
             <Text style={{ color: "#D32F2F", fontSize: FONT_SIZES.micro, fontFamily: FONTS.bold }}>ON LEAVE</Text>
           </View>
         </View>
 
         <View style={[styles.dateBar, { backgroundColor: colors.surfaceContainerLow }]}>
-          <Text style={{ fontSize: FONT_SIZES.sm, color: colors.onSurface, fontFamily: FONTS.medium }}>
+          <Text style={{ fontSize: FONT_SIZES.sm, color: colors.onSurface, fontFamily: FONTS.medium, flexShrink: 1 }} numberOfLines={1}>
             Until: {formatDate(item.endDate)} ({item.leaveType === "half" ? "Half Day" : "Full Day"})
           </Text>
         </View>
@@ -652,23 +738,24 @@ export default function AdminLeaves() {
   // Render My Leave Card
   const renderMyLeaveCard = ({ item }) => {
     const statusBadge = getStatusBadge(item.status);
+    const isPending = item.status === "pending";
     return (
       <View style={[styles.requestCard, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + "50" }]}>
         <View style={[styles.cardAccent, { backgroundColor: statusBadge.color }]} />
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-          <View>
+          <View style={{ flex: 1, minWidth: 0, marginRight: 8 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
               <Ionicons name="calendar" size={14} color={colors.primary} />
-              <Text style={[styles.dateText, { color: colors.onSurface }]}>
+              <Text style={[styles.dateText, { color: colors.onSurface }]} numberOfLines={1}>
                 {formatDate(item.startDate)}
                 {item.leaveType === "full" && item.startDate !== item.endDate && ` – ${formatDate(item.endDate)}`}
               </Text>
             </View>
-            <Text style={{ fontSize: FONT_SIZES.sm, color: colors.onSurfaceVariant, marginTop: 1 }}>
+            <Text style={{ fontSize: FONT_SIZES.sm, color: colors.onSurfaceVariant, marginTop: 1, fontFamily: FONTS.regular }} numberOfLines={1}>
               {item.leaveType === "half" ? `Half Day (${item.halfDaySlot})` : "Full Day"} • {calculateDays(item.startDate, item.endDate, item.leaveType)}
             </Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: statusBadge.bg, borderColor: statusBadge.color + "40" }]}>
+          <View style={[styles.statusBadge, { backgroundColor: statusBadge.bg, borderColor: statusBadge.color + "40", flexShrink: 0 }]}>
             <Ionicons name={statusBadge.icon} size={12} color={statusBadge.color} />
             <Text style={[styles.statusBadgeText, { color: statusBadge.color }]}>{statusBadge.label}</Text>
           </View>
@@ -677,6 +764,35 @@ export default function AdminLeaves() {
         <View style={[styles.reasonBox, { backgroundColor: colors.surfaceContainerHighest + "35" }]}>
           <Text style={[styles.reasonText, { color: colors.onSurface }]}>"{item.reason}"</Text>
         </View>
+
+        {/* Applicant Actions for Pending Leaves */}
+        {isPending && (
+          <View style={styles.cardActionsRow}>
+            <TouchableOpacity
+              style={[
+                styles.cardActionBtn,
+                { backgroundColor: colors.surfaceContainerHigh, borderColor: colors.outlineVariant },
+              ]}
+              onPress={() => openEditModal(item)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="pencil-outline" size={13} color={colors.primary} />
+              <Text style={[styles.cardActionBtnText, { color: colors.primary }]}>Edit</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.cardActionBtn,
+                { backgroundColor: colors.errorContainer + "25", borderColor: colors.error + "40" },
+              ]}
+              onPress={() => promptCancelLeave(item)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="trash-outline" size={13} color={colors.error} />
+              <Text style={[styles.cardActionBtnText, { color: colors.error }]}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     );
   };
@@ -697,9 +813,11 @@ export default function AdminLeaves() {
             ]}
             onPress={() => setStatusFilter(statusFilter === "pending" ? "all" : "pending")}
           >
-            <View style={[styles.kpiDot, { backgroundColor: "#E65100" }]} />
-            <Text style={[styles.kpiCapsuleNum, { color: "#E65100" }]}>{summaryMetrics.pending}</Text>
-            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]}>Pending</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+              <View style={[styles.kpiDot, { backgroundColor: "#E65100" }]} />
+              <Text style={[styles.kpiCapsuleNum, { color: "#E65100" }]} numberOfLines={1}>{summaryMetrics.pending}</Text>
+            </View>
+            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]} numberOfLines={1}>Pending</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -712,9 +830,11 @@ export default function AdminLeaves() {
             ]}
             onPress={() => setStatusFilter(statusFilter === "approved" ? "all" : "approved")}
           >
-            <View style={[styles.kpiDot, { backgroundColor: "#2E7D32" }]} />
-            <Text style={[styles.kpiCapsuleNum, { color: "#2E7D32" }]}>{summaryMetrics.approved}</Text>
-            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]}>Approved</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+              <View style={[styles.kpiDot, { backgroundColor: "#2E7D32" }]} />
+              <Text style={[styles.kpiCapsuleNum, { color: "#2E7D32" }]} numberOfLines={1}>{summaryMetrics.approved}</Text>
+            </View>
+            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]} numberOfLines={1}>Approved</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -727,9 +847,11 @@ export default function AdminLeaves() {
             ]}
             onPress={() => setStatusFilter(statusFilter === "rejected" ? "all" : "rejected")}
           >
-            <View style={[styles.kpiDot, { backgroundColor: "#D32F2F" }]} />
-            <Text style={[styles.kpiCapsuleNum, { color: "#D32F2F" }]}>{summaryMetrics.rejected}</Text>
-            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]}>Rejected</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+              <View style={[styles.kpiDot, { backgroundColor: "#D32F2F" }]} />
+              <Text style={[styles.kpiCapsuleNum, { color: "#D32F2F" }]} numberOfLines={1}>{summaryMetrics.rejected}</Text>
+            </View>
+            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]} numberOfLines={1}>Rejected</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -742,8 +864,8 @@ export default function AdminLeaves() {
             ]}
             onPress={() => setStatusFilter("all")}
           >
-            <Text style={[styles.kpiCapsuleNum, { color: colors.primary }]}>{summaryMetrics.total}</Text>
-            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]}>All</Text>
+            <Text style={[styles.kpiCapsuleNum, { color: colors.primary }]} numberOfLines={1}>{summaryMetrics.total}</Text>
+            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]} numberOfLines={1}>All</Text>
           </TouchableOpacity>
         </View>
 
@@ -752,7 +874,7 @@ export default function AdminLeaves() {
           <View style={styles.activeFiltersRow}>
             {selectedAcademicYearId !== "all" && (
               <View style={[styles.activeFilterPill, { backgroundColor: colors.secondaryContainer }]}>
-                <Text style={[styles.activeFilterText, { color: colors.onSecondaryContainer }]}>
+                <Text style={[styles.activeFilterText, { color: colors.onSecondaryContainer }]} numberOfLines={1}>
                   Year: {academicYears.find((y) => y._id === selectedAcademicYearId)?.name || "Selected"}
                 </Text>
                 <TouchableOpacity onPress={() => setSelectedAcademicYearId("all")}>
@@ -763,7 +885,7 @@ export default function AdminLeaves() {
 
             {roleFilter !== "all" && (
               <View style={[styles.activeFilterPill, { backgroundColor: colors.secondaryContainer }]}>
-                <Text style={[styles.activeFilterText, { color: colors.onSecondaryContainer }]}>
+                <Text style={[styles.activeFilterText, { color: colors.onSecondaryContainer }]} numberOfLines={1}>
                   Role: {roleFilter.toUpperCase()}
                 </Text>
                 <TouchableOpacity onPress={() => setRoleFilter("all")}>
@@ -774,7 +896,7 @@ export default function AdminLeaves() {
 
             {selectedClassId !== "all" && (
               <View style={[styles.activeFilterPill, { backgroundColor: colors.secondaryContainer }]}>
-                <Text style={[styles.activeFilterText, { color: colors.onSecondaryContainer }]}>
+                <Text style={[styles.activeFilterText, { color: colors.onSecondaryContainer }]} numberOfLines={1}>
                   Class: {formatClassName(classesList.find((c) => c._id === selectedClassId)?.name || "Selected")}
                 </Text>
                 <TouchableOpacity onPress={() => setSelectedClassId("all")}>
@@ -817,7 +939,7 @@ export default function AdminLeaves() {
         <View style={[styles.tabBar, { backgroundColor: colors.surfaceContainer }]}>
           {[
             { key: "requests", label: "Requests", count: summaryMetrics.pending },
-            { key: "daily", label: "On Leave Today", count: dailyLeaves.length },
+            { key: "daily", label: "Today", count: dailyLeaves.length },
             { key: "my_leaves", label: "My Leaves", count: null },
           ].map((tab) => {
             const isTabActive = activeTab === tab.key;
@@ -837,6 +959,7 @@ export default function AdminLeaves() {
                     { color: isTabActive ? colors.primary : colors.onSurfaceVariant },
                     isTabActive && { fontFamily: FONTS.bold },
                   ]}
+                  numberOfLines={1}
                 >
                   {tab.label}
                 </Text>
@@ -922,7 +1045,7 @@ export default function AdminLeaves() {
               ListHeaderComponent={renderListHeader}
               renderSectionHeader={({ section: { title, data } }) => (
                 <View style={[styles.sectionHeader, { backgroundColor: colors.background, borderBottomColor: colors.outlineVariant + "30" }]}>
-                  <Text style={[styles.sectionHeaderTitle, { color: colors.onSurface }]}>{title}</Text>
+                  <Text style={[styles.sectionHeaderTitle, { color: colors.onSurface }]} numberOfLines={1}>{title}</Text>
                   <Text style={[styles.sectionCountText, { color: colors.onSurfaceVariant }]}>
                     {data.length}
                   </Text>
@@ -972,12 +1095,12 @@ export default function AdminLeaves() {
         <View style={{ flex: 1 }}>
           {/* Compact Date Bar */}
           <View style={[styles.dailyBar, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + "40" }]}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flex: 1, minWidth: 0 }}>
               <Ionicons name="calendar" size={16} color={colors.primary} />
-              <Text style={[styles.dateText, { color: colors.onSurface }]}>{formatDate(dailyDate)}</Text>
+              <Text style={[styles.dateText, { color: colors.onSurface }]} numberOfLines={1}>{formatDate(dailyDate)}</Text>
             </View>
 
-            <View style={{ flexDirection: "row", gap: 6 }}>
+            <View style={{ flexDirection: "row", gap: 6, flexShrink: 0 }}>
               <TouchableOpacity
                 style={[styles.quickBtn, { backgroundColor: colors.primaryContainer }]}
                 onPress={() => setDailyDate(new Date())}
@@ -1012,17 +1135,17 @@ export default function AdminLeaves() {
           {/* Daily Quick Counts */}
           <View style={styles.dailyCountsRow}>
             <View style={[styles.dailyCountPill, { backgroundColor: "#FFF3E0" }]}>
-              <Text style={{ color: "#E65100", fontFamily: FONTS.bold, fontSize: FONT_SIZES.xs }}>
+              <Text style={{ color: "#E65100", fontFamily: FONTS.bold, fontSize: FONT_SIZES.xs }} numberOfLines={1}>
                 {dailyLeavesGrouped.students.length} Students
               </Text>
             </View>
             <View style={[styles.dailyCountPill, { backgroundColor: "#EDE7F6" }]}>
-              <Text style={{ color: "#512DA8", fontFamily: FONTS.bold, fontSize: FONT_SIZES.xs }}>
+              <Text style={{ color: "#512DA8", fontFamily: FONTS.bold, fontSize: FONT_SIZES.xs }} numberOfLines={1}>
                 {dailyLeavesGrouped.teachers.length} Teachers
               </Text>
             </View>
             <View style={[styles.dailyCountPill, { backgroundColor: "#E0F2F1" }]}>
-              <Text style={{ color: "#00695C", fontFamily: FONTS.bold, fontSize: FONT_SIZES.xs }}>
+              <Text style={{ color: "#00695C", fontFamily: FONTS.bold, fontSize: FONT_SIZES.xs }} numberOfLines={1}>
                 {dailyLeavesGrouped.staff.length} Staff
               </Text>
             </View>
@@ -1060,16 +1183,16 @@ export default function AdminLeaves() {
         <View style={{ flex: 1 }}>
           <View style={[styles.allowanceCard, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + "50" }]}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-              <View>
-                <Text style={[styles.allowanceTitle, { color: colors.onSurface }]}>Leave Allowance</Text>
-                <Text style={{ fontSize: FONT_SIZES.xs, color: colors.onSurfaceVariant }}>
+              <View style={{ flex: 1, minWidth: 0, marginRight: 8 }}>
+                <Text style={[styles.allowanceTitle, { color: colors.onSurface }]} numberOfLines={1}>Leave Allowance</Text>
+                <Text style={{ fontSize: FONT_SIZES.xs, color: colors.onSurfaceVariant }} numberOfLines={1}>
                   Year {activeYearObj?.name || new Date().getFullYear()}
                 </Text>
               </View>
 
               <TouchableOpacity
-                style={[styles.applyBtnSmall, { backgroundColor: colors.primary }]}
-                onPress={() => setApplyModalVisible(true)}
+                style={[styles.applyBtnSmall, { backgroundColor: colors.primary, flexShrink: 0 }]}
+                onPress={openApplyModal}
               >
                 <Ionicons name="add" size={15} color={colors.onPrimary} />
                 <Text style={{ color: colors.onPrimary, fontFamily: FONTS.bold, fontSize: FONT_SIZES.sm }}>
@@ -1080,16 +1203,16 @@ export default function AdminLeaves() {
 
             <View style={styles.allowanceGrid}>
               <View style={[styles.allowanceCol, { backgroundColor: colors.surfaceContainerLow }]}>
-                <Text style={[styles.allowanceNum, { color: colors.onSurface }]}>{leaveBalance.total}</Text>
-                <Text style={[styles.allowanceLabel, { color: colors.onSurfaceVariant }]}>Total</Text>
+                <Text style={[styles.allowanceNum, { color: colors.onSurface }]} numberOfLines={1}>{leaveBalance.total}</Text>
+                <Text style={[styles.allowanceLabel, { color: colors.onSurfaceVariant }]} numberOfLines={1}>Total</Text>
               </View>
               <View style={[styles.allowanceCol, { backgroundColor: "#FFF3E0" }]}>
-                <Text style={[styles.allowanceNum, { color: "#E65100" }]}>{leaveBalance.used}</Text>
-                <Text style={[styles.allowanceLabel, { color: "#E65100" }]}>Used</Text>
+                <Text style={[styles.allowanceNum, { color: "#E65100" }]} numberOfLines={1}>{leaveBalance.used}</Text>
+                <Text style={[styles.allowanceLabel, { color: "#E65100" }]} numberOfLines={1}>Used</Text>
               </View>
               <View style={[styles.allowanceCol, { backgroundColor: "#E8F5E9" }]}>
-                <Text style={[styles.allowanceNum, { color: "#2E7D32" }]}>{leaveBalance.remaining}</Text>
-                <Text style={[styles.allowanceLabel, { color: "#2E7D32" }]}>Remaining</Text>
+                <Text style={[styles.allowanceNum, { color: "#2E7D32" }]} numberOfLines={1}>{leaveBalance.remaining}</Text>
+                <Text style={[styles.allowanceLabel, { color: "#2E7D32" }]} numberOfLines={1}>Remaining</Text>
               </View>
             </View>
           </View>
@@ -1121,11 +1244,11 @@ export default function AdminLeaves() {
 
           <TouchableOpacity
             style={[styles.fabBtn, { backgroundColor: colors.primary }]}
-            onPress={() => setApplyModalVisible(true)}
+            onPress={openApplyModal}
             activeOpacity={0.85}
           >
             <Ionicons name="add" size={24} color={colors.onPrimary} />
-            <Text style={{ color: colors.onPrimary, fontFamily: FONTS.bold, fontSize: FONT_SIZES.md }}>
+            <Text style={{ color: colors.onPrimary, fontFamily: FONTS.bold, fontSize: FONT_SIZES.sm }}>
               Apply
             </Text>
           </TouchableOpacity>
@@ -1293,7 +1416,7 @@ export default function AdminLeaves() {
                   setFilterModalVisible(false);
                 }}
               >
-                <Text style={{ color: colors.onSurfaceVariant, fontFamily: FONTS.bold, fontSize: FONT_SIZES.md }}>
+                <Text style={{ color: colors.onSurfaceVariant, fontFamily: FONTS.bold, fontSize: FONT_SIZES.sm }}>
                   Reset All
                 </Text>
               </TouchableOpacity>
@@ -1302,7 +1425,7 @@ export default function AdminLeaves() {
                 style={[styles.sheetApplyBtn, { backgroundColor: colors.primary }]}
                 onPress={() => setFilterModalVisible(false)}
               >
-                <Text style={{ color: colors.onPrimary, fontFamily: FONTS.bold, fontSize: FONT_SIZES.base }}>
+                <Text style={{ color: colors.onPrimary, fontFamily: FONTS.bold, fontSize: FONT_SIZES.sm }}>
                   Apply Filters
                 </Text>
               </TouchableOpacity>
@@ -1355,7 +1478,7 @@ export default function AdminLeaves() {
                   size={32}
                 />
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: FONT_SIZES.md, fontFamily: FONTS.bold, color: colors.onSurface }}>
+                  <Text style={{ fontSize: FONT_SIZES.sm, fontFamily: FONTS.bold, color: colors.onSurface }}>
                     {formatUserName(selectedRequest.applicant?.name, "Unknown")}
                   </Text>
                   <Text style={{ fontSize: FONT_SIZES.xs, color: colors.onSurfaceVariant, fontFamily: FONTS.regular }}>
@@ -1451,7 +1574,7 @@ export default function AdminLeaves() {
                 style={styles.modalCancelBtn}
                 onPress={() => setActionModalVisible(false)}
               >
-                <Text style={{ color: colors.onSurfaceVariant, fontFamily: FONTS.bold, fontSize: FONT_SIZES.md }}>
+                <Text style={{ color: colors.onSurfaceVariant, fontFamily: FONTS.bold, fontSize: FONT_SIZES.sm }}>
                   Cancel
                 </Text>
               </TouchableOpacity>
@@ -1467,7 +1590,7 @@ export default function AdminLeaves() {
                 {actionMutation.isPending ? (
                   <ActivityIndicator color="#FFF" size="small" />
                 ) : (
-                  <Text style={{ color: "#FFF", fontFamily: FONTS.bold, fontSize: FONT_SIZES.md }}>
+                  <Text style={{ color: "#FFF", fontFamily: FONTS.bold, fontSize: FONT_SIZES.sm }}>
                     {actionType === "approved" ? "Approve" : "Reject"}
                   </Text>
                 )}
@@ -1490,7 +1613,9 @@ export default function AdminLeaves() {
         >
           <View style={[styles.applySheetCard, { backgroundColor: colors.surface }]}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <Text style={[styles.modalHeading, { color: colors.onSurface }]}>Apply for Leave</Text>
+              <Text style={[styles.modalHeading, { color: colors.onSurface }]}>
+                {editingLeave ? "Edit Leave Request" : "Apply for Leave"}
+              </Text>
               <TouchableOpacity onPress={() => setApplyModalVisible(false)}>
                 <Ionicons name="close" size={22} color={colors.onSurfaceVariant} />
               </TouchableOpacity>
@@ -1574,7 +1699,7 @@ export default function AdminLeaves() {
                     style={[styles.datePickerInput, { backgroundColor: colors.surfaceContainer }]}
                     onPress={() => setShowStartPicker(true)}
                   >
-                    <Text style={{ fontSize: FONT_SIZES.md, color: colors.onSurface, fontFamily: FONTS.medium }}>
+                    <Text style={{ fontSize: FONT_SIZES.sm, color: colors.onSurface, fontFamily: FONTS.medium }}>
                       {formatDate(startDate)}
                     </Text>
                     <Ionicons name="calendar-outline" size={16} color={colors.primary} />
@@ -1602,7 +1727,7 @@ export default function AdminLeaves() {
                       style={[styles.datePickerInput, { backgroundColor: colors.surfaceContainer }]}
                       onPress={() => setShowEndPicker(true)}
                     >
-                      <Text style={{ fontSize: FONT_SIZES.md, color: colors.onSurface, fontFamily: FONTS.medium }}>
+                      <Text style={{ fontSize: FONT_SIZES.sm, color: colors.onSurface, fontFamily: FONTS.medium }}>
                         {formatDate(endDate)}
                       </Text>
                       <Ionicons name="calendar-outline" size={16} color={colors.primary} />
@@ -1639,19 +1764,66 @@ export default function AdminLeaves() {
               <TouchableOpacity
                 style={[styles.submitBtn, { backgroundColor: colors.primary }]}
                 onPress={handleApplyLeave}
-                disabled={applyLeaveMutation.isPending}
+                disabled={applyLeaveMutation.isPending || editLeaveMutation.isPending}
               >
-                {applyLeaveMutation.isPending ? (
+                {applyLeaveMutation.isPending || editLeaveMutation.isPending ? (
                   <ActivityIndicator color="#FFF" />
                 ) : (
-                  <Text style={{ color: "#FFF", fontFamily: FONTS.bold, fontSize: FONT_SIZES.mdLg }}>
-                    Submit Application
+                  <Text style={{ color: "#FFF", fontFamily: FONTS.bold, fontSize: FONT_SIZES.md }}>
+                    {editingLeave ? "Update Application" : "Submit Application"}
                   </Text>
                 )}
               </TouchableOpacity>
             </ScrollView>
           </View>
         </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Cancel Confirmation Modal */}
+      <Modal
+        visible={cancelModalVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setCancelModalVisible(false)}
+      >
+        <View style={styles.modalOverlayCenter}>
+          <View style={[styles.confirmCard, { backgroundColor: colors.surface }]}>
+            <View style={[styles.confirmIconBox, { backgroundColor: colors.errorContainer + "30" }]}>
+              <Ionicons name="alert-circle-outline" size={28} color={colors.error} />
+            </View>
+            <Text style={[styles.confirmTitle, { color: colors.onSurface }]}>
+              Cancel Leave Request?
+            </Text>
+            <Text style={[styles.confirmMessage, { color: colors.onSurfaceVariant }]}>
+              Are you sure you want to cancel this pending leave request? This action cannot be undone.
+            </Text>
+
+            <View style={styles.confirmBtnRow}>
+              <TouchableOpacity
+                style={[styles.confirmCancelBtn, { borderColor: colors.outlineVariant }]}
+                onPress={() => setCancelModalVisible(false)}
+              >
+                <Text style={{ fontFamily: FONTS.bold, color: colors.onSurfaceVariant, fontSize: FONT_SIZES.sm }}>
+                  Keep Request
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.confirmDeleteBtn, { backgroundColor: colors.error }]}
+                onPress={confirmCancelLeave}
+                disabled={cancelLeaveMutation.isPending}
+              >
+                {cancelLeaveMutation.isPending ? (
+                  <ActivityIndicator color="#FFF" size="small" />
+                ) : (
+                  <Text style={{ fontFamily: FONTS.bold, color: "#FFF", fontSize: FONT_SIZES.sm }}>
+                    Yes, Cancel
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       </Modal>
     </View>
   );
@@ -1673,20 +1845,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 7,
+    paddingHorizontal: 4,
     borderRadius: 8,
-    gap: 5,
+    gap: 4,
+    minWidth: 0,
   },
   tabBtnActive: {
     elevation: 1,
   },
   tabBtnText: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.medium,
+    flexShrink: 1,
   },
   tabBadge: {
     paddingHorizontal: 5,
     paddingVertical: 1,
     borderRadius: 8,
+    flexShrink: 0,
   },
   tabBadgeText: {
     color: "#FFFFFF",
@@ -1702,6 +1878,7 @@ const styles = StyleSheet.create({
   },
   searchInputBox: {
     flex: 1,
+    minWidth: 0,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 10,
@@ -1712,6 +1889,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
+    minWidth: 0,
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
     padding: 0,
@@ -1723,6 +1901,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
+    flexShrink: 0,
   },
   filterSheetBtn: {
     width: 36,
@@ -1732,6 +1911,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
+    flexShrink: 0,
   },
   filterBadge: {
     position: "absolute",
@@ -1755,14 +1935,13 @@ const styles = StyleSheet.create({
   },
   kpiCapsule: {
     flex: 1,
-    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 6,
-    paddingHorizontal: 4,
+    paddingHorizontal: 2,
     borderRadius: 8,
     borderWidth: 1,
-    gap: 4,
+    gap: 2,
   },
   kpiDot: {
     width: 6,
@@ -1776,6 +1955,7 @@ const styles = StyleSheet.create({
   kpiCapsuleLabel: {
     fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.medium,
+    textAlign: "center",
   },
   activeFiltersRow: {
     flexDirection: "row",
@@ -1792,10 +1972,12 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 12,
     gap: 4,
+    maxWidth: "100%",
   },
   activeFilterText: {
     fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.bold,
+    maxWidth: 160,
   },
   clearAllBtn: {
     paddingHorizontal: 6,
@@ -1812,14 +1994,27 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   sectionHeaderTitle: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
+    flex: 1,
+    minWidth: 0,
   },
   sectionCountText: {
     fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.medium,
+    flexShrink: 0,
+    marginLeft: 6,
   },
   requestCard: {
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 10,
+    borderWidth: 1,
+    position: "relative",
+    overflow: "hidden",
+    elevation: 1,
+  },
+  dailyCard: {
     borderRadius: 14,
     padding: 12,
     marginBottom: 10,
@@ -1842,11 +2037,11 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   applicantName: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   tinyYearPill: {
-    paddingHorizontal: 4,
+    paddingHorizontal: 5,
     paddingVertical: 1,
     borderRadius: 4,
   },
@@ -1886,6 +2081,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderWidth: 1,
     gap: 3,
+    flexShrink: 0,
   },
   statusBadgeText: {
     fontSize: FONT_SIZES.micro,
@@ -1909,6 +2105,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
+    flexShrink: 0,
   },
   durationBadgeText: {
     fontSize: FONT_SIZES.micro,
@@ -1923,11 +2120,11 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
     fontStyle: "italic",
-    lineHeight: 16,
+    lineHeight: LINE_HEIGHTS.sm,
   },
   decisionBox: {
-    padding: 6,
-    borderRadius: 6,
+    padding: 8,
+    borderRadius: 8,
     borderWidth: 1,
     marginBottom: 8,
   },
@@ -1999,6 +2196,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 4,
     borderWidth: 1,
+    flexShrink: 0,
   },
   allowanceCard: {
     marginHorizontal: 16,
@@ -2008,7 +2206,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   allowanceTitle: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   applyBtnSmall: {
@@ -2018,6 +2216,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 8,
     gap: 3,
+    flexShrink: 0,
   },
   allowanceGrid: {
     flexDirection: "row",
@@ -2031,7 +2230,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   allowanceNum: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   allowanceLabel: {
@@ -2069,7 +2268,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   emptyTitle: {
-    fontSize: FONT_SIZES.mdLg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
     marginTop: 8,
     marginBottom: 2,
@@ -2078,6 +2277,7 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
     textAlign: "center",
+    lineHeight: 18,
   },
   modalOverlay: {
     flex: 1,
@@ -2097,7 +2297,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   filterSheetTitle: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   filterGroupLabel: {
@@ -2162,8 +2362,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   modalHeading: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
+    flex: 1,
+    minWidth: 0,
   },
   applicantMiniSummary: {
     flexDirection: "row",
@@ -2172,6 +2374,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     gap: 8,
     marginBottom: 12,
+    minWidth: 0,
   },
   fieldLabel: {
     fontSize: FONT_SIZES.micro,
@@ -2191,7 +2394,8 @@ const styles = StyleSheet.create({
     padding: 8,
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
-    minHeight: 60,
+    minHeight: 70,
+    lineHeight: 20,
     textAlignVertical: "top",
     marginBottom: 10,
   },
@@ -2248,11 +2452,90 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 10,
     borderRadius: 8,
+    minWidth: 0,
   },
   submitBtn: {
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: "center",
     marginBottom: 16,
+  },
+  cardActionsRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 8,
+    marginTop: 6,
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(0,0,0,0.05)",
+  },
+  cardActionBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+    borderWidth: 1,
+    gap: 4,
+  },
+  cardActionBtnText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+  },
+  modalOverlayCenter: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  confirmCard: {
+    width: "100%",
+    maxWidth: 340,
+    borderRadius: 16,
+    padding: 20,
+    alignItems: "center",
+    elevation: 5,
+  },
+  confirmIconBox: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  confirmTitle: {
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.bold,
+    marginBottom: 6,
+    textAlign: "center",
+  },
+  confirmMessage: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.regular,
+    textAlign: "center",
+    marginBottom: 18,
+    lineHeight: 20,
+  },
+  confirmBtnRow: {
+    flexDirection: "row",
+    gap: 10,
+    width: "100%",
+  },
+  confirmCancelBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  confirmDeleteBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

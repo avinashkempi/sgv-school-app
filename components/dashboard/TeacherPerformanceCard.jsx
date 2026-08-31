@@ -278,7 +278,7 @@ const TeacherPerformanceCard = ({
           <View style={{ flex: 1 }}>
             <Text
               style={{
-                fontSize: FONT_SIZES.lg,
+                fontSize: FONT_SIZES.md,
                 fontFamily: FONTS.bold,
                 color: colors.onSurface || (isDark ? "#FFFFFF" : "#1D1B20"),
                 letterSpacing: 0.1,
@@ -294,7 +294,7 @@ const TeacherPerformanceCard = ({
                 color:
                   colors.onSurfaceVariant || (isDark ? "#CAC4D0" : "#49454F"),
                 marginTop: 1,
-                lineHeight: 16,
+                lineHeight: 20,
               }}
             >
               {subtitle}
@@ -370,7 +370,7 @@ const TeacherPerformanceCard = ({
           >
             <Text
               style={{
-                fontSize: FONT_SIZES.xl,
+                fontSize: FONT_SIZES.lg,
                 fontFamily: FONTS.bold,
                 color: colors.onSurface || (isDark ? "#FFFFFF" : "#1D1B20"),
               }}
@@ -421,7 +421,7 @@ const TeacherPerformanceCard = ({
           >
             <Text
               style={{
-                fontSize: FONT_SIZES.xl,
+                fontSize: FONT_SIZES.lg,
                 fontFamily: FONTS.bold,
                 color: "#10B981",
               }}
@@ -471,7 +471,7 @@ const TeacherPerformanceCard = ({
           >
             <Text
               style={{
-                fontSize: FONT_SIZES.xl,
+                fontSize: FONT_SIZES.lg,
                 fontFamily: FONTS.bold,
                 color: colors.onSurface || (isDark ? "#FFFFFF" : "#1D1B20"),
               }}
@@ -873,7 +873,7 @@ const TeacherPerformanceCard = ({
                     <View style={{ flex: 1 }}>
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.base,
+                          fontSize: FONT_SIZES.sm,
                           fontFamily: FONTS.bold,
                           color:
                             colors.onSurface ||
@@ -896,7 +896,7 @@ const TeacherPerformanceCard = ({
                   >
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.lg,
+                        fontSize: FONT_SIZES.md,
                         fontFamily: FONTS.bold,
                         color: grade.color,
                       }}
@@ -979,7 +979,7 @@ const TeacherPerformanceCard = ({
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.mdLg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: colors.onSurface || (isDark ? "#FFFFFF" : "#1D1B20"),
                 }}
@@ -1024,7 +1024,7 @@ const TeacherPerformanceCard = ({
           <View style={{ alignItems: "flex-end" }}>
             <Text
               style={{
-                fontSize: FONT_SIZES.title,
+                fontSize: FONT_SIZES.xl,
                 fontFamily: FONTS.bold,
                 color: activeGrade.color,
               }}
@@ -1032,7 +1032,7 @@ const TeacherPerformanceCard = ({
               {activeSubject.marks}{" "}
               <Text
                 style={{
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                 }}

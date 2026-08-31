@@ -108,7 +108,7 @@ export default function SubjectPerformanceScreen() {
                 style={{
                   color: colors.textSecondary,
                   marginTop: 12,
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.medium,
                 }}
               >
@@ -133,7 +133,7 @@ export default function SubjectPerformanceScreen() {
                 style={{
                   color: colors.textSecondary,
                   marginTop: 12,
-                  fontSize: FONT_SIZES.mdLg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.medium,
                   textAlign: "center",
                 }}
@@ -155,7 +155,7 @@ export default function SubjectPerformanceScreen() {
               >
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.lg,
+                    fontSize: FONT_SIZES.md,
                     color: "#fff",
                     opacity: 0.9,
                     fontFamily: FONTS.medium,
@@ -166,7 +166,7 @@ export default function SubjectPerformanceScreen() {
                 </Text>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.displayLg,
+                    fontSize: FONT_SIZES.jumbo,
                     fontFamily: FONTS.bold,
                     color: "#fff",
                     marginTop: 8,
@@ -177,7 +177,7 @@ export default function SubjectPerformanceScreen() {
                 </Text>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.base,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.regular,
                     color: "#fff",
                     marginTop: 4,
@@ -192,7 +192,7 @@ export default function SubjectPerformanceScreen() {
               {/* Exam-wise Performance */}
               <Text
                 style={{
-                  fontSize: FONT_SIZES.xl,
+                  fontSize: FONT_SIZES.lg,
                   fontFamily: FONTS.bold,
                   color: colors.textPrimary,
                   marginTop: 28,
@@ -230,7 +230,7 @@ export default function SubjectPerformanceScreen() {
                     >
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.lg,
+                          fontSize: FONT_SIZES.md,
                           fontFamily: FONTS.bold,
                           color: EXAM_COLORS[exam.examType],
                         }}
@@ -241,7 +241,7 @@ export default function SubjectPerformanceScreen() {
                     <View style={{ flex: 1 }}>
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.xl,
+                          fontSize: FONT_SIZES.lg,
                           fontFamily: FONTS.bold,
                           color: colors.textPrimary,
                         }}
@@ -255,7 +255,7 @@ export default function SubjectPerformanceScreen() {
                       </Text>
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.xxl,
+                          fontSize: FONT_SIZES.lg,
                           fontFamily: FONTS.bold,
                           color: getGradeColor(exam.overallAvgPercentage),
                           marginTop: 4,
@@ -278,7 +278,7 @@ export default function SubjectPerformanceScreen() {
                       />
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.base,
+                          fontSize: FONT_SIZES.sm,
                           fontFamily: FONTS.semiBold,
                           color: colors.textPrimary,
                           marginBottom: 12,
@@ -302,7 +302,7 @@ export default function SubjectPerformanceScreen() {
                           <View style={{ flex: 1 }}>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.base,
+                                fontSize: FONT_SIZES.sm,
                                 fontFamily: FONTS.semiBold,
                                 color: colors.textPrimary,
                               }}
@@ -323,7 +323,7 @@ export default function SubjectPerformanceScreen() {
                           <View style={{ alignItems: "flex-end" }}>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.xl,
+                                fontSize: FONT_SIZES.lg,
                                 fontFamily: FONTS.bold,
                                 color: getGradeColor(classData.avgPercentage),
                               }}
@@ -402,7 +402,7 @@ export default function SubjectPerformanceScreen() {
                     style={{
                       color: colors.textSecondary,
                       marginTop: 16,
-                      fontSize: FONT_SIZES.lg,
+                      fontSize: FONT_SIZES.md,
                       textAlign: "center",
                     }}
                   >

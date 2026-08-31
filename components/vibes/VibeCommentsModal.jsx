@@ -762,7 +762,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   headerTitle: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   listContent: {
@@ -781,7 +781,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   emptyTitle: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
     marginTop: 8,
   },
@@ -817,7 +817,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   commentAuthor: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   commentTime: {
@@ -840,9 +840,9 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.medium,
   },
   commentText: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
-    lineHeight: LINE_HEIGHTS.base,
+    lineHeight: LINE_HEIGHTS.sm,
   },
   commentActionsRow: {
     flexDirection: "row",
@@ -894,7 +894,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   emojiText: {
-    fontSize: FONT_SIZES.xxl,
+    fontSize: FONT_SIZES.lg,
   },
   adminCommentRow: {
     flexDirection: "row",
@@ -932,7 +932,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 22,
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
     maxHeight: 90,
   },

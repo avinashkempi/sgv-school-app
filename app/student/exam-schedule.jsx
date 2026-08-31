@@ -217,7 +217,7 @@ export default function StudentExamScheduleScreen() {
                     </Text>
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.title,
+                        fontSize: FONT_SIZES.xl,
                         fontFamily: FONTS.bold,
                         color: colors.onPrimary,
                         marginBottom: 4,
@@ -227,7 +227,7 @@ export default function StudentExamScheduleScreen() {
                     </Text>
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.md,
+                        fontSize: FONT_SIZES.sm,
                         fontFamily: FONTS.medium,
                         color: colors.onPrimary,
                         opacity: 0.8,
@@ -251,7 +251,7 @@ export default function StudentExamScheduleScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.displaySm,
+                        fontSize: FONT_SIZES.display,
                         fontFamily: FONTS.bold,
                         color: colors.onPrimary,
                         lineHeight: 32,
@@ -300,7 +300,7 @@ export default function StudentExamScheduleScreen() {
                     />
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.md,
+                        fontSize: FONT_SIZES.sm,
                         fontFamily: FONTS.medium,
                         color: colors.onPrimary,
                         opacity: 0.9,
@@ -325,7 +325,7 @@ export default function StudentExamScheduleScreen() {
                       />
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.md,
+                          fontSize: FONT_SIZES.sm,
                           fontFamily: FONTS.medium,
                           color: colors.onPrimary,
                           opacity: 0.9,
@@ -350,7 +350,7 @@ export default function StudentExamScheduleScreen() {
                     />
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.md,
+                        fontSize: FONT_SIZES.sm,
                         fontFamily: FONTS.medium,
                         color: colors.onPrimary,
                         opacity: 0.9,
@@ -405,7 +405,7 @@ export default function StudentExamScheduleScreen() {
               >
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.headline,
+                    fontSize: FONT_SIZES.xl,
                     fontFamily: FONTS.bold,
                     color: stat.color,
                     lineHeight: 28,
@@ -445,7 +445,7 @@ export default function StudentExamScheduleScreen() {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                   marginBottom: 10,
@@ -470,7 +470,7 @@ export default function StudentExamScheduleScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.md,
+                        fontSize: FONT_SIZES.sm,
                         fontFamily: FONTS.bold,
                         color: !filterSubject ? "#FFFFFF" : colors.onSurface,
                       }}
@@ -497,7 +497,7 @@ export default function StudentExamScheduleScreen() {
                     >
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.md,
+                          fontSize: FONT_SIZES.sm,
                           fontFamily: FONTS.bold,
                           color:
                             filterSubject === subject._id
@@ -532,7 +532,7 @@ export default function StudentExamScheduleScreen() {
                 />
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.xl,
+                    fontSize: FONT_SIZES.lg,
                     fontFamily: FONTS.bold,
                     color: colors.onSurface,
                   }}
@@ -589,7 +589,7 @@ export default function StudentExamScheduleScreen() {
                 />
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.xl,
+                    fontSize: FONT_SIZES.lg,
                     fontFamily: FONTS.bold,
                     color: colors.onSurface,
                   }}
@@ -658,7 +658,7 @@ export default function StudentExamScheduleScreen() {
               </View>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.xl,
+                  fontSize: FONT_SIZES.lg,
                   fontFamily: FONTS.bold,
                   color: colors.onSurface,
                 }}
@@ -667,7 +667,7 @@ export default function StudentExamScheduleScreen() {
               </Text>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.regular,
                   color: colors.onSurfaceVariant,
                   textAlign: "center",

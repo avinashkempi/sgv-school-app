@@ -4,6 +4,7 @@ import { Platform, StyleSheet } from "react-native";
  * SGV School App - Global Typography Design System
  * 
  * Central Single Source of Truth for all typography across the entire application.
+ * 8-step font size scale following Material Design 3 / Apple HIG conventions.
  * All font sizes, line heights, letter spacings, and font weights are strictly defined here.
  */
 
@@ -50,63 +51,50 @@ export const FONTS = {
   mono: FONT_FAMILIES.mono,
 };
 
-// ── 2. STANDARDIZED FONT SIZES (14-Step Scale) ──────────────────────────────
+// ── 2. STANDARDIZED FONT SIZES (8-Step Scale) ──────────────────────────────
+//
+// Each step is visually distinct (≥2px body, ≥4px headings).
+// Previous 14-step scale had 1px increments (13→14→15→16→17) that were
+// barely distinguishable and caused visual inconsistency.
+//
 export const FONT_SIZES = {
-  micro: 11,     // Badges, micro tags, status pills, sub-badges, dense charts
-  xs: 12,        // Captions, micro-dates, tab labels, subtle metadata, chips
-  sm: 13,        // Secondary descriptions, timestamps, helper notes, subtext
-  md: 14,        // Dense body, table cell text, card descriptions, read more
-  base: 15,      // Standard body, input text, button labels, event titles
-  mdLg: 16,      // Prominent card headers, navigation list items, subheaders
-  lg: 17,        // Section titles, large inputs, modal subheads, user names
-  xl: 19,        // Card headers, subheadings, dialog titles, exam headings
-  xxl: 21,       // Page subheadings, metric highlights, modal titles
-  title: 23,     // Prominent screen titles, primary stats
-  headline: 25,  // Major section titles, large banners, hero tags
-  displaySm: 28, // Login titles, hero headings
-  displayMd: 32, // Large display headers, big counters
-  displayLg: 40, // Jumbo celebrations, attendance percentage
+  micro:   11,   // Badges, status pills, sub-info, dense charts
+  xs:      12,   // Captions, metadata, chips, tab labels, micro-dates
+  sm:      14,   // Body text, inputs, buttons, descriptions, timestamps
+  md:      16,   // Card headers, subheadings, nav items, prominent labels
+  lg:      20,   // Screen/section titles, large headings, dialog titles
+  xl:      24,   // Page headlines, hero tags, major titles
+  display: 30,   // Login titles, hero headings, display text
+  jumbo:   40,   // Celebrations, giant counters, attendance percentage
 };
 
 // ── 3. MATCHING LINE HEIGHTS ────────────────────────────────────────────────
 export const LINE_HEIGHTS = {
-  micro: 15,
-  xs: 17,
-  sm: 18,
-  md: 20,
-  base: 22,
-  mdLg: 23,
-  lg: 24,
-  xl: 26,
-  xxl: 28,
-  title: 30,
-  headline: 32,
-  displaySm: 36,
-  displayMd: 40,
-  displayLg: 48,
+  micro:   15,
+  xs:      17,
+  sm:      20,
+  md:      23,
+  lg:      26,
+  xl:      30,
+  display: 36,
+  jumbo:   48,
 };
 
 // ── 4. MATCHING LETTER SPACINGS ─────────────────────────────────────────────
 export const LETTER_SPACINGS = {
-  micro: 0.3,
-  xs: 0.2,
-  sm: 0.1,
-  md: 0.05,
-  base: 0,
-  mdLg: 0.1,
-  lg: 0,
-  xl: -0.1,
-  xxl: -0.2,
-  title: -0.2,
-  headline: -0.3,
-  displaySm: -0.5,
-  displayMd: -0.8,
-  displayLg: -1.0,
+  micro:    0.3,
+  xs:       0.2,
+  sm:       0,
+  md:       0.1,
+  lg:      -0.1,
+  xl:      -0.2,
+  display: -0.5,
+  jumbo:   -1.0,
 };
 
 // ── 5. COMPOSITE TYPOGRAPHY PRESETS ─────────────────────────────────────────
 export const TYPOGRAPHY = StyleSheet.create({
-  // Micro & Badges (10px)
+  // Micro & Badges (11px)
   badge: {
     fontFamily: FONT_FAMILIES.bold,
     fontSize: FONT_SIZES.micro,
@@ -129,7 +117,7 @@ export const TYPOGRAPHY = StyleSheet.create({
     flexShrink: 1,
   },
 
-  // Captions & Small Labels (11px)
+  // Captions & Small Labels (12px)
   caption: {
     fontFamily: FONT_FAMILIES.medium,
     fontSize: FONT_SIZES.xs,
@@ -152,7 +140,7 @@ export const TYPOGRAPHY = StyleSheet.create({
     flexShrink: 1,
   },
 
-  // Small Body & Metadata (12px)
+  // Body Text (14px)
   bodySmall: {
     fontFamily: FONT_FAMILIES.regular,
     fontSize: FONT_SIZES.sm,
@@ -181,174 +169,166 @@ export const TYPOGRAPHY = StyleSheet.create({
     letterSpacing: LETTER_SPACINGS.sm,
     flexShrink: 1,
   },
-
-  // Dense Body & Card Content (13px)
   bodyDense: {
     fontFamily: FONT_FAMILIES.regular,
-    fontSize: FONT_SIZES.md,
-    lineHeight: LINE_HEIGHTS.md,
-    letterSpacing: LETTER_SPACINGS.md,
+    fontSize: FONT_SIZES.sm,
+    lineHeight: LINE_HEIGHTS.sm,
+    letterSpacing: LETTER_SPACINGS.sm,
     flexShrink: 1,
   },
   bodyDenseMedium: {
     fontFamily: FONT_FAMILIES.medium,
-    fontSize: FONT_SIZES.md,
-    lineHeight: LINE_HEIGHTS.md,
-    letterSpacing: LETTER_SPACINGS.md,
+    fontSize: FONT_SIZES.sm,
+    lineHeight: LINE_HEIGHTS.sm,
+    letterSpacing: LETTER_SPACINGS.sm,
     flexShrink: 1,
   },
   bodyDenseBold: {
     fontFamily: FONT_FAMILIES.bold,
+    fontSize: FONT_SIZES.sm,
+    lineHeight: LINE_HEIGHTS.sm,
+    letterSpacing: LETTER_SPACINGS.sm,
+    flexShrink: 1,
+  },
+  bodyMedium: {
+    fontFamily: FONT_FAMILIES.regular,
+    fontSize: FONT_SIZES.sm,
+    lineHeight: LINE_HEIGHTS.sm,
+    letterSpacing: LETTER_SPACINGS.sm,
+    flexShrink: 1,
+  },
+  bodyMediumBold: {
+    fontFamily: FONT_FAMILIES.bold,
+    fontSize: FONT_SIZES.sm,
+    lineHeight: LINE_HEIGHTS.sm,
+    letterSpacing: LETTER_SPACINGS.sm,
+    flexShrink: 1,
+  },
+  labelLarge: {
+    fontFamily: FONT_FAMILIES.medium,
+    fontSize: FONT_SIZES.sm,
+    lineHeight: LINE_HEIGHTS.sm,
+    letterSpacing: LETTER_SPACINGS.sm,
+    flexShrink: 1,
+  },
+  titleSmall: {
+    fontFamily: FONT_FAMILIES.medium,
+    fontSize: FONT_SIZES.sm,
+    lineHeight: LINE_HEIGHTS.sm,
+    letterSpacing: LETTER_SPACINGS.sm,
+    flexShrink: 1,
+  },
+  titleSmallBold: {
+    fontFamily: FONT_FAMILIES.bold,
+    fontSize: FONT_SIZES.sm,
+    lineHeight: LINE_HEIGHTS.sm,
+    letterSpacing: LETTER_SPACINGS.sm,
+    flexShrink: 1,
+  },
+
+  // Card Headers & Subheadings (16px)
+  cardHeader: {
+    fontFamily: FONT_FAMILIES.bold,
+    fontSize: FONT_SIZES.md,
+    lineHeight: LINE_HEIGHTS.md,
+    letterSpacing: LETTER_SPACINGS.md,
+    flexShrink: 1,
+  },
+  cardHeaderMedium: {
+    fontFamily: FONT_FAMILIES.medium,
+    fontSize: FONT_SIZES.md,
+    lineHeight: LINE_HEIGHTS.md,
+    letterSpacing: LETTER_SPACINGS.md,
+    flexShrink: 1,
+  },
+  bodyLarge: {
+    fontFamily: FONT_FAMILIES.regular,
+    fontSize: FONT_SIZES.md,
+    lineHeight: LINE_HEIGHTS.md,
+    letterSpacing: LETTER_SPACINGS.md,
+    flexShrink: 1,
+  },
+  titleMedium: {
+    fontFamily: FONT_FAMILIES.medium,
+    fontSize: FONT_SIZES.md,
+    lineHeight: LINE_HEIGHTS.md,
+    letterSpacing: LETTER_SPACINGS.md,
+    flexShrink: 1,
+  },
+  titleMediumBold: {
+    fontFamily: FONT_FAMILIES.bold,
     fontSize: FONT_SIZES.md,
     lineHeight: LINE_HEIGHTS.md,
     letterSpacing: LETTER_SPACINGS.md,
     flexShrink: 1,
   },
 
-  // Base Body & Standard Inputs (14px)
-  bodyMedium: {
-    fontFamily: FONT_FAMILIES.regular,
-    fontSize: FONT_SIZES.base,
-    lineHeight: LINE_HEIGHTS.base,
-    letterSpacing: LETTER_SPACINGS.base,
-    flexShrink: 1,
-  },
-  bodyMediumBold: {
-    fontFamily: FONT_FAMILIES.bold,
-    fontSize: FONT_SIZES.base,
-    lineHeight: LINE_HEIGHTS.base,
-    letterSpacing: LETTER_SPACINGS.base,
-    flexShrink: 1,
-  },
-  labelLarge: {
-    fontFamily: FONT_FAMILIES.medium,
-    fontSize: FONT_SIZES.base,
-    lineHeight: LINE_HEIGHTS.base,
-    letterSpacing: LETTER_SPACINGS.base,
-    flexShrink: 1,
-  },
-  titleSmall: {
-    fontFamily: FONT_FAMILIES.medium,
-    fontSize: FONT_SIZES.base,
-    lineHeight: LINE_HEIGHTS.base,
-    letterSpacing: LETTER_SPACINGS.base,
-    flexShrink: 1,
-  },
-  titleSmallBold: {
-    fontFamily: FONT_FAMILIES.bold,
-    fontSize: FONT_SIZES.base,
-    lineHeight: LINE_HEIGHTS.base,
-    letterSpacing: LETTER_SPACINGS.base,
-    flexShrink: 1,
-  },
-
-  // Medium Large Card Header (15px)
-  cardHeader: {
-    fontFamily: FONT_FAMILIES.bold,
-    fontSize: FONT_SIZES.mdLg,
-    lineHeight: LINE_HEIGHTS.mdLg,
-    letterSpacing: LETTER_SPACINGS.mdLg,
-    flexShrink: 1,
-  },
-  cardHeaderMedium: {
-    fontFamily: FONT_FAMILIES.medium,
-    fontSize: FONT_SIZES.mdLg,
-    lineHeight: LINE_HEIGHTS.mdLg,
-    letterSpacing: LETTER_SPACINGS.mdLg,
-    flexShrink: 1,
-  },
-
-  // Large Body & Titles (16px)
-  bodyLarge: {
-    fontFamily: FONT_FAMILIES.regular,
-    fontSize: FONT_SIZES.lg,
-    lineHeight: LINE_HEIGHTS.lg,
-    letterSpacing: LETTER_SPACINGS.lg,
-    flexShrink: 1,
-  },
-  titleMedium: {
-    fontFamily: FONT_FAMILIES.medium,
-    fontSize: FONT_SIZES.lg,
-    lineHeight: LINE_HEIGHTS.lg,
-    letterSpacing: LETTER_SPACINGS.lg,
-    flexShrink: 1,
-  },
-  titleMediumBold: {
-    fontFamily: FONT_FAMILIES.bold,
-    fontSize: FONT_SIZES.lg,
-    lineHeight: LINE_HEIGHTS.lg,
-    letterSpacing: LETTER_SPACINGS.lg,
-    flexShrink: 1,
-  },
-
-  // Extra Large Titles & Subheadings (18px)
+  // Screen / Section Titles (20px)
   titleLarge: {
     fontFamily: FONT_FAMILIES.bold,
-    fontSize: FONT_SIZES.xl,
-    lineHeight: LINE_HEIGHTS.xl,
-    letterSpacing: LETTER_SPACINGS.xl,
+    fontSize: FONT_SIZES.lg,
+    lineHeight: LINE_HEIGHTS.lg,
+    letterSpacing: LETTER_SPACINGS.lg,
     flexShrink: 1,
   },
   headlineSmall: {
     fontFamily: FONT_FAMILIES.bold,
+    fontSize: FONT_SIZES.lg,
+    lineHeight: LINE_HEIGHTS.lg,
+    letterSpacing: LETTER_SPACINGS.lg,
+    flexShrink: 1,
+  },
+  subheading: {
+    fontFamily: FONT_FAMILIES.bold,
+    fontSize: FONT_SIZES.lg,
+    lineHeight: LINE_HEIGHTS.lg,
+    letterSpacing: LETTER_SPACINGS.lg,
+    flexShrink: 1,
+  },
+  headlineMedium: {
+    fontFamily: FONT_FAMILIES.bold,
+    fontSize: FONT_SIZES.lg,
+    lineHeight: LINE_HEIGHTS.lg,
+    letterSpacing: LETTER_SPACINGS.lg,
+    flexShrink: 1,
+  },
+
+  // Page Headlines (24px)
+  screenTitle: {
+    fontFamily: FONT_FAMILIES.bold,
+    fontSize: FONT_SIZES.xl,
+    lineHeight: LINE_HEIGHTS.xl,
+    letterSpacing: LETTER_SPACINGS.xl,
+    flexShrink: 1,
+  },
+  headlineLarge: {
+    fontFamily: FONT_FAMILIES.bold,
     fontSize: FONT_SIZES.xl,
     lineHeight: LINE_HEIGHTS.xl,
     letterSpacing: LETTER_SPACINGS.xl,
     flexShrink: 1,
   },
 
-  // Subheadings & Metric Highlights (20px)
-  subheading: {
-    fontFamily: FONT_FAMILIES.bold,
-    fontSize: FONT_SIZES.xxl,
-    lineHeight: LINE_HEIGHTS.xxl,
-    letterSpacing: LETTER_SPACINGS.xxl,
-    flexShrink: 1,
-  },
-  headlineMedium: {
-    fontFamily: FONT_FAMILIES.bold,
-    fontSize: FONT_SIZES.xxl,
-    lineHeight: LINE_HEIGHTS.xxl,
-    letterSpacing: LETTER_SPACINGS.xxl,
-    flexShrink: 1,
-  },
-
-  // Primary Screen Titles (22px - 24px)
-  screenTitle: {
-    fontFamily: FONT_FAMILIES.bold,
-    fontSize: FONT_SIZES.title,
-    lineHeight: LINE_HEIGHTS.title,
-    letterSpacing: LETTER_SPACINGS.title,
-    flexShrink: 1,
-  },
-  headlineLarge: {
-    fontFamily: FONT_FAMILIES.bold,
-    fontSize: FONT_SIZES.headline,
-    lineHeight: LINE_HEIGHTS.headline,
-    letterSpacing: LETTER_SPACINGS.headline,
-    flexShrink: 1,
-  },
-
-  // Displays & Hero (28px, 32px, 40px)
+  // Display & Hero (30px, 40px)
   displaySmall: {
     fontFamily: FONT_FAMILIES.bold,
-    fontSize: FONT_SIZES.displaySm,
-    lineHeight: LINE_HEIGHTS.displaySm,
-    letterSpacing: LETTER_SPACINGS.displaySm,
+    fontSize: FONT_SIZES.display,
+    lineHeight: LINE_HEIGHTS.display,
+    letterSpacing: LETTER_SPACINGS.display,
     flexShrink: 1,
   },
   displayMedium: {
     fontFamily: FONT_FAMILIES.bold,
-    fontSize: FONT_SIZES.displayMd,
-    lineHeight: LINE_HEIGHTS.displayMd,
-    letterSpacing: LETTER_SPACINGS.displayMd,
+    fontSize: FONT_SIZES.display,
+    lineHeight: LINE_HEIGHTS.display,
+    letterSpacing: LETTER_SPACINGS.display,
     flexShrink: 1,
   },
   displayLarge: {
     fontFamily: FONT_FAMILIES.bold,
-    fontSize: FONT_SIZES.displayLg,
-    lineHeight: LINE_HEIGHTS.displayLg,
-    letterSpacing: LETTER_SPACINGS.displayLg,
+    fontSize: FONT_SIZES.jumbo,
+    lineHeight: LINE_HEIGHTS.jumbo,
+    letterSpacing: LETTER_SPACINGS.jumbo,
     flexShrink: 1,
   },
 

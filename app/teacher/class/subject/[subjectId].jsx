@@ -219,7 +219,7 @@ export default function SubjectDetailScreen() {
               <MaterialIcons name="leaderboard" size={20} color="#fff" />
               <Text
                 style={{
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.bold,
                   color: "#fff",
                 }}
@@ -256,7 +256,7 @@ export default function SubjectDetailScreen() {
                   <Text
                     style={{
                       color: colors.onSurface,
-                      fontSize: FONT_SIZES.mdLg,
+                      fontSize: FONT_SIZES.md,
                       fontFamily: FONTS.bold,
                     }}
                   >
@@ -373,7 +373,7 @@ export default function SubjectDetailScreen() {
 
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.lg,
+                          fontSize: FONT_SIZES.md,
                           fontFamily: FONTS.bold,
                           color: colors.onSurface,
                           lineHeight: 24,
@@ -385,7 +385,7 @@ export default function SubjectDetailScreen() {
                       {item.description ? (
                         <Text
                           style={{
-                            fontSize: FONT_SIZES.base,
+                            fontSize: FONT_SIZES.sm,
                             fontFamily: FONTS.regular,
                             color: colors.onSurfaceVariant,
                             lineHeight: 22,

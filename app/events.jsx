@@ -80,7 +80,7 @@ const DayRenderer = React.memo(
         {/* Date text */}
         <Text
           style={{
-            fontSize: FONT_SIZES.mdLg,
+            fontSize: FONT_SIZES.md,
             fontFamily: isSelected || isToday ? FONTS.bold : FONTS.regular,
             color: isSelected
               ? colors.white
@@ -150,7 +150,7 @@ const EventCard = React.memo(
           <View style={{ flex: 1, marginRight: 12 }}>
             <Text
               style={{
-                fontSize: FONT_SIZES.xl,
+                fontSize: FONT_SIZES.lg,
                 fontFamily: FONTS.bold,
                 color: colors.onSurface,
                 marginBottom: 8,
@@ -162,10 +162,10 @@ const EventCard = React.memo(
             {hasValidDescription && (
               <Text
                 style={{
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.regular,
                   color: colors.onSurfaceVariant,
-                  lineHeight: LINE_HEIGHTS.base,
+                  lineHeight: LINE_HEIGHTS.sm,
                   marginBottom: 12,
                 }}
                 numberOfLines={2}
@@ -590,7 +590,7 @@ export default function EventsScreen() {
                   style={{
                     color: colors.textSecondary,
                     marginTop: 16,
-                    fontSize: FONT_SIZES.lg,
+                    fontSize: FONT_SIZES.md,
                     fontFamily: FONTS.medium,
                   }}
                 >

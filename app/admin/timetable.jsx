@@ -518,7 +518,7 @@ export default function AdminTimetableScreen() {
         <View style={{ marginBottom: 20 }}>
           <Text
             style={{
-              fontSize: FONT_SIZES.base,
+              fontSize: FONT_SIZES.sm,
               color: colors.textSecondary,
               marginLeft: 16,
               marginBottom: 8,
@@ -619,7 +619,7 @@ export default function AdminTimetableScreen() {
               >
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.xl,
+                    fontSize: FONT_SIZES.lg,
                     fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                   }}
@@ -738,7 +738,7 @@ export default function AdminTimetableScreen() {
                         style={{
                           fontFamily: FONTS.bold,
                           color: colors.primary,
-                          fontSize: FONT_SIZES.xl,
+                          fontSize: FONT_SIZES.lg,
                         }}
                       >
                         {period.periodNumber}
@@ -750,7 +750,7 @@ export default function AdminTimetableScreen() {
                         style={{
                           fontFamily: FONTS.bold,
                           color: colors.textPrimary,
-                          fontSize: FONT_SIZES.lg,
+                          fontSize: FONT_SIZES.md,
                           marginBottom: 4,
                         }}
                       >
@@ -845,7 +845,7 @@ export default function AdminTimetableScreen() {
                       style={{
                         color: "#fff",
                         fontFamily: FONTS.bold,
-                        fontSize: FONT_SIZES.lg,
+                        fontSize: FONT_SIZES.md,
                       }}
                     >
                       Save Changes
@@ -875,7 +875,7 @@ export default function AdminTimetableScreen() {
                 marginTop: 16,
                 color: colors.textSecondary,
                 fontFamily: FONTS.medium,
-                fontSize: FONT_SIZES.lg,
+                fontSize: FONT_SIZES.md,
               }}
             >
               Select a class to manage schedule
@@ -923,7 +923,7 @@ export default function AdminTimetableScreen() {
               >
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.xxl,
+                    fontSize: FONT_SIZES.lg,
                     fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                   }}
@@ -1235,7 +1235,7 @@ export default function AdminTimetableScreen() {
                     style={{
                       color: "#fff",
                       fontFamily: FONTS.bold,
-                      fontSize: FONT_SIZES.lg,
+                      fontSize: FONT_SIZES.md,
                     }}
                   >
                     {editingPeriod ? "Update Period" : "Add Period"}
@@ -1282,7 +1282,7 @@ export default function AdminTimetableScreen() {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.xxl,
+                  fontSize: FONT_SIZES.lg,
                   fontFamily: FONTS.bold,
                   color: colors.textPrimary,
                 }}
@@ -1309,7 +1309,7 @@ export default function AdminTimetableScreen() {
             <ScrollView showsVerticalScrollIndicator={false}>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   color: colors.textSecondary,
                   marginBottom: 16,
                   fontFamily: FONTS.regular,
@@ -1472,7 +1472,7 @@ export default function AdminTimetableScreen() {
                     style={{
                       color: "#fff",
                       fontFamily: FONTS.bold,
-                      fontSize: FONT_SIZES.lg,
+                      fontSize: FONT_SIZES.md,
                     }}
                   >
                     {!schedule[selectedDay] ||

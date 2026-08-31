@@ -233,7 +233,7 @@ export default function DataGrid({
         >
           <Text
             style={{
-              fontSize: FONT_SIZES.base,
+              fontSize: FONT_SIZES.sm,
               fontFamily:
                 column.type === "grade" ? FONTS.bold : FONTS.medium,
               color: cellColor,
@@ -267,7 +267,7 @@ export default function DataGrid({
           onKeyPress={(e) => handleKeyPress(e, rowIndex, colIndex)}
           keyboardType={column.type === "number" ? "numeric" : "default"}
           style={{
-            fontSize: FONT_SIZES.base,
+            fontSize: FONT_SIZES.sm,
             fontFamily: FONTS.medium,
             color: hasError ? colors.error : colors.onSurface,
             padding: 6,
@@ -342,7 +342,7 @@ export default function DataGrid({
         >
           <Text
             style={{
-              fontSize: FONT_SIZES.md,
+              fontSize: FONT_SIZES.sm,
               fontFamily: FONTS.bold,
               color: colors.onSurface,
             }}
@@ -384,7 +384,7 @@ export default function DataGrid({
           >
             <Text
               style={{
-                fontSize: FONT_SIZES.md,
+                fontSize: FONT_SIZES.sm,
                 fontFamily: FONTS.bold,
                 color: colors.onSurfaceVariant,
               }}
@@ -490,7 +490,7 @@ export default function DataGrid({
             <Text
               style={{
                 color: "#FFFFFF",
-                fontSize: FONT_SIZES.md,
+                fontSize: FONT_SIZES.sm,
                 fontFamily: FONTS.bold,
               }}
             >

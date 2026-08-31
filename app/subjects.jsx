@@ -113,7 +113,7 @@ export default function SubjectsScreen() {
             style={{
               color: colors.onSurfaceVariant,
               marginTop: 16,
-              fontSize: FONT_SIZES.lg,
+              fontSize: FONT_SIZES.md,
             }}
           >
             No subjects assigned.
@@ -156,7 +156,7 @@ export default function SubjectsScreen() {
               <View>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.lg,
+                    fontSize: FONT_SIZES.md,
                     fontFamily: FONTS.bold,
                     color: colors.onSurface,
                   }}
@@ -198,7 +198,7 @@ export default function SubjectsScreen() {
             style={{
               color: colors.onSurfaceVariant,
               marginTop: 16,
-              fontSize: FONT_SIZES.lg,
+              fontSize: FONT_SIZES.md,
             }}
           >
             No classes assigned.
@@ -209,7 +209,7 @@ export default function SubjectsScreen() {
           <View key={cls._id} style={{ marginBottom: 24 }}>
             <Text
               style={{
-                fontSize: FONT_SIZES.lg,
+                fontSize: FONT_SIZES.md,
                 fontFamily: FONTS.bold,
                 color: colors.onSurface,
                 marginBottom: 12,
@@ -252,7 +252,7 @@ export default function SubjectsScreen() {
                 >
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.mdLg,
+                      fontSize: FONT_SIZES.md,
                       fontFamily: FONTS.semiBold,
                       color: colors.onSurface,
                     }}

@@ -264,7 +264,7 @@ const GlobalSearch = ({ visible, onClose }) => {
         <View style={{ flex: 1 }}>
           <Text
             style={{
-              fontSize: FONT_SIZES.mdLg,
+              fontSize: FONT_SIZES.md,
               fontFamily: FONTS.bold,
               color: colors.onSurface,
             }}
@@ -274,7 +274,7 @@ const GlobalSearch = ({ visible, onClose }) => {
           {subtitle && (
             <Text
               style={{
-                fontSize: FONT_SIZES.md,
+                fontSize: FONT_SIZES.sm,
                 fontFamily: FONTS.regular,
                 color: colors.onSurfaceVariant,
                 marginTop: 2,
@@ -352,7 +352,7 @@ const GlobalSearch = ({ visible, onClose }) => {
             <TextInput
               style={{
                 flex: 1,
-                fontSize: FONT_SIZES.lg,
+                fontSize: FONT_SIZES.md,
                 fontFamily: FONTS.regular,
                 color: colors.onSurface,
                 marginLeft: 12,
@@ -389,7 +389,7 @@ const GlobalSearch = ({ visible, onClose }) => {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.bold,
                   color: colors.primary,
                 }}
@@ -425,7 +425,7 @@ const GlobalSearch = ({ visible, onClose }) => {
                   <Text
                     style={{
                       marginTop: 16,
-                      fontSize: FONT_SIZES.lg,
+                      fontSize: FONT_SIZES.md,
                       fontFamily: FONTS.medium,
                       color: colors.onSurface,
                     }}
@@ -540,7 +540,7 @@ const GlobalSearch = ({ visible, onClose }) => {
                   <Text
                     style={{
                       flex: 1,
-                      fontSize: FONT_SIZES.mdLg,
+                      fontSize: FONT_SIZES.md,
                       fontFamily: FONTS.regular,
                       color: colors.onSurface,
                       marginLeft: 12,

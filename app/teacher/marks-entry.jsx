@@ -200,7 +200,7 @@ export default function MarksEntryScreen() {
               <View style={{ flex: 2 }}>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.lg,
+                    fontSize: FONT_SIZES.md,
                     fontFamily: FONTS.medium,
                     color: colors.textPrimary,
                   }}
@@ -317,7 +317,7 @@ const localStyles = StyleSheet.create({
   },
   saveButtonText: {
     color: "#fff",
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
 });

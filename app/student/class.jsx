@@ -1760,12 +1760,12 @@ const localStyles = StyleSheet.create({
     marginBottom: 16,
   },
   emptyTitle: {
-    fontSize: FONT_SIZES.xxl,
+    fontSize: FONT_SIZES.lg,
     fontFamily: FONTS.bold,
     textAlign: "center",
   },
   emptySubtitle: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
     marginTop: 8,
     textAlign: "center",
@@ -1811,7 +1811,7 @@ const localStyles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   heroClassName: {
-    fontSize: FONT_SIZES.headline,
+    fontSize: FONT_SIZES.xl,
     fontFamily: FONTS.bold,
     marginTop: 2,
   },
@@ -1836,7 +1836,7 @@ const localStyles = StyleSheet.create({
     gap: 2,
   },
   heroStatNum: {
-    fontSize: FONT_SIZES.xl,
+    fontSize: FONT_SIZES.lg,
     fontFamily: FONTS.bold,
   },
   heroStatLabel: {
@@ -1857,7 +1857,7 @@ const localStyles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   teacherName: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   teacherEmail: {
@@ -1923,7 +1923,7 @@ const localStyles = StyleSheet.create({
     backgroundColor: "#10B981",
   },
   todayScheduleTitle: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   todayScheduleDay: {
@@ -1965,7 +1965,7 @@ const localStyles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
     padding: 0,
   },
@@ -1976,7 +1976,7 @@ const localStyles = StyleSheet.create({
     gap: 10,
   },
   emptySubTabText: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.medium,
     textAlign: "center",
   },
@@ -2002,7 +2002,7 @@ const localStyles = StyleSheet.create({
     flexShrink: 0,
   },
   subjectCardName: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   codeBadge: {
@@ -2076,12 +2076,12 @@ const localStyles = StyleSheet.create({
     marginBottom: 4,
   },
   emptyFeedTitle: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
     textAlign: "center",
   },
   emptyFeedDesc: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
     textAlign: "center",
     lineHeight: 22,
@@ -2131,12 +2131,12 @@ const localStyles = StyleSheet.create({
     fontFamily: FONTS.regular,
   },
   feedTitle: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
     lineHeight: 24,
   },
   feedDescription: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
     lineHeight: 22,
   },
@@ -2174,7 +2174,7 @@ const localStyles = StyleSheet.create({
     gap: 12,
   },
   classmateName: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   youBadge: {

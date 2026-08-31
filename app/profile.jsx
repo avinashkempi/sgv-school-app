@@ -387,7 +387,7 @@ export default function ProfileScreen() {
                 {user?.name ? (
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.hero,
+                      fontSize: FONT_SIZES.display,
                       fontFamily: FONTS.bold,
                       color: colors.onPrimaryContainer,
                     }}
@@ -469,7 +469,7 @@ export default function ProfileScreen() {
           <>
             <Text
               style={{
-                fontSize: FONT_SIZES.displayTitle,
+                fontSize: FONT_SIZES.xl,
                 fontFamily: FONTS.bold,
                 color: colors.onSurface,
                 marginBottom: 8,
@@ -511,7 +511,7 @@ export default function ProfileScreen() {
               <Card variant="filled" style={{ marginBottom: 16 }}>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.base,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.bold,
                     color: colors.onSurfaceVariant,
                     marginBottom: 16,
@@ -537,7 +537,7 @@ export default function ProfileScreen() {
                     </View>
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.lg,
+                        fontSize: FONT_SIZES.md,
                         fontFamily: FONTS.medium,
                         color: colors.onSurface,
                         marginLeft: 8,
@@ -561,7 +561,7 @@ export default function ProfileScreen() {
                     </View>
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.lg,
+                        fontSize: FONT_SIZES.md,
                         fontFamily: FONTS.medium,
                         color: colors.onSurface,
                         marginLeft: 8,
@@ -584,7 +584,7 @@ export default function ProfileScreen() {
                 <Card variant="filled" style={{ marginBottom: 16 }}>
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.base,
+                      fontSize: FONT_SIZES.sm,
                       fontFamily: FONTS.bold,
                       color: colors.onSurfaceVariant,
                       marginBottom: 16,
@@ -618,7 +618,7 @@ export default function ProfileScreen() {
                             </Text>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.lg,
+                                fontSize: FONT_SIZES.md,
                                 fontFamily: FONTS.medium,
                                 color: colors.onSurface,
                               }}
@@ -644,7 +644,7 @@ export default function ProfileScreen() {
                             </Text>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.lg,
+                                fontSize: FONT_SIZES.md,
                                 fontFamily: FONTS.medium,
                                 color: colors.onSurface,
                               }}
@@ -668,7 +668,7 @@ export default function ProfileScreen() {
                           </Text>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.lg,
+                              fontSize: FONT_SIZES.md,
                               fontFamily: FONTS.medium,
                               color: colors.onSurface,
                             }}
@@ -690,7 +690,7 @@ export default function ProfileScreen() {
                           </Text>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.lg,
+                              fontSize: FONT_SIZES.md,
                               fontFamily: FONTS.medium,
                               color: colors.onSurface,
                             }}
@@ -703,7 +703,7 @@ export default function ProfileScreen() {
                       {/* Personal Details */}
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.base,
+                          fontSize: FONT_SIZES.sm,
                           fontFamily: FONTS.bold,
                           color: colors.onSurfaceVariant,
                           marginBottom: 12,
@@ -733,7 +733,7 @@ export default function ProfileScreen() {
                             </Text>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.lg,
+                                fontSize: FONT_SIZES.md,
                                 fontFamily: FONTS.medium,
                                 color: colors.onSurface,
                               }}
@@ -755,7 +755,7 @@ export default function ProfileScreen() {
                             </Text>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.lg,
+                                fontSize: FONT_SIZES.md,
                                 fontFamily: FONTS.medium,
                                 color: colors.onSurface,
                               }}
@@ -777,7 +777,7 @@ export default function ProfileScreen() {
                             </Text>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.lg,
+                                fontSize: FONT_SIZES.md,
                                 fontFamily: FONTS.medium,
                                 color: colors.onSurface,
                               }}
@@ -799,7 +799,7 @@ export default function ProfileScreen() {
                             </Text>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.lg,
+                                fontSize: FONT_SIZES.md,
                                 fontFamily: FONTS.medium,
                                 color: colors.onSurface,
                               }}
@@ -823,7 +823,7 @@ export default function ProfileScreen() {
                           </Text>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.lg,
+                              fontSize: FONT_SIZES.md,
                               fontFamily: FONTS.medium,
                               color: colors.onSurface,
                             }}
@@ -836,7 +836,7 @@ export default function ProfileScreen() {
                       {/* Academic Identifiers */}
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.base,
+                          fontSize: FONT_SIZES.sm,
                           fontFamily: FONTS.bold,
                           color: colors.onSurfaceVariant,
                           marginBottom: 12,
@@ -860,7 +860,7 @@ export default function ProfileScreen() {
                             </Text>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.lg,
+                                fontSize: FONT_SIZES.md,
                                 fontFamily: FONTS.medium,
                                 color: colors.onSurface,
                               }}
@@ -882,7 +882,7 @@ export default function ProfileScreen() {
                             </Text>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.lg,
+                                fontSize: FONT_SIZES.md,
                                 fontFamily: FONTS.medium,
                                 color: colors.onSurface,
                               }}
@@ -904,7 +904,7 @@ export default function ProfileScreen() {
                             </Text>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.lg,
+                                fontSize: FONT_SIZES.md,
                                 fontFamily: FONTS.medium,
                                 color: colors.onSurface,
                               }}
@@ -926,7 +926,7 @@ export default function ProfileScreen() {
                             </Text>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.lg,
+                                fontSize: FONT_SIZES.md,
                                 fontFamily: FONTS.medium,
                                 color: colors.onSurface,
                               }}
@@ -949,7 +949,7 @@ export default function ProfileScreen() {
                           </Text>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.lg,
+                              fontSize: FONT_SIZES.md,
                               fontFamily: FONTS.medium,
                               color: colors.onSurface,
                             }}
@@ -980,7 +980,7 @@ export default function ProfileScreen() {
                           </Text>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.lg,
+                              fontSize: FONT_SIZES.md,
                               fontFamily: FONTS.medium,
                               color: colors.onSurface,
                             }}
@@ -1010,7 +1010,7 @@ export default function ProfileScreen() {
                             </Text>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.lg,
+                                fontSize: FONT_SIZES.md,
                                 fontFamily: FONTS.medium,
                                 color: colors.onSurface,
                               }}
@@ -1032,7 +1032,7 @@ export default function ProfileScreen() {
                             </Text>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.lg,
+                                fontSize: FONT_SIZES.md,
                                 fontFamily: FONTS.medium,
                                 color: colors.onSurface,
                               }}
@@ -1056,7 +1056,7 @@ export default function ProfileScreen() {
                           </Text>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.lg,
+                              fontSize: FONT_SIZES.md,
                               fontFamily: FONTS.medium,
                               color: colors.onSurface,
                             }}
@@ -1079,7 +1079,7 @@ export default function ProfileScreen() {
                           </Text>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.lg,
+                              fontSize: FONT_SIZES.md,
                               fontFamily: FONTS.medium,
                               color: colors.onSurface,
                             }}
@@ -1100,7 +1100,7 @@ export default function ProfileScreen() {
           <>
             <Text
               style={{
-                fontSize: FONT_SIZES.displayTitle,
+                fontSize: FONT_SIZES.xl,
                 fontFamily: FONTS.bold,
                 color: colors.onSurface,
                 marginBottom: 4,
@@ -1110,7 +1110,7 @@ export default function ProfileScreen() {
             </Text>
             <Text
               style={{
-                fontSize: FONT_SIZES.base,
+                fontSize: FONT_SIZES.sm,
                 fontFamily: FONTS.regular,
                 color: colors.onSurfaceVariant,
               }}
@@ -1222,7 +1222,7 @@ export default function ProfileScreen() {
                     </View>
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.xxl,
+                        fontSize: FONT_SIZES.lg,
                         fontFamily: FONTS.bold,
                         color: colors.textPrimary,
                       }}
@@ -1519,7 +1519,7 @@ export default function ProfileScreen() {
             />
             <Text
               style={{
-                fontSize: FONT_SIZES.xl,
+                fontSize: FONT_SIZES.lg,
                 fontFamily: FONTS.bold,
                 color: colors.onSurface,
                 marginBottom: 16,
@@ -1565,7 +1565,7 @@ export default function ProfileScreen() {
               </View>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.lg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.medium,
                   color: colors.onSurface,
                 }}
@@ -1611,7 +1611,7 @@ export default function ProfileScreen() {
               </View>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.lg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.medium,
                   color: colors.onSurface,
                 }}
@@ -1657,7 +1657,7 @@ export default function ProfileScreen() {
                 </View>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.lg,
+                    fontSize: FONT_SIZES.md,
                     fontFamily: FONTS.medium,
                     color: colors.error || "#d32f2f",
                   }}
@@ -1684,7 +1684,7 @@ export default function ProfileScreen() {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.lg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: colors.onSurfaceVariant || "#555",
                 }}

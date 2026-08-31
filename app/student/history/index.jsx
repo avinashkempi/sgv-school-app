@@ -142,7 +142,7 @@ export default function StudentHistoryScreen() {
                       />
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.xl,
+                          fontSize: FONT_SIZES.lg,
                           fontFamily: FONTS.bold,
                           color: colors.onSurface,
                         }}
@@ -184,7 +184,7 @@ export default function StudentHistoryScreen() {
                     <View>
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.md,
+                          fontSize: FONT_SIZES.sm,
                           color: colors.onSurfaceVariant,
                           fontFamily: FONTS.regular,
                           marginBottom: 4,
@@ -194,7 +194,7 @@ export default function StudentHistoryScreen() {
                       </Text>
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.mdLg,
+                          fontSize: FONT_SIZES.md,
                           fontFamily: FONTS.bold,
                           color:
                             record.finalStatus === "promoted"
@@ -215,7 +215,7 @@ export default function StudentHistoryScreen() {
                     <View>
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.md,
+                          fontSize: FONT_SIZES.sm,
                           color: colors.onSurfaceVariant,
                           fontFamily: FONTS.regular,
                           marginBottom: 4,
@@ -225,7 +225,7 @@ export default function StudentHistoryScreen() {
                       </Text>
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.mdLg,
+                          fontSize: FONT_SIZES.md,
                           fontFamily: FONTS.bold,
                           color: colors.onSurface,
                         }}
@@ -240,7 +240,7 @@ export default function StudentHistoryScreen() {
                       <View>
                         <Text
                           style={{
-                            fontSize: FONT_SIZES.md,
+                            fontSize: FONT_SIZES.sm,
                             color: colors.onSurfaceVariant,
                             fontFamily: FONTS.regular,
                             marginBottom: 4,
@@ -257,7 +257,7 @@ export default function StudentHistoryScreen() {
                         >
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.mdLg,
+                              fontSize: FONT_SIZES.md,
                               fontFamily: FONTS.bold,
                               color: getGradeColor(record.grade),
                             }}

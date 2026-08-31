@@ -339,7 +339,7 @@ const localStyles = StyleSheet.create({
     fontFamily: FONTS.bold,
   },
   metricValue: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
     letterSpacing: -0.3,
     marginBottom: 2,

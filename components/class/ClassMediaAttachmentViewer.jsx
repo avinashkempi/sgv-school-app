@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   docName: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
     marginBottom: 3,
   },

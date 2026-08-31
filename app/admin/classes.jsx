@@ -200,7 +200,7 @@ export default function ClassesScreen() {
               <Text
                 style={{
                   color: colors.warning,
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   flex: 1,
                   fontFamily: FONTS.medium,
                 }}
@@ -238,7 +238,7 @@ export default function ClassesScreen() {
                 <View>
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.xl,
+                      fontSize: FONT_SIZES.lg,
                       fontWeight: "700",
                       color: colors.textPrimary,
                     }}
@@ -247,7 +247,7 @@ export default function ClassesScreen() {
                   </Text>
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.base,
+                      fontSize: FONT_SIZES.sm,
                       color: colors.textSecondary,
                       marginTop: 4,
                     }}
@@ -264,7 +264,7 @@ export default function ClassesScreen() {
                       />
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.md,
+                          fontSize: FONT_SIZES.sm,
                           color: colors.primary,
                           fontWeight: "500",
                         }}
@@ -383,7 +383,7 @@ export default function ClassesScreen() {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.xxl,
+                  fontSize: FONT_SIZES.lg,
                   fontWeight: "700",
                   color: colors.textPrimary,
                   marginBottom: 16,

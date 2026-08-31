@@ -1399,7 +1399,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   brandTitle: {
-    fontSize: FONT_SIZES.title,
+    fontSize: FONT_SIZES.xl,
     fontFamily: FONTS.bold,
     letterSpacing: -0.6,
   },
@@ -1445,7 +1445,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
   },
   createButtonText: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   segmentWrapper: {
@@ -1557,15 +1557,15 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   emptyTitle: {
-    fontSize: FONT_SIZES.xl,
+    fontSize: FONT_SIZES.lg,
     fontFamily: FONTS.bold,
     letterSpacing: -0.2,
   },
   emptySubtitle: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
     textAlign: "center",
-    lineHeight: 18,
+    lineHeight: 20,
     paddingHorizontal: 10,
   },
   emptyActionButton: {
@@ -1576,7 +1576,7 @@ const styles = StyleSheet.create({
   },
   emptyActionText: {
     color: "#fff",
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   loadingMore: {
@@ -1587,7 +1587,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   loadingMoreText: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
   },
   myVibeCardWrapper: {
@@ -1658,7 +1658,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
   },
   extendedFabText: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   searchBarWrapper: {

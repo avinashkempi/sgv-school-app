@@ -443,7 +443,7 @@ export default function ExamAnalyticsScreen() {
               <View style={{ flexDirection: "row", alignItems: "baseline" }}>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.displayLg,
+                    fontSize: FONT_SIZES.jumbo,
                     fontFamily: FONTS.bold,
                     color: colors.onPrimary,
                     lineHeight: 54,
@@ -453,7 +453,7 @@ export default function ExamAnalyticsScreen() {
                 </Text>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.title,
+                    fontSize: FONT_SIZES.xl,
                     fontFamily: FONTS.bold,
                     color: colors.onPrimary,
                     opacity: 0.8,
@@ -488,7 +488,7 @@ export default function ExamAnalyticsScreen() {
               </Text>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.mdLg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: colors.onPrimary,
                   marginTop: 2,
@@ -521,7 +521,7 @@ export default function ExamAnalyticsScreen() {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.lg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: colors.onPrimary,
                 }}
@@ -551,7 +551,7 @@ export default function ExamAnalyticsScreen() {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.lg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: colors.onPrimary,
                 }}
@@ -579,7 +579,7 @@ export default function ExamAnalyticsScreen() {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.lg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: colors.onPrimary,
                 }}
@@ -607,7 +607,7 @@ export default function ExamAnalyticsScreen() {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.lg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: colors.onPrimary,
                 }}
@@ -642,7 +642,7 @@ export default function ExamAnalyticsScreen() {
           <View>
             <Text
               style={{
-                fontSize: FONT_SIZES.lg,
+                fontSize: FONT_SIZES.md,
                 fontFamily: FONTS.bold,
                 color: colors.onBackground,
               }}
@@ -697,7 +697,7 @@ export default function ExamAnalyticsScreen() {
                     >
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.base,
+                          fontSize: FONT_SIZES.sm,
                           fontFamily: FONTS.bold,
                           color: examColor,
                         }}
@@ -742,7 +742,7 @@ export default function ExamAnalyticsScreen() {
                   <View style={{ alignItems: "flex-end" }}>
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.xl,
+                        fontSize: FONT_SIZES.lg,
                         fontFamily: FONTS.bold,
                         color: isEntered
                           ? getGradeColor(pct)
@@ -854,7 +854,7 @@ export default function ExamAnalyticsScreen() {
             </View>
             <Text
               style={{
-                fontSize: FONT_SIZES.mdLg,
+                fontSize: FONT_SIZES.md,
                 fontFamily: FONTS.bold,
                 color: colors.onSurface,
                 marginTop: 4,
@@ -864,7 +864,7 @@ export default function ExamAnalyticsScreen() {
             </Text>
             <Text
               style={{
-                fontSize: FONT_SIZES.xl,
+                fontSize: FONT_SIZES.lg,
                 fontFamily: FONTS.bold,
                 color: colors.success,
                 marginTop: 4,
@@ -902,7 +902,7 @@ export default function ExamAnalyticsScreen() {
             </View>
             <Text
               style={{
-                fontSize: FONT_SIZES.mdLg,
+                fontSize: FONT_SIZES.md,
                 fontFamily: FONTS.bold,
                 color: colors.onSurface,
                 marginTop: 4,
@@ -912,7 +912,7 @@ export default function ExamAnalyticsScreen() {
             </Text>
             <Text
               style={{
-                fontSize: FONT_SIZES.xl,
+                fontSize: FONT_SIZES.lg,
                 fontFamily: FONTS.bold,
                 color: "#FF9800",
                 marginTop: 4,
@@ -954,7 +954,7 @@ export default function ExamAnalyticsScreen() {
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
             <Text
               style={{
-                fontSize: FONT_SIZES.xl,
+                fontSize: FONT_SIZES.lg,
                 fontFamily: FONTS.bold,
                 color: colors.onBackground,
               }}
@@ -1021,7 +1021,7 @@ export default function ExamAnalyticsScreen() {
           onChangeText={setClassSearchQuery}
           style={{
             flex: 1,
-            fontSize: FONT_SIZES.base,
+            fontSize: FONT_SIZES.sm,
             fontFamily: FONTS.medium,
             color: colors.onSurface,
             padding: 0,
@@ -1048,7 +1048,7 @@ export default function ExamAnalyticsScreen() {
           />
           <Text
             style={{
-              fontSize: FONT_SIZES.base,
+              fontSize: FONT_SIZES.sm,
               fontFamily: FONTS.medium,
               color: colors.onSurfaceVariant,
               marginTop: 10,
@@ -1122,7 +1122,7 @@ export default function ExamAnalyticsScreen() {
                       >
                         <Text
                           style={{
-                            fontSize: FONT_SIZES.base,
+                            fontSize: FONT_SIZES.sm,
                             fontFamily: FONTS.bold,
                             color:
                               index === 0 ? colors.success : colors.primary,
@@ -1134,7 +1134,7 @@ export default function ExamAnalyticsScreen() {
                       <View style={{ flex: 1 }}>
                         <Text
                           style={{
-                            fontSize: FONT_SIZES.lg,
+                            fontSize: FONT_SIZES.md,
                             fontFamily: FONTS.bold,
                             color: colors.onSurface,
                           }}
@@ -1167,7 +1167,7 @@ export default function ExamAnalyticsScreen() {
                       >
                         <Text
                           style={{
-                            fontSize: FONT_SIZES.lg,
+                            fontSize: FONT_SIZES.md,
                             fontFamily: FONTS.bold,
                             color: getGradeColor(pct),
                           }}
@@ -1220,7 +1220,7 @@ export default function ExamAnalyticsScreen() {
                       </Text>
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.base,
+                          fontSize: FONT_SIZES.sm,
                           fontFamily: FONTS.bold,
                           color: colors.primary,
                           marginTop: 1,
@@ -1242,7 +1242,7 @@ export default function ExamAnalyticsScreen() {
                       </Text>
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.md,
+                          fontSize: FONT_SIZES.sm,
                           fontFamily: FONTS.bold,
                           color: colors.onSurface,
                           marginTop: 1,
@@ -1299,7 +1299,7 @@ export default function ExamAnalyticsScreen() {
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
             <Text
               style={{
-                fontSize: FONT_SIZES.xl,
+                fontSize: FONT_SIZES.lg,
                 fontFamily: FONTS.bold,
                 color: colors.onBackground,
               }}
@@ -1366,7 +1366,7 @@ export default function ExamAnalyticsScreen() {
           onChangeText={setSubjectSearchQuery}
           style={{
             flex: 1,
-            fontSize: FONT_SIZES.base,
+            fontSize: FONT_SIZES.sm,
             fontFamily: FONTS.medium,
             color: colors.onSurface,
             padding: 0,
@@ -1393,7 +1393,7 @@ export default function ExamAnalyticsScreen() {
           />
           <Text
             style={{
-              fontSize: FONT_SIZES.base,
+              fontSize: FONT_SIZES.sm,
               fontFamily: FONTS.medium,
               color: colors.onSurfaceVariant,
               marginTop: 10,
@@ -1439,7 +1439,7 @@ export default function ExamAnalyticsScreen() {
                       >
                         <Text
                           style={{
-                            fontSize: FONT_SIZES.lg,
+                            fontSize: FONT_SIZES.md,
                             fontFamily: FONTS.bold,
                             color: colors.primary,
                           }}
@@ -1450,7 +1450,7 @@ export default function ExamAnalyticsScreen() {
                       <View style={{ flex: 1 }}>
                         <Text
                           style={{
-                            fontSize: FONT_SIZES.lg,
+                            fontSize: FONT_SIZES.md,
                             fontFamily: FONTS.bold,
                             color: colors.onSurface,
                           }}
@@ -1507,7 +1507,7 @@ export default function ExamAnalyticsScreen() {
                       >
                         <Text
                           style={{
-                            fontSize: FONT_SIZES.lg,
+                            fontSize: FONT_SIZES.md,
                             fontFamily: FONTS.bold,
                             color: getGradeColor(pct),
                           }}
@@ -1617,7 +1617,7 @@ export default function ExamAnalyticsScreen() {
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
             <Text
               style={{
-                fontSize: FONT_SIZES.xl,
+                fontSize: FONT_SIZES.lg,
                 fontFamily: FONTS.bold,
                 color: colors.onBackground,
               }}
@@ -1684,7 +1684,7 @@ export default function ExamAnalyticsScreen() {
           onChangeText={setSearchStudentQuery}
           style={{
             flex: 1,
-            fontSize: FONT_SIZES.base,
+            fontSize: FONT_SIZES.sm,
             fontFamily: FONTS.medium,
             color: colors.onSurface,
             padding: 0,
@@ -1765,7 +1765,7 @@ export default function ExamAnalyticsScreen() {
           <ActivityIndicator size="small" color={colors.primary} />
           <Text
             style={{
-              fontSize: FONT_SIZES.md,
+              fontSize: FONT_SIZES.sm,
               fontFamily: FONTS.medium,
               color: colors.onSurfaceVariant,
               marginTop: 8,
@@ -1784,7 +1784,7 @@ export default function ExamAnalyticsScreen() {
           />
           <Text
             style={{
-              fontSize: FONT_SIZES.base,
+              fontSize: FONT_SIZES.sm,
               fontFamily: FONTS.medium,
               color: colors.onSurfaceVariant,
               marginTop: 10,
@@ -1829,7 +1829,7 @@ export default function ExamAnalyticsScreen() {
                     >
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.base,
+                          fontSize: FONT_SIZES.sm,
                           fontFamily: FONTS.bold,
                           color: isTop3 ? rankBadgeColor : colors.onSurface,
                         }}
@@ -1851,7 +1851,7 @@ export default function ExamAnalyticsScreen() {
                     <View style={{ flex: 1 }}>
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.mdLg,
+                          fontSize: FONT_SIZES.md,
                           fontFamily: FONTS.bold,
                           color: colors.onSurface,
                         }}
@@ -1871,7 +1871,7 @@ export default function ExamAnalyticsScreen() {
                       {/* Exact Marks Scored Display */}
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.md,
+                          fontSize: FONT_SIZES.sm,
                           fontFamily: FONTS.bold,
                           color: colors.primary,
                           marginTop: 3,
@@ -1886,7 +1886,7 @@ export default function ExamAnalyticsScreen() {
                     <View style={{ alignItems: "flex-end" }}>
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.xl,
+                          fontSize: FONT_SIZES.lg,
                           fontFamily: FONTS.bold,
                           color: getGradeColor(student.percentage),
                         }}
@@ -1941,7 +1941,7 @@ export default function ExamAnalyticsScreen() {
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
             <Text
               style={{
-                fontSize: FONT_SIZES.xl,
+                fontSize: FONT_SIZES.lg,
                 fontFamily: FONTS.bold,
                 color: colors.onBackground,
               }}
@@ -1992,7 +1992,7 @@ export default function ExamAnalyticsScreen() {
           <MaterialIcons name="check-circle" size={24} color={colors.success} />
           <Text
             style={{
-              fontSize: FONT_SIZES.xl,
+              fontSize: FONT_SIZES.lg,
               fontFamily: FONTS.bold,
               color: colors.onSurface,
               marginTop: 4,
@@ -2018,7 +2018,7 @@ export default function ExamAnalyticsScreen() {
           <MaterialIcons name="hourglass-empty" size={24} color="#FF9800" />
           <Text
             style={{
-              fontSize: FONT_SIZES.xl,
+              fontSize: FONT_SIZES.lg,
               fontFamily: FONTS.bold,
               color: colors.onSurface,
               marginTop: 4,
@@ -2044,7 +2044,7 @@ export default function ExamAnalyticsScreen() {
           <MaterialIcons name="error-outline" size={24} color={colors.error} />
           <Text
             style={{
-              fontSize: FONT_SIZES.xl,
+              fontSize: FONT_SIZES.lg,
               fontFamily: FONTS.bold,
               color: colors.onSurface,
               marginTop: 4,
@@ -2086,7 +2086,7 @@ export default function ExamAnalyticsScreen() {
                 <View>
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.lg,
+                      fontSize: FONT_SIZES.md,
                       fontFamily: FONTS.bold,
                       color: colors.onSurface,
                     }}
@@ -2269,7 +2269,7 @@ export default function ExamAnalyticsScreen() {
                   </Text>
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.xxl,
+                      fontSize: FONT_SIZES.lg,
                       fontFamily: FONTS.bold,
                       color: colors.onSurface,
                       marginTop: 4,
@@ -2289,7 +2289,7 @@ export default function ExamAnalyticsScreen() {
                 >
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.xxl,
+                      fontSize: FONT_SIZES.lg,
                       fontFamily: FONTS.bold,
                       color: getGradeColor(overallPct),
                     }}
@@ -2320,7 +2320,7 @@ export default function ExamAnalyticsScreen() {
                     />
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.base,
+                        fontSize: FONT_SIZES.sm,
                         fontFamily: FONTS.medium,
                         color: colors.onSurfaceVariant,
                         marginTop: 12,
@@ -2372,7 +2372,7 @@ export default function ExamAnalyticsScreen() {
                             >
                               <Text
                                 style={{
-                                  fontSize: FONT_SIZES.md,
+                                  fontSize: FONT_SIZES.sm,
                                   fontFamily: FONTS.bold,
                                   color: bColor,
                                 }}
@@ -2404,7 +2404,7 @@ export default function ExamAnalyticsScreen() {
                           <View style={{ alignItems: "flex-end" }}>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.lg,
+                                fontSize: FONT_SIZES.md,
                                 fontFamily: FONTS.bold,
                                 color:
                                   bPct !== null
@@ -2480,7 +2480,7 @@ export default function ExamAnalyticsScreen() {
                   <MaterialIcons name="assessment" size={20} color="#FFFFFF" />
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.mdLg,
+                      fontSize: FONT_SIZES.md,
                       fontFamily: FONTS.bold,
                       color: "#FFFFFF",
                     }}
@@ -2606,7 +2606,7 @@ export default function ExamAnalyticsScreen() {
                     </View>
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.xxl,
+                        fontSize: FONT_SIZES.lg,
                         fontFamily: FONTS.bold,
                         color: colors.onSurface,
                         marginTop: 4,
@@ -2617,7 +2617,7 @@ export default function ExamAnalyticsScreen() {
                     </Text>
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.base,
+                        fontSize: FONT_SIZES.sm,
                         fontFamily: FONTS.bold,
                         color: colors.primary,
                         marginTop: 2,
@@ -2640,7 +2640,7 @@ export default function ExamAnalyticsScreen() {
                 >
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.xxl,
+                      fontSize: FONT_SIZES.lg,
                       fontFamily: FONTS.bold,
                       color: getGradeColor(s.percentage),
                     }}
@@ -2661,7 +2661,7 @@ export default function ExamAnalyticsScreen() {
 
               <Text
                 style={{
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.bold,
                   color: colors.onSurfaceVariant,
                   textTransform: "uppercase",
@@ -2683,7 +2683,7 @@ export default function ExamAnalyticsScreen() {
                     />
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.md,
+                        fontSize: FONT_SIZES.sm,
                         fontFamily: FONTS.medium,
                         color: colors.onSurfaceVariant,
                         marginTop: 8,
@@ -2711,7 +2711,7 @@ export default function ExamAnalyticsScreen() {
                         <View style={{ flex: 1 }}>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.base,
+                              fontSize: FONT_SIZES.sm,
                               fontFamily: FONTS.bold,
                               color: colors.onSurface,
                             }}
@@ -2760,7 +2760,7 @@ export default function ExamAnalyticsScreen() {
                         <View style={{ alignItems: "flex-end" }}>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.lg,
+                              fontSize: FONT_SIZES.md,
                               fontFamily: FONTS.bold,
                               color: getGradeColor(score.percentage),
                             }}
@@ -2796,7 +2796,7 @@ export default function ExamAnalyticsScreen() {
               >
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.base,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.bold,
                     color: colors.onSurface,
                   }}
@@ -3012,7 +3012,7 @@ export default function ExamAnalyticsScreen() {
                 marginTop: 12,
                 fontFamily: FONTS.medium,
                 color: colors.onSurfaceVariant,
-                fontSize: FONT_SIZES.base,
+                fontSize: FONT_SIZES.sm,
               }}
             >
               Loading Exam Analytics...

@@ -1177,7 +1177,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   headerTitle: {
-    fontSize: FONT_SIZES.xxl,
+    fontSize: FONT_SIZES.lg,
     fontFamily: FONTS.bold,
     letterSpacing: -0.2,
   },
@@ -1239,7 +1239,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   filterChipText: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
   },
   filterCountBadge: {
     marginLeft: 6,
@@ -1362,14 +1362,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   title: {
-    fontSize: FONT_SIZES.mdLg,
-    lineHeight: LINE_HEIGHTS.mdLg,
+    fontSize: FONT_SIZES.md,
+    lineHeight: LINE_HEIGHTS.md,
     marginBottom: 3,
   },
   message: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
-    lineHeight: LINE_HEIGHTS.base,
+    lineHeight: LINE_HEIGHTS.sm,
   },
   expandButton: {
     flexDirection: "row",
@@ -1392,7 +1392,7 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   loadingText: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.medium,
   },
 
@@ -1420,13 +1420,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   emptyTitle: {
-    fontSize: FONT_SIZES.xl,
+    fontSize: FONT_SIZES.lg,
     fontFamily: FONTS.bold,
     marginBottom: 6,
     textAlign: "center",
   },
   emptySubtitle: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
     textAlign: "center",
     lineHeight: 20,
@@ -1440,7 +1440,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   resetFilterText: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
 
@@ -1499,11 +1499,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   modalTitle: {
-    fontSize: FONT_SIZES.xl,
+    fontSize: FONT_SIZES.lg,
     fontFamily: FONTS.bold,
   },
   modalSubtitle: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
     marginTop: 1,
   },
@@ -1537,14 +1537,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   preferenceLabel: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
     marginBottom: 2,
   },
   preferenceDesc: {
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
-    lineHeight: 16,
+    lineHeight: LINE_HEIGHTS.sm,
   },
   modalDoneButton: {
     marginTop: 12,
@@ -1555,7 +1555,7 @@ const styles = StyleSheet.create({
   },
   modalDoneButtonText: {
     color: "#FFFFFF",
-    fontSize: FONT_SIZES.mdLg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
 });

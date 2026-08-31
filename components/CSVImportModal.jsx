@@ -179,7 +179,7 @@ export default function CSVImportModal({
           >
             <Text
               style={{
-                fontSize: FONT_SIZES.xxl,
+                fontSize: FONT_SIZES.lg,
                 fontFamily: FONTS.bold,
                 color: colors.onSurface,
               }}
@@ -204,7 +204,7 @@ export default function CSVImportModal({
               >
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.base,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.bold,
                     color: colors.onSurface,
                     marginBottom: 8,
@@ -214,10 +214,10 @@ export default function CSVImportModal({
                 </Text>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.md,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.regular,
                     color: colors.onSurfaceVariant,
-                    lineHeight: LINE_HEIGHTS.md,
+                    lineHeight: LINE_HEIGHTS.sm,
                   }}
                 >
                   1. Download the CSV template{"\n"}
@@ -263,7 +263,7 @@ export default function CSVImportModal({
                 <View style={{ flex: 1 }}>
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.mdLg,
+                      fontSize: FONT_SIZES.md,
                       fontFamily: FONTS.bold,
                       color: colors.onSurface,
                     }}
@@ -322,7 +322,7 @@ export default function CSVImportModal({
                 <View style={{ flex: 1 }}>
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.mdLg,
+                      fontSize: FONT_SIZES.md,
                       fontFamily: FONTS.bold,
                       color: colors.onSurface,
                     }}
@@ -358,7 +358,7 @@ export default function CSVImportModal({
                 >
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.lg,
+                      fontSize: FONT_SIZES.md,
                       fontFamily: FONTS.bold,
                       color: colors.onSurface,
                       marginBottom: 12,
@@ -381,7 +381,7 @@ export default function CSVImportModal({
                     >
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.xxl,
+                          fontSize: FONT_SIZES.lg,
                           fontFamily: FONTS.bold,
                           color: colors.success,
                         }}
@@ -411,7 +411,7 @@ export default function CSVImportModal({
                     >
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.xxl,
+                          fontSize: FONT_SIZES.lg,
                           fontFamily: FONTS.bold,
                           color: colors.primary,
                         }}
@@ -441,7 +441,7 @@ export default function CSVImportModal({
                     >
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.xxl,
+                          fontSize: FONT_SIZES.lg,
                           fontFamily: FONTS.bold,
                           color: colors.error,
                         }}
@@ -474,7 +474,7 @@ export default function CSVImportModal({
                   >
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.base,
+                        fontSize: FONT_SIZES.sm,
                         fontFamily: FONTS.bold,
                         color: colors.error,
                         marginBottom: 8,
@@ -531,7 +531,7 @@ export default function CSVImportModal({
                     <Text
                       style={{
                         fontFamily: FONTS.bold,
-                        fontSize: FONT_SIZES.mdLg,
+                        fontSize: FONT_SIZES.md,
                         color: colors.onSurface,
                       }}
                     >
@@ -571,7 +571,7 @@ export default function CSVImportModal({
                         <Text
                           style={{
                             fontFamily: FONTS.bold,
-                            fontSize: FONT_SIZES.mdLg,
+                            fontSize: FONT_SIZES.md,
                             color: "#FFFFFF",
                           }}
                         >
@@ -599,7 +599,7 @@ export default function CSVImportModal({
                   <Text
                     style={{
                       fontFamily: FONTS.bold,
-                      fontSize: FONT_SIZES.mdLg,
+                      fontSize: FONT_SIZES.md,
                       color: "#FFFFFF",
                     }}
                   >

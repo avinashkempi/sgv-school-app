@@ -81,7 +81,7 @@ export default function YearDetailsScreen() {
           <Text
             style={{
               marginTop: 16,
-              fontSize: FONT_SIZES.base,
+              fontSize: FONT_SIZES.sm,
               fontFamily: FONTS.medium,
               color: colors.onSurfaceVariant,
             }}
@@ -254,7 +254,7 @@ export default function YearDetailsScreen() {
               <ActivityIndicator size="large" color={colors.primary} />
               <Text
                 style={{
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                   marginTop: 12,
@@ -279,7 +279,7 @@ export default function YearDetailsScreen() {
               />
               <Text
                 style={{
-                  fontSize: FONT_SIZES.lg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: colors.onSurface,
                   marginTop: 16,
@@ -391,7 +391,7 @@ export default function YearDetailsScreen() {
                       </Text>
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.mdLg,
+                          fontSize: FONT_SIZES.md,
                           fontFamily: FONTS.bold,
                           color: colors.onSurface,
                         }}
@@ -416,7 +416,7 @@ export default function YearDetailsScreen() {
                       </Text>
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.mdLg,
+                          fontSize: FONT_SIZES.md,
                           fontFamily: FONTS.bold,
                           color: colors.onSurface,
                         }}
@@ -434,7 +434,7 @@ export default function YearDetailsScreen() {
                   {year.description && (
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.md,
+                        fontSize: FONT_SIZES.sm,
                         fontFamily: FONTS.regular,
                         color: colors.onSurfaceVariant,
                         marginTop: 8,
@@ -560,7 +560,7 @@ function MetricCard({ icon, label, value, color }) {
           {label}
         </Text>
       </View>
-      <Text style={{ fontSize: FONT_SIZES.xxl, fontFamily: FONTS.bold, color }}>
+      <Text style={{ fontSize: FONT_SIZES.lg, fontFamily: FONTS.bold, color }}>
         {value}
       </Text>
     </View>
@@ -587,7 +587,7 @@ function ComingSoonPlaceholder({ icon, text }) {
       <Text
         style={{
           marginTop: 16,
-          fontSize: FONT_SIZES.base,
+          fontSize: FONT_SIZES.sm,
           fontFamily: FONTS.medium,
           color: colors.onSurfaceVariant,
         }}

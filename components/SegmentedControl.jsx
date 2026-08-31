@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   label: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     letterSpacing: LETTER_SPACINGS.xs,
   },
 });

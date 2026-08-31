@@ -266,7 +266,7 @@ const ExamTimelineItem = React.memo(
           {/* Subject Name */}
           <Text
             style={{
-              fontSize: FONT_SIZES.lg,
+              fontSize: FONT_SIZES.md,
               fontFamily: FONTS.bold,
               color: colors.onSurface,
               marginBottom: 4,
@@ -439,7 +439,7 @@ export default function ExamTimeline({ exams = [], onExamPress }) {
         <Text
           style={{
             color: colors.onSurfaceVariant,
-            fontSize: FONT_SIZES.mdLg,
+            fontSize: FONT_SIZES.md,
             fontFamily: FONTS.medium,
           }}
         >

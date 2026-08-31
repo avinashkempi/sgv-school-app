@@ -511,18 +511,18 @@ const styles = StyleSheet.create({
     marginLeft: "auto",
   },
   title: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
-    lineHeight: LINE_HEIGHTS.xl,
+    lineHeight: LINE_HEIGHTS.lg,
     marginBottom: 4,
   },
   description: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
-    lineHeight: LINE_HEIGHTS.base,
+    lineHeight: LINE_HEIGHTS.sm,
   },
   readMore: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.medium,
     marginTop: 4,
   },

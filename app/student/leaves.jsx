@@ -24,7 +24,7 @@ import {
 import apiConfig from "../../config/apiConfig";
 import { useToast } from "../../components/ToastProvider";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTheme, FONTS, FONT_SIZES } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS } from "../../theme";
 import Header from "../../components/Header";
 import { useLabel } from "../../context/LabelsContext";
 import { useAuth } from "../../context/AuthContext";
@@ -42,6 +42,10 @@ export default function StudentLeaves() {
 
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [editingLeave, setEditingLeave] = useState(null);
+  const [cancelModalVisible, setCancelModalVisible] = useState(false);
+  const [leaveToCancel, setLeaveToCancel] = useState(null);
+
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedAcademicYearId, setSelectedAcademicYearId] = useState("all");
   const [filterModalVisible, setFilterModalVisible] = useState(false);
@@ -121,6 +125,7 @@ export default function StudentLeaves() {
         "success"
       );
       setModalVisible(false);
+      setEditingLeave(null);
       setReason("");
       setIsHalfDay(false);
       queryClient.invalidateQueries({ queryKey: ["studentLeaves"] });
@@ -134,13 +139,76 @@ export default function StudentLeaves() {
       ),
   });
 
+  // Edit Leave Mutation
+  const editLeaveMutation = useApiMutation({
+    mutationFn: async ({ leaveId, payload }) => {
+      return createApiMutationFn(
+        `${apiConfig.baseUrl}/leaves/${leaveId}`,
+        "PUT"
+      )(payload);
+    },
+    onSuccess: () => {
+      showToast("Leave request updated successfully", "success");
+      setModalVisible(false);
+      setEditingLeave(null);
+      setReason("");
+      setIsHalfDay(false);
+      queryClient.invalidateQueries({ queryKey: ["studentLeaves"] });
+      queryClient.invalidateQueries({ queryKey: ["studentAllLeavesSummary"] });
+    },
+    onError: (error) =>
+      showToast(
+        error.message || "Failed to update leave request",
+        "error"
+      ),
+  });
+
+  // Cancel / Delete Leave Mutation
+  const cancelLeaveMutation = useApiMutation({
+    mutationFn: async (leaveId) => {
+      return createApiMutationFn(
+        `${apiConfig.baseUrl}/leaves/${leaveId}`,
+        "DELETE"
+      )();
+    },
+    onSuccess: () => {
+      showToast("Leave request cancelled successfully", "success");
+      setCancelModalVisible(false);
+      setLeaveToCancel(null);
+      queryClient.invalidateQueries({ queryKey: ["studentLeaves"] });
+      queryClient.invalidateQueries({ queryKey: ["studentAllLeavesSummary"] });
+    },
+    onError: (error) =>
+      showToast(error.message || "Failed to cancel leave request", "error"),
+  });
+
   const onRefresh = async () => {
     setRefreshing(true);
     await Promise.all([refetch(), queryClient.invalidateQueries({ queryKey: ["studentAllLeavesSummary"] })]);
     setRefreshing(false);
   };
 
-  const handleApplyLeave = () => {
+  const openApplyModal = () => {
+    setEditingLeave(null);
+    setStartDate(new Date());
+    setEndDate(new Date());
+    setReason("");
+    setIsHalfDay(false);
+    setHalfDaySlot("morning");
+    setModalVisible(true);
+  };
+
+  const openEditModal = (leave) => {
+    setEditingLeave(leave);
+    setStartDate(new Date(leave.startDate));
+    setEndDate(new Date(leave.endDate));
+    setReason(leave.reason || "");
+    setIsHalfDay(leave.leaveType === "half");
+    setHalfDaySlot(leave.halfDaySlot || "morning");
+    setModalVisible(true);
+  };
+
+  const handleSaveLeave = () => {
     if (!reason.trim()) {
       showToast(
         t("student.enterReasonError", "Please enter a reason for leave"),
@@ -149,7 +217,10 @@ export default function StudentLeaves() {
       return;
     }
 
-    if (!isHalfDay && endDate < startDate) {
+    const startStr = getISTDateString(startDate);
+    const endStr = getISTDateString(endDate);
+
+    if (!isHalfDay && endStr < startStr) {
       showToast(
         t(
           "student.endDateBeforeStartDateError",
@@ -160,18 +231,32 @@ export default function StudentLeaves() {
       return;
     }
 
-    let finalEndDate = endDate;
-    if (isHalfDay) {
-      finalEndDate = startDate;
-    }
+    const finalEndDateStr = isHalfDay ? startStr : endStr;
 
-    applyLeaveMutation.mutate({
-      startDate: getISTDateString(startDate),
-      endDate: getISTDateString(finalEndDate),
-      reason,
+    const payload = {
+      startDate: startStr,
+      endDate: finalEndDateStr,
+      reason: reason.trim(),
       leaveType: isHalfDay ? "half" : "full",
       halfDaySlot: isHalfDay ? halfDaySlot : undefined,
-    });
+    };
+
+    if (editingLeave) {
+      editLeaveMutation.mutate({ leaveId: editingLeave._id, payload });
+    } else {
+      applyLeaveMutation.mutate(payload);
+    }
+  };
+
+  const promptCancelLeave = (leave) => {
+    setLeaveToCancel(leave);
+    setCancelModalVisible(true);
+  };
+
+  const confirmCancelLeave = () => {
+    if (leaveToCancel) {
+      cancelLeaveMutation.mutate(leaveToCancel._id);
+    }
   };
 
   const formatDate = (dateString) => {
@@ -180,6 +265,7 @@ export default function StudentLeaves() {
       day: "2-digit",
       month: "short",
       year: "numeric",
+      timeZone: "Asia/Kolkata",
     });
   };
 
@@ -224,6 +310,7 @@ export default function StudentLeaves() {
       item.endDate,
       item.leaveType
     );
+    const isPending = item.status === "pending";
 
     return (
       <View
@@ -239,22 +326,22 @@ export default function StudentLeaves() {
 
         {/* Card Header */}
         <View style={styles.cardHeader}>
-          <View>
+          <View style={{ flex: 1, minWidth: 0, marginRight: 8 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
               <Ionicons name="calendar" size={14} color={colors.primary} />
-              <Text style={[styles.dateRangeText, { color: colors.onSurface }]}>
+              <Text style={[styles.dateRangeText, { color: colors.onSurface }]} numberOfLines={1}>
                 {formatDate(item.startDate)}
                 {item.leaveType === "full" && item.startDate !== item.endDate && ` – ${formatDate(item.endDate)}`}
               </Text>
             </View>
-            <Text style={{ fontSize: FONT_SIZES.sm, color: colors.onSurfaceVariant, marginTop: 1, fontFamily: FONTS.medium }}>
+            <Text style={{ fontSize: FONT_SIZES.sm, color: colors.onSurfaceVariant, marginTop: 1, fontFamily: FONTS.medium }} numberOfLines={1}>
               {item.leaveType === "half" ? `Half Day (${item.halfDaySlot})` : "Full Day"} • {durationLabel}
             </Text>
           </View>
 
           <View style={[styles.statusBadge, { backgroundColor: statusBadge.bg, borderColor: statusBadge.color + "40" }]}>
             <Ionicons name={statusBadge.icon} size={12} color={statusBadge.color} />
-            <Text style={[styles.statusBadgeText, { color: statusBadge.color }]}>
+            <Text style={[styles.statusBadgeText, { color: statusBadge.color }]} numberOfLines={1}>
               {statusBadge.label}
             </Text>
           </View>
@@ -274,7 +361,7 @@ export default function StudentLeaves() {
               Rejection: {item.rejectionReason}
             </Text>
             {item.rejectionComments && (
-              <Text style={{ fontSize: FONT_SIZES.xs, color: colors.onSurfaceVariant, fontFamily: FONTS.regular, marginTop: 1 }}>
+              <Text style={{ fontSize: FONT_SIZES.xs, color: colors.onSurfaceVariant, fontFamily: FONTS.regular, marginTop: 1, lineHeight: 18 }}>
                 Teacher Note: {item.rejectionComments}
               </Text>
             )}
@@ -286,6 +373,35 @@ export default function StudentLeaves() {
             <Text style={{ fontSize: FONT_SIZES.xs, fontFamily: FONTS.bold, color: "#2E7D32" }}>
               Teacher Note: {item.actionReason}
             </Text>
+          </View>
+        )}
+
+        {/* Applicant Actions for Pending Leaves */}
+        {isPending && (
+          <View style={styles.cardActionsRow}>
+            <TouchableOpacity
+              style={[
+                styles.cardActionBtn,
+                { backgroundColor: colors.surfaceContainerHigh, borderColor: colors.outlineVariant },
+              ]}
+              onPress={() => openEditModal(item)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="pencil-outline" size={13} color={colors.primary} />
+              <Text style={[styles.cardActionBtnText, { color: colors.primary }]}>Edit</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.cardActionBtn,
+                { backgroundColor: colors.errorContainer + "25", borderColor: colors.error + "40" },
+              ]}
+              onPress={() => promptCancelLeave(item)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="trash-outline" size={13} color={colors.error} />
+              <Text style={[styles.cardActionBtnText, { color: colors.error }]}>Cancel</Text>
+            </TouchableOpacity>
           </View>
         )}
       </View>
@@ -307,9 +423,11 @@ export default function StudentLeaves() {
             ]}
             onPress={() => setStatusFilter(statusFilter === "pending" ? "all" : "pending")}
           >
-            <View style={[styles.kpiDot, { backgroundColor: "#E65100" }]} />
-            <Text style={[styles.kpiCapsuleNum, { color: "#E65100" }]}>{metrics.pending}</Text>
-            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]}>Pending</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+              <View style={[styles.kpiDot, { backgroundColor: "#E65100" }]} />
+              <Text style={[styles.kpiCapsuleNum, { color: "#E65100" }]} numberOfLines={1}>{metrics.pending}</Text>
+            </View>
+            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]} numberOfLines={1}>Pending</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -322,9 +440,11 @@ export default function StudentLeaves() {
             ]}
             onPress={() => setStatusFilter(statusFilter === "approved" ? "all" : "approved")}
           >
-            <View style={[styles.kpiDot, { backgroundColor: "#2E7D32" }]} />
-            <Text style={[styles.kpiCapsuleNum, { color: "#2E7D32" }]}>{metrics.approved}</Text>
-            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]}>Approved</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+              <View style={[styles.kpiDot, { backgroundColor: "#2E7D32" }]} />
+              <Text style={[styles.kpiCapsuleNum, { color: "#2E7D32" }]} numberOfLines={1}>{metrics.approved}</Text>
+            </View>
+            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]} numberOfLines={1}>Approved</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -337,9 +457,11 @@ export default function StudentLeaves() {
             ]}
             onPress={() => setStatusFilter(statusFilter === "rejected" ? "all" : "rejected")}
           >
-            <View style={[styles.kpiDot, { backgroundColor: "#D32F2F" }]} />
-            <Text style={[styles.kpiCapsuleNum, { color: "#D32F2F" }]}>{metrics.rejected}</Text>
-            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]}>Rejected</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+              <View style={[styles.kpiDot, { backgroundColor: "#D32F2F" }]} />
+              <Text style={[styles.kpiCapsuleNum, { color: "#D32F2F" }]} numberOfLines={1}>{metrics.rejected}</Text>
+            </View>
+            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]} numberOfLines={1}>Rejected</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -352,8 +474,10 @@ export default function StudentLeaves() {
             ]}
             onPress={() => setStatusFilter("all")}
           >
-            <Text style={[styles.kpiCapsuleNum, { color: colors.primary }]}>{metrics.total}</Text>
-            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]}>All</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+              <Text style={[styles.kpiCapsuleNum, { color: colors.primary }]}>{metrics.total}</Text>
+            </View>
+            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]} numberOfLines={1}>All</Text>
           </TouchableOpacity>
         </View>
 
@@ -361,7 +485,7 @@ export default function StudentLeaves() {
         {selectedAcademicYearId !== "all" && (
           <View style={styles.activeFiltersRow}>
             <View style={[styles.activeFilterPill, { backgroundColor: colors.secondaryContainer }]}>
-              <Text style={[styles.activeFilterText, { color: colors.onSecondaryContainer }]}>
+              <Text style={[styles.activeFilterText, { color: colors.onSecondaryContainer }]} numberOfLines={1}>
                 Year: {academicYears.find((y) => y._id === selectedAcademicYearId)?.name || "Selected"}
               </Text>
               <TouchableOpacity onPress={() => setSelectedAcademicYearId("all")}>
@@ -373,6 +497,8 @@ export default function StudentLeaves() {
       </View>
     );
   };
+
+  const isSaving = applyLeaveMutation.isPending || editLeaveMutation.isPending;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -398,7 +524,7 @@ export default function StudentLeaves() {
           onPress={() => setFilterModalVisible(true)}
         >
           <Ionicons name="calendar-outline" size={14} color={colors.primary} />
-          <Text style={[styles.yearFilterBtnText, { color: colors.onSurface }]}>
+          <Text style={[styles.yearFilterBtnText, { color: colors.onSurface }]} numberOfLines={1}>
             {selectedAcademicYearId === "all"
               ? "All Academic Years"
               : academicYears.find((y) => y._id === selectedAcademicYearId)?.name || "Selected Year"}
@@ -407,8 +533,8 @@ export default function StudentLeaves() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.applyTopBtn, { backgroundColor: colors.primary }]}
-          onPress={() => setModalVisible(true)}
+          style={[styles.applyTopBtn, { backgroundColor: colors.primary, flexShrink: 0 }]}
+          onPress={openApplyModal}
         >
           <Ionicons name="add" size={16} color={colors.onPrimary} />
           <Text style={{ color: colors.onPrimary, fontFamily: FONTS.bold, fontSize: FONT_SIZES.sm }}>
@@ -452,11 +578,11 @@ export default function StudentLeaves() {
       {/* Floating Action Button */}
       <TouchableOpacity
         style={[styles.fabBtn, { backgroundColor: colors.primary }]}
-        onPress={() => setModalVisible(true)}
+        onPress={openApplyModal}
         activeOpacity={0.85}
       >
         <Ionicons name="add" size={24} color={colors.onPrimary} />
-        <Text style={{ color: colors.onPrimary, fontFamily: FONTS.bold, fontSize: FONT_SIZES.md }}>
+        <Text style={{ color: colors.onPrimary, fontFamily: FONTS.bold, fontSize: FONT_SIZES.sm }}>
           Apply
         </Text>
       </TouchableOpacity>
@@ -532,7 +658,7 @@ export default function StudentLeaves() {
         </View>
       </Modal>
 
-      {/* Apply Leave Modal */}
+      {/* Apply / Edit Leave Modal */}
       <Modal
         visible={modalVisible}
         animationType="slide"
@@ -550,7 +676,7 @@ export default function StudentLeaves() {
           <View style={[styles.applySheetCard, { backgroundColor: colors.surface }]}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <Text style={[styles.modalHeading, { color: colors.onSurface }]}>
-                Apply for Leave
+                {editingLeave ? "Edit Leave Request" : "Apply for Leave"}
               </Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <Ionicons name="close" size={22} color={colors.onSurfaceVariant} />
@@ -678,7 +804,7 @@ export default function StudentLeaves() {
                     style={[styles.datePickerInput, { backgroundColor: colors.surfaceContainer }]}
                     onPress={() => setShowStartPicker(true)}
                   >
-                    <Text style={{ fontSize: FONT_SIZES.md, color: colors.onSurface, fontFamily: FONTS.medium }}>
+                    <Text style={{ fontSize: FONT_SIZES.sm, color: colors.onSurface, fontFamily: FONTS.medium }}>
                       {formatDate(startDate)}
                     </Text>
                     <Ionicons name="calendar-outline" size={16} color={colors.primary} />
@@ -708,7 +834,7 @@ export default function StudentLeaves() {
                       style={[styles.datePickerInput, { backgroundColor: colors.surfaceContainer }]}
                       onPress={() => setShowEndPicker(true)}
                     >
-                      <Text style={{ fontSize: FONT_SIZES.md, color: colors.onSurface, fontFamily: FONTS.medium }}>
+                      <Text style={{ fontSize: FONT_SIZES.sm, color: colors.onSurface, fontFamily: FONTS.medium }}>
                         {formatDate(endDate)}
                       </Text>
                       <Ionicons name="calendar-outline" size={16} color={colors.primary} />
@@ -753,20 +879,67 @@ export default function StudentLeaves() {
                   styles.submitBtn,
                   { backgroundColor: colors.primary },
                 ]}
-                onPress={handleApplyLeave}
-                disabled={applyLeaveMutation.isPending}
+                onPress={handleSaveLeave}
+                disabled={isSaving}
               >
-                {applyLeaveMutation.isPending ? (
+                {isSaving ? (
                   <ActivityIndicator color="#FFF" />
                 ) : (
-                  <Text style={{ color: "#FFF", fontFamily: FONTS.bold, fontSize: FONT_SIZES.mdLg }}>
-                    Submit Leave Request
+                  <Text style={{ color: "#FFF", fontFamily: FONTS.bold, fontSize: FONT_SIZES.md }}>
+                    {editingLeave ? "Update Leave Request" : "Submit Leave Request"}
                   </Text>
                 )}
               </TouchableOpacity>
             </ScrollView>
           </View>
         </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Cancel Confirmation Modal */}
+      <Modal
+        visible={cancelModalVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setCancelModalVisible(false)}
+      >
+        <View style={styles.modalOverlayCenter}>
+          <View style={[styles.confirmCard, { backgroundColor: colors.surface }]}>
+            <View style={[styles.confirmIconBox, { backgroundColor: colors.errorContainer + "30" }]}>
+              <Ionicons name="alert-circle-outline" size={28} color={colors.error} />
+            </View>
+            <Text style={[styles.confirmTitle, { color: colors.onSurface }]}>
+              Cancel Leave Request?
+            </Text>
+            <Text style={[styles.confirmMessage, { color: colors.onSurfaceVariant }]}>
+              Are you sure you want to cancel this pending leave request? This action cannot be undone.
+            </Text>
+
+            <View style={styles.confirmBtnRow}>
+              <TouchableOpacity
+                style={[styles.confirmCancelBtn, { borderColor: colors.outlineVariant }]}
+                onPress={() => setCancelModalVisible(false)}
+              >
+                <Text style={{ fontFamily: FONTS.bold, color: colors.onSurfaceVariant, fontSize: FONT_SIZES.sm }}>
+                  Keep Request
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.confirmDeleteBtn, { backgroundColor: colors.error }]}
+                onPress={confirmCancelLeave}
+                disabled={cancelLeaveMutation.isPending}
+              >
+                {cancelLeaveMutation.isPending ? (
+                  <ActivityIndicator color="#FFF" size="small" />
+                ) : (
+                  <Text style={{ fontFamily: FONTS.bold, color: "#FFF", fontSize: FONT_SIZES.sm }}>
+                    Yes, Cancel
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       </Modal>
     </View>
   );
@@ -783,6 +956,7 @@ const styles = StyleSheet.create({
   },
   yearFilterBtn: {
     flex: 1,
+    minWidth: 0,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 10,
@@ -793,6 +967,7 @@ const styles = StyleSheet.create({
   },
   yearFilterBtnText: {
     flex: 1,
+    minWidth: 0,
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.medium,
   },
@@ -803,6 +978,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     borderRadius: 8,
     gap: 3,
+    flexShrink: 0,
   },
   compactKpiBar: {
     flexDirection: "row",
@@ -811,14 +987,13 @@ const styles = StyleSheet.create({
   },
   kpiCapsule: {
     flex: 1,
-    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 6,
-    paddingHorizontal: 4,
+    paddingHorizontal: 2,
     borderRadius: 8,
     borderWidth: 1,
-    gap: 4,
+    gap: 2,
   },
   kpiDot: {
     width: 6,
@@ -832,6 +1007,7 @@ const styles = StyleSheet.create({
   kpiCapsuleLabel: {
     fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.medium,
+    textAlign: "center",
   },
   activeFiltersRow: {
     flexDirection: "row",
@@ -847,10 +1023,12 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 12,
     gap: 4,
+    maxWidth: "100%",
   },
   activeFilterText: {
     fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.bold,
+    maxWidth: 160,
   },
   leaveCard: {
     borderRadius: 14,
@@ -875,7 +1053,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   dateRangeText: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   statusBadge: {
@@ -886,6 +1064,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderWidth: 1,
     gap: 3,
+    flexShrink: 0,
   },
   statusBadgeText: {
     fontSize: FONT_SIZES.micro,
@@ -900,13 +1079,36 @@ const styles = StyleSheet.create({
   reasonText: {
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
-    lineHeight: 16,
+    lineHeight: LINE_HEIGHTS.sm,
     fontStyle: "italic",
   },
   decisionBox: {
-    padding: 6,
+    padding: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 8,
+  },
+  cardActionsRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 8,
+    marginTop: 6,
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(0,0,0,0.05)",
+  },
+  cardActionBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: 6,
     borderWidth: 1,
+    gap: 4,
+  },
+  cardActionBtnText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
   },
   loaderBox: {
     flex: 1,
@@ -921,7 +1123,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   emptyTitle: {
-    fontSize: FONT_SIZES.mdLg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
     marginTop: 8,
     marginBottom: 2,
@@ -930,6 +1132,7 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
     textAlign: "center",
+    lineHeight: 18,
   },
   fabBtn: {
     position: "absolute",
@@ -947,6 +1150,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "flex-end",
+  },
+  modalOverlayCenter: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
   },
   filterSheetCard: {
     borderTopLeftRadius: 22,
@@ -985,8 +1195,10 @@ const styles = StyleSheet.create({
     maxHeight: "90%",
   },
   modalHeading: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
+    flex: 1,
+    minWidth: 0,
   },
   fieldLabel: {
     fontSize: FONT_SIZES.micro,
@@ -1025,13 +1237,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 10,
     borderRadius: 8,
+    minWidth: 0,
   },
   textArea: {
     borderRadius: 8,
     padding: 10,
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
     minHeight: 70,
+    lineHeight: 20,
     textAlignVertical: "top",
   },
   submitBtn: {
@@ -1039,5 +1253,54 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
     marginBottom: 16,
+  },
+  confirmCard: {
+    width: "100%",
+    maxWidth: 340,
+    borderRadius: 16,
+    padding: 20,
+    alignItems: "center",
+    elevation: 5,
+  },
+  confirmIconBox: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  confirmTitle: {
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.bold,
+    marginBottom: 6,
+    textAlign: "center",
+  },
+  confirmMessage: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.regular,
+    textAlign: "center",
+    marginBottom: 18,
+    lineHeight: 20,
+  },
+  confirmBtnRow: {
+    flexDirection: "row",
+    gap: 10,
+    width: "100%",
+  },
+  confirmCancelBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  confirmDeleteBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   headerTitle: {
-    fontSize: FONT_SIZES.mdLg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   headerSubtitle: {
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.medium,
   },
   kpiValue: {
-    fontSize: FONT_SIZES.headline,
+    fontSize: FONT_SIZES.xl,
     fontFamily: FONTS.bold,
     marginTop: 2,
     lineHeight: 30,
@@ -399,6 +399,6 @@ const styles = StyleSheet.create({
   tipText: {
     fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
-    lineHeight: 16,
+    lineHeight: 18,
   },
 });

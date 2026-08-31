@@ -11,7 +11,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { useTheme, FONTS, FONT_SIZES } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS } from "../theme";
 import Header from "./Header";
 import ModernCalendar from "./ModernCalendar";
 import AppRefreshControl from "./ui/AppRefreshControl";
@@ -460,7 +460,7 @@ export default function AttendanceView({
               marginTop: 12,
               color: colors.onSurfaceVariant,
               fontFamily: FONTS.medium,
-              fontSize: FONT_SIZES.base,
+              fontSize: FONT_SIZES.sm,
             }}
           >
             {t("student.loadingAttendance", "Loading attendance records...")}
@@ -565,31 +565,45 @@ export default function AttendanceView({
             {/* Present KPI */}
             <View style={styles.kpiPill}>
               <View style={[styles.kpiDot, { backgroundColor: "#6DD58C" }]} />
-              <Text style={styles.kpiValue}>{displayStats.present}</Text>
-              <Text style={styles.kpiLabel}>{t("common.present", "Present")}</Text>
+              <Text style={styles.kpiValue} numberOfLines={1}>
+                {displayStats.present}
+              </Text>
+              <Text style={styles.kpiLabel} numberOfLines={1}>
+                {t("common.present", "Present")}
+              </Text>
             </View>
 
             {/* Absent KPI */}
             <View style={styles.kpiPill}>
               <View style={[styles.kpiDot, { backgroundColor: "#F2B8B5" }]} />
-              <Text style={styles.kpiValue}>{displayStats.absent}</Text>
-              <Text style={styles.kpiLabel}>{t("common.absent", "Absent")}</Text>
+              <Text style={styles.kpiValue} numberOfLines={1}>
+                {displayStats.absent}
+              </Text>
+              <Text style={styles.kpiLabel} numberOfLines={1}>
+                {t("common.absent", "Absent")}
+              </Text>
             </View>
 
             {/* Holidays KPI */}
             <View style={styles.kpiPill}>
               <View style={[styles.kpiDot, { backgroundColor: "#FCD34D" }]} />
-              <Text style={styles.kpiValue}>{displayStats.holidaysCount}</Text>
-              <Text style={styles.kpiLabel}>Holidays</Text>
+              <Text style={styles.kpiValue} numberOfLines={1}>
+                {displayStats.holidaysCount}
+              </Text>
+              <Text style={styles.kpiLabel} numberOfLines={1}>
+                Holidays
+              </Text>
             </View>
 
             {/* Late / Excused KPI */}
             <View style={styles.kpiPill}>
               <View style={[styles.kpiDot, { backgroundColor: "#93C5FD" }]} />
-              <Text style={styles.kpiValue}>
+              <Text style={styles.kpiValue} numberOfLines={1}>
                 {displayStats.late + displayStats.excused + displayStats.halfDay}
               </Text>
-              <Text style={styles.kpiLabel}>Late/Leaves</Text>
+              <Text style={styles.kpiLabel} numberOfLines={1}>
+                Late/Leaves
+              </Text>
             </View>
           </View>
         </LinearGradient>
@@ -679,7 +693,7 @@ export default function AttendanceView({
                 },
               ]}
             >
-              <Text style={{ fontSize: FONT_SIZES.mdLg }}>🔥</Text>
+              <Text style={{ fontSize: FONT_SIZES.md }}>🔥</Text>
               <Text
                 style={[
                   styles.streakText,
@@ -911,7 +925,7 @@ export default function AttendanceView({
           >
             {/* Top Bar with Date & Status Pill */}
             <View style={styles.inspectorTopRow}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flex: 1 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
                 <MaterialIcons
                   name={
                     selectedDayInfo.holiday
@@ -935,12 +949,12 @@ export default function AttendanceView({
                       : colors.primary
                   }
                 />
-                <View>
-                  <Text style={[styles.inspectorDateText, { color: colors.onSurface }]}>
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={[styles.inspectorDateText, { color: colors.onSurface }]} numberOfLines={1}>
                     {selectedDayInfo.displayDate}
                   </Text>
                   {selectedDayInfo.isToday && (
-                    <Text style={{ fontSize: FONT_SIZES.xs, color: colors.primary, fontFamily: FONTS.bold }}>
+                    <Text style={{ fontSize: FONT_SIZES.xs, color: colors.primary, fontFamily: FONTS.bold }} numberOfLines={1}>
                       Today
                     </Text>
                   )}
@@ -949,11 +963,11 @@ export default function AttendanceView({
 
               {/* Status Badge */}
               {selectedDayInfo.holiday ? (
-                <View style={styles.holidayBadgePill}>
+                <View style={[styles.holidayBadgePill, { flexShrink: 0 }]}>
                   <Text style={styles.holidayBadgePillText}>🎉 School Holiday</Text>
                 </View>
               ) : selectedDayInfo.isSunday ? (
-                <View style={styles.sundayBadgePill}>
+                <View style={[styles.sundayBadgePill, { flexShrink: 0 }]}>
                   <Text style={styles.sundayBadgePillText}>☀️ Sunday Off</Text>
                 </View>
               ) : selectedDayInfo.record ? (
@@ -965,6 +979,7 @@ export default function AttendanceView({
                         getStatusColor(selectedDayInfo.record.status) +
                         (isDark ? "30" : "15"),
                       borderColor: getStatusColor(selectedDayInfo.record.status),
+                      flexShrink: 0,
                     },
                   ]}
                 >
@@ -978,11 +993,11 @@ export default function AttendanceView({
                   </Text>
                 </View>
               ) : selectedDayInfo.isFuture ? (
-                <View style={styles.futureBadgePill}>
+                <View style={[styles.futureBadgePill, { flexShrink: 0 }]}>
                   <Text style={styles.futureBadgePillText}>Upcoming</Text>
                 </View>
               ) : (
-                <View style={styles.unmarkedBadgePill}>
+                <View style={[styles.unmarkedBadgePill, { flexShrink: 0 }]}>
                   <Text style={styles.unmarkedBadgePillText}>No Record</Text>
                 </View>
               )}
@@ -1269,16 +1284,17 @@ export default function AttendanceView({
           ]}
         >
           <View style={styles.historyCardMain}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: 1 }}>
-              <View style={styles.holidayIconBubble}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
+              <View style={[styles.holidayIconBubble, { flexShrink: 0 }]}>
                 <MaterialIcons name="celebration" size={18} color="#D97706" />
               </View>
-              <View style={{ flex: 1 }}>
+              <View style={{ flex: 1, minWidth: 0 }}>
                 <Text
                   style={[
                     styles.historyDateTitle,
                     { color: isDark ? "#FCD34D" : "#92400E" },
                   ]}
+                  numberOfLines={1}
                 >
                   {item.title}
                 </Text>
@@ -1287,6 +1303,7 @@ export default function AttendanceView({
                     styles.historyDateSubtitle,
                     { color: isDark ? "#FDE68A" : "#B45309" },
                   ]}
+                  numberOfLines={1}
                 >
                   {formatISTDisplayDate(item.date)}
                 </Text>
@@ -1304,7 +1321,7 @@ export default function AttendanceView({
               </View>
             </View>
 
-            <View style={styles.holidayHistoryBadge}>
+            <View style={[styles.holidayHistoryBadge, { flexShrink: 0 }]}>
               <Text style={styles.holidayHistoryBadgeText}>School Holiday</Text>
             </View>
           </View>
@@ -1327,8 +1344,8 @@ export default function AttendanceView({
         ]}
       >
         <View style={styles.historyCardMain}>
-          <View style={{ flex: 1, marginRight: 8 }}>
-            <Text style={[styles.historyDateTitle, { color: colors.onSurface }]}>
+          <View style={{ flex: 1, minWidth: 0, marginRight: 8 }}>
+            <Text style={[styles.historyDateTitle, { color: colors.onSurface }]} numberOfLines={1}>
               {formatISTDisplayDate(item.date)}
             </Text>
             {item.subject?.name ? (
@@ -1337,6 +1354,7 @@ export default function AttendanceView({
                   styles.historySubjectTag,
                   { color: colors.onSurfaceVariant },
                 ]}
+                numberOfLines={1}
               >
                 Subject: {item.subject.name}
               </Text>
@@ -1356,13 +1374,14 @@ export default function AttendanceView({
                   name="chatbubble-outline"
                   size={12}
                   color={colors.onSurfaceVariant}
-                  style={{ marginTop: 2 }}
+                  style={{ marginTop: 2, flexShrink: 0 }}
                 />
                 <Text
                   style={[
                     styles.historyRemarksText,
                     { color: colors.onSurfaceVariant },
                   ]}
+                  numberOfLines={2}
                 >
                   {item.remarks}
                 </Text>
@@ -1376,10 +1395,11 @@ export default function AttendanceView({
               {
                 backgroundColor: color + (isDark ? "30" : "15"),
                 borderColor: color,
+                flexShrink: 0,
               },
             ]}
           >
-            <Text style={[styles.historyStatusPillText, { color }]}>
+            <Text style={[styles.historyStatusPillText, { color }]} numberOfLines={1}>
               {t("common." + item.status, item.status)}
             </Text>
           </View>
@@ -1526,13 +1546,13 @@ const styles = StyleSheet.create({
     marginVertical: 4,
   },
   heroPercentageText: {
-    fontSize: FONT_SIZES.displayLg,
+    fontSize: FONT_SIZES.jumbo,
     fontFamily: FONTS.bold,
     color: "#FFFFFF",
-    lineHeight: LINE_HEIGHTS.displayLg,
+    lineHeight: LINE_HEIGHTS.jumbo,
   },
   heroPercentSymbol: {
-    fontSize: FONT_SIZES.displaySm,
+    fontSize: FONT_SIZES.display,
     fontFamily: FONTS.semiBold,
     color: "rgba(255, 255, 255, 0.8)",
     marginLeft: 2,
@@ -1603,10 +1623,11 @@ const styles = StyleSheet.create({
   },
   kpiPill: {
     flex: 1,
+    minWidth: 0,
     backgroundColor: "rgba(255, 255, 255, 0.12)",
     borderRadius: 14,
     paddingVertical: 10,
-    paddingHorizontal: 6,
+    paddingHorizontal: 4,
     alignItems: "center",
   },
   kpiDot: {
@@ -1616,15 +1637,16 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   kpiValue: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
     color: "#FFFFFF",
   },
   kpiLabel: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.medium,
     color: "rgba(255, 255, 255, 0.8)",
     marginTop: 2,
+    textAlign: "center",
   },
 
   // SMART INSIGHTS CARD
@@ -1644,14 +1666,14 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   insightTitle: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
     marginBottom: 2,
   },
   insightMessage: {
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
-    lineHeight: 18,
+    lineHeight: LINE_HEIGHTS.sm,
   },
   streakPill: {
     flexDirection: "row",
@@ -1679,7 +1701,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   sectionTitle: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   sectionBadge: {
@@ -1701,7 +1723,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   subjectName: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   subjectClassCount: {
@@ -1710,7 +1732,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   subjectPercentage: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   lowBadge: {
@@ -1782,7 +1804,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   inspectorDateText: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   holidayBadgePill: {
@@ -1850,17 +1872,17 @@ const styles = StyleSheet.create({
     borderTopColor: "rgba(128, 128, 128, 0.15)",
   },
   holidayInspectorTitle: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   holidayInspectorDesc: {
     fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
     marginTop: 3,
-    lineHeight: 16,
+    lineHeight: LINE_HEIGHTS.xs,
   },
   sundayInspectorTitle: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   sundayInspectorDesc: {
@@ -1903,7 +1925,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   monthlyMonthText: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   monthlyDaysText: {
@@ -1912,7 +1934,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   monthlyPercentText: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   monthlyProgressTrack: {
@@ -1988,7 +2010,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   historyDateTitle: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   historyDateSubtitle: {
@@ -2059,7 +2081,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   emptyTitle: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
     marginTop: 10,
   },

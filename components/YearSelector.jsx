@@ -98,7 +98,7 @@ export default function YearSelector({
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text
               style={{
-                fontSize: FONT_SIZES.md,
+                fontSize: FONT_SIZES.sm,
                 fontFamily: FONTS.medium,
                 color: colors.onSurfaceVariant,
                 marginBottom: 2,
@@ -110,7 +110,7 @@ export default function YearSelector({
             </Text>
             <Text
               style={{
-                fontSize: FONT_SIZES.mdLg,
+                fontSize: FONT_SIZES.md,
                 fontFamily: FONTS.bold,
                 color: colors.onSurface,
                 flexShrink: 1,
@@ -201,7 +201,7 @@ export default function YearSelector({
                 />
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.base,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.bold,
                     color: colors.onSurface,
                     flex: 1,
@@ -250,7 +250,7 @@ export default function YearSelector({
                   <View style={{ flex: 1 }}>
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.mdLg,
+                        fontSize: FONT_SIZES.md,
                         fontFamily: FONTS.bold,
                         color: colors.onSurface,
                       }}

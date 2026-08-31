@@ -236,9 +236,9 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   text: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.semiBold,
-    lineHeight: LINE_HEIGHTS.base,
+    lineHeight: LINE_HEIGHTS.sm,
     color: "#1F2937", // Dark gray
     flex: 1,
   },

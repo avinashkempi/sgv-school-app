@@ -169,7 +169,7 @@ export default function EventFormModal({
                 style={[
                   globalStyles.title,
                   {
-                    fontSize: FONT_SIZES.xxl,
+                    fontSize: FONT_SIZES.lg,
                     fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                   },
@@ -200,7 +200,7 @@ export default function EventFormModal({
             <View style={{ marginBottom: 12 }}>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.semiBold,
                   color: colors.textSecondary,
                   marginBottom: 8,
@@ -246,7 +246,7 @@ export default function EventFormModal({
             <View style={{ marginBottom: 12 }}>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.semiBold,
                   color: colors.textSecondary,
                   marginBottom: 8,
@@ -422,12 +422,12 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.03)",
   },
   dateLabel: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.medium,
     marginRight: 8,
   },
   dateValue: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.semiBold,
   },
 });

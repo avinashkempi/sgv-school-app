@@ -114,7 +114,7 @@ export default function CreateYearScreen() {
     <View style={{ marginBottom: 20 }}>
       <Text
         style={{
-          fontSize: FONT_SIZES.base,
+          fontSize: FONT_SIZES.sm,
           fontFamily: FONTS.bold,
           color: colors.onSurface,
           marginBottom: 8,
@@ -135,7 +135,7 @@ export default function CreateYearScreen() {
           borderRadius: 12,
           paddingHorizontal: 16,
           paddingVertical: 12,
-          fontSize: FONT_SIZES.mdLg,
+          fontSize: FONT_SIZES.md,
           fontFamily: FONTS.medium,
           color: colors.onSurface,
         }}
@@ -201,7 +201,7 @@ export default function CreateYearScreen() {
       <View style={{ flex: 1 }}>
         <Text
           style={{
-            fontSize: FONT_SIZES.base,
+            fontSize: FONT_SIZES.sm,
             fontFamily: FONTS.bold,
             color: colors.onSurface,
             marginBottom: 4,
@@ -251,7 +251,7 @@ export default function CreateYearScreen() {
           >
             <Text
               style={{
-                fontSize: FONT_SIZES.lg,
+                fontSize: FONT_SIZES.md,
                 fontFamily: FONTS.bold,
                 color: colors.onSurface,
                 marginBottom: 16,
@@ -304,7 +304,7 @@ export default function CreateYearScreen() {
           >
             <Text
               style={{
-                fontSize: FONT_SIZES.lg,
+                fontSize: FONT_SIZES.md,
                 fontFamily: FONTS.bold,
                 color: colors.onSurface,
                 marginBottom: 4,
@@ -414,7 +414,7 @@ export default function CreateYearScreen() {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.mdLg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: colors.onSurface,
                 }}
@@ -443,7 +443,7 @@ export default function CreateYearScreen() {
               ) : (
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.mdLg,
+                    fontSize: FONT_SIZES.md,
                     fontFamily: FONTS.bold,
                     color: "#FFF",
                   }}

@@ -124,7 +124,7 @@ export default function SendNotificationScreen() {
                 borderRadius: 12,
                 padding: 16,
                 color: colors.textPrimary,
-                fontSize: FONT_SIZES.lg,
+                fontSize: FONT_SIZES.md,
                 backgroundColor: colors.cardBackground,
               }}
             />
@@ -147,7 +147,7 @@ export default function SendNotificationScreen() {
                 borderRadius: 12,
                 padding: 16,
                 color: colors.textPrimary,
-                fontSize: FONT_SIZES.lg,
+                fontSize: FONT_SIZES.md,
                 backgroundColor: colors.cardBackground,
                 minHeight: 100,
                 textAlignVertical: "top",
@@ -220,13 +220,13 @@ export default function SendNotificationScreen() {
                   style={{
                     color: colors.textPrimary,
                     fontWeight: "600",
-                    fontSize: FONT_SIZES.lg,
+                    fontSize: FONT_SIZES.md,
                     marginBottom: 4,
                   }}
                 >
                   Send to Public Users
                 </Text>
-                <Text style={{ color: colors.textSecondary, fontSize: FONT_SIZES.md }}>
+                <Text style={{ color: colors.textSecondary, fontSize: FONT_SIZES.sm }}>
                   {sendToPublic
                     ? "Will reach both logged-in and non-logged-in users"
                     : "Only logged-in users will receive this notification"}
@@ -491,7 +491,7 @@ export default function SendNotificationScreen() {
                 <Text
                   style={{
                     color: "#fff",
-                    fontSize: FONT_SIZES.xl,
+                    fontSize: FONT_SIZES.lg,
                     fontFamily: FONTS.bold,
                   }}
                 >

@@ -108,9 +108,9 @@ const Button = ({
   const labelStyle = [
     {
       fontFamily: FONTS.medium,
-      fontSize: FONT_SIZES.base,
-      lineHeight: LINE_HEIGHTS.base,
-      letterSpacing: LETTER_SPACINGS.base,
+      fontSize: FONT_SIZES.sm,
+      lineHeight: LINE_HEIGHTS.sm,
+      letterSpacing: LETTER_SPACINGS.sm,
       color: themeColors.text,
       textAlign: "center",
       flexShrink: 1,

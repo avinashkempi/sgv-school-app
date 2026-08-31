@@ -150,7 +150,7 @@ export default function PerformanceInsights({ reportData }) {
             <View style={{ flex: 1 }}>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.lg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: colors.onSurface,
                 }}
@@ -159,7 +159,7 @@ export default function PerformanceInsights({ reportData }) {
               </Text>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.regular,
                   color: colors.onSurfaceVariant,
                   marginTop: 2,
@@ -179,7 +179,7 @@ export default function PerformanceInsights({ reportData }) {
       {/* Strengths */}
       <Text
         style={{
-          fontSize: FONT_SIZES.xl,
+          fontSize: FONT_SIZES.lg,
           fontFamily: FONTS.bold,
           color: colors.onSurface,
           marginBottom: 12,
@@ -206,7 +206,7 @@ export default function PerformanceInsights({ reportData }) {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.lg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: colors.success,
                 }}
@@ -217,7 +217,7 @@ export default function PerformanceInsights({ reportData }) {
             <View style={{ flex: 1 }}>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.mdLg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: colors.onSurface,
                 }}
@@ -245,7 +245,7 @@ export default function PerformanceInsights({ reportData }) {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.lg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: getGradeColor(item.percentage),
                 }}
@@ -260,7 +260,7 @@ export default function PerformanceInsights({ reportData }) {
       {/* Weaknesses */}
       <Text
         style={{
-          fontSize: FONT_SIZES.xl,
+          fontSize: FONT_SIZES.lg,
           fontFamily: FONTS.bold,
           color: colors.onSurface,
           marginTop: 20,
@@ -295,7 +295,7 @@ export default function PerformanceInsights({ reportData }) {
             <View style={{ flex: 1 }}>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.mdLg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: colors.onSurface,
                 }}
@@ -323,7 +323,7 @@ export default function PerformanceInsights({ reportData }) {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.lg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: getGradeColor(item.percentage),
                 }}
@@ -354,10 +354,10 @@ export default function PerformanceInsights({ reportData }) {
             </Text>
             <Text
               style={{
-                fontSize: FONT_SIZES.md,
+                fontSize: FONT_SIZES.sm,
                 fontFamily: FONTS.regular,
                 color: colors.onSurfaceVariant,
-                lineHeight: LINE_HEIGHTS.md,
+                lineHeight: LINE_HEIGHTS.sm,
               }}
             >
               {getRecommendation(item.percentage)}
@@ -382,7 +382,7 @@ export default function PerformanceInsights({ reportData }) {
           <View style={{ flex: 1 }}>
             <Text
               style={{
-                fontSize: FONT_SIZES.lg,
+                fontSize: FONT_SIZES.md,
                 fontFamily: FONTS.bold,
                 color: colors.onSurface,
                 marginBottom: 8,
@@ -393,40 +393,40 @@ export default function PerformanceInsights({ reportData }) {
             <View style={{ gap: 6 }}>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.regular,
                   color: colors.onSurfaceVariant,
-                  lineHeight: LINE_HEIGHTS.md,
+                  lineHeight: LINE_HEIGHTS.sm,
                 }}
               >
                 • Focus extra time on {insights.weaknesses[0]?.subject}
               </Text>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.regular,
                   color: colors.onSurfaceVariant,
-                  lineHeight: LINE_HEIGHTS.md,
+                  lineHeight: LINE_HEIGHTS.sm,
                 }}
               >
                 • Review previous exam papers
               </Text>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.regular,
                   color: colors.onSurfaceVariant,
-                  lineHeight: LINE_HEIGHTS.md,
+                  lineHeight: LINE_HEIGHTS.sm,
                 }}
               >
                 • Ask your teacher for help in weak areas
               </Text>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.regular,
                   color: colors.onSurfaceVariant,
-                  lineHeight: LINE_HEIGHTS.md,
+                  lineHeight: LINE_HEIGHTS.sm,
                 }}
               >
                 • Create a study schedule and stick to it

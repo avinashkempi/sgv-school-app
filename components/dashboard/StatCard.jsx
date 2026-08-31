@@ -123,7 +123,7 @@ const StatCard = ({
 
           <Text
             style={{
-              fontSize: FONT_SIZES.lg,
+              fontSize: FONT_SIZES.md,
               fontFamily: FONTS.bold,
               color: colors.onSurface,
               letterSpacing: -0.3,

@@ -249,7 +249,7 @@ const localStyles = StyleSheet.create({
     justifyContent: "center",
   },
   modalTitle: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   modalSubtitle: {
@@ -268,16 +268,16 @@ const localStyles = StyleSheet.create({
     paddingBottom: 8,
   },
   introText: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
-    lineHeight: LINE_HEIGHTS.md,
+    lineHeight: LINE_HEIGHTS.sm,
     marginBottom: 14,
   },
   sectionBlock: {
     marginBottom: 14,
   },
   sectionTitle: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
     marginBottom: 6,
   },

@@ -123,16 +123,17 @@ const localStyles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontSize: FONT_SIZES.xl,
+    fontSize: FONT_SIZES.lg,
     fontFamily: FONTS.bold,
     textAlign: "center",
+    lineHeight: LINE_HEIGHTS.lg,
     marginBottom: 8,
   },
   message: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
     textAlign: "center",
-    lineHeight: LINE_HEIGHTS.md,
+    lineHeight: LINE_HEIGHTS.sm,
     marginBottom: 24,
   },
   buttonCol: {

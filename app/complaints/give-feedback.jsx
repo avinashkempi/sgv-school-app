@@ -240,7 +240,7 @@ export default function GiveFeedbackScreen() {
                     fontFamily: selectedClass
                       ? FONTS.semiBold
                       : FONTS.regular,
-                    fontSize: FONT_SIZES.lg,
+                    fontSize: FONT_SIZES.md,
                   }}
                 >
                   {selectedClass
@@ -402,7 +402,7 @@ export default function GiveFeedbackScreen() {
                       fontFamily: selectedStudent
                         ? FONTS.semiBold
                         : FONTS.regular,
-                      fontSize: FONT_SIZES.lg,
+                      fontSize: FONT_SIZES.md,
                     }}
                   >
                     {selectedStudent
@@ -450,7 +450,7 @@ export default function GiveFeedbackScreen() {
                   borderRadius: 12,
                   color: colors.textPrimary,
                   fontFamily: FONTS.medium,
-                  fontSize: FONT_SIZES.lg,
+                  fontSize: FONT_SIZES.md,
                   minHeight: 120,
                   borderWidth: 1,
                   borderColor: colors.border,
@@ -483,7 +483,7 @@ export default function GiveFeedbackScreen() {
                   style={{
                     color: "#fff",
                     fontFamily: FONTS.bold,
-                    fontSize: FONT_SIZES.xl,
+                    fontSize: FONT_SIZES.lg,
                   }}
                 >
                   ${t("feedback.sendFeedback", "Send Feedback")}
@@ -529,7 +529,7 @@ export default function GiveFeedbackScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.xl,
+                        fontSize: FONT_SIZES.lg,
                         fontFamily: FONTS.bold,
                         color: colors.textPrimary,
                       }}
@@ -585,7 +585,7 @@ export default function GiveFeedbackScreen() {
                           <View>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.lg,
+                                fontSize: FONT_SIZES.md,
                                 fontFamily: FONTS.semiBold,
                                 color: colors.textPrimary,
                               }}
@@ -671,7 +671,7 @@ export default function GiveFeedbackScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.xl,
+                        fontSize: FONT_SIZES.lg,
                         fontFamily: FONTS.bold,
                         color: colors.textPrimary,
                       }}
@@ -735,7 +735,7 @@ export default function GiveFeedbackScreen() {
                             <View style={{ flex: 1 }}>
                               <Text
                                 style={{
-                                  fontSize: FONT_SIZES.lg,
+                                  fontSize: FONT_SIZES.md,
                                   fontFamily: FONTS.semiBold,
                                   color: colors.textPrimary,
                                 }}

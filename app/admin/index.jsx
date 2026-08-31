@@ -408,7 +408,7 @@ export default function AdminScreen() {
           style={{
             color: colors.textSecondary,
             marginTop: 16,
-            fontSize: FONT_SIZES.lg,
+            fontSize: FONT_SIZES.md,
             fontFamily: FONTS.medium,
           }}
         >
@@ -539,7 +539,7 @@ const MenuCard = ({ title, icon, color, onPress }) => {
       </View>
       <Text
         style={{
-          fontSize: FONT_SIZES.base,
+          fontSize: FONT_SIZES.sm,
           fontFamily: FONTS.bold,
           color: colors.textPrimary,
           textAlign: "center",
@@ -712,7 +712,7 @@ const AdminHeader = React.memo(function AdminHeader({
               style={{ marginRight: 4 }}
             />
             <Text
-              style={{ fontSize: FONT_SIZES.base, fontFamily: FONTS.bold, color: "#fff" }}
+              style={{ fontSize: FONT_SIZES.sm, fontFamily: FONTS.bold, color: "#fff" }}
             >
               {t("admin.addUser", "Add User")}
             </Text>
@@ -749,7 +749,7 @@ const AdminHeader = React.memo(function AdminHeader({
               style={{
                 flex: 1,
                 marginLeft: 12,
-                fontSize: FONT_SIZES.lg,
+                fontSize: FONT_SIZES.md,
                 color: colors.textPrimary,
                 fontFamily: FONTS.regular,
                 paddingVertical: 0,
@@ -820,7 +820,7 @@ const AdminHeader = React.memo(function AdminHeader({
                     fontFamily:
                       roleFilter === role ? FONTS.bold : FONTS.medium,
                     textTransform: "capitalize",
-                    fontSize: FONT_SIZES.base,
+                    fontSize: FONT_SIZES.sm,
                   }}
                 >
                   {role === "all"

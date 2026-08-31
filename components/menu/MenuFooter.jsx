@@ -140,9 +140,9 @@ const localStyles = StyleSheet.create({
     borderRadius: 12,
   },
   schoolName: {
-    fontSize: FONT_SIZES.mdLg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
-    letterSpacing: LETTER_SPACINGS.mdLg,
+    letterSpacing: LETTER_SPACINGS.md,
     textAlign: "center",
     paddingHorizontal: 16,
   },

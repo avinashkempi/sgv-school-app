@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   percentageText: {
-    fontSize: FONT_SIZES.displaySm,
+    fontSize: FONT_SIZES.display,
     fontFamily: FONTS.bold,
     lineHeight: 32,
     letterSpacing: -0.5,

@@ -139,7 +139,7 @@ export default function SchoolTimetableScreen() {
           <View style={{ marginTop: 20 }}>
             <Text
               style={{
-                fontSize: FONT_SIZES.md,
+                fontSize: FONT_SIZES.sm,
                 color: colors.textSecondary,
                 marginBottom: 8,
                 fontFamily: FONTS.medium,
@@ -176,7 +176,7 @@ export default function SchoolTimetableScreen() {
                           fontFamily: isSelected
                             ? FONTS.bold
                             : FONTS.medium,
-                          fontSize: FONT_SIZES.base,
+                          fontSize: FONT_SIZES.sm,
                         }}
                       >
                         {formatClassName(cls.name)} {cls.section || ""}
@@ -217,7 +217,7 @@ export default function SchoolTimetableScreen() {
                           selectedDay === day ? "#fff" : colors.textPrimary,
                         fontFamily:
                           selectedDay === day ? FONTS.bold : FONTS.medium,
-                        fontSize: FONT_SIZES.base,
+                        fontSize: FONT_SIZES.sm,
                       }}
                     >
                       {day.slice(0, 3)}
@@ -240,7 +240,7 @@ export default function SchoolTimetableScreen() {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.xl,
+                  fontSize: FONT_SIZES.lg,
                   fontFamily: FONTS.bold,
                   color: colors.textPrimary,
                 }}
@@ -282,7 +282,7 @@ export default function SchoolTimetableScreen() {
                   style={{
                     color: colors.textSecondary,
                     marginTop: 12,
-                    fontSize: FONT_SIZES.base,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.medium,
                   }}
                 >
@@ -308,7 +308,7 @@ export default function SchoolTimetableScreen() {
                       style={{
                         color: colors.textSecondary,
                         marginTop: 16,
-                        fontSize: FONT_SIZES.lg,
+                        fontSize: FONT_SIZES.md,
                         fontFamily: FONTS.medium,
                       }}
                     >
@@ -338,7 +338,7 @@ export default function SchoolTimetableScreen() {
                       >
                         <Text
                           style={{
-                            fontSize: FONT_SIZES.base,
+                            fontSize: FONT_SIZES.sm,
                             fontFamily: FONTS.bold,
                             color: colors.textPrimary,
                           }}
@@ -372,7 +372,7 @@ export default function SchoolTimetableScreen() {
                       <View style={{ flex: 1, justifyContent: "center" }}>
                         <Text
                           style={{
-                            fontSize: FONT_SIZES.lg,
+                            fontSize: FONT_SIZES.md,
                             fontFamily: FONTS.bold,
                             color: colors.textPrimary,
                             marginBottom: 4,
@@ -396,7 +396,7 @@ export default function SchoolTimetableScreen() {
                           />
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.md,
+                              fontSize: FONT_SIZES.sm,
                               fontFamily: FONTS.medium,
                               color: colors.textSecondary,
                             }}
@@ -420,7 +420,7 @@ export default function SchoolTimetableScreen() {
                             />
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.md,
+                                fontSize: FONT_SIZES.sm,
                                 fontFamily: FONTS.regular,
                                 color: colors.textSecondary,
                               }}
@@ -447,7 +447,7 @@ export default function SchoolTimetableScreen() {
                           style={{
                             fontFamily: FONTS.bold,
                             color: colors.primary,
-                            fontSize: FONT_SIZES.base,
+                            fontSize: FONT_SIZES.sm,
                           }}
                         >
                           {period.periodNumber}

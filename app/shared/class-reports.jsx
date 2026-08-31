@@ -143,7 +143,7 @@ export default function ClassReportsDashboard() {
       <View>
         <Text
           style={{
-            fontSize: FONT_SIZES.xl,
+            fontSize: FONT_SIZES.lg,
             fontFamily: FONTS.bold,
             color: colors.onSurface,
             marginBottom: 16,
@@ -280,7 +280,7 @@ export default function ClassReportsDashboard() {
         >
           <Text
             style={{
-              fontSize: FONT_SIZES.xl,
+              fontSize: FONT_SIZES.lg,
               fontFamily: FONTS.bold,
               color: colors.onSurface,
             }}
@@ -289,7 +289,7 @@ export default function ClassReportsDashboard() {
           </Text>
           <Text
             style={{
-              fontSize: FONT_SIZES.md,
+              fontSize: FONT_SIZES.sm,
               fontFamily: FONTS.medium,
               color: colors.onSurfaceVariant,
             }}
@@ -370,7 +370,7 @@ export default function ClassReportsDashboard() {
                     ) : (
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.base,
+                          fontSize: FONT_SIZES.sm,
                           fontFamily: FONTS.bold,
                           color: colors.onSurface,
                         }}
@@ -383,7 +383,7 @@ export default function ClassReportsDashboard() {
                   <View style={{ flex: 1 }}>
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.mdLg,
+                        fontSize: FONT_SIZES.md,
                         fontFamily: FONTS.bold,
                         color: colors.onSurface,
                       }}
@@ -565,7 +565,7 @@ export default function ClassReportsDashboard() {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                 }}
@@ -606,7 +606,7 @@ export default function ClassReportsDashboard() {
                 >
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.md,
+                      fontSize: FONT_SIZES.sm,
                       fontFamily: FONTS.bold,
                       color: !selectedExamType ? "#FFFFFF" : colors.onSurface,
                     }}
@@ -633,7 +633,7 @@ export default function ClassReportsDashboard() {
                   >
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.md,
+                        fontSize: FONT_SIZES.sm,
                         fontFamily: FONTS.bold,
                         color:
                           selectedExamType === type
@@ -661,7 +661,7 @@ export default function ClassReportsDashboard() {
               <ActivityIndicator size="large" color={colors.primary} />
               <Text
                 style={{
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                   marginTop: 12,
@@ -689,7 +689,7 @@ export default function ClassReportsDashboard() {
               />
               <Text
                 style={{
-                  fontSize: FONT_SIZES.mdLg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                   marginTop: 12,

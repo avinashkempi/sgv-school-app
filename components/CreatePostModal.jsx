@@ -525,7 +525,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   headerTitle: {
-    fontSize: FONT_SIZES.xl,
+    fontSize: FONT_SIZES.lg,
     fontFamily: FONTS.bold,
   },
   publishButton: {
@@ -536,7 +536,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   publishText: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   scrollContent: {
@@ -565,7 +565,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
   },
   categoryPillText: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   notifHint: {
@@ -640,7 +640,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 12,
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.medium,
     borderWidth: 1,
   },
@@ -648,7 +648,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 12,
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
     borderWidth: 1,
     minHeight: 100,

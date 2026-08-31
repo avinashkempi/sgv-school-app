@@ -162,7 +162,7 @@ const Header = ({
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.bold,
                   color: colors.onBackground,
                   letterSpacing: 0.3,
@@ -305,7 +305,7 @@ const Header = ({
         >
           <Text
             style={{
-              fontSize: FONT_SIZES.title,
+              fontSize: FONT_SIZES.xl,
               fontFamily: FONTS.bold,
               color: colors.onBackground,
               letterSpacing: -0.5,

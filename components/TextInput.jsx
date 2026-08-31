@@ -136,7 +136,7 @@ const TextInput = ({
           style={[
             {
               flex: 1,
-              fontSize: FONT_SIZES.lg,
+              fontSize: FONT_SIZES.md,
               fontFamily: FONTS.regular,
               color: colors.onSurface,
               height: "100%",

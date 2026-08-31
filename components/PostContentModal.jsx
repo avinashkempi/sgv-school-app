@@ -799,7 +799,7 @@ export default function PostContentModal({
           >
             <Text
               style={{
-                fontSize: FONT_SIZES.lg,
+                fontSize: FONT_SIZES.md,
                 fontFamily: FONTS.bold,
                 color: colors.onSurface,
                 marginBottom: 8,
@@ -842,7 +842,7 @@ export default function PostContentModal({
               >
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.base,
+                    fontSize: FONT_SIZES.sm,
                     color: colors.onSurfaceVariant,
                     fontFamily: FONTS.medium,
                   }}
@@ -900,7 +900,7 @@ const localStyles = StyleSheet.create({
     justifyContent: "center",
   },
   headerTitle: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   headerSubtitle: {
@@ -949,7 +949,7 @@ const localStyles = StyleSheet.create({
     paddingVertical: 11,
     borderRadius: 10,
     borderWidth: 1,
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
   },
   attachToolbar: {
@@ -992,7 +992,7 @@ const localStyles = StyleSheet.create({
   },
   stagedName: {
     flex: 1,
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.medium,
   },
   stagedRemove: {
@@ -1013,7 +1013,7 @@ const localStyles = StyleSheet.create({
     justifyContent: "center",
   },
   cancelBtnText: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.medium,
   },
   submitBtn: {
@@ -1027,7 +1027,7 @@ const localStyles = StyleSheet.create({
   },
   submitBtnText: {
     color: "#FFFFFF",
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   linkModalBackdrop: {

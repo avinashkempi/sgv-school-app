@@ -123,7 +123,7 @@ export default function TeacherDashboard() {
                 <View style={{ flex: 1 }}>
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.lg,
+                      fontSize: FONT_SIZES.md,
                       fontFamily: FONTS.bold,
                       color: colors.onSurface,
                       marginBottom: 4,
@@ -133,7 +133,7 @@ export default function TeacherDashboard() {
                   </Text>
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.md,
+                      fontSize: FONT_SIZES.sm,
                       color: colors.onSurfaceVariant,
                       fontFamily: FONTS.regular,
                     }}
@@ -197,7 +197,7 @@ export default function TeacherDashboard() {
               >
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.xl,
+                    fontSize: FONT_SIZES.lg,
                     fontFamily: FONTS.bold,
                     color: colors.onSurface,
                   }}
@@ -224,7 +224,7 @@ export default function TeacherDashboard() {
                   />
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.md,
+                      fontSize: FONT_SIZES.sm,
                       color: colors.onSurfaceVariant,
                       fontFamily: FONTS.medium,
                     }}
@@ -249,7 +249,7 @@ export default function TeacherDashboard() {
                     />
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.md,
+                        fontSize: FONT_SIZES.sm,
                         color: colors.onSurfaceVariant,
                         fontFamily: FONTS.medium,
                         flex: 1,
@@ -335,7 +335,7 @@ export default function TeacherDashboard() {
               >
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.lg,
+                    fontSize: FONT_SIZES.md,
                     fontFamily: FONTS.semiBold,
                     color: colors.onSurface,
                     flex: 1,
@@ -437,7 +437,7 @@ export default function TeacherDashboard() {
               </View>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.bold,
                   color: colors.onSurface,
                   textAlign: "center",
@@ -480,7 +480,7 @@ export default function TeacherDashboard() {
               </View>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.bold,
                   color: colors.onSurface,
                   textAlign: "center",

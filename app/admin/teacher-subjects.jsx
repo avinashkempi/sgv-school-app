@@ -207,7 +207,7 @@ export default function TeacherSubjectsScreen() {
               style={{
                 flex: 1,
                 marginLeft: 12,
-                fontSize: FONT_SIZES.lg,
+                fontSize: FONT_SIZES.md,
                 color: colors.textPrimary,
                 height: "100%",
               }}
@@ -254,7 +254,7 @@ export default function TeacherSubjectsScreen() {
                     style={{
                       color: colors.textSecondary,
                       marginTop: 20,
-                      fontSize: FONT_SIZES.lg,
+                      fontSize: FONT_SIZES.md,
                       fontFamily: FONTS.medium,
                     }}
                   >
@@ -300,7 +300,7 @@ export default function TeacherSubjectsScreen() {
                         <View style={{ flex: 1 }}>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.xl,
+                              fontSize: FONT_SIZES.lg,
                               fontFamily: FONTS.bold,
                               color: colors.textPrimary,
                             }}
@@ -435,7 +435,7 @@ export default function TeacherSubjectsScreen() {
                                   <View style={{ flex: 1 }}>
                                     <Text
                                       style={{
-                                        fontSize: FONT_SIZES.mdLg,
+                                        fontSize: FONT_SIZES.md,
                                         fontFamily: FONTS.semiBold,
                                         color: colors.textPrimary,
                                       }}
@@ -488,7 +488,7 @@ export default function TeacherSubjectsScreen() {
                           >
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.md,
+                                fontSize: FONT_SIZES.sm,
                                 color: colors.textSecondary,
                                 fontStyle: "italic",
                                 fontFamily: FONTS.regular,
@@ -548,7 +548,7 @@ export default function TeacherSubjectsScreen() {
               <View style={{ flex: 1 }}>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.xxl,
+                    fontSize: FONT_SIZES.lg,
                     fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                   }}
@@ -557,7 +557,7 @@ export default function TeacherSubjectsScreen() {
                 </Text>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.base,
+                    fontSize: FONT_SIZES.sm,
                     color: colors.textSecondary,
                     fontFamily: FONTS.regular,
                     marginTop: 2,
@@ -604,7 +604,7 @@ export default function TeacherSubjectsScreen() {
                 style={{
                   flex: 1,
                   marginLeft: 8,
-                  fontSize: FONT_SIZES.mdLg,
+                  fontSize: FONT_SIZES.md,
                   color: colors.textPrimary,
                   height: "100%",
                 }}
@@ -639,7 +639,7 @@ export default function TeacherSubjectsScreen() {
               >
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.base,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.semiBold,
                     color: colors.primary,
                   }}
@@ -650,7 +650,7 @@ export default function TeacherSubjectsScreen() {
                 <Pressable onPress={() => setSelectedSubjects([])}>
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.md,
+                      fontSize: FONT_SIZES.sm,
                       fontFamily: FONTS.bold,
                       color: colors.primary,
                     }}
@@ -731,7 +731,7 @@ export default function TeacherSubjectsScreen() {
                         <View style={{ flex: 1, marginRight: 12 }}>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.lg,
+                              fontSize: FONT_SIZES.md,
                               fontFamily: FONTS.semiBold,
                               color: colors.textPrimary,
                             }}
@@ -740,7 +740,7 @@ export default function TeacherSubjectsScreen() {
                           </Text>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.md,
+                              fontSize: FONT_SIZES.sm,
                               color: colors.textSecondary,
                               fontFamily: FONTS.regular,
                               marginTop: 2,
@@ -845,7 +845,7 @@ export default function TeacherSubjectsScreen() {
                   <Text
                     style={{
                       color: "#fff",
-                      fontSize: FONT_SIZES.lg,
+                      fontSize: FONT_SIZES.md,
                       fontFamily: FONTS.bold,
                     }}
                   >

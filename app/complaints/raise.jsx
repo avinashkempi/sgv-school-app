@@ -307,7 +307,7 @@ export default function RaiseComplaintScreen() {
                   borderRadius: 12,
                   color: colors.textPrimary,
                   fontFamily: FONTS.medium,
-                  fontSize: FONT_SIZES.lg,
+                  fontSize: FONT_SIZES.md,
                 }}
               />
             </View>
@@ -340,7 +340,7 @@ export default function RaiseComplaintScreen() {
                   borderRadius: 12,
                   color: colors.textPrimary,
                   fontFamily: FONTS.medium,
-                  fontSize: FONT_SIZES.lg,
+                  fontSize: FONT_SIZES.md,
                   minHeight: 120,
                 }}
               />
@@ -370,7 +370,7 @@ export default function RaiseComplaintScreen() {
                   style={{
                     color: "#fff",
                     fontFamily: FONTS.bold,
-                    fontSize: FONT_SIZES.xl,
+                    fontSize: FONT_SIZES.lg,
                   }}
                 >
                   ${t("complaints.submitComplaint", "Submit Complaint")}

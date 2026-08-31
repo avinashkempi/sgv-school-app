@@ -468,7 +468,7 @@ export default function ClassDetailsScreen() {
                 />
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.md,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.semiBold,
                     color: colors.onSurface,
                     marginTop: 8,
@@ -501,7 +501,7 @@ export default function ClassDetailsScreen() {
                 />
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.md,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.semiBold,
                     color: colors.onSurface,
                     marginTop: 8,
@@ -602,7 +602,7 @@ export default function ClassDetailsScreen() {
                       <View style={{ flex: 1 }}>
                         <Text
                           style={{
-                            fontSize: FONT_SIZES.lg,
+                            fontSize: FONT_SIZES.md,
                             fontFamily: FONTS.bold,
                             color: colors.onSurface,
                           }}
@@ -612,7 +612,7 @@ export default function ClassDetailsScreen() {
                         {subject.teachers && subject.teachers.length > 0 ? (
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.md,
+                              fontSize: FONT_SIZES.sm,
                               color: colors.onSurfaceVariant,
                               marginTop: 2,
                               fontFamily: FONTS.medium,
@@ -693,7 +693,7 @@ export default function ClassDetailsScreen() {
                 <Text
                   style={{
                     color: "#FFFFFF",
-                    fontSize: FONT_SIZES.base,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.bold,
                   }}
                 >
@@ -724,7 +724,7 @@ export default function ClassDetailsScreen() {
                   />
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.mdLg,
+                      fontSize: FONT_SIZES.md,
                       fontFamily: FONTS.bold,
                       color: colors.onSurface,
                     }}
@@ -863,7 +863,7 @@ export default function ClassDetailsScreen() {
 
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.lg,
+                          fontSize: FONT_SIZES.md,
                           fontFamily: FONTS.bold,
                           color: colors.onSurface,
                           lineHeight: 24,
@@ -875,7 +875,7 @@ export default function ClassDetailsScreen() {
                       {item.description ? (
                         <Text
                           style={{
-                            fontSize: FONT_SIZES.base,
+                            fontSize: FONT_SIZES.sm,
                             fontFamily: FONTS.regular,
                             color: colors.onSurfaceVariant,
                             lineHeight: 22,
@@ -988,7 +988,7 @@ export default function ClassDetailsScreen() {
                           >
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.lg,
+                                fontSize: FONT_SIZES.md,
                                 fontFamily: FONTS.bold,
                                 color: colors.primary,
                                 textDecorationLine: "underline",
@@ -1000,7 +1000,7 @@ export default function ClassDetailsScreen() {
                         ) : (
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.lg,
+                              fontSize: FONT_SIZES.md,
                               fontFamily: FONTS.bold,
                               color: colors.onSurface,
                             }}
@@ -1010,7 +1010,7 @@ export default function ClassDetailsScreen() {
                         )}
                         <Text
                           style={{
-                            fontSize: FONT_SIZES.base,
+                            fontSize: FONT_SIZES.sm,
                             color: colors.onSurfaceVariant,
                             marginTop: 4,
                           }}
@@ -1020,7 +1020,7 @@ export default function ClassDetailsScreen() {
                         {student.email && (
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.base,
+                              fontSize: FONT_SIZES.sm,
                               color: colors.onSurfaceVariant,
                               marginTop: 2,
                             }}
@@ -1031,7 +1031,7 @@ export default function ClassDetailsScreen() {
                         {student.guardianName && (
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.md,
+                              fontSize: FONT_SIZES.sm,
                               color: colors.onSurfaceVariant,
                               marginTop: 6,
                             }}
@@ -1167,7 +1167,7 @@ export default function ClassDetailsScreen() {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.xl,
+                  fontSize: FONT_SIZES.lg,
                   fontFamily: FONTS.bold,
                   color: colors.onSurface,
                   marginBottom: 16,
@@ -1201,7 +1201,7 @@ export default function ClassDetailsScreen() {
                   style={{
                     flex: 1,
                     paddingVertical: 12,
-                    fontSize: FONT_SIZES.base,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.regular,
                     color: colors.onSurface,
                   }}
@@ -1316,7 +1316,7 @@ export default function ClassDetailsScreen() {
                             >
                               <Text
                                 style={{
-                                  fontSize: FONT_SIZES.lg,
+                                  fontSize: FONT_SIZES.md,
                                   fontFamily: FONTS.semiBold,
                                   color: colors.onSurface,
                                 }}
@@ -1347,7 +1347,7 @@ export default function ClassDetailsScreen() {
                             {item.code && (
                               <Text
                                 style={{
-                                  fontSize: FONT_SIZES.base,
+                                  fontSize: FONT_SIZES.sm,
                                   color: colors.onSurfaceVariant,
                                   marginTop: 2,
                                   fontFamily: FONTS.regular,
@@ -1439,7 +1439,7 @@ export default function ClassDetailsScreen() {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.xl,
+                  fontSize: FONT_SIZES.lg,
                   fontFamily: FONTS.bold,
                   color: colors.onSurface,
                   marginBottom: 16,
@@ -1473,7 +1473,7 @@ export default function ClassDetailsScreen() {
                   style={{
                     flex: 1,
                     paddingVertical: 12,
-                    fontSize: FONT_SIZES.base,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.regular,
                     color: colors.onSurface,
                   }}
@@ -1558,7 +1558,7 @@ export default function ClassDetailsScreen() {
                         <View style={{ flex: 1 }}>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.lg,
+                              fontSize: FONT_SIZES.md,
                               fontFamily: FONTS.semiBold,
                               color: colors.onSurface,
                             }}
@@ -1567,7 +1567,7 @@ export default function ClassDetailsScreen() {
                           </Text>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.base,
+                              fontSize: FONT_SIZES.sm,
                               color: colors.onSurfaceVariant,
                               marginTop: 2,
                               fontFamily: FONTS.regular,

@@ -431,7 +431,7 @@ const localStyles = StyleSheet.create({
     flexShrink: 0,
   },
   subjectTitle: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   codeBadge: {
@@ -493,12 +493,12 @@ const localStyles = StyleSheet.create({
     fontFamily: FONTS.regular,
   },
   itemTitle: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
     lineHeight: 24,
   },
   itemDesc: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
     lineHeight: 22,
   },

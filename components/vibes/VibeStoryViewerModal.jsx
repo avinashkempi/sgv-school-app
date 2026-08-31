@@ -844,7 +844,7 @@ const styles = StyleSheet.create({
   },
   authorNameText: {
     color: "#fff",
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
     textShadowColor: "rgba(0, 0, 0, 0.75)",
     textShadowOffset: { width: 0, height: 1 },
@@ -917,9 +917,9 @@ const styles = StyleSheet.create({
   },
   captionText: {
     color: "#fff",
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
-    lineHeight: LINE_HEIGHTS.md,
+    lineHeight: LINE_HEIGHTS.sm,
   },
   actionsRow: {
     flexDirection: "row",
@@ -939,7 +939,7 @@ const styles = StyleSheet.create({
   },
   actionCountText: {
     color: "#fff",
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   viewInFeedBtn: {

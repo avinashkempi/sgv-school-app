@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
   },
   title: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   dateBadge: {

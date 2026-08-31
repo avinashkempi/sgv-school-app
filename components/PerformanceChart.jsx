@@ -109,7 +109,7 @@ export default function PerformanceChart({
         population: item.value || item.count || 0,
         color: item.color || getPieColor(index),
         legendFontColor: colors.onSurface,
-        legendFontSize: FONT_SIZES.md,
+        legendFontSize: FONT_SIZES.sm,
         legendFontFamily: FONTS.medium,
       }));
 
@@ -186,7 +186,7 @@ export default function PerformanceChart({
     >
       <Text
         style={{
-          fontSize: FONT_SIZES.base,
+          fontSize: FONT_SIZES.sm,
           fontFamily: FONTS.medium,
           color: colors.onSurfaceVariant,
           opacity: 0.7,
@@ -224,7 +224,7 @@ export default function PerformanceChart({
       {title && (
         <Text
           style={{
-            fontSize: FONT_SIZES.lg,
+            fontSize: FONT_SIZES.md,
             fontFamily: FONTS.bold,
             color: colors.onSurface,
             marginBottom: 12,

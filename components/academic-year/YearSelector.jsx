@@ -128,7 +128,7 @@ const YearSelector = ({ onYearChanged, style, compact = false }) => {
           <View>
             <Text
               style={{
-                fontSize: FONT_SIZES.lg,
+                fontSize: FONT_SIZES.md,
                 fontFamily: isSelected ? FONTS.bold : FONTS.medium,
                 color: isSelected
                   ? colors.onPrimaryContainer
@@ -221,7 +221,7 @@ const YearSelector = ({ onYearChanged, style, compact = false }) => {
         />
         <Text
           style={{
-            fontSize: FONT_SIZES.md,
+            fontSize: FONT_SIZES.sm,
             fontFamily: FONTS.bold,
             marginLeft: 6,
             marginRight: 4,

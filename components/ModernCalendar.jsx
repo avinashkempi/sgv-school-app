@@ -34,8 +34,8 @@ const ModernCalendar = ({
       textDayFontFamily: FONTS.medium,
       textMonthFontFamily: FONTS.bold,
       textDayHeaderFontFamily: FONTS.bold,
-      textDayFontSize: FONT_SIZES.base,
-      textMonthFontSize: FONT_SIZES.lg,
+      textDayFontSize: FONT_SIZES.sm,
+      textMonthFontSize: FONT_SIZES.md,
       textDayHeaderFontSize: FONT_SIZES.sm,
       "stylesheet.calendar.header": {
         header: {
@@ -48,7 +48,7 @@ const ModernCalendar = ({
           alignItems: "center",
         },
         monthText: {
-          fontSize: FONT_SIZES.xl,
+          fontSize: FONT_SIZES.lg,
           fontFamily: FONTS.bold,
           color: colors.textPrimary,
           margin: 10,

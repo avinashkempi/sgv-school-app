@@ -118,7 +118,7 @@ export default function RequestsScreen() {
         <View style={{ flex: 1 }}>
           <Text
             style={{
-              fontSize: FONT_SIZES.lg,
+              fontSize: FONT_SIZES.md,
               fontFamily: FONTS.bold,
               color: colors.onSurface,
               marginBottom: 4,
@@ -128,7 +128,7 @@ export default function RequestsScreen() {
           </Text>
           <Text
             style={{
-              fontSize: FONT_SIZES.md,
+              fontSize: FONT_SIZES.sm,
               color: colors.onSurfaceVariant,
               fontFamily: FONTS.regular,
             }}

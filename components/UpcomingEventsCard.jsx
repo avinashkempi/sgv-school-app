@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
   dateDayText: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
     marginTop: -2,
   },
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   eventTitle: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
     marginBottom: 2,
   },

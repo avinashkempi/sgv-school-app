@@ -107,7 +107,7 @@ export default function StudentFeesScreen() {
               </Text>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.lg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: colors.onSurface,
                 }}
@@ -132,7 +132,7 @@ export default function StudentFeesScreen() {
                 </Text>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.lg,
+                    fontSize: FONT_SIZES.md,
                     fontFamily: FONTS.bold,
                     color: "#FF9800",
                   }}
@@ -156,7 +156,7 @@ export default function StudentFeesScreen() {
               </Text>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.lg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: colors.success,
                 }}
@@ -179,7 +179,7 @@ export default function StudentFeesScreen() {
               </Text>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.lg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: colors.error,
                 }}
@@ -193,7 +193,7 @@ export default function StudentFeesScreen() {
           <View style={{ marginTop: 24 }}>
             <Text
               style={{
-                fontSize: FONT_SIZES.xl,
+                fontSize: FONT_SIZES.lg,
                 fontFamily: FONTS.bold,
                 color: colors.textPrimary,
                 marginBottom: 16,
@@ -295,7 +295,7 @@ export default function StudentFeesScreen() {
               <View style={{ marginTop: 24 }}>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.xl,
+                    fontSize: FONT_SIZES.lg,
                     fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                     marginBottom: 16,
@@ -356,7 +356,7 @@ export default function StudentFeesScreen() {
                             style={{
                               fontFamily: FONTS.bold,
                               color: colors.textPrimary,
-                              fontSize: FONT_SIZES.mdLg,
+                              fontSize: FONT_SIZES.md,
                             }}
                           >
                             {inst.description}
@@ -406,7 +406,7 @@ export default function StudentFeesScreen() {
           <View style={{ marginTop: 24 }}>
             <Text
               style={{
-                fontSize: FONT_SIZES.xl,
+                fontSize: FONT_SIZES.lg,
                 fontFamily: FONTS.bold,
                 color: colors.textPrimary,
                 marginBottom: 16,
@@ -443,7 +443,7 @@ export default function StudentFeesScreen() {
                       style={{
                         fontFamily: FONTS.bold,
                         color: colors.onSurface,
-                        fontSize: FONT_SIZES.lg,
+                        fontSize: FONT_SIZES.md,
                       }}
                     >
                       ₹{payment.amount.toLocaleString()}

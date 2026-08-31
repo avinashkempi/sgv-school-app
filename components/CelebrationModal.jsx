@@ -156,19 +156,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   trophyEmoji: {
-    fontSize: FONT_SIZES.displayHero,
+    fontSize: FONT_SIZES.jumbo,
   },
   title: {
-    fontSize: FONT_SIZES.xxl,
+    fontSize: FONT_SIZES.lg,
     fontFamily: FONTS.bold,
     textAlign: "center",
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
     textAlign: "center",
-    lineHeight: LINE_HEIGHTS.base,
+    lineHeight: LINE_HEIGHTS.sm,
     marginBottom: 20,
   },
   button: {

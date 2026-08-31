@@ -385,7 +385,7 @@ const localStyles = StyleSheet.create({
     borderRadius: 8,
   },
   modalTitle: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   modalSubtitle: {
@@ -421,24 +421,24 @@ const localStyles = StyleSheet.create({
     letterSpacing: LETTER_SPACINGS.xs,
   },
   highlightText: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.medium,
-    lineHeight: LINE_HEIGHTS.md,
+    lineHeight: LINE_HEIGHTS.sm,
   },
   sectionBlock: {
     marginBottom: 16,
   },
   sectionHeading: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
     marginBottom: 8,
     textTransform: "uppercase",
-    letterSpacing: LETTER_SPACINGS.md,
+    letterSpacing: LETTER_SPACINGS.sm,
   },
   bodyParagraph: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
-    lineHeight: LINE_HEIGHTS.md,
+    lineHeight: LINE_HEIGHTS.sm,
   },
   branchTile: {
     flexDirection: "row",
@@ -456,7 +456,7 @@ const localStyles = StyleSheet.create({
     justifyContent: "center",
   },
   branchName: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   branchDesc: {

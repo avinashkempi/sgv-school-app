@@ -170,11 +170,11 @@ const styles = StyleSheet.create({
     borderBottomColor: "rgba(150, 150, 150, 0.2)",
   },
   title: {
-    fontSize: FONT_SIZES.xl,
+    fontSize: FONT_SIZES.lg,
     fontFamily: FONTS.bold,
   },
   resetText: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.medium,
   },
   chipContainer: {
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   chipText: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
   },
   applyButton: {
     width: "100%",
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   applyButtonText: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
 });

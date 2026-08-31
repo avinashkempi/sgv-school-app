@@ -172,7 +172,7 @@ export default function ImportDataScreen() {
           >
             <MaterialIcons name="storage" size={24} color={colors.primary} />
             <View style={{ marginLeft: 12 }}>
-              <Text style={{ fontFamily: FONTS.bold, fontSize: FONT_SIZES.base }}>
+              <Text style={{ fontFamily: FONTS.bold, fontSize: FONT_SIZES.sm }}>
                 Server Data Store
               </Text>
               <Text style={{ fontSize: FONT_SIZES.sm, color: colors.onSurfaceVariant }}>
@@ -284,7 +284,7 @@ export default function ImportDataScreen() {
               <Text
                 style={{
                   fontFamily: FONTS.bold,
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   color: selectedYearId === null ? "#fff" : colors.onSurface,
                 }}
               >
@@ -311,7 +311,7 @@ export default function ImportDataScreen() {
                 <Text
                   style={{
                     fontFamily: FONTS.bold,
-                    fontSize: FONT_SIZES.md,
+                    fontSize: FONT_SIZES.sm,
                     color:
                       selectedYearId === yr._id ? "#fff" : colors.onSurface,
                   }}
@@ -367,7 +367,7 @@ export default function ImportDataScreen() {
                 style={{
                   color: colors.white,
                   fontFamily: FONTS.bold,
-                  fontSize: FONT_SIZES.lg,
+                  fontSize: FONT_SIZES.md,
                 }}
               >
                 {wipeData ? "WIPE & SYNC NOW" : "RUN DIRECT SYNC"}
@@ -391,7 +391,7 @@ export default function ImportDataScreen() {
           >
             <MaterialIcons name="badge" size={24} color={colors.secondary} />
             <View style={{ marginLeft: 12 }}>
-              <Text style={{ fontFamily: FONTS.bold, fontSize: FONT_SIZES.base }}>
+              <Text style={{ fontFamily: FONTS.bold, fontSize: FONT_SIZES.sm }}>
                 Staff Data Store
               </Text>
               <Text style={{ fontSize: FONT_SIZES.sm, color: colors.onSurfaceVariant }}>
@@ -730,7 +730,7 @@ export default function ImportDataScreen() {
                             <Text
                               style={{
                                 fontFamily: FONTS.bold,
-                                fontSize: FONT_SIZES.base,
+                                fontSize: FONT_SIZES.sm,
                               }}
                             >
                               {stud.name}
@@ -747,7 +747,7 @@ export default function ImportDataScreen() {
                           <Text
                             style={{
                               fontFamily: FONT_FAMILIES.mono,
-                              fontSize: FONT_SIZES.base,
+                              fontSize: FONT_SIZES.sm,
                               color: colors.primary,
                             }}
                           >
@@ -836,7 +836,7 @@ export default function ImportDataScreen() {
                             <Text
                               style={{
                                 fontFamily: FONTS.bold,
-                                fontSize: FONT_SIZES.base,
+                                fontSize: FONT_SIZES.sm,
                               }}
                             >
                               {staff.name}
@@ -853,7 +853,7 @@ export default function ImportDataScreen() {
                           <Text
                             style={{
                               fontFamily: FONT_FAMILIES.mono,
-                              fontSize: FONT_SIZES.base,
+                              fontSize: FONT_SIZES.sm,
                               color: colors.primary,
                             }}
                           >
@@ -942,7 +942,7 @@ export default function ImportDataScreen() {
                             <Text
                               style={{
                                 fontFamily: FONTS.bold,
-                                fontSize: FONT_SIZES.base,
+                                fontSize: FONT_SIZES.sm,
                               }}
                             >
                               {staff.name}
@@ -959,7 +959,7 @@ export default function ImportDataScreen() {
                           <Text
                             style={{
                               fontFamily: FONT_FAMILIES.mono,
-                              fontSize: FONT_SIZES.base,
+                              fontSize: FONT_SIZES.sm,
                               color: colors.primary,
                             }}
                           >
@@ -999,7 +999,7 @@ const ResultCard = ({ label, value, color }) => (
       alignItems: "center",
     }}
   >
-    <Text style={{ fontFamily: FONTS.bold, fontSize: FONT_SIZES.xl, color: color }}>
+    <Text style={{ fontFamily: FONTS.bold, fontSize: FONT_SIZES.lg, color: color }}>
       {value}
     </Text>
     <Text style={{ fontSize: FONT_SIZES.sm, color: color }}>{label}</Text>

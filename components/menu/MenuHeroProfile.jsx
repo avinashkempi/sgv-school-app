@@ -303,7 +303,7 @@ const localStyles = StyleSheet.create({
     borderRadius: 10,
   },
   guestTitle: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
     marginBottom: 3,
   },
@@ -322,7 +322,7 @@ const localStyles = StyleSheet.create({
     gap: 8,
   },
   loginButtonText: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   userCard: {
@@ -346,9 +346,9 @@ const localStyles = StyleSheet.create({
     alignItems: "center",
   },
   userName: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
-    letterSpacing: LETTER_SPACINGS.lg,
+    letterSpacing: LETTER_SPACINGS.md,
   },
   badgeRow: {
     flexDirection: "row",

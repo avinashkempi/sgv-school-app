@@ -424,7 +424,7 @@ const AdminDashboard = () => {
                 style={{
                   fontFamily: FONTS.bold,
                   color: isDark ? colors.primary : colors.onPrimaryContainer,
-                  fontSize: FONT_SIZES.mdLg,
+                  fontSize: FONT_SIZES.md,
                 }}
               >
                 {data.charts.attendance.classesMarked?.count || 0} out of{" "}
@@ -485,7 +485,7 @@ const QuickActionButton = ({ title, icon, color, onPress }) => {
         style={{
           fontFamily: FONTS.bold,
           color: colors.onSurface,
-          fontSize: FONT_SIZES.md,
+          fontSize: FONT_SIZES.sm,
         }}
       >
         {title}
@@ -515,7 +515,7 @@ const localStyles = StyleSheet.create({
     marginTop: 4,
   },
   sectionTitle: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
     letterSpacing: 0.1,
   },
@@ -531,7 +531,7 @@ const localStyles = StyleSheet.create({
     marginBottom: 12,
   },
   chartTitle: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   chartBarContainer: {
@@ -561,11 +561,11 @@ const localStyles = StyleSheet.create({
   },
   progressLabel: {
     fontFamily: FONTS.medium,
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
   },
   progressValue: {
     fontFamily: FONTS.bold,
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
   },
   progressBarTrack: {
     height: 9,

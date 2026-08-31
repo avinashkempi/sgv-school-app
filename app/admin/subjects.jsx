@@ -146,7 +146,7 @@ export default function ManageSubjectsScreen() {
             style={{
               flex: 1,
               marginLeft: 12,
-              fontSize: FONT_SIZES.base,
+              fontSize: FONT_SIZES.sm,
               fontFamily: FONTS.regular,
               color: colors.textPrimary,
             }}
@@ -212,7 +212,7 @@ export default function ManageSubjectsScreen() {
               <View>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.lg,
+                    fontSize: FONT_SIZES.md,
                     fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                   }}
@@ -359,7 +359,7 @@ export default function ManageSubjectsScreen() {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.headline,
+                  fontSize: FONT_SIZES.xl,
                   fontFamily: FONTS.bold,
                   color: colors.textPrimary,
                 }}
@@ -390,7 +390,7 @@ export default function ManageSubjectsScreen() {
                 backgroundColor: colors.background,
                 borderRadius: 12,
                 padding: 12,
-                fontSize: FONT_SIZES.base,
+                fontSize: FONT_SIZES.sm,
                 fontFamily: FONTS.regular,
                 color: colors.textPrimary,
                 marginBottom: 16,
@@ -416,7 +416,7 @@ export default function ManageSubjectsScreen() {
                 backgroundColor: colors.background,
                 borderRadius: 12,
                 padding: 12,
-                fontSize: FONT_SIZES.base,
+                fontSize: FONT_SIZES.sm,
                 fontFamily: FONTS.regular,
                 color: colors.textPrimary,
                 marginBottom: 16,
@@ -481,7 +481,7 @@ export default function ManageSubjectsScreen() {
                 <ActivityIndicator color="#fff" />
               ) : (
                 <Text
-                  style={{ color: "#fff", fontSize: FONT_SIZES.base, fontFamily: FONTS.bold }}
+                  style={{ color: "#fff", fontSize: FONT_SIZES.sm, fontFamily: FONTS.bold }}
                 >
                   {modalMode === "add" ? "Create Subject" : "Save Changes"}
                 </Text>
@@ -525,7 +525,7 @@ export default function ManageSubjectsScreen() {
               <View>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.headline,
+                    fontSize: FONT_SIZES.xl,
                     fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                   }}
@@ -571,7 +571,7 @@ export default function ManageSubjectsScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.lg,
+                        fontSize: FONT_SIZES.md,
                         fontFamily: FONTS.bold,
                         color: colors.textPrimary,
                       }}

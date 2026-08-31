@@ -1303,7 +1303,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   headerTitle: {
-    fontSize: FONT_SIZES.xl,
+    fontSize: FONT_SIZES.lg,
     fontFamily: FONTS.bold,
   },
   publishButton: {
@@ -1314,7 +1314,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   publishText: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   scrollContent: {
@@ -1364,7 +1364,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   identityTitle: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   identitySub: {
@@ -1472,7 +1472,7 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 16,
     borderWidth: 1,
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
     minHeight: 100,
     textAlignVertical: "top",
@@ -1507,7 +1507,7 @@ const styles = StyleSheet.create({
   },
   locationInput: {
     flex: 1,
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
     padding: 0,
   },
@@ -1527,7 +1527,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   spotlightToggleTitle: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
     marginBottom: 2,
   },

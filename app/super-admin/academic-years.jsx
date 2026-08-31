@@ -165,7 +165,7 @@ export default function AcademicYearsScreen() {
               <MaterialIcons name="star" size={20} color="#FFF" />
               <Text
                 style={{
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.bold,
                   color: "#FFF",
                   textTransform: "uppercase",
@@ -205,7 +205,7 @@ export default function AcademicYearsScreen() {
                 />
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.xl,
+                    fontSize: FONT_SIZES.lg,
                     fontFamily: FONTS.bold,
                     color: colors.onSurface,
                   }}
@@ -216,7 +216,7 @@ export default function AcademicYearsScreen() {
               {year.description && (
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.md,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.regular,
                     color: colors.onSurfaceVariant,
                     marginTop: 4,
@@ -282,7 +282,7 @@ export default function AcademicYearsScreen() {
               </Text>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.bold,
                   color: colors.onSurface,
                 }}
@@ -303,7 +303,7 @@ export default function AcademicYearsScreen() {
               </Text>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.bold,
                   color: colors.onSurface,
                 }}
@@ -383,7 +383,7 @@ export default function AcademicYearsScreen() {
                 )}
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.base,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.bold,
                     color: "#FFF",
                   }}
@@ -411,7 +411,7 @@ export default function AcademicYearsScreen() {
                 <MaterialIcons name="sync" size={18} color="#FFF" />
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.base,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.bold,
                     color: "#FFF",
                   }}
@@ -444,7 +444,7 @@ export default function AcademicYearsScreen() {
               />
               <Text
                 style={{
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.bold,
                   color: colors.onSurface,
                 }}
@@ -504,7 +504,7 @@ export default function AcademicYearsScreen() {
               <MaterialIcons name="add-circle" size={20} color="#FFF" />
               <Text
                 style={{
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.bold,
                   color: "#FFF",
                 }}
@@ -534,7 +534,7 @@ export default function AcademicYearsScreen() {
               />
               <Text
                 style={{
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.bold,
                   color: colors.onSurface,
                 }}
@@ -555,7 +555,7 @@ export default function AcademicYearsScreen() {
               <ActivityIndicator size="large" color={colors.primary} />
               <Text
                 style={{
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                   marginTop: 12,
@@ -578,7 +578,7 @@ export default function AcademicYearsScreen() {
                 <View style={{ marginBottom: 24 }}>
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.xl,
+                      fontSize: FONT_SIZES.lg,
                       fontFamily: FONTS.bold,
                       color: colors.onSurface,
                       marginBottom: 16,
@@ -597,7 +597,7 @@ export default function AcademicYearsScreen() {
                 <View>
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.xl,
+                      fontSize: FONT_SIZES.lg,
                       fontFamily: FONTS.bold,
                       color: colors.onSurface,
                       marginBottom: 16,
@@ -631,7 +631,7 @@ export default function AcademicYearsScreen() {
                     />
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.lg,
+                        fontSize: FONT_SIZES.md,
                         fontFamily: FONTS.bold,
                         color: colors.onSurface,
                         marginTop: 16,
@@ -641,7 +641,7 @@ export default function AcademicYearsScreen() {
                     </Text>
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.base,
+                        fontSize: FONT_SIZES.sm,
                         fontFamily: FONTS.regular,
                         color: colors.onSurfaceVariant,
                         marginTop: 8,
@@ -686,7 +686,7 @@ function StatItem({ icon, label, value, color }) {
         <MaterialIcons name={icon} size={16} color={color} />
       </View>
       <View>
-        <Text style={{ fontSize: FONT_SIZES.lg, fontFamily: FONTS.bold, color: color }}>
+        <Text style={{ fontSize: FONT_SIZES.md, fontFamily: FONTS.bold, color: color }}>
           {value}
         </Text>
         <Text

@@ -68,7 +68,7 @@ const EmptyState = ({
         >
           <Text
             style={{
-              fontSize: FONT_SIZES.base,
+              fontSize: FONT_SIZES.sm,
               fontFamily: FONTS.bold,
               color: colors.onPrimary,
             }}
@@ -171,7 +171,7 @@ const ErrorState = ({ title, message, onRetry }) => {
         >
           <Text
             style={{
-              fontSize: FONT_SIZES.base,
+              fontSize: FONT_SIZES.sm,
               fontFamily: FONTS.bold,
               color: colors.onPrimary,
             }}

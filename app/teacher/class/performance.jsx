@@ -219,7 +219,7 @@ export default function ClassPerformanceScreen() {
                 style={{
                   color: colors.onSurfaceVariant,
                   marginTop: 16,
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.medium,
                 }}
               >
@@ -247,7 +247,7 @@ export default function ClassPerformanceScreen() {
                 style={{
                   color: colors.onSurfaceVariant,
                   marginTop: 16,
-                  fontSize: FONT_SIZES.mdLg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.medium,
                   textAlign: "center",
                 }}
@@ -317,7 +317,7 @@ export default function ClassPerformanceScreen() {
                   </View>
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.headline,
+                      fontSize: FONT_SIZES.xl,
                       fontFamily: FONTS.bold,
                       color: getGradeColor(insights.classAverage),
                       marginTop: 6,
@@ -372,7 +372,7 @@ export default function ClassPerformanceScreen() {
                   </View>
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.headline,
+                      fontSize: FONT_SIZES.xl,
                       fontFamily: FONTS.bold,
                       color: colors.success,
                       marginTop: 6,
@@ -418,12 +418,12 @@ export default function ClassPerformanceScreen() {
                     >
                       {t("teacher.topPerformer", "Top Performer")}
                     </Text>
-                    <Text style={{ fontSize: FONT_SIZES.lg }}>🥇</Text>
+                    <Text style={{ fontSize: FONT_SIZES.md }}>🥇</Text>
                   </View>
                   <Text
                     numberOfLines={1}
                     style={{
-                      fontSize: FONT_SIZES.xl,
+                      fontSize: FONT_SIZES.lg,
                       fontFamily: FONTS.bold,
                       color: colors.onSurface,
                       marginTop: 6,
@@ -477,7 +477,7 @@ export default function ClassPerformanceScreen() {
                   </View>
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.headline,
+                      fontSize: FONT_SIZES.xl,
                       fontFamily: FONTS.bold,
                       color: colors.primary,
                       marginTop: 6,
@@ -547,7 +547,7 @@ export default function ClassPerformanceScreen() {
                         <View>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.lg,
+                              fontSize: FONT_SIZES.md,
                               fontFamily: FONTS.bold,
                               color: colors.onSurface,
                             }}
@@ -611,7 +611,7 @@ export default function ClassPerformanceScreen() {
                     >
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.lg,
+                          fontSize: FONT_SIZES.md,
                           fontFamily: FONTS.bold,
                           color: colors.onSurface,
                           marginBottom: 12,
@@ -649,7 +649,7 @@ export default function ClassPerformanceScreen() {
                               >
                                 <Text
                                   style={{
-                                    fontSize: FONT_SIZES.md,
+                                    fontSize: FONT_SIZES.sm,
                                     fontFamily: FONTS.bold,
                                     color: gradeColor,
                                   }}
@@ -658,7 +658,7 @@ export default function ClassPerformanceScreen() {
                                 </Text>
                                 <Text
                                   style={{
-                                    fontSize: FONT_SIZES.xl,
+                                    fontSize: FONT_SIZES.lg,
                                     fontFamily: FONTS.bold,
                                     color: colors.onSurface,
                                     marginTop: 4,
@@ -695,7 +695,7 @@ export default function ClassPerformanceScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.xl,
+                        fontSize: FONT_SIZES.lg,
                         fontFamily: FONTS.bold,
                         color: colors.onSurface,
                       }}
@@ -759,7 +759,7 @@ export default function ClassPerformanceScreen() {
                                   style={{
                                     color: examColor,
                                     fontFamily: FONTS.bold,
-                                    fontSize: FONT_SIZES.md,
+                                    fontSize: FONT_SIZES.sm,
                                   }}
                                 >
                                   {exam.examType}
@@ -768,7 +768,7 @@ export default function ClassPerformanceScreen() {
                               <View>
                                 <Text
                                   style={{
-                                    fontSize: FONT_SIZES.lg,
+                                    fontSize: FONT_SIZES.md,
                                     fontFamily: FONTS.bold,
                                     color: colors.onSurface,
                                   }}
@@ -881,7 +881,7 @@ export default function ClassPerformanceScreen() {
                               </Text>
                               <Text
                                 style={{
-                                  fontSize: FONT_SIZES.title,
+                                  fontSize: FONT_SIZES.xl,
                                   fontFamily: FONTS.bold,
                                   color: getGradeColor(exam.avgPercentage),
                                 }}
@@ -901,7 +901,7 @@ export default function ClassPerformanceScreen() {
                               </Text>
                               <Text
                                 style={{
-                                  fontSize: FONT_SIZES.xl,
+                                  fontSize: FONT_SIZES.lg,
                                   fontFamily: FONTS.bold,
                                   color: colors.success,
                                 }}
@@ -921,7 +921,7 @@ export default function ClassPerformanceScreen() {
                               </Text>
                               <Text
                                 style={{
-                                  fontSize: FONT_SIZES.xl,
+                                  fontSize: FONT_SIZES.lg,
                                   fontFamily: FONTS.bold,
                                   color: colors.error,
                                 }}
@@ -946,7 +946,7 @@ export default function ClassPerformanceScreen() {
                             >
                               <Text
                                 style={{
-                                  fontSize: FONT_SIZES.md,
+                                  fontSize: FONT_SIZES.sm,
                                   fontFamily: FONTS.bold,
                                   color: colors.onSurface,
                                   marginBottom: 8,
@@ -977,7 +977,7 @@ export default function ClassPerformanceScreen() {
                                   >
                                     <Text
                                       style={{
-                                        fontSize: FONT_SIZES.base,
+                                        fontSize: FONT_SIZES.sm,
                                         fontFamily: FONTS.bold,
                                         color: colors.onSurface,
                                       }}
@@ -986,7 +986,7 @@ export default function ClassPerformanceScreen() {
                                     </Text>
                                     <Text
                                       style={{
-                                        fontSize: FONT_SIZES.base,
+                                        fontSize: FONT_SIZES.sm,
                                         fontFamily: FONTS.bold,
                                         color: getGradeColor(sub.avgPercentage),
                                       }}
@@ -1065,7 +1065,7 @@ export default function ClassPerformanceScreen() {
                         style={{
                           color: colors.onSurfaceVariant,
                           marginTop: 16,
-                          fontSize: FONT_SIZES.mdLg,
+                          fontSize: FONT_SIZES.md,
                           textAlign: "center",
                         }}
                       >
@@ -1109,7 +1109,7 @@ export default function ClassPerformanceScreen() {
                               gap: 6,
                             }}
                           >
-                            <Text style={{ fontSize: FONT_SIZES.base }}>🌟</Text>
+                            <Text style={{ fontSize: FONT_SIZES.sm }}>🌟</Text>
                             <Text
                               style={{
                                 fontSize: FONT_SIZES.xs,
@@ -1122,7 +1122,7 @@ export default function ClassPerformanceScreen() {
                           </View>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.mdLg,
+                              fontSize: FONT_SIZES.md,
                               fontFamily: FONTS.bold,
                               color: colors.onSurface,
                               marginTop: 4,
@@ -1162,7 +1162,7 @@ export default function ClassPerformanceScreen() {
                               gap: 6,
                             }}
                           >
-                            <Text style={{ fontSize: FONT_SIZES.base }}>⚠️</Text>
+                            <Text style={{ fontSize: FONT_SIZES.sm }}>⚠️</Text>
                             <Text
                               style={{
                                 fontSize: FONT_SIZES.xs,
@@ -1175,7 +1175,7 @@ export default function ClassPerformanceScreen() {
                           </View>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.mdLg,
+                              fontSize: FONT_SIZES.md,
                               fontFamily: FONTS.bold,
                               color: colors.onSurface,
                               marginTop: 4,
@@ -1209,7 +1209,7 @@ export default function ClassPerformanceScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.xl,
+                        fontSize: FONT_SIZES.lg,
                         fontFamily: FONTS.bold,
                         color: colors.onSurface,
                       }}
@@ -1277,7 +1277,7 @@ export default function ClassPerformanceScreen() {
                               <View style={{ flex: 1 }}>
                                 <Text
                                   style={{
-                                    fontSize: FONT_SIZES.lg,
+                                    fontSize: FONT_SIZES.md,
                                     fontFamily: FONTS.bold,
                                     color: colors.onSurface,
                                   }}
@@ -1323,7 +1323,7 @@ export default function ClassPerformanceScreen() {
                               </View>
                               <Text
                                 style={{
-                                  fontSize: FONT_SIZES.xxl,
+                                  fontSize: FONT_SIZES.lg,
                                   fontFamily: FONTS.bold,
                                   color: getGradeColor(subject.avgPercentage),
                                 }}
@@ -1449,7 +1449,7 @@ export default function ClassPerformanceScreen() {
                           >
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.md,
+                                fontSize: FONT_SIZES.sm,
                                 fontFamily: FONTS.bold,
                                 color: colors.onSurface,
                                 marginBottom: 8,
@@ -1493,7 +1493,7 @@ export default function ClassPerformanceScreen() {
                                   </Text>
                                   <Text
                                     style={{
-                                      fontSize: FONT_SIZES.mdLg,
+                                      fontSize: FONT_SIZES.md,
                                       fontFamily: FONTS.bold,
                                       color:
                                         es.conducted &&
@@ -1548,7 +1548,7 @@ export default function ClassPerformanceScreen() {
                         style={{
                           color: colors.onSurfaceVariant,
                           marginTop: 16,
-                          fontSize: FONT_SIZES.mdLg,
+                          fontSize: FONT_SIZES.md,
                           textAlign: "center",
                         }}
                       >
@@ -1594,7 +1594,7 @@ export default function ClassPerformanceScreen() {
                         flex: 1,
                         paddingHorizontal: 10,
                         color: colors.onSurface,
-                        fontSize: FONT_SIZES.base,
+                        fontSize: FONT_SIZES.sm,
                         fontFamily: FONTS.regular,
                       }}
                     />
@@ -1747,7 +1747,7 @@ export default function ClassPerformanceScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.md,
+                        fontSize: FONT_SIZES.sm,
                         color: colors.onSurfaceVariant,
                         fontFamily: FONTS.medium,
                       }}
@@ -1884,7 +1884,7 @@ export default function ClassPerformanceScreen() {
                               <View style={{ flex: 1 }}>
                                 <Text
                                   style={{
-                                    fontSize: FONT_SIZES.lg,
+                                    fontSize: FONT_SIZES.md,
                                     fontFamily: FONTS.bold,
                                     color: colors.onSurface,
                                   }}
@@ -1989,7 +1989,7 @@ export default function ClassPerformanceScreen() {
                               </View>
                               <Text
                                 style={{
-                                  fontSize: FONT_SIZES.xxl,
+                                  fontSize: FONT_SIZES.lg,
                                   fontFamily: FONTS.bold,
                                   color: getGradeColor(
                                     student.overallPercentage
@@ -2072,7 +2072,7 @@ export default function ClassPerformanceScreen() {
                             {/* Subject wise marks table */}
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.md,
+                                fontSize: FONT_SIZES.sm,
                                 fontFamily: FONTS.bold,
                                 color: colors.onSurface,
                                 marginBottom: 8,
@@ -2102,7 +2102,7 @@ export default function ClassPerformanceScreen() {
                                   <View style={{ flex: 1 }}>
                                     <Text
                                       style={{
-                                        fontSize: FONT_SIZES.md,
+                                        fontSize: FONT_SIZES.sm,
                                         fontFamily: FONTS.bold,
                                         color: colors.onSurface,
                                       }}
@@ -2124,7 +2124,7 @@ export default function ClassPerformanceScreen() {
                                   <View style={{ alignItems: "flex-end" }}>
                                     <Text
                                       style={{
-                                        fontSize: FONT_SIZES.base,
+                                        fontSize: FONT_SIZES.sm,
                                         fontFamily: FONTS.bold,
                                         color:
                                           sub.percentage !== null
@@ -2168,7 +2168,7 @@ export default function ClassPerformanceScreen() {
                             {/* Exam-wise score row */}
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.md,
+                                fontSize: FONT_SIZES.sm,
                                 fontFamily: FONTS.bold,
                                 color: colors.onSurface,
                                 marginTop: 12,
@@ -2217,7 +2217,7 @@ export default function ClassPerformanceScreen() {
                                       </Text>
                                       <Text
                                         style={{
-                                          fontSize: FONT_SIZES.md,
+                                          fontSize: FONT_SIZES.sm,
                                           fontFamily: FONTS.bold,
                                           color:
                                             pct !== null
@@ -2303,7 +2303,7 @@ export default function ClassPerformanceScreen() {
                         style={{
                           color: colors.onSurfaceVariant,
                           marginTop: 12,
-                          fontSize: FONT_SIZES.mdLg,
+                          fontSize: FONT_SIZES.md,
                           fontFamily: FONTS.medium,
                           textAlign: "center",
                         }}

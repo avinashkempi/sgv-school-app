@@ -1189,7 +1189,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
   },
   studentClass: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     color: "#FFFFFF",
     fontFamily: FONTS.bold,
     marginTop: 2,
@@ -1237,7 +1237,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   kpiValue: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
     color: "#FFFFFF",
     marginTop: 2,
@@ -1300,7 +1300,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   examTitle: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
     letterSpacing: -0.2,
   },
@@ -1361,7 +1361,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   scorePillText: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
     letterSpacing: -0.2,
   },
@@ -1404,7 +1404,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   obtainedText: {
-    fontSize: FONT_SIZES.mdLg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
     letterSpacing: -0.2,
   },
@@ -1465,7 +1465,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   emptyText: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.medium,
   },
   insightsTabContainer: {
@@ -1483,7 +1483,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   diagnosticsTitle: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   diagColumnsRow: {
@@ -1578,7 +1578,7 @@ const styles = StyleSheet.create({
   consistencyDesc: {
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
-    lineHeight: 18,
+    lineHeight: 20,
     marginTop: 4,
   },
   historyBridgeCard: {
@@ -1597,7 +1597,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   historyBridgeTitle: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   historyBridgeSub: {

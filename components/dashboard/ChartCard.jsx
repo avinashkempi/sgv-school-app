@@ -66,7 +66,7 @@ const ChartCard = ({
         >
           <Text
             style={{
-              fontSize: FONT_SIZES.md,
+              fontSize: FONT_SIZES.sm,
               fontFamily: FONTS.medium,
               color: colors.onSurfaceVariant,
               opacity: 0.7,

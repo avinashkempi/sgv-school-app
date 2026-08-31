@@ -310,7 +310,7 @@ const PerformanceTrendCard = ({
             <View style={{ flex: 1 }}>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.lg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: colors.onSurface || (isDark ? "#FFFFFF" : "#1D1B20"),
                   letterSpacing: 0.1,
@@ -406,7 +406,7 @@ const PerformanceTrendCard = ({
           >
             <Text
               style={{
-                fontSize: FONT_SIZES.xl,
+                fontSize: FONT_SIZES.lg,
                 fontFamily: FONTS.bold,
                 color: colors.onSurface || (isDark ? "#FFFFFF" : "#1D1B20"),
               }}
@@ -457,7 +457,7 @@ const PerformanceTrendCard = ({
           >
             <Text
               style={{
-                fontSize: FONT_SIZES.xl,
+                fontSize: FONT_SIZES.lg,
                 fontFamily: FONTS.bold,
                 color: getGradeInfo(latest.percentage).color,
               }}
@@ -513,7 +513,7 @@ const PerformanceTrendCard = ({
               />
               <Text
                 style={{
-                  fontSize: FONT_SIZES.mdLg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: trendDelta >= 0 ? "#10B981" : "#EF4444",
                   marginLeft: 2,
@@ -525,7 +525,7 @@ const PerformanceTrendCard = ({
           ) : (
             <Text
               style={{
-                fontSize: FONT_SIZES.md,
+                fontSize: FONT_SIZES.sm,
                 fontFamily: FONTS.bold,
                 color: colors.primary || "#6750A4",
               }}
@@ -565,7 +565,7 @@ const PerformanceTrendCard = ({
             </Text>
             <Text
               style={{
-                fontSize: FONT_SIZES.xl,
+                fontSize: FONT_SIZES.lg,
                 fontFamily: FONTS.bold,
                 color: "#10B981",
               }}
@@ -861,7 +861,7 @@ const PerformanceTrendCard = ({
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.mdLg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: colors.onSurface || (isDark ? "#FFFFFF" : "#1D1B20"),
                 }}
@@ -916,7 +916,7 @@ const PerformanceTrendCard = ({
           <View style={{ alignItems: "flex-end" }}>
             <Text
               style={{
-                fontSize: FONT_SIZES.title,
+                fontSize: FONT_SIZES.xl,
                 fontFamily: FONTS.bold,
                 color: activeGrade.color,
               }}

@@ -904,7 +904,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   authorName: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
     letterSpacing: -0.2,
     flexShrink: 1,
@@ -1006,7 +1006,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   actionCountText: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.medium,
     letterSpacing: 0.1,
   },
@@ -1053,8 +1053,8 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   captionWrapper: {
-    fontSize: FONT_SIZES.base,
-    lineHeight: LINE_HEIGHTS.base,
+    fontSize: FONT_SIZES.sm,
+    lineHeight: LINE_HEIGHTS.sm,
     fontFamily: FONTS.regular,
   },
   captionAuthor: {
@@ -1085,7 +1085,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   viewCommentsText: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.medium,
   },
   addCommentPrompt: {
@@ -1099,7 +1099,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   addCommentPlaceholder: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
   },
   quickEmojisRow: {
@@ -1108,7 +1108,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   quickEmojiText: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
   },
 });
 

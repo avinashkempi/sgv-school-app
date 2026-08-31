@@ -201,7 +201,7 @@ const NotificationCenter = () => {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.mdLg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: notification.isRead
                     ? FONTS.medium
                     : FONTS.bold,
@@ -226,7 +226,7 @@ const NotificationCenter = () => {
 
             <Text
               style={{
-                fontSize: FONT_SIZES.base,
+                fontSize: FONT_SIZES.sm,
                 fontFamily: FONTS.regular,
                 color: colors.onSurfaceVariant,
                 marginBottom: 8,
@@ -371,7 +371,7 @@ const NotificationCenter = () => {
               >
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.md,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.bold,
                     color: colors.onPrimaryContainer,
                   }}
@@ -435,7 +435,7 @@ const NotificationCenter = () => {
               />
               <Text
                 style={{
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.bold,
                   color:
                     selectedCategory === cat.id
@@ -476,7 +476,7 @@ const NotificationCenter = () => {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.bold,
                   color:
                     filterRead === filter

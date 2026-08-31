@@ -368,7 +368,7 @@ export default function ComplaintsScreen() {
 
         <Text
           style={{
-            fontSize: FONT_SIZES.lg,
+            fontSize: FONT_SIZES.md,
             fontFamily: FONTS.bold,
             color: colors.textPrimary,
             marginBottom: 6,
@@ -380,7 +380,7 @@ export default function ComplaintsScreen() {
           style={{
             color: colors.textSecondary,
             fontFamily: FONTS.regular,
-            fontSize: FONT_SIZES.base,
+            fontSize: FONT_SIZES.sm,
             lineHeight: 20,
           }}
           numberOfLines={isExpanded ? undefined : 3}
@@ -444,7 +444,7 @@ export default function ComplaintsScreen() {
                 />
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.md,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.regular,
                     color: colors.textSecondary,
                     flex: 1,
@@ -520,9 +520,9 @@ export default function ComplaintsScreen() {
               <Text
                 style={{
                   color: colors.textSecondary,
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.regular,
-                  lineHeight: 18,
+                  lineHeight: 20,
                 }}
                 numberOfLines={isExpanded ? undefined : 3}
               >
@@ -581,7 +581,7 @@ export default function ComplaintsScreen() {
             </Text>
             <Text
               style={{
-                fontSize: FONT_SIZES.lg,
+                fontSize: FONT_SIZES.md,
                 fontFamily: FONTS.bold,
                 color: colors.textPrimary,
                 marginTop: 4,
@@ -610,7 +610,7 @@ export default function ComplaintsScreen() {
             style={{
               color: colors.textPrimary,
               fontFamily: FONTS.regular,
-              fontSize: FONT_SIZES.mdLg,
+              fontSize: FONT_SIZES.md,
               lineHeight: 22,
             }}
             numberOfLines={isExpanded ? undefined : 4}
@@ -725,7 +725,7 @@ export default function ComplaintsScreen() {
         style={{
           fontFamily: FONTS.bold,
           color: activeTab === id ? "#fff" : colors.textSecondary,
-          fontSize: FONT_SIZES.md,
+          fontSize: FONT_SIZES.sm,
         }}
         numberOfLines={1}
       >
@@ -888,7 +888,7 @@ export default function ComplaintsScreen() {
                   color: colors.textSecondary,
                   marginTop: 16,
                   fontFamily: FONTS.bold,
-                  fontSize: FONT_SIZES.lg,
+                  fontSize: FONT_SIZES.md,
                 }}
               >
                 {activeTab === "my_complaints"
@@ -906,7 +906,7 @@ export default function ComplaintsScreen() {
                   color: colors.textSecondary,
                   marginTop: 8,
                   fontFamily: FONTS.regular,
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   textAlign: "center",
                 }}
               >
@@ -1011,7 +1011,7 @@ export default function ComplaintsScreen() {
                   style={{
                     fontFamily: FONTS.bold,
                     color: colors.textPrimary,
-                    fontSize: FONT_SIZES.base,
+                    fontSize: FONT_SIZES.sm,
                     marginLeft: 12,
                   }}
                 >
@@ -1050,7 +1050,7 @@ export default function ComplaintsScreen() {
                   style={{
                     fontFamily: FONTS.bold,
                     color: colors.textPrimary,
-                    fontSize: FONT_SIZES.base,
+                    fontSize: FONT_SIZES.sm,
                     marginLeft: 12,
                   }}
                 >
@@ -1121,7 +1121,7 @@ export default function ComplaintsScreen() {
                   style={{
                     fontFamily: FONTS.bold,
                     color: colors.textPrimary,
-                    fontSize: FONT_SIZES.base,
+                    fontSize: FONT_SIZES.sm,
                     marginLeft: 12,
                   }}
                 >
@@ -1187,7 +1187,7 @@ export default function ComplaintsScreen() {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.xxl,
+                  fontSize: FONT_SIZES.lg,
                   fontFamily: FONTS.bold,
                   color: colors.textPrimary,
                   marginBottom: 20,
@@ -1207,7 +1207,7 @@ export default function ComplaintsScreen() {
                   padding: 16,
                   color: colors.textPrimary,
                   fontFamily: FONTS.medium,
-                  fontSize: FONT_SIZES.mdLg,
+                  fontSize: FONT_SIZES.md,
                   minHeight: 120,
                   textAlignVertical: "top",
                   marginBottom: 24,
@@ -1313,7 +1313,7 @@ export default function ComplaintsScreen() {
                 >
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.xxl,
+                      fontSize: FONT_SIZES.lg,
                       fontFamily: FONTS.bold,
                       color: colors.textPrimary,
                     }}
@@ -1340,12 +1340,12 @@ export default function ComplaintsScreen() {
                 </View>
 
                 <View style={{ marginBottom: 20 }}>
-                  <Text style={{ color: colors.textSecondary, fontSize: FONT_SIZES.md }}>
+                  <Text style={{ color: colors.textSecondary, fontSize: FONT_SIZES.sm }}>
                     {t("complaints.complaintLabel", "Complaint:")}
                   </Text>
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.lg,
+                      fontSize: FONT_SIZES.md,
                       color: colors.textPrimary,
                       fontFamily: FONTS.bold,
                       marginTop: 4,
@@ -1386,7 +1386,7 @@ export default function ComplaintsScreen() {
                       <Text
                         style={{
                           color: status === s ? "#fff" : colors.textPrimary,
-                          fontSize: FONT_SIZES.md,
+                          fontSize: FONT_SIZES.sm,
                           fontFamily: FONTS.bold,
                         }}
                       >
@@ -1452,7 +1452,7 @@ export default function ComplaintsScreen() {
                       style={{
                         color: "#fff",
                         fontFamily: FONTS.bold,
-                        fontSize: FONT_SIZES.lg,
+                        fontSize: FONT_SIZES.md,
                       }}
                     >
                       ${t("complaints.updateComplaint", "Update Complaint")}

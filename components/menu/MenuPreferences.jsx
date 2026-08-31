@@ -143,9 +143,9 @@ const localStyles = StyleSheet.create({
     marginBottom: 20,
   },
   sectionTitle: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
-    letterSpacing: LETTER_SPACINGS.base,
+    letterSpacing: LETTER_SPACINGS.sm,
     textTransform: "uppercase",
     marginBottom: 10,
     paddingHorizontal: 4,
@@ -178,9 +178,9 @@ const localStyles = StyleSheet.create({
     justifyContent: "center",
   },
   itemTitle: {
-    fontSize: FONT_SIZES.mdLg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
-    letterSpacing: LETTER_SPACINGS.mdLg,
+    letterSpacing: LETTER_SPACINGS.md,
   },
   itemSubtitle: {
     fontSize: FONT_SIZES.sm,

@@ -635,7 +635,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sectionTitle: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
     letterSpacing: -0.2,
   },
@@ -660,7 +660,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#10B981",
   },
   viewAllText: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   scrollContent: {

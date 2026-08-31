@@ -549,7 +549,7 @@ export default function AdminAttendance() {
           <View style={{ flex: 1 }}>
             <Text
               style={{
-                fontSize: FONT_SIZES.lg,
+                fontSize: FONT_SIZES.md,
                 fontFamily: FONTS.semiBold,
                 color: colors.textPrimary,
               }}
@@ -656,6 +656,7 @@ export default function AdminAttendance() {
                 fontWeight: "bold",
               },
             ]}
+            numberOfLines={1}
           >
             Summary
           </Text>
@@ -675,6 +676,7 @@ export default function AdminAttendance() {
                 fontWeight: "bold",
               },
             ]}
+            numberOfLines={1}
           >
             Student
           </Text>
@@ -694,6 +696,7 @@ export default function AdminAttendance() {
                 fontWeight: "bold",
               },
             ]}
+            numberOfLines={1}
           >
             Staff
           </Text>
@@ -713,6 +716,7 @@ export default function AdminAttendance() {
                 fontWeight: "bold",
               },
             ]}
+            numberOfLines={1}
           >
             Tracker
           </Text>
@@ -735,6 +739,7 @@ export default function AdminAttendance() {
                   fontWeight: "bold",
                 },
               ]}
+              numberOfLines={1}
             >
               My Log
             </Text>
@@ -842,7 +847,7 @@ export default function AdminAttendance() {
                     />
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.md,
+                        fontSize: FONT_SIZES.sm,
                         fontWeight: "600",
                         color: colors.error || "#EF4444",
                       }}
@@ -885,7 +890,7 @@ export default function AdminAttendance() {
           >
             <Text
               style={{
-                fontSize: FONT_SIZES.xl,
+                fontSize: FONT_SIZES.lg,
                 fontWeight: "bold",
                 color: colors.primary,
               }}
@@ -894,7 +899,7 @@ export default function AdminAttendance() {
             </Text>
             <Text
               style={{
-                fontSize: FONT_SIZES.base,
+                fontSize: FONT_SIZES.sm,
                 color: colors.textSecondary,
                 marginTop: 4,
                 textAlign: "center",
@@ -941,7 +946,7 @@ export default function AdminAttendance() {
                       />
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.md,
+                          fontSize: FONT_SIZES.sm,
                           fontWeight: "600",
                           color: colors.error || "#EF4444",
                         }}
@@ -989,7 +994,7 @@ export default function AdminAttendance() {
                   <Text
                     style={[
                       styles.summaryValue,
-                      { color: colors.primary, fontSize: FONT_SIZES.headline, marginBottom: 8 },
+                      { color: colors.primary, fontSize: FONT_SIZES.xl, marginBottom: 8 },
                     ]}
                   >
                     {schoolSummary?.students?.present || 0}/
@@ -1035,7 +1040,7 @@ export default function AdminAttendance() {
                   <Text
                     style={[
                       styles.summaryValue,
-                      { color: colors.success, fontSize: FONT_SIZES.headline, marginBottom: 8 },
+                      { color: colors.success, fontSize: FONT_SIZES.xl, marginBottom: 8 },
                     ]}
                   >
                     {schoolSummary?.teachers?.present || 0}/
@@ -1100,7 +1105,7 @@ export default function AdminAttendance() {
                 <View>
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.xxl,
+                      fontSize: FONT_SIZES.lg,
                       fontFamily: FONTS.bold,
                       color: colors.textPrimary,
                     }}
@@ -1108,7 +1113,7 @@ export default function AdminAttendance() {
                     {classesMarked.length}{" "}
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.base,
+                        fontSize: FONT_SIZES.sm,
                         fontFamily: FONTS.medium,
                         color: colors.textSecondary,
                       }}
@@ -1118,7 +1123,7 @@ export default function AdminAttendance() {
                   </Text>
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.md,
+                      fontSize: FONT_SIZES.sm,
                       fontFamily: FONTS.regular,
                       color: colors.textSecondary,
                       marginTop: 2,
@@ -1167,7 +1172,7 @@ export default function AdminAttendance() {
                     >
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.base,
+                          fontSize: FONT_SIZES.sm,
                           fontFamily: FONTS.semiBold,
                           color: colors.primary,
                         }}
@@ -1265,7 +1270,7 @@ export default function AdminAttendance() {
                       <Text
                         style={{
                           color: colors.textSecondary,
-                          fontSize: FONT_SIZES.lg,
+                          fontSize: FONT_SIZES.md,
                           marginTop: 12,
                         }}
                       >
@@ -1330,7 +1335,7 @@ export default function AdminAttendance() {
                                   />
                                   <Text
                                     style={{
-                                      fontSize: FONT_SIZES.mdLg,
+                                      fontSize: FONT_SIZES.md,
                                       fontFamily: FONTS.semiBold,
                                       color: colors.textPrimary,
                                     }}
@@ -1524,7 +1529,7 @@ export default function AdminAttendance() {
                             />
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.md,
+                                fontSize: FONT_SIZES.sm,
                                 fontFamily: FONTS.bold,
                                 color: colors.success,
                               }}
@@ -1554,7 +1559,7 @@ export default function AdminAttendance() {
                             />
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.md,
+                                fontSize: FONT_SIZES.sm,
                                 fontFamily: FONTS.bold,
                                 color: colors.error,
                               }}
@@ -1569,7 +1574,7 @@ export default function AdminAttendance() {
                           </View>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.md,
+                              fontSize: FONT_SIZES.sm,
                               fontFamily: FONTS.bold,
                               color: colors.textSecondary,
                             }}
@@ -1600,7 +1605,7 @@ export default function AdminAttendance() {
                             />
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.base,
+                                fontSize: FONT_SIZES.sm,
                                 fontFamily: FONTS.bold,
                                 color: colors.success,
                               }}
@@ -1637,7 +1642,7 @@ export default function AdminAttendance() {
                                 />
                                 <Text
                                   style={{
-                                    fontSize: FONT_SIZES.base,
+                                    fontSize: FONT_SIZES.sm,
                                     fontFamily: FONTS.bold,
                                     color: "#fff",
                                   }}
@@ -1675,7 +1680,7 @@ export default function AdminAttendance() {
                   <Text
                     style={{
                       color: colors.textSecondary,
-                      fontSize: FONT_SIZES.lg,
+                      fontSize: FONT_SIZES.md,
                       marginTop: 12,
                     }}
                   >
@@ -1740,7 +1745,7 @@ export default function AdminAttendance() {
               <Text style={styles.titleMedium}>Missing Attendance Tracker</Text>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   color: colors.textSecondary,
                   marginBottom: 16,
                   fontFamily: FONTS.regular,
@@ -1791,7 +1796,7 @@ export default function AdminAttendance() {
                         >
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.lg,
+                              fontSize: FONT_SIZES.md,
                               fontFamily: FONTS.bold,
                               color: colors.textPrimary,
                             }}
@@ -1829,7 +1834,7 @@ export default function AdminAttendance() {
                           <View>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.md,
+                                fontSize: FONT_SIZES.sm,
                                 color: colors.textSecondary,
                                 marginBottom: 4,
                                 fontFamily: FONTS.medium,
@@ -1864,7 +1869,7 @@ export default function AdminAttendance() {
                         ) : (
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.md,
+                              fontSize: FONT_SIZES.sm,
                               color: colors.textSecondary,
                               fontFamily: FONTS.regular,
                             }}
@@ -1892,7 +1897,7 @@ export default function AdminAttendance() {
                       >
                         <Text
                           style={{
-                            fontSize: FONT_SIZES.base,
+                            fontSize: FONT_SIZES.sm,
                             fontFamily: FONTS.semiBold,
                             color: colors.primary,
                           }}
@@ -1942,7 +1947,7 @@ const createStyles = (colors) =>
       elevation: 2,
     },
     headerTitle: {
-      fontSize: FONT_SIZES.xl,
+      fontSize: FONT_SIZES.lg,
       fontWeight: "bold",
       color: colors.textPrimary,
     },
@@ -1957,12 +1962,19 @@ const createStyles = (colors) =>
     },
     tab: {
       flex: 1,
+      minWidth: 0,
       paddingVertical: 10,
+      paddingHorizontal: 2,
       alignItems: "center",
       borderBottomWidth: 2,
       borderBottomColor: "transparent",
     },
-    tabText: { fontSize: FONT_SIZES.lg, color: colors.textSecondary, fontWeight: "500" },
+    tabText: {
+      fontSize: FONT_SIZES.xs,
+      fontFamily: FONTS.medium,
+      color: colors.textSecondary,
+      textAlign: "center",
+    },
     dateBar: {
       flexDirection: "row",
       justifyContent: "center",
@@ -1992,7 +2004,7 @@ const createStyles = (colors) =>
       elevation: 1,
     },
     staffInfo: { flex: 1 },
-    staffName: { fontSize: FONT_SIZES.lg, fontWeight: "bold", color: colors.textPrimary },
+    staffName: { fontSize: FONT_SIZES.md, fontWeight: "bold", color: colors.textPrimary },
     staffRole: { fontSize: FONT_SIZES.sm, color: colors.textSecondary },
     statusIndicator: {
       paddingHorizontal: 12,
@@ -2010,7 +2022,7 @@ const createStyles = (colors) =>
       borderTopColor: colors.border,
     },
     saveButton: { padding: 16, borderRadius: 12, alignItems: "center" },
-    saveButtonText: { color: "#fff", fontWeight: "bold", fontSize: FONT_SIZES.lg },
+    saveButtonText: { color: "#fff", fontWeight: "bold", fontSize: FONT_SIZES.md },
     summaryCard: {
       flexDirection: "row",
       justifyContent: "space-around",
@@ -2022,7 +2034,7 @@ const createStyles = (colors) =>
     },
     summaryItem: { alignItems: "center" },
     summaryValue: {
-      fontSize: FONT_SIZES.xxl,
+      fontSize: FONT_SIZES.lg,
       fontWeight: "bold",
       color: colors.textPrimary,
     },
@@ -2044,9 +2056,9 @@ const createStyles = (colors) =>
       alignItems: "center",
       marginRight: 16,
     },
-    historyStatusText: { color: "#fff", fontWeight: "bold", fontSize: FONT_SIZES.xl },
+    historyStatusText: { color: "#fff", fontWeight: "bold", fontSize: FONT_SIZES.lg },
     historyInfo: { flex: 1 },
-    historyDate: { fontSize: FONT_SIZES.lg, fontWeight: "600", color: colors.textPrimary },
+    historyDate: { fontSize: FONT_SIZES.md, fontWeight: "600", color: colors.textPrimary },
     historyTime: { fontSize: FONT_SIZES.sm, color: colors.textSecondary },
     historyRemarks: {
       fontSize: FONT_SIZES.sm,
@@ -2054,7 +2066,7 @@ const createStyles = (colors) =>
       fontStyle: "italic",
     },
     sectionTitle: {
-      fontSize: FONT_SIZES.lg,
+      fontSize: FONT_SIZES.md,
       fontWeight: "bold",
       color: colors.textPrimary,
       marginBottom: 12,
@@ -2079,7 +2091,7 @@ const createStyles = (colors) =>
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
-    studentName: { fontSize: FONT_SIZES.lg, color: colors.textPrimary },
+    studentName: { fontSize: FONT_SIZES.md, color: colors.textPrimary },
     miniStatus: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
     miniStatusText: { color: "#fff", fontSize: FONT_SIZES.micro, fontWeight: "bold" },
     emptyText: {
@@ -2102,7 +2114,7 @@ const createStyles = (colors) =>
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
-    absentName: { fontSize: FONT_SIZES.lg, fontWeight: "bold", color: colors.textPrimary },
+    absentName: { fontSize: FONT_SIZES.md, fontWeight: "bold", color: colors.textPrimary },
     absentRole: { fontSize: FONT_SIZES.sm, color: colors.textSecondary },
     absentTag: {
       backgroundColor: colors.error + "20",

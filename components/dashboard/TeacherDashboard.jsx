@@ -325,7 +325,7 @@ const TeacherDashboard = () => {
               />
               <Text
                 style={{
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                   marginTop: 6,
@@ -498,7 +498,7 @@ const TeacherDashboard = () => {
             />
             <Text
               style={{
-                fontSize: FONT_SIZES.md,
+                fontSize: FONT_SIZES.sm,
                 fontFamily: FONTS.medium,
                 color: colors.onSurfaceVariant,
                 marginTop: 6,
@@ -629,7 +629,7 @@ const localStyles = StyleSheet.create({
   },
   missingTitle: {
     fontFamily: FONTS.bold,
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
   },
   missingSubtitle: {
     fontFamily: FONTS.medium,
@@ -671,7 +671,7 @@ const localStyles = StyleSheet.create({
     padding: 14,
   },
   cardHeaderTitle: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   progressBarTrack: {
@@ -686,7 +686,7 @@ const localStyles = StyleSheet.create({
     alignItems: "center",
   },
   statNumber: {
-    fontSize: FONT_SIZES.xl,
+    fontSize: FONT_SIZES.lg,
     fontFamily: FONTS.bold,
   },
   statLabel: {
@@ -702,7 +702,7 @@ const localStyles = StyleSheet.create({
     marginTop: 14,
   },
   sectionTitle: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
     letterSpacing: 0.1,
   },

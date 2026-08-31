@@ -55,7 +55,7 @@ export default function YearComparisonScreen() {
     <View style={{ marginBottom: 24 }}>
       <Text
         style={{
-          fontSize: FONT_SIZES.lg,
+          fontSize: FONT_SIZES.md,
           fontFamily: FONTS.bold,
           color: colors.onSurface,
           marginBottom: 12,
@@ -99,7 +99,7 @@ export default function YearComparisonScreen() {
               )}
               <Text
                 style={{
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.bold,
                   color: isSelected ? colors.primary : colors.onSurface,
                 }}
@@ -147,7 +147,7 @@ export default function YearComparisonScreen() {
       <View style={{ marginBottom: 24 }}>
         <Text
           style={{
-            fontSize: FONT_SIZES.lg,
+            fontSize: FONT_SIZES.md,
             fontFamily: FONTS.bold,
             color: colors.onSurface,
             marginBottom: 12,
@@ -162,7 +162,7 @@ export default function YearComparisonScreen() {
               <View style={{ width: 140, paddingVertical: 10 }}>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.md,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.bold,
                     color: colors.onSurfaceVariant,
                   }}
@@ -223,7 +223,7 @@ export default function YearComparisonScreen() {
                   />
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.md,
+                      fontSize: FONT_SIZES.sm,
                       fontFamily: FONTS.medium,
                       color: colors.onSurface,
                     }}
@@ -254,7 +254,7 @@ export default function YearComparisonScreen() {
                     >
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.mdLg,
+                          fontSize: FONT_SIZES.md,
                           fontFamily: FONTS.bold,
                           color: isMax ? colors.success : colors.onSurface,
                         }}
@@ -281,7 +281,7 @@ export default function YearComparisonScreen() {
       <View style={{ marginBottom: 24 }}>
         <Text
           style={{
-            fontSize: FONT_SIZES.lg,
+            fontSize: FONT_SIZES.md,
             fontFamily: FONTS.bold,
             color: colors.onSurface,
             marginBottom: 12,
@@ -344,7 +344,7 @@ export default function YearComparisonScreen() {
         <View style={{ marginBottom: 20 }}>
           <Text
             style={{
-              fontSize: FONT_SIZES.lg,
+              fontSize: FONT_SIZES.md,
               fontFamily: FONTS.bold,
               color: colors.onSurface,
               marginBottom: 12,
@@ -358,7 +358,7 @@ export default function YearComparisonScreen() {
         <View style={{ marginBottom: 20 }}>
           <Text
             style={{
-              fontSize: FONT_SIZES.lg,
+              fontSize: FONT_SIZES.md,
               fontFamily: FONTS.bold,
               color: colors.onSurface,
               marginBottom: 12,
@@ -413,7 +413,7 @@ export default function YearComparisonScreen() {
                   <Text
                     style={{
                       marginTop: 16,
-                      fontSize: FONT_SIZES.base,
+                      fontSize: FONT_SIZES.sm,
                       fontFamily: FONTS.medium,
                       color: colors.onSurfaceVariant,
                     }}
@@ -449,7 +449,7 @@ export default function YearComparisonScreen() {
               <Text
                 style={{
                   marginTop: 16,
-                  fontSize: FONT_SIZES.lg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: colors.onSurface,
                 }}
@@ -459,7 +459,7 @@ export default function YearComparisonScreen() {
               <Text
                 style={{
                   marginTop: 8,
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.regular,
                   color: colors.onSurfaceVariant,
                   textAlign: "center",
@@ -533,7 +533,7 @@ function TrendCard({ label, value, icon, color, suffix = "" }) {
         />
         <Text
           style={{
-            fontSize: FONT_SIZES.xl,
+            fontSize: FONT_SIZES.lg,
             fontFamily: FONTS.bold,
             color: isPositive
               ? colors.success

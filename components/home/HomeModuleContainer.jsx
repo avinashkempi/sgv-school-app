@@ -206,8 +206,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   titleText: {
-    fontSize: FONT_SIZES.mdLg,
-    lineHeight: LINE_HEIGHTS.mdLg,
+    fontSize: FONT_SIZES.md,
+    lineHeight: LINE_HEIGHTS.md,
     fontFamily: FONTS.bold,
     letterSpacing: 0.15,
     flexShrink: 1,
@@ -236,8 +236,8 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   actionText: {
-    fontSize: FONT_SIZES.md,
-    lineHeight: LINE_HEIGHTS.md,
+    fontSize: FONT_SIZES.sm,
+    lineHeight: LINE_HEIGHTS.sm,
     fontFamily: FONTS.bold,
   },
   content: {

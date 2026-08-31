@@ -106,7 +106,7 @@ export default function TeacherClassesScreen() {
                       style={{
                         color: colors.textSecondary,
                         marginTop: 16,
-                        fontSize: FONT_SIZES.lg,
+                        fontSize: FONT_SIZES.md,
                         fontFamily: FONTS.medium,
                       }}
                     >
@@ -145,7 +145,7 @@ export default function TeacherClassesScreen() {
                         <View>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.xl,
+                              fontSize: FONT_SIZES.lg,
                               fontFamily: FONTS.bold,
                               color: colors.textPrimary,
                             }}
@@ -154,7 +154,7 @@ export default function TeacherClassesScreen() {
                           </Text>
                           <Text
                             style={{
-                              fontSize: FONT_SIZES.base,
+                              fontSize: FONT_SIZES.sm,
                               color: colors.textSecondary,
                               marginTop: 4,
                               fontFamily: FONTS.regular,

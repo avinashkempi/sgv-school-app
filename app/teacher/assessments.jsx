@@ -166,7 +166,7 @@ export default function AssessmentDashboard() {
                         ? "#fff"
                         : colors.textPrimary,
                     fontFamily: FONTS.medium,
-                    fontSize: FONT_SIZES.base,
+                    fontSize: FONT_SIZES.sm,
                   }}
                 >
                   {formatClassName(cls.name, cls.section)}
@@ -215,7 +215,7 @@ export default function AssessmentDashboard() {
                             ? "#fff"
                             : colors.textPrimary,
                         fontFamily: FONTS.medium,
-                        fontSize: FONT_SIZES.base,
+                        fontSize: FONT_SIZES.sm,
                       }}
                     >
                       {sub.name}
@@ -255,7 +255,7 @@ export default function AssessmentDashboard() {
                   >
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.xl,
+                        fontSize: FONT_SIZES.lg,
                         fontFamily: FONTS.bold,
                         color: colors.textPrimary,
                       }}
@@ -366,7 +366,7 @@ export default function AssessmentDashboard() {
               style={{
                 color: colors.textSecondary,
                 marginTop: 16,
-                fontSize: FONT_SIZES.base,
+                fontSize: FONT_SIZES.sm,
                 fontFamily: FONTS.medium,
               }}
             >
@@ -384,7 +384,7 @@ export default function AssessmentDashboard() {
 
 const localStyles = StyleSheet.create({
   label: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
     marginBottom: 12,
     marginLeft: 4,

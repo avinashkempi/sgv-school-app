@@ -192,7 +192,7 @@ export default function UserFormModal({
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.xxl,
+                  fontSize: FONT_SIZES.lg,
                   fontFamily: FONTS.bold,
                   color: colors.textPrimary,
                 }}
@@ -379,7 +379,7 @@ export default function UserFormModal({
                     <TextInput
                       style={{
                         flex: 1,
-                        fontSize: FONT_SIZES.lg,
+                        fontSize: FONT_SIZES.md,
                         color: colors.textPrimary,
                         fontFamily: FONTS.regular,
                         paddingVertical: 14, // Match theme vertical padding
@@ -450,7 +450,7 @@ export default function UserFormModal({
                           watchedRole === role ? "#fff" : colors.textPrimary,
                         fontFamily: FONTS.bold,
                         textTransform: "capitalize",
-                        fontSize: FONT_SIZES.base,
+                        fontSize: FONT_SIZES.sm,
                       }}
                     >
                       {role}
@@ -653,7 +653,7 @@ export default function UserFormModal({
                                     ? "#fff"
                                     : colors.textPrimary,
                                 fontFamily: FONTS.medium,
-                                fontSize: FONT_SIZES.base,
+                                fontSize: FONT_SIZES.sm,
                               }}
                             >
                               {cls.name || cls.label}
@@ -1057,7 +1057,7 @@ export default function UserFormModal({
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.lg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: colors.textPrimary,
                 }}
@@ -1084,7 +1084,7 @@ export default function UserFormModal({
               ) : (
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.lg,
+                    fontSize: FONT_SIZES.md,
                     fontFamily: FONTS.bold,
                     color: "#fff",
                   }}

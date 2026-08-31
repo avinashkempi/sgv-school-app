@@ -288,7 +288,7 @@ const TeacherAttendanceTrendCard = ({
           <View style={{ flex: 1 }}>
             <Text
               style={{
-                fontSize: FONT_SIZES.lg,
+                fontSize: FONT_SIZES.md,
                 fontFamily: FONTS.bold,
                 color: colors.onSurface || (isDark ? "#FFFFFF" : "#1D1B20"),
                 letterSpacing: 0.1,
@@ -304,7 +304,7 @@ const TeacherAttendanceTrendCard = ({
                 color:
                   colors.onSurfaceVariant || (isDark ? "#CAC4D0" : "#49454F"),
                 marginTop: 1,
-                lineHeight: 16,
+                lineHeight: 20,
               }}
             >
               {subtitle}
@@ -384,7 +384,7 @@ const TeacherAttendanceTrendCard = ({
           >
             <Text
               style={{
-                fontSize: FONT_SIZES.xl,
+                fontSize: FONT_SIZES.lg,
                 fontFamily: FONTS.bold,
                 color: colors.onSurface || (isDark ? "#FFFFFF" : "#1D1B20"),
               }}
@@ -435,7 +435,7 @@ const TeacherAttendanceTrendCard = ({
           >
             <Text
               style={{
-                fontSize: FONT_SIZES.xl,
+                fontSize: FONT_SIZES.lg,
                 fontFamily: FONTS.bold,
                 color: "#10B981",
               }}
@@ -491,7 +491,7 @@ const TeacherAttendanceTrendCard = ({
               />
               <Text
                 style={{
-                  fontSize: FONT_SIZES.mdLg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: trendDelta >= 0 ? "#10B981" : "#EF4444",
                   marginLeft: 2,
@@ -503,7 +503,7 @@ const TeacherAttendanceTrendCard = ({
           ) : (
             <Text
               style={{
-                fontSize: FONT_SIZES.md,
+                fontSize: FONT_SIZES.sm,
                 fontFamily: FONTS.bold,
                 color: colors.primary || "#6750A4",
               }}
@@ -773,7 +773,7 @@ const TeacherAttendanceTrendCard = ({
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.mdLg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: colors.onSurface || (isDark ? "#FFFFFF" : "#1D1B20"),
                 }}
@@ -817,7 +817,7 @@ const TeacherAttendanceTrendCard = ({
           <View style={{ alignItems: "flex-end" }}>
             <Text
               style={{
-                fontSize: FONT_SIZES.title,
+                fontSize: FONT_SIZES.xl,
                 fontFamily: FONTS.bold,
                 color: activeHealth.color,
               }}

@@ -74,7 +74,7 @@ export default function UserDetailModal({ visible, onClose, user }) {
           >
             <Text
               style={{
-                fontSize: FONT_SIZES.xl,
+                fontSize: FONT_SIZES.lg,
                 fontFamily: FONTS.bold,
                 color: colors.textPrimary,
               }}
@@ -103,7 +103,7 @@ export default function UserDetailModal({ visible, onClose, user }) {
               />
               <Text
                 style={{
-                  fontSize: FONT_SIZES.xxl,
+                  fontSize: FONT_SIZES.lg,
                   fontFamily: FONTS.bold,
                   color: colors.textPrimary,
                 }}
@@ -275,7 +275,7 @@ export default function UserDetailModal({ visible, onClose, user }) {
                 <Text
                   style={{
                     fontFamily: FONTS.regular,
-                    fontSize: FONT_SIZES.base,
+                    fontSize: FONT_SIZES.sm,
                     color: colors.textPrimary,
                   }}
                 >
@@ -299,7 +299,7 @@ const DetailSection = ({ title, children }) => {
     <View style={{ marginBottom: 24 }}>
       <Text
         style={{
-          fontSize: FONT_SIZES.md,
+          fontSize: FONT_SIZES.sm,
           fontFamily: FONTS.bold,
           color: colors.textSecondary,
           marginBottom: 12,
@@ -349,7 +349,7 @@ const DetailRow = ({ icon, label, value, style }) => {
         )}
         <Text
           style={{
-            fontSize: FONT_SIZES.mdLg,
+            fontSize: FONT_SIZES.md,
             fontFamily: FONTS.medium,
             color: colors.textPrimary,
             flex: 1,

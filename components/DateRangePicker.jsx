@@ -143,7 +143,7 @@ const DateRangePicker = ({
                   </View>
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.lg,
+                      fontSize: FONT_SIZES.md,
                       fontFamily:
                         activePreset === preset.id
                           ? FONTS.bold

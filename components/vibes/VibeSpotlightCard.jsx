@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     color: "#fff",
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
     textAlign: "center",
     marginTop: 6,
@@ -411,13 +411,13 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   authorName: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   captionText: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
-    lineHeight: LINE_HEIGHTS.md,
+    lineHeight: LINE_HEIGHTS.sm,
     marginBottom: 10,
   },
   cardFooter: {

@@ -294,7 +294,7 @@ export default function EnterMarksScreen() {
         <MaterialIcons name="error-outline" size={64} color={colors.error} />
         <Text
           style={{
-            fontSize: FONT_SIZES.xl,
+            fontSize: FONT_SIZES.lg,
             fontFamily: FONTS.semiBold,
             color: colors.onSurface,
             marginTop: 16,
@@ -404,7 +404,7 @@ export default function EnterMarksScreen() {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   color: colors.onSurfaceVariant,
                   fontFamily: FONTS.medium,
                 }}
@@ -413,7 +413,7 @@ export default function EnterMarksScreen() {
               </Text>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.bold,
                   color: colors.onSurface,
                 }}
@@ -430,7 +430,7 @@ export default function EnterMarksScreen() {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   color: colors.onSurfaceVariant,
                   fontFamily: FONTS.medium,
                 }}
@@ -439,7 +439,7 @@ export default function EnterMarksScreen() {
               </Text>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.bold,
                   color: colors.onSurface,
                   textTransform: "capitalize",
@@ -453,7 +453,7 @@ export default function EnterMarksScreen() {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   color: colors.onSurfaceVariant,
                   fontFamily: FONTS.medium,
                 }}
@@ -462,7 +462,7 @@ export default function EnterMarksScreen() {
               </Text>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.xl,
+                  fontSize: FONT_SIZES.lg,
                   fontFamily: FONTS.bold,
                   color: colors.primary,
                 }}
@@ -478,7 +478,7 @@ export default function EnterMarksScreen() {
           {/* Content */}
           <Text
             style={{
-              fontSize: FONT_SIZES.xl,
+              fontSize: FONT_SIZES.lg,
               fontFamily: FONTS.bold,
               color: colors.onSurface,
               marginBottom: 16,

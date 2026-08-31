@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   title: {
-    fontSize: FONT_SIZES.headline,
+    fontSize: FONT_SIZES.xl,
     fontFamily: FONTS.bold,
     color: "#333",
     marginTop: 20,
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   subtitle: {
-    fontSize: FONT_SIZES.mdLg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.regular,
     color: "#666",
     textAlign: "center",
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "#fff",
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   debugBox: {

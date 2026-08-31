@@ -143,19 +143,19 @@ export default function Login() {
           </View>
           <Text
             style={{
-              fontSize: FONT_SIZES.hero,
+              fontSize: FONT_SIZES.display,
               fontFamily: FONTS.bold,
               color: colors.onBackground,
               marginBottom: 4,
               textAlign: "center",
-              letterSpacing: LETTER_SPACINGS.hero,
+              letterSpacing: LETTER_SPACINGS.display,
             }}
           >
             {t("login.title")}
           </Text>
           <Text
             style={{
-              fontSize: FONT_SIZES.mdLg,
+              fontSize: FONT_SIZES.md,
               fontFamily: FONTS.bold,
               color: colors.primary,
               textAlign: "center",
@@ -166,7 +166,7 @@ export default function Login() {
           </Text>
           <Text
             style={{
-              fontSize: FONT_SIZES.base,
+              fontSize: FONT_SIZES.sm,
               fontFamily: FONTS.regular,
               color: colors.onSurfaceVariant,
               textAlign: "center",
@@ -239,7 +239,7 @@ export default function Login() {
                 style={{
                   marginHorizontal: 16,
                   color: colors.onSurfaceVariant,
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.medium,
                 }}
               >

@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   title: {
-    fontSize: FONT_SIZES.xl,
+    fontSize: FONT_SIZES.lg,
     fontFamily: FONTS.bold,
   },
   subtitle: {
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   sectionTitle: {
-    fontSize: FONT_SIZES.mdLg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
     marginBottom: 12,
   },
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   gradeBadgeText: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   rangeRow: {
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   itemLabel: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   itemRange: {
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
     marginTop: 2,
-    lineHeight: 16,
+    lineHeight: 18,
   },
   weightBox: {
     borderRadius: 16,
@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   examCode: {
-    fontSize: FONT_SIZES.base,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
   weightPill: {
@@ -391,6 +391,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
-    lineHeight: 16,
+    lineHeight: 18,
   },
 });

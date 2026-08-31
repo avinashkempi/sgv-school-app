@@ -73,7 +73,7 @@ export default function HistoryScreen() {
             style={{
               color: colors.textSecondary,
               marginTop: 16,
-              fontSize: FONT_SIZES.lg,
+              fontSize: FONT_SIZES.md,
               textAlign: "center",
             }}
           >
@@ -110,7 +110,7 @@ export default function HistoryScreen() {
               style={{
                 color: colors.textSecondary,
                 marginTop: 16,
-                fontSize: FONT_SIZES.lg,
+                fontSize: FONT_SIZES.md,
               }}
             >
               {t("historyScreen.noPastExams")}
@@ -143,7 +143,7 @@ export default function HistoryScreen() {
               >
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.lg,
+                    fontSize: FONT_SIZES.md,
                     fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                     flex: 1,
@@ -228,7 +228,7 @@ export default function HistoryScreen() {
                     size={16}
                     color={colors.textSecondary}
                   />
-                  <Text style={{ fontSize: FONT_SIZES.md, color: colors.textSecondary }}>
+                  <Text style={{ fontSize: FONT_SIZES.sm, color: colors.textSecondary }}>
                     {formatClassName(item.class)}
                   </Text>
                 </View>
@@ -240,7 +240,7 @@ export default function HistoryScreen() {
                     size={16}
                     color={colors.textSecondary}
                   />
-                  <Text style={{ fontSize: FONT_SIZES.md, color: colors.textSecondary }}>
+                  <Text style={{ fontSize: FONT_SIZES.sm, color: colors.textSecondary }}>
                     {formatDate(item.date)}
                   </Text>
                 </View>

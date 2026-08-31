@@ -326,7 +326,7 @@ export default function AdminFeesScreen() {
                   fontFamily:
                     activeTab === tab ? FONTS.bold : FONTS.medium,
                   textTransform: "capitalize",
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                 }}
               >
                 {tab}
@@ -358,7 +358,7 @@ export default function AdminFeesScreen() {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.xl,
+                  fontSize: FONT_SIZES.lg,
                   fontFamily: FONTS.bold,
                   color: colors.textPrimary,
                 }}
@@ -400,7 +400,7 @@ export default function AdminFeesScreen() {
               <Text
                 style={{
                   color: "rgba(255,255,255,0.8)",
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.medium,
                   marginBottom: 8,
                 }}
@@ -409,7 +409,7 @@ export default function AdminFeesScreen() {
               </Text>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.displayMd,
+                  fontSize: FONT_SIZES.display,
                   fontFamily: FONTS.bold,
                   color: "#fff",
                 }}
@@ -481,7 +481,7 @@ export default function AdminFeesScreen() {
                 <Text
                   style={{
                     color: colors.textSecondary,
-                    fontSize: FONT_SIZES.md,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.medium,
                   }}
                 >
@@ -489,7 +489,7 @@ export default function AdminFeesScreen() {
                 </Text>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.title,
+                    fontSize: FONT_SIZES.xl,
                     fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                     marginTop: 4,
@@ -531,7 +531,7 @@ export default function AdminFeesScreen() {
                 <Text
                   style={{
                     color: colors.textSecondary,
-                    fontSize: FONT_SIZES.md,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.medium,
                   }}
                 >
@@ -539,7 +539,7 @@ export default function AdminFeesScreen() {
                 </Text>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.title,
+                    fontSize: FONT_SIZES.xl,
                     fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                     marginTop: 4,
@@ -553,7 +553,7 @@ export default function AdminFeesScreen() {
             {/* Extended Insights Grid */}
             <Text
               style={{
-                fontSize: FONT_SIZES.xl,
+                fontSize: FONT_SIZES.lg,
                 fontFamily: FONTS.bold,
                 color: colors.textPrimary,
                 marginTop: 24,
@@ -584,7 +584,7 @@ export default function AdminFeesScreen() {
                 <Text
                   style={{
                     color: colors.error,
-                    fontSize: FONT_SIZES.xxl,
+                    fontSize: FONT_SIZES.lg,
                     fontFamily: FONTS.bold,
                     marginTop: 8,
                   }}
@@ -613,7 +613,7 @@ export default function AdminFeesScreen() {
                 <Text
                   style={{
                     color: "#FF9800",
-                    fontSize: FONT_SIZES.xxl,
+                    fontSize: FONT_SIZES.lg,
                     fontFamily: FONTS.bold,
                     marginTop: 8,
                   }}
@@ -644,7 +644,7 @@ export default function AdminFeesScreen() {
                 <Text
                   style={{
                     color: colors.warning || "#FFB020",
-                    fontSize: FONT_SIZES.xxl,
+                    fontSize: FONT_SIZES.lg,
                     fontFamily: FONTS.bold,
                     marginTop: 4,
                   }}
@@ -667,7 +667,7 @@ export default function AdminFeesScreen() {
                 <Text
                   style={{
                     color: colors.textSecondary,
-                    fontSize: FONT_SIZES.md,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.medium,
                   }}
                 >
@@ -676,7 +676,7 @@ export default function AdminFeesScreen() {
                 <Text
                   style={{
                     color: colors.textPrimary,
-                    fontSize: FONT_SIZES.headline,
+                    fontSize: FONT_SIZES.xl,
                     fontFamily: FONTS.bold,
                     marginTop: 4,
                   }}
@@ -716,7 +716,7 @@ export default function AdminFeesScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.xl,
+                        fontSize: FONT_SIZES.lg,
                         fontFamily: FONTS.bold,
                         color: colors.textPrimary,
                       }}
@@ -793,7 +793,7 @@ export default function AdminFeesScreen() {
                                 style={{
                                   fontFamily: FONTS.bold,
                                   color: colors.textPrimary,
-                                  fontSize: FONT_SIZES.mdLg,
+                                  fontSize: FONT_SIZES.md,
                                 }}
                               >
                                 {formatClassName(item.className, item.section)}
@@ -1210,7 +1210,7 @@ export default function AdminFeesScreen() {
                   >
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.xl,
+                        fontSize: FONT_SIZES.lg,
                         fontFamily: FONTS.bold,
                         color: colors.textPrimary,
                       }}
@@ -1267,7 +1267,7 @@ export default function AdminFeesScreen() {
                             style={{
                               color: colors.textPrimary,
                               fontFamily: FONTS.medium,
-                              fontSize: FONT_SIZES.lg,
+                              fontSize: FONT_SIZES.md,
                             }}
                           >
                             {comp.name}
@@ -1283,7 +1283,7 @@ export default function AdminFeesScreen() {
                               style={{
                                 color: colors.textPrimary,
                                 fontFamily: FONTS.bold,
-                                fontSize: FONT_SIZES.lg,
+                                fontSize: FONT_SIZES.md,
                               }}
                             >
                               ₹{comp.amount}
@@ -1325,7 +1325,7 @@ export default function AdminFeesScreen() {
                           style={{
                             color: colors.primary,
                             fontFamily: FONTS.bold,
-                            fontSize: FONT_SIZES.xxl,
+                            fontSize: FONT_SIZES.lg,
                           }}
                         >
                           ₹
@@ -1423,7 +1423,7 @@ export default function AdminFeesScreen() {
                       style={{
                         color: "#fff",
                         fontFamily: FONTS.bold,
-                        fontSize: FONT_SIZES.xl,
+                        fontSize: FONT_SIZES.lg,
                       }}
                     >
                       Save Fee Structure
@@ -1513,7 +1513,7 @@ export default function AdminFeesScreen() {
                   />
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.title,
+                      fontSize: FONT_SIZES.xl,
                       fontFamily: FONTS.bold,
                       color: colors.textPrimary,
                       marginBottom: 4,
@@ -1540,7 +1540,7 @@ export default function AdminFeesScreen() {
                       <Text
                         style={{
                           color: colors.textSecondary,
-                          fontSize: FONT_SIZES.md,
+                          fontSize: FONT_SIZES.sm,
                           fontFamily: FONTS.medium,
                         }}
                       >
@@ -1585,7 +1585,7 @@ export default function AdminFeesScreen() {
                         style={{
                           fontFamily: FONTS.bold,
                           color: colors.textPrimary,
-                          fontSize: FONT_SIZES.lg,
+                          fontSize: FONT_SIZES.md,
                         }}
                       >
                         ₹{(feeDetails?.totalFees || 0).toLocaleString()}
@@ -1615,7 +1615,7 @@ export default function AdminFeesScreen() {
                           style={{
                             fontFamily: FONTS.bold,
                             color: "#FF9800",
-                            fontSize: FONT_SIZES.lg,
+                            fontSize: FONT_SIZES.md,
                           }}
                         >
                           ₹{feeDetails.concession.toLocaleString()}
@@ -1645,7 +1645,7 @@ export default function AdminFeesScreen() {
                         style={{
                           fontFamily: FONTS.bold,
                           color: colors.success,
-                          fontSize: FONT_SIZES.lg,
+                          fontSize: FONT_SIZES.md,
                         }}
                       >
                         ₹{(feeDetails?.paidAmount || 0).toLocaleString()}
@@ -1674,7 +1674,7 @@ export default function AdminFeesScreen() {
                         style={{
                           fontFamily: FONTS.bold,
                           color: colors.error,
-                          fontSize: FONT_SIZES.lg,
+                          fontSize: FONT_SIZES.md,
                         }}
                       >
                         ₹{(feeDetails?.pendingAmount || 0).toLocaleString()}
@@ -1689,7 +1689,7 @@ export default function AdminFeesScreen() {
                     <View style={{ marginBottom: 24 }}>
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.xl,
+                          fontSize: FONT_SIZES.lg,
                           fontFamily: FONTS.bold,
                           color: colors.textPrimary,
                           marginBottom: 12,
@@ -1751,7 +1751,7 @@ export default function AdminFeesScreen() {
                                   style={{
                                     fontFamily: FONTS.bold,
                                     color: colors.textPrimary,
-                                    fontSize: FONT_SIZES.mdLg,
+                                    fontSize: FONT_SIZES.md,
                                   }}
                                 >
                                   {inst.description}
@@ -1798,7 +1798,7 @@ export default function AdminFeesScreen() {
 
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.xl,
+                    fontSize: FONT_SIZES.lg,
                     fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                     marginBottom: 16,
@@ -1833,7 +1833,7 @@ export default function AdminFeesScreen() {
                             style={{
                               fontFamily: FONTS.bold,
                               color: colors.textPrimary,
-                              fontSize: FONT_SIZES.lg,
+                              fontSize: FONT_SIZES.md,
                             }}
                           >
                             ₹{payment.amount}
@@ -1988,7 +1988,7 @@ export default function AdminFeesScreen() {
                       flex: 2,
                       fontFamily: FONTS.bold,
                       color: colors.primary,
-                      fontSize: FONT_SIZES.md,
+                      fontSize: FONT_SIZES.sm,
                     }}
                   >
                     Student
@@ -1998,7 +1998,7 @@ export default function AdminFeesScreen() {
                       flex: 1.5,
                       fontFamily: FONTS.bold,
                       color: colors.primary,
-                      fontSize: FONT_SIZES.md,
+                      fontSize: FONT_SIZES.sm,
                       textAlign: "center",
                     }}
                   >
@@ -2009,7 +2009,7 @@ export default function AdminFeesScreen() {
                       flex: 1.5,
                       fontFamily: FONTS.bold,
                       color: colors.primary,
-                      fontSize: FONT_SIZES.md,
+                      fontSize: FONT_SIZES.sm,
                       textAlign: "right",
                     }}
                   >
@@ -2085,7 +2085,7 @@ export default function AdminFeesScreen() {
                               style={{
                                 fontFamily: FONTS.bold,
                                 color: colors.textPrimary,
-                                fontSize: FONT_SIZES.base,
+                                fontSize: FONT_SIZES.sm,
                               }}
                               numberOfLines={1}
                             >
@@ -2127,7 +2127,7 @@ export default function AdminFeesScreen() {
                           <Text
                             style={{
                               fontFamily: FONTS.bold,
-                              fontSize: FONT_SIZES.base,
+                              fontSize: FONT_SIZES.sm,
                               color:
                                 item.pendingAmount > 0
                                   ? colors.error

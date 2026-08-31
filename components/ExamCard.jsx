@@ -148,7 +148,7 @@ export default function ExamCard({
             </View>
             <Text
               style={{
-                fontSize: FONT_SIZES.xl,
+                fontSize: FONT_SIZES.lg,
                 fontFamily: FONTS.bold,
                 color: colors.onSurface,
                 marginBottom: 4,
@@ -159,7 +159,7 @@ export default function ExamCard({
             {exam.subject && (
               <Text
                 style={{
-                  fontSize: FONT_SIZES.base,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                 }}
@@ -216,7 +216,7 @@ export default function ExamCard({
             <Text
               style={{
                 color: colors.onSurface,
-                fontSize: FONT_SIZES.md,
+                fontSize: FONT_SIZES.sm,
                 fontFamily: FONTS.medium,
               }}
             >
@@ -232,7 +232,7 @@ export default function ExamCard({
             <Text
               style={{
                 color: colors.onSurface,
-                fontSize: FONT_SIZES.md,
+                fontSize: FONT_SIZES.sm,
                 fontFamily: FONTS.medium,
               }}
             >
@@ -251,7 +251,7 @@ export default function ExamCard({
               <Text
                 style={{
                   color: colors.onSurface,
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.medium,
                 }}
               >
@@ -271,7 +271,7 @@ export default function ExamCard({
               <Text
                 style={{
                   color: colors.onSurface,
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.medium,
                 }}
               >
@@ -359,7 +359,7 @@ export default function ExamCard({
                 <Text
                   style={{
                     color: "#FFFFFF",
-                    fontSize: FONT_SIZES.md,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.bold,
                   }}
                 >
@@ -386,7 +386,7 @@ export default function ExamCard({
                 <Text
                   style={{
                     color: "#FFFFFF",
-                    fontSize: FONT_SIZES.md,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.bold,
                   }}
                 >
