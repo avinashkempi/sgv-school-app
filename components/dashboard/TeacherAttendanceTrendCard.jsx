@@ -20,25 +20,25 @@ import { useTheme, FONTS, FONT_SIZES } from "../../theme";
  */
 const getAttendanceHealth = (pct) => {
   const p = Number(pct) || 0;
-  if (p >= 85)
+  if (p >= 95)
     return {
-      label: "High Attendance",
+      label: "Outstanding Attendance",
       shortLabel: "Excellent",
       color: "#10B981",
       bg: "rgba(16, 185, 129, 0.12)",
       border: "rgba(16, 185, 129, 0.3)",
     };
-  if (p >= 75)
+  if (p >= 90)
     return {
-      label: "Good Attendance",
+      label: "Good Attendance (≥90%)",
       shortLabel: "Good",
       color: "#0284C7",
       bg: "rgba(2, 132, 199, 0.12)",
       border: "rgba(2, 132, 199, 0.3)",
     };
-  if (p >= 50)
+  if (p >= 75)
     return {
-      label: "Moderate Attendance",
+      label: "Moderate Attendance (<90%)",
       shortLabel: "Moderate",
       color: "#D97706",
       bg: "rgba(217, 119, 6, 0.12)",
@@ -46,7 +46,7 @@ const getAttendanceHealth = (pct) => {
     };
   if (p > 0)
     return {
-      label: "Low Attendance",
+      label: "Low Attendance (<75%)",
       shortLabel: "Low",
       color: "#DC2626",
       bg: "rgba(220, 38, 38, 0.12)",

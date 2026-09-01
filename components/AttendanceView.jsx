@@ -174,24 +174,24 @@ export default function AttendanceView({
 
     // Standing status
     let standing = {
-      label: "Good Standing (≥75%)",
+      label: "Good Standing (≥90%)",
       badgeText: "Good",
       badgeColor: colors.success || "#146C2E",
       badgeBg: isDark ? "rgba(109, 213, 140, 0.18)" : "rgba(20, 108, 46, 0.12)",
       icon: "check-circle",
     };
 
-    if (percentage >= 90) {
+    if (percentage >= 95) {
       standing = {
-        label: "Outstanding (≥90%)",
+        label: "Outstanding (≥95%)",
         badgeText: "Outstanding",
         badgeColor: "#10B981",
         badgeBg: isDark ? "rgba(16, 185, 129, 0.22)" : "rgba(16, 185, 129, 0.15)",
         icon: "emoji-events",
       };
-    } else if (percentage < 75 && total > 0) {
+    } else if (percentage < 90 && total > 0) {
       standing = {
-        label: "Low Attendance Alert (<75%)",
+        label: "Low Attendance Alert (<90%)",
         badgeText: "Low Attendance",
         badgeColor: colors.error || "#B3261E",
         badgeBg: isDark ? "rgba(242, 184, 181, 0.22)" : "rgba(179, 38, 30, 0.15)",
@@ -199,11 +199,11 @@ export default function AttendanceView({
       };
     }
 
-    // Recovery calculation (if below standard 75% rule)
+    // Recovery calculation (if below standard 90% school target rule)
     let recoveryTarget = 0;
-    if (total > 0 && percentage < 75) {
-      // (P + y) / (T + y) >= 0.75 => 0.25 y >= 0.75T - P => y = ceil(3T - 4P)
-      recoveryTarget = Math.max(1, Math.ceil(3 * total - 4 * present));
+    if (total > 0 && percentage < 90) {
+      // (P + y) / (T + y) >= 0.90 => 0.10 y >= 0.90T - P => y = ceil(9T - 10P)
+      recoveryTarget = Math.max(1, Math.ceil(9 * total - 10 * present));
     }
 
     // Streak calculation (consecutive present from top of history)
@@ -533,7 +533,7 @@ export default function AttendanceView({
             </Text>
           </View>
 
-          {/* 75% Target Progress Track Bar */}
+          {/* 90% Target Progress Track Bar */}
           <View style={styles.targetTrackContainer}>
             <View style={styles.trackBackground}>
               <View
@@ -542,11 +542,11 @@ export default function AttendanceView({
                   {
                     width: `${Math.min(100, Math.max(0, displayStats.percentage))}%`,
                     backgroundColor:
-                      displayStats.percentage >= 75 ? "#6DD58C" : "#F2B8B5",
+                      displayStats.percentage >= 90 ? "#6DD58C" : "#F2B8B5",
                   },
                 ]}
               />
-              {/* 75% Threshold Marker Line */}
+              {/* 90% Threshold Marker Line */}
               <View style={styles.thresholdMarker} />
             </View>
 
@@ -554,7 +554,7 @@ export default function AttendanceView({
               <Text style={styles.trackLabelLeft}>0%</Text>
               <View style={styles.trackTargetPin}>
                 <MaterialIcons name="flag" size={11} color="#EADDFF" />
-                <Text style={styles.trackTargetText}>75% Target</Text>
+                <Text style={styles.trackTargetText}>90% Target</Text>
               </View>
               <Text style={styles.trackLabelRight}>100%</Text>
             </View>
@@ -626,13 +626,13 @@ export default function AttendanceView({
             <View style={styles.insightIconWrap}>
               <MaterialIcons
                 name={
-                  displayStats.percentage >= 75
+                  displayStats.percentage >= 90
                     ? "verified-user"
                     : "lightbulb-outline"
                 }
                 size={20}
                 color={
-                  displayStats.percentage >= 75
+                  displayStats.percentage >= 90
                     ? colors.success || "#146C2E"
                     : "#D97706"
                 }
@@ -641,7 +641,7 @@ export default function AttendanceView({
             <View style={{ flex: 1 }}>
               <Text style={[styles.insightTitle, { color: colors.onSurface }]}>
                 {role === "student"
-                  ? displayStats.percentage >= 75
+                  ? displayStats.percentage >= 90
                     ? "Attendance Standing"
                     : "Attendance Recovery Action"
                   : "Attendance Insights"}
@@ -653,10 +653,10 @@ export default function AttendanceView({
                 ]}
               >
                 {role === "student" ? (
-                  displayStats.percentage >= 75 ? (
-                    displayStats.percentage >= 90
-                      ? "Outstanding attendance record! Your attendance is well above the required 75% target."
-                      : "Your attendance is in good standing (above the required 75% requirement). Keep attending classes regularly."
+                  displayStats.percentage >= 90 ? (
+                    displayStats.percentage >= 95
+                      ? "Outstanding attendance record! Your attendance is well above the required 90% target."
+                      : "Your attendance is in good standing (above the required 90% requirement). Keep attending classes regularly."
                   ) : (
                     <>
                       You need to attend the next{" "}
@@ -664,7 +664,7 @@ export default function AttendanceView({
                         {displayStats.recoveryTarget}
                       </Text>{" "}
                       consecutive class
-                      {displayStats.recoveryTarget > 1 ? "es" : ""} to reach the 75%
+                      {displayStats.recoveryTarget > 1 ? "es" : ""} to reach the 90%
                       threshold.
                     </>
                   )
@@ -723,7 +723,7 @@ export default function AttendanceView({
 
           {subjectWiseData.map((subject) => {
             const pct = parseFloat(subject.percentage || 0);
-            const isLow = pct < 75;
+            const isLow = pct < 90;
             return (
               <View
                 key={subject.subjectId || subject.name}
@@ -1124,7 +1124,7 @@ export default function AttendanceView({
 
           {visibleMonths.map((month) => {
             const pct = parseFloat(month.percentage || 0);
-            const isGood = pct >= 75;
+            const isGood = pct >= 90;
             return (
               <View
                 key={month.month}
@@ -1610,7 +1610,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  // 75% TARGET TRACK
+  // 90% TARGET TRACK
   targetTrackContainer: {
     marginTop: 16,
     marginBottom: 18,
@@ -1628,7 +1628,7 @@ const styles = StyleSheet.create({
   },
   thresholdMarker: {
     position: "absolute",
-    left: "75%",
+    left: "90%",
     top: 0,
     bottom: 0,
     width: 2,

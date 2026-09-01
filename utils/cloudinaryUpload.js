@@ -21,6 +21,151 @@ export const CLOUDINARY_FOLDERS = {
   VIBES_VIDEOS: "sgv_school/vibes/videos",
   BRANDING: "sgv_school/branding",
   DOCUMENTS: "sgv_school/documents",
+  ACADEMICS: "sgv_school/academics",
+};
+
+/**
+ * Sanitize a string for safe use in Cloudinary folder paths and public IDs.
+ * Replaces non-alphanumeric characters with hyphens, collapses repeats, and trims edges.
+ * E.g., "10th Standard (A)" -> "10th-Standard-A", "Mathematics & Stats" -> "Mathematics-Stats"
+ *
+ * @param {string} str
+ * @returns {string} Sanitized string safe for Cloudinary paths
+ */
+export const sanitizeCloudinarySegment = (str) => {
+  if (!str || typeof str !== "string") return "";
+  return str
+    .trim()
+    .replace(/[^\w\s-]/g, "") // remove punctuation/special chars like parentheses, colons, etc.
+    .replace(/\s+/g, "-") // replace whitespace with hyphens
+    .replace(/-+/g, "-") // collapse consecutive hyphens
+    .replace(/^-+|-+$/g, ""); // trim leading and trailing hyphens
+};
+
+/**
+ * Build a structured, hierarchical Cloudinary folder path for academic notes and materials.
+ * Target path structure: sgv_school/academics/{Class}/{Subject}/{Type}
+ * E.g. sgv_school/academics/Class-10-A/Mathematics/notes
+ *
+ * @param {Object} params
+ * @param {string} [params.className] - e.g. "10th Standard", "Class 5 A"
+ * @param {string} [params.subjectName] - e.g. "Mathematics", "Science"
+ * @param {string} [params.contentType] - 'note' | 'homework' | 'news' | 'document'
+ * @param {string} [params.branch] - optional branch name, e.g. "Ugar"
+ * @returns {string} Structured Cloudinary folder path
+ */
+export const buildAcademicCloudinaryFolder = ({
+  className = "",
+  subjectName = "",
+  contentType = "note",
+  branch = "",
+} = {}) => {
+  const cleanClass = sanitizeCloudinarySegment(className) || "General-Class";
+  const cleanSubject = sanitizeCloudinarySegment(subjectName) || "General";
+
+  let typeFolder = "notes";
+  const lowerType = String(contentType).toLowerCase();
+  if (lowerType === "homework") {
+    typeFolder = "homework";
+  } else if (lowerType === "news" || lowerType === "notice") {
+    typeFolder = "notices";
+  } else if (lowerType === "exam" || lowerType === "test") {
+    typeFolder = "exams";
+  }
+
+  const cleanBranch = branch ? sanitizeCloudinarySegment(branch) : "";
+  const root = CLOUDINARY_FOLDERS.ACADEMICS || "sgv_school/academics";
+
+  if (cleanBranch && cleanBranch.toLowerCase() !== "main") {
+    return `${root}/${cleanBranch}/${cleanClass}/${cleanSubject}/${typeFolder}`;
+  }
+
+  return `${root}/${cleanClass}/${cleanSubject}/${typeFolder}`;
+};
+
+/**
+ * Build a human-readable, chronological file name for academic uploads.
+ * Format: {YYYYMMDD}_{CleanTitle}_{CleanOriginalName}.{ext}
+ * E.g., "20260901_Quadratic-Equations_FormulaSheet.pdf"
+ *
+ * @param {Object} params
+ * @param {string} [params.title] - Note or post title
+ * @param {string} [params.originalName] - Original file name with extension
+ * @param {string} [params.contentType] - 'note' | 'homework' | 'news'
+ * @param {string} [params.defaultExt] - 'jpg' | 'pdf' | 'mp4' etc.
+ * @returns {string} Sanitized file name with extension
+ */
+export const buildAcademicFileName = ({
+  title = "",
+  originalName = "",
+  contentType = "note",
+  defaultExt = "jpg",
+} = {}) => {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const dd = String(now.getDate()).padStart(2, "0");
+  const dateStr = `${yyyy}${mm}${dd}`;
+
+  let ext = defaultExt;
+  let baseName = "";
+  if (originalName && typeof originalName === "string") {
+    const lastDotIndex = originalName.lastIndexOf(".");
+    if (lastDotIndex !== -1 && lastDotIndex < originalName.length - 1) {
+      ext = originalName.substring(lastDotIndex + 1).toLowerCase();
+      baseName = sanitizeCloudinarySegment(originalName.substring(0, lastDotIndex));
+    } else {
+      baseName = sanitizeCloudinarySegment(originalName);
+    }
+  }
+
+  const cleanTopic = sanitizeCloudinarySegment(title);
+  const cleanType = sanitizeCloudinarySegment(contentType || "note");
+
+  const parts = [dateStr];
+  if (cleanTopic) {
+    parts.push(cleanTopic.substring(0, 40));
+  } else if (cleanType) {
+    parts.push(cleanType);
+  }
+
+  if (baseName && baseName !== cleanTopic) {
+    parts.push(baseName.substring(0, 30));
+  }
+
+  const combined = parts.filter(Boolean).join("_");
+  return `${combined || `material_${Date.now()}`}.${ext}`;
+};
+
+/**
+ * Build structured Cloudinary tags and context metadata for instant 1-click filtering.
+ *
+ * @param {Object} params
+ * @returns {{ tags: string[], context: Record<string, string> }}
+ */
+export const buildAcademicTagsAndContext = ({
+  className = "",
+  subjectName = "",
+  contentType = "note",
+  title = "",
+  teacherName = "",
+  branch = "",
+} = {}) => {
+  const tags = ["academic_materials"];
+
+  if (className) tags.push(`class_${sanitizeCloudinarySegment(className)}`);
+  if (subjectName) tags.push(`subject_${sanitizeCloudinarySegment(subjectName)}`);
+  if (contentType) tags.push(`type_${sanitizeCloudinarySegment(contentType)}`);
+  if (branch) tags.push(`branch_${sanitizeCloudinarySegment(branch)}`);
+
+  const context = {};
+  if (title) context.caption = title.trim();
+  if (className) context.class = className.trim();
+  if (subjectName) context.subject = subjectName.trim();
+  if (contentType) context.type = contentType.trim();
+  if (teacherName) context.author = teacherName.trim();
+
+  return { tags, context };
 };
 
 // Limits
@@ -341,7 +486,7 @@ export const uploadToCloudinary = async (uri, onProgress, options = {}) => {
 
   const folder = options?.folder || CLOUDINARY_FOLDERS.POSTS;
   const prefix = options?.fileNamePrefix || "upload";
-  const fileName = `${prefix}_${Date.now()}.jpg`;
+  const fileName = options?.fileName || `${prefix}_${Date.now()}.jpg`;
 
   const formData = new FormData();
 
@@ -369,6 +514,28 @@ export const uploadToCloudinary = async (uri, onProgress, options = {}) => {
   if (folder) {
     formData.append("folder", folder);
     formData.append("asset_folder", folder);
+  }
+  if (options?.tags) {
+    const tagsStr = Array.isArray(options.tags)
+      ? options.tags.join(",")
+      : String(options.tags);
+    if (tagsStr.trim()) {
+      formData.append("tags", tagsStr.trim());
+    }
+  }
+  if (options?.context) {
+    let contextStr = "";
+    if (typeof options.context === "object") {
+      contextStr = Object.entries(options.context)
+        .filter(([_, v]) => v !== undefined && v !== null && String(v).trim() !== "")
+        .map(([k, v]) => `${k}=${encodeURIComponent(String(v).trim())}`)
+        .join("|");
+    } else {
+      contextStr = String(options.context);
+    }
+    if (contextStr.trim()) {
+      formData.append("context", contextStr);
+    }
   }
 
   // Use XMLHttpRequest for progress tracking
@@ -521,6 +688,7 @@ export const uploadVideoToCloudinary = async (
 
   const folder = options?.folder || CLOUDINARY_FOLDERS.VIBES_VIDEOS;
   const prefix = options?.fileNamePrefix || "vibe_video";
+  const customFileName = options?.fileName;
 
   const formData = new FormData();
   const uriStr = typeof uri === "string" ? uri : uri?.uri || "";
@@ -531,7 +699,7 @@ export const uploadVideoToCloudinary = async (
     : ext === "webm"
     ? "video/webm"
     : "video/mp4";
-  const filename = `${prefix}_${Date.now()}.${ext}`;
+  const filename = customFileName || `${prefix}_${Date.now()}.${ext}`;
 
   if (Platform.OS === "web") {
     try {
@@ -554,6 +722,28 @@ export const uploadVideoToCloudinary = async (
   if (folder) {
     formData.append("folder", folder);
     formData.append("asset_folder", folder);
+  }
+  if (options?.tags) {
+    const tagsStr = Array.isArray(options.tags)
+      ? options.tags.join(",")
+      : String(options.tags);
+    if (tagsStr.trim()) {
+      formData.append("tags", tagsStr.trim());
+    }
+  }
+  if (options?.context) {
+    let contextStr = "";
+    if (typeof options.context === "object") {
+      contextStr = Object.entries(options.context)
+        .filter(([_, v]) => v !== undefined && v !== null && String(v).trim() !== "")
+        .map(([k, v]) => `${k}=${encodeURIComponent(String(v).trim())}`)
+        .join("|");
+    } else {
+      contextStr = String(options.context);
+    }
+    if (contextStr.trim()) {
+      formData.append("context", contextStr);
+    }
   }
 
   return new Promise((resolve, reject) => {
@@ -1140,6 +1330,28 @@ export const uploadDocumentToCloudinary = async (
     formData.append("folder", folder);
     formData.append("asset_folder", folder);
   }
+  if (options?.tags) {
+    const tagsStr = Array.isArray(options.tags)
+      ? options.tags.join(",")
+      : String(options.tags);
+    if (tagsStr.trim()) {
+      formData.append("tags", tagsStr.trim());
+    }
+  }
+  if (options?.context) {
+    let contextStr = "";
+    if (typeof options.context === "object") {
+      contextStr = Object.entries(options.context)
+        .filter(([_, v]) => v !== undefined && v !== null && String(v).trim() !== "")
+        .map(([k, v]) => `${k}=${encodeURIComponent(String(v).trim())}`)
+        .join("|");
+    } else {
+      contextStr = String(options.context);
+    }
+    if (contextStr.trim()) {
+      formData.append("context", contextStr);
+    }
+  }
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
@@ -1201,10 +1413,12 @@ export const uploadDocumentToCloudinary = async (
 
 /**
  * Convenience method to pick a document via system picker and upload to Cloudinary.
+ * Automatically organizes into academic folders if academicContext is supplied.
  *
  * @param {(progress: number) => void} [onProgress]
  * @param {Object} [options]
- * @returns {Promise<{url: string, publicId: string, name: string, fileType: string, size: number}|null>}
+ * @param {Object} [options.academicContext] - { className, subjectName, contentType, title, branch, teacherName }
+ * @returns {Promise<{url: string, publicId: string, name: string, fileType: string, size: number, folder?: string}|null>}
  */
 export const pickAndUploadDocument = async (onProgress, options = {}) => {
   try {
@@ -1236,22 +1450,153 @@ export const pickAndUploadDocument = async (onProgress, options = {}) => {
     const file = result.assets[0];
     if (onProgress) onProgress(0);
 
+    let targetFolder = options?.folder || CLOUDINARY_FOLDERS.DOCUMENTS;
+    let targetFileName = file.name || "document";
+    let tags = options?.tags;
+    let context = options?.context;
+
+    if (options?.academicContext) {
+      targetFolder = buildAcademicCloudinaryFolder(options.academicContext);
+      targetFileName = buildAcademicFileName({
+        title: options.academicContext.title,
+        originalName: file.name || "document",
+        contentType: options.academicContext.contentType,
+      });
+      const meta = buildAcademicTagsAndContext(options.academicContext);
+      tags = meta.tags;
+      context = meta.context;
+    }
+
     const uploaded = await uploadDocumentToCloudinary(
       file.uri,
-      file.name || "document",
+      targetFileName,
       onProgress,
-      options
+      {
+        ...options,
+        folder: targetFolder,
+        tags,
+        context,
+      }
     );
 
     return {
       ...uploaded,
       name: file.name || uploaded.name,
       size: file.size || uploaded.size,
+      folder: targetFolder,
     };
   } catch (err) {
     console.error("pickAndUploadDocument error:", err);
     throw err;
   }
+};
+
+/**
+ * Universal Academic Attachment Uploader.
+ * Automatically dispatches images, videos, presentations, and documents to their
+ * organized hierarchical academic folders with chronological naming, tags, and context.
+ *
+ * @param {string|Object} fileOrUri - Local file URI or Asset object
+ * @param {Object} academicContext - { className, subjectName, contentType, title, teacherName, branch, originalName }
+ * @param {(progress: number) => void} [onProgress]
+ * @param {Object} [extraOptions]
+ * @returns {Promise<{url: string, publicId: string, name: string, fileType: string, size: number, folder: string}>}
+ */
+export const uploadAcademicAttachment = async (
+  fileOrUri,
+  academicContext = {},
+  onProgress = null,
+  extraOptions = {}
+) => {
+  const uri =
+    typeof fileOrUri === "string"
+      ? fileOrUri
+      : fileOrUri?.uri || fileOrUri?.url || "";
+  const rawName =
+    typeof fileOrUri === "object"
+      ? fileOrUri.name || fileOrUri.fileName || ""
+      : academicContext.originalName || "attachment";
+
+  const folder = buildAcademicCloudinaryFolder(academicContext);
+  const { tags, context } = buildAcademicTagsAndContext(academicContext);
+
+  const isVideo = isVideoAsset(fileOrUri) || isVideoAsset({ uri });
+  const isDoc =
+    !isVideo &&
+    (/\.(pdf|pptx|ppt|docx|doc|xlsx|xls|txt|csv)(\?.*)?$/i.test(rawName) ||
+      /\.(pdf|pptx|ppt|docx|doc|xlsx|xls|txt|csv)(\?.*)?$/i.test(uri) ||
+      fileOrUri?.type === "document" ||
+      fileOrUri?.mimeType?.includes("pdf") ||
+      fileOrUri?.mimeType?.includes("document") ||
+      fileOrUri?.mimeType?.includes("presentation") ||
+      fileOrUri?.mimeType?.includes("sheet"));
+
+  if (isVideo) {
+    const fileName = buildAcademicFileName({
+      title: academicContext.title,
+      originalName: rawName || "clip.mp4",
+      contentType: academicContext.contentType || "note",
+      defaultExt: "mp4",
+    });
+    const result = await uploadVideoToCloudinary(uri, onProgress, {
+      folder,
+      fileName,
+      tags,
+      context,
+      ...extraOptions,
+    });
+    return {
+      ...result,
+      name: fileName,
+      fileType: "video",
+      folder,
+    };
+  }
+
+  if (isDoc) {
+    const fileName = buildAcademicFileName({
+      title: academicContext.title,
+      originalName: rawName || "document.pdf",
+      contentType: academicContext.contentType || "note",
+      defaultExt: "pdf",
+    });
+    const result = await uploadDocumentToCloudinary(uri, fileName, onProgress, {
+      folder,
+      tags,
+      context,
+      ...extraOptions,
+    });
+    return {
+      ...result,
+      name: rawName || fileName,
+      folder,
+    };
+  }
+
+  // Image (JPG / PNG)
+  const fileName = buildAcademicFileName({
+    title: academicContext.title,
+    originalName: rawName || "photo.jpg",
+    contentType: academicContext.contentType || "note",
+    defaultExt: "jpg",
+  });
+  const compressedUri = await compressImage(uri);
+  const result = await uploadToCloudinary(compressedUri, onProgress, {
+    folder,
+    fileName,
+    tags,
+    context,
+    ...extraOptions,
+  });
+
+  return {
+    url: result.url,
+    publicId: result.publicId,
+    name: rawName || fileName,
+    fileType: "image",
+    size: 0,
+    folder,
+  };
 };
 
 

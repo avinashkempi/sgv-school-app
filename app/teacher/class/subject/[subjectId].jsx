@@ -45,6 +45,19 @@ export default function SubjectDetailScreen() {
   const userId = user?._id || user?.id || user?.userId;
   const isAdmin = user?.role === "admin" || user?.role === "super admin";
 
+  // Fetch Class Details for academic hierarchy & folder naming
+  const { data: classDataResponse } = useApiQuery(
+    ["classDetails", id],
+    `${apiConfig.baseUrl}/classes/${id}`,
+    { enabled: !!id }
+  );
+  const classData = classDataResponse?.classData;
+  const className =
+    classData?.name ||
+    classData?.label ||
+    (classData?.value ? `Class ${classData.value}` : "");
+  const branch = classData?.branch || "";
+
   // Fetch Subject Details
   const { data: subjects } = useApiQuery(
     ["classSubjects", id],
@@ -489,6 +502,10 @@ export default function SubjectDetailScreen() {
         onClose={() => setShowPostModal(false)}
         onSubmit={handlePostContent}
         defaultSubjectId={subjectId}
+        defaultSubjectName={subjectName}
+        className={className}
+        branch={branch}
+        teacherName={user?.name || ""}
         isLoading={postContentMutation.isPending}
       />
     </View>

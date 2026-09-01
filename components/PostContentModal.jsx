@@ -19,6 +19,7 @@ import {
   pickVibeMedia,
   uploadToCloudinary,
   uploadVideoToCloudinary,
+  uploadAcademicAttachment,
   pickAndUploadDocument,
   getDocumentMeta,
   CLOUDINARY_FOLDERS,
@@ -30,6 +31,10 @@ export default function PostContentModal({
   onSubmit,
   subjects = [],
   defaultSubjectId = "",
+  defaultSubjectName = "",
+  className = "",
+  branch = "",
+  teacherName = "",
   isLoading = false,
 }) {
   const { colors, mode } = useTheme();
@@ -38,14 +43,14 @@ export default function PostContentModal({
   const [form, setForm] = useState({
     title: "",
     description: "",
-    type: "note", // note, homework, news
+    type: "homework", // default or note/homework/news
     subject: defaultSubjectId || "",
   });
 
   const [attachments, setAttachments] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [showLinkInput, setShowLinkInput] = useState(false);
   const [linkInput, setLinkInput] = useState("");
 
   useEffect(() => {
@@ -53,15 +58,32 @@ export default function PostContentModal({
       setForm({
         title: "",
         description: "",
-        type: "note",
+        type: "homework",
         subject: defaultSubjectId || "",
       });
       setAttachments([]);
       setUploading(false);
       setUploadProgress(0);
+      setShowLinkInput(false);
       setLinkInput("");
     }
   }, [visible, defaultSubjectId]);
+
+  const selectedSubjectObj = subjects.find(
+    (s) => String(s._id || s.id) === String(form.subject)
+  );
+  const currentSubjectName =
+    selectedSubjectObj?.name || defaultSubjectName || "";
+
+  const getAcademicContext = (originalName = "") => ({
+    className,
+    subjectName: currentSubjectName,
+    contentType: form.type || "note",
+    title: form.title || "",
+    branch,
+    teacherName,
+    originalName,
+  });
 
   const handlePickImages = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
@@ -78,27 +100,31 @@ export default function PostContentModal({
       setUploading(true);
       setUploadProgress(10);
 
+      const academicCtx = getAcademicContext();
+
       for (let i = 0; i < pickedList.length; i++) {
         const item = pickedList[i];
-        const res = await uploadToCloudinary(
-          item.uri,
+        const uploaded = await uploadAcademicAttachment(
+          item,
+          {
+            ...academicCtx,
+            originalName: `photo_${i + 1}.jpg`,
+          },
           (pct) =>
             setUploadProgress(
               Math.round(((i + pct / 100) / pickedList.length) * 100)
-            ),
-          { folder: CLOUDINARY_FOLDERS.POSTS }
+            )
         );
-        const meta = getDocumentMeta({
-          url: res.url,
-          name: `Photo_${Date.now()}`,
-        });
+
         setAttachments((prev) => [
           ...prev,
           {
-            url: res.url,
-            name: meta.name,
+            url: uploaded.url,
+            name: uploaded.name,
             fileType: "image",
             size: 0,
+            folder: uploaded.folder,
+            publicId: uploaded.publicId,
           },
         ]);
       }
@@ -126,23 +152,22 @@ export default function PostContentModal({
       setUploading(true);
       setUploadProgress(10);
 
-      const res = await uploadVideoToCloudinary(
-        pickedList[0].uri,
-        (pct) => setUploadProgress(pct),
-        { folder: CLOUDINARY_FOLDERS.VIBES_VIDEOS }
+      const academicCtx = getAcademicContext("video_clip.mp4");
+      const uploaded = await uploadAcademicAttachment(
+        pickedList[0],
+        academicCtx,
+        (pct) => setUploadProgress(pct)
       );
 
-      const meta = getDocumentMeta({
-        url: res.url,
-        name: `Video_${Date.now()}`,
-      });
       setAttachments((prev) => [
         ...prev,
         {
-          url: res.url,
-          name: meta.name,
+          url: uploaded.url,
+          name: uploaded.name,
           fileType: "video",
           size: 0,
+          folder: uploaded.folder,
+          publicId: uploaded.publicId,
         },
       ]);
     } catch (err) {
@@ -160,8 +185,11 @@ export default function PostContentModal({
       setUploading(true);
       setUploadProgress(10);
 
-      const uploaded = await pickAndUploadDocument((pct) =>
-        setUploadProgress(pct)
+      const academicCtx = getAcademicContext();
+
+      const uploaded = await pickAndUploadDocument(
+        (pct) => setUploadProgress(pct),
+        { academicContext: academicCtx }
       );
       if (!uploaded) return;
 
@@ -173,6 +201,8 @@ export default function PostContentModal({
           name: uploaded.name || meta.name,
           fileType: meta.type,
           size: uploaded.size || 0,
+          folder: uploaded.folder,
+          publicId: uploaded.publicId,
         },
       ]);
     } catch (err) {
@@ -200,7 +230,7 @@ export default function PostContentModal({
       },
     ]);
     setLinkInput("");
-    setShowLinkModal(false);
+    setShowLinkInput(false);
   };
 
   const handleRemoveAttachment = (index) => {
@@ -232,30 +262,38 @@ export default function PostContentModal({
       case "homework":
         return "#EF4444";
       case "news":
-        return colors.primary;
+        return "#F59E0B";
       default:
         return "#3B82F6";
     }
   };
 
+  const getContentTypeIcon = (type) => {
+    switch (type) {
+      case "homework":
+        return "assignment";
+      case "news":
+        return "campaign";
+      default:
+        return "menu-book";
+    }
+  };
+
+  const currentColor = getContentTypeColor(form.type);
+
   return (
     <Modal
       visible={visible}
-      animationType="slide"
+      animationType="fade"
       transparent
       onRequestClose={onClose}
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)" }}
+        style={localStyles.backdrop}
       >
         <ScrollView
-          contentContainerStyle={{
-            flexGrow: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            padding: 16,
-          }}
+          contentContainerStyle={localStyles.scrollContainer}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -264,62 +302,76 @@ export default function PostContentModal({
               localStyles.modalCard,
               {
                 backgroundColor: isDark ? colors.surfaceContainer : "#FFFFFF",
-                borderColor: colors.outlineVariant,
+                borderColor: isDark
+                  ? colors.outlineVariant
+                  : "rgba(0,0,0,0.08)",
               },
             ]}
           >
             {/* Modal Header */}
             <View style={localStyles.headerRow}>
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
-              >
+              <View style={localStyles.headerLeft}>
                 <View
                   style={[
                     localStyles.headerIconBadge,
-                    { backgroundColor: colors.primary + "18" },
+                    { backgroundColor: currentColor + "18" },
                   ]}
                 >
                   <MaterialIcons
-                    name="post-add"
-                    size={24}
-                    color={colors.primary}
+                    name={getContentTypeIcon(form.type)}
+                    size={22}
+                    color={currentColor}
                   />
                 </View>
-                <View>
+                <View style={{ flex: 1, minWidth: 0 }}>
                   <Text
                     style={[
                       localStyles.headerTitle,
                       { color: colors.onSurface },
                     ]}
+                    numberOfLines={1}
                   >
-                    Post Class Material
+                    {form.type === "homework"
+                      ? "Post Homework"
+                      : form.type === "news"
+                      ? "Post Notice"
+                      : "Post Study Material"}
                   </Text>
                   <Text
                     style={[
                       localStyles.headerSubtitle,
                       { color: colors.onSurfaceVariant },
                     ]}
+                    numberOfLines={1}
                   >
-                    Notes, homework, PPTs, PDFs & videos
+                    Share with students & class feed
                   </Text>
                 </View>
               </View>
 
               <Pressable
                 onPress={onClose}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                style={localStyles.closeBtn}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                style={({ pressed }) => [
+                  localStyles.closeBtn,
+                  {
+                    backgroundColor: isDark
+                      ? colors.surfaceContainerHighest
+                      : colors.surfaceContainerHigh,
+                    opacity: pressed ? 0.7 : 1,
+                  },
+                ]}
               >
                 <MaterialIcons
                   name="close"
-                  size={24}
+                  size={20}
                   color={colors.onSurfaceVariant}
                 />
               </Pressable>
             </View>
 
             {/* Type Selector */}
-            <View style={{ marginBottom: 14 }}>
+            <View style={localStyles.fieldGroup}>
               <Text
                 style={[
                   localStyles.inputLabel,
@@ -330,12 +382,12 @@ export default function PostContentModal({
               </Text>
               <View style={localStyles.typeRow}>
                 {[
-                  { key: "note", label: "Study Note", icon: "menu-book" },
                   { key: "homework", label: "Homework", icon: "assignment" },
+                  { key: "note", label: "Study Note", icon: "menu-book" },
                   { key: "news", label: "Notice", icon: "campaign" },
                 ].map((item) => {
                   const isSelected = form.type === item.key;
-                  const typeColor = getContentTypeColor(item.key);
+                  const itemColor = getContentTypeColor(item.key);
                   return (
                     <Pressable
                       key={item.key}
@@ -349,29 +401,32 @@ export default function PostContentModal({
                         localStyles.typeBtn,
                         {
                           backgroundColor: isSelected
-                            ? typeColor + "20"
+                            ? itemColor + "18"
                             : isDark
                             ? colors.surfaceContainerHighest
                             : colors.surfaceContainerHigh,
-                          borderColor: isSelected ? typeColor : "transparent",
+                          borderColor: isSelected ? itemColor : "transparent",
                         },
                       ]}
                     >
                       <MaterialIcons
                         name={item.icon}
-                        size={18}
-                        color={isSelected ? typeColor : colors.onSurfaceVariant}
+                        size={16}
+                        color={isSelected ? itemColor : colors.onSurfaceVariant}
                       />
                       <Text
                         style={[
                           localStyles.typeBtnText,
                           {
                             color: isSelected
-                              ? typeColor
+                              ? itemColor
                               : colors.onSurfaceVariant,
-                            fontFamily: isSelected ? FONTS.bold : FONTS.medium,
+                            fontFamily: isSelected
+                              ? FONTS.bold
+                              : FONTS.medium,
                           },
                         ]}
+                        numberOfLines={1}
                       >
                         {item.label}
                       </Text>
@@ -383,7 +438,7 @@ export default function PostContentModal({
 
             {/* Subject Selector (if subjects available and not preset) */}
             {subjects && subjects.length > 0 && !defaultSubjectId && (
-              <View style={{ marginBottom: 14 }}>
+              <View style={localStyles.fieldGroup}>
                 <Text
                   style={[
                     localStyles.inputLabel,
@@ -392,90 +447,112 @@ export default function PostContentModal({
                 >
                   TARGET SUBJECT
                 </Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  <View
-                    style={{ flexDirection: "row", gap: 6, paddingVertical: 2 }}
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={localStyles.subjectScrollContent}
+                >
+                  <Pressable
+                    onPress={() => setForm({ ...form, subject: "" })}
+                    style={[
+                      localStyles.subjectChip,
+                      {
+                        backgroundColor:
+                          form.subject === ""
+                            ? colors.primary + "18"
+                            : isDark
+                            ? colors.surfaceContainerHighest
+                            : colors.surfaceContainerHigh,
+                        borderColor:
+                          form.subject === ""
+                            ? colors.primary
+                            : isDark
+                            ? colors.outlineVariant
+                            : "transparent",
+                      },
+                    ]}
                   >
-                    <Pressable
-                      onPress={() => setForm({ ...form, subject: "" })}
+                    {form.subject === "" && (
+                      <MaterialIcons
+                        name="check"
+                        size={14}
+                        color={colors.primary}
+                        style={{ marginRight: 4 }}
+                      />
+                    )}
+                    <Text
                       style={[
-                        localStyles.subjectChip,
+                        localStyles.subjectChipText,
                         {
-                          backgroundColor:
+                          color:
                             form.subject === ""
-                              ? colors.primary + "20"
-                              : isDark
-                              ? colors.surfaceContainerHighest
-                              : colors.surfaceContainerHigh,
-                          borderColor:
-                            form.subject === "" ? colors.primary : "transparent",
+                              ? colors.primary
+                              : colors.onSurfaceVariant,
+                          fontFamily:
+                            form.subject === "" ? FONTS.bold : FONTS.medium,
                         },
                       ]}
                     >
-                      <Text
+                      Whole Class (General)
+                    </Text>
+                  </Pressable>
+
+                  {subjects.map((subj) => {
+                    const isSelected = form.subject === subj._id;
+                    return (
+                      <Pressable
+                        key={subj._id}
+                        onPress={() =>
+                          setForm({ ...form, subject: subj._id })
+                        }
                         style={[
-                          localStyles.subjectChipText,
+                          localStyles.subjectChip,
                           {
-                            color:
-                              form.subject === ""
-                                ? colors.primary
-                                : colors.onSurfaceVariant,
-                            fontFamily:
-                              form.subject === "" ? FONTS.bold : FONTS.medium,
+                            backgroundColor: isSelected
+                              ? colors.primary + "18"
+                              : isDark
+                              ? colors.surfaceContainerHighest
+                              : colors.surfaceContainerHigh,
+                            borderColor: isSelected
+                              ? colors.primary
+                              : isDark
+                              ? colors.outlineVariant
+                              : "transparent",
                           },
                         ]}
                       >
-                        General (Whole Class)
-                      </Text>
-                    </Pressable>
-
-                    {subjects.map((subj) => {
-                      const isSelected = form.subject === subj._id;
-                      return (
-                        <Pressable
-                          key={subj._id}
-                          onPress={() =>
-                            setForm({ ...form, subject: subj._id })
-                          }
+                        {isSelected && (
+                          <MaterialIcons
+                            name="check"
+                            size={14}
+                            color={colors.primary}
+                            style={{ marginRight: 4 }}
+                          />
+                        )}
+                        <Text
                           style={[
-                            localStyles.subjectChip,
+                            localStyles.subjectChipText,
                             {
-                              backgroundColor: isSelected
-                                ? colors.primary + "20"
-                                : isDark
-                                ? colors.surfaceContainerHighest
-                                : colors.surfaceContainerHigh,
-                              borderColor: isSelected
+                              color: isSelected
                                 ? colors.primary
-                                : "transparent",
+                                : colors.onSurfaceVariant,
+                              fontFamily: isSelected
+                                ? FONTS.bold
+                                : FONTS.medium,
                             },
                           ]}
                         >
-                          <Text
-                            style={[
-                              localStyles.subjectChipText,
-                              {
-                                color: isSelected
-                                  ? colors.primary
-                                  : colors.onSurfaceVariant,
-                                fontFamily: isSelected
-                                  ? FONTS.bold
-                                  : FONTS.medium,
-                              },
-                            ]}
-                          >
-                            {subj.name}
-                          </Text>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
+                          {subj.name}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
                 </ScrollView>
               </View>
             )}
 
             {/* Title Input */}
-            <View style={{ marginBottom: 12 }}>
+            <View style={localStyles.fieldGroup}>
               <Text
                 style={[
                   localStyles.inputLabel,
@@ -485,7 +562,11 @@ export default function PostContentModal({
                 TITLE *
               </Text>
               <TextInput
-                placeholder="e.g. Chapter 4 Practice Sheet & Slides"
+                placeholder={
+                  form.type === "homework"
+                    ? "e.g. Chapter 4 Exercises - Pg 45-48"
+                    : "e.g. Chapter 4 Practice Sheet & Slides"
+                }
                 placeholderTextColor={colors.onSurfaceVariant + "80"}
                 style={[
                   localStyles.textInput,
@@ -493,7 +574,9 @@ export default function PostContentModal({
                     backgroundColor: isDark
                       ? colors.surfaceContainerLowest
                       : colors.surfaceContainerLow,
-                    borderColor: colors.outlineVariant,
+                    borderColor: isDark
+                      ? colors.outlineVariant
+                      : "rgba(0,0,0,0.1)",
                     color: colors.onSurface,
                   },
                 ]}
@@ -503,30 +586,35 @@ export default function PostContentModal({
             </View>
 
             {/* Description Input */}
-            <View style={{ marginBottom: 14 }}>
+            <View style={localStyles.fieldGroup}>
               <Text
                 style={[
                   localStyles.inputLabel,
                   { color: colors.onSurfaceVariant },
                 ]}
               >
-                INSTRUCTIONS / DESCRIPTION
+                INSTRUCTIONS / DETAILS
               </Text>
               <TextInput
-                placeholder="Write homework instructions, chapter overview, or key learning takeaways..."
+                placeholder={
+                  form.type === "homework"
+                    ? "Specify submission deadline, instructions, questions to complete..."
+                    : "Write notes overview, learning objectives, or important remarks..."
+                }
                 placeholderTextColor={colors.onSurfaceVariant + "80"}
                 multiline
-                numberOfLines={4}
+                numberOfLines={3}
                 style={[
                   localStyles.textInput,
+                  localStyles.textArea,
                   {
                     backgroundColor: isDark
                       ? colors.surfaceContainerLowest
                       : colors.surfaceContainerLow,
-                    borderColor: colors.outlineVariant,
+                    borderColor: isDark
+                      ? colors.outlineVariant
+                      : "rgba(0,0,0,0.1)",
                     color: colors.onSurface,
-                    minHeight: 85,
-                    textAlignVertical: "top",
                   },
                 ]}
                 value={form.description}
@@ -535,35 +623,22 @@ export default function PostContentModal({
             </View>
 
             {/* Attachments Section */}
-            <View style={{ marginBottom: 16 }}>
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: 8,
-                }}
-              >
+            <View style={localStyles.fieldGroup}>
+              <View style={localStyles.attachHeader}>
                 <Text
                   style={[
                     localStyles.inputLabel,
                     { color: colors.onSurfaceVariant, marginBottom: 0 },
                   ]}
                 >
-                  ATTACHMENTS ({attachments.length})
+                  ATTACHMENTS {attachments.length > 0 ? `(${attachments.length})` : ""}
                 </Text>
                 {uploading && (
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 6,
-                    }}
-                  >
+                  <View style={localStyles.uploadingBadge}>
                     <ActivityIndicator size="small" color={colors.primary} />
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.sm,
+                        fontSize: FONT_SIZES.xs,
                         color: colors.primary,
                         fontFamily: FONTS.bold,
                       }}
@@ -574,7 +649,7 @@ export default function PostContentModal({
                 )}
               </View>
 
-              {/* Attachment Picker Buttons */}
+              {/* Attachment Picker Buttons (Vertical Stack with Icon & Label) */}
               <View style={localStyles.attachToolbar}>
                 <Pressable
                   onPress={handlePickImages}
@@ -595,6 +670,7 @@ export default function PostContentModal({
                       localStyles.attachBtnText,
                       { color: colors.onSurface },
                     ]}
+                    numberOfLines={1}
                   >
                     Photo
                   </Text>
@@ -619,8 +695,9 @@ export default function PostContentModal({
                       localStyles.attachBtnText,
                       { color: colors.onSurface },
                     ]}
+                    numberOfLines={1}
                   >
-                    PDF / PPT
+                    PDF / Doc
                   </Text>
                 </Pressable>
 
@@ -637,41 +714,119 @@ export default function PostContentModal({
                     },
                   ]}
                 >
-                  <MaterialIcons name="videocam" size={20} color="#9333EA" />
+                  <MaterialIcons name="videocam" size={20} color="#8B5CF6" />
                   <Text
                     style={[
                       localStyles.attachBtnText,
                       { color: colors.onSurface },
                     ]}
+                    numberOfLines={1}
                   >
                     Video
                   </Text>
                 </Pressable>
 
                 <Pressable
-                  onPress={() => setShowLinkModal(true)}
+                  onPress={() => setShowLinkInput(!showLinkInput)}
                   disabled={uploading}
                   style={({ pressed }) => [
                     localStyles.attachBtn,
                     {
-                      backgroundColor: isDark
+                      backgroundColor: showLinkInput
+                        ? "#10B98118"
+                        : isDark
                         ? colors.surfaceContainerHighest
                         : colors.surfaceContainerHigh,
+                      borderColor: showLinkInput ? "#10B981" : "transparent",
+                      borderWidth: showLinkInput ? 1 : 0,
                       opacity: pressed || uploading ? 0.7 : 1,
                     },
                   ]}
                 >
-                  <MaterialIcons name="link" size={20} color="#0D9488" />
+                  <MaterialIcons name="link" size={20} color="#10B981" />
                   <Text
                     style={[
                       localStyles.attachBtnText,
-                      { color: colors.onSurface },
+                      {
+                        color: showLinkInput ? "#10B981" : colors.onSurface,
+                      },
                     ]}
+                    numberOfLines={1}
                   >
                     Link
                   </Text>
                 </Pressable>
               </View>
+
+              {/* Inline Link Input */}
+              {showLinkInput && (
+                <View
+                  style={[
+                    localStyles.inlineLinkContainer,
+                    {
+                      backgroundColor: isDark
+                        ? colors.surfaceContainerLowest
+                        : colors.surfaceContainerLow,
+                      borderColor: isDark
+                        ? colors.outlineVariant
+                        : "rgba(0,0,0,0.1)",
+                    },
+                  ]}
+                >
+                  <TextInput
+                    placeholder="Paste link (https://drive.google.com/...)"
+                    placeholderTextColor={colors.onSurfaceVariant + "80"}
+                    autoCapitalize="none"
+                    keyboardType="url"
+                    style={[
+                      localStyles.inlineLinkInput,
+                      { color: colors.onSurface },
+                    ]}
+                    value={linkInput}
+                    onChangeText={setLinkInput}
+                  />
+                  <View style={localStyles.inlineLinkActions}>
+                    <Pressable
+                      onPress={() => {
+                        setLinkInput("");
+                        setShowLinkInput(false);
+                      }}
+                      style={localStyles.inlineLinkCancel}
+                    >
+                      <Text
+                        style={{
+                          fontSize: FONT_SIZES.xs,
+                          color: colors.onSurfaceVariant,
+                          fontFamily: FONTS.medium,
+                        }}
+                      >
+                        Cancel
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={handleAddLink}
+                      disabled={!linkInput.trim()}
+                      style={[
+                        localStyles.inlineLinkAdd,
+                        {
+                          backgroundColor: "#10B981",
+                          opacity: !linkInput.trim() ? 0.5 : 1,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={{
+                          fontSize: FONT_SIZES.xs,
+                          color: "#FFFFFF",
+                          fontFamily: FONTS.bold,
+                        }}
+                      >
+                        Attach
+                      </Text>
+                    </Pressable>
+                  </View>
+                </View>
+              )}
 
               {/* Staged Attachments List */}
               {attachments.length > 0 && (
@@ -699,7 +854,7 @@ export default function PostContentModal({
                         >
                           <MaterialIcons
                             name={meta.icon}
-                            size={18}
+                            size={16}
                             color={meta.color}
                           />
                         </View>
@@ -719,7 +874,7 @@ export default function PostContentModal({
                         >
                           <MaterialIcons
                             name="cancel"
-                            size={20}
+                            size={18}
                             color={colors.error}
                           />
                         </Pressable>
@@ -735,9 +890,14 @@ export default function PostContentModal({
               <Pressable
                 onPress={onClose}
                 disabled={uploading || isLoading}
-                style={[
+                style={({ pressed }) => [
                   localStyles.cancelBtn,
-                  { borderColor: colors.outlineVariant },
+                  {
+                    borderColor: isDark
+                      ? colors.outlineVariant
+                      : "rgba(0,0,0,0.12)",
+                    opacity: pressed ? 0.7 : 1,
+                  },
                 ]}
               >
                 <Text
@@ -759,7 +919,7 @@ export default function PostContentModal({
                     backgroundColor: colors.primary,
                     opacity:
                       uploading || isLoading || !form.title.trim()
-                        ? 0.6
+                        ? 0.5
                         : pressed
                         ? 0.85
                         : 1,
@@ -770,8 +930,12 @@ export default function PostContentModal({
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
                   <>
-                    <MaterialIcons name="send" size={18} color="#FFFFFF" />
-                    <Text style={localStyles.submitBtnText}>Post to Class</Text>
+                    <MaterialIcons name="send" size={16} color="#FFFFFF" />
+                    <Text style={localStyles.submitBtnText}>
+                      {form.type === "homework"
+                        ? "Post Homework"
+                        : "Post to Class"}
+                    </Text>
                   </>
                 )}
               </Pressable>
@@ -779,101 +943,22 @@ export default function PostContentModal({
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-
-      {/* Link Input Modal */}
-      <Modal
-        visible={showLinkModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowLinkModal(false)}
-      >
-        <View style={localStyles.linkModalBackdrop}>
-          <View
-            style={[
-              localStyles.linkModalCard,
-              {
-                backgroundColor: isDark ? colors.surfaceContainer : "#FFFFFF",
-                borderColor: colors.outlineVariant,
-              },
-            ]}
-          >
-            <Text
-              style={{
-                fontSize: FONT_SIZES.md,
-                fontFamily: FONTS.bold,
-                color: colors.onSurface,
-                marginBottom: 8,
-              }}
-            >
-              Add Web Resource / Link
-            </Text>
-            <TextInput
-              placeholder="https://drive.google.com/... or https://youtube.com/..."
-              placeholderTextColor={colors.onSurfaceVariant + "80"}
-              autoCapitalize="none"
-              keyboardType="url"
-              style={[
-                localStyles.textInput,
-                {
-                  backgroundColor: isDark
-                    ? colors.surfaceContainerLowest
-                    : colors.surfaceContainerLow,
-                  borderColor: colors.outlineVariant,
-                  color: colors.onSurface,
-                  marginBottom: 16,
-                },
-              ]}
-              value={linkInput}
-              onChangeText={setLinkInput}
-            />
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "flex-end",
-                gap: 10,
-              }}
-            >
-              <Pressable
-                onPress={() => {
-                  setLinkInput("");
-                  setShowLinkModal(false);
-                }}
-                style={{ padding: 10 }}
-              >
-                <Text
-                  style={{
-                    fontSize: FONT_SIZES.sm,
-                    color: colors.onSurfaceVariant,
-                    fontFamily: FONTS.medium,
-                  }}
-                >
-                  Cancel
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={handleAddLink}
-                disabled={!linkInput.trim()}
-                style={[
-                  localStyles.submitBtn,
-                  {
-                    backgroundColor: colors.primary,
-                    paddingHorizontal: 16,
-                    paddingVertical: 8,
-                    opacity: !linkInput.trim() ? 0.6 : 1,
-                  },
-                ]}
-              >
-                <Text style={localStyles.submitBtnText}>Add Link</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </Modal>
   );
 }
 
 const localStyles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.65)",
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+  },
   modalCard: {
     borderRadius: 20,
     padding: 20,
@@ -881,9 +966,9 @@ const localStyles = StyleSheet.create({
     maxWidth: 480,
     borderWidth: 1,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
     elevation: 8,
   },
   headerRow: {
@@ -892,10 +977,17 @@ const localStyles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 16,
   },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    flex: 1,
+    marginRight: 8,
+  },
   headerIconBadge: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -904,18 +996,26 @@ const localStyles = StyleSheet.create({
     fontFamily: FONTS.bold,
   },
   headerSubtitle: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
+    marginTop: 1,
   },
   closeBtn: {
-    padding: 6,
-    borderRadius: 8,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  fieldGroup: {
+    marginBottom: 14,
   },
   inputLabel: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
     marginBottom: 6,
+    textTransform: "uppercase",
   },
   typeRow: {
     flexDirection: "row",
@@ -926,73 +1026,122 @@ const localStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 8,
+    paddingVertical: 9,
+    paddingHorizontal: 6,
     borderRadius: 10,
-    borderWidth: 1,
-    gap: 6,
+    borderWidth: 1.5,
+    gap: 5,
   },
   typeBtnText: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
+  },
+  subjectScrollContent: {
+    flexDirection: "row",
+    gap: 8,
+    paddingVertical: 2,
   },
   subjectChip: {
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 7,
     borderRadius: 8,
     borderWidth: 1,
   },
   subjectChipText: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
   },
   textInput: {
     paddingHorizontal: 14,
-    paddingVertical: 11,
+    paddingVertical: 10,
     borderRadius: 10,
     borderWidth: 1,
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
   },
+  textArea: {
+    minHeight: 76,
+    textAlignVertical: "top",
+  },
+  attachHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  uploadingBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
   attachToolbar: {
     flexDirection: "row",
     gap: 8,
-    marginBottom: 10,
   },
   attachBtn: {
     flex: 1,
-    flexDirection: "row",
+    flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 10,
+    paddingVertical: 8,
     paddingHorizontal: 4,
     borderRadius: 10,
-    gap: 5,
+    gap: 4,
   },
   attachBtnText: {
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.semiBold,
+  },
+  inlineLinkContainer: {
+    marginTop: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    padding: 8,
+    gap: 8,
+  },
+  inlineLinkInput: {
     fontSize: FONT_SIZES.sm,
-    fontFamily: FONTS.bold,
+    fontFamily: FONTS.regular,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  inlineLinkActions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    gap: 8,
+  },
+  inlineLinkCancel: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  inlineLinkAdd: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 6,
   },
   stagedList: {
-    gap: 8,
-    marginTop: 6,
+    gap: 6,
+    marginTop: 8,
   },
   stagedItem: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 10,
-    borderRadius: 10,
+    padding: 8,
+    borderRadius: 8,
     borderWidth: 1,
-    gap: 10,
+    gap: 8,
   },
   stagedIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 6,
     alignItems: "center",
     justifyContent: "center",
   },
   stagedName: {
     flex: 1,
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.medium,
   },
   stagedRemove: {
@@ -1001,12 +1150,15 @@ const localStyles = StyleSheet.create({
   footerRow: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    gap: 12,
-    marginTop: 8,
+    gap: 10,
+    marginTop: 6,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(0,0,0,0.06)",
   },
   cancelBtn: {
-    paddingHorizontal: 18,
-    paddingVertical: 11,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderRadius: 10,
     borderWidth: 1,
     alignItems: "center",
@@ -1019,9 +1171,9 @@ const localStyles = StyleSheet.create({
   submitBtn: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 22,
-    paddingVertical: 11,
+    gap: 6,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
     borderRadius: 10,
     justifyContent: "center",
   },
@@ -1030,18 +1182,5 @@ const localStyles = StyleSheet.create({
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
-  linkModalBackdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.65)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  linkModalCard: {
-    width: "100%",
-    maxWidth: 400,
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-  },
 });
+

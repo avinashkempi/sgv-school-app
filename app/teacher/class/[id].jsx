@@ -1666,6 +1666,13 @@ export default function ClassDetailsScreen() {
         onClose={() => setShowPostModal(false)}
         onSubmit={(formData) => postContentMutation.mutate(formData)}
         subjects={subjects}
+        className={
+          classData?.name ||
+          classData?.label ||
+          (classData?.value ? `Class ${classData.value}` : "")
+        }
+        branch={classData?.branch || ""}
+        teacherName={user?.name || ""}
         isLoading={postContentMutation.isPending}
       />
     </View>
