@@ -17,12 +17,9 @@ import * as Haptics from "expo-haptics";
 import { useTheme, FONTS, FONT_SIZES } from "../theme";
 import {
   pickVibeMedia,
-  uploadToCloudinary,
-  uploadVideoToCloudinary,
   uploadAcademicAttachment,
   pickAndUploadDocument,
   getDocumentMeta,
-  CLOUDINARY_FOLDERS,
 } from "../utils/cloudinaryUpload";
 
 export default function PostContentModal({
