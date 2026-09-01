@@ -7,6 +7,7 @@ import {
   TextInput,
   ActivityIndicator,
   FlatList,
+  StyleSheet,
 } from "react-native";
 
 import { MaterialIcons } from "@expo/vector-icons";

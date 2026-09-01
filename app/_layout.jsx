@@ -31,6 +31,7 @@ import {
 import DemoBanner from "../components/DemoBanner";
 import useOfflinePrefetch from "../hooks/useOfflinePrefetch";
 import { setupAppStateRefresh } from "../utils/appStateRefresh";
+import { handleNotificationNavigation } from "../utils/notificationRouter";
 
 // Configure how notifications are displayed when app is in foreground
 Notifications.setNotificationHandler({
@@ -105,31 +106,62 @@ function Inner() {
     }
   }, [segments, router, token, isReady]);
 
-  // Setup push notification listeners (FCM registration is now handled by AuthContext.login)
+  // Track already processed cold start notification to avoid duplicate navigations
+  const lastProcessedNotificationId = useRef(null);
+
+  // Setup push notification listeners (FCM registration is handled by AuthContext.login)
   useEffect(() => {
     if (Platform.OS === "web") return;
 
-    let notificationSubscription;
-    let responseSubscription;
+    // Check for cold-start notification launch (when app was opened from notification while killed)
+    const checkColdStartNotification = async () => {
+      try {
+        if (!isReady || !token) return;
+        const response = await Notifications.getLastNotificationResponseAsync();
+        if (response?.notification) {
+          const responseId =
+            response.notification.request.identifier ||
+            JSON.stringify(response.notification.request.content.data || {});
 
-    // Listen for foreground notifications
-    notificationSubscription = Notifications.addNotificationReceivedListener(
-      (_notification) => {
-        // Foreground notification received
+          if (lastProcessedNotificationId.current !== responseId) {
+            lastProcessedNotificationId.current = responseId;
+            const data = response.notification.request.content.data || {};
+            handleNotificationNavigation(data, router, user?.role, {
+              fallbackToNotifications: true,
+              replace: false,
+            });
+          }
+        }
+      } catch (err) {
+        console.warn("[Layout] Cold-start notification check error:", err);
       }
-    );
+    };
 
-    // Listen for notification taps
-    responseSubscription =
-      Notifications.addNotificationResponseReceivedListener((_response) => {
-        // Notification tap handling
+    checkColdStartNotification();
+
+    // Listen for notification taps (when app is foregrounded or in background)
+    const responseSubscription =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        try {
+          const data = response?.notification?.request?.content?.data || {};
+          handleNotificationNavigation(data, router, user?.role, {
+            fallbackToNotifications: true,
+          });
+        } catch (err) {
+          console.warn("[Layout] Push notification tap handling error:", err);
+        }
+      });
+
+    const notificationSubscription =
+      Notifications.addNotificationReceivedListener((_notification) => {
+        // Foreground notification received - NotificationContext handles query invalidation
       });
 
     return () => {
       notificationSubscription?.remove();
       responseSubscription?.remove();
     };
-  }, []);
+  }, [isReady, token, user?.role, router]);
 
   // Check for store app updates on mount
   useEffect(() => {

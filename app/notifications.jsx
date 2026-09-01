@@ -9,7 +9,6 @@ import React, {
 import {
   View,
   Text,
-  RefreshControl,
   ActivityIndicator,
   Pressable,
   Switch,
@@ -37,6 +36,11 @@ import { useToast } from "../components/ToastProvider";
 import { useNotifications } from "../hooks/useNotifications";
 import { useLabel } from "../context/LabelsContext";
 import SwipeableRow from "../components/ui/SwipeableRow";
+import AppRefreshControl from "../components/ui/AppRefreshControl";
+import {
+  resolveNotificationRoute,
+  handleNotificationNavigation,
+} from "../utils/notificationRouter";
 
 // Category color mappings - curated harmonious palette
 const getCategoryConfig = (type, colors) => {
@@ -248,21 +252,36 @@ AnimatedUnreadDot.displayName = "AnimatedUnreadDot";
 
 // Extracted and memoized notification card item
 const NotificationItem = memo(
-  ({ notif, colors, markAsRead, handleDelete, isAdmin }) => {
+  ({ notif, colors, markAsRead, handleDelete, isAdmin, userRole, router }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const config = getCategoryConfig(notif.type, colors);
     const isLongMessage = notif.message && notif.message.length > 120;
     const isDarkMode =
       colors.background === "#141218" || colors.surface === "#141218";
 
+    const destination = useMemo(
+      () =>
+        resolveNotificationRoute(notif, userRole, {
+          fallbackToNotifications: false,
+        }),
+      [notif, userRole]
+    );
+    const hasAction =
+      destination.type === "navigate" || destination.type === "external_link";
+
     const handlePress = useCallback(() => {
       if (!notif.isRead) {
         markAsRead(notif._id);
       }
-      if (isLongMessage) {
+      if (hasAction) {
+        handleNotificationNavigation(notif, router, userRole, {
+          fallbackToNotifications: false,
+          currentPath: "/notifications",
+        });
+      } else if (isLongMessage) {
         setIsExpanded((prev) => !prev);
       }
-    }, [notif.isRead, notif._id, markAsRead, isLongMessage]);
+    }, [notif, markAsRead, hasAction, isLongMessage, router, userRole]);
 
     // Card background
     const cardBg = notif.isRead
@@ -419,8 +438,8 @@ const NotificationItem = memo(
                 {notif.message}
               </Text>
 
-              {/* Expand / Collapse Indicator for long messages */}
-              {isLongMessage && (
+              {/* Expand / Collapse Indicator for long messages without separate route */}
+              {!hasAction && isLongMessage && (
                 <Pressable
                   onPress={(e) => {
                     e.stopPropagation?.();
@@ -442,6 +461,28 @@ const NotificationItem = memo(
                     color={colors.primary}
                   />
                 </Pressable>
+              )}
+
+              {/* Action Hint / Link for actionable notifications */}
+              {hasAction && (
+                <View style={styles.actionHintRow}>
+                  <Text
+                    style={[styles.actionHintText, { color: colors.primary }]}
+                  >
+                    {destination.type === "external_link"
+                      ? "Open Link"
+                      : "View Details"}
+                  </Text>
+                  <MaterialIcons
+                    name={
+                      destination.type === "external_link"
+                        ? "open-in-new"
+                        : "chevron-right"
+                    }
+                    size={16}
+                    color={colors.primary}
+                  />
+                </View>
               )}
             </View>
           </View>
@@ -482,6 +523,19 @@ export default function NotificationsScreen() {
     deleteNotification,
     unreadCount,
   } = useNotifications();
+
+  const [localRefreshing, setLocalRefreshing] = useState(false);
+
+  const handleRefresh = useCallback(async () => {
+    setLocalRefreshing(true);
+    try {
+      await fetchNotifications();
+    } catch (err) {
+      console.warn("[NotificationsScreen] Refresh error:", err);
+    } finally {
+      setLocalRefreshing(false);
+    }
+  }, [fetchNotifications]);
 
   // Fetch user preferences and role
   const { data: userData } = useApiQuery(
@@ -576,9 +630,11 @@ export default function NotificationsScreen() {
         markAsRead={markAsRead}
         handleDelete={handleDelete}
         isAdmin={isAdmin}
+        userRole={userData?.role}
+        router={router}
       />
     ),
-    [colors, markAsRead, handleDelete, isAdmin]
+    [colors, markAsRead, handleDelete, isAdmin, userData?.role, router]
   );
 
   const isDarkMode =
@@ -840,11 +896,9 @@ export default function NotificationsScreen() {
             contentContainerStyle={styles.listContent}
             estimatedItemSize={104}
             refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={() => fetchNotifications(true)}
-                colors={[colors.primary]}
-                tintColor={colors.primary}
+              <AppRefreshControl
+                refreshing={Boolean(refreshing || localRefreshing)}
+                onRefresh={handleRefresh}
               />
             }
             ListEmptyComponent={
@@ -1557,5 +1611,17 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
+  },
+  actionHintRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 8,
+    gap: 2,
+    alignSelf: "flex-start",
+  },
+  actionHintText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+    letterSpacing: 0.2,
   },
 });

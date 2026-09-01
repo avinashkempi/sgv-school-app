@@ -22,7 +22,12 @@ export const NotificationProvider = ({ children }) => {
   // ── Fetch notifications via React Query ──
   // Query key is scoped to userId so different users don't see each other's notifications.
   // Disabled when not authenticated (prevents 401 on login screen).
-  const { data: notificationData, refetch } = useApiQuery(
+  const {
+    data: notificationData,
+    refetch,
+    isLoading,
+    isRefetching,
+  } = useApiQuery(
     ["notifications", userId],
     `${apiConfig.baseUrl}/notifications`,
     {
@@ -36,6 +41,9 @@ export const NotificationProvider = ({ children }) => {
   const unreadCount =
     notificationData?.unreadCount ??
     notifications.filter((n) => !n.isRead).length;
+
+  const loading = !!isLoading;
+  const refreshing = !!isRefetching;
 
   // ── Listen for push notifications to invalidate cache ──
   useEffect(() => {
@@ -184,7 +192,12 @@ export const NotificationProvider = ({ children }) => {
   }, [queryClient, userId]);
 
   const fetchNotifications = useCallback(async () => {
-    await refetch();
+    try {
+      return await refetch();
+    } catch (err) {
+      console.warn("[NotificationContext] Fetch notifications failed:", err);
+      return null;
+    }
   }, [refetch]);
 
   return (
@@ -192,6 +205,8 @@ export const NotificationProvider = ({ children }) => {
       value={{
         notifications,
         unreadCount,
+        loading,
+        refreshing,
         fetchNotifications,
         markAsRead,
         markAllRead,

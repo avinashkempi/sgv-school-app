@@ -49,10 +49,18 @@ export default function VibeLikesModal({ visible, onClose, vibeId }) {
             size={38}
           />
           <View style={styles.userDetails}>
-            <Text style={[styles.userName, { color: colors.onSurface }]}>
+            <Text
+              style={[styles.userName, { color: colors.onSurface }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
               {displayName}
             </Text>
-            <Text style={[styles.userRole, { color: colors.onSurfaceVariant }]}>
+            <Text
+              style={[styles.userRole, { color: colors.onSurfaceVariant }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
               {roleText}
             </Text>
           </View>
@@ -236,6 +244,7 @@ const styles = StyleSheet.create({
   },
   userDetails: {
     flex: 1,
+    minWidth: 0,
   },
   userName: {
     fontSize: FONT_SIZES.sm,

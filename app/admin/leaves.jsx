@@ -807,65 +807,105 @@ export default function AdminLeaves() {
             style={[
               styles.kpiCapsule,
               {
-                backgroundColor: statusFilter === "pending" ? "#FFF3E0" : colors.surface,
-                borderColor: statusFilter === "pending" ? "#FFB74D" : colors.outlineVariant + "40",
+                backgroundColor:
+                  statusFilter === "pending"
+                    ? (colors.warning || "#FF9800") + "25"
+                    : colors.surface,
+                borderColor:
+                  statusFilter === "pending"
+                    ? colors.warning || "#FF9800"
+                    : colors.outlineVariant + "40",
               },
             ]}
             onPress={() => setStatusFilter(statusFilter === "pending" ? "all" : "pending")}
           >
             <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-              <View style={[styles.kpiDot, { backgroundColor: "#E65100" }]} />
-              <Text style={[styles.kpiCapsuleNum, { color: "#E65100" }]} numberOfLines={1}>{summaryMetrics.pending}</Text>
+              <View style={[styles.kpiDot, { backgroundColor: colors.warning || "#FF9800" }]} />
+              <Text style={[styles.kpiCapsuleNum, { color: colors.warning || "#FF9800" }]} numberOfLines={1}>
+                {summaryMetrics.pending}
+              </Text>
             </View>
-            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]} numberOfLines={1}>Pending</Text>
+            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]} numberOfLines={1}>
+              Pending
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[
               styles.kpiCapsule,
               {
-                backgroundColor: statusFilter === "approved" ? "#E8F5E9" : colors.surface,
-                borderColor: statusFilter === "approved" ? "#81C784" : colors.outlineVariant + "40",
+                backgroundColor:
+                  statusFilter === "approved"
+                    ? colors.success + "25"
+                    : colors.surface,
+                borderColor:
+                  statusFilter === "approved"
+                    ? colors.success
+                    : colors.outlineVariant + "40",
               },
             ]}
             onPress={() => setStatusFilter(statusFilter === "approved" ? "all" : "approved")}
           >
             <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-              <View style={[styles.kpiDot, { backgroundColor: "#2E7D32" }]} />
-              <Text style={[styles.kpiCapsuleNum, { color: "#2E7D32" }]} numberOfLines={1}>{summaryMetrics.approved}</Text>
+              <View style={[styles.kpiDot, { backgroundColor: colors.success }]} />
+              <Text style={[styles.kpiCapsuleNum, { color: colors.success }]} numberOfLines={1}>
+                {summaryMetrics.approved}
+              </Text>
             </View>
-            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]} numberOfLines={1}>Approved</Text>
+            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]} numberOfLines={1}>
+              Approved
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[
               styles.kpiCapsule,
               {
-                backgroundColor: statusFilter === "rejected" ? "#FFEBEE" : colors.surface,
-                borderColor: statusFilter === "rejected" ? "#E57373" : colors.outlineVariant + "40",
+                backgroundColor:
+                  statusFilter === "rejected"
+                    ? colors.error + "25"
+                    : colors.surface,
+                borderColor:
+                  statusFilter === "rejected"
+                    ? colors.error
+                    : colors.outlineVariant + "40",
               },
             ]}
             onPress={() => setStatusFilter(statusFilter === "rejected" ? "all" : "rejected")}
           >
             <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-              <View style={[styles.kpiDot, { backgroundColor: "#D32F2F" }]} />
-              <Text style={[styles.kpiCapsuleNum, { color: "#D32F2F" }]} numberOfLines={1}>{summaryMetrics.rejected}</Text>
+              <View style={[styles.kpiDot, { backgroundColor: colors.error }]} />
+              <Text style={[styles.kpiCapsuleNum, { color: colors.error }]} numberOfLines={1}>
+                {summaryMetrics.rejected}
+              </Text>
             </View>
-            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]} numberOfLines={1}>Rejected</Text>
+            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]} numberOfLines={1}>
+              Rejected
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[
               styles.kpiCapsule,
               {
-                backgroundColor: statusFilter === "all" ? colors.primaryContainer + "40" : colors.surface,
-                borderColor: statusFilter === "all" ? colors.primary : colors.outlineVariant + "40",
+                backgroundColor:
+                  statusFilter === "all"
+                    ? colors.primaryContainer
+                    : colors.surface,
+                borderColor:
+                  statusFilter === "all"
+                    ? colors.primary
+                    : colors.outlineVariant + "40",
               },
             ]}
             onPress={() => setStatusFilter("all")}
           >
-            <Text style={[styles.kpiCapsuleNum, { color: colors.primary }]} numberOfLines={1}>{summaryMetrics.total}</Text>
-            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]} numberOfLines={1}>All</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+              <Text style={[styles.kpiCapsuleNum, { color: colors.primary }]}>{summaryMetrics.total}</Text>
+            </View>
+            <Text style={[styles.kpiCapsuleLabel, { color: colors.onSurfaceVariant }]} numberOfLines={1}>
+              All
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -1292,7 +1332,16 @@ export default function AdminLeaves() {
                       key={item.id}
                       style={[
                         styles.sheetChip,
-                        isSel && [styles.sheetChipActive, { backgroundColor: colors.primary }],
+                        {
+                          backgroundColor: isSel
+                            ? colors.primary
+                            : colors.surfaceContainerHighest || colors.surfaceVariant,
+                          borderColor: isSel
+                            ? colors.primary
+                            : colors.outlineVariant + "40",
+                          borderWidth: 1,
+                        },
+                        isSel && styles.sheetChipActive,
                       ]}
                       onPress={() => setRoleFilter(item.id)}
                     >
@@ -1317,14 +1366,30 @@ export default function AdminLeaves() {
                 <TouchableOpacity
                   style={[
                     styles.sheetChip,
-                    selectedAcademicYearId === "all" && [styles.sheetChipActive, { backgroundColor: colors.primary }],
+                    {
+                      backgroundColor:
+                        selectedAcademicYearId === "all"
+                          ? colors.primary
+                          : colors.surfaceContainerHighest || colors.surfaceVariant,
+                      borderColor:
+                        selectedAcademicYearId === "all"
+                          ? colors.primary
+                          : colors.outlineVariant + "40",
+                      borderWidth: 1,
+                    },
+                    selectedAcademicYearId === "all" && styles.sheetChipActive,
                   ]}
                   onPress={() => setSelectedAcademicYearId("all")}
                 >
                   <Text
                     style={[
                       styles.sheetChipText,
-                      { color: selectedAcademicYearId === "all" ? colors.onPrimary : colors.onSurface },
+                      {
+                        color:
+                          selectedAcademicYearId === "all"
+                            ? colors.onPrimary
+                            : colors.onSurface,
+                      },
                     ]}
                   >
                     All Years
@@ -1338,18 +1403,51 @@ export default function AdminLeaves() {
                       key={yr._id}
                       style={[
                         styles.sheetChip,
-                        isSel && [styles.sheetChipActive, { backgroundColor: colors.primary }],
+                        {
+                          backgroundColor: isSel
+                            ? colors.primary
+                            : colors.surfaceContainerHighest || colors.surfaceVariant,
+                          borderColor: isSel
+                            ? colors.primary
+                            : colors.outlineVariant + "40",
+                          borderWidth: 1,
+                        },
+                        isSel && styles.sheetChipActive,
                       ]}
                       onPress={() => setSelectedAcademicYearId(yr._id)}
                     >
-                      <Text
-                        style={[
-                          styles.sheetChipText,
-                          { color: isSel ? colors.onPrimary : colors.onSurface },
-                        ]}
-                      >
-                        {yr.name} {yr.isActive ? "(Current)" : ""}
-                      </Text>
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                        <Text
+                          style={[
+                            styles.sheetChipText,
+                            { color: isSel ? colors.onPrimary : colors.onSurface },
+                          ]}
+                        >
+                          {yr.name}
+                        </Text>
+                        {yr.isActive && (
+                          <View
+                            style={{
+                              backgroundColor: isSel
+                                ? "rgba(255,255,255,0.25)"
+                                : colors.primaryContainer,
+                              paddingHorizontal: 5,
+                              paddingVertical: 1,
+                              borderRadius: 4,
+                            }}
+                          >
+                            <Text
+                              style={{
+                                fontSize: FONT_SIZES.micro,
+                                fontFamily: FONTS.bold,
+                                color: isSel ? colors.onPrimary : colors.onPrimaryContainer,
+                              }}
+                            >
+                              Current
+                            </Text>
+                          </View>
+                        )}
+                      </View>
                     </TouchableOpacity>
                   );
                 })}
@@ -1365,14 +1463,30 @@ export default function AdminLeaves() {
                     <TouchableOpacity
                       style={[
                         styles.sheetChip,
-                        selectedClassId === "all" && [styles.sheetChipActive, { backgroundColor: colors.primary }],
+                        {
+                          backgroundColor:
+                            selectedClassId === "all"
+                              ? colors.primary
+                              : colors.surfaceContainerHighest || colors.surfaceVariant,
+                          borderColor:
+                            selectedClassId === "all"
+                              ? colors.primary
+                              : colors.outlineVariant + "40",
+                          borderWidth: 1,
+                        },
+                        selectedClassId === "all" && styles.sheetChipActive,
                       ]}
                       onPress={() => setSelectedClassId("all")}
                     >
                       <Text
                         style={[
                           styles.sheetChipText,
-                          { color: selectedClassId === "all" ? colors.onPrimary : colors.onSurface },
+                          {
+                            color:
+                              selectedClassId === "all"
+                                ? colors.onPrimary
+                                : colors.onSurface,
+                          },
                         ]}
                       >
                         All Classes
@@ -1386,7 +1500,16 @@ export default function AdminLeaves() {
                           key={cls._id}
                           style={[
                             styles.sheetChip,
-                            isSel && [styles.sheetChipActive, { backgroundColor: colors.primary }],
+                            {
+                              backgroundColor: isSel
+                                ? colors.primary
+                                : colors.surfaceContainerHighest || colors.surfaceVariant,
+                              borderColor: isSel
+                                ? colors.primary
+                                : colors.outlineVariant + "40",
+                              borderWidth: 1,
+                            },
+                            isSel && styles.sheetChipActive,
                           ]}
                           onPress={() => setSelectedClassId(cls._id)}
                         >
@@ -1503,8 +1626,8 @@ export default function AdminLeaves() {
                         style={[
                           styles.presetChip,
                           {
-                            backgroundColor: isPresetSelected ? "#FFEBEE" : colors.surfaceContainer,
-                            borderColor: isPresetSelected ? "#D32F2F" : colors.outlineVariant + "40",
+                            backgroundColor: isPresetSelected ? colors.errorContainer : colors.surfaceContainer,
+                            borderColor: isPresetSelected ? colors.error : colors.outlineVariant + "40",
                           },
                         ]}
                         onPress={() => setRejectionReason(preset)}
@@ -1512,7 +1635,7 @@ export default function AdminLeaves() {
                         <Text
                           style={{
                             fontSize: FONT_SIZES.xs,
-                            color: isPresetSelected ? "#D32F2F" : colors.onSurface,
+                            color: isPresetSelected ? colors.onErrorContainer : colors.onSurface,
                             fontFamily: isPresetSelected ? FONTS.bold : FONTS.medium,
                           }}
                         >
@@ -1588,9 +1711,9 @@ export default function AdminLeaves() {
                 disabled={actionMutation.isPending}
               >
                 {actionMutation.isPending ? (
-                  <ActivityIndicator color="#FFF" size="small" />
+                  <ActivityIndicator color={actionType === "approved" ? colors.onPrimary : colors.onError} size="small" />
                 ) : (
-                  <Text style={{ color: "#FFF", fontFamily: FONTS.bold, fontSize: FONT_SIZES.sm }}>
+                  <Text style={{ color: actionType === "approved" ? colors.onPrimary : colors.onError, fontFamily: FONTS.bold, fontSize: FONT_SIZES.sm }}>
                     {actionType === "approved" ? "Approve" : "Reject"}
                   </Text>
                 )}
@@ -1767,9 +1890,9 @@ export default function AdminLeaves() {
                 disabled={applyLeaveMutation.isPending || editLeaveMutation.isPending}
               >
                 {applyLeaveMutation.isPending || editLeaveMutation.isPending ? (
-                  <ActivityIndicator color="#FFF" />
+                  <ActivityIndicator color={colors.onPrimary} />
                 ) : (
-                  <Text style={{ color: "#FFF", fontFamily: FONTS.bold, fontSize: FONT_SIZES.md }}>
+                  <Text style={{ color: colors.onPrimary, fontFamily: FONTS.bold, fontSize: FONT_SIZES.md }}>
                     {editingLeave ? "Update Application" : "Submit Application"}
                   </Text>
                 )}
@@ -1814,9 +1937,9 @@ export default function AdminLeaves() {
                 disabled={cancelLeaveMutation.isPending}
               >
                 {cancelLeaveMutation.isPending ? (
-                  <ActivityIndicator color="#FFF" size="small" />
+                  <ActivityIndicator color={colors.onError} size="small" />
                 ) : (
-                  <Text style={{ fontFamily: FONTS.bold, color: "#FFF", fontSize: FONT_SIZES.sm }}>
+                  <Text style={{ fontFamily: FONTS.bold, color: colors.onError, fontSize: FONT_SIZES.sm }}>
                     Yes, Cancel
                   </Text>
                 )}
@@ -2315,7 +2438,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
-    backgroundColor: "#F0F0F0",
   },
   sheetChipActive: {
     elevation: 1,

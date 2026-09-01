@@ -309,7 +309,7 @@ export default function ReportCardExportModal({
                 <Text style={[styles.schoolTitle, { color: isDark ? "#FFF" : "#0F172A" }]}>
                   Sri Guru Vidya
                 </Text>
-                <Text style={styles.schoolSubText}>
+                <Text style={[styles.schoolSubText, { color: colors.onSurfaceVariant }]}>
                   English Medium School
                 </Text>
                 <View style={styles.sheetPill}>
@@ -320,25 +320,25 @@ export default function ReportCardExportModal({
               {/* Student Details Grid */}
               <View style={styles.detailsGrid}>
                 <View style={styles.detailItem}>
-                  <Text style={styles.detailKey}>Student Name</Text>
+                  <Text style={[styles.detailKey, { color: colors.onSurfaceVariant }]}>Student Name</Text>
                   <Text style={[styles.detailVal, { color: colors.onSurface }]}>
                     {student?.name || "Student"}
                   </Text>
                 </View>
                 <View style={styles.detailItem}>
-                  <Text style={styles.detailKey}>Class & Section</Text>
+                  <Text style={[styles.detailKey, { color: colors.onSurfaceVariant }]}>Class & Section</Text>
                   <Text style={[styles.detailVal, { color: colors.onSurface }]}>
                     {student?.class || "3rd Standard A"}
                   </Text>
                 </View>
                 <View style={styles.detailItem}>
-                  <Text style={styles.detailKey}>Roll Number</Text>
+                  <Text style={[styles.detailKey, { color: colors.onSurfaceVariant }]}>Roll Number</Text>
                   <Text style={[styles.detailVal, { color: colors.onSurface }]}>
                     {student?.rollNumber || "12"}
                   </Text>
                 </View>
                 <View style={styles.detailItem}>
-                  <Text style={styles.detailKey}>Overall Score</Text>
+                  <Text style={[styles.detailKey, { color: colors.onSurfaceVariant }]}>Overall Score</Text>
                   <Text style={[styles.detailVal, { color: colors.primary }]}>
                     {overall?.percentage || 0}% (Grade {overall?.grade || "-"})
                   </Text>

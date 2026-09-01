@@ -366,7 +366,7 @@ export default function StudentFeesScreen() {
                               marginTop: 2,
                             }}
                           >
-                            ${t("student.target", "Target")}: ₹
+                            {t("student.target", "Target")}: ₹
                             {inst.amount.toLocaleString()} •{" "}
                             {inst.dueDate
                               ? `${t("student.due", "Due")} ${new Date(

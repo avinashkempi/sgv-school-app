@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
   ScrollView,
   Pressable,
-  RefreshControl,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -17,12 +16,14 @@ import { useApiQuery } from "../hooks/useApi";
 import { CACHE_TIERS } from "../utils/cacheConfig";
 import { useAuth } from "../context/AuthContext";
 import Card from "./Card";
+import AppRefreshControl from "./ui/AppRefreshControl";
+import { handleNotificationNavigation } from "../utils/notificationRouter";
 
 const NotificationCenter = () => {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { colors, styles } = useTheme();
-  const { userId, isAuthenticated } = useAuth();
+  const { userId, isAuthenticated, user } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [filterRead, setFilterRead] = useState("all"); // 'all', 'read', 'unread'
@@ -59,11 +60,16 @@ const NotificationCenter = () => {
   const notifications = notificationData?.notifications || [];
   const unreadCount = notificationData?.unreadCount || 0;
 
-  const onRefresh = async () => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await refetch();
-    setRefreshing(false);
-  };
+    try {
+      await refetch();
+    } catch (err) {
+      console.warn("[NotificationCenter] Refresh error:", err);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch]);
 
   const markAsRead = async (id, currentReadStatus) => {
     try {
@@ -127,10 +133,10 @@ const NotificationCenter = () => {
       markAsRead(notification._id, notification.isRead);
     }
 
-    // Handle action
-    if (notification.actionType === "navigate" && notification.actionData) {
-      router.push(notification.actionData);
-    }
+    // Handle smart redirection
+    handleNotificationNavigation(notification, router, user?.role, {
+      fallbackToNotifications: true,
+    });
   };
 
   const getPriorityColor = (priority) => {
@@ -325,10 +331,9 @@ const NotificationCenter = () => {
           paddingBottom: 24,
         }}
         refreshControl={
-          <RefreshControl
+          <AppRefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[colors.primary]}
           />
         }
         showsVerticalScrollIndicator={false}

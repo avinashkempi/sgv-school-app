@@ -77,23 +77,6 @@ const getGradeInfo = (percentage) => {
   };
 };
 
-/**
- * Format exam labels (e.g. FA1 -> Formative Assessment 1)
- */
-const getExamFullName = (shortName) => {
-  const map = {
-    FA1: "Formative Assessment 1",
-    FA2: "Formative Assessment 2",
-    FA3: "Formative Assessment 3",
-    FA4: "Formative Assessment 4",
-    SA1: "Summative Assessment 1",
-    SA2: "Summative Assessment 2",
-    MID: "Midterm Examination",
-    FINAL: "Final Examination",
-    PRE: "Pre-Board Examination",
-  };
-  return map[shortName] || shortName;
-};
 
 /**
  * PerformanceTrendCard
@@ -850,13 +833,14 @@ const PerformanceTrendCard = ({
             alignItems: "center",
           }}
         >
-          <View style={{ flex: 1, marginRight: 12 }}>
+          <View style={{ flex: 1, marginRight: 12, minWidth: 0 }}>
             <View
               style={{
                 flexDirection: "row",
                 alignItems: "center",
                 gap: 6,
                 marginBottom: 2,
+                flexWrap: "nowrap",
               }}
             >
               <Text
@@ -864,7 +848,10 @@ const PerformanceTrendCard = ({
                   fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: colors.onSurface || (isDark ? "#FFFFFF" : "#1D1B20"),
+                  flexShrink: 1,
                 }}
+                numberOfLines={1}
+                ellipsizeMode="tail"
               >
                 {activeExam.examType}
               </Text>
@@ -874,6 +861,7 @@ const PerformanceTrendCard = ({
                   paddingHorizontal: 6,
                   paddingVertical: 2,
                   borderRadius: 6,
+                  flexShrink: 0,
                 }}
               >
                 <Text
@@ -891,7 +879,10 @@ const PerformanceTrendCard = ({
                   fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.medium,
                   color: activeGrade.color,
+                  flexShrink: 1,
                 }}
+                numberOfLines={1}
+                ellipsizeMode="tail"
               >
                 • {activeGrade.label}
               </Text>
@@ -904,16 +895,18 @@ const PerformanceTrendCard = ({
                   colors.onSurfaceVariant || (isDark ? "#CAC4D0" : "#49454F"),
               }}
               numberOfLines={1}
+              ellipsizeMode="tail"
             >
-              {getExamFullName(activeExam.examType)}
               {activeExam.subjectCount > 0
-                ? ` (${activeExam.subjectCount} subjects)`
-                : ""}
+                ? `${activeExam.subjectCount} ${
+                    activeExam.subjectCount === 1 ? "Subject" : "Subjects"
+                  }`
+                : "Exam Performance"}
             </Text>
           </View>
 
           {/* Percentage Callout */}
-          <View style={{ alignItems: "flex-end" }}>
+          <View style={{ alignItems: "flex-end", flexShrink: 0 }}>
             <Text
               style={{
                 fontSize: FONT_SIZES.xl,
@@ -934,6 +927,7 @@ const PerformanceTrendCard = ({
                       ? "#10B981"
                       : "#EF4444",
                 }}
+                numberOfLines={1}
               >
                 {activeExam.percentage >=
                 normalizedData[activeIdx - 1].percentage

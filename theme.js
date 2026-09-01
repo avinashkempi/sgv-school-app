@@ -534,7 +534,17 @@ export function ThemeProvider({ children }) {
   };
 
   return (
-    <ThemeContext.Provider value={{ mode: mode || "light", toggle, colors, styles, gradients }}>
+    <ThemeContext.Provider
+      value={{
+        mode: mode || "light",
+        toggle,
+        toggleTheme: toggle,
+        toggleeTheme: toggle,
+        colors,
+        styles,
+        gradients,
+      }}
+    >
       {isHydrated ? children : null}
     </ThemeContext.Provider>
   );

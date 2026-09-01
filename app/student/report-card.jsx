@@ -1652,7 +1652,7 @@ const styles = StyleSheet.create({
   starText: {
     fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
-    color: "#065F46",
+    color: "#10B981",
   },
   focusPill: {
     backgroundColor: "rgba(2, 132, 199, 0.15)",
@@ -1663,7 +1663,7 @@ const styles = StyleSheet.create({
   focusText: {
     fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
-    color: "#075985",
+    color: "#0284C7",
   },
   diagEmpty: {
     fontSize: FONT_SIZES.xs,

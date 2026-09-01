@@ -14,18 +14,18 @@ const ModernCalendar = ({
   markingType,
   theme: customTheme,
 }) => {
-  const { colors, styles } = useTheme();
+  const { colors } = useTheme();
 
   const defaultTheme = useMemo(
     () => ({
-      backgroundColor: colors.cardBackground,
-      calendarBackground: colors.cardBackground,
+      backgroundColor: "transparent",
+      calendarBackground: "transparent",
       textSectionTitleColor: colors.textSecondary,
       selectedDayBackgroundColor: colors.primary,
       selectedDayTextColor: colors.white,
       todayTextColor: colors.primary,
       dayTextColor: colors.textPrimary,
-      textDisabledColor: colors.textSecondary + "50",
+      textDisabledColor: colors.textSecondary + "40",
       dotColor: colors.primary,
       selectedDotColor: colors.white,
       arrowColor: colors.primary,
@@ -36,31 +36,38 @@ const ModernCalendar = ({
       textDayHeaderFontFamily: FONTS.bold,
       textDayFontSize: FONT_SIZES.sm,
       textMonthFontSize: FONT_SIZES.md,
-      textDayHeaderFontSize: FONT_SIZES.sm,
+      textDayHeaderFontSize: FONT_SIZES.xs,
       "stylesheet.calendar.header": {
         header: {
           flexDirection: "row",
           justifyContent: "space-between",
-          paddingLeft: 10,
-          paddingRight: 10,
-          marginTop: 6,
-          marginBottom: 6,
+          paddingHorizontal: 12,
+          marginTop: 8,
+          marginBottom: 8,
           alignItems: "center",
         },
         monthText: {
-          fontSize: FONT_SIZES.lg,
+          fontSize: FONT_SIZES.md,
           fontFamily: FONTS.bold,
           color: colors.textPrimary,
-          margin: 10,
+          letterSpacing: 0.3,
         },
         arrow: {
-          padding: 10,
+          padding: 4,
+        },
+        week: {
+          marginTop: 8,
+          flexDirection: "row",
+          justifyContent: "space-around",
+          paddingBottom: 4,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.outlineVariant ? colors.outlineVariant + "25" : "rgba(0,0,0,0.06)",
         },
       },
       "stylesheet.day.basic": {
         base: {
-          width: 32,
-          height: 32,
+          width: 36,
+          height: 36,
           alignItems: "center",
           justifyContent: "center",
         },
@@ -71,7 +78,18 @@ const ModernCalendar = ({
 
   return (
     <View
-      style={[styles.cardMinimal, { padding: 0, overflow: "hidden" }, style]}
+      style={[
+        {
+          backgroundColor: colors.surfaceContainer,
+          borderRadius: 20,
+          borderWidth: 1,
+          borderColor: colors.outlineVariant ? colors.outlineVariant + "30" : "rgba(0,0,0,0.06)",
+          paddingVertical: 10,
+          paddingHorizontal: 6,
+          overflow: "hidden",
+        },
+        style,
+      ]}
     >
       <Calendar
         current={current}
@@ -79,11 +97,6 @@ const ModernCalendar = ({
         markedDates={markedDates}
         onMonthChange={(month) => {
           if (onMonthChange) {
-            // Prevent infinite loop by checking if date actually changed differently enough to matter
-            // or just pass it up and let parent handle.
-            // The issue often is parent setting state which causes re-render -> new function -> re-call.
-            // But here we just pass the object.
-            // Simple fix: check if month.dateString is structurally different if parent relies on it.
             onMonthChange(month);
           }
         }}
@@ -95,9 +108,13 @@ const ModernCalendar = ({
         renderArrow={(direction) => (
           <View
             style={{
-              backgroundColor: colors.background,
-              borderRadius: 8,
-              padding: 4,
+              backgroundColor: colors.surfaceContainerHighest || colors.surfaceVariant,
+              borderRadius: 10,
+              padding: 6,
+              borderWidth: 1,
+              borderColor: colors.outlineVariant ? colors.outlineVariant + "30" : "transparent",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
             <MaterialIcons

@@ -390,7 +390,7 @@ const VibeCard = ({
         };
       case "arts":
         return {
-          label: "Arts & Culture",
+          label: "Arts",
           icon: "palette",
           color: "#7C3AED",
           bg: "#EDE9FE",
@@ -437,7 +437,7 @@ const VibeCard = ({
             <View style={styles.schoolAvatarCircle}>
               <Image
                 source={require("../../assets/images/icon.png")}
-                style={{ width: "100%", height: "100%", borderRadius: 20 }}
+                style={{ width: "100%", height: "100%", borderRadius: 19 }}
                 contentFit="cover"
               />
             </View>
@@ -446,7 +446,7 @@ const VibeCard = ({
               photoUrl={vibe.author?.profilePhoto}
               name={formatUserName(vibe.author?.name, "Community Member")}
               role={vibe.authorRole || vibe.author?.role}
-              size={40}
+              size={38}
             />
           )}
 
@@ -465,62 +465,44 @@ const VibeCard = ({
               {isSchoolPost && (
                 <MaterialIcons
                   name="verified"
-                  size={15}
+                  size={14}
                   color="#2563EB"
                   style={styles.verifiedBadge}
                 />
               )}
             </View>
 
-            <View style={styles.subMetaRow}>
-              <View
-                style={[
-                  styles.roleBadge,
-                  {
-                    backgroundColor: isSchoolPost
-                      ? "#DBEAFE"
-                      : colors.surfaceContainerHighest,
-                  },
-                ]}
-              >
+            <Text
+              style={[styles.authorSubtitle, { color: colors.onSurfaceVariant }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {authorRoleLabel ? (
                 <Text
                   style={[
-                    styles.roleBadgeText,
+                    styles.roleText,
                     {
                       color: isSchoolPost
-                        ? "#1D4ED8"
+                        ? (colors.primary || "#2563EB")
                         : colors.onSurfaceVariant,
+                      fontFamily: isSchoolPost ? FONTS.semiBold : FONTS.medium,
                     },
                   ]}
-                  numberOfLines={1}
                 >
                   {authorRoleLabel}
                 </Text>
-              </View>
-
+              ) : null}
               {typeof vibe.location === "string" && vibe.location.trim() ? (
-                <Text
-                  style={[
-                    styles.metaDotText,
-                    { color: colors.onSurfaceVariant },
-                  ]}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  • {vibe.location.trim()}
+                <Text style={{ color: colors.onSurfaceVariant }}>
+                  {authorRoleLabel ? " • " : ""}
+                  {vibe.location.trim()}
                 </Text>
               ) : null}
-
-              <Text
-                style={[
-                  styles.metaDotText,
-                  { color: colors.onSurfaceVariant },
-                ]}
-                numberOfLines={1}
-              >
-                • {formatTimeAgo(vibe.createdAt)}
+              <Text style={{ color: colors.onSurfaceVariant }}>
+                {(authorRoleLabel || (typeof vibe.location === "string" && vibe.location.trim())) ? " • " : ""}
+                {formatTimeAgo(vibe.createdAt, { compact: true })}
               </Text>
-            </View>
+            </Text>
           </View>
         </View>
 
@@ -535,11 +517,13 @@ const VibeCard = ({
             >
               <MaterialIcons
                 name={categoryMeta.icon}
-                size={12}
+                size={11}
                 color={categoryMeta.color}
               />
               <Text
                 style={[styles.categoryText, { color: categoryMeta.color }]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
               >
                 {categoryMeta.label}
               </Text>
@@ -553,8 +537,14 @@ const VibeCard = ({
                 { backgroundColor: "#FEF3C7" },
               ]}
             >
-              <MaterialIcons name="star" size={12} color="#D97706" />
-              <Text style={styles.spotlightBadgeText}>Spotlight</Text>
+              <MaterialIcons name="star" size={11} color="#D97706" />
+              <Text
+                style={styles.spotlightBadgeText}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                Spotlight
+              </Text>
             </View>
           )}
 
@@ -567,7 +557,7 @@ const VibeCard = ({
             >
               <MaterialIcons
                 name="push-pin"
-                size={13}
+                size={12}
                 color={colors.onTertiaryContainer || "#D97706"}
               />
             </View>
@@ -583,7 +573,7 @@ const VibeCard = ({
           >
             <MaterialIcons
               name="more-vert"
-              size={20}
+              size={18}
               color={colors.onSurfaceVariant}
             />
           </Pressable>
@@ -882,9 +872,9 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   schoolAvatarCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: "#DBEAFE",
     borderColor: "#93C5FD",
     borderWidth: 1.5,
@@ -913,30 +903,15 @@ const styles = StyleSheet.create({
     marginLeft: 1,
     flexShrink: 0,
   },
-  subMetaRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginTop: 2,
-    flexWrap: "nowrap",
-    overflow: "hidden",
-  },
-  roleBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 1.5,
-    borderRadius: 6,
-    flexShrink: 1,
-  },
-  roleBadgeText: {
-    fontSize: FONT_SIZES.micro,
-    fontFamily: FONTS.bold,
-    textTransform: "uppercase",
-    letterSpacing: 0.3,
-  },
-  metaDotText: {
+  authorSubtitle: {
     fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
-    flexShrink: 0,
+    marginTop: 2,
+    lineHeight: 16,
+    flexShrink: 1,
+  },
+  roleText: {
+    fontSize: FONT_SIZES.xs,
   },
   headerRight: {
     flexDirection: "row",
@@ -947,35 +922,40 @@ const styles = StyleSheet.create({
   categoryBadge: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 8,
-    paddingVertical: 3.5,
-    borderRadius: 8,
-    gap: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 2.5,
+    borderRadius: 6,
+    gap: 2.5,
+    maxWidth: 90,
   },
   categoryText: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: 10.5,
     fontFamily: FONTS.bold,
   },
   spotlightBadge: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 8,
-    paddingVertical: 3.5,
-    borderRadius: 8,
-    gap: 3,
+    paddingHorizontal: 5.5,
+    paddingVertical: 2.5,
+    borderRadius: 6,
+    gap: 2,
+    maxWidth: 75,
   },
   spotlightBadgeText: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: 10.5,
     fontFamily: FONTS.bold,
     color: "#D97706",
   },
   pinBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 3.5,
+    paddingHorizontal: 5,
+    paddingVertical: 2.5,
     borderRadius: 6,
+    justifyContent: "center",
+    alignItems: "center",
   },
   menuButton: {
-    padding: 4,
+    padding: 3,
+    marginLeft: 1,
   },
   mediaContainer: {
     width: "100%",

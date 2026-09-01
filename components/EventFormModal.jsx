@@ -12,29 +12,10 @@ import {
   Platform,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 
-import { useTheme, FONTS, FONT_SIZES } from "../theme";
-import { useToast } from "./ToastProvider";
-
-// Helper to format dates for display in Indian format (DD-MM-YYYY)
-const formatIndianDate = (dateInput) => {
-  if (!dateInput) return "";
-  try {
-    // handle yyyy-mm-dd strings (selectedDate from calendar) by forcing midnight
-    const d =
-      typeof dateInput === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dateInput)
-        ? new Date(dateInput + "T00:00:00")
-        : new Date(dateInput);
-    if (isNaN(d)) return String(dateInput);
-    const day = String(d.getDate()).padStart(2, "0");
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const year = d.getFullYear();
-    return `${day}-${month}-${year}`;
-    // eslint-disable-next-line no-unused-vars
-  } catch (e) {
-    return String(dateInput);
-  }
-};
+import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS } from "../theme";
+import { formatISTDisplayDate, formatDate } from "../utils/date";
 
 export default function EventFormModal({
   isVisible,
@@ -50,8 +31,8 @@ export default function EventFormModal({
   const [isHoliday, setIsHoliday] = useState(false);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
-  const { colors, styles: globalStyles } = useTheme();
-  const { _showToast } = useToast();
+  const { colors, mode } = useTheme();
+  const isDark = mode === "dark";
 
   const isEditing = !!editItem;
 
@@ -86,8 +67,8 @@ export default function EventFormModal({
           error = "Title must be at least 3 characters";
         break;
       case "description":
-        if (value.trim() && value.trim().length < 10)
-          error = "Description must be at least 10 characters if provided";
+        if (value.trim() && value.trim().length < 5)
+          error = "Description must be at least 5 characters if provided";
         break;
     }
     return error;
@@ -123,8 +104,11 @@ export default function EventFormModal({
     });
 
     if (titleError || descriptionError) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
       return;
     }
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
 
     // Pass data to parent component
     onSuccess({
@@ -133,9 +117,14 @@ export default function EventFormModal({
       description: description.trim(),
       isSchoolEvent: isSchoolEvent,
       isHoliday: isHoliday,
-      _id: editItem?._id, // Pass ID if editing
+      _id: editItem?._id,
     });
   };
+
+  const formattedDisplayDate = formatISTDisplayDate(
+    isEditing ? editItem?.date : selectedDate,
+    { weekday: "short", day: "numeric", month: "short", year: "numeric" }
+  ) || formatDate(isEditing ? editItem?.date : selectedDate);
 
   return (
     <Modal
@@ -149,238 +138,437 @@ export default function EventFormModal({
         style={styles.overlay}
       >
         <ScrollView
-          contentContainerStyle={{
-            flexGrow: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            width: "100%",
-          }}
+          contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
           <View
             style={[
               styles.container,
-              { backgroundColor: colors.cardBackground },
+              {
+                backgroundColor: isDark ? colors.surfaceContainer : "#FFFFFF",
+                borderColor: colors.outlineVariant ? colors.outlineVariant + "35" : "rgba(0,0,0,0.1)",
+              },
             ]}
           >
+            {/* Header */}
             <View style={styles.header}>
-              <Text
-                style={[
-                  globalStyles.title,
+              <View style={styles.headerTitleRow}>
+                <View
+                  style={[
+                    styles.headerIconContainer,
+                    {
+                      backgroundColor: isDark
+                        ? colors.primaryContainer
+                        : colors.primaryContainer + "60",
+                    },
+                  ]}
+                >
+                  <MaterialIcons
+                    name={isEditing ? "edit-calendar" : "event"}
+                    size={22}
+                    color={colors.primary}
+                  />
+                </View>
+                <View>
+                  <Text
+                    style={[
+                      styles.modalTitle,
+                      { color: colors.onSurface || colors.textPrimary },
+                    ]}
+                  >
+                    {isEditing ? "Edit Event" : "Create New Event"}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.modalSubtitle,
+                      { color: colors.onSurfaceVariant || colors.textSecondary },
+                    ]}
+                  >
+                    {isEditing ? "Update event details" : "Schedule a school activity"}
+                  </Text>
+                </View>
+              </View>
+
+              <Pressable
+                onPress={onClose}
+                hitSlop={10}
+                style={({ pressed }) => [
+                  styles.closeButton,
                   {
-                    fontSize: FONT_SIZES.lg,
-                    fontFamily: FONTS.bold,
-                    color: colors.textPrimary,
+                    backgroundColor: isDark
+                      ? colors.surfaceContainerHighest
+                      : "rgba(0,0,0,0.05)",
+                    opacity: pressed ? 0.7 : 1,
                   },
                 ]}
               >
-                {isEditing ? "Edit Event" : "New Event"}
-              </Text>
-              <Pressable onPress={onClose} hitSlop={8}>
                 <MaterialIcons
                   name="close"
-                  size={24}
+                  size={20}
                   color={colors.textSecondary}
                 />
               </Pressable>
             </View>
 
-            <View style={styles.dateRow}>
-              <Text style={[styles.dateLabel, { color: colors.textSecondary }]}>
-                Date:
-              </Text>
-              <Text style={[styles.dateValue, { color: colors.textPrimary }]}>
-                {isEditing
-                  ? formatIndianDate(editItem.date)
-                  : formatIndianDate(selectedDate)}
+            {/* Selected Date Chip */}
+            <View
+              style={[
+                styles.dateBadge,
+                {
+                  backgroundColor: isDark
+                    ? "rgba(208, 188, 255, 0.12)"
+                    : "rgba(79, 55, 139, 0.08)",
+                  borderColor: isDark
+                    ? "rgba(208, 188, 255, 0.25)"
+                    : "rgba(79, 55, 139, 0.2)",
+                },
+              ]}
+            >
+              <MaterialIcons
+                name="calendar-today"
+                size={16}
+                color={colors.primary}
+                style={{ marginRight: 6 }}
+              />
+              <Text
+                style={[
+                  styles.dateBadgeText,
+                  { color: colors.primary },
+                ]}
+              >
+                {formattedDisplayDate}
               </Text>
             </View>
 
-            <View style={{ marginBottom: 12 }}>
+            {/* Title Input */}
+            <View style={styles.inputGroup}>
               <Text
-                style={{
-                  fontSize: FONT_SIZES.sm,
-                  fontFamily: FONTS.semiBold,
-                  color: colors.textSecondary,
-                  marginBottom: 8,
-                  marginLeft: 4,
-                }}
+                style={[
+                  styles.inputLabel,
+                  { color: colors.onSurfaceVariant || colors.textSecondary },
+                ]}
               >
-                TITLE
+                EVENT TITLE *
               </Text>
               <TextInput
                 style={[
-                  globalStyles.input,
+                  styles.textInput,
                   {
-                    backgroundColor: colors.cardBackground,
+                    backgroundColor: isDark
+                      ? colors.surfaceContainerHigh
+                      : "rgba(0,0,0,0.025)",
                     color: colors.textPrimary,
                     borderColor:
                       errors.title && touched.title
                         ? colors.error
-                        : colors.border,
-                    borderWidth: 1,
+                        : colors.outlineVariant
+                        ? colors.outlineVariant + "40"
+                        : "rgba(0,0,0,0.12)",
                   },
                 ]}
-                placeholder="Event title"
-                placeholderTextColor={colors.textSecondary}
+                placeholder="e.g. Science Fair, Annual Day, Sports Meet"
+                placeholderTextColor={colors.textSecondary + "80"}
                 value={title}
                 onChangeText={(text) => handleChange("title", text)}
                 onBlur={() => handleBlur("title", title)}
                 maxLength={100}
               />
               {errors.title && touched.title && (
-                <Text
-                  style={{
-                    color: colors.error,
-                    fontSize: FONT_SIZES.sm,
-                    marginTop: 4,
-                    marginLeft: 4,
-                  }}
-                >
+                <Text style={[styles.errorText, { color: colors.error }]}>
                   {errors.title}
                 </Text>
               )}
             </View>
 
-            <View style={{ marginBottom: 12 }}>
+            {/* Description Input */}
+            <View style={styles.inputGroup}>
               <Text
-                style={{
-                  fontSize: FONT_SIZES.sm,
-                  fontFamily: FONTS.semiBold,
-                  color: colors.textSecondary,
-                  marginBottom: 8,
-                  marginLeft: 4,
-                }}
+                style={[
+                  styles.inputLabel,
+                  { color: colors.onSurfaceVariant || colors.textSecondary },
+                ]}
               >
                 DESCRIPTION (OPTIONAL)
               </Text>
               <TextInput
                 style={[
-                  globalStyles.input,
+                  styles.textInput,
+                  styles.textArea,
                   {
-                    backgroundColor: colors.cardBackground,
+                    backgroundColor: isDark
+                      ? colors.surfaceContainerHigh
+                      : "rgba(0,0,0,0.025)",
                     color: colors.textPrimary,
                     borderColor:
                       errors.description && touched.description
                         ? colors.error
-                        : colors.border,
-                    borderWidth: 1,
-                    minHeight: 100,
-                    paddingTop: 12,
+                        : colors.outlineVariant
+                        ? colors.outlineVariant + "40"
+                        : "rgba(0,0,0,0.12)",
                   },
                 ]}
-                placeholder="Description (optional)"
-                placeholderTextColor={colors.textSecondary}
+                placeholder="Add agenda, dress code, timings, or additional info..."
+                placeholderTextColor={colors.textSecondary + "80"}
                 value={description}
                 onChangeText={(text) => handleChange("description", text)}
                 onBlur={() => handleBlur("description", description)}
                 maxLength={500}
                 multiline
+                numberOfLines={3}
+                textAlignVertical="top"
               />
               {errors.description && touched.description && (
-                <Text
-                  style={{
-                    color: colors.error,
-                    fontSize: FONT_SIZES.sm,
-                    marginTop: 4,
-                    marginLeft: 4,
-                  }}
-                >
+                <Text style={[styles.errorText, { color: colors.error }]}>
                   {errors.description}
                 </Text>
               )}
             </View>
 
+            {/* Toggle Card 1: School Event */}
             <Pressable
-              style={{
-                marginBottom: 16,
-                flexDirection: "row",
-                alignItems: "center",
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                setIsSchoolEvent(!isSchoolEvent);
               }}
-              onPress={() => setIsSchoolEvent(!isSchoolEvent)}
+              style={({ pressed }) => [
+                styles.toggleCard,
+                {
+                  backgroundColor: isSchoolEvent
+                    ? isDark
+                      ? "rgba(245, 158, 11, 0.15)"
+                      : "rgba(245, 158, 11, 0.08)"
+                    : isDark
+                    ? colors.surfaceContainerHigh
+                    : "rgba(0,0,0,0.02)",
+                  borderColor: isSchoolEvent
+                    ? "#F59E0B"
+                    : isDark
+                    ? "rgba(255,255,255,0.08)"
+                    : "rgba(0,0,0,0.08)",
+                  opacity: pressed ? 0.85 : 1,
+                },
+              ]}
             >
+              <View style={styles.toggleCardLeft}>
+                <View
+                  style={[
+                    styles.toggleIconContainer,
+                    {
+                      backgroundColor: isSchoolEvent
+                        ? "rgba(245, 158, 11, 0.2)"
+                        : isDark
+                        ? colors.surfaceContainerHighest
+                        : "rgba(0,0,0,0.05)",
+                    },
+                  ]}
+                >
+                  <MaterialIcons
+                    name="school"
+                    size={20}
+                    color={isSchoolEvent ? "#F59E0B" : colors.textSecondary}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={[
+                      styles.toggleTitle,
+                      {
+                        color: isSchoolEvent
+                          ? isDark
+                            ? "#FBBF24"
+                            : "#D97706"
+                          : colors.textPrimary,
+                      },
+                    ]}
+                  >
+                    Official School Event
+                  </Text>
+                  <Text
+                    style={[
+                      styles.toggleSubtitle,
+                      { color: colors.onSurfaceVariant || colors.textSecondary },
+                    ]}
+                  >
+                    Highlights in calendar with special badge
+                  </Text>
+                </View>
+              </View>
               <MaterialIcons
-                name={isSchoolEvent ? "check-box" : "check-box-outline-blank"}
-                size={24}
-                color={colors.primary}
-                style={{ marginRight: 8 }}
+                name={isSchoolEvent ? "check-circle" : "radio-button-unchecked"}
+                size={22}
+                color={isSchoolEvent ? "#F59E0B" : colors.textSecondary + "60"}
               />
-              <Text
-                style={[globalStyles.cardText, { color: colors.textPrimary }]}
-              >
-                Mark as School Event
-              </Text>
             </Pressable>
 
+            {/* Toggle Card 2: Holiday */}
             <Pressable
-              style={{
-                marginBottom: isHoliday ? 6 : 16,
-                flexDirection: "row",
-                alignItems: "center",
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                setIsHoliday(!isHoliday);
               }}
-              onPress={() => setIsHoliday(!isHoliday)}
+              style={({ pressed }) => [
+                styles.toggleCard,
+                {
+                  backgroundColor: isHoliday
+                    ? isDark
+                      ? "rgba(239, 68, 68, 0.15)"
+                      : "rgba(239, 68, 68, 0.08)"
+                    : isDark
+                    ? colors.surfaceContainerHigh
+                    : "rgba(0,0,0,0.02)",
+                  borderColor: isHoliday
+                    ? "#EF4444"
+                    : isDark
+                    ? "rgba(255,255,255,0.08)"
+                    : "rgba(0,0,0,0.08)",
+                  opacity: pressed ? 0.85 : 1,
+                },
+              ]}
             >
+              <View style={styles.toggleCardLeft}>
+                <View
+                  style={[
+                    styles.toggleIconContainer,
+                    {
+                      backgroundColor: isHoliday
+                        ? "rgba(239, 68, 68, 0.2)"
+                        : isDark
+                        ? colors.surfaceContainerHighest
+                        : "rgba(0,0,0,0.05)",
+                    },
+                  ]}
+                >
+                  <MaterialIcons
+                    name="beach-access"
+                    size={20}
+                    color={isHoliday ? "#EF4444" : colors.textSecondary}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={[
+                      styles.toggleTitle,
+                      {
+                        color: isHoliday
+                          ? isDark
+                            ? "#F87171"
+                            : "#DC2626"
+                          : colors.textPrimary,
+                      },
+                    ]}
+                  >
+                    Mark as Holiday
+                  </Text>
+                  <Text
+                    style={[
+                      styles.toggleSubtitle,
+                      { color: colors.onSurfaceVariant || colors.textSecondary },
+                    ]}
+                  >
+                    Skips daily student/staff attendance
+                  </Text>
+                </View>
+              </View>
               <MaterialIcons
-                name={isHoliday ? "check-box" : "check-box-outline-blank"}
-                size={24}
-                color={colors.primary}
-                style={{ marginRight: 8 }}
+                name={isHoliday ? "check-circle" : "radio-button-unchecked"}
+                size={22}
+                color={isHoliday ? "#EF4444" : colors.textSecondary + "60"}
               />
-              <Text
-                style={[globalStyles.cardText, { color: colors.textPrimary }]}
-              >
-                Mark as Holiday (Skips Attendance)
-              </Text>
             </Pressable>
 
             {isHoliday && (
-              <Text
-                style={{
-                  fontSize: FONT_SIZES.sm,
-                  color: colors.error || "#EF4444",
-                  marginBottom: 16,
-                  marginLeft: 32,
-                }}
+              <View
+                style={[
+                  styles.warningBox,
+                  {
+                    backgroundColor: isDark
+                      ? "rgba(239, 68, 68, 0.12)"
+                      : "rgba(239, 68, 68, 0.06)",
+                    borderColor: isDark
+                      ? "rgba(239, 68, 68, 0.25)"
+                      : "rgba(239, 68, 68, 0.2)",
+                  },
+                ]}
               >
-                ⚠️ Marking as holiday will disable attendance and clear any
-                existing records for this date.
-              </Text>
+                <MaterialIcons
+                  name="info-outline"
+                  size={16}
+                  color={colors.error || "#EF4444"}
+                  style={{ marginRight: 6, marginTop: 1 }}
+                />
+                <Text
+                  style={[
+                    styles.warningText,
+                    { color: colors.error || "#EF4444" },
+                  ]}
+                >
+                  Marking as holiday will disable attendance tracking and clear existing records for this day.
+                </Text>
+              </View>
             )}
 
-            <Pressable
-              style={[
-                globalStyles.buttonLarge,
-                { width: "100%", backgroundColor: colors.primary },
-                isLoading && { opacity: 0.6 },
-              ]}
-              onPress={handleSubmit}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 8,
-                  }}
-                >
-                  <ActivityIndicator size="small" color={colors.white} />
-                  <Text
-                    style={[globalStyles.buttonText, { color: colors.white }]}
-                  >
-                    {isEditing ? "Updating..." : "Creating..."}
-                  </Text>
-                </View>
-              ) : (
+            {/* Action Buttons */}
+            <View style={styles.actionsRow}>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.cancelBtn,
+                  {
+                    backgroundColor: isDark
+                      ? colors.surfaceContainerHighest
+                      : "rgba(0,0,0,0.05)",
+                    opacity: pressed ? 0.7 : 1,
+                  },
+                ]}
+                onPress={onClose}
+                disabled={isLoading}
+              >
                 <Text
-                  style={[globalStyles.buttonText, { color: colors.white }]}
+                  style={[
+                    styles.cancelBtnText,
+                    { color: colors.textPrimary },
+                  ]}
                 >
-                  {isEditing ? "Update Event" : "Create Event"}
+                  Cancel
                 </Text>
-              )}
-            </Pressable>
+              </Pressable>
+
+              <Pressable
+                style={({ pressed }) => [
+                  styles.submitBtn,
+                  {
+                    backgroundColor: colors.primary,
+                    opacity: isLoading ? 0.7 : pressed ? 0.9 : 1,
+                  },
+                ]}
+                onPress={handleSubmit}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <View style={styles.loadingRow}>
+                    <ActivityIndicator size="small" color={colors.white} />
+                    <Text
+                      style={[styles.submitBtnText, { color: colors.white }]}
+                    >
+                      {isEditing ? "Updating..." : "Creating..."}
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={styles.loadingRow}>
+                    <MaterialIcons
+                      name={isEditing ? "check" : "add"}
+                      size={18}
+                      color={colors.white}
+                    />
+                    <Text
+                      style={[styles.submitBtnText, { color: colors.white }]}
+                    >
+                      {isEditing ? "Update Event" : "Create Event"}
+                    </Text>
+                  </View>
+                )}
+              </Pressable>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -391,43 +579,186 @@ export default function EventFormModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
+    backgroundColor: "rgba(0,0,0,0.6)",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.6)",
-    padding: 20,
+    padding: 16,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+    paddingVertical: 20,
   },
   container: {
     width: "100%",
-    maxWidth: 400,
-    padding: 24,
-    borderRadius: 20,
+    maxWidth: 440,
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 22,
     elevation: 8,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 16,
   },
-  dateRow: {
+  headerTitleRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 16,
-    padding: 12,
+    gap: 12,
+    flex: 1,
+  },
+  headerIconContainer: {
+    width: 40,
+    height: 40,
     borderRadius: 12,
-    backgroundColor: "rgba(0,0,0,0.03)",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  dateLabel: {
+  modalTitle: {
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.bold,
+  },
+  modalSubtitle: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.regular,
+    marginTop: 1,
+  },
+  closeButton: {
+    padding: 6,
+    borderRadius: 12,
+  },
+  dateBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignSelf: "flex-start",
+    marginBottom: 16,
+  },
+  dateBadgeText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+  },
+  inputGroup: {
+    marginBottom: 14,
+  },
+  inputLabel: {
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.bold,
+    letterSpacing: 0.5,
+    marginBottom: 6,
+    marginLeft: 2,
+  },
+  textInput: {
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.regular,
+  },
+  textArea: {
+    minHeight: 80,
+    paddingTop: 10,
+  },
+  errorText: {
+    fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.medium,
-    marginRight: 8,
+    marginTop: 4,
+    marginLeft: 4,
   },
-  dateValue: {
+  toggleCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 12,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    marginBottom: 10,
+  },
+  toggleCardLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    flex: 1,
+    marginRight: 10,
+  },
+  toggleIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  toggleTitle: {
     fontSize: FONT_SIZES.sm,
-    fontFamily: FONTS.semiBold,
+    fontFamily: FONTS.bold,
+  },
+  toggleSubtitle: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.regular,
+    marginTop: 1,
+  },
+  warningBox: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    padding: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 14,
+  },
+  warningText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.medium,
+    lineHeight: LINE_HEIGHTS.xs,
+    flex: 1,
+  },
+  actionsRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 10,
+  },
+  cancelBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cancelBtnText: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
+  },
+  submitBtn: {
+    flex: 1.6,
+    paddingVertical: 12,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+  },
+  loadingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  submitBtnText: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
   },
 });
+

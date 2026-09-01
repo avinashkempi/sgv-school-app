@@ -963,12 +963,42 @@ export default function AttendanceView({
 
               {/* Status Badge */}
               {selectedDayInfo.holiday ? (
-                <View style={[styles.holidayBadgePill, { flexShrink: 0 }]}>
-                  <Text style={styles.holidayBadgePillText}>🎉 School Holiday</Text>
+                <View
+                  style={[
+                    styles.holidayBadgePill,
+                    {
+                      backgroundColor: isDark ? "rgba(245, 158, 11, 0.18)" : "#FEF3C7",
+                      flexShrink: 0,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.holidayBadgePillText,
+                      { color: isDark ? "#FCD34D" : "#B45309" },
+                    ]}
+                  >
+                    🎉 School Holiday
+                  </Text>
                 </View>
               ) : selectedDayInfo.isSunday ? (
-                <View style={[styles.sundayBadgePill, { flexShrink: 0 }]}>
-                  <Text style={styles.sundayBadgePillText}>☀️ Sunday Off</Text>
+                <View
+                  style={[
+                    styles.sundayBadgePill,
+                    {
+                      backgroundColor: isDark ? "rgba(139, 92, 246, 0.18)" : "#EDE9FE",
+                      flexShrink: 0,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.sundayBadgePillText,
+                      { color: isDark ? "#C4B5FD" : "#6D28D9" },
+                    ]}
+                  >
+                    ☀️ Sunday Off
+                  </Text>
                 </View>
               ) : selectedDayInfo.record ? (
                 <View
@@ -1321,8 +1351,24 @@ export default function AttendanceView({
               </View>
             </View>
 
-            <View style={[styles.holidayHistoryBadge, { flexShrink: 0 }]}>
-              <Text style={styles.holidayHistoryBadgeText}>School Holiday</Text>
+            <View
+              style={[
+                styles.holidayHistoryBadge,
+                {
+                  backgroundColor: isDark ? "rgba(245, 158, 11, 0.18)" : "#FEF3C7",
+                  borderColor: isDark ? "rgba(245, 158, 11, 0.4)" : "#F59E0B",
+                  flexShrink: 0,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.holidayHistoryBadgeText,
+                  { color: isDark ? "#FCD34D" : "#B45309" },
+                ]}
+              >
+                School Holiday
+              </Text>
             </View>
           </View>
         </View>

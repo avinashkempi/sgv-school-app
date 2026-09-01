@@ -93,143 +93,146 @@ const StoryBubble = memo(
         accessibilityRole="button"
         accessibilityLabel={title}
       >
-        {/* Outer Story Ring — Gradient for Unseen, Muted Tonal Outline for Seen */}
-        {!isViewed ? (
-          <LinearGradient
-            colors={gradientColors}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.gradientRingOuter}
-          >
+        {/* Ring & Avatar Container with Anchored Floating Badge */}
+        <View style={styles.ringAnchorContainer}>
+          {/* Outer Story Ring — Gradient for Unseen, Muted Tonal Outline for Seen */}
+          {!isViewed ? (
+            <LinearGradient
+              colors={gradientColors}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.gradientRingOuter}
+            >
+              <View
+                style={[
+                  styles.ringInner,
+                  { backgroundColor: colors.background },
+                ]}
+              >
+                {optimizedImg ? (
+                  <Image
+                    source={{ uri: optimizedImg }}
+                    placeholder={
+                      blurPlaceholder ? { uri: blurPlaceholder } : undefined
+                    }
+                    style={styles.avatarImage}
+                    contentFit="cover"
+                    transition={200}
+                  />
+                ) : isOfficial ? (
+                  <View
+                    style={[
+                      styles.iconWrapper,
+                      {
+                        backgroundColor: colors.surfaceContainerLowest || "#ffffff",
+                        padding: 4,
+                      },
+                    ]}
+                  >
+                    <Image
+                      source={require("../../assets/images/icon.png")}
+                      style={{ width: "100%", height: "100%", borderRadius: 24 }}
+                      contentFit="contain"
+                    />
+                  </View>
+                ) : (
+                  <View
+                    style={[
+                      styles.iconWrapper,
+                      {
+                        backgroundColor: ringColor || colors.primary,
+                      },
+                    ]}
+                  >
+                    <MaterialIcons
+                      name={icon || "school"}
+                      size={24}
+                      color="#fff"
+                    />
+                  </View>
+                )}
+              </View>
+            </LinearGradient>
+          ) : (
             <View
               style={[
-                styles.ringInner,
-                { backgroundColor: colors.background },
+                styles.seenRingOuter,
+                {
+                  borderColor: colors.outlineVariant || "rgba(0,0,0,0.12)",
+                },
               ]}
             >
-              {optimizedImg ? (
-                <Image
-                  source={{ uri: optimizedImg }}
-                  placeholder={
-                    blurPlaceholder ? { uri: blurPlaceholder } : undefined
-                  }
-                  style={styles.avatarImage}
-                  contentFit="cover"
-                  transition={200}
-                />
-              ) : isOfficial ? (
-                <View
-                  style={[
-                    styles.iconWrapper,
-                    {
-                      backgroundColor: colors.surfaceContainerLowest || "#ffffff",
-                      padding: 4,
-                    },
-                  ]}
-                >
+              <View
+                style={[
+                  styles.ringInner,
+                  { backgroundColor: colors.background },
+                ]}
+              >
+                {optimizedImg ? (
                   <Image
-                    source={require("../../assets/images/icon.png")}
-                    style={{ width: "100%", height: "100%", borderRadius: 24 }}
-                    contentFit="contain"
+                    source={{ uri: optimizedImg }}
+                    placeholder={
+                      blurPlaceholder ? { uri: blurPlaceholder } : undefined
+                    }
+                    style={[styles.avatarImage, { opacity: 0.85 }]}
+                    contentFit="cover"
+                    transition={200}
                   />
-                </View>
-              ) : (
-                <View
-                  style={[
-                    styles.iconWrapper,
-                    {
-                      backgroundColor: ringColor || colors.primary,
-                    },
-                  ]}
-                >
-                  <MaterialIcons
-                    name={icon || "school"}
-                    size={24}
-                    color="#fff"
-                  />
-                </View>
-              )}
+                ) : isOfficial ? (
+                  <View
+                    style={[
+                      styles.iconWrapper,
+                      {
+                        backgroundColor: colors.surfaceContainerLowest || "#ffffff",
+                        padding: 4,
+                      },
+                    ]}
+                  >
+                    <Image
+                      source={require("../../assets/images/icon.png")}
+                      style={{ width: "100%", height: "100%", borderRadius: 24 }}
+                      contentFit="contain"
+                    />
+                  </View>
+                ) : (
+                  <View
+                    style={[
+                      styles.iconWrapper,
+                      {
+                        backgroundColor: colors.surfaceContainerHighest,
+                      },
+                    ]}
+                  >
+                    <MaterialIcons
+                      name={icon || "school"}
+                      size={24}
+                      color={colors.onSurfaceVariant}
+                    />
+                  </View>
+                )}
+              </View>
             </View>
-          </LinearGradient>
-        ) : (
-          <View
-            style={[
-              styles.seenRingOuter,
-              {
-                borderColor: colors.outlineVariant || "rgba(0,0,0,0.12)",
-              },
-            ]}
-          >
-            <View
-              style={[
-                styles.ringInner,
-                { backgroundColor: colors.background },
-              ]}
-            >
-              {optimizedImg ? (
-                <Image
-                  source={{ uri: optimizedImg }}
-                  placeholder={
-                    blurPlaceholder ? { uri: blurPlaceholder } : undefined
-                  }
-                  style={[styles.avatarImage, { opacity: 0.85 }]}
-                  contentFit="cover"
-                  transition={200}
-                />
-              ) : isOfficial ? (
-                <View
-                  style={[
-                    styles.iconWrapper,
-                    {
-                      backgroundColor: colors.surfaceContainerLowest || "#ffffff",
-                      padding: 4,
-                    },
-                  ]}
-                >
-                  <Image
-                    source={require("../../assets/images/icon.png")}
-                    style={{ width: "100%", height: "100%", borderRadius: 24 }}
-                    contentFit="contain"
-                  />
-                </View>
-              ) : (
-                <View
-                  style={[
-                    styles.iconWrapper,
-                    {
-                      backgroundColor: colors.surfaceContainerHighest,
-                    },
-                  ]}
-                >
-                  <MaterialIcons
-                    name={icon || "school"}
-                    size={24}
-                    color={colors.onSurfaceVariant}
-                  />
-                </View>
-              )}
-            </View>
-          </View>
-        )}
+          )}
 
-        {/* Floating Mini Badge */}
-        {badgeIcon && (
-          <View
-            style={[
-              styles.badgePill,
-              {
-                backgroundColor: isOfficial
-                  ? "#2563EB"
-                  : isAchievement
-                  ? "#F59E0B"
-                  : "#8B5CF6",
-                borderColor: colors.background,
-              },
-            ]}
-          >
-            <MaterialIcons name={badgeIcon} size={10} color="#fff" />
-          </View>
-        )}
+          {/* Floating Mini Badge Anchored to Ring */}
+          {badgeIcon && (
+            <View
+              style={[
+                styles.badgePill,
+                {
+                  backgroundColor: isOfficial
+                    ? "#2563EB"
+                    : isAchievement
+                    ? "#F59E0B"
+                    : "#8B5CF6",
+                  borderColor: colors.background,
+                },
+              ]}
+            >
+              <MaterialIcons name={badgeIcon} size={10} color="#fff" />
+            </View>
+          )}
+        </View>
 
         {/* Title */}
         <Text
@@ -241,6 +244,9 @@ const StoryBubble = memo(
             },
           ]}
           numberOfLines={1}
+          adjustsFontSizeToFit={true}
+          minimumFontScale={0.78}
+          ellipsizeMode="tail"
         >
           {title}
         </Text>
@@ -255,6 +261,8 @@ const StoryBubble = memo(
               },
             ]}
             numberOfLines={1}
+            adjustsFontSizeToFit={true}
+            minimumFontScale={0.85}
           >
             {subtitle}
           </Text>
@@ -578,7 +586,7 @@ const VibeStoriesTray = ({ onOpenCreate, hideHeader = false }) => {
             <View key={key} style={styles.bubbleContainer}>
               <SkeletonLoader width={66} height={66} borderRadius={33} />
               <SkeletonLoader
-                width={48}
+                width={56}
                 height={10}
                 borderRadius={5}
                 style={{ marginTop: 6 }}
@@ -665,12 +673,18 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 16,
-    gap: 12,
+    gap: 10,
     paddingVertical: 2,
   },
   bubbleContainer: {
     alignItems: "center",
-    width: 72,
+    width: 78,
+  },
+  ringAnchorContainer: {
+    position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 5,
   },
   gradientRingOuter: {
     width: 68,
@@ -679,7 +693,6 @@ const styles = StyleSheet.create({
     padding: 2.5,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 5,
   },
   seenRingOuter: {
     width: 68,
@@ -689,7 +702,6 @@ const styles = StyleSheet.create({
     padding: 2,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 5,
   },
   ringInner: {
     width: "100%",
@@ -712,8 +724,8 @@ const styles = StyleSheet.create({
   },
   badgePill: {
     position: "absolute",
-    bottom: 22,
-    right: 4,
+    bottom: 0,
+    right: 0,
     width: 18,
     height: 18,
     borderRadius: 9,
@@ -723,10 +735,11 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   bubbleLabel: {
-    fontSize: FONT_SIZES.sm,
-    fontFamily: FONTS.medium,
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
     textAlign: "center",
     width: "100%",
+    paddingHorizontal: 2,
   },
   bubbleSublabel: {
     fontSize: FONT_SIZES.micro,
@@ -734,6 +747,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 1,
     width: "100%",
+    paddingHorizontal: 2,
   },
   addOuterRing: {
     width: 68,
