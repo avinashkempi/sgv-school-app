@@ -871,7 +871,7 @@ export default function EventsScreen() {
                 ]}
               >
                 <MaterialIcons
-                  name="event-upcoming"
+                  name="upcoming"
                   size={16}
                   color={
                     viewMode === "upcoming"

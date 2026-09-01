@@ -19,6 +19,7 @@ import AppHeader from "../../components/Header";
 import apiConfig from "../../config/apiConfig";
 import { useLabel } from "../../context/LabelsContext";
 import { formatUserName } from "../../utils/userFormatters";
+import UserAvatar from "../../components/ui/UserAvatar";
 
 export default function MarksEntryScreen() {
   const router = useRouter();
@@ -197,19 +198,44 @@ export default function MarksEntryScreen() {
                 },
               ]}
             >
-              <View style={{ flex: 2 }}>
-                <Text
-                  style={{
-                    fontSize: FONT_SIZES.sm,
-                    fontFamily: FONTS.semiBold,
-                    color: colors.textPrimary,
-                  }}
-                >
-                  {formatUserName(student.name)}
-                </Text>
-                <Text style={{ fontSize: FONT_SIZES.xs, color: colors.textSecondary, marginTop: 2 }}>
-                  {t("common.roll", "Roll")}: {student.rollNumber || "-"}
-                </Text>
+              <View
+                style={{
+                  flex: 2,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 10,
+                  minWidth: 0,
+                  paddingRight: 8,
+                }}
+              >
+                <UserAvatar
+                  photoUrl={student.profilePhoto}
+                  name={formatUserName(student.name)}
+                  role="student"
+                  size={36}
+                />
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text
+                    style={{
+                      fontSize: FONT_SIZES.sm,
+                      fontFamily: FONTS.semiBold,
+                      color: colors.textPrimary,
+                    }}
+                    numberOfLines={1}
+                  >
+                    {formatUserName(student.name)}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: FONT_SIZES.xs,
+                      color: colors.textSecondary,
+                      marginTop: 2,
+                    }}
+                    numberOfLines={1}
+                  >
+                    {t("common.roll", "Roll")}: {student.rollNumber || "-"}
+                  </Text>
+                </View>
               </View>
 
               <View style={{ flex: 1, alignItems: "center" }}>

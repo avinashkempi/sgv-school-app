@@ -17,6 +17,8 @@ import Header from "../../components/Header";
 import { useLabel } from "../../context/LabelsContext";
 import StatCard from "../../components/StatCard";
 import PerformanceChart from "../../components/PerformanceChart";
+import UserAvatar from "../../components/ui/UserAvatar";
+import { formatUserName } from "../../utils/userFormatters";
 
 /**
  * Class Reports Dashboard
@@ -380,15 +382,24 @@ export default function ClassReportsDashboard() {
                     )}
                   </View>
 
-                  <View style={{ flex: 1 }}>
+                  {/* Student Avatar */}
+                  <UserAvatar
+                    photoUrl={student.profilePhoto}
+                    name={formatUserName(student.studentName)}
+                    role="student"
+                    size={38}
+                  />
+
+                  <View style={{ flex: 1, minWidth: 0 }}>
                     <Text
                       style={{
                         fontSize: FONT_SIZES.md,
                         fontFamily: FONTS.bold,
                         color: colors.onSurface,
                       }}
+                      numberOfLines={1}
                     >
-                      {student.studentName}
+                      {formatUserName(student.studentName)}
                     </Text>
                     <Text
                       style={{
@@ -397,6 +408,7 @@ export default function ClassReportsDashboard() {
                         color: colors.primary,
                         marginTop: 2,
                       }}
+                      numberOfLines={1}
                     >
                       {t("reports.scored", "Scored")}: {student.totalObtained} /{" "}
                       {student.totalMax} {t("reports.marks", "Marks")} (
