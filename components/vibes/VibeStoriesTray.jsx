@@ -401,16 +401,17 @@ const VibeStoriesTray = ({ onOpenCreate, hideHeader = false }) => {
 
     const items = [
       { id: "create-action", type: "create" },
-      {
+    ];
+
+    if (officialVibes.length > 0) {
+      items.push({
         id: "official-story",
         type: "official",
         title: "Official",
         subtitle:
           officialVibes.length === 1
             ? "1 live"
-            : officialVibes.length > 1
-            ? `${officialVibes.length} live`
-            : "Notices",
+            : `${officialVibes.length} live`,
         icon: "school",
         ringColor: "#2563EB",
         isSpecial: true,
@@ -422,17 +423,18 @@ const VibeStoriesTray = ({ onOpenCreate, hideHeader = false }) => {
           "story"
         ),
         onPress: handleOpenOfficialStories,
-      },
-      {
+      });
+    }
+
+    if (achievementVibes.length > 0) {
+      items.push({
         id: "achievement-story",
         type: "achievement",
         title: "Achievements",
         subtitle:
           achievementVibes.length === 1
             ? "1 win"
-            : achievementVibes.length > 1
-            ? `${achievementVibes.length} wins`
-            : "Spotlight",
+            : `${achievementVibes.length} wins`,
         icon: "emoji-events",
         ringColor: "#F59E0B",
         isSpecial: true,
@@ -444,16 +446,17 @@ const VibeStoriesTray = ({ onOpenCreate, hideHeader = false }) => {
           "story"
         ),
         onPress: handleOpenAchievementStories,
-      },
-    ];
+      });
+    }
 
     authorStories.forEach((story, idx) => {
+      if (!story?.author || !story?.vibes || story.vibes.length === 0) return;
       const authorName = formatAuthorName(story.author?.name);
       const role = formatUserDesignationOrRole(story.author);
       const isStoryViewed = story.isViewed || story.unviewedCount === 0;
 
       items.push({
-        id: story.author?._id || `story-${idx}`,
+        id: String(story.author?._id || `story-${idx}`),
         type: "author",
         title: authorName,
         subtitle: role,

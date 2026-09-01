@@ -464,20 +464,20 @@ export default function QuickExamWizard() {
       <View>
         <Text
           style={{
-            fontSize: FONT_SIZES.lg,
+            fontSize: FONT_SIZES.md,
             fontFamily: FONTS.bold,
             color: colors.onSurface,
-            marginBottom: 8,
+            marginBottom: 4,
           }}
         >
           Configure Exams
         </Text>
         <Text
           style={{
-            fontSize: FONT_SIZES.sm,
+            fontSize: FONT_SIZES.xs,
             fontFamily: FONTS.regular,
             color: colors.onSurfaceVariant,
-            marginBottom: 20,
+            marginBottom: 14,
           }}
         >
           Set a default then customize marks per exam type

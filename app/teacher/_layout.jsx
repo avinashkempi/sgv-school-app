@@ -14,7 +14,18 @@ export default function TeacherLayout() {
           gestureEnabled: true,
           fullScreenGestureEnabled: false,
         }}
-      />
+      >
+        <Stack.Screen name="dashboard" options={{ animation: "fade" }} />
+        <Stack.Screen name="classes" options={{ animation: "fade" }} />
+        <Stack.Screen
+          name="subject/create-exam"
+          options={{
+            animation: "slide_from_bottom",
+            presentation: "modal",
+            gestureDirection: "vertical",
+          }}
+        />
+      </Stack>
     </RoleGuard>
   );
 }

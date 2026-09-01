@@ -694,7 +694,10 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                 </Text>
                 <View style={styles.identityRow}>
                   <Pressable
-                    onPress={() => setPostAs("school")}
+                    onPress={() => {
+                      setPostAs("school");
+                      setCategory("official");
+                    }}
                     style={[
                       styles.identityCard,
                       {
@@ -760,7 +763,12 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                   </Pressable>
 
                   <Pressable
-                    onPress={() => setPostAs("self")}
+                    onPress={() => {
+                      setPostAs("self");
+                      if (category === "official") {
+                        setCategory("general");
+                      }
+                    }}
                     style={[
                       styles.identityCard,
                       {

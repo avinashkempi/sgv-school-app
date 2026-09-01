@@ -337,10 +337,14 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
 
   const renderCommentItem = useCallback(
     ({ item }) => {
-      const isSchool = item.postAs === "school";
+      const currentUserId = user?.id || user?._id;
+      const commentAuthorId = item.user?._id || item.user;
       const isAuthor =
-        user?.id === item.user?._id || user?._id === item.user?._id;
+        currentUserId &&
+        commentAuthorId &&
+        String(currentUserId) === String(commentAuthorId);
       const canDelete = isAdmin || isAuthor;
+      const isSchool = item.postAs === "school";
       const parentName = item.parentComment?.user?.name
         ? formatUserName(item.parentComment.user.name, "User")
         : null;

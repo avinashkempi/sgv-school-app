@@ -14,7 +14,24 @@ export default function SuperAdminLayout() {
           gestureEnabled: true,
           fullScreenGestureEnabled: false,
         }}
-      />
+      >
+        <Stack.Screen
+          name="create-year"
+          options={{
+            animation: "slide_from_bottom",
+            presentation: "modal",
+            gestureDirection: "vertical",
+          }}
+        />
+        <Stack.Screen
+          name="transition-wizard"
+          options={{
+            animation: "slide_from_bottom",
+            presentation: "modal",
+            gestureDirection: "vertical",
+          }}
+        />
+      </Stack>
     </RoleGuard>
   );
 }

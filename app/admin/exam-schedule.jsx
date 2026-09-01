@@ -427,34 +427,35 @@ export default function AdminExamScheduleScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <View style={{ padding: 16, paddingTop: 24, paddingBottom: 8 }}>
+      <View style={{ padding: 16, paddingTop: 20, paddingBottom: 6 }}>
         <Header title="Exam Management" subtitle="Manage Schedules" showBack />
 
         <Pressable
           onPress={() => setShowInitModal(true)}
           style={{
             backgroundColor: colors.primary + "15",
-            padding: 12,
-            borderRadius: 12,
+            paddingVertical: 10,
+            paddingHorizontal: 14,
+            borderRadius: 10,
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "center",
-            marginTop: 12,
-            gap: 8,
+            marginTop: 10,
+            gap: 6,
             borderWidth: 1,
             borderColor: colors.primary + "30",
           }}
         >
           <MaterialIcons
             name="playlist-add-check"
-            size={24}
+            size={20}
             color={colors.primary}
           />
           <Text
             style={{
               color: colors.primary,
               fontFamily: FONTS.bold,
-              fontSize: FONT_SIZES.md,
+              fontSize: FONT_SIZES.sm,
             }}
           >
             Initialize School Exams
@@ -462,31 +463,31 @@ export default function AdminExamScheduleScreen() {
         </Pressable>
       </View>
 
-      <View style={{ paddingHorizontal: 16, marginBottom: 16 }}>
+      <View style={{ paddingHorizontal: 16, marginBottom: 12 }}>
         <Text
           style={{
             color: colors.textSecondary,
-            marginBottom: 8,
-            fontSize: FONT_SIZES.sm,
+            marginBottom: 6,
+            fontSize: FONT_SIZES.xs,
             fontFamily: FONTS.medium,
           }}
         >
           Filter by Class
         </Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={{ flexDirection: "row", gap: 8 }}>
+          <View style={{ flexDirection: "row", gap: 6 }}>
             {classes.map((cls) => (
               <Pressable
                 key={cls._id}
                 onPress={() => setSelectedClassId(cls._id)}
                 style={{
-                  paddingHorizontal: 16,
-                  paddingVertical: 8,
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
                   backgroundColor:
                     selectedClassId === cls._id
                       ? colors.primary
                       : colors.cardBackground,
-                  borderRadius: 20,
+                  borderRadius: 16,
                   borderWidth: 1,
                   borderColor:
                     selectedClassId === cls._id
@@ -499,6 +500,7 @@ export default function AdminExamScheduleScreen() {
                     color:
                       selectedClassId === cls._id ? "#fff" : colors.textPrimary,
                     fontFamily: FONTS.medium,
+                    fontSize: FONT_SIZES.xs,
                   }}
                 >
                   {formatClassName(cls.name, cls.section)}
@@ -526,10 +528,17 @@ export default function AdminExamScheduleScreen() {
           <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
             <MaterialIcons
               name="event-busy"
-              size={48}
+              size={40}
               color={colors.textSecondary}
             />
-            <Text style={{ color: colors.textSecondary, marginTop: 16 }}>
+            <Text
+              style={{
+                color: colors.textSecondary,
+                marginTop: 12,
+                fontSize: FONT_SIZES.sm,
+                fontFamily: FONTS.medium,
+              }}
+            >
               No exams found for this class
             </Text>
           </View>
@@ -539,9 +548,9 @@ export default function AdminExamScheduleScreen() {
               key={exam._id}
               style={{
                 backgroundColor: colors.cardBackground,
-                borderRadius: 16,
-                padding: 16,
-                marginBottom: 12,
+                borderRadius: 12,
+                padding: 12,
+                marginBottom: 10,
                 flexDirection: "row",
                 justifyContent: "space-between",
                 alignItems: "center",
@@ -549,10 +558,10 @@ export default function AdminExamScheduleScreen() {
                 borderColor: colors.textSecondary + "08",
               }}
             >
-              <View style={{ flex: 1 }}>
+              <View style={{ flex: 1, paddingRight: 10 }}>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.md,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                   }}
@@ -563,14 +572,14 @@ export default function AdminExamScheduleScreen() {
                   style={{
                     flexDirection: "row",
                     alignItems: "center",
-                    gap: 6,
+                    gap: 5,
                     marginTop: 2,
                   }}
                 >
                   <View
                     style={{
-                      paddingHorizontal: 6,
-                      paddingVertical: 2,
+                      paddingHorizontal: 5,
+                      paddingVertical: 1.5,
                       backgroundColor: colors.primary + "15",
                       borderRadius: 4,
                     }}
@@ -590,26 +599,26 @@ export default function AdminExamScheduleScreen() {
                   style={{
                     flexDirection: "row",
                     alignItems: "center",
-                    marginTop: 8,
-                    gap: 12,
+                    marginTop: 6,
+                    gap: 10,
                   }}
                 >
                   <View
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
-                      gap: 4,
+                      gap: 3,
                     }}
                   >
                     <MaterialIcons
                       name="calendar-today"
-                      size={14}
+                      size={12}
                       color={colors.textSecondary}
                     />
                     <Text
                       style={{
                         color: colors.textPrimary,
-                        fontSize: FONT_SIZES.sm,
+                        fontSize: FONT_SIZES.xs,
                         fontFamily: FONTS.medium,
                       }}
                     >
@@ -621,18 +630,18 @@ export default function AdminExamScheduleScreen() {
                       style={{
                         flexDirection: "row",
                         alignItems: "center",
-                        gap: 4,
+                        gap: 3,
                       }}
                     >
                       <MaterialIcons
                         name="meeting-room"
-                        size={14}
+                        size={12}
                         color={colors.textSecondary}
                       />
                       <Text
                         style={{
                           color: colors.textSecondary,
-                          fontSize: FONT_SIZES.sm,
+                          fontSize: FONT_SIZES.xs,
                           fontFamily: FONTS.medium,
                         }}
                       >
@@ -643,7 +652,7 @@ export default function AdminExamScheduleScreen() {
                 </View>
               </View>
 
-              <View style={{ flexDirection: "row", gap: 8 }}>
+              <View style={{ flexDirection: "row", gap: 6 }}>
                 <Pressable
                   onPress={() => {
                     setEditingExam(exam);
@@ -652,12 +661,12 @@ export default function AdminExamScheduleScreen() {
                     setShowDatePicker(true);
                   }}
                   style={{
-                    padding: 10,
+                    padding: 8,
                     backgroundColor: colors.primary + "10",
-                    borderRadius: 10,
+                    borderRadius: 8,
                   }}
                 >
-                  <MaterialIcons name="edit" size={20} color={colors.primary} />
+                  <MaterialIcons name="edit" size={18} color={colors.primary} />
                 </Pressable>
 
                 {(currentUser?.role === "admin" ||
@@ -666,20 +675,20 @@ export default function AdminExamScheduleScreen() {
                     onPress={() => handleDeleteExam(exam)}
                     disabled={deletingExamId === exam._id}
                     style={{
-                      padding: 10,
+                      padding: 8,
                       backgroundColor: (colors.error || "#ff4444") + "10",
-                      borderRadius: 10,
+                      borderRadius: 8,
                     }}
                   >
                     {deletingExamId === exam._id ? (
                       <ActivityIndicator
-                        size={20}
+                        size={18}
                         color={colors.error || "#ff4444"}
                       />
                     ) : (
                       <MaterialIcons
                         name="delete"
-                        size={20}
+                        size={18}
                         color={colors.error || "#ff4444"}
                       />
                     )}
@@ -717,24 +726,32 @@ export default function AdminExamScheduleScreen() {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.lg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: colors.textPrimary,
-                  marginBottom: 16,
+                  marginBottom: 12,
                 }}
               >
                 Reschedule Exam
               </Text>
-              <Text style={{ color: colors.textSecondary, marginBottom: 20 }}>
+              <Text
+                style={{
+                  fontSize: FONT_SIZES.xs,
+                  color: colors.textSecondary,
+                  marginBottom: 16,
+                  fontFamily: FONTS.medium,
+                }}
+              >
                 {editingExam.subject?.name} - {editingExam.name}
               </Text>
 
-              <View style={{ marginBottom: 20 }}>
+              <View style={{ marginBottom: 16 }}>
                 <Text
                   style={{
                     color: colors.textSecondary,
-                    marginBottom: 8,
-                    fontSize: FONT_SIZES.sm,
+                    marginBottom: 6,
+                    fontSize: FONT_SIZES.xs,
+                    fontFamily: FONTS.medium,
                   }}
                 >
                   Date
@@ -755,7 +772,7 @@ export default function AdminExamScheduleScreen() {
                       style={{
                         flexDirection: "row",
                         alignItems: "center",
-                        padding: 12,
+                        padding: 10,
                         borderWidth: 1,
                         borderColor: colors.textSecondary + "40",
                         borderRadius: 8,
@@ -765,11 +782,17 @@ export default function AdminExamScheduleScreen() {
                     >
                       <MaterialIcons
                         name="calendar-today"
-                        size={20}
+                        size={18}
                         color={colors.primary}
-                        style={{ marginRight: 8 }}
+                        style={{ marginRight: 6 }}
                       />
-                      <Text style={{ color: colors.textPrimary, fontSize: FONT_SIZES.md }}>
+                      <Text
+                        style={{
+                          color: colors.textPrimary,
+                          fontSize: FONT_SIZES.sm,
+                          fontFamily: FONTS.medium,
+                        }}
+                      >
                         {newDate.toLocaleDateString()}
                       </Text>
                     </Pressable>
@@ -777,12 +800,13 @@ export default function AdminExamScheduleScreen() {
                 </View>
               </View>
 
-              <View style={{ marginBottom: 24 }}>
+              <View style={{ marginBottom: 20 }}>
                 <Text
                   style={{
                     color: colors.textSecondary,
-                    marginBottom: 8,
-                    fontSize: FONT_SIZES.sm,
+                    marginBottom: 6,
+                    fontSize: FONT_SIZES.xs,
+                    fontFamily: FONTS.medium,
                   }}
                 >
                   Room Number
@@ -796,22 +820,22 @@ export default function AdminExamScheduleScreen() {
                     borderWidth: 1,
                     borderColor: colors.textSecondary + "40",
                     borderRadius: 8,
-                    padding: 12,
+                    padding: 10,
                     color: colors.textPrimary,
-                    fontSize: FONT_SIZES.md,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.medium,
                   }}
                 />
               </View>
 
-              <View style={{ flexDirection: "row", gap: 12 }}>
+              <View style={{ flexDirection: "row", gap: 10 }}>
                 <Pressable
                   onPress={() => setEditingExam(null)}
                   style={{
                     flex: 1,
-                    padding: 12,
+                    padding: 10,
                     alignItems: "center",
-                    borderRadius: 10,
+                    borderRadius: 8,
                     backgroundColor: colors.background,
                   }}
                 >
@@ -819,6 +843,7 @@ export default function AdminExamScheduleScreen() {
                     style={{
                       color: colors.textPrimary,
                       fontFamily: FONTS.bold,
+                      fontSize: FONT_SIZES.sm,
                     }}
                   >
                     Cancel
@@ -829,16 +854,22 @@ export default function AdminExamScheduleScreen() {
                   disabled={updateExamMutation.isPending}
                   style={{
                     flex: 1,
-                    padding: 12,
+                    padding: 10,
                     alignItems: "center",
-                    borderRadius: 10,
+                    borderRadius: 8,
                     backgroundColor: colors.primary,
                   }}
                 >
                   {updateExamMutation.isPending ? (
                     <ActivityIndicator color="#fff" size="small" />
                   ) : (
-                    <Text style={{ color: "#fff", fontFamily: FONTS.bold }}>
+                    <Text
+                      style={{
+                        color: "#fff",
+                        fontFamily: FONTS.bold,
+                        fontSize: FONT_SIZES.sm,
+                      }}
+                    >
                       Save
                     </Text>
                   )}
@@ -867,9 +898,9 @@ export default function AdminExamScheduleScreen() {
           <View
             style={{
               backgroundColor: colors.background,
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
-              padding: 24,
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+              padding: 20,
               maxHeight: "90%",
             }}
           >
@@ -882,12 +913,12 @@ export default function AdminExamScheduleScreen() {
                   flexDirection: "row",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  marginBottom: 20,
+                  marginBottom: 14,
                 }}
               >
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.lg,
+                    fontSize: FONT_SIZES.md,
                     fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                   }}
@@ -897,7 +928,7 @@ export default function AdminExamScheduleScreen() {
                 <Pressable onPress={() => setShowInitModal(false)}>
                   <MaterialIcons
                     name="close"
-                    size={24}
+                    size={22}
                     color={colors.textSecondary}
                   />
                 </Pressable>
@@ -905,9 +936,9 @@ export default function AdminExamScheduleScreen() {
 
               <Text
                 style={{
-                  fontSize: FONT_SIZES.sm,
+                  fontSize: FONT_SIZES.xs,
                   color: colors.textSecondary,
-                  marginBottom: 20,
+                  marginBottom: 16,
                   fontFamily: FONTS.regular,
                 }}
               >
@@ -916,13 +947,13 @@ export default function AdminExamScheduleScreen() {
               </Text>
 
               {/* Scope Selection */}
-              <View style={{ marginBottom: 16 }}>
+              <View style={{ marginBottom: 14 }}>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.sm,
+                    fontSize: FONT_SIZES.xs,
                     fontFamily: FONTS.medium,
                     color: colors.textSecondary,
-                    marginBottom: 8,
+                    marginBottom: 6,
                   }}
                 >
                   Scope *
@@ -932,12 +963,12 @@ export default function AdminExamScheduleScreen() {
                     onPress={() => setInitScope("all")}
                     style={{
                       flex: 1,
-                      paddingVertical: 10,
+                      paddingVertical: 8,
                       backgroundColor:
                         initScope === "all"
                           ? colors.primary
                           : colors.cardBackground,
-                      borderRadius: 12,
+                      borderRadius: 10,
                       borderWidth: 1,
                       borderColor:
                         initScope === "all"
@@ -951,6 +982,7 @@ export default function AdminExamScheduleScreen() {
                         color:
                           initScope === "all" ? "#fff" : colors.textPrimary,
                         fontFamily: FONTS.medium,
+                        fontSize: FONT_SIZES.xs,
                       }}
                     >
                       All Classes
@@ -960,12 +992,12 @@ export default function AdminExamScheduleScreen() {
                     onPress={() => setInitScope("selected")}
                     style={{
                       flex: 1,
-                      paddingVertical: 10,
+                      paddingVertical: 8,
                       backgroundColor:
                         initScope === "selected"
                           ? colors.primary
                           : colors.cardBackground,
-                      borderRadius: 12,
+                      borderRadius: 10,
                       borderWidth: 1,
                       borderColor:
                         initScope === "selected"
@@ -981,6 +1013,7 @@ export default function AdminExamScheduleScreen() {
                             ? "#fff"
                             : colors.textPrimary,
                         fontFamily: FONTS.medium,
+                        fontSize: FONT_SIZES.xs,
                       }}
                     >
                       Specific Classes
@@ -991,13 +1024,13 @@ export default function AdminExamScheduleScreen() {
 
               {/* Class Selection (Multi-select) */}
               {initScope === "selected" && (
-                <View style={{ marginBottom: 16 }}>
+                <View style={{ marginBottom: 14 }}>
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.sm,
+                      fontSize: FONT_SIZES.xs,
                       fontFamily: FONTS.medium,
                       color: colors.textSecondary,
-                      marginBottom: 8,
+                      marginBottom: 6,
                     }}
                   >
                     Select Classes *
@@ -1005,9 +1038,9 @@ export default function AdminExamScheduleScreen() {
                   <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
-                    style={{ maxHeight: 50 }}
+                    style={{ maxHeight: 42 }}
                   >
-                    <View style={{ flexDirection: "row", gap: 8 }}>
+                    <View style={{ flexDirection: "row", gap: 6 }}>
                       {classes.map((cls) => {
                         const isSelected = initSelectedClassIds.includes(
                           cls._id
@@ -1018,7 +1051,7 @@ export default function AdminExamScheduleScreen() {
                             onPress={() => {
                               if (isSelected) {
                                 setInitSelectedClassIds((prev) =>
-                                  prev.filter((id) => id !== cls._id)
+                                   prev.filter((id) => id !== cls._id)
                                 );
                               } else {
                                 setInitSelectedClassIds((prev) => [
@@ -1028,12 +1061,12 @@ export default function AdminExamScheduleScreen() {
                               }
                             }}
                             style={{
-                              paddingHorizontal: 16,
-                              paddingVertical: 8,
+                              paddingHorizontal: 12,
+                              paddingVertical: 6,
                               backgroundColor: isSelected
                                 ? colors.primary
                                 : colors.cardBackground,
-                              borderRadius: 20,
+                              borderRadius: 16,
                               borderWidth: 1,
                               borderColor: isSelected
                                 ? colors.primary
@@ -1043,6 +1076,8 @@ export default function AdminExamScheduleScreen() {
                             <Text
                               style={{
                                 color: isSelected ? "#fff" : colors.textPrimary,
+                                fontSize: FONT_SIZES.xs,
+                                fontFamily: FONTS.medium,
                               }}
                             >
                               {formatClassName(cls.name, cls.section)}
@@ -1053,7 +1088,7 @@ export default function AdminExamScheduleScreen() {
                     </View>
                   </ScrollView>
                   {initSelectedClassIds.length === 0 && (
-                    <Text style={{ color: "red", fontSize: FONT_SIZES.sm, marginTop: 4 }}>
+                    <Text style={{ color: "red", fontSize: FONT_SIZES.xs, marginTop: 4 }}>
                       Please select at least one class
                     </Text>
                   )}
@@ -1061,31 +1096,31 @@ export default function AdminExamScheduleScreen() {
               )}
 
               {/* Exam Type Selection */}
-              <View style={{ marginBottom: 16 }}>
+              <View style={{ marginBottom: 14 }}>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.sm,
+                    fontSize: FONT_SIZES.xs,
                     fontFamily: FONTS.medium,
                     color: colors.textSecondary,
-                    marginBottom: 8,
+                    marginBottom: 6,
                   }}
                 >
                   Exam Type *
                 </Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  <View style={{ flexDirection: "row", gap: 8 }}>
+                  <View style={{ flexDirection: "row", gap: 6 }}>
                     {["FA1", "FA2", "SA1", "FA3", "FA4", "SA2"].map((type) => (
                       <Pressable
                         key={type}
                         onPress={() => setInitType(type)}
                         style={{
-                          paddingHorizontal: 16,
-                          paddingVertical: 10,
+                          paddingHorizontal: 12,
+                          paddingVertical: 8,
                           backgroundColor:
                             initType === type
                               ? colors.primary
                               : colors.cardBackground,
-                          borderRadius: 12,
+                          borderRadius: 10,
                           borderWidth: 1,
                           borderColor:
                             initType === type
@@ -1098,6 +1133,7 @@ export default function AdminExamScheduleScreen() {
                             color:
                               initType === type ? "#fff" : colors.textPrimary,
                             fontFamily: FONTS.medium,
+                            fontSize: FONT_SIZES.xs,
                           }}
                         >
                           {type}
@@ -1109,13 +1145,13 @@ export default function AdminExamScheduleScreen() {
               </View>
 
               {/* Total Marks */}
-              <View style={{ marginBottom: 16 }}>
+              <View style={{ marginBottom: 14 }}>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.sm,
+                    fontSize: FONT_SIZES.xs,
                     fontFamily: FONTS.medium,
                     color: colors.textSecondary,
-                    marginBottom: 8,
+                    marginBottom: 6,
                   }}
                 >
                   Default Total Marks *
@@ -1131,10 +1167,10 @@ export default function AdminExamScheduleScreen() {
                   placeholderTextColor={colors.textSecondary + "80"}
                   style={{
                     backgroundColor: colors.cardBackground,
-                    padding: 14,
-                    borderRadius: 12,
+                    padding: 10,
+                    borderRadius: 10,
                     color: colors.textPrimary,
-                    fontSize: FONT_SIZES.md,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.regular,
                     borderWidth: 1,
                     borderColor: colors.textSecondary + "20",
@@ -1148,15 +1184,15 @@ export default function AdminExamScheduleScreen() {
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
-                  marginBottom: 12,
-                  gap: 10,
+                  marginBottom: 10,
+                  gap: 8,
                 }}
               >
                 <View
                   style={{
-                    width: 22,
-                    height: 22,
-                    borderRadius: 6,
+                    width: 20,
+                    height: 20,
+                    borderRadius: 5,
                     borderWidth: 2,
                     borderColor: showPerSubjectMarks
                       ? colors.primary
@@ -1169,12 +1205,12 @@ export default function AdminExamScheduleScreen() {
                   }}
                 >
                   {showPerSubjectMarks && (
-                    <MaterialIcons name="check" size={14} color="#fff" />
+                    <MaterialIcons name="check" size={13} color="#fff" />
                   )}
                 </View>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.sm,
+                    fontSize: FONT_SIZES.xs,
                     fontFamily: FONTS.medium,
                     color: colors.textPrimary,
                   }}
@@ -1188,9 +1224,9 @@ export default function AdminExamScheduleScreen() {
                 <View
                   style={{
                     backgroundColor: colors.background,
-                    borderRadius: 12,
-                    padding: 12,
-                    marginBottom: 16,
+                    borderRadius: 10,
+                    padding: 10,
+                    marginBottom: 14,
                     borderWidth: 1,
                     borderColor: colors.textSecondary + "20",
                   }}
@@ -1237,13 +1273,13 @@ export default function AdminExamScheduleScreen() {
               )}
 
               {/* Date */}
-              <View style={{ marginBottom: 16 }}>
+              <View style={{ marginBottom: 14 }}>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.sm,
+                    fontSize: FONT_SIZES.xs,
                     fontFamily: FONTS.medium,
                     color: colors.textSecondary,
-                    marginBottom: 8,
+                    marginBottom: 6,
                   }}
                 >
                   Exam Date
@@ -1252,8 +1288,8 @@ export default function AdminExamScheduleScreen() {
                   onPress={() => setShowInitDatePicker(true)}
                   style={{
                     backgroundColor: colors.cardBackground,
-                    padding: 14,
-                    borderRadius: 12,
+                    padding: 10,
+                    borderRadius: 10,
                     borderWidth: 1,
                     borderColor: colors.textSecondary + "20",
                     flexDirection: "row",
@@ -1263,7 +1299,7 @@ export default function AdminExamScheduleScreen() {
                 >
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.md,
+                      fontSize: FONT_SIZES.sm,
                       fontFamily: FONTS.regular,
                       color: colors.textPrimary,
                     }}
@@ -1276,7 +1312,7 @@ export default function AdminExamScheduleScreen() {
                   </Text>
                   <MaterialIcons
                     name="calendar-today"
-                    size={20}
+                    size={18}
                     color={colors.textSecondary}
                   />
                 </Pressable>
@@ -1291,13 +1327,13 @@ export default function AdminExamScheduleScreen() {
               </View>
 
               {/* Duration */}
-              <View style={{ marginBottom: 16 }}>
+              <View style={{ marginBottom: 14 }}>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.sm,
+                    fontSize: FONT_SIZES.xs,
                     fontFamily: FONTS.medium,
                     color: colors.textSecondary,
-                    marginBottom: 8,
+                    marginBottom: 6,
                   }}
                 >
                   Duration (minutes)
@@ -1310,10 +1346,10 @@ export default function AdminExamScheduleScreen() {
                   placeholderTextColor={colors.textSecondary + "80"}
                   style={{
                     backgroundColor: colors.cardBackground,
-                    padding: 14,
-                    borderRadius: 12,
+                    padding: 10,
+                    borderRadius: 10,
                     color: colors.textPrimary,
-                    fontSize: FONT_SIZES.md,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.regular,
                     borderWidth: 1,
                     borderColor: colors.textSecondary + "20",
@@ -1322,13 +1358,13 @@ export default function AdminExamScheduleScreen() {
               </View>
 
               {/* Instructions */}
-              <View style={{ marginBottom: 24 }}>
+              <View style={{ marginBottom: 20 }}>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.sm,
+                    fontSize: FONT_SIZES.xs,
                     fontFamily: FONTS.medium,
                     color: colors.textSecondary,
-                    marginBottom: 8,
+                    marginBottom: 6,
                   }}
                 >
                   Instructions (Optional)
@@ -1343,14 +1379,14 @@ export default function AdminExamScheduleScreen() {
                   textAlignVertical="top"
                   style={{
                     backgroundColor: colors.cardBackground,
-                    padding: 14,
-                    borderRadius: 12,
+                    padding: 10,
+                    borderRadius: 10,
                     color: colors.textPrimary,
-                    fontSize: FONT_SIZES.md,
+                    fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.regular,
                     borderWidth: 1,
                     borderColor: colors.textSecondary + "20",
-                    minHeight: 80,
+                    minHeight: 70,
                   }}
                 />
               </View>
@@ -1361,12 +1397,12 @@ export default function AdminExamScheduleScreen() {
                 disabled={initMutation.isPending}
                 style={({ pressed }) => ({
                   backgroundColor: colors.primary,
-                  borderRadius: 12,
-                  padding: 16,
+                  borderRadius: 10,
+                  padding: 14,
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: 8,
+                  gap: 6,
                   opacity: pressed || initMutation.isPending ? 0.7 : 1,
                 })}
               >
@@ -1376,12 +1412,12 @@ export default function AdminExamScheduleScreen() {
                   <>
                     <MaterialIcons
                       name="playlist-add-check"
-                      size={24}
+                      size={20}
                       color="#fff"
                     />
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.md,
+                        fontSize: FONT_SIZES.sm,
                         fontFamily: FONTS.bold,
                         color: "#fff",
                       }}

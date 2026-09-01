@@ -12,7 +12,7 @@ import {
   Platform,
 } from "react-native";
 import AppRefreshControl from "../../components/ui/AppRefreshControl";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -44,15 +44,21 @@ import {
 
 export default function AdminAttendance() {
   const router = useRouter();
-  // ... (rest of component)
+  const params = useLocalSearchParams();
   const { showToast } = useToast();
   const { colors } = useTheme();
   const queryClient = useQueryClient();
 
   // Parse initial tab from params if coming from dashboard
-  const params = require("expo-router").useLocalSearchParams();
   const initialTab = params?.tab || "summary";
   const [activeTab, setActiveTab] = useState(initialTab); // 'summary', 'student', 'staff', 'tracker', 'my_attendance'
+
+  // Reactively synchronize active tab if route params change (e.g. from /requests to /admin/attendance?tab=my_attendance)
+  useEffect(() => {
+    if (params?.tab) {
+      setActiveTab((prev) => (params.tab !== prev ? params.tab : prev));
+    }
+  }, [params?.tab]);
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);

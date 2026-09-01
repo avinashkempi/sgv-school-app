@@ -443,21 +443,21 @@ export default function ExamAnalyticsScreen() {
               <View style={{ flexDirection: "row", alignItems: "baseline" }}>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.jumbo,
+                    fontSize: FONT_SIZES.display,
                     fontFamily: FONTS.bold,
                     color: colors.onPrimary,
-                    lineHeight: 54,
+                    lineHeight: 38,
                   }}
                 >
                   {activeKPIs.avgPercentage}
                 </Text>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.xl,
+                    fontSize: FONT_SIZES.lg,
                     fontFamily: FONTS.bold,
                     color: colors.onPrimary,
-                    opacity: 0.8,
-                    marginLeft: 4,
+                    opacity: 0.85,
+                    marginLeft: 3,
                   }}
                 >
                   %
@@ -469,9 +469,9 @@ export default function ExamAnalyticsScreen() {
             <View
               style={{
                 backgroundColor: "rgba(255,255,255,0.18)",
-                paddingHorizontal: 14,
-                paddingVertical: 8,
-                borderRadius: 14,
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 12,
                 alignItems: "flex-end",
               }}
             >
@@ -488,7 +488,7 @@ export default function ExamAnalyticsScreen() {
               </Text>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.bold,
                   color: colors.onPrimary,
                   marginTop: 2,
@@ -504,9 +504,9 @@ export default function ExamAnalyticsScreen() {
           <View
             style={{
               flexDirection: "row",
-              gap: 10,
-              marginTop: 18,
-              paddingTop: 16,
+              gap: 8,
+              marginTop: 14,
+              paddingTop: 12,
               borderTopWidth: 1,
               borderTopColor: "rgba(255,255,255,0.18)",
             }}
@@ -515,13 +515,15 @@ export default function ExamAnalyticsScreen() {
               style={{
                 flex: 1,
                 backgroundColor: "rgba(255,255,255,0.15)",
-                borderRadius: 12,
-                padding: 10,
+                borderRadius: 10,
+                paddingVertical: 8,
+                paddingHorizontal: 6,
+                alignItems: "center",
               }}
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.bold,
                   color: colors.onPrimary,
                 }}
@@ -533,7 +535,8 @@ export default function ExamAnalyticsScreen() {
                   fontSize: FONT_SIZES.micro,
                   fontFamily: FONTS.medium,
                   color: colors.onPrimary,
-                  opacity: 0.8,
+                  opacity: 0.85,
+                  marginTop: 1,
                 }}
               >
                 {selectedExamType === "ALL"
@@ -545,13 +548,15 @@ export default function ExamAnalyticsScreen() {
               style={{
                 flex: 1,
                 backgroundColor: "rgba(255,255,255,0.15)",
-                borderRadius: 12,
-                padding: 10,
+                borderRadius: 10,
+                paddingVertical: 8,
+                paddingHorizontal: 6,
+                alignItems: "center",
               }}
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.bold,
                   color: colors.onPrimary,
                 }}
@@ -563,7 +568,8 @@ export default function ExamAnalyticsScreen() {
                   fontSize: FONT_SIZES.micro,
                   fontFamily: FONTS.medium,
                   color: colors.onPrimary,
-                  opacity: 0.8,
+                  opacity: 0.85,
+                  marginTop: 1,
                 }}
               >
                 Marks Entered
@@ -573,13 +579,15 @@ export default function ExamAnalyticsScreen() {
               style={{
                 flex: 1,
                 backgroundColor: "rgba(255,255,255,0.15)",
-                borderRadius: 12,
-                padding: 10,
+                borderRadius: 10,
+                paddingVertical: 8,
+                paddingHorizontal: 6,
+                alignItems: "center",
               }}
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.bold,
                   color: colors.onPrimary,
                 }}
@@ -591,7 +599,8 @@ export default function ExamAnalyticsScreen() {
                   fontSize: FONT_SIZES.micro,
                   fontFamily: FONTS.medium,
                   color: colors.onPrimary,
-                  opacity: 0.8,
+                  opacity: 0.85,
+                  marginTop: 1,
                 }}
               >
                 Classes
@@ -601,13 +610,15 @@ export default function ExamAnalyticsScreen() {
               style={{
                 flex: 1,
                 backgroundColor: "rgba(255,255,255,0.15)",
-                borderRadius: 12,
-                padding: 10,
+                borderRadius: 10,
+                paddingVertical: 8,
+                paddingHorizontal: 6,
+                alignItems: "center",
               }}
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.md,
+                  fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.bold,
                   color: colors.onPrimary,
                 }}
@@ -619,7 +630,8 @@ export default function ExamAnalyticsScreen() {
                   fontSize: FONT_SIZES.micro,
                   fontFamily: FONTS.medium,
                   color: colors.onPrimary,
-                  opacity: 0.8,
+                  opacity: 0.85,
+                  marginTop: 1,
                 }}
               >
                 Subjects

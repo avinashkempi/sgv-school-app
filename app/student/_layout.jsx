@@ -14,7 +14,9 @@ export default function StudentLayout() {
           gestureEnabled: true,
           fullScreenGestureEnabled: false,
         }}
-      />
+      >
+        <Stack.Screen name="class" options={{ animation: "fade" }} />
+      </Stack>
     </RoleGuard>
   );
 }

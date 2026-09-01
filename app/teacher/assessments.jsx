@@ -255,7 +255,7 @@ export default function AssessmentDashboard() {
                   >
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.lg,
+                        fontSize: FONT_SIZES.md,
                         fontFamily: FONTS.bold,
                         color: colors.textPrimary,
                       }}
@@ -265,13 +265,13 @@ export default function AssessmentDashboard() {
                     {item.exists ? (
                       <MaterialIcons
                         name="check-circle"
-                        size={20}
+                        size={18}
                         color={colors.success}
                       />
                     ) : (
                       <MaterialIcons
                         name="radio-button-unchecked"
-                        size={20}
+                        size={18}
                         color={colors.textSecondary}
                       />
                     )}
@@ -279,7 +279,7 @@ export default function AssessmentDashboard() {
 
                   {item.exists ? (
                     <>
-                      <View style={{ marginBottom: 16 }}>
+                      <View style={{ marginBottom: 12 }}>
                         <Text
                           style={{
                             fontSize: FONT_SIZES.xs,
@@ -297,7 +297,7 @@ export default function AssessmentDashboard() {
                             fontSize: FONT_SIZES.xs,
                             color: colors.textSecondary,
                             fontFamily: FONTS.regular,
-                            marginTop: 4,
+                            marginTop: 2,
                           }}
                         >
                           {t("teacher.studentsGraded", "Students Graded")}:{" "}
@@ -318,7 +318,7 @@ export default function AssessmentDashboard() {
                     </>
                   ) : (
                     <>
-                      <View style={{ marginBottom: 16 }}>
+                      <View style={{ marginBottom: 12 }}>
                         <Text
                           style={{
                             fontSize: FONT_SIZES.xs,
@@ -359,14 +359,14 @@ export default function AssessmentDashboard() {
           <View style={{ alignItems: "center", marginTop: 60 }}>
             <MaterialIcons
               name="assignment"
-              size={60}
+              size={52}
               color={colors.textSecondary + "40"}
             />
             <Text
               style={{
                 color: colors.textSecondary,
-                marginTop: 16,
-                fontSize: FONT_SIZES.sm,
+                marginTop: 14,
+                fontSize: FONT_SIZES.xs,
                 fontFamily: FONTS.medium,
               }}
             >
@@ -384,41 +384,42 @@ export default function AssessmentDashboard() {
 
 const localStyles = StyleSheet.create({
   label: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
-    marginBottom: 12,
+    marginBottom: 8,
     marginLeft: 4,
   },
   chip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 16,
     borderWidth: 1,
-    marginRight: 10,
-    minWidth: 80,
+    marginRight: 8,
+    minWidth: 70,
     alignItems: "center",
   },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 12,
-    marginTop: 10,
+    gap: 10,
+    marginTop: 8,
   },
   card: {
     width: "48%",
-    padding: 16,
-    borderRadius: 16,
+    padding: 12,
+    borderRadius: 12,
     elevation: 2,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   button: {
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    borderRadius: 6,
     alignItems: "center",
   },
   buttonText: {
     color: "#fff",
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
   },
 });

@@ -82,7 +82,7 @@ export default function TeacherExamDashboard() {
   };
 
   const renderSummaryCards = () => (
-    <View style={{ flexDirection: "row", gap: 12, marginBottom: 20 }}>
+    <View style={{ flexDirection: "row", gap: 10, marginBottom: 16 }}>
       <StatCard
         label={t("teacher.examsCreated", "Exams Created")}
         value={overallSummary.examsCreated}
@@ -114,7 +114,7 @@ export default function TeacherExamDashboard() {
     const examTypes = ["FA1", "FA2", "SA1", "FA3", "FA4", "SA2"];
 
     return (
-      <View style={{ flexDirection: "row", gap: 6, marginTop: 10 }}>
+      <View style={{ flexDirection: "row", gap: 4, marginTop: 8 }}>
         {examTypes.map((type) => {
           const exam = examStatus.find((e) => e.type === type);
           const exists = exam?.exists;
@@ -136,18 +136,18 @@ export default function TeacherExamDashboard() {
               key={type}
               style={{
                 flex: 1,
-                height: 32,
+                height: 26,
                 backgroundColor: bgColor,
-                borderRadius: 6,
+                borderRadius: 5,
                 alignItems: "center",
                 justifyContent: "center",
                 flexDirection: "row",
-                gap: 4,
+                gap: 3,
               }}
             >
               <MaterialIcons
                 name={icon}
-                size={12}
+                size={10}
                 color={exists ? "#FFFFFF" : colors.onSurfaceVariant}
               />
               <Text
@@ -173,43 +173,50 @@ export default function TeacherExamDashboard() {
       }-${index}`}
       style={{
         backgroundColor: colors.surfaceContainerLow,
-        borderRadius: 16,
-        padding: 16,
-        marginBottom: 16,
+        borderRadius: 14,
+        padding: 14,
+        marginBottom: 12,
         borderWidth: 1,
         borderColor: colors.outlineVariant,
       }}
     >
       {/* Header */}
-      <View style={{ marginBottom: 12 }}>
-        <Text
+      <View style={{ marginBottom: 8 }}>
+        <View
           style={{
-            fontSize: FONT_SIZES.lg,
-            fontFamily: FONTS.bold,
-            color: colors.onSurface,
-            marginBottom: 4,
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
-          {item.className}
-        </Text>
+          <Text
+            style={{
+              fontSize: FONT_SIZES.md,
+              fontFamily: FONTS.bold,
+              color: colors.onSurface,
+            }}
+          >
+            {item.className}
+          </Text>
+          <Text
+            style={{
+              fontSize: FONT_SIZES.xs,
+              fontFamily: FONTS.regular,
+              color: colors.onSurfaceVariant,
+            }}
+          >
+            {item.studentCount} {t("common.students", "students")}
+          </Text>
+        </View>
         <Text
           style={{
-            fontSize: FONT_SIZES.md,
-            fontFamily: FONTS.medium,
+            fontSize: FONT_SIZES.sm,
+            fontFamily: FONTS.semiBold,
             color: colors.primary,
+            marginTop: 2,
           }}
         >
           {item.subjectName}
-        </Text>
-        <Text
-          style={{
-            fontSize: FONT_SIZES.xs,
-            fontFamily: FONTS.regular,
-            color: colors.onSurfaceVariant,
-            marginTop: 4,
-          }}
-        >
-          {item.studentCount} {t("common.students", "students")}
         </Text>
       </View>
 
@@ -220,17 +227,17 @@ export default function TeacherExamDashboard() {
       <View
         style={{
           flexDirection: "row",
-          gap: 12,
-          marginTop: 12,
-          paddingTop: 12,
+          gap: 8,
+          marginTop: 10,
+          paddingTop: 10,
           borderTopWidth: 1,
-          borderTopColor: colors.outlineVariant,
+          borderTopColor: colors.outlineVariant + "60",
         }}
       >
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, alignItems: "center" }}>
           <Text
             style={{
-              fontSize: FONT_SIZES.lg,
+              fontSize: FONT_SIZES.md,
               fontFamily: FONTS.bold,
               color: colors.primary,
             }}
@@ -239,18 +246,19 @@ export default function TeacherExamDashboard() {
           </Text>
           <Text
             style={{
-              fontSize: FONT_SIZES.xs,
+              fontSize: FONT_SIZES.micro,
               fontFamily: FONTS.medium,
               color: colors.onSurfaceVariant,
+              marginTop: 1,
             }}
           >
             {t("teacher.created", "Created")}
           </Text>
         </View>
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, alignItems: "center" }}>
           <Text
             style={{
-              fontSize: FONT_SIZES.lg,
+              fontSize: FONT_SIZES.md,
               fontFamily: FONTS.bold,
               color: colors.success,
             }}
@@ -259,18 +267,19 @@ export default function TeacherExamDashboard() {
           </Text>
           <Text
             style={{
-              fontSize: FONT_SIZES.xs,
+              fontSize: FONT_SIZES.micro,
               fontFamily: FONTS.medium,
               color: colors.onSurfaceVariant,
+              marginTop: 1,
             }}
           >
-            {t("teacher.marksEntered", "Marks Entered")}
+            {t("teacher.marksEntered", "Entered")}
           </Text>
         </View>
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, alignItems: "center" }}>
           <Text
             style={{
-              fontSize: FONT_SIZES.lg,
+              fontSize: FONT_SIZES.md,
               fontFamily: FONTS.bold,
               color: colors.error,
             }}
@@ -279,9 +288,10 @@ export default function TeacherExamDashboard() {
           </Text>
           <Text
             style={{
-              fontSize: FONT_SIZES.xs,
+              fontSize: FONT_SIZES.micro,
               fontFamily: FONTS.medium,
               color: colors.onSurfaceVariant,
+              marginTop: 1,
             }}
           >
             {t("common.pending", "Pending")}
@@ -296,10 +306,10 @@ export default function TeacherExamDashboard() {
           return (
             <View
               style={{
-                marginTop: 14,
-                padding: 12,
+                marginTop: 10,
+                padding: 10,
                 backgroundColor: colors.surfaceContainerHighest,
-                borderRadius: 10,
+                borderRadius: 8,
               }}
             >
               <Text
@@ -307,7 +317,7 @@ export default function TeacherExamDashboard() {
                   textAlign: "center",
                   color: colors.onSurfaceVariant,
                   fontFamily: FONTS.medium,
-                  fontSize: FONT_SIZES.sm,
+                  fontSize: FONT_SIZES.xs,
                 }}
               >
                 {t(
@@ -319,20 +329,20 @@ export default function TeacherExamDashboard() {
           );
         }
         return (
-          <View style={{ marginTop: 14 }}>
+          <View style={{ marginTop: 10 }}>
             <Text
               style={{
-                fontSize: FONT_SIZES.xs,
-                fontFamily: FONTS.medium,
+                fontSize: FONT_SIZES.micro,
+                fontFamily: FONTS.bold,
                 color: colors.onSurfaceVariant,
-                marginBottom: 8,
+                marginBottom: 6,
                 textTransform: "uppercase",
                 letterSpacing: 0.5,
               }}
             >
               {t("teacher.enterMarks", "Enter Marks")}
             </Text>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
               {existingExams.map((exam) => (
                 <Pressable
                   key={exam.type}
@@ -345,23 +355,23 @@ export default function TeacherExamDashboard() {
                       : pressed
                       ? colors.primary + "DD"
                       : colors.primary,
-                    paddingVertical: 8,
-                    paddingHorizontal: 14,
-                    borderRadius: 20,
+                    paddingVertical: 5,
+                    paddingHorizontal: 10,
+                    borderRadius: 14,
                     flexDirection: "row",
                     alignItems: "center",
-                    gap: 4,
+                    gap: 3,
                   })}
                 >
                   <MaterialIcons
                     name={exam.marksComplete ? "check-circle" : "edit"}
-                    size={14}
+                    size={12}
                     color="#FFFFFF"
                   />
                   <Text
                     style={{
                       color: "#FFFFFF",
-                      fontSize: FONT_SIZES.sm,
+                      fontSize: FONT_SIZES.xs,
                       fontFamily: FONTS.bold,
                     }}
                   >
@@ -382,20 +392,20 @@ export default function TeacherExamDashboard() {
           backgroundColor: pressed
             ? colors.surfaceContainerHighest
             : colors.surfaceContainerHigh,
-          paddingVertical: 10,
-          paddingHorizontal: 16,
-          borderRadius: 10,
+          paddingVertical: 8,
+          paddingHorizontal: 12,
+          borderRadius: 8,
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "center",
           gap: 6,
         })}
       >
-        <MaterialIcons name="analytics" size={18} color={colors.onSurface} />
+        <MaterialIcons name="analytics" size={16} color={colors.onSurface} />
         <Text
           style={{
             color: colors.onSurface,
-            fontSize: FONT_SIZES.sm,
+            fontSize: FONT_SIZES.xs,
             fontFamily: FONTS.bold,
           }}
         >
@@ -413,10 +423,10 @@ export default function TeacherExamDashboard() {
       <View style={{ marginBottom: 20 }}>
         <Text
           style={{
-            fontSize: FONT_SIZES.lg,
+            fontSize: FONT_SIZES.md,
             fontFamily: FONTS.bold,
             color: colors.onSurface,
-            marginBottom: 16,
+            marginBottom: 12,
           }}
         >
           {t("teacher.yourClasses", "Your Classes")}
@@ -426,23 +436,23 @@ export default function TeacherExamDashboard() {
           <View
             style={{
               alignItems: "center",
-              paddingVertical: 60,
+              paddingVertical: 48,
               backgroundColor: colors.surfaceContainerHighest,
-              borderRadius: 16,
+              borderRadius: 14,
             }}
           >
             <MaterialIcons
               name="school"
-              size={64}
+              size={48}
               color={colors.onSurfaceVariant}
               style={{ opacity: 0.5 }}
             />
             <Text
               style={{
                 color: colors.onSurfaceVariant,
-                fontSize: FONT_SIZES.md,
+                fontSize: FONT_SIZES.sm,
                 fontFamily: FONTS.medium,
-                marginTop: 16,
+                marginTop: 12,
                 textAlign: "center",
               }}
             >
@@ -464,10 +474,10 @@ export default function TeacherExamDashboard() {
         <View style={{ marginBottom: 20 }}>
           <Text
             style={{
-              fontSize: FONT_SIZES.lg,
+              fontSize: FONT_SIZES.md,
               fontFamily: FONTS.bold,
               color: colors.onSurface,
-              marginBottom: 16,
+              marginBottom: 12,
             }}
           >
             {t("teacher.classReports", "Class Reports")}

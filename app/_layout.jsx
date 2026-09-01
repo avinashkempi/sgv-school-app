@@ -209,7 +209,7 @@ function Inner() {
                 gestureEnabled: true,
                 gestureDirection: "horizontal",
                 fullScreenGestureEnabled: false,
-                // Native-driven fast smooth horizontal transitions
+                // Native-driven fast smooth horizontal transitions for hierarchical drill-downs
                 animation: "slide_from_right",
                 animationDuration: 200,
                 // Freeze off-screen screens to save CPU/GPU cycles
@@ -217,7 +217,35 @@ function Inner() {
                 // Prevent Android view hierarchy synchronization crash during screen transitions
                 detachInactiveScreens: false,
               }}
-            />
+            >
+              {/* Primary Peer Tabs (Fast subtle fade to prevent horizontal disorientation when switching tabs) */}
+              <Stack.Screen name="index" options={{ animation: "fade" }} />
+              <Stack.Screen name="vibes/index" options={{ animation: "fade" }} />
+              <Stack.Screen name="menu" options={{ animation: "fade" }} />
+              <Stack.Screen name="requests" options={{ animation: "fade" }} />
+              <Stack.Screen name="student" options={{ animation: "fade" }} />
+              <Stack.Screen name="teacher" options={{ animation: "fade" }} />
+              <Stack.Screen name="admin" options={{ animation: "fade" }} />
+              <Stack.Screen name="super-admin" options={{ animation: "fade" }} />
+
+              {/* Action / Modal Sheets (Creation and compose flows slide up from bottom) */}
+              <Stack.Screen
+                name="complaints/raise"
+                options={{
+                  animation: "slide_from_bottom",
+                  presentation: "modal",
+                  gestureDirection: "vertical",
+                }}
+              />
+              <Stack.Screen
+                name="complaints/give-feedback"
+                options={{
+                  animation: "slide_from_bottom",
+                  presentation: "modal",
+                  gestureDirection: "vertical",
+                }}
+              />
+            </Stack>
             {!isLogin && <BottomNavigation />}
           </NotificationProvider>
         </NavigationProvider>

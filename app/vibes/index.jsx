@@ -86,6 +86,16 @@ export default function VibesScreen() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [showSearchBar, setShowSearchBar] = useState(false);
 
+  // Sync searchParams category and tag on navigation / deep-linking
+  useEffect(() => {
+    if (typeof searchParams?.category === "string" && searchParams.category) {
+      setSelectedCategory(searchParams.category);
+    }
+    if (typeof searchParams?.tag === "string") {
+      setSelectedTag(searchParams.tag);
+    }
+  }, [searchParams?.category, searchParams?.tag]);
+
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery.trim());

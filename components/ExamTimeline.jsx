@@ -60,31 +60,32 @@ const ExamTimelineItem = React.memo(
         ]}
       >
         {/* Timeline Column */}
-        <View style={{ alignItems: "center", width: 28 }}>
+        <View style={{ alignItems: "center", width: 24 }}>
           {/* Dot */}
           <View
             style={{
-              width: today ? 18 : 14,
-              height: today ? 18 : 14,
-              borderRadius: today ? 9 : 7,
+              width: today ? 14 : 10,
+              height: today ? 14 : 10,
+              borderRadius: today ? 7 : 5,
               backgroundColor: past
                 ? colors.outlineVariant
                 : today
                 ? colors.error
                 : examColor,
-              borderWidth: today ? 3 : 2,
+              borderWidth: today ? 2.5 : 1.5,
               borderColor: today
                 ? colors.error + "30"
                 : past
                 ? colors.surfaceContainerHighest
                 : examColor + "30",
+              marginTop: 4,
               ...(today
                 ? {
                     shadowColor: colors.error,
                     shadowOffset: { width: 0, height: 0 },
-                    shadowOpacity: 0.5,
-                    shadowRadius: 6,
-                    elevation: 4,
+                    shadowOpacity: 0.4,
+                    shadowRadius: 4,
+                    elevation: 3,
                   }
                 : {}),
             }}
@@ -94,10 +95,10 @@ const ExamTimelineItem = React.memo(
           {!isLast && (
             <View
               style={{
-                width: 2.5,
+                width: 2,
                 flex: 1,
                 marginVertical: 2,
-                borderRadius: 2,
+                borderRadius: 1,
                 overflow: "hidden",
               }}
             >
@@ -117,14 +118,14 @@ const ExamTimelineItem = React.memo(
           onPress={() => onExamPress?.(exam)}
           style={({ pressed }) => ({
             flex: 1,
-            marginLeft: 12,
+            marginLeft: 10,
             backgroundColor: pressed
               ? colors.surfaceContainerHigh
               : today
               ? examColor + "08"
               : colors.surfaceContainerHighest,
-            borderRadius: 14,
-            padding: 14,
+            borderRadius: 12,
+            padding: 12,
             borderLeftWidth: 3,
             borderLeftColor: past
               ? colors.outlineVariant
@@ -132,7 +133,7 @@ const ExamTimelineItem = React.memo(
               ? colors.error
               : examColor,
             opacity: past ? 0.65 : 1,
-            marginBottom: 12,
+            marginBottom: 10,
             ...(today
               ? {
                   borderWidth: 1,
@@ -146,30 +147,30 @@ const ExamTimelineItem = React.memo(
             style={{
               flexDirection: "row",
               justifyContent: "space-between",
-              alignItems: "flex-start",
-              marginBottom: 8,
+              alignItems: "center",
+              marginBottom: 6,
             }}
           >
             <View
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                gap: 6,
+                gap: 5,
                 flexWrap: "wrap",
               }}
             >
               <View
                 style={{
                   backgroundColor: examColor + "18",
-                  paddingHorizontal: 8,
-                  paddingVertical: 3,
-                  borderRadius: 6,
+                  paddingHorizontal: 7,
+                  paddingVertical: 2,
+                  borderRadius: 5,
                 }}
               >
                 <Text
                   style={{
                     color: examColor,
-                    fontSize: FONT_SIZES.xs,
+                    fontSize: FONT_SIZES.micro,
                     fontFamily: FONTS.bold,
                     letterSpacing: LETTER_SPACINGS.xs,
                   }}
@@ -181,15 +182,15 @@ const ExamTimelineItem = React.memo(
                 <View
                   style={{
                     backgroundColor: colors.error,
-                    paddingHorizontal: 8,
-                    paddingVertical: 3,
-                    borderRadius: 6,
+                    paddingHorizontal: 6,
+                    paddingVertical: 2,
+                    borderRadius: 5,
                     flexDirection: "row",
                     alignItems: "center",
                     gap: 3,
                   }}
                 >
-                  <MaterialIcons name="circle" size={6} color="#fff" />
+                  <MaterialIcons name="circle" size={5} color="#fff" />
                   <Text
                     style={{
                       color: "#fff",
@@ -206,9 +207,9 @@ const ExamTimelineItem = React.memo(
                 <View
                   style={{
                     backgroundColor: colors.success + "18",
-                    paddingHorizontal: 8,
-                    paddingVertical: 3,
-                    borderRadius: 6,
+                    paddingHorizontal: 6,
+                    paddingVertical: 2,
+                    borderRadius: 5,
                     flexDirection: "row",
                     alignItems: "center",
                     gap: 3,
@@ -240,16 +241,16 @@ const ExamTimelineItem = React.memo(
                   : today
                   ? colors.error + "15"
                   : colors.primaryContainer,
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-                borderRadius: 8,
+                paddingHorizontal: 8,
+                paddingVertical: 2.5,
+                borderRadius: 6,
                 alignItems: "center",
-                minWidth: 54,
+                minWidth: 46,
               }}
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.sm,
+                  fontSize: FONT_SIZES.xs,
                   fontFamily: FONTS.bold,
                   color: past
                     ? colors.onSurfaceVariant
@@ -266,7 +267,7 @@ const ExamTimelineItem = React.memo(
           {/* Subject Name */}
           <Text
             style={{
-              fontSize: FONT_SIZES.md,
+              fontSize: FONT_SIZES.sm,
               fontFamily: FONTS.bold,
               color: colors.onSurface,
               marginBottom: 4,
@@ -280,21 +281,21 @@ const ExamTimelineItem = React.memo(
             style={{
               flexDirection: "row",
               alignItems: "center",
-              gap: 14,
-              marginTop: 4,
+              gap: 12,
+              marginTop: 2,
             }}
           >
             <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
+              style={{ flexDirection: "row", alignItems: "center", gap: 3 }}
             >
               <MaterialIcons
                 name="calendar-today"
-                size={13}
+                size={12}
                 color={colors.onSurfaceVariant}
               />
               <Text
                 style={{
-                  fontSize: FONT_SIZES.sm,
+                  fontSize: FONT_SIZES.xs,
                   fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                 }}
@@ -303,16 +304,16 @@ const ExamTimelineItem = React.memo(
               </Text>
             </View>
             <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
+              style={{ flexDirection: "row", alignItems: "center", gap: 3 }}
             >
               <MaterialIcons
                 name="assessment"
-                size={13}
+                size={12}
                 color={colors.onSurfaceVariant}
               />
               <Text
                 style={{
-                  fontSize: FONT_SIZES.sm,
+                  fontSize: FONT_SIZES.xs,
                   fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
                 }}
@@ -322,16 +323,16 @@ const ExamTimelineItem = React.memo(
             </View>
             {exam.duration && (
               <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
+                style={{ flexDirection: "row", alignItems: "center", gap: 3 }}
               >
                 <MaterialIcons
                   name="schedule"
-                  size={13}
+                  size={12}
                   color={colors.onSurfaceVariant}
                 />
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.sm,
+                    fontSize: FONT_SIZES.xs,
                     fontFamily: FONTS.medium,
                     color: colors.onSurfaceVariant,
                   }}

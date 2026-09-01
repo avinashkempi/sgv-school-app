@@ -177,12 +177,12 @@ export default function StudentExamScheduleScreen() {
                   {
                     translateY: heroAnim.interpolate({
                       inputRange: [0, 1],
-                      outputRange: [20, 0],
+                      outputRange: [16, 0],
                     }),
                   },
                 ],
-                marginTop: 20,
-                borderRadius: 20,
+                marginTop: 16,
+                borderRadius: 16,
                 overflow: "hidden",
               }}
             >
@@ -190,80 +190,82 @@ export default function StudentExamScheduleScreen() {
                 colors={[colors.primary, colors.onPrimaryContainer]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
-                style={{ padding: 24 }}
+                style={{ padding: 18 }}
               >
                 <View
                   style={{
                     flexDirection: "row",
                     justifyContent: "space-between",
-                    alignItems: "flex-start",
+                    alignItems: "center",
                   }}
                 >
-                  <View style={{ flex: 1 }}>
+                  <View style={{ flex: 1, paddingRight: 12 }}>
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.xs,
+                        fontSize: FONT_SIZES.micro,
                         fontFamily: FONTS.bold,
                         color: colors.onPrimary,
-                        opacity: 0.7,
+                        opacity: 0.75,
                         textTransform: "uppercase",
-                        letterSpacing: 1.5,
-                        marginBottom: 8,
+                        letterSpacing: 1.2,
+                        marginBottom: 4,
                       }}
                     >
                       {t("student.nextExam", "Next Exam")}
                     </Text>
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.xl,
+                        fontSize: FONT_SIZES.md,
                         fontFamily: FONTS.bold,
                         color: colors.onPrimary,
-                        marginBottom: 4,
+                        marginBottom: 2,
                       }}
+                      numberOfLines={1}
                     >
                       {nextExam.subject?.name || nextExam.name}
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: FONT_SIZES.sm,
-                        fontFamily: FONTS.medium,
-                        color: colors.onPrimary,
-                        opacity: 0.8,
-                      }}
-                    >
-                      {new Date(nextExam.date).toLocaleDateString("en-IN", {
-                        weekday: "long",
-                        day: "numeric",
-                        month: "long",
-                      })}
-                    </Text>
-                  </View>
-                  <View
-                    style={{
-                      backgroundColor: "rgba(255,255,255,0.2)",
-                      borderRadius: 16,
-                      padding: 16,
-                      alignItems: "center",
-                      minWidth: 80,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: FONT_SIZES.display,
-                        fontFamily: FONTS.bold,
-                        color: colors.onPrimary,
-                        lineHeight: 32,
-                      }}
-                    >
-                      {getCountdown(nextExam.date).text}
                     </Text>
                     <Text
                       style={{
                         fontSize: FONT_SIZES.xs,
                         fontFamily: FONTS.medium,
                         color: colors.onPrimary,
-                        opacity: 0.8,
-                        marginTop: 2,
+                        opacity: 0.85,
+                      }}
+                    >
+                      {new Date(nextExam.date).toLocaleDateString("en-IN", {
+                        weekday: "short",
+                        day: "numeric",
+                        month: "short",
+                      })}
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      backgroundColor: "rgba(255,255,255,0.22)",
+                      borderRadius: 12,
+                      paddingVertical: 10,
+                      paddingHorizontal: 14,
+                      alignItems: "center",
+                      minWidth: 68,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: FONT_SIZES.xl,
+                        fontFamily: FONTS.bold,
+                        color: colors.onPrimary,
+                        lineHeight: 26,
+                      }}
+                    >
+                      {getCountdown(nextExam.date).text}
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: FONT_SIZES.micro,
+                        fontFamily: FONTS.medium,
+                        color: colors.onPrimary,
+                        opacity: 0.85,
+                        marginTop: 1,
                       }}
                     >
                       {getCountdown(nextExam.date).unit ||
@@ -276,29 +278,29 @@ export default function StudentExamScheduleScreen() {
                 <View
                   style={{
                     flexDirection: "row",
-                    gap: 16,
-                    marginTop: 16,
-                    paddingTop: 16,
+                    gap: 14,
+                    marginTop: 14,
+                    paddingTop: 12,
                     borderTopWidth: 1,
-                    borderTopColor: "rgba(255,255,255,0.15)",
+                    borderTopColor: "rgba(255,255,255,0.18)",
                   }}
                 >
                   <View
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
-                      gap: 6,
+                      gap: 5,
                     }}
                   >
                     <MaterialIcons
                       name="assignment"
-                      size={16}
+                      size={14}
                       color={colors.onPrimary}
-                      style={{ opacity: 0.8 }}
+                      style={{ opacity: 0.85 }}
                     />
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.sm,
+                        fontSize: FONT_SIZES.xs,
                         fontFamily: FONTS.medium,
                         color: colors.onPrimary,
                         opacity: 0.9,
@@ -312,18 +314,18 @@ export default function StudentExamScheduleScreen() {
                       style={{
                         flexDirection: "row",
                         alignItems: "center",
-                        gap: 6,
+                        gap: 5,
                       }}
                     >
                       <MaterialIcons
                         name="schedule"
-                        size={16}
+                        size={14}
                         color={colors.onPrimary}
-                        style={{ opacity: 0.8 }}
+                        style={{ opacity: 0.85 }}
                       />
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.sm,
+                          fontSize: FONT_SIZES.xs,
                           fontFamily: FONTS.medium,
                           color: colors.onPrimary,
                           opacity: 0.9,
@@ -337,18 +339,18 @@ export default function StudentExamScheduleScreen() {
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
-                      gap: 6,
+                      gap: 5,
                     }}
                   >
                     <MaterialIcons
                       name="label"
-                      size={16}
+                      size={14}
                       color={colors.onPrimary}
-                      style={{ opacity: 0.8 }}
+                      style={{ opacity: 0.85 }}
                     />
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.sm,
+                        fontSize: FONT_SIZES.xs,
                         fontFamily: FONTS.medium,
                         color: colors.onPrimary,
                         opacity: 0.9,
@@ -366,9 +368,9 @@ export default function StudentExamScheduleScreen() {
           <View
             style={{
               flexDirection: "row",
-              gap: 10,
-              marginTop: 20,
-              marginBottom: 20,
+              gap: 8,
+              marginTop: 16,
+              marginBottom: 16,
             }}
           >
             {[
@@ -396,17 +398,18 @@ export default function StudentExamScheduleScreen() {
                 style={{
                   flex: 1,
                   backgroundColor: stat.bg,
-                  borderRadius: 14,
-                  padding: 14,
+                  borderRadius: 12,
+                  paddingVertical: 10,
+                  paddingHorizontal: 8,
                   alignItems: "center",
                 }}
               >
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.xl,
+                    fontSize: FONT_SIZES.lg,
                     fontFamily: FONTS.bold,
                     color: stat.color,
-                    lineHeight: 28,
+                    lineHeight: 24,
                   }}
                 >
                   {stat.value}
@@ -416,7 +419,7 @@ export default function StudentExamScheduleScreen() {
                     fontSize: FONT_SIZES.xs,
                     fontFamily: FONTS.medium,
                     color: colors.onSurfaceVariant,
-                    marginTop: 4,
+                    marginTop: 2,
                   }}
                 >
                   {stat.label}
@@ -429,13 +432,13 @@ export default function StudentExamScheduleScreen() {
           {subjects.length > 1 && (
             <Animated.View
               style={{
-                marginBottom: 20,
+                marginBottom: 16,
                 opacity: filterAnim,
                 transform: [
                   {
                     translateY: filterAnim.interpolate({
                       inputRange: [0, 1],
-                      outputRange: [10, 0],
+                      outputRange: [8, 0],
                     }),
                   },
                 ],
@@ -443,16 +446,16 @@ export default function StudentExamScheduleScreen() {
             >
               <Text
                 style={{
-                  fontSize: FONT_SIZES.sm,
+                  fontSize: FONT_SIZES.xs,
                   fontFamily: FONTS.medium,
                   color: colors.onSurfaceVariant,
-                  marginBottom: 10,
+                  marginBottom: 8,
                 }}
               >
                 {t("student.filterBySubject", "Filter by Subject")}
               </Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View style={{ flexDirection: "row", gap: 8 }}>
+                <View style={{ flexDirection: "row", gap: 6 }}>
                   <Pressable
                     onPress={() => setFilterSubject(null)}
                     style={({ pressed }) => ({
@@ -461,14 +464,14 @@ export default function StudentExamScheduleScreen() {
                         : pressed
                         ? colors.surfaceContainerHigh
                         : colors.surfaceContainerHighest,
-                      paddingHorizontal: 16,
-                      paddingVertical: 8,
-                      borderRadius: 20,
+                      paddingHorizontal: 12,
+                      paddingVertical: 6,
+                      borderRadius: 16,
                     })}
                   >
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.sm,
+                        fontSize: FONT_SIZES.xs,
                         fontFamily: FONTS.bold,
                         color: !filterSubject ? "#FFFFFF" : colors.onSurface,
                       }}
@@ -488,14 +491,14 @@ export default function StudentExamScheduleScreen() {
                             : pressed
                             ? colors.surfaceContainerHigh
                             : colors.surfaceContainerHighest,
-                        paddingHorizontal: 16,
-                        paddingVertical: 8,
-                        borderRadius: 20,
+                        paddingHorizontal: 12,
+                        paddingVertical: 6,
+                        borderRadius: 16,
                       })}
                     >
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.sm,
+                          fontSize: FONT_SIZES.xs,
                           fontFamily: FONTS.bold,
                           color:
                             filterSubject === subject._id
@@ -514,23 +517,23 @@ export default function StudentExamScheduleScreen() {
 
           {/* Upcoming Exams */}
           {upcomingExams.length > 0 && (
-            <View style={{ marginBottom: 28 }}>
+            <View style={{ marginBottom: 20 }}>
               <View
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
-                  gap: 8,
-                  marginBottom: 16,
+                  gap: 6,
+                  marginBottom: 12,
                 }}
               >
                 <MaterialIcons
                   name="upcoming"
-                  size={20}
+                  size={18}
                   color={colors.onSurface}
                 />
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.lg,
+                    fontSize: FONT_SIZES.md,
                     fontFamily: FONTS.bold,
                     color: colors.onSurface,
                   }}
@@ -540,15 +543,15 @@ export default function StudentExamScheduleScreen() {
                 <View
                   style={{
                     backgroundColor: colors.primaryContainer,
-                    paddingHorizontal: 8,
-                    paddingVertical: 2,
-                    borderRadius: 10,
-                    marginLeft: 4,
+                    paddingHorizontal: 6,
+                    paddingVertical: 1,
+                    borderRadius: 8,
+                    marginLeft: 2,
                   }}
                 >
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.xs,
+                      fontSize: FONT_SIZES.micro,
                       fontFamily: FONTS.bold,
                       color: colors.primary,
                     }}
@@ -576,18 +579,18 @@ export default function StudentExamScheduleScreen() {
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
-                  gap: 8,
-                  marginBottom: 16,
+                  gap: 6,
+                  marginBottom: 12,
                 }}
               >
                 <MaterialIcons
                   name="history"
-                  size={20}
+                  size={18}
                   color={colors.onSurfaceVariant}
                 />
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.lg,
+                    fontSize: FONT_SIZES.md,
                     fontFamily: FONTS.bold,
                     color: colors.onSurface,
                   }}
@@ -597,15 +600,15 @@ export default function StudentExamScheduleScreen() {
                 <View
                   style={{
                     backgroundColor: colors.surfaceContainerHigh,
-                    paddingHorizontal: 8,
-                    paddingVertical: 2,
-                    borderRadius: 10,
-                    marginLeft: 4,
+                    paddingHorizontal: 6,
+                    paddingVertical: 1,
+                    borderRadius: 8,
+                    marginLeft: 2,
                   }}
                 >
                   <Text
                     style={{
-                      fontSize: FONT_SIZES.xs,
+                      fontSize: FONT_SIZES.micro,
                       fontFamily: FONTS.bold,
                       color: colors.onSurfaceVariant,
                     }}

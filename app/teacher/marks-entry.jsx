@@ -200,14 +200,14 @@ export default function MarksEntryScreen() {
               <View style={{ flex: 2 }}>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.md,
-                    fontFamily: FONTS.medium,
+                    fontSize: FONT_SIZES.sm,
+                    fontFamily: FONTS.semiBold,
                     color: colors.textPrimary,
                   }}
                 >
                   {formatUserName(student.name)}
                 </Text>
-                <Text style={{ fontSize: FONT_SIZES.sm, color: colors.textSecondary }}>
+                <Text style={{ fontSize: FONT_SIZES.xs, color: colors.textSecondary, marginTop: 2 }}>
                   {t("common.roll", "Roll")}: {student.rollNumber || "-"}
                 </Text>
               </View>
@@ -220,6 +220,8 @@ export default function MarksEntryScreen() {
                       color: colors.textPrimary,
                       borderColor: colors.borderColor,
                       backgroundColor: colors.background,
+                      fontSize: FONT_SIZES.sm,
+                      fontFamily: FONTS.semiBold,
                     },
                   ]}
                   keyboardType="numeric"
@@ -260,7 +262,7 @@ export default function MarksEntryScreen() {
             <View
               style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
             >
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color="#fff" size="small" />
               <Text style={localStyles.saveButtonText}>
                 {t("common.saving", "Saving...")}
               </Text>
@@ -279,45 +281,45 @@ export default function MarksEntryScreen() {
 const localStyles = StyleSheet.create({
   headerRow: {
     flexDirection: "row",
-    paddingBottom: 8,
-    marginBottom: 8,
+    paddingBottom: 6,
+    marginBottom: 6,
     borderBottomWidth: 1,
     borderBottomColor: "#e0e0e0",
   },
   headerText: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
     textTransform: "uppercase",
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 12,
-    borderRadius: 12,
+    padding: 10,
+    borderRadius: 10,
     marginBottom: 8,
     borderWidth: 1,
   },
   input: {
-    width: 60,
-    height: 40,
+    width: 56,
+    height: 36,
     borderWidth: 1,
     borderRadius: 8,
     textAlign: "center",
   },
   footer: {
-    padding: 16,
+    padding: 14,
     borderTopWidth: 1,
-    elevation: 10,
+    elevation: 8,
   },
   saveButton: {
-    paddingVertical: 14,
-    borderRadius: 12,
+    paddingVertical: 12,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
   },
   saveButtonText: {
     color: "#fff",
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
 });

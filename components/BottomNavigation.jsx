@@ -8,7 +8,7 @@ import Animated, {
   interpolate,
   Extrapolation,
 } from "react-native-reanimated";
-import { useRouter, usePathname } from "expo-router";
+import { useRouter, usePathname, useLocalSearchParams } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { BlurView } from "expo-blur";
@@ -22,9 +22,145 @@ import { useLabel } from "../context/LabelsContext";
 // eslint-disable-next-line no-unused-vars
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
+/**
+ * Resolves any child screen, sub-flow, or action item across the application
+ * to its parent bottom navigation tab route.
+ */
+function resolveActiveTab(pathname, userRole, searchParams = {}) {
+  if (!pathname) return ROUTES.HOME;
+
+  // 1. Vibes Tab
+  if (pathname === "/vibes" || pathname.startsWith("/vibes/")) {
+    return ROUTES.VIBES;
+  }
+
+  // 2. Menu Items & Modals (Events, Complaints, Profile, Vibe Approvals from Menu)
+  if (
+    pathname === "/menu" ||
+    pathname.startsWith("/menu/") ||
+    pathname === "/events" ||
+    pathname.startsWith("/events/") ||
+    pathname === "/complaints" ||
+    pathname.startsWith("/complaints/") ||
+    pathname === "/profile" ||
+    pathname.startsWith("/profile/") ||
+    pathname === "/admin/vibe-approvals" ||
+    pathname.startsWith("/admin/vibe-approvals/")
+  ) {
+    return "/menu";
+  }
+
+  // 3. Attendance Hub, Leaves & Attendance Sub-Screens (All Roles)
+  if (
+    pathname === "/requests" ||
+    pathname.startsWith("/requests/") ||
+    pathname === "/student/leaves" ||
+    pathname.startsWith("/student/leaves/") ||
+    pathname === "/teacher/leaves" ||
+    pathname.startsWith("/teacher/leaves/") ||
+    pathname === "/admin/leaves" ||
+    pathname.startsWith("/admin/leaves/") ||
+    pathname === "/student/attendance" ||
+    pathname.startsWith("/student/attendance/") ||
+    pathname === "/teacher/attendance" ||
+    pathname.startsWith("/teacher/attendance/") ||
+    pathname === "/admin/attendance" ||
+    pathname.startsWith("/admin/attendance/") ||
+    pathname === "/teacher/class/attendance" ||
+    pathname.startsWith("/teacher/class/attendance/") ||
+    (pathname === "/teacher/classes" && searchParams?.action === "attendance")
+  ) {
+    return "/requests";
+  }
+
+  // 4. Student Academics & Class Screens
+  if (userRole === "student") {
+    if (
+      pathname === "/student/class" ||
+      pathname.startsWith("/student/class/") ||
+      pathname === "/subjects" ||
+      pathname.startsWith("/subjects/") ||
+      pathname === "/student/timetable" ||
+      pathname.startsWith("/student/timetable/") ||
+      pathname === "/student/exam-schedule" ||
+      pathname.startsWith("/student/exam-schedule/") ||
+      pathname === "/student/report-card" ||
+      pathname.startsWith("/student/report-card/") ||
+      pathname === "/student/fees" ||
+      pathname.startsWith("/student/fees/") ||
+      pathname === "/student/history" ||
+      pathname.startsWith("/student/history/") ||
+      pathname === "/history" ||
+      pathname.startsWith("/history/")
+    ) {
+      return ROUTES.STUDENT_CLASS;
+    }
+  }
+
+  // 5. Teacher Dashboard, Classes, Subjects & Academics
+  if (
+    userRole === "teacher" ||
+    userRole === "staff" ||
+    userRole === "support_staff"
+  ) {
+    if (
+      pathname === "/teacher/dashboard" ||
+      pathname.startsWith("/teacher/dashboard/") ||
+      pathname === "/teacher/classes" ||
+      pathname.startsWith("/teacher/classes/") ||
+      pathname === "/teacher/class" ||
+      pathname.startsWith("/teacher/class/") ||
+      pathname === "/teacher/timetable" ||
+      pathname.startsWith("/teacher/timetable/") ||
+      pathname === "/teacher/schedule" ||
+      pathname.startsWith("/teacher/schedule/") ||
+      pathname === "/teacher/exams-dashboard" ||
+      pathname.startsWith("/teacher/exams-dashboard/") ||
+      pathname === "/teacher/marks-entry" ||
+      pathname.startsWith("/teacher/marks-entry/") ||
+      pathname === "/teacher/exam/enter-marks" ||
+      pathname.startsWith("/teacher/exam/enter-marks/") ||
+      pathname === "/teacher/subject/create-exam" ||
+      pathname.startsWith("/teacher/subject/create-exam/") ||
+      pathname === "/teacher/subject/performance" ||
+      pathname.startsWith("/teacher/subject/performance/") ||
+      pathname === "/teacher/assessments" ||
+      pathname.startsWith("/teacher/assessments/") ||
+      pathname === "/shared/class-reports" ||
+      pathname.startsWith("/shared/class-reports/")
+    ) {
+      return ROUTES.TEACHER_CLASSES;
+    }
+  }
+
+  // 6. Admin & Super Admin Tools
+  if (userRole === "admin" || userRole === "super admin") {
+    if (
+      pathname === "/admin/classes" ||
+      pathname.startsWith("/admin/classes/")
+    ) {
+      return "/admin/classes";
+    }
+
+    if (
+      pathname === "/admin" ||
+      (pathname.startsWith("/admin/") &&
+        pathname !== "/admin/classes" &&
+        !pathname.startsWith("/admin/classes/")) ||
+      pathname.startsWith("/super-admin")
+    ) {
+      return ROUTES.ADMIN;
+    }
+  }
+
+  // 7. Default Home
+  return ROUTES.HOME;
+}
+
 function BottomNavigation() {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useLocalSearchParams();
   const { colors, mode } = useTheme();
   const { user } = useAuth();
   const { emitScrollToTop } = useNavigationContext() || {};
@@ -106,15 +242,14 @@ function BottomNavigation() {
     [user, t]
   );
 
-  // Derive active route from pathname
+  // Derive active route from pathname and route hierarchy mapping
   const activeRoute = useMemo(() => {
-    const matchingItem = navigationItems
-      .filter((item) =>
-        item.route === "/" ? pathname === "/" : pathname.startsWith(item.route)
-      )
-      .sort((a, b) => b.route.length - a.route.length)[0];
-    return matchingItem?.route || ROUTES.HOME;
-  }, [pathname, navigationItems]);
+    const resolvedRoute = resolveActiveTab(pathname, user?.role, searchParams);
+    const isItemAvailable = navigationItems.some(
+      (item) => item.route === resolvedRoute
+    );
+    return isItemAvailable ? resolvedRoute : ROUTES.HOME;
+  }, [pathname, user?.role, searchParams, navigationItems]);
 
   const handleTabPress = useCallback(
     (route) => {
