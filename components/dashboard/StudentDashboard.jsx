@@ -123,7 +123,7 @@ const StudentDashboard = () => {
       {/* ═════════════════════════════════════════════════════════════ */}
       {/* CARD 2: Today's Timetable (Second Section)                   */}
       {/* ═════════════════════════════════════════════════════════════ */}
-      <TodayTimetableCard style={{ marginBottom: 14 }} />
+      <TodayTimetableCard />
 
       {/* ═════════════════════════════════════════════════════════════ */}
       {/* CARD 3: Academic Performance (Pastel Sky / Cyan Theme)       */}
@@ -192,8 +192,8 @@ const MinimalStatTile = ({
       style={({ pressed }) => [
         localStyles.minimalTile,
         {
-          backgroundColor: isDark ? colors.surfaceContainer : "#FFFFFF",
-          borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+          backgroundColor: isDark ? `${tileAccent}18` : `${tileAccent}0A`,
+          borderColor: isDark ? `${tileAccent}38` : `${tileAccent}24`,
           opacity: pressed ? 0.75 : 1,
         },
       ]}

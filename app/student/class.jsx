@@ -25,7 +25,6 @@ import UserAvatar from "../../components/ui/UserAvatar";
 import SegmentedControl from "../../components/SegmentedControl";
 import UserDetailModal from "../../components/UserDetailModal";
 import ClassMediaAttachmentViewer from "../../components/class/ClassMediaAttachmentViewer";
-import TodayTimetableCard from "../../components/home/TodayTimetableCard";
 
 const getSubjectStyling = (subjectName = "") => {
   const name = subjectName.toLowerCase();
@@ -361,13 +360,13 @@ export default function StudentClassScreen() {
               <ActivityIndicator size="large" color={colors.primary} />
             </View>
           ) : (
-            <View style={{ gap: 16 }}>
+            <View style={{ gap: 12 }}>
               {/* ───────────────────────────────────────────────────────── */}
-              {/* 1. CLASS HERO & OVERVIEW BANNER                           */}
+              {/* 1. COMPACT CLASS & TEACHER OVERVIEW CARD                  */}
               {/* ───────────────────────────────────────────────────────── */}
               <View
                 style={[
-                  localStyles.heroBanner,
+                  localStyles.compactHeroCard,
                   {
                     backgroundColor: isDark
                       ? colors.surfaceContainer
@@ -378,226 +377,13 @@ export default function StudentClassScreen() {
                   },
                 ]}
               >
-                {/* Hero Title Row */}
-                <View style={localStyles.heroHeaderRow}>
-                  <View style={localStyles.heroTitleWrap}>
-                    <View style={localStyles.heroTagRow}>
-                      <View
-                        style={[
-                          localStyles.gradeBadge,
-                          { backgroundColor: colors.primary + "18" },
-                        ]}
-                      >
-                        <MaterialIcons
-                          name="auto-awesome"
-                          size={14}
-                          color={colors.primary}
-                        />
-                        <Text
-                          style={[
-                            localStyles.gradeBadgeText,
-                            { color: colors.primary },
-                          ]}
-                          numberOfLines={1}
-                        >
-                          {classData.branch?.name || classData.branch || "Main Campus"}
-                        </Text>
-                      </View>
-                      {classData.academicYear?.name && (
-                        <View
-                          style={[
-                            localStyles.gradeBadge,
-                            { backgroundColor: colors.secondaryContainer },
-                          ]}
-                        >
-                          <Text
-                            style={[
-                              localStyles.gradeBadgeText,
-                              { color: colors.onSecondaryContainer },
-                            ]}
-                            numberOfLines={1}
-                          >
-                            {classData.academicYear.name}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-
-                    <Text
-                      style={[
-                        localStyles.heroClassName,
-                        { color: colors.onSurface },
-                      ]}
-                      numberOfLines={1}
-                      ellipsizeMode="tail"
-                    >
-                      {formatClassName(classData.name)}
-                      {classData.section ? ` - ${classData.section}` : ""}
-                    </Text>
-                  </View>
-
-                  <View
-                    style={[
-                      localStyles.heroClassIcon,
-                      { backgroundColor: colors.primary + "14" },
-                    ]}
-                  >
-                    <MaterialIcons
-                      name="class"
-                      size={28}
-                      color={colors.primary}
-                    />
-                  </View>
-                </View>
-
-                {/* Hero Stats Matrix */}
-                <View style={localStyles.heroStatsRow}>
-                  <View
-                    style={[
-                      localStyles.heroStatCard,
-                      {
-                        backgroundColor: isDark
-                          ? colors.surfaceContainerHighest
-                          : colors.surfaceContainerHigh,
-                      },
-                    ]}
-                  >
-                    <MaterialIcons
-                      name="groups"
-                      size={20}
-                      color={colors.primary}
-                    />
-                    <Text
-                      style={[
-                        localStyles.heroStatNum,
-                        { color: colors.onSurface },
-                      ]}
-                    >
-                      {demographics.total}
-                    </Text>
-                    <Text
-                      style={[
-                        localStyles.heroStatLabel,
-                        { color: colors.onSurfaceVariant },
-                      ]}
-                    >
-                      {t("student.enrolledStudents", "Students")}
-                    </Text>
-                  </View>
-
-                  <View
-                    style={[
-                      localStyles.heroStatCard,
-                      {
-                        backgroundColor: isDark
-                          ? colors.surfaceContainerHighest
-                          : colors.surfaceContainerHigh,
-                      },
-                    ]}
-                  >
-                    <MaterialIcons
-                      name="male"
-                      size={20}
-                      color="#3B82F6"
-                    />
-                    <Text
-                      style={[
-                        localStyles.heroStatNum,
-                        { color: colors.onSurface },
-                      ]}
-                    >
-                      {demographics.boys}
-                    </Text>
-                    <Text
-                      style={[
-                        localStyles.heroStatLabel,
-                        { color: colors.onSurfaceVariant },
-                      ]}
-                    >
-                      {t("student.boys", "Boys")}
-                    </Text>
-                  </View>
-
-                  <View
-                    style={[
-                      localStyles.heroStatCard,
-                      {
-                        backgroundColor: isDark
-                          ? colors.surfaceContainerHighest
-                          : colors.surfaceContainerHigh,
-                      },
-                    ]}
-                  >
-                    <MaterialIcons
-                      name="female"
-                      size={20}
-                      color="#EC4899"
-                    />
-                    <Text
-                      style={[
-                        localStyles.heroStatNum,
-                        { color: colors.onSurface },
-                      ]}
-                    >
-                      {demographics.girls}
-                    </Text>
-                    <Text
-                      style={[
-                        localStyles.heroStatLabel,
-                        { color: colors.onSurfaceVariant },
-                      ]}
-                    >
-                      {t("student.girls", "Girls")}
-                    </Text>
-                  </View>
-
-                  <View
-                    style={[
-                      localStyles.heroStatCard,
-                      {
-                        backgroundColor: isDark
-                          ? colors.surfaceContainerHighest
-                          : colors.surfaceContainerHigh,
-                      },
-                    ]}
-                  >
-                    <MaterialIcons
-                      name="library-books"
-                      size={20}
-                      color="#10B981"
-                    />
-                    <Text
-                      style={[
-                        localStyles.heroStatNum,
-                        { color: colors.onSurface },
-                      ]}
-                    >
-                      {subjects.length}
-                    </Text>
-                    <Text
-                      style={[
-                        localStyles.heroStatLabel,
-                        { color: colors.onSurfaceVariant },
-                      ]}
-                    >
-                      {t("student.subjectsAndFaculty", "Subjects")}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Class Teacher Spotlight Card */}
-                {classData.classTeacher && (
+                {/* Teacher / Class Info Row */}
+                {classData.classTeacher ? (
                   <Pressable
                     onPress={() => handleOpenUserModal(classData.classTeacher)}
                     style={({ pressed }) => [
-                      localStyles.teacherSpotlight,
-                      {
-                        backgroundColor: isDark
-                          ? colors.surfaceContainerLowest
-                          : colors.surfaceContainerLow,
-                        borderColor: colors.primary + "30",
-                        opacity: pressed ? 0.9 : 1,
-                      },
+                      localStyles.compactTeacherRow,
+                      { opacity: pressed ? 0.8 : 1 },
                     ]}
                     accessibilityRole="button"
                     accessibilityLabel={`View class teacher ${classData.classTeacher.name}`}
@@ -606,13 +392,13 @@ export default function StudentClassScreen() {
                       photoUrl={classData.classTeacher.profilePhoto}
                       name={classData.classTeacher.name}
                       role="teacher"
-                      size={46}
+                      size={36}
                     />
-                    <View style={{ flex: 1, minWidth: 0 }}>
-                      <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                    <View style={{ flex: 1, minWidth: 0, justifyContent: "center" }}>
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
                         <Text
                           style={[
-                            localStyles.teacherBadge,
+                            localStyles.compactTeacherLabel,
                             { color: colors.primary },
                           ]}
                         >
@@ -620,63 +406,187 @@ export default function StudentClassScreen() {
                         </Text>
                         <MaterialIcons
                           name="verified"
-                          size={14}
+                          size={12}
                           color={colors.primary}
                         />
                       </View>
                       <Text
                         style={[
-                          localStyles.teacherName,
+                          localStyles.compactTeacherName,
                           { color: colors.onSurface },
                         ]}
                         numberOfLines={1}
                       >
                         {classData.classTeacher.name}
                       </Text>
-                      {classData.classTeacher.email && (
-                        <Text
-                          style={[
-                            localStyles.teacherEmail,
-                            { color: colors.onSurfaceVariant },
-                          ]}
-                          numberOfLines={1}
-                        >
-                          {classData.classTeacher.email}
-                        </Text>
-                      )}
                     </View>
+
+                    <View style={localStyles.compactBadgeRow}>
+                      {classData.academicYear?.name && (
+                        <View
+                          style={[
+                            localStyles.compactPill,
+                            { backgroundColor: colors.secondaryContainer },
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              localStyles.compactPillText,
+                              { color: colors.onSecondaryContainer },
+                            ]}
+                            numberOfLines={1}
+                          >
+                            {classData.academicYear.name}
+                          </Text>
+                        </View>
+                      )}
+                      <MaterialIcons
+                        name="chevron-right"
+                        size={18}
+                        color={colors.onSurfaceVariant}
+                      />
+                    </View>
+                  </Pressable>
+                ) : (
+                  <View style={localStyles.compactTeacherRow}>
                     <View
                       style={[
-                        localStyles.teacherInfoAction,
+                        localStyles.compactClassIconWrap,
                         { backgroundColor: colors.primary + "14" },
                       ]}
                     >
                       <MaterialIcons
-                        name="arrow-forward-ios"
-                        size={14}
+                        name="class"
+                        size={20}
                         color={colors.primary}
                       />
                     </View>
-                  </Pressable>
+                    <View style={{ flex: 1, minWidth: 0, justifyContent: "center" }}>
+                      <Text
+                        style={[
+                          localStyles.compactTeacherName,
+                          { color: colors.onSurface },
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {formatClassName(classData.name)}
+                        {classData.section ? ` - ${classData.section}` : ""}
+                      </Text>
+                      <Text
+                        style={[
+                          localStyles.compactClassBranch,
+                          { color: colors.onSurfaceVariant },
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {classData.branch?.name || classData.branch || "Main Campus"}
+                      </Text>
+                    </View>
+                    {classData.academicYear?.name && (
+                      <View
+                        style={[
+                          localStyles.compactPill,
+                          { backgroundColor: colors.secondaryContainer },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            localStyles.compactPillText,
+                            { color: colors.onSecondaryContainer },
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {classData.academicYear.name}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
                 )}
+
+                {/* Compact Stats & Demographics Chips */}
+                <View style={localStyles.compactStatsRow}>
+                  <View
+                    style={[
+                      localStyles.compactStatBadge,
+                      {
+                        backgroundColor: isDark
+                          ? colors.surfaceContainerHighest
+                          : colors.surfaceContainerLow,
+                      },
+                    ]}
+                  >
+                    <MaterialIcons
+                      name="groups"
+                      size={15}
+                      color={colors.primary}
+                    />
+                    <Text
+                      style={[
+                        localStyles.compactStatBadgeText,
+                        { color: colors.onSurface },
+                      ]}
+                    >
+                      {demographics.total} {t("student.students", "Students")}
+                    </Text>
+                    <Text
+                      style={[
+                        localStyles.compactStatSubText,
+                        { color: colors.onSurfaceVariant },
+                      ]}
+                    >
+                      ({demographics.boys}B · {demographics.girls}G)
+                    </Text>
+                  </View>
+
+                  <View
+                    style={[
+                      localStyles.compactStatBadge,
+                      {
+                        backgroundColor: isDark
+                          ? colors.surfaceContainerHighest
+                          : colors.surfaceContainerLow,
+                      },
+                    ]}
+                  >
+                    <MaterialIcons
+                      name="menu-book"
+                      size={15}
+                      color="#10B981"
+                    />
+                    <Text
+                      style={[
+                        localStyles.compactStatBadgeText,
+                        { color: colors.onSurface },
+                      ]}
+                    >
+                      {subjects.length} {t("student.subjects", "Subjects")}
+                    </Text>
+                  </View>
+                </View>
               </View>
 
               {/* ───────────────────────────────────────────────────────── */}
-              {/* 2. ACADEMIC SERVICES QUICK ACCESS STRIP                   */}
+              {/* 2. ACADEMIC SERVICES QUICK ACCESS STRIP (4 ACTIONS)       */}
               {/* ───────────────────────────────────────────────────────── */}
               <View style={localStyles.shortcutsRow}>
                 {[
                   {
-                    title: t("student.reportCard", "Report Card"),
-                    icon: "assessment",
-                    color: "#F59E0B",
-                    route: "/student/report-card",
+                    title: t("timetable.title", "Timetable"),
+                    icon: "schedule",
+                    color: "#6366F1",
+                    route: "/student/timetable",
                   },
                   {
                     title: t("student.exams", "Exams"),
                     icon: "event-note",
                     color: "#EF4444",
                     route: "/student/exam-schedule",
+                  },
+                  {
+                    title: t("student.reportCard", "Report"),
+                    icon: "assessment",
+                    color: "#F59E0B",
+                    route: "/student/report-card",
                   },
                   {
                     title: t("student.fees", "Fees"),
@@ -699,7 +609,9 @@ export default function StudentClassScreen() {
                         backgroundColor: isDark
                           ? colors.surfaceContainer
                           : "#FFFFFF",
-                        borderColor: colors.outlineVariant,
+                        borderColor: isDark
+                          ? colors.outlineVariant
+                          : "rgba(0,0,0,0.06)",
                         transform: [{ scale: pressed ? 0.96 : 1 }],
                       },
                     ]}
@@ -707,12 +619,12 @@ export default function StudentClassScreen() {
                     <View
                       style={[
                         localStyles.shortcutIconCircle,
-                        { backgroundColor: item.color + "18" },
+                        { backgroundColor: item.color + "16" },
                       ]}
                     >
                       <MaterialIcons
                         name={item.icon}
-                        size={24}
+                        size={19}
                         color={item.color}
                       />
                     </View>
@@ -730,12 +642,7 @@ export default function StudentClassScreen() {
               </View>
 
               {/* ───────────────────────────────────────────────────────── */}
-              {/* 3. TIMETABLE NAVIGATION CARD                              */}
-              {/* ───────────────────────────────────────────────────────── */}
-              <TodayTimetableCard style={{ marginBottom: 14 }} />
-
-              {/* ───────────────────────────────────────────────────────── */}
-              {/* 4. 3-TAB SEGMENTED HUB CONTROL                            */}
+              {/* 3. 3-TAB SEGMENTED HUB CONTROL                            */}
               {/* ───────────────────────────────────────────────────────── */}
               <SegmentedControl
                 tabs={[
@@ -1562,107 +1469,79 @@ const localStyles = StyleSheet.create({
     textAlign: "center",
     lineHeight: LINE_HEIGHTS.sm,
   },
-  heroBanner: {
-    borderRadius: 20,
-    padding: 18,
-    borderWidth: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-    gap: 14,
-  },
-  heroHeaderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  heroTitleWrap: {
-    flex: 1,
-    paddingRight: 8,
-  },
-  heroTagRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 6,
-    marginBottom: 6,
-  },
-  gradeBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    gap: 4,
-  },
-  gradeBadgeText: {
-    fontSize: FONT_SIZES.micro,
-    fontFamily: FONTS.bold,
-    letterSpacing: LETTER_SPACINGS.micro,
-  },
-  heroClassName: {
-    fontSize: FONT_SIZES.lg,
-    fontFamily: FONTS.bold,
-    marginTop: 2,
-  },
-  heroClassIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  heroStatsRow: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  heroStatCard: {
-    flex: 1,
-    minWidth: 0,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 2,
-    borderRadius: 12,
-    gap: 2,
-  },
-  heroStatNum: {
-    fontSize: FONT_SIZES.md,
-    fontFamily: FONTS.bold,
-  },
-  heroStatLabel: {
-    fontSize: FONT_SIZES.micro,
-    fontFamily: FONTS.medium,
-  },
-  teacherSpotlight: {
-    flexDirection: "row",
-    alignItems: "center",
+  compactHeroCard: {
+    borderRadius: 16,
     padding: 12,
-    borderRadius: 14,
     borderWidth: 1,
-    gap: 12,
+    gap: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
   },
-  teacherBadge: {
-    fontSize: FONT_SIZES.micro,
+  compactTeacherRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  compactClassIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  compactTeacherLabel: {
+    fontSize: 10,
     fontFamily: FONTS.bold,
     letterSpacing: LETTER_SPACINGS.xs,
   },
-  teacherName: {
-    fontSize: FONT_SIZES.md,
+  compactTeacherName: {
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
-    flexShrink: 1,
   },
-  teacherEmail: {
+  compactClassBranch: {
     fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
   },
-  teacherInfoAction: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+  compactBadgeRow: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    gap: 6,
+  },
+  compactPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    maxWidth: 110,
+  },
+  compactPillText: {
+    fontSize: 10,
+    fontFamily: FONTS.bold,
+    letterSpacing: LETTER_SPACINGS.micro,
+  },
+  compactStatsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  compactStatBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    gap: 6,
+    flexShrink: 1,
+  },
+  compactStatBadgeText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+  },
+  compactStatSubText: {
+    fontSize: 10,
+    fontFamily: FONTS.regular,
   },
   shortcutsRow: {
     flexDirection: "row",
@@ -1672,26 +1551,26 @@ const localStyles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     alignItems: "center",
-    paddingVertical: 12,
+    paddingVertical: 10,
     paddingHorizontal: 2,
-    borderRadius: 14,
+    borderRadius: 12,
     borderWidth: 1,
-    gap: 6,
+    gap: 4,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.03,
-    shadowRadius: 4,
+    shadowRadius: 3,
     elevation: 1,
   },
   shortcutIconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
   },
   shortcutTitle: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: 11,
     fontFamily: FONTS.bold,
     textAlign: "center",
   },

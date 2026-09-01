@@ -39,7 +39,7 @@ import SkeletonLoader from "../../components/SkeletonLoader";
 
 const VIBES_PER_PAGE = 10;
 
-const CATEGORIES = [
+const DEFAULT_FEED_CATEGORIES = [
   { key: "all", label: "All", icon: "auto-awesome" },
   { key: "general", label: "General", icon: "bubble-chart" },
   { key: "official", label: "Official", icon: "school" },
@@ -151,6 +151,29 @@ export default function VibesScreen() {
     }
   );
   const pendingCount = pendingData?.pendingCount || 0;
+
+  // Dynamic Categories Query
+  const { data: serverCategoriesData } = useApiQuery(
+    ["vibeCategories"],
+    `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.categories}`,
+    {
+      ...CACHE_TIERS.VIBES_FEED,
+      staleTime: 1000 * 60 * 30,
+    }
+  );
+
+  const feedCategories = useMemo(() => {
+    if (
+      Array.isArray(serverCategoriesData?.data) &&
+      serverCategoriesData.data.length > 0
+    ) {
+      return [
+        { key: "all", label: "All", icon: "auto-awesome" },
+        ...serverCategoriesData.data,
+      ];
+    }
+    return DEFAULT_FEED_CATEGORIES;
+  }, [serverCategoriesData]);
 
   // Viewport visibility tracking for high-performance video autoplay
   const [visibleItemIds, setVisibleItemIds] = useState(new Set());
@@ -785,7 +808,7 @@ export default function VibesScreen() {
         <View style={styles.categoriesContainer}>
           <FlatList
             horizontal
-            data={CATEGORIES}
+            data={feedCategories}
             keyExtractor={(item) => item.key}
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.categoriesScroll}
@@ -844,6 +867,7 @@ export default function VibesScreen() {
       </View>
     );
   }, [
+    feedCategories,
     activeTab,
     selectedTag,
     selectedCategory,

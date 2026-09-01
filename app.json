@@ -7,6 +7,13 @@
     "scheme": "sgvschool",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "androidStatusBar": {
+      "backgroundColor": "#00000000",
+      "translucent": true
+    },
+    "androidNavigationBar": {
+      "backgroundColor": "#00000000"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.sgvschool.app",
@@ -42,7 +49,7 @@
             "buildToolsVersion": "36.0.0",
             "enableMinifyInReleaseBuilds": true,
             "enableShrinkResourcesInReleaseBuilds": true,
-            "extraProguardRules": "\n# React Native, JNI & Hermes Reflection Protection\n-keepclassmembers class * {\n    @com.facebook.react.uimanager.annotations.ReactProp <methods>;\n    @com.facebook.react.uimanager.annotations.ReactPropGroup <methods>;\n}\n-keep class com.facebook.react.** { *; }\n-keep class com.facebook.jni.** { *; }\n-keepclasseswithmembernames class * {\n    native <methods>;\n}\n-keep class com.facebook.react.turbomodule.** { *; }\n-keep class com.facebook.react.bridge.** { *; }\n-keep class com.facebook.react.fabric.** { *; }\n-keep class com.facebook.react.views.** { *; }\n-keep class com.facebook.react.uimanager.** { *; }\n\n# Animations & Gestures\n-keep class com.swmansion.reanimated.** { *; }\n-keep class com.swmansion.gesturehandler.** { *; }\n-keep class com.swmansion.rnscreens.** { *; }\n\n# SVG & UI Components\n-keep class com.horcrux.svg.** { *; }\n\n# Glide & Image Loading Optimizations\n-keep public class * implements com.bumptech.glide.module.GlideModule\n-keep class * extends com.bumptech.glide.module.AppGlideModule {\n    <init>(...);\n}\n-keep public enum com.bumptech.glide.load.ImageHeaderParser$** {\n    **[] $VALUES;\n    public *;\n}\n-keep class com.bumptech.glide.integration.webp.** { *; }\n-keep class com.bumptech.glide.load.resource.bitmap.** { *; }\n\n# Storage & Firebase Notifications\n-keep class com.reactnativecommunity.asyncstorage.** { *; }\n-keep class expo.modules.notifications.** { *; }\n-keep class com.google.firebase.** { *; }\n"
+            "extraProguardRules": "\n# Optimization passes & bytecode optimizations\n-optimizationpasses 5\n-optimizations !code/simplification/arithmetic,!code/allocation/variable\n\n# Remove release logging for faster performance & reduced memory\n-assumenosideeffects class android.util.Log {\n    public static boolean isLoggable(java.lang.String, int);\n    public static int v(...);\n    public static int d(...);\n    public static int i(...);\n}\n\n# React Native, JNI & Hermes Reflection Protection\n-keepclassmembers class * {\n    @com.facebook.react.uimanager.annotations.ReactProp <methods>;\n    @com.facebook.react.uimanager.annotations.ReactPropGroup <methods>;\n}\n-keep class com.facebook.react.** { *; }\n-keep class com.facebook.jni.** { *; }\n-keepclasseswithmembernames class * {\n    native <methods>;\n}\n-keep class com.facebook.react.turbomodule.** { *; }\n-keep class com.facebook.react.bridge.** { *; }\n-keep class com.facebook.react.fabric.** { *; }\n-keep class com.facebook.react.views.** { *; }\n-keep class com.facebook.react.uimanager.** { *; }\n\n# Animations, Gestures & Screens\n-keep class com.swmansion.reanimated.** { *; }\n-keep class com.swmansion.gesturehandler.** { *; }\n-keep class com.swmansion.rnscreens.** { *; }\n\n# UI, Canvas & SVG Components\n-keep class com.horcrux.svg.** { *; }\n-keep class com.shopify.reactnative.skia.** { *; }\n-keep class com.shopify.flashlist.** { *; }\n\n# Glide, WebP & Bitmap Image Decoding Optimizations\n-keep public class * implements com.bumptech.glide.module.GlideModule\n-keep class * extends com.bumptech.glide.module.AppGlideModule {\n    <init>(...);\n}\n-keep public enum com.bumptech.glide.load.ImageHeaderParser$** {\n    **[] $VALUES;\n    public *;\n}\n-keep class com.bumptech.glide.integration.webp.** { *; }\n-keep class com.bumptech.glide.load.resource.bitmap.** { *; }\n-keep class com.bumptech.glide.load.engine.bitmap_recycle.** { *; }\n\n# Storage & Firebase Notifications\n-keep class com.reactnativecommunity.asyncstorage.** { *; }\n-keep class expo.modules.notifications.** { *; }\n-keep class com.google.firebase.** { *; }\n"
           }
         }
       ],

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   View,
   Text,
@@ -16,39 +16,41 @@ import { useApiQuery } from "../../hooks/useApi";
 import { CACHE_TIERS } from "../../utils/cacheConfig";
 import apiConfig from "../../config/apiConfig";
 import Header from "../../components/Header";
+import Card from "../../components/Card";
 import { useLabel } from "../../context/LabelsContext";
 import ExamTimeline from "../../components/ExamTimeline";
 import AppRefreshControl from "../../components/ui/AppRefreshControl";
 
 /**
- * Student Exam Schedule Screen — Enhanced
- * Shows upcoming exams with hero countdown + timeline
+ * Student Exam Schedule Screen
+ * Shows upcoming & past exams with hero countdown, interactive tabs, and timeline
  */
 export default function StudentExamScheduleScreen() {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, mode } = useTheme();
+  const isDark = mode === "dark";
   const { t } = useLabel();
   const { user, userId: authUserId } = useAuth();
   const userId = user?.id || user?._id || authUserId;
   const [refreshing, setRefreshing] = useState(false);
-  const [filterSubject, setFilterSubject] = useState(null);
+  const [activeTab, setActiveTab] = useState("upcoming"); // 'upcoming' | 'past' | 'all'
 
   // Entrance animations
   const heroAnim = useRef(new Animated.Value(0)).current;
-  const filterAnim = useRef(new Animated.Value(0)).current;
+  const contentAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.stagger(150, [
+    Animated.stagger(100, [
       Animated.spring(heroAnim, {
         toValue: 1,
         useNativeDriver: true,
-        tension: 60,
+        tension: 65,
         friction: 8,
       }),
-      Animated.spring(filterAnim, {
+      Animated.spring(contentAnim, {
         toValue: 1,
         useNativeDriver: true,
-        tension: 60,
+        tension: 65,
         friction: 8,
       }),
     ]).start();
@@ -66,7 +68,7 @@ export default function StudentExamScheduleScreen() {
     { ...CACHE_TIERS.MODERATE, refetchOnMount: true }
   );
 
-  const exams = examsData || [];
+  const exams = useMemo(() => examsData || [], [examsData]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -74,38 +76,37 @@ export default function StudentExamScheduleScreen() {
     setRefreshing(false);
   };
 
-  // Group exams by subject
-  const examsBySubject = exams.reduce((acc, exam) => {
-    const subjectId = exam.subject?._id;
-    if (!subjectId) return acc;
-    if (!acc[subjectId]) {
-      acc[subjectId] = { subject: exam.subject, exams: [] };
-    }
-    acc[subjectId].exams.push(exam);
-    return acc;
-  }, {});
-
-  const subjects = Object.values(examsBySubject).map((group) => group.subject);
-
-  // Filter exams
-  const filteredExams = filterSubject
-    ? exams.filter((e) => e.subject?._id === filterSubject)
-    : exams;
-
-  // Sort by date
-  const sortedExams = [...filteredExams].sort(
-    (a, b) => new Date(a.date) - new Date(b.date)
-  );
-
   // Split into upcoming and past
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const { upcomingExams, pastExams, nextExam } = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  const upcomingExams = sortedExams.filter((e) => new Date(e.date) >= today);
-  const pastExams = sortedExams.filter((e) => new Date(e.date) < today);
+    const sorted = [...exams].sort(
+      (a, b) => new Date(a.date) - new Date(b.date)
+    );
 
-  // Next exam for hero card
-  const nextExam = upcomingExams[0] || null;
+    const upcoming = sorted.filter((e) => new Date(e.date) >= today);
+    // Past exams sorted descending (most recent first)
+    const past = [...sorted]
+      .filter((e) => new Date(e.date) < today)
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    return {
+      upcomingExams: upcoming,
+      pastExams: past,
+      nextExam: upcoming[0] || null,
+    };
+  }, [exams]);
+
+  // Adjust default tab if no upcoming exams exist but past exams do
+  useEffect(() => {
+    if (!isLoading && exams.length > 0) {
+      if (upcomingExams.length === 0 && pastExams.length > 0) {
+        setActiveTab("past");
+      }
+    }
+  }, [isLoading, exams.length, upcomingExams.length, pastExams.length]);
+
   const getCountdown = (date) => {
     const now = new Date();
     const examDate = new Date(date);
@@ -128,12 +129,22 @@ export default function StudentExamScheduleScreen() {
         urgent: true,
       };
     if (days === 1)
-      return { text: t("common.tomorrow", "Tomorrow"), unit: "", urgent: true };
+      return {
+        text: t("common.tomorrow", "Tomorrow"),
+        unit: "",
+        urgent: true,
+      };
     return {
       text: `${days}`,
-      unit: t("common.days", "days"),
+      unit: t("common.daysLeft", "days left"),
       urgent: days <= 3,
     };
+  };
+
+  const handleExamPress = (exam) => {
+    if (exam.marksPublished) {
+      router.push("/student/report-card");
+    }
   };
 
   if (isLoading) {
@@ -151,13 +162,19 @@ export default function StudentExamScheduleScreen() {
     );
   }
 
+
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView
         refreshControl={
           <AppRefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 32 }}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: 12,
+          paddingBottom: 40,
+        }}
         showsVerticalScrollIndicator={false}
         scrollsToTop={true}
       >
@@ -168,8 +185,8 @@ export default function StudentExamScheduleScreen() {
             showBack
           />
 
-          {/* Hero Countdown Card */}
-          {nextExam && (
+          {/* ══════════════ HERO SECTION ══════════════ */}
+          {nextExam ? (
             <Animated.View
               style={{
                 opacity: heroAnim,
@@ -181,148 +198,110 @@ export default function StudentExamScheduleScreen() {
                     }),
                   },
                 ],
-                marginTop: 16,
-                borderRadius: 16,
-                overflow: "hidden",
+                marginTop: 14,
+                marginBottom: 14,
               }}
             >
-              <LinearGradient
-                colors={[colors.primary, colors.onPrimaryContainer]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={{ padding: 18 }}
+              <Card
+                variant="elevated"
+                style={{
+                  borderRadius: 16,
+                  overflow: "hidden",
+                  marginBottom: 0,
+                }}
+                contentStyle={{ padding: 0 }}
               >
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
+                <LinearGradient
+                  colors={[colors.primary, colors.onPrimaryContainer]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{ padding: 18 }}
                 >
-                  <View style={{ flex: 1, paddingRight: 12 }}>
-                    <Text
-                      style={{
-                        fontSize: FONT_SIZES.micro,
-                        fontFamily: FONTS.bold,
-                        color: colors.onPrimary,
-                        opacity: 0.75,
-                        textTransform: "uppercase",
-                        letterSpacing: 1.2,
-                        marginBottom: 4,
-                      }}
-                    >
-                      {t("student.nextExam", "Next Exam")}
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: FONT_SIZES.md,
-                        fontFamily: FONTS.bold,
-                        color: colors.onPrimary,
-                        marginBottom: 2,
-                      }}
-                      numberOfLines={1}
-                    >
-                      {nextExam.subject?.name || nextExam.name}
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: FONT_SIZES.xs,
-                        fontFamily: FONTS.medium,
-                        color: colors.onPrimary,
-                        opacity: 0.85,
-                      }}
-                    >
-                      {new Date(nextExam.date).toLocaleDateString("en-IN", {
-                        weekday: "short",
-                        day: "numeric",
-                        month: "short",
-                      })}
-                    </Text>
-                  </View>
-                  <View
-                    style={{
-                      backgroundColor: "rgba(255,255,255,0.22)",
-                      borderRadius: 12,
-                      paddingVertical: 10,
-                      paddingHorizontal: 14,
-                      alignItems: "center",
-                      minWidth: 68,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: FONT_SIZES.xl,
-                        fontFamily: FONTS.bold,
-                        color: colors.onPrimary,
-                        lineHeight: 26,
-                      }}
-                    >
-                      {getCountdown(nextExam.date).text}
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: FONT_SIZES.micro,
-                        fontFamily: FONTS.medium,
-                        color: colors.onPrimary,
-                        opacity: 0.85,
-                        marginTop: 1,
-                      }}
-                    >
-                      {getCountdown(nextExam.date).unit ||
-                        t("student.exam", "Exam")}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Meta items */}
-                <View
-                  style={{
-                    flexDirection: "row",
-                    gap: 14,
-                    marginTop: 14,
-                    paddingTop: 12,
-                    borderTopWidth: 1,
-                    borderTopColor: "rgba(255,255,255,0.18)",
-                  }}
-                >
+                  {/* Top Tag Row */}
                   <View
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
-                      gap: 5,
+                      justifyContent: "space-between",
+                      marginBottom: 10,
                     }}
                   >
-                    <MaterialIcons
-                      name="assignment"
-                      size={14}
-                      color={colors.onPrimary}
-                      style={{ opacity: 0.85 }}
-                    />
-                    <Text
-                      style={{
-                        fontSize: FONT_SIZES.xs,
-                        fontFamily: FONTS.medium,
-                        color: colors.onPrimary,
-                        opacity: 0.9,
-                      }}
-                    >
-                      {nextExam.totalMarks} {t("student.marks", "marks")}
-                    </Text>
-                  </View>
-                  {nextExam.duration && (
                     <View
                       style={{
                         flexDirection: "row",
                         alignItems: "center",
-                        gap: 5,
+                        backgroundColor: "rgba(255, 255, 255, 0.18)",
+                        paddingHorizontal: 9,
+                        paddingVertical: 3,
+                        borderRadius: 12,
+                        gap: 6,
                       }}
                     >
-                      <MaterialIcons
-                        name="schedule"
-                        size={14}
-                        color={colors.onPrimary}
-                        style={{ opacity: 0.85 }}
+                      <View
+                        style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: 3,
+                          backgroundColor: "#4ADE80",
+                        }}
                       />
+                      <Text
+                        style={{
+                          fontSize: FONT_SIZES.micro,
+                          fontFamily: FONTS.bold,
+                          color: colors.onPrimary,
+                          letterSpacing: 0.8,
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        {t("student.nextExam", "Next Exam")}
+                      </Text>
+                    </View>
+
+                    {nextExam.standardizedType && (
+                      <View
+                        style={{
+                          backgroundColor: "rgba(255, 255, 255, 0.22)",
+                          paddingHorizontal: 8,
+                          paddingVertical: 2.5,
+                          borderRadius: 6,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: FONT_SIZES.micro,
+                            fontFamily: FONTS.bold,
+                            color: colors.onPrimary,
+                            letterSpacing: 0.5,
+                          }}
+                        >
+                          {nextExam.standardizedType}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Subject & Countdown */}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: 12,
+                    }}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={{
+                          fontSize: FONT_SIZES.md,
+                          fontFamily: FONTS.bold,
+                          color: colors.onPrimary,
+                          marginBottom: 3,
+                        }}
+                        numberOfLines={1}
+                      >
+                        {nextExam.subject?.name || nextExam.name}
+                      </Text>
                       <Text
                         style={{
                           fontSize: FONT_SIZES.xs,
@@ -331,356 +310,611 @@ export default function StudentExamScheduleScreen() {
                           opacity: 0.9,
                         }}
                       >
-                        {nextExam.duration} {t("student.min", "min")}
+                        {new Date(nextExam.date).toLocaleDateString("en-IN", {
+                          weekday: "short",
+                          day: "numeric",
+                          month: "short",
+                        })}
                       </Text>
                     </View>
-                  )}
+
+                    {/* Countdown Box */}
+                    <View
+                      style={{
+                        backgroundColor: "rgba(255, 255, 255, 0.2)",
+                        borderRadius: 12,
+                        paddingVertical: 8,
+                        paddingHorizontal: 12,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        minWidth: 70,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: FONT_SIZES.xl,
+                          fontFamily: FONTS.bold,
+                          color: colors.onPrimary,
+                          lineHeight: 24,
+                        }}
+                      >
+                        {getCountdown(nextExam.date).text}
+                      </Text>
+                      {getCountdown(nextExam.date).unit ? (
+                        <Text
+                          style={{
+                            fontSize: FONT_SIZES.micro,
+                            fontFamily: FONTS.medium,
+                            color: colors.onPrimary,
+                            opacity: 0.9,
+                            marginTop: 1,
+                          }}
+                        >
+                          {getCountdown(nextExam.date).unit}
+                        </Text>
+                      ) : null}
+                    </View>
+                  </View>
+
+                  {/* Footer Meta Row */}
                   <View
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
-                      gap: 5,
+                      flexWrap: "wrap",
+                      gap: 14,
+                      marginTop: 14,
+                      paddingTop: 10,
+                      borderTopWidth: 1,
+                      borderTopColor: "rgba(255, 255, 255, 0.16)",
                     }}
                   >
-                    <MaterialIcons
-                      name="label"
-                      size={14}
-                      color={colors.onPrimary}
-                      style={{ opacity: 0.85 }}
-                    />
-                    <Text
+                    <View
                       style={{
-                        fontSize: FONT_SIZES.xs,
-                        fontFamily: FONTS.medium,
-                        color: colors.onPrimary,
-                        opacity: 0.9,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 4,
                       }}
                     >
-                      {nextExam.standardizedType}
-                    </Text>
+                      <MaterialIcons
+                        name="grade"
+                        size={13}
+                        color={colors.onPrimary}
+                        style={{ opacity: 0.9 }}
+                      />
+                      <Text
+                        style={{
+                          fontSize: FONT_SIZES.xs,
+                          fontFamily: FONTS.medium,
+                          color: colors.onPrimary,
+                          opacity: 0.95,
+                        }}
+                      >
+                        {nextExam.totalMarks} {t("student.marks", "marks")}
+                      </Text>
+                    </View>
+
+                    {nextExam.duration ? (
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 4,
+                        }}
+                      >
+                        <MaterialIcons
+                          name="schedule"
+                          size={13}
+                          color={colors.onPrimary}
+                          style={{ opacity: 0.9 }}
+                        />
+                        <Text
+                          style={{
+                            fontSize: FONT_SIZES.xs,
+                            fontFamily: FONTS.medium,
+                            color: colors.onPrimary,
+                            opacity: 0.95,
+                          }}
+                        >
+                          {nextExam.duration} {t("student.min", "min")}
+                        </Text>
+                      </View>
+                    ) : null}
+
+                    {nextExam.room ? (
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 4,
+                        }}
+                      >
+                        <MaterialIcons
+                          name="meeting-room"
+                          size={13}
+                          color={colors.onPrimary}
+                          style={{ opacity: 0.9 }}
+                        />
+                        <Text
+                          style={{
+                            fontSize: FONT_SIZES.xs,
+                            fontFamily: FONTS.medium,
+                            color: colors.onPrimary,
+                            opacity: 0.95,
+                          }}
+                        >
+                          {nextExam.room}
+                        </Text>
+                      </View>
+                    ) : null}
                   </View>
-                </View>
-              </LinearGradient>
+                </LinearGradient>
+              </Card>
             </Animated.View>
-          )}
-
-          {/* Stats Row */}
-          <View
-            style={{
-              flexDirection: "row",
-              gap: 8,
-              marginTop: 16,
-              marginBottom: 16,
-            }}
-          >
-            {[
-              {
-                label: t("common.total", "Total"),
-                value: exams.length,
-                color: colors.primary,
-                bg: colors.primaryContainer,
-              },
-              {
-                label: t("student.upcoming", "Upcoming"),
-                value: upcomingExams.length,
-                color: "#FF9800",
-                bg: "#FF980012",
-              },
-              {
-                label: t("common.done", "Done"),
-                value: pastExams.length,
-                color: colors.success,
-                bg: colors.success + "12",
-              },
-            ].map((stat, i) => (
-              <View
-                key={i}
-                style={{
-                  flex: 1,
-                  backgroundColor: stat.bg,
-                  borderRadius: 12,
-                  paddingVertical: 10,
-                  paddingHorizontal: 8,
-                  alignItems: "center",
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: FONT_SIZES.lg,
-                    fontFamily: FONTS.bold,
-                    color: stat.color,
-                    lineHeight: 24,
-                  }}
-                >
-                  {stat.value}
-                </Text>
-                <Text
-                  style={{
-                    fontSize: FONT_SIZES.xs,
-                    fontFamily: FONTS.medium,
-                    color: colors.onSurfaceVariant,
-                    marginTop: 2,
-                  }}
-                >
-                  {stat.label}
-                </Text>
-              </View>
-            ))}
-          </View>
-
-          {/* Subject Filter */}
-          {subjects.length > 1 && (
+          ) : pastExams.length > 0 ? (
+            /* Celebratory Banner when all scheduled exams are completed */
             <Animated.View
               style={{
-                marginBottom: 16,
-                opacity: filterAnim,
-                transform: [
-                  {
-                    translateY: filterAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [8, 0],
-                    }),
-                  },
-                ],
+                opacity: heroAnim,
+                marginTop: 14,
+                marginBottom: 14,
               }}
             >
-              <Text
+              <Card
+                variant="elevated"
                 style={{
-                  fontSize: FONT_SIZES.xs,
-                  fontFamily: FONTS.medium,
-                  color: colors.onSurfaceVariant,
-                  marginBottom: 8,
+                  borderRadius: 16,
+                  overflow: "hidden",
+                  marginBottom: 0,
                 }}
+                contentStyle={{ padding: 0 }}
               >
-                {t("student.filterBySubject", "Filter by Subject")}
-              </Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View style={{ flexDirection: "row", gap: 6 }}>
-                  <Pressable
-                    onPress={() => setFilterSubject(null)}
-                    style={({ pressed }) => ({
-                      backgroundColor: !filterSubject
-                        ? colors.primary
-                        : pressed
-                        ? colors.surfaceContainerHigh
-                        : colors.surfaceContainerHighest,
-                      paddingHorizontal: 12,
-                      paddingVertical: 6,
-                      borderRadius: 16,
-                    })}
+                <LinearGradient
+                  colors={["#0F766E", "#115E59"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{ padding: 16 }}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
                   >
-                    <Text
-                      style={{
-                        fontSize: FONT_SIZES.xs,
-                        fontFamily: FONTS.bold,
-                        color: !filterSubject ? "#FFFFFF" : colors.onSurface,
-                      }}
-                    >
-                      {t("common.all", "All")}
-                    </Text>
-                  </Pressable>
+                    <View style={{ flex: 1, paddingRight: 12 }}>
+                      <Text
+                        style={{
+                          fontSize: FONT_SIZES.md,
+                          fontFamily: FONTS.bold,
+                          color: "#FFFFFF",
+                          marginBottom: 3,
+                        }}
+                      >
+                        All Exams Completed 🎉
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: FONT_SIZES.xs,
+                          fontFamily: FONTS.regular,
+                          color: "#CCFBF1",
+                          lineHeight: 17,
+                        }}
+                      >
+                        Review your scores & analysis in the report card.
+                      </Text>
+                    </View>
 
-                  {subjects.map((subject) => (
                     <Pressable
-                      key={subject._id}
-                      onPress={() => setFilterSubject(subject._id)}
-                      style={({ pressed }) => ({
-                        backgroundColor:
-                          filterSubject === subject._id
-                            ? colors.primary
-                            : pressed
-                            ? colors.surfaceContainerHigh
-                            : colors.surfaceContainerHighest,
+                      onPress={() => router.push("/student/report-card")}
+                      style={{
+                        backgroundColor: "rgba(255, 255, 255, 0.2)",
                         paddingHorizontal: 12,
-                        paddingVertical: 6,
-                        borderRadius: 16,
-                      })}
+                        paddingVertical: 7,
+                        borderRadius: 10,
+                        alignItems: "center",
+                      }}
                     >
                       <Text
                         style={{
                           fontSize: FONT_SIZES.xs,
                           fontFamily: FONTS.bold,
-                          color:
-                            filterSubject === subject._id
-                              ? "#FFFFFF"
-                              : colors.onSurface,
+                          color: "#FFFFFF",
                         }}
                       >
-                        {subject.name}
+                        Report Card
                       </Text>
                     </Pressable>
-                  ))}
-                </View>
-              </ScrollView>
+                  </View>
+                </LinearGradient>
+              </Card>
             </Animated.View>
-          )}
+          ) : null}
 
-          {/* Upcoming Exams */}
-          {upcomingExams.length > 0 && (
-            <View style={{ marginBottom: 20 }}>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 6,
-                  marginBottom: 12,
-                }}
-              >
-                <MaterialIcons
-                  name="upcoming"
-                  size={18}
-                  color={colors.onSurface}
-                />
-                <Text
-                  style={{
-                    fontSize: FONT_SIZES.md,
-                    fontFamily: FONTS.bold,
-                    color: colors.onSurface,
-                  }}
+          {/* ══════════════ STATS ROW (CLICKABLE QUICK SELECT) ══════════════ */}
+          <Animated.View
+            style={{
+              opacity: contentAnim,
+              flexDirection: "row",
+              gap: 8,
+              marginBottom: 14,
+            }}
+          >
+            {[
+              {
+                tabKey: "upcoming",
+                label: t("student.upcoming", "Upcoming"),
+                value: upcomingExams.length,
+                color: "#2563EB",
+                bg: isDark ? "#2563EB20" : "#2563EB10",
+              },
+              {
+                tabKey: "past",
+                label: t("common.done", "Completed"),
+                value: pastExams.length,
+                color: colors.success,
+                bg: isDark ? colors.success + "20" : colors.success + "12",
+              },
+              {
+                tabKey: "all",
+                label: t("common.total", "Total"),
+                value: exams.length,
+                color: colors.primary,
+                bg: colors.primaryContainer,
+              },
+            ].map((stat) => {
+              const isSelected = activeTab === stat.tabKey;
+              return (
+                <Pressable
+                  key={stat.tabKey}
+                  onPress={() => setActiveTab(stat.tabKey)}
+                  style={{ flex: 1 }}
                 >
-                  {t("student.upcomingExams", "Upcoming Exams")}
-                </Text>
-                <View
-                  style={{
-                    backgroundColor: colors.primaryContainer,
-                    paddingHorizontal: 6,
-                    paddingVertical: 1,
-                    borderRadius: 8,
-                    marginLeft: 2,
-                  }}
-                >
-                  <Text
+                  <Card
+                    variant={isSelected ? "elevated" : "filled"}
                     style={{
-                      fontSize: FONT_SIZES.micro,
-                      fontFamily: FONTS.bold,
-                      color: colors.primary,
+                      marginBottom: 0,
+                      borderRadius: 14,
+                      borderWidth: 1,
+                      borderColor: isSelected
+                        ? stat.color
+                        : colors.outlineVariant + "25",
+                      backgroundColor: isSelected
+                        ? stat.bg
+                        : colors.surfaceContainerLow || colors.surfaceContainer,
+                    }}
+                    contentStyle={{
+                      padding: 10,
+                      alignItems: "center",
                     }}
                   >
-                    {upcomingExams.length}
-                  </Text>
-                </View>
-              </View>
+                    <Text
+                      style={{
+                        fontSize: FONT_SIZES.lg,
+                        fontFamily: FONTS.bold,
+                        color: stat.color,
+                        lineHeight: 22,
+                      }}
+                    >
+                      {stat.value}
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: FONT_SIZES.micro,
+                        fontFamily: isSelected ? FONTS.bold : FONTS.medium,
+                        color: isSelected
+                          ? colors.onSurface
+                          : colors.onSurfaceVariant,
+                        marginTop: 2,
+                      }}
+                      numberOfLines={1}
+                    >
+                      {stat.label}
+                    </Text>
+                  </Card>
+                </Pressable>
+              );
+            })}
+          </Animated.View>
 
-              <ExamTimeline
-                exams={upcomingExams}
-                onExamPress={(exam) => {
-                  if (exam.marksPublished) {
-                    router.push("/student/report-card");
-                  }
-                }}
-              />
-            </View>
-          )}
 
-          {/* Past Exams */}
-          {pastExams.length > 0 && (
+
+          {/* ══════════════ TAB CONTENT ══════════════ */}
+
+          {/* 1. UPCOMING TAB */}
+          {activeTab === "upcoming" && (
             <View>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 6,
-                  marginBottom: 12,
-                }}
-              >
-                <MaterialIcons
-                  name="history"
-                  size={18}
-                  color={colors.onSurfaceVariant}
+              {upcomingExams.length > 0 ? (
+                <ExamTimeline
+                  exams={upcomingExams}
+                  onExamPress={handleExamPress}
                 />
-                <Text
+              ) : (
+                <Card
+                  variant="filled"
                   style={{
-                    fontSize: FONT_SIZES.md,
-                    fontFamily: FONTS.bold,
-                    color: colors.onSurface,
+                    alignItems: "center",
+                    paddingVertical: 36,
+                    paddingHorizontal: 20,
+                    borderRadius: 16,
                   }}
                 >
-                  {t("student.pastExams", "Past Exams")}
-                </Text>
-                <View
-                  style={{
-                    backgroundColor: colors.surfaceContainerHigh,
-                    paddingHorizontal: 6,
-                    paddingVertical: 1,
-                    borderRadius: 8,
-                    marginLeft: 2,
-                  }}
-                >
-                  <Text
+                  <View
                     style={{
-                      fontSize: FONT_SIZES.micro,
-                      fontFamily: FONTS.bold,
-                      color: colors.onSurfaceVariant,
+                      width: 52,
+                      height: 52,
+                      borderRadius: 26,
+                      backgroundColor: colors.primaryContainer,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginBottom: 8,
                     }}
                   >
-                    {pastExams.length}
+                    <MaterialIcons
+                      name="celebration"
+                      size={26}
+                      color={colors.primary}
+                    />
+                  </View>
+                  <Text
+                    style={{
+                      fontSize: FONT_SIZES.sm,
+                      fontFamily: FONTS.bold,
+                      color: colors.onSurface,
+                    }}
+                  >
+                    {t("student.noUpcomingExams", "No Upcoming Exams")}
                   </Text>
-                </View>
-              </View>
-
-              <ExamTimeline
-                exams={pastExams}
-                onExamPress={(exam) => {
-                  if (exam.marksPublished) {
-                    router.push("/student/report-card");
-                  }
-                }}
-              />
+                  <Text
+                    style={{
+                      fontSize: FONT_SIZES.xs,
+                      fontFamily: FONTS.regular,
+                      color: colors.onSurfaceVariant,
+                      textAlign: "center",
+                      marginTop: 4,
+                      lineHeight: 18,
+                    }}
+                  >
+                    {t(
+                      "student.noUpcomingTip",
+                      "You have no upcoming tests or exams scheduled right now. Great time to catch up on revision!"
+                    )}
+                  </Text>
+                </Card>
+              )}
             </View>
           )}
 
-          {/* Empty State */}
+          {/* 2. PAST EXAMS TAB */}
+          {activeTab === "past" && (
+            <View>
+              {pastExams.length > 0 ? (
+                <ExamTimeline
+                  exams={pastExams}
+                  onExamPress={handleExamPress}
+                />
+              ) : (
+                <Card
+                  variant="filled"
+                  style={{
+                    alignItems: "center",
+                    paddingVertical: 36,
+                    paddingHorizontal: 20,
+                    borderRadius: 16,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 52,
+                      height: 52,
+                      borderRadius: 26,
+                      backgroundColor: colors.surfaceContainerHigh,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginBottom: 8,
+                    }}
+                  >
+                    <MaterialIcons
+                      name="history"
+                      size={26}
+                      color={colors.onSurfaceVariant}
+                    />
+                  </View>
+                  <Text
+                    style={{
+                      fontSize: FONT_SIZES.sm,
+                      fontFamily: FONTS.bold,
+                      color: colors.onSurface,
+                    }}
+                  >
+                    {t("student.noPastExams", "No Past Exams")}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: FONT_SIZES.xs,
+                      fontFamily: FONTS.regular,
+                      color: colors.onSurfaceVariant,
+                      textAlign: "center",
+                      marginTop: 4,
+                      lineHeight: 18,
+                    }}
+                  >
+                    {t(
+                      "student.noPastTip",
+                      "Completed exams will appear here once conducted."
+                    )}
+                  </Text>
+                </Card>
+              )}
+            </View>
+          )}
+
+          {/* 3. ALL EXAMS TAB */}
+          {activeTab === "all" && (
+            <View>
+              {/* Upcoming Sub-section */}
+              {upcomingExams.length > 0 && (
+                <View style={{ marginBottom: 16 }}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 6,
+                      marginBottom: 10,
+                    }}
+                  >
+                    <MaterialIcons
+                      name="schedule"
+                      size={16}
+                      color={colors.primary}
+                    />
+                    <Text
+                      style={{
+                        fontSize: FONT_SIZES.sm,
+                        fontFamily: FONTS.bold,
+                        color: colors.onSurface,
+                      }}
+                    >
+                      {t("student.upcomingExams", "Upcoming Exams")}
+                    </Text>
+                    <View
+                      style={{
+                        backgroundColor: colors.primaryContainer,
+                        paddingHorizontal: 6,
+                        paddingVertical: 1,
+                        borderRadius: 8,
+                        marginLeft: 2,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: FONT_SIZES.micro,
+                          fontFamily: FONTS.bold,
+                          color: colors.primary,
+                        }}
+                      >
+                        {upcomingExams.length}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <ExamTimeline
+                    exams={upcomingExams}
+                    onExamPress={handleExamPress}
+                  />
+                </View>
+              )}
+
+              {/* Past Sub-section */}
+              {pastExams.length > 0 && (
+                <View>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 6,
+                      marginBottom: 10,
+                    }}
+                  >
+                    <MaterialIcons
+                      name="history"
+                      size={16}
+                      color={colors.onSurfaceVariant}
+                    />
+                    <Text
+                      style={{
+                        fontSize: FONT_SIZES.sm,
+                        fontFamily: FONTS.bold,
+                        color: colors.onSurface,
+                      }}
+                    >
+                      {t("student.pastExams", "Past Exams")}
+                    </Text>
+                    <View
+                      style={{
+                        backgroundColor: colors.surfaceContainerHigh,
+                        paddingHorizontal: 6,
+                        paddingVertical: 1,
+                        borderRadius: 8,
+                        marginLeft: 2,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: FONT_SIZES.micro,
+                          fontFamily: FONTS.bold,
+                          color: colors.onSurfaceVariant,
+                        }}
+                      >
+                        {pastExams.length}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <ExamTimeline
+                    exams={pastExams}
+                    onExamPress={handleExamPress}
+                  />
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* Global Empty State (No exams at all) */}
           {exams.length === 0 && (
-            <View
+            <Card
+              variant="filled"
               style={{
                 alignItems: "center",
-                paddingVertical: 60,
-                backgroundColor: colors.surfaceContainerHighest,
-                borderRadius: 20,
-                marginTop: 20,
-                gap: 12,
+                paddingVertical: 48,
+                paddingHorizontal: 24,
+                borderRadius: 16,
+                marginTop: 16,
               }}
             >
               <View
                 style={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: 40,
+                  width: 64,
+                  height: 64,
+                  borderRadius: 32,
                   backgroundColor: colors.primaryContainer,
                   alignItems: "center",
                   justifyContent: "center",
+                  marginBottom: 12,
                 }}
               >
                 <MaterialIcons
                   name="event-available"
-                  size={40}
+                  size={32}
                   color={colors.primary}
                 />
               </View>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.lg,
+                  fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
                   color: colors.onSurface,
                 }}
               >
-                {t("student.noExamsYet", "No exams yet")}
+                {t("student.noExamsYet", "No Exams Scheduled Yet")}
               </Text>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.sm,
+                  fontSize: FONT_SIZES.xs,
                   fontFamily: FONTS.regular,
                   color: colors.onSurfaceVariant,
                   textAlign: "center",
-                  paddingHorizontal: 40,
+                  lineHeight: 18,
+                  maxWidth: 280,
+                  marginTop: 4,
                 }}
               >
                 {t(
                   "student.examScheduleSetupTip",
-                  "Your exam schedule will appear here once your school sets up exams"
+                  "Your exam schedule and timetable will appear here once published by your school."
                 )}
               </Text>
-            </View>
+            </Card>
           )}
         </View>
       </ScrollView>

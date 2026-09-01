@@ -173,12 +173,13 @@ export default function AttendanceView({
 
     const holidaysCount = Object.keys(holidaysMap).length;
 
-    // Standing status
+    // Standing status (Rendered on dark hero gradient card - requires high-contrast luminous colors)
     let standing = {
       label: "Good Standing (≥90%)",
       badgeText: "Good",
-      badgeColor: colors.success || "#146C2E",
-      badgeBg: isDark ? "rgba(109, 213, 140, 0.18)" : "rgba(20, 108, 46, 0.12)",
+      badgeColor: "#4ADE80",
+      badgeBg: "rgba(74, 222, 128, 0.20)",
+      badgeBorder: "rgba(74, 222, 128, 0.45)",
       icon: "check-circle",
     };
 
@@ -186,16 +187,18 @@ export default function AttendanceView({
       standing = {
         label: "Outstanding (≥95%)",
         badgeText: "Outstanding",
-        badgeColor: "#10B981",
-        badgeBg: isDark ? "rgba(16, 185, 129, 0.22)" : "rgba(16, 185, 129, 0.15)",
+        badgeColor: "#34D399",
+        badgeBg: "rgba(52, 211, 153, 0.22)",
+        badgeBorder: "rgba(52, 211, 153, 0.45)",
         icon: "emoji-events",
       };
     } else if (percentage < 90 && total > 0) {
       standing = {
         label: "Low Attendance Alert (<90%)",
         badgeText: "Low Attendance",
-        badgeColor: colors.error || "#B3261E",
-        badgeBg: isDark ? "rgba(242, 184, 181, 0.22)" : "rgba(179, 38, 30, 0.15)",
+        badgeColor: "#FFA4A2",
+        badgeBg: "rgba(239, 68, 68, 0.30)",
+        badgeBorder: "rgba(255, 120, 120, 0.60)",
         icon: "warning",
       };
     }
@@ -237,7 +240,7 @@ export default function AttendanceView({
       streak,
       punctuality,
     };
-  }, [summary, attendanceHistory, holidaysMap, colors, isDark]);
+  }, [summary, attendanceHistory, holidaysMap]);
 
   // Calendar Marked Dates
   const markedDates = useMemo(() => {
@@ -502,7 +505,11 @@ export default function AttendanceView({
             <View
               style={[
                 styles.heroStandingBadge,
-                { backgroundColor: displayStats.standing.badgeBg },
+                {
+                  backgroundColor: displayStats.standing.badgeBg,
+                  borderColor: displayStats.standing.badgeBorder || "transparent",
+                  borderWidth: 1,
+                },
               ]}
             >
               <MaterialIcons
@@ -774,10 +781,23 @@ export default function AttendanceView({
                       <View
                         style={[
                           styles.lowBadge,
-                          { backgroundColor: colors.error + "18" },
+                          {
+                            backgroundColor: isDark
+                              ? "rgba(242, 184, 181, 0.18)"
+                              : "rgba(179, 38, 30, 0.10)",
+                            borderColor: isDark
+                              ? "rgba(242, 184, 181, 0.35)"
+                              : "rgba(179, 38, 30, 0.25)",
+                            borderWidth: 1,
+                          },
                         ]}
                       >
-                        <Text style={[styles.lowBadgeText, { color: colors.error }]}>
+                        <Text
+                          style={[
+                            styles.lowBadgeText,
+                            { color: isDark ? "#F2B8B5" : "#B3261E" },
+                          ]}
+                        >
                           LOW
                         </Text>
                       </View>

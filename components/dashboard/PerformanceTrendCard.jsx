@@ -363,14 +363,12 @@ const PerformanceTrendCard = ({
           style={{
             flex: 1,
             minWidth: 100,
-            backgroundColor: colors.surface || (isDark ? "#2B2832" : "#FFFFFF"),
+            backgroundColor: isDark ? "rgba(56, 189, 248, 0.09)" : "rgba(2, 132, 199, 0.05)",
             paddingVertical: 10,
             paddingHorizontal: 12,
             borderRadius: 14,
             borderWidth: 1,
-            borderColor: colors.outlineVariant
-              ? colors.outlineVariant + "25"
-              : "rgba(0,0,0,0.05)",
+            borderColor: isDark ? "rgba(56, 189, 248, 0.22)" : "rgba(2, 132, 199, 0.16)",
           }}
         >
           <Text
@@ -413,14 +411,12 @@ const PerformanceTrendCard = ({
           style={{
             flex: 1,
             minWidth: 100,
-            backgroundColor: colors.surface || (isDark ? "#2B2832" : "#FFFFFF"),
+            backgroundColor: isDark ? "rgba(56, 189, 248, 0.09)" : "rgba(2, 132, 199, 0.05)",
             paddingVertical: 10,
             paddingHorizontal: 12,
             borderRadius: 14,
             borderWidth: 1,
-            borderColor: colors.outlineVariant
-              ? colors.outlineVariant + "25"
-              : "rgba(0,0,0,0.05)",
+            borderColor: isDark ? "rgba(56, 189, 248, 0.22)" : "rgba(2, 132, 199, 0.16)",
           }}
         >
           <Text
@@ -464,14 +460,12 @@ const PerformanceTrendCard = ({
           style={{
             flex: 1,
             minWidth: 100,
-            backgroundColor: colors.surface || (isDark ? "#2B2832" : "#FFFFFF"),
+            backgroundColor: isDark ? "rgba(56, 189, 248, 0.09)" : "rgba(2, 132, 199, 0.05)",
             paddingVertical: 10,
             paddingHorizontal: 12,
             borderRadius: 14,
             borderWidth: 1,
-            borderColor: colors.outlineVariant
-              ? colors.outlineVariant + "25"
-              : "rgba(0,0,0,0.05)",
+            borderColor: isDark ? "rgba(56, 189, 248, 0.22)" : "rgba(2, 132, 199, 0.16)",
           }}
         >
           <Text
@@ -524,15 +518,12 @@ const PerformanceTrendCard = ({
             style={{
               flex: 1,
               minWidth: 100,
-              backgroundColor:
-                colors.surface || (isDark ? "#2B2832" : "#FFFFFF"),
+              backgroundColor: isDark ? "rgba(56, 189, 248, 0.09)" : "rgba(2, 132, 199, 0.05)",
               paddingVertical: 10,
               paddingHorizontal: 12,
               borderRadius: 14,
               borderWidth: 1,
-              borderColor: colors.outlineVariant
-                ? colors.outlineVariant + "25"
-                : "rgba(0,0,0,0.05)",
+              borderColor: isDark ? "rgba(56, 189, 248, 0.22)" : "rgba(2, 132, 199, 0.16)",
             }}
           >
             <Text
@@ -541,36 +532,34 @@ const PerformanceTrendCard = ({
                 fontFamily: FONTS.medium,
                 color:
                   colors.onSurfaceVariant || (isDark ? "#CAC4D0" : "#79747E"),
-                marginBottom: 2,
-              }}
-            >
-              Best ({bestExam.examType})
-            </Text>
-            <Text
-              style={{
-                fontSize: FONT_SIZES.lg,
-                fontFamily: FONTS.bold,
-                color: "#10B981",
-              }}
-            >
-              {bestExam.percentage}%
-            </Text>
-          </View>
+              marginBottom: 2,
+            }}
+          >
+            Best ({bestExam.examType})
+          </Text>
+          <Text
+            style={{
+              fontSize: FONT_SIZES.lg,
+              fontFamily: FONTS.bold,
+              color: "#10B981",
+            }}
+          >
+            {bestExam.percentage}%
+          </Text>
+        </View>
         )}
       </View>
 
       {/* Interactive SVG Smooth Line Graph */}
       <View
         style={{
-          backgroundColor: colors.surface || (isDark ? "#2B2832" : "#FFFFFF"),
+          backgroundColor: isDark ? "rgba(56, 189, 248, 0.06)" : "rgba(2, 132, 199, 0.035)",
           borderRadius: 18,
           paddingTop: 8,
           paddingBottom: 4,
           paddingHorizontal: 6,
           borderWidth: 1,
-          borderColor: colors.outlineVariant
-            ? colors.outlineVariant + "20"
-            : "rgba(0,0,0,0.04)",
+          borderColor: isDark ? "rgba(56, 189, 248, 0.2)" : "rgba(2, 132, 199, 0.14)",
           overflow: "hidden",
         }}
       >
@@ -981,16 +970,18 @@ const PerformanceTrendCard = ({
                     alignItems: "center",
                     backgroundColor: isSelected
                       ? colors.primary || "#6750A4"
-                      : colors.surface || (isDark ? "#2B2832" : "#FFFFFF"),
+                      : isDark
+                      ? "rgba(56, 189, 248, 0.1)"
+                      : "rgba(2, 132, 199, 0.06)",
                     paddingHorizontal: 12,
                     paddingVertical: 8,
                     borderRadius: 12,
                     borderWidth: 1,
                     borderColor: isSelected
                       ? colors.primary || "#6750A4"
-                      : colors.outlineVariant
-                      ? colors.outlineVariant + "35"
-                      : "rgba(0,0,0,0.08)",
+                      : isDark
+                      ? "rgba(56, 189, 248, 0.25)"
+                      : "rgba(2, 132, 199, 0.18)",
                     opacity: pressed ? 0.75 : 1,
                   })}
                 >

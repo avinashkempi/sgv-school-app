@@ -34,9 +34,15 @@ const TodayTimetableCard = ({ style }) => {
   };
 
   const violetAccent = isDark ? "#A78BFA" : "#6366F1";
-  const cardSurface = isDark ? colors.surfaceContainer : "#FFFFFF";
-  const borderColor = isDark ? "rgba(167, 139, 250, 0.2)" : "rgba(99, 102, 241, 0.15)";
-  const iconBg = isDark ? "rgba(167, 139, 250, 0.15)" : "rgba(99, 102, 241, 0.10)";
+  const cardSurface = isDark
+    ? "rgba(167, 139, 250, 0.09)"
+    : "rgba(99, 102, 241, 0.05)";
+  const borderColor = isDark
+    ? "rgba(167, 139, 250, 0.25)"
+    : "rgba(99, 102, 241, 0.18)";
+  const iconBg = isDark
+    ? "rgba(167, 139, 250, 0.18)"
+    : "rgba(99, 102, 241, 0.12)";
 
   const now = new Date();
   const todayDayName = now.toLocaleDateString("en-US", { weekday: "short" });
@@ -138,6 +144,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     gap: 12,
+    marginBottom: 16,
   },
   iconWrap: {
     width: 44,

@@ -5,10 +5,10 @@ import {
   StyleSheet,
   Pressable,
   Dimensions,
-  StatusBar,
   ActivityIndicator,
   Platform,
 } from "react-native";
+import { StatusBar } from "expo-status-bar";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
@@ -197,10 +197,7 @@ export default function PinchableLightboxModal({ visible, imageUrl, onClose }) {
       statusBarTranslucent={true}
     >
       <Animated.View style={[styles.backdrop, backdropAnimatedStyle]}>
-        <StatusBar
-          barStyle="light-content"
-          backgroundColor="rgba(0,0,0,0.95)"
-        />
+        <StatusBar style="light" />
 
         {/* Close Button with standard 44pt touch target */}
         <View style={[styles.header, { top: Math.max(insets.top, 16) }]}>

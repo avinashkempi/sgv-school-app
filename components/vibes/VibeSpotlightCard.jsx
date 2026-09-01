@@ -96,8 +96,12 @@ const VibeSpotlightCard = () => {
           style={[
             styles.card,
             {
-              backgroundColor: isDark ? colors.surfaceContainer : "#FFFFFF",
-              borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+              backgroundColor: isDark
+                ? "rgba(255, 183, 77, 0.08)"
+                : "rgba(226, 114, 0, 0.045)",
+              borderColor: isDark
+                ? "rgba(255, 183, 77, 0.22)"
+                : "rgba(226, 114, 0, 0.16)",
             },
           ]}
         >
@@ -153,8 +157,12 @@ const VibeSpotlightCard = () => {
           styles.card,
           animatedStyle,
           {
-            backgroundColor: isDark ? colors.surfaceContainer : "#FFFFFF",
-            borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+            backgroundColor: isDark
+              ? "rgba(255, 183, 77, 0.08)"
+              : "rgba(226, 114, 0, 0.045)",
+            borderColor: isDark
+              ? "rgba(255, 183, 77, 0.22)"
+              : "rgba(226, 114, 0, 0.16)",
           },
         ]}
         accessibilityRole="button"
@@ -282,8 +290,8 @@ const VibeSpotlightCard = () => {
               styles.cardFooter,
               {
                 borderTopColor: isDark
-                  ? "rgba(255,255,255,0.08)"
-                  : "rgba(0,0,0,0.06)",
+                  ? "rgba(255, 183, 77, 0.15)"
+                  : "rgba(226, 114, 0, 0.1)",
               },
             ]}
           >

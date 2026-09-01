@@ -33,14 +33,14 @@ const StatCard = ({
     <View
       style={[
         {
-          backgroundColor: isDark ? colors.surfaceContainer : "#FFFFFF",
+          backgroundColor: isDark ? `${cardColor}16` : `${cardColor}0A`,
           borderRadius: 16,
           padding: 12,
           flex: 1,
           minWidth: 95,
           margin: 4,
           borderWidth: 1,
-          borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+          borderColor: isDark ? `${cardColor}38` : `${cardColor}22`,
         },
       ]}
     >

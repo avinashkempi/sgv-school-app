@@ -1,364 +1,475 @@
-import React, { useEffect } from "react";
+import React, { useMemo } from "react";
 import { View, Text, Pressable } from "react-native";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withDelay,
-  Easing,
-} from "react-native-reanimated";
 import { MaterialIcons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { useTheme, FONTS, FONT_SIZES, LETTER_SPACINGS } from "../theme";
+import Card from "./Card";
 
 /**
- * Single timeline item — animated with Reanimated on UI thread.
- * Extracted as a separate component so each item owns its own shared values.
+ * Parses date into standard App Date Tile representation (Month, Day, Weekday)
  */
-const ExamTimelineItem = React.memo(
+const parseDateTile = (dateStr) => {
+  if (!dateStr) return { month: "EXAM", day: "--", weekday: "" };
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return { month: "EXAM", day: "--", weekday: "" };
+
+  const month = d.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
+  const day = d.getDate();
+  const weekday = d.toLocaleDateString("en-US", { weekday: "short" });
+
+  return { month, day, weekday };
+};
+
+/**
+ * Standard Exam Card Item — Consistent with App Card Design Language
+ */
+const ExamCardItem = React.memo(
   ({
     exam,
-    index,
-    isLast,
     colors,
+    isDark,
     onExamPress,
     getExamTypeColor,
     isToday,
     isPast,
     getDaysUntil,
-    formatDate,
   }) => {
     const examColor = getExamTypeColor(exam.standardizedType);
     const past = isPast(exam.date);
     const today = isToday(exam.date);
     const daysLabel = getDaysUntil(exam.date);
-
-    // Each item owns its animation shared value
-    const progress = useSharedValue(0);
-
-    useEffect(() => {
-      progress.value = withDelay(
-        index * 80,
-        withTiming(1, { duration: 400, easing: Easing.out(Easing.quad) })
-      );
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const animatedStyle = useAnimatedStyle(() => ({
-      opacity: progress.value,
-      transform: [{ translateX: (1 - progress.value) * 30 }],
-    }));
+    const subjectName = exam.subject?.name || exam.name || "Exam";
+    const { month, day, weekday } = useMemo(
+      () => parseDateTile(exam.date),
+      [exam.date]
+    );
 
     return (
-      <Animated.View
-        style={[
-          {
-            flexDirection: "row",
-            marginBottom: isLast ? 0 : 4,
-          },
-          animatedStyle,
-        ]}
+      <Card
+        variant="elevated"
+        style={{
+          marginBottom: 12,
+          borderRadius: 16,
+          borderWidth: 1,
+          borderColor: today
+            ? colors.error + "40"
+            : colors.outlineVariant + "25",
+          backgroundColor: today
+            ? isDark
+              ? colors.error + "10"
+              : colors.error + "06"
+            : colors.surfaceContainerLow,
+        }}
+        contentStyle={{ padding: 14 }}
       >
-        {/* Timeline Column */}
-        <View style={{ alignItems: "center", width: 24 }}>
-          {/* Dot */}
-          <View
-            style={{
-              width: today ? 14 : 10,
-              height: today ? 14 : 10,
-              borderRadius: today ? 7 : 5,
-              backgroundColor: past
-                ? colors.outlineVariant
-                : today
-                ? colors.error
-                : examColor,
-              borderWidth: today ? 2.5 : 1.5,
-              borderColor: today
-                ? colors.error + "30"
-                : past
-                ? colors.surfaceContainerHighest
-                : examColor + "30",
-              marginTop: 4,
-              ...(today
-                ? {
-                    shadowColor: colors.error,
-                    shadowOffset: { width: 0, height: 0 },
-                    shadowOpacity: 0.4,
-                    shadowRadius: 4,
-                    elevation: 3,
-                  }
-                : {}),
-            }}
-          />
-
-          {/* Gradient Connector Line */}
-          {!isLast && (
-            <View
-              style={{
-                width: 2,
-                flex: 1,
-                marginVertical: 2,
-                borderRadius: 1,
-                overflow: "hidden",
-              }}
-            >
-              <LinearGradient
-                colors={[
-                  past ? colors.outlineVariant + "60" : examColor + "60",
-                  past ? colors.outlineVariant + "20" : examColor + "20",
-                ]}
-                style={{ flex: 1 }}
-              />
-            </View>
-          )}
-        </View>
-
-        {/* Exam Card */}
         <Pressable
           onPress={() => onExamPress?.(exam)}
           style={({ pressed }) => ({
-            flex: 1,
-            marginLeft: 10,
-            backgroundColor: pressed
-              ? colors.surfaceContainerHigh
-              : today
-              ? examColor + "08"
-              : colors.surfaceContainerHighest,
-            borderRadius: 12,
-            padding: 12,
-            borderLeftWidth: 3,
-            borderLeftColor: past
-              ? colors.outlineVariant
-              : today
-              ? colors.error
-              : examColor,
-            opacity: past ? 0.65 : 1,
-            marginBottom: 10,
-            ...(today
-              ? {
-                  borderWidth: 1,
-                  borderColor: colors.error + "20",
-                }
-              : {}),
+            opacity: pressed ? 0.85 : 1,
           })}
         >
-          {/* Top Row: Type Badge + Date */}
+          {/* Main Content Layout: Date Tile on Left + Info on Right */}
           <View
             style={{
               flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 6,
+              alignItems: "flex-start",
+              gap: 12,
             }}
           >
+            {/* Standard App Date Tile */}
+            <View
+              style={{
+                width: 52,
+                height: 64,
+                borderRadius: 14,
+                borderWidth: 1,
+                borderColor: today
+                  ? colors.error + "50"
+                  : past
+                  ? colors.outlineVariant + "30"
+                  : examColor + "40",
+                backgroundColor: today
+                  ? colors.error + "15"
+                  : past
+                  ? colors.surfaceContainerHigh
+                  : examColor + "10",
+                alignItems: "center",
+                justifyContent: "center",
+                paddingVertical: 4,
+                flexShrink: 0,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: FONT_SIZES.micro,
+                  fontFamily: FONTS.bold,
+                  letterSpacing: 0.5,
+                  color: today
+                    ? colors.error
+                    : past
+                    ? colors.onSurfaceVariant
+                    : examColor,
+                  textTransform: "uppercase",
+                }}
+              >
+                {month}
+              </Text>
+              <Text
+                style={{
+                  fontSize: FONT_SIZES.lg,
+                  fontFamily: FONTS.bold,
+                  color: today ? colors.error : colors.onSurface,
+                  marginTop: -2,
+                  lineHeight: 24,
+                }}
+              >
+                {day}
+              </Text>
+              <Text
+                style={{
+                  fontSize: FONT_SIZES.micro,
+                  fontFamily: FONTS.medium,
+                  color: today ? colors.error : colors.onSurfaceVariant,
+                  marginTop: -2,
+                }}
+              >
+                {weekday}
+              </Text>
+            </View>
+
+            {/* Right Information Section */}
+            <View style={{ flex: 1, minWidth: 0 }}>
+              {/* Top Row: Exam Type Badge + Status / Countdown Pill */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 6,
+                }}
+              >
+                {/* Standardized Type Tag */}
+                <View
+                  style={{
+                    backgroundColor: examColor + "18",
+                    paddingHorizontal: 8,
+                    paddingVertical: 2.5,
+                    borderRadius: 6,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: examColor,
+                      fontSize: FONT_SIZES.micro,
+                      fontFamily: FONTS.bold,
+                      letterSpacing: LETTER_SPACINGS.xs,
+                    }}
+                  >
+                    {exam.standardizedType || "EXAM"}
+                  </Text>
+                </View>
+
+                {/* Status Indicator */}
+                {today ? (
+                  <View
+                    style={{
+                      backgroundColor: colors.error,
+                      paddingHorizontal: 7,
+                      paddingVertical: 2.5,
+                      borderRadius: 6,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 4,
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: 5,
+                        height: 5,
+                        borderRadius: 2.5,
+                        backgroundColor: "#FFFFFF",
+                      }}
+                    />
+                    <Text
+                      style={{
+                        color: "#FFFFFF",
+                        fontSize: FONT_SIZES.micro,
+                        fontFamily: FONTS.bold,
+                        letterSpacing: LETTER_SPACINGS.micro,
+                      }}
+                    >
+                      TODAY
+                    </Text>
+                  </View>
+                ) : exam.marksPublished ? (
+                  <View
+                    style={{
+                      backgroundColor: colors.success + "18",
+                      paddingHorizontal: 7,
+                      paddingVertical: 2.5,
+                      borderRadius: 6,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 3,
+                    }}
+                  >
+                    <MaterialIcons
+                      name="check-circle"
+                      size={11}
+                      color={colors.success}
+                    />
+                    <Text
+                      style={{
+                        color: colors.success,
+                        fontSize: FONT_SIZES.micro,
+                        fontFamily: FONTS.bold,
+                        letterSpacing: LETTER_SPACINGS.micro,
+                      }}
+                    >
+                      MARKS OUT
+                    </Text>
+                  </View>
+                ) : (
+                  <View
+                    style={{
+                      backgroundColor: past
+                        ? colors.surfaceContainerHigh
+                        : daysLabel.toLowerCase().includes("tomorrow")
+                        ? "#FF980018"
+                        : colors.primaryContainer,
+                      paddingHorizontal: 8,
+                      paddingVertical: 2.5,
+                      borderRadius: 6,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: FONT_SIZES.micro,
+                        fontFamily: FONTS.bold,
+                        color: past
+                          ? colors.onSurfaceVariant
+                          : daysLabel.toLowerCase().includes("tomorrow")
+                          ? "#E65100"
+                          : colors.primary,
+                      }}
+                    >
+                      {daysLabel}
+                    </Text>
+                  </View>
+                )}
+              </View>
+
+              {/* Subject Title */}
+              <Text
+                style={{
+                  fontSize: FONT_SIZES.md,
+                  fontFamily: FONTS.bold,
+                  color: colors.onSurface,
+                  marginBottom: 6,
+                  lineHeight: 22,
+                }}
+                numberOfLines={1}
+              >
+                {subjectName}
+              </Text>
+
+              {/* Meta Chips: Marks, Duration, Start Time, Room */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: 10,
+                }}
+              >
+                {/* Total Marks */}
+                <View
+                  style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
+                >
+                  <MaterialIcons
+                    name="grade"
+                    size={13}
+                    color={colors.onSurfaceVariant}
+                  />
+                  <Text
+                    style={{
+                      fontSize: FONT_SIZES.xs,
+                      fontFamily: FONTS.medium,
+                      color: colors.onSurfaceVariant,
+                    }}
+                  >
+                    {exam.totalMarks} marks
+                  </Text>
+                </View>
+
+                {/* Duration */}
+                {exam.duration ? (
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 4,
+                    }}
+                  >
+                    <MaterialIcons
+                      name="schedule"
+                      size={13}
+                      color={colors.onSurfaceVariant}
+                    />
+                    <Text
+                      style={{
+                        fontSize: FONT_SIZES.xs,
+                        fontFamily: FONTS.medium,
+                        color: colors.onSurfaceVariant,
+                      }}
+                    >
+                      {exam.duration}m
+                    </Text>
+                  </View>
+                ) : null}
+
+                {/* Start Time */}
+                {exam.startTime ? (
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 4,
+                    }}
+                  >
+                    <MaterialIcons
+                      name="access-time"
+                      size={13}
+                      color={colors.onSurfaceVariant}
+                    />
+                    <Text
+                      style={{
+                        fontSize: FONT_SIZES.xs,
+                        fontFamily: FONTS.medium,
+                        color: colors.onSurfaceVariant,
+                      }}
+                    >
+                      {exam.startTime}
+                    </Text>
+                  </View>
+                ) : null}
+
+                {/* Room */}
+                {exam.room ? (
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 4,
+                    }}
+                  >
+                    <MaterialIcons
+                      name="meeting-room"
+                      size={13}
+                      color={colors.onSurfaceVariant}
+                    />
+                    <Text
+                      style={{
+                        fontSize: FONT_SIZES.xs,
+                        fontFamily: FONTS.medium,
+                        color: colors.onSurfaceVariant,
+                      }}
+                    >
+                      {exam.room}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+
+              {/* Instructions preview if available */}
+              {exam.instructions ? (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "flex-start",
+                    gap: 5,
+                    marginTop: 6,
+                    paddingTop: 6,
+                    borderTopWidth: 1,
+                    borderTopColor: colors.outlineVariant + "15",
+                  }}
+                >
+                  <MaterialIcons
+                    name="info-outline"
+                    size={12}
+                    color={colors.onSurfaceVariant}
+                    style={{ marginTop: 1 }}
+                  />
+                  <Text
+                    numberOfLines={1}
+                    style={{
+                      flex: 1,
+                      fontSize: FONT_SIZES.micro,
+                      fontFamily: FONTS.regular,
+                      color: colors.onSurfaceVariant,
+                    }}
+                  >
+                    {exam.instructions}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+          </View>
+
+          {/* Action Row for Published Results */}
+          {exam.marksPublished && (
             <View
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                gap: 5,
-                flexWrap: "wrap",
+                justifyContent: "space-between",
+                marginTop: 10,
+                paddingTop: 10,
+                borderTopWidth: 1,
+                borderTopColor: colors.outlineVariant + "20",
               }}
             >
               <View
-                style={{
-                  backgroundColor: examColor + "18",
-                  paddingHorizontal: 7,
-                  paddingVertical: 2,
-                  borderRadius: 5,
-                }}
-              >
-                <Text
-                  style={{
-                    color: examColor,
-                    fontSize: FONT_SIZES.micro,
-                    fontFamily: FONTS.bold,
-                    letterSpacing: LETTER_SPACINGS.xs,
-                  }}
-                >
-                  {exam.standardizedType}
-                </Text>
-              </View>
-              {today && (
-                <View
-                  style={{
-                    backgroundColor: colors.error,
-                    paddingHorizontal: 6,
-                    paddingVertical: 2,
-                    borderRadius: 5,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 3,
-                  }}
-                >
-                  <MaterialIcons name="circle" size={5} color="#fff" />
-                  <Text
-                    style={{
-                      color: "#fff",
-                      fontSize: FONT_SIZES.micro,
-                      fontFamily: FONTS.bold,
-                      letterSpacing: LETTER_SPACINGS.micro,
-                    }}
-                  >
-                    TODAY
-                  </Text>
-                </View>
-              )}
-              {exam.marksPublished && (
-                <View
-                  style={{
-                    backgroundColor: colors.success + "18",
-                    paddingHorizontal: 6,
-                    paddingVertical: 2,
-                    borderRadius: 5,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 3,
-                  }}
-                >
-                  <MaterialIcons
-                    name="check-circle"
-                    size={10}
-                    color={colors.success}
-                  />
-                  <Text
-                    style={{
-                      color: colors.success,
-                      fontSize: FONT_SIZES.micro,
-                      fontFamily: FONTS.bold,
-                    }}
-                  >
-                    MARKS OUT
-                  </Text>
-                </View>
-              )}
-            </View>
-
-            {/* Countdown / Date Badge */}
-            <View
-              style={{
-                backgroundColor: past
-                  ? colors.surfaceContainerHigh
-                  : today
-                  ? colors.error + "15"
-                  : colors.primaryContainer,
-                paddingHorizontal: 8,
-                paddingVertical: 2.5,
-                borderRadius: 6,
-                alignItems: "center",
-                minWidth: 46,
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: FONT_SIZES.xs,
-                  fontFamily: FONTS.bold,
-                  color: past
-                    ? colors.onSurfaceVariant
-                    : today
-                    ? colors.error
-                    : colors.primary,
-                }}
-              >
-                {daysLabel}
-              </Text>
-            </View>
-          </View>
-
-          {/* Subject Name */}
-          <Text
-            style={{
-              fontSize: FONT_SIZES.sm,
-              fontFamily: FONTS.bold,
-              color: colors.onSurface,
-              marginBottom: 4,
-            }}
-          >
-            {exam.subject?.name || exam.name}
-          </Text>
-
-          {/* Bottom Row: Date + Marks + Duration */}
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 12,
-              marginTop: 2,
-            }}
-          >
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 3 }}
-            >
-              <MaterialIcons
-                name="calendar-today"
-                size={12}
-                color={colors.onSurfaceVariant}
-              />
-              <Text
-                style={{
-                  fontSize: FONT_SIZES.xs,
-                  fontFamily: FONTS.medium,
-                  color: colors.onSurfaceVariant,
-                }}
-              >
-                {formatDate(exam.date)}
-              </Text>
-            </View>
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 3 }}
-            >
-              <MaterialIcons
-                name="assessment"
-                size={12}
-                color={colors.onSurfaceVariant}
-              />
-              <Text
-                style={{
-                  fontSize: FONT_SIZES.xs,
-                  fontFamily: FONTS.medium,
-                  color: colors.onSurfaceVariant,
-                }}
-              >
-                {exam.totalMarks} marks
-              </Text>
-            </View>
-            {exam.duration && (
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 3 }}
+                style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
               >
                 <MaterialIcons
-                  name="schedule"
-                  size={12}
-                  color={colors.onSurfaceVariant}
+                  name="insights"
+                  size={14}
+                  color={colors.primary}
                 />
                 <Text
                   style={{
                     fontSize: FONT_SIZES.xs,
-                    fontFamily: FONTS.medium,
-                    color: colors.onSurfaceVariant,
+                    fontFamily: FONTS.bold,
+                    color: colors.primary,
                   }}
                 >
-                  {exam.duration}m
+                  View Marks & Report Card
                 </Text>
               </View>
-            )}
-          </View>
+              <MaterialIcons
+                name="chevron-right"
+                size={18}
+                color={colors.primary}
+              />
+            </View>
+          )}
         </Pressable>
-      </Animated.View>
+      </Card>
     );
   }
 );
 
-ExamTimelineItem.displayName = "ExamTimelineItem";
+ExamCardItem.displayName = "ExamCardItem";
 
 /**
- * ExamTimeline Component — Enhanced with Reanimated
- * Visual timeline showing upcoming and past exams with UI-thread animations
+ * ExamTimeline Component — Uses App Standard Card Design
  *
  * @param {Array} exams - Array of exam objects sorted by date
  * @param {Function} onExamPress - Handler for exam press
  */
 export default function ExamTimeline({ exams = [], onExamPress }) {
-  const { colors } = useTheme();
+  const { colors, mode } = useTheme();
+  const isDark = mode === "dark";
 
   const isToday = (date) => {
     const today = new Date();
@@ -374,14 +485,6 @@ export default function ExamTimeline({ exams = [], onExamPress }) {
     return examDate < today;
   };
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "short",
-      weekday: "short",
-    });
-  };
-
   const getDaysUntil = (date) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -394,77 +497,88 @@ export default function ExamTimeline({ exams = [], onExamPress }) {
     if (diffDays === 1) return "Tomorrow";
     if (diffDays === -1) return "Yesterday";
     if (diffDays < 0) return `${Math.abs(diffDays)}d ago`;
-    if (diffDays <= 7) return `${diffDays} days`;
-    return `${Math.ceil(diffDays / 7)}w`;
+    if (diffDays <= 7) return `In ${diffDays} days`;
+    return `In ${Math.ceil(diffDays / 7)}w`;
   };
 
   const getExamTypeColor = (type) => {
     const typeColors = {
-      FA1: "#2196F3",
-      FA2: "#03A9F4",
-      SA1: "#9C27B0",
-      FA3: "#FF9800",
-      FA4: "#FF5722",
-      SA2: "#E91E63",
+      FA1: "#2563EB",
+      FA2: "#0284C7",
+      SA1: "#7C3AED",
+      FA3: "#D97706",
+      FA4: "#DB2777",
+      SA2: "#DC2626",
     };
-    return typeColors[type] || "#2196F3";
+    return typeColors[type] || "#2563EB";
   };
 
   if (!exams || exams.length === 0) {
     return (
-      <View
+      <Card
+        variant="filled"
         style={{
           alignItems: "center",
-          paddingVertical: 48,
-          backgroundColor: colors.surfaceContainerHighest,
+          paddingVertical: 32,
+          paddingHorizontal: 20,
           borderRadius: 16,
-          gap: 12,
+          marginBottom: 16,
         }}
       >
         <View
           style={{
-            width: 72,
-            height: 72,
-            borderRadius: 36,
+            width: 48,
+            height: 48,
+            borderRadius: 24,
             backgroundColor: colors.primaryContainer,
             alignItems: "center",
             justifyContent: "center",
+            marginBottom: 8,
           }}
         >
           <MaterialIcons
             name="event-available"
-            size={36}
+            size={24}
             color={colors.primary}
           />
         </View>
         <Text
           style={{
-            color: colors.onSurfaceVariant,
-            fontSize: FONT_SIZES.md,
-            fontFamily: FONTS.medium,
+            color: colors.onSurface,
+            fontSize: FONT_SIZES.sm,
+            fontFamily: FONTS.bold,
           }}
         >
-          No exams scheduled
+          No exams in this list
         </Text>
-      </View>
+        <Text
+          style={{
+            color: colors.onSurfaceVariant,
+            fontSize: FONT_SIZES.xs,
+            fontFamily: FONTS.regular,
+            textAlign: "center",
+            marginTop: 4,
+          }}
+        >
+          There are no exams matching this section.
+        </Text>
+      </Card>
     );
   }
 
   return (
-    <View style={{ paddingVertical: 8 }}>
+    <View style={{ marginBottom: 8 }}>
       {exams.map((exam, index) => (
-        <ExamTimelineItem
+        <ExamCardItem
           key={exam._id || index}
           exam={exam}
-          index={index}
-          isLast={index === exams.length - 1}
           colors={colors}
+          isDark={isDark}
           onExamPress={onExamPress}
           getExamTypeColor={getExamTypeColor}
           isToday={isToday}
           isPast={isPast}
           getDaysUntil={getDaysUntil}
-          formatDate={formatDate}
         />
       ))}
     </View>

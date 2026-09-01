@@ -55,8 +55,12 @@ const AdminDashboard = () => {
   };
 
   const indigoAccent = colors.primary;
-  const cardSurface = isDark ? colors.surfaceContainer : "#FFFFFF";
-  const subBorder = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
+  const cardSurface = isDark
+    ? "rgba(208, 188, 255, 0.08)"
+    : "rgba(79, 55, 139, 0.045)";
+  const subBorder = isDark
+    ? "rgba(208, 188, 255, 0.22)"
+    : "rgba(79, 55, 139, 0.15)";
 
   if (loading && !data) {
     return <LoadingState message="Loading dashboard..." />;
@@ -457,12 +461,12 @@ const QuickActionButton = ({ title, icon, color, onPress }) => {
       style={({ pressed }) => ({
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: isDark ? colors.surfaceContainer : "#FFFFFF",
+        backgroundColor: isDark ? `${btnColor}16` : `${btnColor}0A`,
         paddingHorizontal: 12,
         paddingVertical: 8,
         borderRadius: 14,
         borderWidth: 1,
-        borderColor: btnColor + "30",
+        borderColor: isDark ? `${btnColor}40` : `${btnColor}25`,
         opacity: pressed ? 0.75 : 1,
         gap: 8,
       })}

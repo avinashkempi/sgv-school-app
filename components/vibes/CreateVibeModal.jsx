@@ -11,6 +11,7 @@ import {
   Alert,
   ActivityIndicator,
   StyleSheet,
+  Keyboard,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
@@ -20,7 +21,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import { useToast } from "../ToastProvider";
 import { useAuth } from "../../context/AuthContext";
-import { createApiMutationFn } from "../../hooks/useApi";
+import { createApiMutationFn, useApiQuery } from "../../hooks/useApi";
+import { CACHE_TIERS } from "../../utils/cacheConfig";
 import UserAvatar from "../ui/UserAvatar";
 import { formatUserName } from "../../utils/userFormatters";
 import apiConfig from "../../config/apiConfig";
@@ -35,35 +37,15 @@ import {
 
 const MAX_IMAGES = 5;
 const MAX_CAPTION_LENGTH = 2200;
-const DRAFT_STORAGE_KEY = "@vibe_create_draft_v1";
+const DRAFT_STORAGE_KEY = "@vibe_create_draft_v2";
 
-const CATEGORIES = [
+const FALLBACK_CATEGORIES = [
   { key: "general", label: "General", icon: "auto-awesome" },
-  { key: "official", label: "Official", icon: "school", adminOnly: true },
   { key: "achievement", label: "Achievement", icon: "emoji-events" },
   { key: "sports", label: "Sports", icon: "sports-soccer" },
   { key: "arts", label: "Arts & Events", icon: "palette" },
   { key: "life", label: "Campus Life", icon: "local-florist" },
-];
-
-const SUGGESTED_TAGS = [
-  "AnnualDay",
-  "SportsMeet",
-  "ScienceExhibition",
-  "CampusLife",
-  "ArtShowcase",
-  "QuizClub",
-];
-
-const CAMPUS_LOCATIONS = [
-  "Main Auditorium",
-  "Sports Ground",
-  "Science Lab",
-  "Library",
-  "Assembly Quadrangle",
-  "Cafeteria",
-  "Computer Lab",
-  "Junior Wing",
+  { key: "official", label: "Official", icon: "school", adminOnly: true },
 ];
 
 // Exponential backoff upload retry helper
@@ -87,26 +69,66 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
 
   const isAdmin = user?.role === "admin" || user?.role === "super admin";
 
+  // Dynamic Categories from Server
+  const { data: serverCategoriesData } = useApiQuery(
+    ["vibeCategories"],
+    `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.categories}`,
+    {
+      ...CACHE_TIERS.VIBES_FEED,
+      staleTime: 1000 * 60 * 30, // 30 mins
+    }
+  );
+
+  const categories = useMemo(() => {
+    const rawList =
+      Array.isArray(serverCategoriesData?.data) &&
+      serverCategoriesData.data.length > 0
+        ? serverCategoriesData.data
+        : FALLBACK_CATEGORIES;
+    return rawList.filter((c) => !c.adminOnly || isAdmin);
+  }, [serverCategoriesData, isAdmin]);
+
   const [caption, setCaption] = useState("");
-  const [category, setCategory] = useState(isAdmin ? "official" : "general");
+  const [category, setCategory] = useState("general");
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const [postAs, setPostAs] = useState(isAdmin ? "school" : "self");
-  const [location, setLocation] = useState("");
   const [isSpotlight, setIsSpotlight] = useState(false);
   const [images, setImages] = useState([]);
   const [submitting, setSubmitting] = useState(false);
 
+  // Keyboard awareness state for seamless keypad closing
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const [isCaptionFocused, setIsCaptionFocused] = useState(false);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+
+    const showSub = Keyboard.addListener(showEvent, () => setIsKeyboardVisible(true));
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setIsKeyboardVisible(false);
+      setIsCaptionFocused(false);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  const dismissKeyboard = useCallback(() => {
+    Keyboard.dismiss();
+    setIsCaptionFocused(false);
+  }, []);
+
   // Sync state whenever modal opens or editVibe changes
   useEffect(() => {
     if (visible) {
+      setIsCategoryDropdownOpen(false);
       if (editVibe) {
         setCaption(editVibe.caption || "");
-        setCategory(
-          editVibe.category || (isAdmin ? "official" : "general")
-        );
-        setPostAs(
-          editVibe.postAs || (isAdmin ? "school" : "self")
-        );
-        setLocation(editVibe.location || "");
+        setCategory(editVibe.category || (isAdmin ? "official" : "general"));
+        setPostAs(editVibe.postAs || (isAdmin ? "school" : "self"));
         setIsSpotlight(Boolean(editVibe.isSpotlight));
         setImages(
           editVibe.images?.map((img) => {
@@ -141,17 +163,13 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
               try {
                 const saved = JSON.parse(raw);
                 setCaption(saved.caption || "");
-                setCategory(
-                  saved.category || (isAdmin ? "official" : "general")
-                );
-                setLocation(saved.location || "");
+                setCategory(saved.category || "general");
               } catch {
                 // Ignore parse errors
               }
             } else {
               setCaption("");
-              setCategory(isAdmin ? "official" : "general");
-              setLocation("");
+              setCategory("general");
             }
           })
           .catch(() => {});
@@ -164,17 +182,16 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
 
   // Persist draft on text changes (create mode only)
   useEffect(() => {
-    if (visible && !isEditing && (caption || location)) {
+    if (visible && !isEditing && caption) {
       AsyncStorage.setItem(
         DRAFT_STORAGE_KEY,
         JSON.stringify({
           caption,
           category,
-          location,
         })
       ).catch(() => {});
     }
-  }, [visible, caption, category, location, isEditing]);
+  }, [visible, caption, category, isEditing]);
 
   const clearDraft = useCallback(() => {
     AsyncStorage.removeItem(DRAFT_STORAGE_KEY).catch(() => {});
@@ -182,9 +199,9 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
 
   const resetForm = useCallback(() => {
     setCaption("");
-    setCategory(isAdmin ? "official" : "general");
+    setCategory("general");
+    setIsCategoryDropdownOpen(false);
     setPostAs(isAdmin ? "school" : "self");
-    setLocation("");
     setIsSpotlight(false);
     setImages([]);
     setSubmitting(false);
@@ -193,25 +210,22 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
 
   const isDirty = useMemo(() => {
     if (!isEditing) {
-      return Boolean(caption.trim() || images.length > 0 || location.trim());
+      return Boolean(caption.trim() || images.length > 0);
     }
     if (!editVibe) return false;
     const captionChanged =
       (caption || "").trim() !== (editVibe.caption || "").trim();
     const categoryChanged = (category || "") !== (editVibe.category || "");
-    const locationChanged =
-      (location || "").trim() !== (editVibe.location || "").trim();
     const initialImageCount = editVibe.images?.length || 0;
     const imagesChanged =
       images.length !== initialImageCount ||
       images.some((img) => img.localUri || img.uploading);
-    return (
-      captionChanged || categoryChanged || locationChanged || imagesChanged
-    );
-  }, [isEditing, editVibe, caption, category, location, images]);
+    return captionChanged || categoryChanged || imagesChanged;
+  }, [isEditing, editVibe, caption, category, images]);
 
   const handleClose = useCallback(() => {
     if (submitting) return;
+    dismissKeyboard();
     if (isDirty) {
       Alert.alert(
         isEditing ? "Discard Changes?" : "Discard Vibe?",
@@ -234,13 +248,14 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
       resetForm();
       onClose();
     }
-  }, [submitting, isDirty, isEditing, resetForm, onClose]);
+  }, [submitting, dismissKeyboard, isDirty, isEditing, resetForm, onClose]);
 
   const hasVideo = images.some((img) => img.type === "video");
 
   // Parallel Photo Picking and Concurrency Uploads (Up to 5 Photos)
   const handleAddPhotos = useCallback(
     async (source) => {
+      dismissKeyboard();
       if (hasVideo) {
         Alert.alert(
           "Switch to Photos?",
@@ -388,12 +403,13 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
         showToast(error.message || "Error selecting photos", "error");
       }
     },
-    [hasVideo, images.length, showToast]
+    [dismissKeyboard, hasVideo, images.length, showToast]
   );
 
   // Video Picking (Only 1 Video - Max 30s)
   const handleAddVideo = useCallback(
     async (source) => {
+      dismissKeyboard();
       if (images.length > 0 && !hasVideo) {
         Alert.alert(
           "Switch to Video?",
@@ -480,25 +496,16 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
         showToast(error.message || "Error selecting video", "error");
       }
     },
-    [images.length, hasVideo, showToast]
+    [dismissKeyboard, images.length, hasVideo, showToast]
   );
 
   const handleRemoveImage = useCallback((index) => {
     setImages((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
-  const handleAddTag = useCallback(
-    (tag) => {
-      const formattedTag = `#${tag} `;
-      if (!caption.includes(formattedTag)) {
-        setCaption((prev) => `${prev} ${formattedTag}`.trimStart());
-      }
-    },
-    [caption]
-  );
-
   // Submit Vibe
   const handleSubmit = useCallback(async () => {
+    dismissKeyboard();
     if (images.length === 0) {
       showToast("Please add at least one photo or video", "warning");
       return;
@@ -535,7 +542,6 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
         caption: caption.trim(),
         category,
         postAs: isAdmin ? postAs : "self",
-        location: location.trim(),
         images: finalImages,
         ...(isAdmin ? { isSpotlight } : {}),
       };
@@ -581,12 +587,12 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
       setSubmitting(false);
     }
   }, [
+    dismissKeyboard,
     images,
     caption,
     category,
     isAdmin,
     postAs,
-    location,
     isSpotlight,
     isEditing,
     editVibe,
@@ -599,6 +605,14 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
   const canSubmit =
     images.length > 0 && !submitting && !images.some((img) => img.uploading);
 
+  const selectedCategoryMeta = useMemo(() => {
+    return (
+      categories.find((c) => c.key === category) ||
+      categories[0] ||
+      FALLBACK_CATEGORIES[0]
+    );
+  }, [categories, category]);
+
   return (
     <Modal
       visible={visible}
@@ -608,8 +622,21 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
         style={styles.overlay}
       >
+        {/* Backdrop tap to dismiss keypad or modal */}
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={() => {
+            if (isKeyboardVisible) {
+              dismissKeyboard();
+            } else {
+              handleClose();
+            }
+          }}
+        />
+
         <View style={[styles.container, { backgroundColor: colors.surface }]}>
           {/* ──── Header ──── */}
           <View
@@ -653,7 +680,9 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
 
           <ScrollView
             style={styles.scrollContent}
+            contentContainerStyle={styles.scrollContentContainer}
             keyboardShouldPersistTaps="handled"
+            keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
             showsVerticalScrollIndicator={false}
           >
             {/* ──── Non-Admin Approval Notice Banner ──── */}
@@ -1107,7 +1136,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
               </ScrollView>
             </View>
 
-            {/* ──── Category Selector ──── */}
+            {/* ──── Category Dropdown Selector ──── */}
             <View style={styles.section}>
               <Text
                 style={[
@@ -1117,69 +1146,201 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
               >
                 CATEGORY
               </Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.categoryScroll}
+
+              {/* Dropdown Trigger Button */}
+              <Pressable
+                onPress={() => {
+                  dismissKeyboard();
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                  setIsCategoryDropdownOpen((prev) => !prev);
+                }}
+                style={[
+                  styles.dropdownTrigger,
+                  {
+                    backgroundColor: colors.surfaceContainerHighest,
+                    borderColor: isCategoryDropdownOpen
+                      ? colors.primary
+                      : colors.outlineVariant,
+                  },
+                ]}
               >
-                {CATEGORIES.filter((c) => !c.adminOnly || isAdmin).map(
-                  (cat) => (
-                    <Pressable
-                      key={cat.key}
-                      onPress={() => setCategory(cat.key)}
+                <View style={styles.dropdownLeft}>
+                  <View
+                    style={[
+                      styles.categoryIconBadge,
+                      { backgroundColor: colors.primaryContainer },
+                    ]}
+                  >
+                    <MaterialIcons
+                      name={selectedCategoryMeta.icon || "auto-awesome"}
+                      size={18}
+                      color={colors.onPrimaryContainer}
+                    />
+                  </View>
+                  <View>
+                    <Text
                       style={[
-                        styles.categoryPill,
-                        {
-                          backgroundColor:
-                            category === cat.key
-                              ? colors.primary
-                              : colors.surfaceContainerHighest,
-                        },
+                        styles.dropdownSelectedLabel,
+                        { color: colors.onSurface },
                       ]}
                     >
-                      <MaterialIcons
-                        name={cat.icon}
-                        size={16}
-                        color={
-                          category === cat.key
-                            ? "#fff"
-                            : colors.onSurfaceVariant
-                        }
-                      />
-                      <Text
-                        style={[
-                          styles.categoryPillText,
+                      {selectedCategoryMeta.label}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.dropdownSubtitle,
+                        { color: colors.onSurfaceVariant },
+                      ]}
+                    >
+                      {selectedCategoryMeta.key === "general"
+                        ? "General (Default)"
+                        : "Selected Category"}
+                    </Text>
+                  </View>
+                </View>
+
+                <MaterialIcons
+                  name={
+                    isCategoryDropdownOpen
+                      ? "keyboard-arrow-up"
+                      : "keyboard-arrow-down"
+                  }
+                  size={24}
+                  color={colors.onSurfaceVariant}
+                />
+              </Pressable>
+
+              {/* Dropdown Menu List */}
+              {isCategoryDropdownOpen && (
+                <View
+                  style={[
+                    styles.dropdownMenu,
+                    {
+                      backgroundColor: colors.surfaceContainerHigh,
+                      borderColor: colors.outlineVariant,
+                    },
+                  ]}
+                >
+                  {categories.map((cat, idx) => {
+                    const isSelected = cat.key === category;
+                    const isLast = idx === categories.length - 1;
+                    return (
+                      <Pressable
+                        key={cat.key}
+                        onPress={() => {
+                          Haptics.impactAsync(
+                            Haptics.ImpactFeedbackStyle.Light
+                          ).catch(() => {});
+                          setCategory(cat.key);
+                          setIsCategoryDropdownOpen(false);
+                        }}
+                        style={({ pressed }) => [
+                          styles.dropdownItem,
                           {
-                            color:
-                              category === cat.key
-                                ? "#fff"
-                                : colors.onSurfaceVariant,
+                            backgroundColor: isSelected
+                              ? colors.primaryContainer
+                              : pressed
+                              ? colors.surfaceContainerHighest
+                              : "transparent",
+                            borderBottomColor: isLast
+                              ? "transparent"
+                              : colors.outlineVariant,
+                            borderBottomWidth: isLast
+                              ? 0
+                              : StyleSheet.hairlineWidth,
                           },
                         ]}
                       >
-                        {cat.label}
-                      </Text>
-                    </Pressable>
-                  )
-                )}
-              </ScrollView>
+                        <View style={styles.dropdownItemLeft}>
+                          <MaterialIcons
+                            name={cat.icon || "auto-awesome"}
+                            size={18}
+                            color={
+                              isSelected
+                                ? colors.onPrimaryContainer
+                                : colors.onSurfaceVariant
+                            }
+                          />
+                          <Text
+                            style={[
+                              styles.dropdownItemText,
+                              {
+                                color: isSelected
+                                  ? colors.onPrimaryContainer
+                                  : colors.onSurface,
+                                fontFamily: isSelected
+                                  ? FONTS.bold
+                                  : FONTS.medium,
+                              },
+                            ]}
+                          >
+                            {cat.label}
+                          </Text>
+                        </View>
+
+                        {isSelected && (
+                          <MaterialIcons
+                            name="check"
+                            size={18}
+                            color={colors.onPrimaryContainer}
+                          />
+                        )}
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              )}
             </View>
 
             {/* ──── Caption Input ──── */}
             <View style={styles.section}>
-              <Text
-                style={[
-                  styles.sectionLabel,
-                  { color: colors.onSurfaceVariant },
-                ]}
-              >
-                CAPTION
-              </Text>
+              <View style={styles.captionHeaderRow}>
+                <Text
+                  style={[
+                    styles.sectionLabel,
+                    { color: colors.onSurfaceVariant, marginBottom: 0 },
+                  ]}
+                >
+                  CAPTION
+                </Text>
+
+                {/* Keypad Dismiss Action Button */}
+                {(isKeyboardVisible || isCaptionFocused) && (
+                  <Pressable
+                    onPress={dismissKeyboard}
+                    style={[
+                      styles.doneKeypadButton,
+                      { backgroundColor: colors.primaryContainer },
+                    ]}
+                    hitSlop={8}
+                  >
+                    <MaterialIcons
+                      name="keyboard-hide"
+                      size={15}
+                      color={colors.onPrimaryContainer}
+                    />
+                    <Text
+                      style={[
+                        styles.doneKeypadText,
+                        { color: colors.onPrimaryContainer },
+                      ]}
+                    >
+                      Done
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
+
               <TextInput
-                placeholder="Share the story behind these photos... Use #hashtags"
+                placeholder="Write a caption for your vibe..."
                 placeholderTextColor={colors.onSurfaceVariant}
                 value={caption}
                 onChangeText={setCaption}
+                onFocus={() => {
+                  setIsCaptionFocused(true);
+                  setIsCategoryDropdownOpen(false);
+                }}
+                onBlur={() => setIsCaptionFocused(false)}
                 maxLength={MAX_CAPTION_LENGTH}
                 multiline
                 numberOfLines={4}
@@ -1188,7 +1349,9 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                   {
                     backgroundColor: colors.surfaceContainerHighest,
                     color: colors.onSurface,
-                    borderColor: colors.outlineVariant,
+                    borderColor: isCaptionFocused
+                      ? colors.primary
+                      : colors.outlineVariant,
                   },
                 ]}
               />
@@ -1197,122 +1360,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
               >
                 {caption.length}/{MAX_CAPTION_LENGTH}
               </Text>
-
-              {/* Hashtag Suggestions */}
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.tagsScroll}
-              >
-                {SUGGESTED_TAGS.map((tag) => (
-                  <Pressable
-                    key={tag}
-                    onPress={() => handleAddTag(tag)}
-                    style={[
-                      styles.tagChip,
-                      { backgroundColor: colors.surfaceContainerHighest },
-                    ]}
-                  >
-                    <Text
-                      style={[styles.tagChipText, { color: colors.primary }]}
-                    >
-                      #{tag}
-                    </Text>
-                  </Pressable>
-                ))}
-              </ScrollView>
             </View>
-
-            {/* ──── Location Input ──── */}
-            <View style={styles.section}>
-              <Text
-                style={[
-                  styles.sectionLabel,
-                  { color: colors.onSurfaceVariant },
-                ]}
-              >
-                LOCATION (OPTIONAL)
-              </Text>
-              <View
-                style={[
-                  styles.locationRow,
-                  {
-                    backgroundColor: colors.surfaceContainerHighest,
-                    borderColor: colors.outlineVariant,
-                  },
-                ]}
-              >
-                <MaterialIcons
-                  name="location-on"
-                  size={20}
-                  color={colors.primary}
-                />
-                <TextInput
-                  placeholder="e.g. Main Campus, Sports Ground, Auditorium"
-                  placeholderTextColor={colors.onSurfaceVariant}
-                  value={location}
-                  onChangeText={setLocation}
-                  maxLength={100}
-                  style={[styles.locationInput, { color: colors.onSurface }]}
-                />
-              </View>
-
-              {/* Quick Location Chips */}
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.quickLocationContainer}
-              >
-                {CAMPUS_LOCATIONS.map((loc) => {
-                  const isSelected = location === loc;
-                  return (
-                    <Pressable
-                      key={loc}
-                      onPress={() => {
-                        Haptics.impactAsync(
-                          Haptics.ImpactFeedbackStyle.Light
-                        ).catch(() => {});
-                        setLocation(isSelected ? "" : loc);
-                      }}
-                      style={[
-                        styles.quickLocChip,
-                        {
-                          backgroundColor: isSelected
-                            ? colors.primaryContainer
-                            : colors.surfaceContainerHigh,
-                          borderColor: isSelected
-                            ? colors.primary
-                            : colors.outlineVariant || "transparent",
-                        },
-                      ]}
-                    >
-                      <MaterialIcons
-                        name="place"
-                        size={13}
-                        color={
-                          isSelected ? colors.primary : colors.onSurfaceVariant
-                        }
-                      />
-                      <Text
-                        style={[
-                          styles.quickLocText,
-                          {
-                            color: isSelected
-                              ? colors.onPrimaryContainer
-                              : colors.onSurfaceVariant,
-                            fontFamily: isSelected ? FONTS.bold : FONTS.medium,
-                          },
-                        ]}
-                      >
-                        {loc}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </ScrollView>
-            </View>
-
-            <View style={{ height: 40 }} />
           </ScrollView>
         </View>
       </KeyboardAvoidingView>
@@ -1323,14 +1371,14 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: "rgba(0,0,0,0.45)",
     justifyContent: "flex-end",
   },
   container: {
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
-    maxHeight: "94%",
-    minHeight: "75%",
+    maxHeight: "92%",
+    overflow: "hidden",
   },
   header: {
     flexDirection: "row",
@@ -1356,8 +1404,11 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
   },
   scrollContent: {
-    flex: 1,
+    flexGrow: 0,
     paddingHorizontal: 20,
+  },
+  scrollContentContainer: {
+    paddingBottom: 28,
   },
   infoBanner: {
     flexDirection: "row",
@@ -1365,7 +1416,7 @@ const styles = StyleSheet.create({
     gap: 8,
     padding: 12,
     borderRadius: 14,
-    marginTop: 16,
+    marginTop: 14,
   },
   infoBannerText: {
     fontSize: FONT_SIZES.sm,
@@ -1374,7 +1425,7 @@ const styles = StyleSheet.create({
     lineHeight: LINE_HEIGHTS.sm,
   },
   section: {
-    marginTop: 18,
+    marginTop: 16,
   },
   sectionLabel: {
     fontSize: FONT_SIZES.xs,
@@ -1414,8 +1465,8 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   imageThumbWrapper: {
-    width: 100,
-    height: 100,
+    width: 96,
+    height: 96,
     borderRadius: 16,
     overflow: "hidden",
     position: "relative",
@@ -1465,8 +1516,8 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
   },
   addMediaLargeButton: {
-    width: 100,
-    height: 100,
+    width: 96,
+    height: 96,
     borderRadius: 16,
     borderWidth: 1,
     justifyContent: "center",
@@ -1478,8 +1529,8 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
   },
   addImageButton: {
-    width: 100,
-    height: 100,
+    width: 96,
+    height: 96,
     borderRadius: 16,
     borderWidth: 1,
     borderStyle: "dashed",
@@ -1491,19 +1542,73 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
-  categoryScroll: {
-    gap: 8,
-  },
-  categoryPill: {
+  dropdownTrigger: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: 16,
-    gap: 6,
+    borderWidth: 1,
   },
-  categoryPillText: {
+  dropdownLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  categoryIconBadge: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  dropdownSelectedLabel: {
     fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
+  },
+  dropdownSubtitle: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.regular,
+    marginTop: 1,
+  },
+  dropdownMenu: {
+    marginTop: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  dropdownItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  dropdownItemLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  dropdownItemText: {
+    fontSize: FONT_SIZES.sm,
+  },
+  captionHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  doneKeypadButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  doneKeypadText: {
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
   },
   captionInput: {
@@ -1512,7 +1617,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
-    minHeight: 100,
+    minHeight: 90,
     textAlignVertical: "top",
   },
   charCount: {
@@ -1520,34 +1625,6 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
     textAlign: "right",
     marginTop: 4,
-  },
-  tagsScroll: {
-    gap: 8,
-    marginTop: 8,
-  },
-  tagChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  tagChipText: {
-    fontSize: FONT_SIZES.sm,
-    fontFamily: FONTS.bold,
-  },
-  locationRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 16,
-    borderWidth: 1,
-    gap: 8,
-  },
-  locationInput: {
-    flex: 1,
-    fontSize: FONT_SIZES.sm,
-    fontFamily: FONTS.regular,
-    padding: 0,
   },
   spotlightToggleCard: {
     flexDirection: "row",
@@ -1573,22 +1650,5 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
     lineHeight: LINE_HEIGHTS.xs,
-  },
-  quickLocationContainer: {
-    flexDirection: "row",
-    gap: 8,
-    paddingTop: 8,
-  },
-  quickLocChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  quickLocText: {
-    fontSize: FONT_SIZES.xs,
   },
 });

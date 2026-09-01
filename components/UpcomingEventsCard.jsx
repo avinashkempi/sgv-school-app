@@ -64,8 +64,15 @@ const UpcomingEventsCard = () => {
   };
 
   const cyanAccent = isDark ? "#22D3EE" : "#0E7490";
-  const cardSurface = isDark ? colors.surfaceContainer : "#FFFFFF";
-  const subBorder = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
+  const cardSurface = isDark
+    ? "rgba(34, 211, 238, 0.08)"
+    : "rgba(14, 116, 144, 0.045)";
+  const subBorder = isDark
+    ? "rgba(34, 211, 238, 0.2)"
+    : "rgba(14, 116, 144, 0.15)";
+  const dividerBorder = isDark
+    ? "rgba(34, 211, 238, 0.12)"
+    : "rgba(14, 116, 144, 0.08)";
 
   if (!events || events.length === 0) {
     return null;
@@ -104,7 +111,7 @@ const UpcomingEventsCard = () => {
                 styles.eventItem,
                 idx < events.length - 1 && {
                   borderBottomWidth: StyleSheet.hairlineWidth,
-                  borderBottomColor: subBorder,
+                  borderBottomColor: dividerBorder,
                 },
                 { opacity: pressed ? 0.75 : 1 },
               ]}

@@ -225,15 +225,16 @@ const TeacherPerformanceCard = ({
         }
       }}
       style={{
-        backgroundColor:
-          colors.surfaceContainer || (isDark ? "#1E1B24" : "#F7F3FB"),
+        backgroundColor: isDark
+          ? "rgba(167, 139, 250, 0.08)"
+          : "rgba(99, 102, 241, 0.045)",
         borderRadius: 24,
         padding: 18,
         marginBottom: 20,
         borderWidth: 1,
-        borderColor: colors.outlineVariant
-          ? colors.outlineVariant + "35"
-          : "rgba(0,0,0,0.06)",
+        borderColor: isDark
+          ? "rgba(167, 139, 250, 0.22)"
+          : "rgba(99, 102, 241, 0.15)",
         shadowColor: colors.shadow || "#000",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: isDark ? 0.2 : 0.04,
@@ -344,14 +345,16 @@ const TeacherPerformanceCard = ({
           style={{
             flex: 1,
             minWidth: 95,
-            backgroundColor: colors.surface || (isDark ? "#2B2832" : "#FFFFFF"),
+            backgroundColor: isDark
+              ? "rgba(167, 139, 250, 0.1)"
+              : "rgba(99, 102, 241, 0.06)",
             paddingVertical: 10,
             paddingHorizontal: 12,
             borderRadius: 14,
             borderWidth: 1,
-            borderColor: colors.outlineVariant
-              ? colors.outlineVariant + "25"
-              : "rgba(0,0,0,0.05)",
+            borderColor: isDark
+              ? "rgba(167, 139, 250, 0.24)"
+              : "rgba(99, 102, 241, 0.18)",
           }}
         >
           <Text
@@ -394,14 +397,16 @@ const TeacherPerformanceCard = ({
           style={{
             flex: 1,
             minWidth: 95,
-            backgroundColor: colors.surface || (isDark ? "#2B2832" : "#FFFFFF"),
+            backgroundColor: isDark
+              ? "rgba(167, 139, 250, 0.1)"
+              : "rgba(99, 102, 241, 0.06)",
             paddingVertical: 10,
             paddingHorizontal: 12,
             borderRadius: 14,
             borderWidth: 1,
-            borderColor: colors.outlineVariant
-              ? colors.outlineVariant + "25"
-              : "rgba(0,0,0,0.05)",
+            borderColor: isDark
+              ? "rgba(167, 139, 250, 0.24)"
+              : "rgba(99, 102, 241, 0.18)",
           }}
         >
           <Text
@@ -445,14 +450,16 @@ const TeacherPerformanceCard = ({
           style={{
             flex: 1,
             minWidth: 95,
-            backgroundColor: colors.surface || (isDark ? "#2B2832" : "#FFFFFF"),
+            backgroundColor: isDark
+              ? "rgba(167, 139, 250, 0.1)"
+              : "rgba(99, 102, 241, 0.06)",
             paddingVertical: 10,
             paddingHorizontal: 12,
             borderRadius: 14,
             borderWidth: 1,
-            borderColor: colors.outlineVariant
-              ? colors.outlineVariant + "25"
-              : "rgba(0,0,0,0.05)",
+            borderColor: isDark
+              ? "rgba(167, 139, 250, 0.24)"
+              : "rgba(99, 102, 241, 0.18)",
           }}
         >
           <Text
@@ -495,14 +502,16 @@ const TeacherPerformanceCard = ({
       <View
         style={{
           flexDirection: "row",
-          backgroundColor: colors.surface || (isDark ? "#2B2832" : "#FFFFFF"),
+          backgroundColor: isDark
+            ? "rgba(167, 139, 250, 0.08)"
+            : "rgba(99, 102, 241, 0.05)",
           padding: 4,
           borderRadius: 12,
           marginBottom: 14,
           borderWidth: 1,
-          borderColor: colors.outlineVariant
-            ? colors.outlineVariant + "25"
-            : "rgba(0,0,0,0.06)",
+          borderColor: isDark
+            ? "rgba(167, 139, 250, 0.2)"
+            : "rgba(99, 102, 241, 0.14)",
         }}
       >
         <Pressable
@@ -586,15 +595,17 @@ const TeacherPerformanceCard = ({
         /* Interactive SVG Bar Chart */
         <View
           style={{
-            backgroundColor: colors.surface || (isDark ? "#2B2832" : "#FFFFFF"),
+            backgroundColor: isDark
+              ? "rgba(167, 139, 250, 0.06)"
+              : "rgba(99, 102, 241, 0.035)",
             borderRadius: 18,
             paddingTop: 8,
             paddingBottom: 4,
             paddingHorizontal: 6,
             borderWidth: 1,
-            borderColor: colors.outlineVariant
-              ? colors.outlineVariant + "20"
-              : "rgba(0,0,0,0.04)",
+            borderColor: isDark
+              ? "rgba(167, 139, 250, 0.2)"
+              : "rgba(99, 102, 241, 0.14)",
             overflow: "hidden",
           }}
         >
@@ -811,16 +822,18 @@ const TeacherPerformanceCard = ({
                 }
                 style={({ pressed }) => ({
                   backgroundColor: isSelected
-                    ? (colors.primary || "#6750A4") + "15"
-                    : colors.surface || (isDark ? "#2B2832" : "#FFFFFF"),
+                    ? (colors.primary || "#6750A4") + "18"
+                    : isDark
+                    ? "rgba(167, 139, 250, 0.08)"
+                    : "rgba(99, 102, 241, 0.05)",
                   borderRadius: 14,
                   padding: 12,
                   borderWidth: 1,
                   borderColor: isSelected
                     ? colors.primary || "#6750A4"
-                    : colors.outlineVariant
-                    ? colors.outlineVariant + "30"
-                    : "rgba(0,0,0,0.06)",
+                    : isDark
+                    ? "rgba(167, 139, 250, 0.2)"
+                    : "rgba(99, 102, 241, 0.15)",
                   opacity: pressed ? 0.8 : 1,
                 })}
               >

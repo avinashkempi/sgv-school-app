@@ -82,8 +82,12 @@ const TeacherDashboard = () => {
   };
 
   const indigoAccent = colors.primary;
-  const cardSurface = isDark ? colors.surfaceContainer : "#FFFFFF";
-  const subBorder = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
+  const cardSurface = isDark
+    ? "rgba(208, 188, 255, 0.08)"
+    : "rgba(79, 55, 139, 0.045)";
+  const subBorder = isDark
+    ? "rgba(208, 188, 255, 0.22)"
+    : "rgba(79, 55, 139, 0.15)";
 
   if (loading && !data) {
     return <LoadingState message="Loading dashboard..." />;

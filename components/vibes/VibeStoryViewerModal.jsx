@@ -6,10 +6,10 @@ import {
   Pressable,
   Dimensions,
   StyleSheet,
-  StatusBar,
   Platform,
   ActivityIndicator,
 } from "react-native";
+import { StatusBar } from "expo-status-bar";
 import { Image } from "expo-image";
 import { BlurView } from "expo-blur";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -431,11 +431,7 @@ const VibeStoryViewerModal = ({
       statusBarTranslucent={true}
       onRequestClose={handleClose}
     >
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor="transparent"
-        translucent
-      />
+      <StatusBar style="light" />
       <GestureHandlerRootView style={styles.rootGestureContainer}>
         <Animated.View style={[styles.backdrop, backdropAnimatedStyle]} />
 
