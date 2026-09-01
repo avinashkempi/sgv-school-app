@@ -998,12 +998,16 @@ export default function TransitionWizardScreen() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView
         contentContainerStyle={{
-          padding: 16,
-          paddingTop: 24,
+          paddingHorizontal: 16,
+          paddingTop: 12,
           paddingBottom: 40,
         }}
       >
-        <Header title="Year Transition" subtitle="3-Step Wizard" showBack />
+        <Header
+          title="Year Transition"
+          subtitle="3-Step Setup Wizard"
+          variant="modal"
+        />
 
         {renderStepIndicator()}
 

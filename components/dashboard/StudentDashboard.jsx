@@ -55,9 +55,10 @@ const StudentDashboard = () => {
     );
   }
 
-  const attendanceValue = data.overview?.attendancePercentage;
+  const rawAttendance = data.overview?.attendancePercentage;
+  const attendanceNum = parseFloat(rawAttendance);
   const attendanceDisplay =
-    typeof attendanceValue === "number" ? `${attendanceValue}%` : "0%";
+    !isNaN(attendanceNum) && attendanceNum > 0 ? `${attendanceNum}%` : "0%";
   const attendanceTrend = data.overview?.attendanceTrend;
 
   const dueAmount = data.overview?.dueAmount || 0;

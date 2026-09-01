@@ -154,7 +154,13 @@ export default function ImportDataScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <Header title="Direct Data Sync" back={true} />
+      <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
+        <Header
+          title="Direct Data Sync"
+          subtitle="Synchronize students & staff records"
+          variant="modal"
+        />
+      </View>
 
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
         {/* 1. Static Source Info */}

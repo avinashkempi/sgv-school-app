@@ -192,7 +192,7 @@ export default function SubjectDetailScreen() {
         }
         contentContainerStyle={{ paddingBottom: 80 }}
       >
-        <View style={{ padding: 16, paddingTop: 20 }}>
+        <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
           <AppHeader
             title={
               subjectName || t("teacher.subjectDetails", "Subject Details")

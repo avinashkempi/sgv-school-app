@@ -157,7 +157,11 @@ export default function RequestsScreen() {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[styles.contentPaddingBottom, { padding: 16 }]}
       >
-        <Header title={t("requests.title")} subtitle={t("requests.subtitle")} />
+        <Header
+          title={t("requests.title")}
+          subtitle={t("requests.subtitle")}
+          variant="root"
+        />
 
         <View style={{ marginTop: 8 }}>
           {/* My Attendance Card - For All */}

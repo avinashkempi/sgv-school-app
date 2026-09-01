@@ -92,11 +92,11 @@ export default function SendNotificationScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <View style={{ flex: 1 }}>
-        <View style={{ padding: 16, paddingTop: 24 }}>
+        <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
           <Header
             title="Broadcast Announcement"
             subtitle="Send alerts to users"
-            showBack
+            variant="modal"
           />
         </View>
 

@@ -178,6 +178,7 @@ export default function TeacherSubjectsScreen() {
           <AppHeader
             title="Teacher-Subject Assignments"
             subtitle="Manage which teachers teach which subjects"
+            showBack={true}
           />
 
           {/* Search Bar */}

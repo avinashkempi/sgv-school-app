@@ -317,8 +317,8 @@ export default function ProfileScreen() {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.background }}>
-        <Header title={t("profile.title")} />
+      <View style={{ flex: 1, backgroundColor: colors.background, paddingHorizontal: 16, paddingTop: 12 }}>
+        <Header title={t("profile.title")} showBack={true} />
         <View style={{ flex: 1, justifyContent: "center" }}>
           <LoadingState message={t("profile.loadingProfile")} />
         </View>
@@ -341,7 +341,13 @@ export default function ProfileScreen() {
       keyboardDismissMode="on-drag"
       keyboardShouldPersistTaps="handled"
     >
-      <View style={{ alignItems: "center", marginTop: 20, marginBottom: 36 }}>
+      <Header
+        title={t("profile.title")}
+        subtitle={user?.role ? `${user.role.toUpperCase()} PROFILE` : undefined}
+        showBack={true}
+      />
+
+      <View style={{ alignItems: "center", marginTop: 8, marginBottom: 36 }}>
         {/* Avatar Container with Camera Edit Badge */}
         <View style={{ position: "relative", marginBottom: 16 }}>
           <Pressable

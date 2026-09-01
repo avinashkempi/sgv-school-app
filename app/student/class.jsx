@@ -353,6 +353,7 @@ export default function StudentClassScreen() {
                   }`
                 : ""
             }
+            variant="root"
           />
 
           {loadingClass ? (

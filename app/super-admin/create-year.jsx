@@ -228,15 +228,15 @@ export default function CreateYearScreen() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView
         contentContainerStyle={{
-          padding: 16,
-          paddingTop: 24,
+          paddingHorizontal: 16,
+          paddingTop: 12,
           paddingBottom: 24,
         }}
       >
         <Header
           title="Create Academic Year"
           subtitle="Set up new school year"
-          showBack
+          variant="modal"
         />
 
         <View style={{ marginTop: 24 }}>

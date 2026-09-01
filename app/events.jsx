@@ -788,6 +788,7 @@ export default function EventsScreen() {
             <Header
               title={t("events.title", "Events")}
               subtitle={t("events.subtitle", "Calendar & school schedules")}
+              showBack
             />
 
             {/* Segmented View Mode Switcher */}

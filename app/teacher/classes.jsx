@@ -70,6 +70,7 @@ export default function TeacherClassesScreen() {
               "teacher.classesSubtitle",
               "Manage your assigned classes"
             )}
+            variant="root"
           />
 
           {loading ? (

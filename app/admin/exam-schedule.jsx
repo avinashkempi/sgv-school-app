@@ -427,7 +427,7 @@ export default function AdminExamScheduleScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <View style={{ padding: 16, paddingTop: 20, paddingBottom: 6 }}>
+      <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 6 }}>
         <Header title="Exam Management" subtitle="Manage Schedules" showBack />
 
         <Pressable

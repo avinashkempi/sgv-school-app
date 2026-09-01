@@ -120,10 +120,13 @@ export default function AssessmentDashboard() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <AppHeader
-        title={t("teacher.assessmentsTitle", "Exams")}
-        subtitle={t("teacher.assessmentsSubtitle", "Manage Standardized Exams")}
-      />
+      <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
+        <AppHeader
+          title={t("teacher.assessmentsTitle", "Exams")}
+          subtitle={t("teacher.assessmentsSubtitle", "Manage Standardized Exams")}
+          showBack={true}
+        />
+      </View>
 
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
         {/* Class Selection */}

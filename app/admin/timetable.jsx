@@ -500,9 +500,9 @@ export default function AdminTimetableScreen() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <View
         style={{
-          paddingTop: 24,
+          paddingTop: 12,
           paddingHorizontal: 16,
-          paddingBottom: 16,
+          paddingBottom: 4,
           backgroundColor: colors.background,
         }}
       >

@@ -145,17 +145,20 @@ export default function MarksEntryScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <AppHeader
-        title={
-          examName
-            ? `${examName} ${t("teacher.marks", "Marks")}`
-            : t("teacher.marksEntry", "Marks Entry")
-        }
-        subtitle={`${className} - ${subjectName} (${t(
-          "common.max",
-          "Max"
-        )}: ${totalMarks})`}
-      />
+      <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
+        <AppHeader
+          title={
+            examName
+              ? `${examName} ${t("teacher.marks", "Marks")}`
+              : t("teacher.marksEntry", "Marks Entry")
+          }
+          subtitle={`${className} - ${subjectName} (${t(
+            "common.max",
+            "Max"
+          )}: ${totalMarks})`}
+          showBack={true}
+        />
+      </View>
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}

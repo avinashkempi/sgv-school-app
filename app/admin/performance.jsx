@@ -510,7 +510,7 @@ export default function AdminPerformanceScreen() {
         }
         contentContainerStyle={{ paddingBottom: 24 }}
       >
-        <View style={{ padding: 16, paddingTop: 24 }}>
+        <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
           <AppHeader
             title="School Performance"
             subtitle="Comprehensive analytics dashboard"

@@ -2833,7 +2833,7 @@ export default function ExamAnalyticsScreen() {
             colors={[colors.primary]}
           />
         }
-        contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 32 }}
       >
         <Header
           title="Exam Analytics"

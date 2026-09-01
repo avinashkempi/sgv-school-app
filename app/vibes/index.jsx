@@ -22,6 +22,7 @@ import {
   useApiMutation,
   createApiMutationFn,
 } from "../../hooks/useApi";
+import { useNotifications } from "../../hooks/useNotifications";
 import apiConfig from "../../config/apiConfig";
 import { CACHE_TIERS } from "../../utils/cacheConfig";
 import useTabScrollToTop from "../../hooks/useTabScrollToTop";
@@ -54,6 +55,7 @@ export default function VibesScreen() {
   const { colors, styles: themeStyles, mode } = useTheme();
   const isDark = mode === "dark";
   const { user, isAuthenticated } = useAuth();
+  const { unreadCount } = useNotifications();
   const { showToast } = useToast();
   const { isConnected, isSlow } = useNetworkQuality();
   const queryClient = useQueryClient();
@@ -940,6 +942,33 @@ export default function VibesScreen() {
               size={20}
               color={showSearchBar ? colors.primary : colors.onSurface}
             />
+          </Pressable>
+
+          {/* Notification Bell Action */}
+          <Pressable
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+              router.push("/notifications");
+            }}
+            style={[
+              styles.actionIconBtn,
+              { backgroundColor: colors.surfaceContainerHighest },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel="Notifications"
+          >
+            <MaterialIcons
+              name={unreadCount > 0 ? "notifications-active" : "notifications-none"}
+              size={20}
+              color={unreadCount > 0 ? colors.primary : colors.onSurface}
+            />
+            {unreadCount > 0 && (
+              <View style={styles.pendingBadgeCircle}>
+                <Text style={styles.pendingBadgeText}>
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </Text>
+              </View>
+            )}
           </Pressable>
 
           {/* Quick Post Action in Top Bar */}

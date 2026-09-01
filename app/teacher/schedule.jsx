@@ -113,57 +113,42 @@ export default function TeacherScheduleScreen() {
         }
         contentContainerStyle={{ paddingBottom: 24 }}
       >
-        <View style={{ padding: 16, paddingTop: 24 }}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 10,
-            }}
-          >
-            <View style={{ flex: 1 }}>
-              <AppHeader
-                title={t("teacher.mySchedule", "My Schedule")}
-                subtitle={t("teacher.teachingTimetable", "Teaching Timetable")}
-                showBack
-              />
-            </View>
-            <Pressable
-              onPress={() => _router.push("/teacher/timetable")}
-              style={({ pressed }) => ({
-                flexDirection: "row",
-                alignItems: "center",
-                backgroundColor: colors.primaryContainer,
-                paddingHorizontal: 12,
-                paddingVertical: 8,
-                borderRadius: 12,
-                gap: 6,
-                elevation: 2,
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.1,
-                shadowRadius: 2,
-                opacity: pressed ? 0.9 : 1,
-                marginLeft: 8,
-              })}
-            >
-              <MaterialIcons
-                name="grid-view"
-                size={18}
-                color={colors.onPrimaryContainer}
-              />
-              <Text
-                style={{
-                  color: colors.onPrimaryContainer,
-                  fontFamily: FONTS.bold,
-                  fontSize: FONT_SIZES.sm,
-                }}
+        <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
+          <AppHeader
+            title={t("teacher.mySchedule", "My Schedule")}
+            subtitle={t("teacher.teachingTimetable", "Teaching Timetable")}
+            showBack
+            rightAction={
+              <Pressable
+                onPress={() => _router.push("/teacher/timetable")}
+                style={({ pressed }) => ({
+                  flexDirection: "row",
+                  alignItems: "center",
+                  backgroundColor: colors.primaryContainer,
+                  paddingHorizontal: 10,
+                  paddingVertical: 6,
+                  borderRadius: 12,
+                  gap: 4,
+                  opacity: pressed ? 0.8 : 1,
+                })}
               >
-                {t("teacher.allClasses", "All Classes")}
-              </Text>
-            </Pressable>
-          </View>
+                <MaterialIcons
+                  name="grid-view"
+                  size={16}
+                  color={colors.onPrimaryContainer}
+                />
+                <Text
+                  style={{
+                    color: colors.onPrimaryContainer,
+                    fontFamily: FONTS.bold,
+                    fontSize: FONT_SIZES.xs,
+                  }}
+                >
+                  {t("teacher.allClasses", "All Classes")}
+                </Text>
+              </Pressable>
+            }
+          />
 
           {/* Day Tabs */}
           <View style={{ marginTop: 24 }}>

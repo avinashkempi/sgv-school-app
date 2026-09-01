@@ -173,11 +173,11 @@ export default function ClassesScreen() {
         }
         contentContainerStyle={{ paddingBottom: 24 }}
       >
-        <View style={{ padding: 16, paddingTop: 24 }}>
+        <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
           <AppHeader
             title="Classes"
             subtitle="Manage classes and sections"
-            showBack
+            variant="root"
           />
 
           {isOfflineData && (

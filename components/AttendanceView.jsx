@@ -41,6 +41,7 @@ export default function AttendanceView({
   hasMore = false,
   title = "My Attendance",
   subtitle = "Track your attendance record",
+  showBack = true,
 }) {
   const { colors, mode } = useTheme();
   const { t } = useLabel();
@@ -451,7 +452,7 @@ export default function AttendanceView({
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
-          <Header title={title} subtitle={subtitle} />
+          <Header title={title} subtitle={subtitle} showBack={showBack} />
         </View>
         <View style={styles.centerLoading}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -473,7 +474,7 @@ export default function AttendanceView({
   // List Header Component with all visual modules
   const ListHeader = (
     <View style={styles.headerContainer}>
-      <Header title={title} subtitle={subtitle} />
+      <Header title={title} subtitle={subtitle} showBack={showBack} />
 
       {/* ═════════════════════════════════════════════════════════════ */}
       {/* 1. HERO ATTENDANCE GAUGE CARD (LinearGradient & Glassmorphism)*/}

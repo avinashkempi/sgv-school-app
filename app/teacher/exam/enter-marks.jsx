@@ -377,7 +377,7 @@ export default function EnterMarksScreen() {
         contentContainerStyle={{ paddingBottom: 32 }}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={{ padding: 16, paddingTop: 24 }}>
+        <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
           <AppHeader
             title="Enter Marks"
             subtitle={`${exam.name} - ${exam.subject.name}`}

@@ -288,7 +288,11 @@ export default function SubjectsScreen() {
         scrollsToTop={true}
       >
         <View>
-          <Header title="Subjects" subtitle="Access your course materials" />
+          <Header
+            title="Subjects"
+            subtitle="Access your course materials"
+            showBack={true}
+          />
 
           {loading ? (
             <View

@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, StyleSheet } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
@@ -9,7 +9,6 @@ import { useNotifications } from "../hooks/useNotifications";
 import YearSelector from "./academic-year/YearSelector";
 import { useApiQuery } from "../hooks/useApi";
 import apiConfig from "../config/apiConfig";
-
 import { useAcademicYear } from "../context/AcademicYearContext";
 import { useLabel } from "../context/LabelsContext";
 import { formatUserName } from "../utils/userFormatters";
@@ -60,22 +59,22 @@ const Header = ({
   userName,
   userRole: _userRole,
   variant = "default",
-  showBack = false,
+  showBack,
+  onBack,
+  backIcon,
+  showNotification,
   showYearSelector,
+  rightAction,
+  style,
+  showLogo = false,
 }) => {
   const router = useRouter();
-  const { colors, styles } = useTheme();
+  const { colors } = useTheme();
   const { unreadCount } = useNotifications();
   const { selectedYear } = useAcademicYear();
   const { t } = useLabel();
 
-  // Allow explicit override, otherwise hide on welcome header (home screen) and show on default headers
-  const shouldShowYearSelector =
-    typeof showYearSelector === "boolean"
-      ? showYearSelector
-      : variant !== "welcome";
-
-  // Fetch user to check if Super Admin for Time Travel UI
+  // Fetch user to check role
   const { data: userData } = useApiQuery(
     ["currentUser"],
     `${apiConfig.baseUrl}/auth/me`,
@@ -86,22 +85,66 @@ const Header = ({
   );
 
   const isSuperAdmin = userData?.role === "super admin";
+  const isModal = variant === "modal";
+  const isWelcome = variant === "welcome";
+  const isRoot = variant === "root";
+
+  // Back button resolution:
+  // - On welcome & root: false unless explicitly forced to true
+  // - On modal: true by default (renders close button)
+  // - On subpage / default: follows showBack prop (defaults to false if not passed)
+  const shouldShowBack =
+    typeof showBack === "boolean" ? showBack : isModal;
+
+  // Notification resolution:
+  // - On welcome & root: true by default
+  // - On subpage / modal / default: false by default unless explicitly requested
+  const shouldShowNotification =
+    typeof showNotification === "boolean"
+      ? showNotification
+      : isWelcome || isRoot;
+
+  // Year selector resolution:
+  // - Only shown if explicitly true OR for super admins on root/welcome
+  const shouldShowYearSelector =
+    typeof showYearSelector === "boolean"
+      ? showYearSelector
+      : (isWelcome || isRoot) && isSuperAdmin;
 
   const greeting = useMemo(() => getGreeting(), []);
   const schoolBrand = useMemo(() => parseSchoolName(title), [title]);
   const isSchoolMentioned = useMemo(() => {
-    const t = typeof title === "string" ? title.toLowerCase() : "";
-    const s = typeof subtitle === "string" ? subtitle.toLowerCase() : "";
+    if (showLogo) return true;
+    const tLower = typeof title === "string" ? title.toLowerCase() : "";
+    const sLower = typeof subtitle === "string" ? subtitle.toLowerCase() : "";
     return (
-      t.includes("shri guru vidya") ||
-      t.includes("sgv school") ||
-      s.includes("shri guru vidya") ||
-      s.includes("sgv school")
+      tLower.includes("shri guru vidya") ||
+      tLower.includes("sgv school") ||
+      sLower.includes("shri guru vidya") ||
+      sLower.includes("sgv school")
     );
-  }, [title, subtitle]);
+  }, [title, subtitle, showLogo]);
 
-  // "welcome" is a creative, compact, and stylish hero app bar
-  if (variant === "welcome") {
+  const handleBackPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    if (onBack) {
+      onBack();
+    } else if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/");
+    }
+  };
+
+  const handleNotificationPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    router.push("/notifications");
+  };
+
+  // ═════════════════════════════════════════════════════════════════════════
+  // VARIANT: "welcome" - Hero App Bar on Home
+  // ═════════════════════════════════════════════════════════════════════════
+  if (isWelcome) {
     const rawUserName = userName || userData?.name;
     const effectiveUserName = formatUserName(rawUserName);
     const firstName = effectiveUserName
@@ -109,77 +152,35 @@ const Header = ({
       : null;
 
     return (
-      <View
-        style={{
-          paddingTop: 4,
-          paddingBottom: 14,
-        }}
-      >
-        {/* Top Header Row: School Branding + Notification Bell */}
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          {/* School Branding (Icon + Stacked Name & Subtitle) */}
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              flex: 1,
-              minWidth: 0,
-              marginRight: 8,
-            }}
-          >
+      <View style={[styles.welcomeContainer, style]}>
+        {/* Top Header Row: School Branding + Right Actions */}
+        <View style={styles.topRow}>
+          {/* School Branding */}
+          <View style={styles.brandContainer}>
             <View
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 12,
-                backgroundColor: colors.surfaceContainerLowest || "#ffffff",
-                alignItems: "center",
-                justifyContent: "center",
-                marginRight: 10,
-                borderWidth: 1,
-                borderColor: colors.outlineVariant || "rgba(0,0,0,0.08)",
-                padding: 2,
-                flexShrink: 0,
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.05,
-                shadowRadius: 3,
-                elevation: 1,
-              }}
+              style={[
+                styles.logoBox,
+                {
+                  backgroundColor: colors.surfaceContainerLowest || "#ffffff",
+                  borderColor: colors.outlineVariant || "rgba(0,0,0,0.08)",
+                },
+              ]}
             >
               <Image
                 source={require("../assets/images/icon.png")}
-                style={{ width: "100%", height: "100%", borderRadius: 10 }}
+                style={styles.logoImage}
                 contentFit="contain"
               />
             </View>
-            <View style={{ flex: 1, minWidth: 0 }}>
+            <View style={styles.titleColumn}>
               <Text
-                style={{
-                  fontSize: FONT_SIZES.sm,
-                  fontFamily: FONTS.bold,
-                  color: colors.onBackground,
-                  letterSpacing: 0.3,
-                  flexShrink: 1,
-                }}
+                style={[styles.brandPrimary, { color: colors.onBackground }]}
                 numberOfLines={1}
               >
                 {schoolBrand.primary || "Shri Guru Vidya"}
               </Text>
               <Text
-                style={{
-                  fontSize: FONT_SIZES.micro,
-                  fontFamily: FONTS.medium,
-                  color: colors.onSurfaceVariant,
-                  marginTop: -1,
-                  flexShrink: 1,
-                }}
+                style={[styles.brandSecondary, { color: colors.onSurfaceVariant }]}
                 numberOfLines={1}
               >
                 {schoolBrand.secondary || "English Medium School"}
@@ -187,139 +188,36 @@ const Header = ({
             </View>
           </View>
 
-          {/* Right Action Icons: Academic Year Dropdown (if enabled) + Notifications */}
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-            {shouldShowYearSelector &&
-              (isSuperAdmin ? (
-                <YearSelector compact={true} />
-              ) : (
-                selectedYear && (
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      backgroundColor: selectedYear.isActive
-                        ? colors.primaryContainer
-                        : colors.errorContainer,
-                      paddingHorizontal: 8,
-                      paddingVertical: 3,
-                      borderRadius: 12,
-                      borderWidth: 1,
-                      borderColor: selectedYear.isActive
-                        ? colors.primary + "30"
-                        : colors.error + "30",
-                    }}
-                  >
-                    <MaterialIcons
-                      name={
-                        selectedYear.isActive
-                          ? "school"
-                          : "calendar-today"
-                      }
-                      size={11}
-                      color={
-                        selectedYear.isActive
-                          ? colors.onPrimaryContainer
-                          : colors.onErrorContainer
-                      }
-                    />
-                    <Text
-                      style={{
-                        fontSize: FONT_SIZES.xs,
-                        fontFamily: FONTS.bold,
-                        marginLeft: 4,
-                        color: selectedYear.isActive
-                          ? colors.onPrimaryContainer
-                          : colors.onErrorContainer,
-                      }}
-                    >
-                      {selectedYear.name}
-                    </Text>
-                  </View>
-                )
-              ))}
+          {/* Right Action Icons */}
+          <View style={styles.rightActionRow}>
+            {shouldShowYearSelector && <YearSelector compact={true} />}
 
             {/* Notification Bell */}
-            <Pressable
-              accessibilityLabel={t("header.notifications", "Notifications")}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-                router.push("/notifications");
-              }}
-              hitSlop={8}
-              style={({ pressed }) => ({
-                padding: 6,
-                backgroundColor: pressed
-                  ? colors.surfaceContainerHighest
-                  : "transparent",
-                borderRadius: 18,
-                position: "relative",
-              })}
-            >
-              <MaterialIcons
-                name={
-                  unreadCount > 0 ? "notifications-active" : "notifications-none"
-                }
-                size={24}
-                color={
-                  unreadCount > 0 ? colors.primary : colors.onSurfaceVariant
-                }
+            {shouldShowNotification && (
+              <NotificationBellButton
+                unreadCount={unreadCount}
+                onPress={handleNotificationPress}
+                colors={colors}
+                t={t}
               />
-              {unreadCount > 0 && (
-                <View
-                  style={{
-                    position: "absolute",
-                    right: 4,
-                    top: 4,
-                    backgroundColor: colors.error,
-                    borderRadius: 10,
-                    minWidth: 15,
-                    height: 15,
-                    justifyContent: "center",
-                    alignItems: "center",
-                    borderWidth: 1.5,
-                    borderColor: colors.background,
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: colors.onError,
-                      fontSize: FONT_SIZES.micro,
-                      fontFamily: FONTS.bold,
-                    }}
-                  >
-                    {unreadCount > 9 ? "9+" : unreadCount}
-                  </Text>
-                </View>
-              )}
-            </Pressable>
+            )}
+
+            {rightAction}
           </View>
         </View>
 
         {/* Bottom Row: Personalized User Greeting */}
-        <View
-          style={{
-            marginTop: 14,
-            marginBottom: 2,
-          }}
-        >
+        <View style={styles.welcomeGreetingRow}>
           <Text
-            style={{
-              fontSize: FONT_SIZES.xl,
-              fontFamily: FONTS.bold,
-              color: colors.onBackground,
-              letterSpacing: -0.5,
-            }}
+            style={[styles.greetingText, { color: colors.onBackground }]}
+            numberOfLines={1}
           >
-            {firstName ? `${greeting.text}, ${firstName} ${greeting.emoji}` : `Welcome to SGV ${greeting.emoji}`}
+            {firstName
+              ? `${greeting.text}, ${firstName} ${greeting.emoji}`
+              : `Welcome to SGV ${greeting.emoji}`}
           </Text>
           <Text
-            style={{
-              fontSize: FONT_SIZES.sm,
-              fontFamily: FONTS.medium,
-              color: colors.onSurfaceVariant,
-              marginTop: 2,
-            }}
+            style={[styles.greetingDate, { color: colors.onSurfaceVariant }]}
           >
             {new Date().toLocaleDateString("en-US", {
               weekday: "long",
@@ -332,218 +230,374 @@ const Header = ({
     );
   }
 
-  // Default variant - standard Center/Small Top App Bar
-  return (
-    <View
-      style={{
-        marginBottom: 24,
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-      }}
-    >
-      {showBack && (
-        <Pressable
-          accessibilityLabel={t("header.goBack", "Go back")}
-          onPress={() => {
-            if (router.canGoBack()) {
-              router.back();
-            } else {
-              router.replace("/");
-            }
-          }}
-          style={({ pressed }) => ({
-            marginRight: 16,
-            padding: 8,
-            marginLeft: -8,
-            backgroundColor: pressed
-              ? colors.surfaceContainerHighest
-              : "transparent",
-            borderRadius: 24,
-          })}
-        >
-          <MaterialIcons name="arrow-back" size={24} color={colors.onSurface} />
-        </Pressable>
-      )}
+  // ═════════════════════════════════════════════════════════════════════════
+  // VARIANT: "root", "subpage", "modal", "default"
+  // ═════════════════════════════════════════════════════════════════════════
+  const resolvedBackIcon = backIcon || (isModal ? "close" : "arrow-back");
 
-      <View style={{ flex: 1, paddingRight: 16, minWidth: 0 }}>
-        {shouldShowYearSelector &&
-          (isSuperAdmin ? (
-            <View style={{ marginBottom: 4 }}>
-              <YearSelector />
-            </View>
-          ) : (
-            selectedYear && (
+  return (
+    <View style={[styles.standardContainer, style]}>
+      {/* Left side: Back / Close button + Title block */}
+      <View style={styles.leftContainer}>
+        {shouldShowBack && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={isModal ? t("header.close", "Close") : t("header.goBack", "Go back")}
+            onPress={handleBackPress}
+            hitSlop={8}
+            style={({ pressed }) => [
+              styles.iconButton,
+              {
+                backgroundColor: pressed
+                  ? colors.surfaceContainerHighest || "rgba(0,0,0,0.06)"
+                  : "transparent",
+              },
+            ]}
+          >
+            <MaterialIcons
+              name={resolvedBackIcon}
+              size={24}
+              color={colors.onSurface}
+            />
+          </Pressable>
+        )}
+
+        <View style={styles.titleWrapper}>
+          {isSchoolMentioned && !shouldShowBack ? (
+            <View style={styles.brandTitleRow}>
               <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  backgroundColor: selectedYear.isActive
-                    ? colors.primaryContainer
-                    : colors.errorContainer,
-                  paddingHorizontal: 8,
-                  paddingVertical: 2,
-                  borderRadius: 12,
-                  borderWidth: 1,
-                  borderColor: selectedYear.isActive
-                    ? colors.primary
-                    : colors.error,
-                  marginBottom: 4,
-                  alignSelf: "flex-start",
-                  maxWidth: "100%",
-                }}
+                style={[
+                  styles.smallLogoBox,
+                  {
+                    backgroundColor: colors.surfaceContainerLowest || "#ffffff",
+                    borderColor: colors.outlineVariant || "rgba(0,0,0,0.08)",
+                  },
+                ]}
               >
-                <MaterialIcons
-                  name={
-                    selectedYear.status === "archived"
-                      ? "history"
-                      : "calendar-today"
-                  }
-                  size={10}
-                  color={
-                    selectedYear.isActive
-                      ? colors.onPrimaryContainer
-                      : colors.onErrorContainer
-                  }
-                  style={{ flexShrink: 0 }}
+                <Image
+                  source={require("../assets/images/icon.png")}
+                  style={styles.logoImage}
+                  contentFit="contain"
                 />
+              </View>
+              <View style={{ flex: 1, minWidth: 0 }}>
                 <Text
-                  style={{
-                    fontSize: FONT_SIZES.micro,
-                    fontFamily: FONTS.bold,
-                    marginLeft: 4,
-                    color: selectedYear.isActive
-                      ? colors.onPrimaryContainer
-                      : colors.onErrorContainer,
-                    flexShrink: 1,
-                  }}
+                  style={[
+                    styles.standardTitle,
+                    { color: colors.onBackground },
+                    isRoot && styles.rootTitle,
+                  ]}
                   numberOfLines={1}
                 >
-                  {selectedYear.name}
+                  {title}
                 </Text>
+                {subtitle && (
+                  <Text
+                    style={[
+                      styles.standardSubtitle,
+                      { color: colors.onSurfaceVariant },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {subtitle}
+                  </Text>
+                )}
               </View>
-            )
-          ))}
-        {isSchoolMentioned ? (
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-            <View
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 10,
-                backgroundColor: colors.surfaceContainerLowest || "#ffffff",
-                alignItems: "center",
-                justifyContent: "center",
-                borderWidth: 1,
-                borderColor: colors.outlineVariant || "rgba(0,0,0,0.08)",
-                padding: 2,
-                flexShrink: 0,
-              }}
-            >
-              <Image
-                source={require("../assets/images/icon.png")}
-                style={{ width: "100%", height: "100%", borderRadius: 8 }}
-                contentFit="contain"
-              />
             </View>
-            <View style={{ flex: 1, minWidth: 0 }}>
+          ) : (
+            <>
               <Text
-                style={[styles.titleLarge, { color: colors.onBackground, flexShrink: 1 }]}
-                numberOfLines={2}
+                style={[
+                  styles.standardTitle,
+                  { color: colors.onBackground },
+                  isRoot && styles.rootTitle,
+                ]}
+                numberOfLines={1}
               >
                 {title}
               </Text>
               {subtitle && (
                 <Text
                   style={[
-                    styles.titleSmall,
-                    {
-                      color: colors.onSurfaceVariant,
-                      marginTop: 2,
-                      flexShrink: 1,
-                    },
+                    styles.standardSubtitle,
+                    { color: colors.onSurfaceVariant },
                   ]}
-                  numberOfLines={2}
+                  numberOfLines={1}
                 >
                   {subtitle}
                 </Text>
               )}
-            </View>
-          </View>
-        ) : (
-          <>
-            <Text
-              style={[styles.titleLarge, { color: colors.onBackground, flexShrink: 1 }]}
-              numberOfLines={2}
-            >
-              {title}
-            </Text>
-            {subtitle && (
-              <Text
-                style={[
-                  styles.titleSmall,
-                  {
-                    color: colors.onSurfaceVariant,
-                    marginTop: 2,
-                    flexShrink: 1,
-                  },
-                ]}
-                numberOfLines={2}
-              >
-                {subtitle}
-              </Text>
-            )}
-          </>
-        )}
+            </>
+          )}
+        </View>
       </View>
 
-      {/* Notification Bell (Optional in standard headers, but consistent) */}
-      <Pressable
-        onPress={() => router.push("/notifications")}
-        style={({ pressed }) => ({
-          padding: 8,
-          backgroundColor: pressed
-            ? colors.surfaceContainerHighest
-            : "transparent",
-          borderRadius: 24,
-          position: "relative",
-        })}
-      >
-        <MaterialIcons
-          name={unreadCount > 0 ? "notifications-active" : "notifications-none"}
-          size={26}
-          color={unreadCount > 0 ? colors.primary : colors.onSurfaceVariant}
-        />
-        {unreadCount > 0 && (
-          <View
-            style={{
-              position: "absolute",
-              right: 4,
-              top: 4,
-              backgroundColor: colors.error,
-              borderRadius: 10,
-              minWidth: 18,
-              height: 18,
-              justifyContent: "center",
-              alignItems: "center",
-              borderWidth: 2,
-              borderColor: colors.background,
-            }}
-          >
-            <Text
-              style={{
-                color: colors.onError,
-                fontSize: FONT_SIZES.micro,
-                fontFamily: FONTS.bold,
-              }}
-            >
-              {unreadCount > 9 ? "9+" : unreadCount}
-            </Text>
-          </View>
+      {/* Right side: Actions (Custom action, Year Selector, Notification Bell) */}
+      <View style={styles.rightActionRow}>
+        {shouldShowYearSelector && (
+          isSuperAdmin ? (
+            <YearSelector compact={true} />
+          ) : (
+            selectedYear && (
+              <View
+                style={[
+                  styles.yearPill,
+                  {
+                    backgroundColor: selectedYear.isActive
+                      ? (colors.primaryContainer ? colors.primaryContainer + "70" : colors.primary + "18")
+                      : (colors.surfaceContainerHigh || "#f0f0f0"),
+                    borderColor: selectedYear.isActive
+                      ? colors.primary + "30"
+                      : colors.outlineVariant || "rgba(0,0,0,0.12)",
+                  },
+                ]}
+              >
+                <MaterialIcons
+                  name={selectedYear.isActive ? "school" : "history"}
+                  size={13}
+                  color={
+                    selectedYear.isActive
+                      ? colors.primary
+                      : colors.onSurfaceVariant
+                  }
+                  style={{ marginRight: 4 }}
+                />
+                <Text
+                  style={[
+                    styles.yearPillText,
+                    {
+                      color: selectedYear.isActive
+                        ? colors.onSurface
+                        : colors.onSurfaceVariant,
+                    },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {selectedYear.name}
+                </Text>
+              </View>
+            )
+          )
         )}
-      </Pressable>
+
+        {rightAction}
+
+        {shouldShowNotification && (
+          <NotificationBellButton
+            unreadCount={unreadCount}
+            onPress={handleNotificationPress}
+            colors={colors}
+            t={t}
+          />
+        )}
+      </View>
     </View>
   );
 };
+
+// Reusable Notification Bell Icon Button
+const NotificationBellButton = ({ unreadCount, onPress, colors, t }) => (
+  <Pressable
+    accessibilityRole="button"
+    accessibilityLabel={t("header.notifications", "Notifications")}
+    onPress={onPress}
+    hitSlop={8}
+    style={({ pressed }) => [
+      styles.iconButton,
+      {
+        backgroundColor: pressed
+          ? colors.surfaceContainerHighest || "rgba(0,0,0,0.06)"
+          : "transparent",
+      },
+    ]}
+  >
+    <MaterialIcons
+      name={unreadCount > 0 ? "notifications-active" : "notifications-none"}
+      size={24}
+      color={unreadCount > 0 ? colors.primary : colors.onSurfaceVariant}
+    />
+    {unreadCount > 0 && (
+      <View
+        style={[
+          styles.badgeDot,
+          {
+            backgroundColor: colors.error,
+            borderColor: colors.background,
+          },
+        ]}
+      >
+        <Text
+          style={[styles.badgeText, { color: colors.onError || "#ffffff" }]}
+        >
+          {unreadCount > 9 ? "9+" : unreadCount}
+        </Text>
+      </View>
+    )}
+  </Pressable>
+);
+
+const styles = StyleSheet.create({
+  welcomeContainer: {
+    paddingTop: 4,
+    paddingBottom: 14,
+    marginBottom: 4,
+  },
+  standardContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    minHeight: 44,
+    marginBottom: 16,
+    gap: 12,
+  },
+  topRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  brandContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    minWidth: 0,
+    marginRight: 8,
+  },
+  logoBox: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+    borderWidth: 1,
+    padding: 2,
+    flexShrink: 0,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  smallLogoBox: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 8,
+    borderWidth: 1,
+    padding: 2,
+    flexShrink: 0,
+  },
+  logoImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 8,
+  },
+  titleColumn: {
+    flex: 1,
+    minWidth: 0,
+  },
+  brandPrimary: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
+    letterSpacing: 0.3,
+  },
+  brandSecondary: {
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.medium,
+    marginTop: -1,
+  },
+  welcomeGreetingRow: {
+    marginTop: 14,
+    marginBottom: 2,
+  },
+  greetingText: {
+    fontSize: FONT_SIZES.xl,
+    fontFamily: FONTS.bold,
+    letterSpacing: -0.5,
+  },
+  greetingDate: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.medium,
+    marginTop: 2,
+  },
+  leftContainer: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    minWidth: 0,
+  },
+  titleWrapper: {
+    flex: 1,
+    minWidth: 0,
+    justifyContent: "center",
+  },
+  brandTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  standardTitle: {
+    fontSize: FONT_SIZES.lg,
+    fontFamily: FONTS.bold,
+    letterSpacing: -0.2,
+  },
+  rootTitle: {
+    fontSize: FONT_SIZES.xl,
+    letterSpacing: -0.4,
+  },
+  standardSubtitle: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.medium,
+    marginTop: 1,
+  },
+  iconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 6,
+    marginLeft: -6,
+    position: "relative",
+  },
+  rightActionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flexShrink: 0,
+  },
+  yearPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 16,
+    borderWidth: 1,
+    maxWidth: 130,
+  },
+  yearPillText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.semiBold,
+    flexShrink: 1,
+  },
+  badgeDot: {
+    position: "absolute",
+    right: 4,
+    top: 4,
+    borderRadius: 10,
+    minWidth: 16,
+    height: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1.5,
+    paddingHorizontal: 2,
+  },
+  badgeText: {
+    fontSize: FONT_SIZES.micro || 9,
+    fontFamily: FONTS.bold,
+    textAlign: "center",
+  },
+});
 
 export default React.memo(Header);

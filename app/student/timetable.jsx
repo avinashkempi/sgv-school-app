@@ -110,7 +110,7 @@ export default function StudentTimetableScreen() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <View style={{ flex: 1, backgroundColor: colors.background, paddingHorizontal: 16, paddingTop: 12 }}>
         <AppHeader
           title={t("student.myTimetable", "My Timetable")}
           subtitle={t("student.classSchedule", "Class Schedule")}

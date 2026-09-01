@@ -236,7 +236,7 @@ export default function YearDetailsScreen() {
         }
         contentContainerStyle={{ paddingBottom: 24 }}
       >
-        <View style={{ padding: 16, paddingTop: 24 }}>
+        <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
           <Header
             title={year?.name || "Academic Year"}
             subtitle="Academic Year Details"

@@ -190,38 +190,150 @@ export const DEMO_TEACHER_SUBJECTS = {
 
 // 3. Attendance Summary
 export const DEMO_ATTENDANCE_SUMMARY = {
+  overall: {
+    total: 92,
+    present: 85,
+    absent: 5,
+    late: 2,
+    excused: 0,
+    halfDay: 0,
+    percentage: 92.4,
+    holidaysCount: 4,
+  },
+  total: 92,
   present: 85,
   absent: 5,
   late: 2,
-  totalWorkingDays: 92,
-  attendancePercentage: 92.4,
+  excused: 0,
+  halfDay: 0,
+  percentage: 92.4,
+  subjectWise: [
+    {
+      subjectId: "760e8400e29b41d4a716446655440003",
+      name: "Kannada",
+      code: "KAN03",
+      total: 20,
+      present: 19,
+      percentage: "95.0",
+    },
+    {
+      subjectId: "760e8400e29b41d4a716446655440004",
+      name: "English",
+      code: "ENG03",
+      total: 20,
+      present: 18,
+      percentage: "90.0",
+    },
+    {
+      subjectId: "760e8400e29b41d4a716446655440005",
+      name: "Hindi",
+      code: "HIN03",
+      total: 18,
+      present: 17,
+      percentage: "94.4",
+    },
+    {
+      subjectId: "760e8400e29b41d4a716446655440006",
+      name: "Mathematics",
+      code: "MAT03",
+      total: 22,
+      present: 21,
+      percentage: "95.5",
+    },
+    {
+      subjectId: "760e8400e29b41d4a716446655440007",
+      name: "EVS",
+      code: "EVS03",
+      total: 18,
+      present: 16,
+      percentage: "88.9",
+    },
+    {
+      subjectId: "760e8400e29b41d4a716446655440008",
+      name: "Computer",
+      code: "COM03",
+      total: 12,
+      present: 11,
+      percentage: "91.7",
+    },
+    {
+      subjectId: "760e8400e29b41d4a716446655440009",
+      name: "Art & Craft",
+      code: "ART03",
+      total: 10,
+      present: 10,
+      percentage: "100.0",
+    },
+    {
+      subjectId: "760e8400e29b41d4a71644665544000a",
+      name: "Physical Education",
+      code: "PE03",
+      total: 12,
+      present: 11,
+      percentage: "91.7",
+    },
+  ],
+  monthlyBreakdown: [
+    { month: "December 2024", total: 24, present: 23, percentage: "95.8" },
+    { month: "January 2025", total: 23, present: 21, percentage: "91.3" },
+    { month: "February 2025", total: 22, present: 20, percentage: "90.9" },
+    { month: "March 2025", total: 23, present: 21, percentage: "91.3" },
+  ],
+  holidays: [
+    {
+      _id: "h_demo_1",
+      title: "Makar Sankranti",
+      description: "Harvest Festival holiday declared by SGV Administration",
+      date: "2025-01-14",
+      isHoliday: true,
+    },
+    {
+      _id: "h_demo_2",
+      title: "Republic Day",
+      description: "National Holiday - Republic Day Celebrations",
+      date: "2025-01-26",
+      isHoliday: true,
+    },
+    {
+      _id: "h_demo_3",
+      title: "Maha Shivaratri",
+      description: "State Festival Holiday",
+      date: "2025-02-26",
+      isHoliday: true,
+    },
+    {
+      _id: "h_demo_4",
+      title: "Ugadi (New Year)",
+      description: "Karnataka New Year Festival Holiday",
+      date: "2025-03-30",
+      isHoliday: true,
+    },
+  ],
 };
 
-// 4. Attendance History (Dec to March - approx 120 days)
+// 4. Attendance History (Dec to March - approx 90 days)
 const generateAttendance = () => {
   const history = [];
   const today = new Date();
-  // Go back 120 days
-  for (let i = 0; i < 120; i++) {
+  for (let i = 0; i < 90; i++) {
     const date = new Date(today);
     date.setDate(today.getDate() - i);
-    // Skip Sundays
-    if (date.getDay() === 0) continue;
+    if (date.getDay() === 0) continue; // Skip Sundays
 
-    // Random status with higher probability of 'present'
-    const rand = Math.random();
+    const rand = ((i * 17 + 3) % 100) / 100;
     let status = "present";
     let remarks = "";
 
-    if (rand > 0.95) {
+    if (rand > 0.94) {
       status = "absent";
       remarks = "Sick Leave";
-    } else if (rand > 0.9) {
+    } else if (rand > 0.88) {
       status = "late";
       remarks = "Bus delay";
     }
 
     history.push({
+      _id: `att_${i}`,
       date: date.toISOString(),
       status: status,
       remarks: remarks,
@@ -232,6 +344,7 @@ const generateAttendance = () => {
 
 export const DEMO_ATTENDANCE_HISTORY = {
   attendance: generateAttendance(),
+  pagination: { total: 75, page: 1, limit: 100, pages: 1, hasMore: false },
 };
 
 // 5. Report Card
@@ -1221,7 +1334,7 @@ export const DEMO_SUBJECT_CONTENT = [
 // 11. Dashboard Data
 export const DEMO_STUDENT_DASHBOARD = {
   overview: {
-    attendancePercentage: "92.5",
+    attendancePercentage: 92.4,
     dueAmount: 1500,
     nextExamDate: "2025-01-15",
   },

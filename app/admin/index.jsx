@@ -572,6 +572,7 @@ const AdminHeader = React.memo(function AdminHeader({
       <Header
         title={t("admin.admin", "Admin")}
         subtitle={t("admin.manageUsersDesc", "Manage users and permissions")}
+        variant="root"
       />
 
       {/* Admin Actions - Organized by Category */}

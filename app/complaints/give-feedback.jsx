@@ -196,10 +196,11 @@ export default function GiveFeedbackScreen() {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={{ flex: 1 }}>
-          <View style={{ padding: 16, paddingTop: 24 }}>
+          <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
             <Header
               title={t("feedback.giveFeedback", "Give Feedback")}
-              showBack
+              subtitle={t("feedback.shareExperience", "Share feedback or recognition")}
+              variant="modal"
             />
           </View>
 

@@ -85,6 +85,7 @@ export default function TeacherDashboard() {
           <AppHeader
             title={t("nav.dashboard")}
             subtitle={t("teacher.staffDashboardSubtitle")}
+            variant="root"
           />
 
           <View style={{ marginTop: 12 }}>
@@ -400,6 +401,7 @@ export default function TeacherDashboard() {
           <AppHeader
             title={t("teacher.dashboardTitle")}
             subtitle={t("teacher.dashboardSubtitle")}
+            variant="root"
           />
 
           {/* Quick action tiles — admin-style compact grid */}

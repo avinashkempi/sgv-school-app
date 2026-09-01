@@ -30,25 +30,23 @@ export default function RoleGuard({ allowedRoles = [], children }) {
   useEffect(() => {
     if (!isReady || hasRedirected.current) return;
 
-    // Demo users shouldn't access role-restricted routes
-    if (isDemo) {
-      hasRedirected.current = true;
-      showToast("This feature is not available in demo mode", "info", 2000);
-      router.replace("/");
-      return;
-    }
-
-    // Not authenticated
-    if (!isAuthenticated) {
+    // Not authenticated or in demo mode
+    if (!isAuthenticated && !isDemo) {
       hasRedirected.current = true;
       router.replace("/login");
       return;
     }
 
-    // Wrong role
+    // Role check (applies to both demo and authenticated users)
     if (userRole && !hasAccess) {
       hasRedirected.current = true;
-      showToast("You do not have access to this section", "error", 2500);
+      showToast(
+        isDemo
+          ? "This feature is not available in demo mode"
+          : "You do not have access to this section",
+        isDemo ? "info" : "error",
+        2500
+      );
       router.replace("/");
       return;
     }

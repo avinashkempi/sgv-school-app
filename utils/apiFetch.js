@@ -33,11 +33,156 @@ export default async function apiFetch(input, init = {}) {
 
   // Check for Demo Mode
   if (token === "demo-token") {
-    // Simulate network delay
-    await new Promise((resolve) => global.setTimeout(resolve, 500));
+    // Simulate slight network delay
+    await new Promise((resolve) => global.setTimeout(resolve, 300));
+
+    const url = typeof input === "string" ? input : input.url;
+    const method = (init.method || "GET").toUpperCase();
+
+    // ── VIBES: Fetch Real School Achievements from Live Backend ──
+    if (url.includes("/vibes/highlights")) {
+      try {
+        const backendRes = await fetch(url, {
+          headers: { "Content-Type": "application/json" },
+        });
+        if (backendRes.ok) {
+          const json = await backendRes.json();
+          const achievements = json?.data?.achievements || [];
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              success: true,
+              data: {
+                official: [],
+                achievements: achievements,
+                stories: [],
+                totalActiveStories: achievements.length,
+              },
+            }),
+          };
+        }
+      } catch (err) {
+        if (__DEV__) console.warn("[apiFetch] Demo highlights error:", err);
+      }
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          success: true,
+          data: { official: [], achievements: [], stories: [], totalActiveStories: 0 },
+        }),
+      };
+    }
+
+    if (url.includes("/vibes/spotlight")) {
+      try {
+        const backendRes = await fetch(url, {
+          headers: { "Content-Type": "application/json" },
+        });
+        if (backendRes.ok) {
+          const json = await backendRes.json();
+          if (json?.data?.category === "achievement") {
+            return {
+              ok: true,
+              status: 200,
+              json: async () => json,
+            };
+          }
+        }
+        // Fallback: fetch latest achievement post for spotlight
+        const baseVibesUrl = url.split("/spotlight")[0];
+        const achRes = await fetch(`${baseVibesUrl}?category=achievement&limit=1`, {
+          headers: { "Content-Type": "application/json" },
+        });
+        if (achRes.ok) {
+          const achJson = await achRes.json();
+          const latestAch = achJson?.data?.[0] || null;
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({ success: true, data: latestAch }),
+          };
+        }
+      } catch (err) {
+        if (__DEV__) console.warn("[apiFetch] Demo spotlight error:", err);
+      }
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ success: true, data: null }),
+      };
+    }
+
+    if (
+      url.includes("/like") ||
+      url.includes("/bookmark") ||
+      url.includes("/view") ||
+      url.includes("/views")
+    ) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ success: true, message: "Action recorded (Demo)" }),
+      };
+    }
+
+    if (url.includes("/vibes/user/my-vibes") || url.includes("/vibes/user/saved")) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          success: true,
+          data: [],
+          pagination: { total: 0, page: 1, limit: 10, pages: 0, hasMore: false },
+        }),
+      };
+    }
+
+    if (url.includes("/vibes/admin/pending")) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ success: true, pendingCount: 0, vibes: [] }),
+      };
+    }
+
+    if (url.includes("/vibes") && method === "GET") {
+      try {
+        // Enforce category=achievement for demo mode to only show real school achievements
+        let targetUrl = url;
+        if (!targetUrl.includes("category=")) {
+          const sep = targetUrl.includes("?") ? "&" : "?";
+          targetUrl = `${targetUrl}${sep}category=achievement`;
+        } else {
+          targetUrl = targetUrl.replace(/category=[^&]*/, "category=achievement");
+        }
+        const backendRes = await fetch(targetUrl, {
+          headers: { "Content-Type": "application/json" },
+        });
+        if (backendRes.ok) {
+          const json = await backendRes.json();
+          return {
+            ok: true,
+            status: 200,
+            json: async () => json,
+          };
+        }
+      } catch (err) {
+        if (__DEV__) console.warn("[apiFetch] Demo vibes feed error:", err);
+      }
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          success: true,
+          data: [],
+          pagination: { total: 0, page: 1, limit: 10, pages: 0, hasMore: false },
+        }),
+      };
+    }
 
     let responseData = null;
-    const url = typeof input === "string" ? input : input.url;
 
     if (url.includes("/auth/me")) {
       responseData = { user: demoData.DEMO_USER };
@@ -78,6 +223,24 @@ export default async function apiFetch(input, init = {}) {
       responseData = demoData.DEMO_ACADEMIC_YEARS;
     } else if (url.includes("/teachers/my-subjects")) {
       responseData = demoData.DEMO_TEACHER_SUBJECTS;
+    } else if (url.includes("/attendance/my-attendance")) {
+      responseData = {
+        success: true,
+        attendance: demoData.DEMO_ATTENDANCE_HISTORY.attendance,
+        summary: demoData.DEMO_ATTENDANCE_SUMMARY,
+        pagination: { total: 75, page: 1, limit: 30, pages: 3, hasMore: false },
+      };
+    } else if (
+      url.includes("/attendance/class/") ||
+      url.includes("/attendance/subject/")
+    ) {
+      responseData = demoData.DEMO_CLASS_DETAILS.students.map((s) => ({
+        student: s,
+        status: "present",
+        remarks: "",
+      }));
+    } else if (url.includes("/attendance/mark")) {
+      responseData = { success: true, message: "Attendance saved (Demo)" };
     } else if (url.includes("/attendance/school-summary")) {
       responseData = {
         success: true,

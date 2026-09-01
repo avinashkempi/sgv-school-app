@@ -280,7 +280,7 @@ export default function AdminFeesScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <View style={{ padding: 16, paddingTop: 24 }}>
+      <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
         <Header
           title="Fees Management"
           subtitle="Track and collect fees"

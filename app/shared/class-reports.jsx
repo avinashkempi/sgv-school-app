@@ -555,7 +555,7 @@ export default function ClassReportsDashboard() {
         }
         contentContainerStyle={{ paddingBottom: 24 }}
       >
-        <View style={{ padding: 16, paddingTop: 24 }}>
+        <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
           <Header
             title={t("reports.classReports", "Class Reports")}
             subtitle={t(

@@ -124,7 +124,7 @@ export default function ManageSubjectsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <View style={{ padding: 16, paddingTop: 24 }}>
+      <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
         <AppHeader title="Manage Subjects" subtitle="Master List" showBack />
 
         {/* Search */}

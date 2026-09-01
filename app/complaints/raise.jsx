@@ -90,10 +90,11 @@ export default function RaiseComplaintScreen() {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={{ flex: 1 }}>
-          <View style={{ padding: 16, paddingTop: 24 }}>
+          <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
             <Header
               title={t("complaints.raiseComplaint", "Raise Complaint")}
-              showBack
+              subtitle={t("complaints.submitIssue", "Submit an issue or grievance")}
+              variant="modal"
             />
           </View>
 

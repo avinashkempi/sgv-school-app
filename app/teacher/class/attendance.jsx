@@ -274,6 +274,7 @@ export default function MarkAttendanceScreen() {
                 ? `${subjectData.name} - ${classData?.name}`
                 : classData?.name
             }
+            showBack={true}
           />
 
           {/* Date Navigation & Picker */}

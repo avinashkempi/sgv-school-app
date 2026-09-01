@@ -104,6 +104,7 @@ export default function MenuScreen() {
         <Header
           title={t("menu.title", "Menu")}
           subtitle={t("menu.subtitle", "Settings & More")}
+          variant="root"
         />
       </View>
 

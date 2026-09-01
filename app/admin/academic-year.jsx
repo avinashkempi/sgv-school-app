@@ -1369,7 +1369,7 @@ export default function AcademicYearScreen() {
         }
         contentContainerStyle={{ paddingBottom: 24 }}
       >
-        <View style={{ padding: 16, paddingTop: 24 }}>
+        <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
           <Header title="Academic Years" subtitle="Manage & Reports" showBack />
 
           {/* Tabs */}
