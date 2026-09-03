@@ -35,29 +35,29 @@ const UserCard = ({
     <Pressable
       onPress={onPress}
       style={({ pressed }) => ({
-        backgroundColor: colors.cardBackground,
-        borderRadius: 20,
-        padding: 16,
-        marginBottom: 16,
-        borderWidth: 1,
-        borderColor: colors.border,
-        opacity: pressed ? 0.95 : 1,
-        elevation: 2,
+        backgroundColor: colors.surface || colors.cardBackground,
+        borderRadius: 16,
+        padding: 14,
+        marginBottom: 12,
+        borderWidth: 0.5,
+        borderColor: colors.outlineVariant || colors.border,
+        opacity: pressed ? 0.9 : 1,
+        elevation: 0,
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.03,
+        shadowRadius: 6,
       })}
     >
-      <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 14 }}>
+      <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12 }}>
         {/* User Profile Avatar */}
         <UserAvatar
           photoUrl={userItem.profilePhoto}
           name={displayName}
           role={userItem.role}
-          size={46}
+          size={44}
           showBorder
-          borderColor={getRoleColor(userItem.role) + "30"}
+          borderColor={getRoleColor(userItem.role) + "25"}
         />
 
         {/* User Details */}
@@ -73,7 +73,7 @@ const UserCard = ({
             <Text
               style={{
                 fontSize: FONT_SIZES.md,
-                fontFamily: FONTS.bold,
+                fontFamily: FONTS.semiBold,
                 color: colors.textPrimary,
                 flex: 1,
                 paddingRight: 8,
@@ -143,18 +143,17 @@ const UserCard = ({
             {/* Role Badge */}
             <View
               style={{
-                backgroundColor: getRoleColor(userItem.role) + "12",
-                paddingHorizontal: 8,
-                paddingVertical: 2.5,
+                backgroundColor: getRoleColor(userItem.role) + "10",
+                paddingHorizontal: 7,
+                paddingVertical: 2,
                 borderRadius: 6,
-                borderWidth: 0.5,
-                borderColor: getRoleColor(userItem.role) + "30",
+                borderWidth: 0,
               }}
             >
               <Text
                 style={{
                   fontSize: FONT_SIZES.micro,
-                  fontFamily: FONTS.bold,
+                  fontFamily: FONTS.semiBold,
                   color: getRoleColor(userItem.role),
                   letterSpacing: LETTER_SPACINGS.xs,
                 }}
@@ -168,17 +167,16 @@ const UserCard = ({
               <View
                 style={{
                   backgroundColor: colors.primary + "10",
-                  paddingHorizontal: 8,
-                  paddingVertical: 2.5,
+                  paddingHorizontal: 7,
+                  paddingVertical: 2,
                   borderRadius: 6,
-                  borderWidth: 0.5,
-                  borderColor: colors.primary + "20",
+                  borderWidth: 0,
                 }}
               >
                 <Text
                   style={{
                     fontSize: FONT_SIZES.micro,
-                    fontFamily: FONTS.bold,
+                    fontFamily: FONTS.semiBold,
                     color: colors.primary,
                     letterSpacing: LETTER_SPACINGS.xs,
                   }}

@@ -4,16 +4,22 @@ import {
   Text,
   ScrollView,
   ActivityIndicator,
-  Pressable,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-
 import { useRouter } from "expo-router";
-import { useTheme, FONTS, FONT_SIZES } from "../theme";
+import {
+  useTheme,
+  FONTS,
+  FONT_SIZES,
+  SPACING,
+  RADIUS,
+  ICON_SIZES,
+} from "../theme";
 import { useApiQuery } from "../hooks/useApi";
 import apiConfig from "../config/apiConfig";
-import { useToast } from "../components/ToastProvider";
 import AppHeader from "../components/Header";
+import Card from "../components/Card";
+import Button from "../components/Button";
 import { formatDate } from "../utils/date";
 import { formatClassName } from "../utils/formatClassName";
 import { useLabel } from "../context/LabelsContext";
@@ -21,8 +27,7 @@ import AppRefreshControl from "../components/ui/AppRefreshControl";
 
 export default function HistoryScreen() {
   const router = useRouter();
-  const { _styles, colors } = useTheme();
-  const { _showToast } = useToast();
+  const { colors } = useTheme();
   const { t } = useLabel();
 
   const [refreshing, setRefreshing] = useState(false);
@@ -61,56 +66,61 @@ export default function HistoryScreen() {
   const renderExams = () => {
     if (userRole !== "student") {
       return (
-        <View
-          style={{ alignItems: "center", marginTop: 60, paddingHorizontal: 20 }}
+        <Card
+          variant="filled"
+          style={{ marginTop: SPACING.xxxl || 32, alignItems: "center" }}
+          contentStyle={{ padding: SPACING.xxl || 24, alignItems: "center" }}
         >
           <MaterialIcons
             name="info-outline"
-            size={64}
-            color={colors.textSecondary}
+            size={ICON_SIZES.hero || 48}
+            color={colors.onSurfaceVariant}
           />
           <Text
             style={{
-              color: colors.textSecondary,
-              marginTop: 16,
+              color: colors.onSurfaceVariant,
+              marginTop: SPACING.md || 12,
               fontSize: FONT_SIZES.md,
               textAlign: "center",
+              fontFamily: FONTS.medium,
             }}
           >
             {t("historyScreen.examHistoryInfo")}
           </Text>
-          <Pressable
-            onPress={() => router.push("/admin/academic-year")}
-            style={{
-              marginTop: 20,
-              backgroundColor: colors.primary,
-              paddingHorizontal: 20,
-              paddingVertical: 10,
-              borderRadius: 8,
-            }}
-          >
-            <Text style={{ color: "#fff", fontWeight: "600" }}>
+          <View style={{ marginTop: SPACING.lg || 16, width: "100%", maxWidth: 240 }}>
+            <Button
+              variant="filled"
+              onPress={() => router.push("/admin/academic-year")}
+              fullWidth
+            >
               {t("historyScreen.goToAcademicYear")}
-            </Text>
-          </Pressable>
-        </View>
+            </Button>
+          </View>
+        </Card>
       );
     }
 
     return (
       <View>
         {exams.length === 0 ? (
-          <View style={{ alignItems: "center", marginTop: 60, opacity: 0.6 }}>
+          <View
+            style={{
+              alignItems: "center",
+              marginTop: SPACING.xxxl || 48,
+              opacity: 0.7,
+            }}
+          >
             <MaterialIcons
               name="event-note"
-              size={64}
-              color={colors.textSecondary}
+              size={ICON_SIZES.hero || 48}
+              color={colors.onSurfaceVariant}
             />
             <Text
               style={{
-                color: colors.textSecondary,
-                marginTop: 16,
+                color: colors.onSurfaceVariant,
+                marginTop: SPACING.md || 12,
                 fontSize: FONT_SIZES.md,
+                fontFamily: FONTS.medium,
               }}
             >
               {t("historyScreen.noPastExams")}
@@ -118,51 +128,44 @@ export default function HistoryScreen() {
           </View>
         ) : (
           exams.map((item) => (
-            <View
+            <Card
               key={item._id}
-              style={{
-                backgroundColor: colors.cardBackground,
-                borderRadius: 16,
-                padding: 16,
-                marginBottom: 12,
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.05,
-                shadowRadius: 4,
-                elevation: 1,
-                borderLeftWidth: 4,
-                borderLeftColor: colors.secondary,
-              }}
+              variant="elevated"
+              style={{ marginBottom: SPACING.md || 12 }}
+              contentStyle={{ padding: SPACING.lg || 16 }}
             >
               <View
                 style={{
                   flexDirection: "row",
                   justifyContent: "space-between",
-                  marginBottom: 8,
+                  alignItems: "center",
+                  marginBottom: SPACING.sm || 8,
                 }}
               >
                 <Text
                   style={{
                     fontSize: FONT_SIZES.md,
                     fontFamily: FONTS.bold,
-                    color: colors.textPrimary,
+                    color: colors.onSurface,
                     flex: 1,
+                    marginRight: SPACING.sm || 8,
                   }}
+                  numberOfLines={1}
                 >
                   {item.name}
                 </Text>
                 <View
                   style={{
-                    backgroundColor: colors.secondary + "15",
-                    paddingHorizontal: 8,
-                    paddingVertical: 4,
-                    borderRadius: 6,
+                    backgroundColor: colors.secondaryContainer,
+                    paddingHorizontal: SPACING.sm || 8,
+                    paddingVertical: SPACING.xxs || 3,
+                    borderRadius: RADIUS.xs || 6,
                   }}
                 >
                   <Text
                     style={{
                       fontSize: FONT_SIZES.micro,
-                      color: colors.secondary,
+                      color: colors.onSecondaryContainer,
                       fontFamily: FONTS.bold,
                     }}
                   >
@@ -171,19 +174,25 @@ export default function HistoryScreen() {
                 </View>
               </View>
 
-              <View style={{ flexDirection: "row", gap: 12, marginBottom: 12 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: SPACING.md || 12,
+                  marginBottom: SPACING.md || 12,
+                }}
+              >
                 <View
                   style={{
-                    backgroundColor: colors.background,
-                    paddingHorizontal: 8,
-                    paddingVertical: 4,
-                    borderRadius: 4,
+                    backgroundColor: colors.surfaceContainerHighest,
+                    paddingHorizontal: SPACING.sm || 8,
+                    paddingVertical: SPACING.xxs || 3,
+                    borderRadius: RADIUS.xs || 4,
                   }}
                 >
                   <Text
                     style={{
                       fontSize: FONT_SIZES.xs,
-                      color: colors.textSecondary,
+                      color: colors.onSurfaceVariant,
                       textTransform: "capitalize",
                       fontFamily: FONTS.medium,
                     }}
@@ -196,15 +205,21 @@ export default function HistoryScreen() {
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
-                      gap: 4,
+                      gap: SPACING.xs || 4,
                     }}
                   >
                     <MaterialIcons
                       name="meeting-room"
-                      size={14}
-                      color={colors.textSecondary}
+                      size={ICON_SIZES.xs || 14}
+                      color={colors.onSurfaceVariant}
                     />
-                    <Text style={{ fontSize: FONT_SIZES.xs, color: colors.textSecondary, fontFamily: FONTS.regular }}>
+                    <Text
+                      style={{
+                        fontSize: FONT_SIZES.xs,
+                        color: colors.onSurfaceVariant,
+                        fontFamily: FONTS.regular,
+                      }}
+                    >
                       {t("common.room")}: {item.room}
                     </Text>
                   </View>
@@ -217,36 +232,56 @@ export default function HistoryScreen() {
                   justifyContent: "space-between",
                   alignItems: "center",
                   borderTopWidth: 1,
-                  borderTopColor: colors.border,
-                  paddingTop: 12,
+                  borderTopColor: colors.outlineVariant,
+                  paddingTop: SPACING.md || 12,
                 }}
               >
                 <View
-                  style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: SPACING.xs || 6,
+                  }}
                 >
                   <MaterialIcons
                     name="class"
-                    size={16}
-                    color={colors.textSecondary}
+                    size={ICON_SIZES.sm || 16}
+                    color={colors.onSurfaceVariant}
                   />
-                  <Text style={{ fontSize: FONT_SIZES.xs, color: colors.textSecondary, fontFamily: FONTS.regular }}>
+                  <Text
+                    style={{
+                      fontSize: FONT_SIZES.xs,
+                      color: colors.onSurfaceVariant,
+                      fontFamily: FONTS.regular,
+                    }}
+                  >
                     {formatClassName(item.class)}
                   </Text>
                 </View>
                 <View
-                  style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: SPACING.xs || 6,
+                  }}
                 >
                   <MaterialIcons
                     name="event"
-                    size={16}
-                    color={colors.textSecondary}
+                    size={ICON_SIZES.sm || 16}
+                    color={colors.onSurfaceVariant}
                   />
-                  <Text style={{ fontSize: FONT_SIZES.xs, color: colors.textSecondary, fontFamily: FONTS.regular }}>
+                  <Text
+                    style={{
+                      fontSize: FONT_SIZES.xs,
+                      color: colors.onSurfaceVariant,
+                      fontFamily: FONTS.regular,
+                    }}
+                  >
                     {formatDate(item.date)}
                   </Text>
                 </View>
               </View>
-            </View>
+            </Card>
           ))
         )}
       </View>
@@ -270,7 +305,13 @@ export default function HistoryScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 }}>
+      <View
+        style={{
+          paddingHorizontal: SPACING.lg || 16,
+          paddingTop: SPACING.md || 12,
+          paddingBottom: SPACING.xs || 4,
+        }}
+      >
         <AppHeader
           title={t("historyScreen.title")}
           subtitle={
@@ -290,9 +331,9 @@ export default function HistoryScreen() {
           />
         }
         contentContainerStyle={{
-          paddingHorizontal: 16,
-          paddingTop: 8,
-          paddingBottom: 32,
+          paddingHorizontal: SPACING.lg || 16,
+          paddingTop: SPACING.sm || 8,
+          paddingBottom: SPACING.xxxl || 32,
         }}
         showsVerticalScrollIndicator={false}
         scrollsToTop={true}

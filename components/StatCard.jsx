@@ -2,30 +2,37 @@ import React from "react";
 import { View, Text } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { MotiView } from "moti";
-import { useTheme, FONTS, FONT_SIZES } from "../theme";
+import {
+  useTheme,
+  FONTS,
+  FONT_SIZES,
+  SPACING,
+  RADIUS,
+  ICON_SIZES,
+} from "../theme";
 import Card from "./Card";
 import { LinearGradient } from "expo-linear-gradient";
 
 /**
- * StatCard Component
- * Displays a statistic with icon, value, label, and optional trend with Moti spring entrance
+ * Modern StatCard Component
+ * Displays key statistical metric with icon badge, primary value, label, and trend with spring entrance.
  *
- * @param {String} label - Stat label
- * @param {String|Number} value - Main value to display
- * @param {String} icon - MaterialIcons icon name
- * @param {String} color - Primary color for the card
- * @param {String} trend - Optional trend indicator ('up', 'down', 'neutral')
- * @param {String|Number} trendValue - Optional trend value to display
- * @param {String} subtitle - Optional subtitle text
- * @param {Boolean} gradient - Whether to use gradient background
- * @param {String} variant - 'default', 'compact', 'large'
- * @param {Number} index - Stagger animation index
+ * @param {String} label - Stat descriptor
+ * @param {String|Number} value - Highlight numeric value
+ * @param {String} icon - MaterialIcons glyph name
+ * @param {String} color - Accent tint (defaults to theme primary)
+ * @param {String} trend - Trend direction ('up', 'down', 'neutral')
+ * @param {String|Number} trendValue - Trend delta percentage or value
+ * @param {String} subtitle - Secondary description
+ * @param {Boolean} gradient - Whether to render with a vibrant gradient wash
+ * @param {String} variant - 'default' | 'compact' | 'large'
+ * @param {Number} index - Spring animation sequence index
  */
 export default function StatCard({
   label,
   value,
   icon = "analytics",
-  color = "#2196F3",
+  color: customColor,
   trend,
   trendValue,
   subtitle,
@@ -34,6 +41,7 @@ export default function StatCard({
   index = 0,
 }) {
   const { colors } = useTheme();
+  const color = customColor || colors.primary;
 
   const getTrendIcon = () => {
     if (trend === "up") return "trending-up";
@@ -41,7 +49,8 @@ export default function StatCard({
     return "trending-flat";
   };
 
-  const getTrendColor = () => {
+  const getTrendColor = (isGrad) => {
+    if (isGrad) return "#FFFFFF";
     if (trend === "up") return colors.success;
     if (trend === "down") return colors.error;
     return colors.onSurfaceVariant;
@@ -50,251 +59,164 @@ export default function StatCard({
   const getSize = () => {
     if (variant === "compact") {
       return {
-        iconSize: 20,
+        iconSize: ICON_SIZES.sm || 18,
         valueSize: FONT_SIZES.lg,
         labelSize: FONT_SIZES.xs,
         subtitleSize: FONT_SIZES.micro,
-        padding: 12,
+        padding: SPACING.md || 12,
+        badgeSize: 32,
       };
     }
     if (variant === "large") {
       return {
-        iconSize: 32,
+        iconSize: ICON_SIZES.lg || 28,
         valueSize: FONT_SIZES.display,
         labelSize: FONT_SIZES.sm,
         subtitleSize: FONT_SIZES.sm,
-        padding: 20,
+        padding: SPACING.xl || 20,
+        badgeSize: 48,
       };
     }
     return {
-      iconSize: 24,
+      iconSize: ICON_SIZES.md || 22,
       valueSize: FONT_SIZES.xl,
       labelSize: FONT_SIZES.sm,
       subtitleSize: FONT_SIZES.xs,
-      padding: 16,
+      padding: SPACING.lg || 16,
+      badgeSize: 40,
     };
   };
 
   const size = getSize();
 
-  if (gradient) {
+  const renderContent = (isGrad) => {
+    const textColor = isGrad ? "#FFFFFF" : colors.onSurface;
+    const labelColor = isGrad ? "rgba(255,255,255,0.9)" : colors.onSurfaceVariant;
+    const subColor = isGrad ? "rgba(255,255,255,0.75)" : colors.onSurfaceVariant;
+    const badgeBg = isGrad ? "rgba(255,255,255,0.2)" : color + "0F"; // 6% tint — barely there
+    const iconColor = isGrad ? "#FFFFFF" : color;
+
     return (
-      <MotiView
-        from={{ opacity: 0, scale: 0.95, translateY: 8 }}
-        animate={{ opacity: 1, scale: 1, translateY: 0 }}
-        transition={{
-          type: "spring",
-          damping: 18,
-          stiffness: 140,
-          delay: index * 60,
-        }}
-        style={{ flex: 1, minWidth: variant === "compact" ? 140 : 160 }}
-      >
-        <Card
-          variant="elevated"
-          style={{ flex: 1, overflow: "hidden" }}
-          contentStyle={{ padding: 0 }}
+      <View style={{ padding: size.padding }}>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+          }}
         >
+          <View style={{ flex: 1, minWidth: 0, marginRight: SPACING.sm }}>
+            <Text
+              style={{
+                fontSize: size.labelSize,
+                fontFamily: FONTS.medium,
+                color: labelColor,
+                marginBottom: SPACING.xs || 4,
+              }}
+              numberOfLines={1}
+            >
+              {label}
+            </Text>
+            <Text
+              style={{
+                fontSize: size.valueSize,
+                fontFamily: FONTS.semiBold,
+                color: textColor,
+                marginBottom: subtitle || trend ? (SPACING.xs || 4) : 0,
+                letterSpacing: -0.5,
+              }}
+              numberOfLines={1}
+            >
+              {value}
+            </Text>
+            {subtitle && (
+              <Text
+                style={{
+                  fontSize: size.subtitleSize,
+                  fontFamily: FONTS.regular,
+                  color: subColor,
+                  opacity: isGrad ? 1 : 0.8,
+                }}
+                numberOfLines={1}
+              >
+                {subtitle}
+              </Text>
+            )}
+            {trend && (
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: SPACING.xs || 4,
+                  marginTop: SPACING.xs || 4,
+                }}
+              >
+                <MaterialIcons
+                  name={getTrendIcon()}
+                  size={14}
+                  color={getTrendColor(isGrad)}
+                />
+                {trendValue && (
+                  <Text
+                    style={{
+                      fontSize: FONT_SIZES.xs,
+                      fontFamily: FONTS.bold,
+                      color: getTrendColor(isGrad),
+                    }}
+                  >
+                    {trendValue}
+                  </Text>
+                )}
+              </View>
+            )}
+          </View>
+
+          <View
+            style={{
+              backgroundColor: badgeBg,
+              width: size.badgeSize,
+              height: size.badgeSize,
+              borderRadius: RADIUS.md || 12,
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <MaterialIcons name={icon} size={size.iconSize} color={iconColor} />
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  return (
+    <MotiView
+      from={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{
+        type: "timing",
+        duration: 300,
+        delay: index * 40,
+      }}
+      style={{ flex: 1, minWidth: variant === "compact" ? 130 : 150 }}
+    >
+      <Card
+        variant="elevated"
+        style={{ flex: 1, overflow: "hidden" }}
+        contentStyle={{ padding: 0 }}
+      >
+        {gradient ? (
           <LinearGradient
             colors={[color, color + "CC"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={{ borderRadius: 12 }}
+            style={{ borderRadius: RADIUS.lg || 16 }}
           >
-            <View style={{ padding: size.padding }}>
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                }}
-              >
-                <View style={{ flex: 1 }}>
-                  <Text
-                    style={{
-                      fontSize: size.labelSize,
-                      fontFamily: FONTS.medium,
-                      color: "#FFFFFF",
-                      marginBottom: 8,
-                      opacity: 0.9,
-                    }}
-                  >
-                    {label}
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: size.valueSize,
-                      fontFamily: FONTS.bold,
-                      color: "#FFFFFF",
-                      marginBottom: subtitle || trend ? 6 : 0,
-                    }}
-                  >
-                    {value}
-                  </Text>
-                  {subtitle && (
-                    <Text
-                      style={{
-                        fontSize: size.subtitleSize,
-                        fontFamily: FONTS.regular,
-                        color: "#FFFFFF",
-                        opacity: 0.8,
-                      }}
-                    >
-                      {subtitle}
-                    </Text>
-                  )}
-                  {trend && (
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 4,
-                        marginTop: 4,
-                      }}
-                    >
-                      <MaterialIcons
-                        name={getTrendIcon()}
-                        size={14}
-                        color="#FFFFFF"
-                      />
-                      {trendValue && (
-                        <Text
-                          style={{
-                            fontSize: FONT_SIZES.xs,
-                            fontFamily: FONTS.bold,
-                            color: "#FFFFFF",
-                          }}
-                        >
-                          {trendValue}
-                        </Text>
-                      )}
-                    </View>
-                  )}
-                </View>
-                <View
-                  style={{
-                    backgroundColor: "rgba(255,255,255,0.2)",
-                    width: size.iconSize + 16,
-                    height: size.iconSize + 16,
-                    borderRadius: (size.iconSize + 16) / 2,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <MaterialIcons
-                    name={icon}
-                    size={size.iconSize}
-                    color="#FFFFFF"
-                  />
-                </View>
-              </View>
-            </View>
+            {renderContent(true)}
           </LinearGradient>
-        </Card>
-      </MotiView>
-    );
-  }
-
-  return (
-    <MotiView
-      from={{ opacity: 0, scale: 0.95, translateY: 8 }}
-      animate={{ opacity: 1, scale: 1, translateY: 0 }}
-      transition={{
-        type: "spring",
-        damping: 18,
-        stiffness: 140,
-        delay: index * 60,
-      }}
-      style={{ flex: 1, minWidth: variant === "compact" ? 140 : 160 }}
-    >
-      <Card
-        variant="elevated"
-        style={{ flex: 1 }}
-        contentStyle={{ padding: 0 }}
-      >
-        <View style={{ padding: size.padding }}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-            }}
-          >
-            <View style={{ flex: 1 }}>
-              <Text
-                style={{
-                  fontSize: size.labelSize,
-                  fontFamily: FONTS.medium,
-                  color: colors.onSurfaceVariant,
-                  marginBottom: 8,
-                }}
-              >
-                {label}
-              </Text>
-              <Text
-                style={{
-                  fontSize: size.valueSize,
-                  fontFamily: FONTS.bold,
-                  color: colors.onSurface,
-                  marginBottom: subtitle || trend ? 6 : 0,
-                }}
-              >
-                {value}
-              </Text>
-              {subtitle && (
-                <Text
-                  style={{
-                    fontSize: size.subtitleSize,
-                    fontFamily: FONTS.regular,
-                    color: colors.onSurfaceVariant,
-                    opacity: 0.7,
-                  }}
-                >
-                  {subtitle}
-                </Text>
-              )}
-              {trend && (
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 4,
-                    marginTop: 4,
-                  }}
-                >
-                  <MaterialIcons
-                    name={getTrendIcon()}
-                    size={14}
-                    color={getTrendColor()}
-                  />
-                  {trendValue && (
-                    <Text
-                      style={{
-                        fontSize: FONT_SIZES.xs,
-                        fontFamily: FONTS.bold,
-                        color: getTrendColor(),
-                      }}
-                    >
-                      {trendValue}
-                    </Text>
-                  )}
-                </View>
-              )}
-            </View>
-            <View
-              style={{
-                backgroundColor: color + "15",
-                width: size.iconSize + 16,
-                height: size.iconSize + 16,
-                borderRadius: (size.iconSize + 16) / 2,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <MaterialIcons name={icon} size={size.iconSize} color={color} />
-            </View>
-          </View>
-        </View>
+        ) : (
+          renderContent(false)
+        )}
       </Card>
     </MotiView>
   );

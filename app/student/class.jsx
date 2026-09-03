@@ -1493,7 +1493,7 @@ const localStyles = StyleSheet.create({
     justifyContent: "center",
   },
   compactTeacherLabel: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.bold,
     letterSpacing: LETTER_SPACINGS.xs,
   },
@@ -1517,7 +1517,7 @@ const localStyles = StyleSheet.create({
     maxWidth: 110,
   },
   compactPillText: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.bold,
     letterSpacing: LETTER_SPACINGS.micro,
   },
@@ -1540,7 +1540,7 @@ const localStyles = StyleSheet.create({
     fontFamily: FONTS.bold,
   },
   compactStatSubText: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.regular,
   },
   shortcutsRow: {
@@ -1570,7 +1570,7 @@ const localStyles = StyleSheet.create({
     justifyContent: "center",
   },
   shortcutTitle: {
-    fontSize: 11,
+    fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.bold,
     textAlign: "center",
   },

@@ -56,7 +56,7 @@ export default function useOfflinePrefetch() {
           CACHE_TIERS.STATIC
         );
 
-        // Prefetch Vibes highlights and spotlight for instantaneous home loading
+        // Prefetch Vibes highlights, spotlight & categories for instantaneous home loading
         prefetch(
           ["vibeHighlights"],
           apiConfig.endpoints.vibes.highlights,
@@ -68,15 +68,20 @@ export default function useOfflinePrefetch() {
           CACHE_TIERS.VIBES_HOME
         );
         prefetch(
-          ["vibes", "all", null],
-          `${apiConfig.endpoints.vibes.list}?page=1&limit=10`,
-          CACHE_TIERS.VIBES_FEED
+          ["vibeCategories"],
+          apiConfig.endpoints.vibes.categories,
+          CACHE_TIERS.STATIC
         );
 
-        // Prefetch user-scoped notifications
+        // Prefetch user-scoped notifications (both context badge and notification center)
         prefetch(
           ["notifications", userId],
           "/notifications",
+          CACHE_TIERS.REAL_TIME
+        );
+        prefetch(
+          ["notificationCenter", userId, "all", "all"],
+          "/notifications?limit=50",
           CACHE_TIERS.REAL_TIME
         );
 
@@ -91,16 +96,23 @@ export default function useOfflinePrefetch() {
         if (!role) return;
 
         // Pre-fetch based on role to avoid triggering 403 Forbidden errors
-        // All user-specific keys are scoped with userId
         if (role === "student") {
+          // Both key variants for StudentDashboard
+          prefetch(["studentDashboard"], "/dashboard/student", CACHE_TIERS.MODERATE);
           prefetch(
             ["studentDashboard", userId],
             "/dashboard/student",
             CACHE_TIERS.MODERATE
           );
+          // Leaves query keys matching student/leaves.jsx
           prefetch(
-            ["studentLeaves", userId],
+            ["studentLeaves", userId, "all", "all"],
             "/leaves/my-leaves",
+            CACHE_TIERS.MODERATE
+          );
+          prefetch(
+            ["studentAllLeavesSummary", userId, "all"],
+            "/leaves/my-leaves?academicYear=all",
             CACHE_TIERS.MODERATE
           );
           prefetch(
@@ -119,6 +131,11 @@ export default function useOfflinePrefetch() {
               `/attendance/student/${userId}/summary`,
               CACHE_TIERS.MODERATE
             );
+            prefetch(
+              ["studentAttendanceHistory", userId],
+              `/attendance/student/${userId}?page=1&limit=30`,
+              CACHE_TIERS.MODERATE
+            );
           }
           prefetch(
             ["studentExamSchedule", userId],
@@ -126,6 +143,13 @@ export default function useOfflinePrefetch() {
             CACHE_TIERS.STABLE
           );
         } else if (role === "teacher") {
+          // Home screen TeacherDashboard uses dateRange ("today")
+          prefetch(
+            ["teacherDashboard", "today"],
+            "/dashboard/teacher?range=today",
+            CACHE_TIERS.MODERATE
+          );
+          // Standalone teacher dashboard uses userId
           prefetch(
             ["teacherDashboard", userId],
             "/teachers/my-classes-and-subjects",
@@ -137,12 +161,28 @@ export default function useOfflinePrefetch() {
             CACHE_TIERS.STABLE
           );
           prefetch(
-            ["teacherMyLeaves", userId],
+            ["teacherMyLeaves", userId, "all"],
             "/leaves/my-leaves",
+            CACHE_TIERS.MODERATE
+          );
+          prefetch(
+            ["teacherAttendance"],
+            "/attendance/my-attendance?page=1&limit=30",
             CACHE_TIERS.MODERATE
           );
           prefetch(["schoolTimetable"], "/timetable/all", CACHE_TIERS.STABLE);
         } else if (role === "admin" || role === "super admin") {
+          // Home screen AdminDashboard uses dateRange ("thisMonth")
+          prefetch(
+            ["adminDashboard", "thisMonth"],
+            "/dashboard/admin?range=thisMonth",
+            CACHE_TIERS.MODERATE
+          );
+          prefetch(
+            ["adminDashboard", "today"],
+            "/dashboard/admin?range=today",
+            CACHE_TIERS.MODERATE
+          );
           prefetch(
             ["adminClassesInit"],
             "/classes/admin/init",

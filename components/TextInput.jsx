@@ -1,20 +1,35 @@
 import React, { useState } from "react";
 import { View, TextInput as RNTextInput, Text, Pressable } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme, FONTS, FONT_SIZES } from "../theme";
+import {
+  useTheme,
+  FONTS,
+  FONT_SIZES,
+  SPACING,
+  ICON_SIZES,
+} from "../theme";
 
 /**
- * Material 3 Text Input
+ * Material 3 Modern Text Input
+ * 
  * Variants:
- * - filled: Background color, underline indicator (default)
- * - outlined: Border surround
+ * - outlined: Crisp 1.5px border surround with rounded corners (default)
+ * - filled: Subtle container background with bottom indicator
+ * 
+ * Props:
+ * - label: Field label text
+ * - helperText: Non-error assistive guidance text
+ * - error: Error message text (renders in error tone)
+ * - icon: Left MaterialIcons name
+ * - rightIcon: Right MaterialIcons name (or action toggle)
  */
 const TextInput = ({
   label,
   value,
   onChangeText,
   placeholder,
-  variant = "outlined", // M3 default is often filled, but outlined is cleaner for data forms
+  helperText,
+  variant = "outlined",
   icon,
   rightIcon,
   onRightIconPress,
@@ -35,57 +50,45 @@ const TextInput = ({
   const handleFocus = () => setIsFocused(true);
   const handleBlur = () => setIsFocused(false);
 
-  // Determine Container Colors
+  // Determine Container Styles
   const getContainerStyles = () => {
-    const baseColors = {
-      borderColor: error
-        ? colors.error
-        : isFocused
-        ? colors.primary
-        : colors.outlineVariant,
-      backgroundColor:
-        variant === "filled" ? colors.surfaceContainerHighest : "transparent",
-      borderWidth: variant === "outlined" ? (isFocused ? 2 : 1) : 0,
-      borderBottomWidth:
-        variant === "filled"
-          ? isFocused
-            ? 2
-            : 1
-          : variant === "outlined"
-          ? isFocused
-            ? 2
-            : 1
-          : 0,
-    };
+    const borderColor = error
+      ? colors.error
+      : isFocused
+      ? colors.primary
+      : colors.outlineVariant;
 
     if (variant === "filled") {
       return {
-        backgroundColor: baseColors.backgroundColor,
-        borderBottomWidth: baseColors.borderBottomWidth,
-        borderBottomColor: baseColors.borderColor,
-        borderTopLeftRadius: 4,
-        borderTopRightRadius: 4,
-        paddingHorizontal: 16,
+        backgroundColor: colors.surfaceContainerHighest,
+        borderBottomWidth: 1.5,
+        borderBottomColor: borderColor,
+        borderTopLeftRadius: 14,
+        borderTopRightRadius: 14,
+        paddingHorizontal: SPACING.lg,
       };
     }
 
     // Outlined
     return {
       backgroundColor: "transparent",
-      borderWidth: baseColors.borderWidth,
-      borderColor: baseColors.borderColor,
-      borderRadius: 4,
-      paddingHorizontal: 16,
+      borderWidth: 1, // Thinner minimalist border
+      borderColor: borderColor,
+      borderRadius: 14,
+      paddingHorizontal: SPACING.lg,
     };
   };
 
-  // eslint-disable-next-line no-unused-vars
-  const getTextColor = () => {
-    return error ? colors.error : colors.onSurface;
-  };
+  const activeIconColor =
+    iconColor ||
+    (error
+      ? colors.error
+      : isFocused
+      ? colors.primary
+      : colors.onSurfaceVariant);
 
   return (
-    <View style={[containerStyle]}>
+    <View style={[{ width: "100%" }, containerStyle]}>
       {label && (
         <Text
           style={[
@@ -96,7 +99,8 @@ const TextInput = ({
                 : isFocused
                 ? colors.primary
                 : colors.onSurfaceVariant,
-              marginBottom: 8,
+              marginBottom: SPACING.xs || 6,
+              fontFamily: FONTS.medium,
             },
             labelStyle,
           ]}
@@ -110,7 +114,7 @@ const TextInput = ({
           {
             flexDirection: "row",
             alignItems: "center",
-            height: 56,
+            height: 48,
           },
           getContainerStyles(),
           style,
@@ -119,16 +123,9 @@ const TextInput = ({
         {icon && (
           <MaterialIcons
             name={icon}
-            size={24}
-            color={
-              iconColor ||
-              (error
-                ? colors.error
-                : isFocused
-                ? colors.primary
-                : colors.onSurfaceVariant)
-            }
-            style={{ marginRight: 12 }}
+            size={ICON_SIZES.md || 22}
+            color={activeIconColor}
+            style={{ marginRight: SPACING.md || 10 }}
           />
         )}
 
@@ -146,7 +143,7 @@ const TextInput = ({
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor={colors.onSurfaceVariant}
+          placeholderTextColor={colors.onSurfaceVariant + "99"}
           secureTextEntry={secureTextEntry}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
@@ -157,28 +154,48 @@ const TextInput = ({
         />
 
         {rightIcon && (
-          <Pressable onPress={onRightIconPress} style={{ padding: 4 }}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={onRightIconPress}
+            hitSlop={8}
+            style={{ padding: SPACING.xs || 4 }}
+          >
             <MaterialIcons
               name={rightIcon}
-              size={24}
-              color={
-                iconColor || (error ? colors.error : colors.onSurfaceVariant)
-              }
+              size={ICON_SIZES.md || 22}
+              color={activeIconColor}
             />
           </Pressable>
         )}
       </View>
 
-      {error && (
+      {error ? (
         <Text
           style={[
             styles.caption,
-            { color: colors.error, marginTop: 4, marginLeft: 4 },
+            {
+              color: colors.error,
+              marginTop: SPACING.xs || 4,
+              marginLeft: SPACING.xxs || 2,
+            },
           ]}
         >
           {error}
         </Text>
-      )}
+      ) : helperText ? (
+        <Text
+          style={[
+            styles.caption,
+            {
+              color: colors.onSurfaceVariant,
+              marginTop: SPACING.xs || 4,
+              marginLeft: SPACING.xxs || 2,
+            },
+          ]}
+        >
+          {helperText}
+        </Text>
+      ) : null}
     </View>
   );
 };

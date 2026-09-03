@@ -51,7 +51,7 @@ export default function AttendanceView({
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [selectedMonth, setSelectedMonth] = useState(todayStr);
   const [monthlyVisible, setMonthlyVisible] = useState(MONTHLY_PAGE_SIZE);
-  const [activeFilter, setActiveFilter] = useState("all"); // 'all' | 'present' | 'absent' | 'holiday' | 'late'
+  const [activeFilter, setActiveFilter] = useState("all"); // 'all' | 'present' | 'absent' | 'holiday'
 
   // Fetch school holidays as a reliable fallback/supplement
   const { data: eventsHolidayData } = useApiQuery(
@@ -112,10 +112,6 @@ export default function AttendanceView({
           return colors.success || "#146C2E";
         case "absent":
           return colors.error || "#B3261E";
-        case "late":
-          return "#D97706";
-        case "excused":
-          return "#0284C7";
         case "half-day":
           return "#8B5CF6";
         case "holiday":
@@ -129,28 +125,30 @@ export default function AttendanceView({
 
   // Normalized Summary Stats
   const displayStats = useMemo(() => {
-    const PRESENT_STATUSES = ["present", "late", "excused", "half-day"];
+    const PRESENT_STATUSES = ["present", "half-day"];
 
     let total = 0;
     let present = 0;
     let absent = 0;
+    let halfDay = 0;
     let late = 0;
     let excused = 0;
-    let halfDay = 0;
     let percentage = 0;
 
     if (summary?.overall?.total !== undefined) {
       total = summary.overall.total || 0;
       present = summary.overall.present || 0;
       absent = summary.overall.absent ?? Math.max(0, total - present);
+      late = summary.overall.late || 0;
+      excused = summary.overall.excused || 0;
       percentage = parseFloat(summary.overall.percentage || 0);
     } else if (summary?.total !== undefined) {
       total = summary.total || 0;
       present = summary.present || 0;
       absent = summary.absent ?? Math.max(0, total - present);
+      halfDay = summary.halfDay || 0;
       late = summary.late || 0;
       excused = summary.excused || 0;
-      halfDay = summary.halfDay || 0;
       percentage = parseFloat(summary.percentage || 0);
     } else {
       total = attendanceHistory.length;
@@ -158,17 +156,20 @@ export default function AttendanceView({
         PRESENT_STATUSES.includes(r.status)
       ).length;
       absent = attendanceHistory.filter((r) => r.status === "absent").length;
+      halfDay = attendanceHistory.filter((r) => r.status === "half-day").length;
       late = attendanceHistory.filter((r) => r.status === "late").length;
       excused = attendanceHistory.filter((r) => r.status === "excused").length;
-      halfDay = attendanceHistory.filter((r) => r.status === "half-day").length;
       percentage = total > 0 ? parseFloat(((present / total) * 100).toFixed(1)) : 0;
     }
 
-    // Count late/excused from loaded records if not in summary
-    if (late === 0 && excused === 0 && attendanceHistory.length > 0) {
-      late = attendanceHistory.filter((r) => r.status === "late").length;
-      excused = attendanceHistory.filter((r) => r.status === "excused").length;
+    if (attendanceHistory.length > 0 && halfDay === 0) {
       halfDay = attendanceHistory.filter((r) => r.status === "half-day").length;
+    }
+    if (attendanceHistory.length > 0 && late === 0) {
+      late = attendanceHistory.filter((r) => r.status === "late").length;
+    }
+    if (attendanceHistory.length > 0 && excused === 0) {
+      excused = attendanceHistory.filter((r) => r.status === "excused").length;
     }
 
     const holidaysCount = Object.keys(holidaysMap).length;
@@ -430,12 +431,6 @@ export default function AttendanceView({
 
     if (activeFilter === "absent") {
       return recordItems.filter((r) => r.status === "absent");
-    }
-
-    if (activeFilter === "late") {
-      return recordItems.filter((r) =>
-        ["late", "excused", "half-day"].includes(r.status)
-      );
     }
 
     // 'all' filter: combine records and holidays sorted newest first
@@ -876,16 +871,6 @@ export default function AttendanceView({
                 bg: (colors.error || "#B3261E") + "30",
               },
               {
-                label: t("common.late", "Late"),
-                color: "#D97706",
-                bg: "#D9770630",
-              },
-              {
-                label: t("common.excused", "Excused"),
-                color: "#0284C7",
-                bg: "#0284C730",
-              },
-              {
                 label: "Holiday 🎉",
                 color: "#F59E0B",
                 bg: "#FEF3C7",
@@ -1260,15 +1245,6 @@ export default function AttendanceView({
               label: "Holidays",
               count: displayStats.holidaysCount,
               icon: "celebration",
-            },
-            {
-              id: "late",
-              label: "Late/Leaves",
-              count:
-                displayStats.late +
-                displayStats.excused +
-                displayStats.halfDay,
-              icon: "schedule",
             },
           ].map((chip) => {
             const isActive = activeFilter === chip.id;

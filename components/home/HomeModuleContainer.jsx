@@ -27,10 +27,10 @@ const HomeModuleContainer = ({
   title,
   icon,
   accentColor,
-  lightBg,
-  darkBg,
-  lightBorder,
-  darkBorder,
+  lightBg: _lightBg,
+  darkBg: _darkBg,
+  lightBorder: _lightBorder,
+  darkBorder: _darkBorder,
   actionText,
   onActionPress,
   badge,
@@ -45,14 +45,14 @@ const HomeModuleContainer = ({
 
   const resolvedAccent = accentColor || colors.primary;
 
-  // Curated pastel background and border calculations
+  // Minimalist: no per-module color tinting — neutral surface only
   const backgroundColor = isDark
-    ? darkBg || `${resolvedAccent}14` // ~8% opacity
-    : lightBg || `${resolvedAccent}0D`; // ~5% opacity
+    ? colors.surfaceContainerLow
+    : "transparent";
 
   const borderColor = isDark
-    ? darkBorder || `${resolvedAccent}2D` // ~18% opacity
-    : lightBorder || `${resolvedAccent}20`; // ~12.5% opacity
+    ? colors.outlineVariant + "40"
+    : "transparent";
 
   const handleActionPress = () => {
     if (onActionPress) {
@@ -83,15 +83,13 @@ const HomeModuleContainer = ({
                   styles.iconCircle,
                   {
                     backgroundColor: isDark
-                      ? `${resolvedAccent}30`
-                      : `${resolvedAccent}18`,
-                    borderColor: isDark
-                      ? `${resolvedAccent}45`
-                      : `${resolvedAccent}30`,
+                      ? `${resolvedAccent}20`
+                      : `${resolvedAccent}0F`,
+                    borderColor: "transparent",
                   },
                 ]}
               >
-                <MaterialIcons name={icon} size={17} color={resolvedAccent} />
+                <MaterialIcons name={icon} size={15} color={resolvedAccent} />
               </View>
             )}
 
@@ -168,9 +166,9 @@ const HomeModuleContainer = ({
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 24,
-    borderWidth: 1,
-    marginBottom: 16,
+    borderRadius: 20,
+    borderWidth: 0,
+    marginBottom: 20,
     overflow: "hidden",
   },
   headerRow: {
@@ -190,12 +188,12 @@ const styles = StyleSheet.create({
     gap: 9,
   },
   iconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
+    width: 28,
+    height: 28,
+    borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
+    borderWidth: 0,
     flexShrink: 0,
   },
   titleWrapper: {
@@ -208,7 +206,7 @@ const styles = StyleSheet.create({
   titleText: {
     fontSize: FONT_SIZES.md,
     lineHeight: LINE_HEIGHTS.md,
-    fontFamily: FONTS.bold,
+    fontFamily: FONTS.semiBold,
     letterSpacing: 0.15,
     flexShrink: 1,
   },
@@ -238,11 +236,11 @@ const styles = StyleSheet.create({
   actionText: {
     fontSize: FONT_SIZES.sm,
     lineHeight: LINE_HEIGHTS.sm,
-    fontFamily: FONTS.bold,
+    fontFamily: FONTS.medium,
   },
   content: {
-    paddingHorizontal: 14,
-    paddingBottom: 14,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
   },
   contentNoPadding: {
     paddingHorizontal: 0,

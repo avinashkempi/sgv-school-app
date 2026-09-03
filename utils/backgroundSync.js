@@ -17,6 +17,8 @@ import * as BackgroundFetch from "expo-background-fetch";
 import * as TaskManager from "expo-task-manager";
 import storage from "./storage";
 import apiConfig from "../config/apiConfig";
+import { syncQueue } from "./offlineQueue";
+import { queryClient } from "./queryClient";
 
 export const BACKGROUND_SYNC_TASK = "BACKGROUND_DATA_SYNC";
 
@@ -31,6 +33,13 @@ if (!TaskManager.isTaskDefined(BACKGROUND_SYNC_TASK)) {
       const token = await storage.getItem("@auth_token");
       if (!token || token === "demo-token") {
         return BackgroundFetch.BackgroundFetchResult.NoData;
+      }
+
+      // Sync any pending offline mutations
+      try {
+        await syncQueue(queryClient);
+      } catch (queueErr) {
+        console.warn("[BackgroundSync] Queue sync error:", queueErr);
       }
 
       // Fetch notification count silently

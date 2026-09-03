@@ -69,18 +69,21 @@ export default function VibesScreen() {
 
   // Navigation / View Tabs: 'feed' | 'my-vibes' | 'saved'
   const [activeTab, setActiveTab] = useState("feed");
-  const targetVibeId =
-    typeof searchParams?.vibeId === "string"
-      ? searchParams.vibeId
-      : typeof searchParams?.id === "string"
-      ? searchParams.id
-      : null;
+
+  const getParam = useCallback((val) => {
+    if (Array.isArray(val)) return val[0];
+    if (typeof val === "string") return val;
+    return null;
+  }, []);
+
+  const rawTargetVibeId = getParam(searchParams?.vibeId) || getParam(searchParams?.id);
+  const targetVibeId = rawTargetVibeId ? String(rawTargetVibeId) : null;
 
   const [selectedCategory, setSelectedCategory] = useState(
-    typeof searchParams?.category === "string" ? searchParams.category : "all"
+    getParam(searchParams?.category) || "all"
   );
   const [selectedTag, setSelectedTag] = useState(
-    typeof searchParams?.tag === "string" ? searchParams.tag : null
+    getParam(searchParams?.tag)
   );
 
   // In-Feed Search state
@@ -90,18 +93,20 @@ export default function VibesScreen() {
 
   // Sync searchParams category and tag on navigation / deep-linking
   useEffect(() => {
-    if (typeof searchParams?.category === "string" && searchParams.category) {
-      setSelectedCategory(searchParams.category);
+    const cat = getParam(searchParams?.category);
+    const tag = getParam(searchParams?.tag);
+    if (cat) {
+      setSelectedCategory(cat);
     }
-    if (typeof searchParams?.tag === "string") {
-      setSelectedTag(searchParams.tag);
+    if (tag !== undefined) {
+      setSelectedTag(tag);
     }
-  }, [searchParams?.category, searchParams?.tag]);
+  }, [searchParams?.category, searchParams?.tag, getParam]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery.trim());
-    }, 400);
+    }, 350);
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
@@ -135,11 +140,12 @@ export default function VibesScreen() {
     }
   }, [targetVibeId, targetVibeData]);
 
+  const openCommentsParam = getParam(searchParams?.openComments);
   useEffect(() => {
-    if (searchParams?.openComments === "true" && targetVibeData) {
+    if (openCommentsParam === "true" && targetVibeData) {
       setActiveCommentVibe(targetVibeData);
     }
-  }, [searchParams?.openComments, targetVibeData]);
+  }, [openCommentsParam, targetVibeData]);
 
   // Admin pending count query
   const { data: pendingData } = useApiQuery(
@@ -299,10 +305,12 @@ export default function VibesScreen() {
     );
     return [targetVibeData, ...filtered];
   }, [rawFeedVibes, targetVibeData]);
+
   const myVibes = useMemo(
     () => myVibesData?.pages?.flatMap((p) => p?.data || []) || [],
     [myVibesData]
   );
+
   const savedVibes = useMemo(
     () => savedData?.pages?.flatMap((p) => p?.data || []) || [],
     [savedData]
@@ -523,10 +531,35 @@ export default function VibesScreen() {
     setShowCreateModal(true);
   }, []);
 
+  const handleCategorySelect = useCallback((categoryKey) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    setSelectedCategory(categoryKey);
+    setSelectedTag(null);
+    try {
+      scrollRef.current?.scrollToOffset({ offset: 0, animated: false });
+    } catch (_) {}
+  }, []);
+
+  const handleResetFilters = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    setSelectedCategory("all");
+    setSelectedTag(null);
+    setSearchQuery("");
+    setDebouncedSearch("");
+    setShowSearchBar(false);
+    try {
+      scrollRef.current?.scrollToOffset({ offset: 0, animated: false });
+    } catch (_) {}
+  }, []);
+
   const handleTagPress = useCallback((tag) => {
-    setSelectedTag(tag.toLowerCase().replace("#", ""));
+    const cleanTag = tag.toLowerCase().replace("#", "");
+    setSelectedTag(cleanTag);
     setSelectedCategory("all");
     setActiveTab("feed");
+    try {
+      scrollRef.current?.scrollToOffset({ offset: 0, animated: false });
+    } catch (_) {}
   }, []);
 
   const onRefresh = useCallback(async () => {
@@ -573,21 +606,21 @@ export default function VibesScreen() {
         item.status === "approved"
           ? {
               label: "Approved & Live",
-              bg: "#ECFDF5",
-              text: "#059669",
+              bg: isDark ? "rgba(5, 150, 105, 0.18)" : "#ECFDF5",
+              text: isDark ? "#34D399" : "#059669",
               icon: "check-circle",
             }
           : item.status === "rejected"
           ? {
               label: "Not Approved",
-              bg: "#FEF2F2",
-              text: "#DC2626",
+              bg: isDark ? "rgba(220, 38, 38, 0.18)" : "#FEF2F2",
+              text: isDark ? "#F87171" : "#DC2626",
               icon: "cancel",
             }
           : {
               label: "Pending Review",
-              bg: "#FFFBEB",
-              text: "#D97706",
+              bg: isDark ? "rgba(217, 119, 6, 0.18)" : "#FFFBEB",
+              text: isDark ? "#FBBF24" : "#D97706",
               icon: "schedule",
             };
 
@@ -611,7 +644,7 @@ export default function VibesScreen() {
             >
               <MaterialIcons
                 name={statusMeta.icon}
-                size={14}
+                size={13}
                 color={statusMeta.text}
               />
               <Text
@@ -632,9 +665,26 @@ export default function VibesScreen() {
 
           {/* Rejection Note */}
           {item.status === "rejected" && item.rejectionReason && (
-            <View style={[styles.rejectionBox, { backgroundColor: isDark ? "rgba(220,38,38,0.15)" : "#FEF2F2" }]}>
+            <View
+              style={[
+                styles.rejectionBox,
+                {
+                  backgroundColor: isDark
+                    ? "rgba(220,38,38,0.12)"
+                    : "#FEF2F2",
+                },
+              ]}
+            >
               <Text style={styles.rejectionTitle}>Admin Feedback:</Text>
-              <Text style={[styles.rejectionReason, { color: colors.onSurfaceVariant }]} numberOfLines={3}>{item.rejectionReason}</Text>
+              <Text
+                style={[
+                  styles.rejectionReason,
+                  { color: colors.onSurfaceVariant },
+                ]}
+                numberOfLines={3}
+              >
+                {item.rejectionReason}
+              </Text>
             </View>
           )}
 
@@ -692,7 +742,19 @@ export default function VibesScreen() {
       ? isMyVibesRefetching
       : isSavedRefetching;
 
+  // Selected category metadata for empty state & chips
+  const currentCategoryObj = useMemo(() => {
+    return (
+      feedCategories.find((c) => c.key === selectedCategory) || {
+        key: selectedCategory,
+        label: selectedCategory,
+        icon: "auto-awesome",
+      }
+    );
+  }, [feedCategories, selectedCategory]);
+
   // Header Component for Feed FlatList: Stories Tray + Category Filter Pills
+  // KEPT ALWAYS MOUNTED so filters and stories NEVER vanish when switching or empty!
   const renderListHeader = useCallback(() => {
     if (activeTab !== "feed") return null;
 
@@ -715,21 +777,22 @@ export default function VibesScreen() {
         {debouncedSearch ? (
           <View
             style={[
-              styles.activeTagBanner,
+              styles.activeFilterBanner,
               { backgroundColor: colors.primaryContainer },
             ]}
           >
-            <View style={styles.activeTagBadge}>
+            <View style={styles.activeFilterBadge}>
               <MaterialIcons
                 name="search"
-                size={14}
+                size={15}
                 color={colors.onPrimaryContainer}
               />
               <Text
                 style={[
-                  styles.activeTagText,
+                  styles.activeFilterText,
                   { color: colors.onPrimaryContainer },
                 ]}
+                numberOfLines={1}
               >
                 Search: "{debouncedSearch}"
               </Text>
@@ -740,16 +803,16 @@ export default function VibesScreen() {
                 setDebouncedSearch("");
               }}
               hitSlop={8}
-              style={styles.clearTagBtn}
+              style={styles.clearFilterBtn}
             >
               <MaterialIcons
                 name="close"
-                size={14}
+                size={15}
                 color={colors.onPrimaryContainer}
               />
               <Text
                 style={[
-                  styles.clearTagText,
+                  styles.clearFilterText,
                   { color: colors.onPrimaryContainer },
                 ]}
               >
@@ -763,38 +826,39 @@ export default function VibesScreen() {
         {selectedTag && (
           <View
             style={[
-              styles.activeTagBanner,
+              styles.activeFilterBanner,
               { backgroundColor: colors.primaryContainer },
             ]}
           >
-            <View style={styles.activeTagBadge}>
+            <View style={styles.activeFilterBadge}>
               <MaterialIcons
                 name="tag"
-                size={14}
+                size={15}
                 color={colors.onPrimaryContainer}
               />
               <Text
                 style={[
-                  styles.activeTagText,
+                  styles.activeFilterText,
                   { color: colors.onPrimaryContainer },
                 ]}
+                numberOfLines={1}
               >
-                {selectedTag}
+                #{selectedTag}
               </Text>
             </View>
             <Pressable
               onPress={() => setSelectedTag(null)}
               hitSlop={8}
-              style={styles.clearTagBtn}
+              style={styles.clearFilterBtn}
             >
               <MaterialIcons
                 name="close"
-                size={14}
+                size={15}
                 color={colors.onPrimaryContainer}
               />
               <Text
                 style={[
-                  styles.clearTagText,
+                  styles.clearFilterText,
                   { color: colors.onPrimaryContainer },
                 ]}
               >
@@ -804,7 +868,7 @@ export default function VibesScreen() {
           </View>
         )}
 
-        {/* Horizontal Category Filter Pills (Material 3 Filter Chips) */}
+        {/* Horizontal Category Filter Pills (Material 3 Minimalist Chips) */}
         <View style={styles.categoriesContainer}>
           <FlatList
             horizontal
@@ -816,13 +880,7 @@ export default function VibesScreen() {
               const isSelected = selectedCategory === item.key && !selectedTag;
               return (
                 <Pressable
-                  onPress={() => {
-                    Haptics.impactAsync(
-                      Haptics.ImpactFeedbackStyle.Light
-                    ).catch(() => {});
-                    setSelectedCategory(item.key);
-                    setSelectedTag(null);
-                  }}
+                  onPress={() => handleCategorySelect(item.key)}
                   style={[
                     styles.categoryChip,
                     {
@@ -834,10 +892,12 @@ export default function VibesScreen() {
                         : colors.outlineVariant || "transparent",
                     },
                   ]}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Filter by ${item.label}`}
                 >
                   <MaterialIcons
-                    name={item.icon}
-                    size={14}
+                    name={item.icon || "auto-awesome"}
+                    size={15}
                     color={
                       isSelected
                         ? colors.onPrimaryContainer
@@ -867,29 +927,257 @@ export default function VibesScreen() {
       </View>
     );
   }, [
-    feedCategories,
     activeTab,
-    selectedTag,
+    feedCategories,
     selectedCategory,
+    selectedTag,
     debouncedSearch,
     colors,
+    handleCategorySelect,
+    isAuthenticated,
+    showToast,
+  ]);
+
+  // Contextual Empty State / Inline Loading component for ListEmptyComponent
+  const renderEmptyComponent = useCallback(() => {
+    // 1. If currently loading initial page for this view, show inline skeleton cards
+    // without unmounting the header or chips!
+    if (currentLoading) {
+      return (
+        <View style={styles.skeletonContainer}>
+          {[1, 2].map((i) => (
+            <View
+              key={i}
+              style={[
+                styles.skeletonCard,
+                { backgroundColor: colors.surfaceContainer },
+              ]}
+            >
+              <View style={styles.skeletonHeader}>
+                <SkeletonLoader width={38} height={38} borderRadius={19} />
+                <View style={{ gap: 4, flex: 1 }}>
+                  <SkeletonLoader width={130} height={14} borderRadius={7} />
+                  <SkeletonLoader width={85} height={10} borderRadius={5} />
+                </View>
+              </View>
+              <SkeletonLoader width="100%" height={240} borderRadius={0} />
+              <View style={styles.skeletonBody}>
+                <SkeletonLoader width="35%" height={16} borderRadius={8} />
+                <SkeletonLoader width="85%" height={14} borderRadius={7} />
+              </View>
+            </View>
+          ))}
+        </View>
+      );
+    }
+
+    // 2. Empty State for Feed tab
+    if (activeTab === "feed") {
+      const isFiltered =
+        selectedCategory !== "all" || !!selectedTag || !!debouncedSearch;
+
+      let emptyIcon = "auto-awesome";
+      let emptyTitle = "No Vibes Yet";
+      let emptySubtitle =
+        "Be the first to share a campus moment, achievement, or story!";
+
+      if (debouncedSearch) {
+        emptyIcon = "search-off";
+        emptyTitle = `No Results for "${debouncedSearch}"`;
+        emptySubtitle =
+          "Try searching for different keywords, captions, or campus tags.";
+      } else if (selectedTag) {
+        emptyIcon = "tag";
+        emptyTitle = `No Vibes Tagged #${selectedTag}`;
+        emptySubtitle =
+          "No campus posts found with this hashtag. Explore all posts or create one!";
+      } else if (selectedCategory !== "all") {
+        emptyIcon = currentCategoryObj.icon || "bubble-chart";
+        emptyTitle = `No ${currentCategoryObj.label} Vibes Yet`;
+        emptySubtitle = `There are currently no vibes posted in ${currentCategoryObj.label}. Share the first update!`;
+      }
+
+      return (
+        <View style={styles.emptyContainer}>
+          <View
+            style={[
+              styles.emptyIconCircle,
+              { backgroundColor: colors.surfaceContainerHighest },
+            ]}
+          >
+            <MaterialIcons
+              name={emptyIcon}
+              size={34}
+              color={colors.primary}
+            />
+          </View>
+          <Text style={[styles.emptyTitle, { color: colors.onSurface }]}>
+            {emptyTitle}
+          </Text>
+          <Text
+            style={[styles.emptySubtitle, { color: colors.onSurfaceVariant }]}
+          >
+            {emptySubtitle}
+          </Text>
+
+          {/* Action Buttons: 1-Tap Reset & Create Post */}
+          <View style={styles.emptyActionRow}>
+            {isFiltered && (
+              <Pressable
+                onPress={handleResetFilters}
+                style={[
+                  styles.emptyResetBtn,
+                  {
+                    backgroundColor: colors.surfaceContainerHigh,
+                    borderColor: colors.outlineVariant || "transparent",
+                  },
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel="Explore All Vibes"
+              >
+                <MaterialIcons
+                  name="auto-awesome"
+                  size={16}
+                  color={colors.primary}
+                />
+                <Text
+                  style={[styles.emptyResetText, { color: colors.primary }]}
+                >
+                  Explore All Vibes
+                </Text>
+              </Pressable>
+            )}
+
+            <Pressable
+              onPress={() => {
+                if (!isAuthenticated) {
+                  showToast("Please log in to post Vibes", "info");
+                  return;
+                }
+                setEditingVibe(null);
+                setShowCreateModal(true);
+              }}
+              style={[
+                styles.emptyPrimaryBtn,
+                { backgroundColor: colors.primary },
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel="Create Vibe Post"
+            >
+              <MaterialIcons name="add" size={18} color="#FFFFFF" />
+              <Text style={styles.emptyPrimaryBtnText}>Create Vibe</Text>
+            </Pressable>
+          </View>
+        </View>
+      );
+    }
+
+    // 3. Empty State for My Posts tab
+    if (activeTab === "my-vibes") {
+      return (
+        <View style={styles.emptyContainer}>
+          <View
+            style={[
+              styles.emptyIconCircle,
+              { backgroundColor: colors.surfaceContainerHighest },
+            ]}
+          >
+            <MaterialIcons
+              name="photo-camera"
+              size={34}
+              color={colors.primary}
+            />
+          </View>
+          <Text style={[styles.emptyTitle, { color: colors.onSurface }]}>
+            No Posts Yet
+          </Text>
+          <Text
+            style={[styles.emptySubtitle, { color: colors.onSurfaceVariant }]}
+          >
+            Your submitted vibes, approval statuses, and admin feedback will appear here.
+          </Text>
+          <Pressable
+            onPress={() => {
+              if (!isAuthenticated) {
+                showToast("Please log in to post Vibes", "info");
+                return;
+              }
+              setEditingVibe(null);
+              setShowCreateModal(true);
+            }}
+            style={[
+              styles.emptyPrimaryBtn,
+              { backgroundColor: colors.primary, marginTop: 12 },
+            ]}
+          >
+            <MaterialIcons name="add" size={18} color="#FFFFFF" />
+            <Text style={styles.emptyPrimaryBtnText}>Post a Vibe</Text>
+          </Pressable>
+        </View>
+      );
+    }
+
+    // 4. Empty State for Saved tab
+    return (
+      <View style={styles.emptyContainer}>
+        <View
+          style={[
+            styles.emptyIconCircle,
+            { backgroundColor: colors.surfaceContainerHighest },
+          ]}
+        >
+          <MaterialIcons
+            name="bookmark-border"
+            size={34}
+            color={colors.primary}
+          />
+        </View>
+        <Text style={[styles.emptyTitle, { color: colors.onSurface }]}>
+          No Saved Vibes
+        </Text>
+        <Text
+          style={[styles.emptySubtitle, { color: colors.onSurfaceVariant }]}
+        >
+          Tap the bookmark icon on any post in the feed to save it for quick access later.
+        </Text>
+        <Pressable
+          onPress={() => setActiveTab("feed")}
+          style={[
+            styles.emptyPrimaryBtn,
+            { backgroundColor: colors.primary, marginTop: 12 },
+          ]}
+        >
+          <MaterialIcons name="dynamic-feed" size={18} color="#FFFFFF" />
+          <Text style={styles.emptyPrimaryBtnText}>Explore Feed</Text>
+        </Pressable>
+      </View>
+    );
+  }, [
+    currentLoading,
+    activeTab,
+    selectedCategory,
+    selectedTag,
+    debouncedSearch,
+    currentCategoryObj,
+    colors,
+    handleResetFilters,
     isAuthenticated,
     showToast,
   ]);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      {/* ──── Offline / Slow Network Hint Banner ──── */}
+      {/* ──── Offline / Slow Network Banner ──── */}
       {!isConnected ? (
         <View style={styles.offlineBanner}>
-          <MaterialIcons name="cloud-off" size={14} color="#fff" />
+          <MaterialIcons name="cloud-off" size={13} color="#FFFFFF" />
           <Text style={styles.offlineBannerText}>
             You're offline. Browsing cached vibes.
           </Text>
         </View>
       ) : isSlow ? (
         <View style={[styles.offlineBanner, { backgroundColor: "#1E293B" }]}>
-          <MaterialIcons name="speed" size={14} color="#38BDF8" />
+          <MaterialIcons name="speed" size={13} color="#38BDF8" />
           <Text style={[styles.offlineBannerText, { color: "#E0F2FE" }]}>
             Slow connection • Low-data mode active
           </Text>
@@ -912,7 +1200,7 @@ export default function VibesScreen() {
               Vibes
             </Text>
             <View style={styles.sparkleBadge}>
-              <MaterialIcons name="auto-awesome" size={16} color="#F59E0B" />
+              <MaterialIcons name="auto-awesome" size={15} color="#F59E0B" />
             </View>
           </View>
         </View>
@@ -931,7 +1219,7 @@ export default function VibesScreen() {
             >
               <MaterialIcons
                 name="admin-panel-settings"
-                size={20}
+                size={19}
                 color={colors.primary}
               />
               {pendingCount > 0 && (
@@ -963,7 +1251,7 @@ export default function VibesScreen() {
           >
             <MaterialIcons
               name="search"
-              size={20}
+              size={19}
               color={showSearchBar ? colors.primary : colors.onSurface}
             />
           </Pressable>
@@ -983,7 +1271,7 @@ export default function VibesScreen() {
           >
             <MaterialIcons
               name={unreadCount > 0 ? "notifications-active" : "notifications-none"}
-              size={20}
+              size={19}
               color={unreadCount > 0 ? colors.primary : colors.onSurface}
             />
             {unreadCount > 0 && (
@@ -1014,7 +1302,7 @@ export default function VibesScreen() {
           >
             <MaterialIcons
               name="add"
-              size={18}
+              size={17}
               color={colors.onPrimaryContainer}
             />
             <Text
@@ -1070,7 +1358,7 @@ export default function VibesScreen() {
         </View>
       )}
 
-      {/* ──── Material 3 Segmented Button: Feed / My Posts / Saved ──── */}
+      {/* ──── Segmented Button: Feed / My Posts / Saved ──── */}
       <View style={[styles.segmentWrapper, { backgroundColor: colors.surface }]}>
         <View
           style={[
@@ -1217,163 +1505,69 @@ export default function VibesScreen() {
         </View>
       </View>
 
-      {/* ──── Vibes Content Feed ──── */}
-      {currentLoading && currentList.length === 0 ? (
-        <View style={styles.skeletonContainer}>
-          {[1, 2].map((i) => (
-            <View
-              key={i}
-              style={[
-                styles.skeletonCard,
-                { backgroundColor: colors.surfaceContainer },
-              ]}
-            >
-              <View
-                style={{
-                  flexDirection: "row",
-                  padding: 14,
-                  alignItems: "center",
-                  gap: 10,
-                }}
+      {/* ──── Vibes Content Feed (Always mounted FlatList) ──── */}
+      <FlatList
+        ref={scrollRef}
+        data={currentList}
+        ListHeaderComponent={renderListHeader}
+        ListEmptyComponent={renderEmptyComponent}
+        renderItem={
+          activeTab === "my-vibes" ? renderMyVibeItem : renderFeedItem
+        }
+        keyExtractor={(item) => item._id}
+        showsVerticalScrollIndicator={false}
+        scrollsToTop={true}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={[
+          themeStyles.contentPaddingBottom,
+          styles.listContent,
+        ]}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        initialNumToRender={3}
+        maxToRenderPerBatch={3}
+        windowSize={5}
+        removeClippedSubviews={Platform.OS === "android"}
+        updateCellsBatchingPeriod={40}
+        refreshControl={
+          <AppRefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+          />
+        }
+        onEndReached={() => {
+          if (
+            activeTab === "feed" &&
+            hasFeedNextPage &&
+            !isFeedFetchingNext
+          ) {
+            fetchFeedNextPage();
+          } else if (activeTab === "my-vibes" && hasMyVibesNext) {
+            fetchMyVibesNext();
+          } else if (activeTab === "saved" && hasSavedNext) {
+            fetchSavedNext();
+          }
+        }}
+        onEndReachedThreshold={0.4}
+        ListFooterComponent={
+          isFeedFetchingNext ? (
+            <View style={styles.loadingMore}>
+              <ActivityIndicator size="small" color={colors.primary} />
+              <Text
+                style={[
+                  styles.loadingMoreText,
+                  { color: colors.onSurfaceVariant },
+                ]}
               >
-                <SkeletonLoader width={40} height={40} borderRadius={20} />
-                <View style={{ gap: 4, flex: 1 }}>
-                  <SkeletonLoader width={130} height={14} borderRadius={7} />
-                  <SkeletonLoader width={80} height={10} borderRadius={5} />
-                </View>
-              </View>
-              <SkeletonLoader width="100%" height={260} borderRadius={0} />
-              <View style={{ padding: 14, gap: 8 }}>
-                <SkeletonLoader width="35%" height={16} borderRadius={8} />
-                <SkeletonLoader width="85%" height={14} borderRadius={7} />
-              </View>
+                Loading more vibes...
+              </Text>
             </View>
-          ))}
-        </View>
-      ) : currentList.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <View
-            style={[
-              styles.emptyIconCircle,
-              { backgroundColor: colors.surfaceContainerHighest },
-            ]}
-          >
-            <MaterialIcons
-              name={
-                activeTab === "feed"
-                  ? "auto-awesome"
-                  : activeTab === "my-vibes"
-                  ? "photo-camera"
-                  : "bookmark-border"
-              }
-              size={36}
-              color={colors.primary}
-            />
-          </View>
-          <Text style={[styles.emptyTitle, { color: colors.onSurface }]}>
-            {activeTab === "feed"
-              ? "No Vibes Yet"
-              : activeTab === "my-vibes"
-              ? "No Posts Yet"
-              : "No Saved Vibes"}
-          </Text>
-          <Text
-            style={[styles.emptySubtitle, { color: colors.onSurfaceVariant }]}
-          >
-            {activeTab === "feed"
-              ? "Be the first to share a campus moment, achievement, or story!"
-              : activeTab === "my-vibes"
-              ? "Your submitted vibes and approval status will appear here."
-              : "Tap the bookmark icon on any post in the feed to save it."}
-          </Text>
-          <Pressable
-            onPress={() => {
-              if (activeTab === "feed" || activeTab === "my-vibes") {
-                if (!isAuthenticated) {
-                  showToast("Please log in to post Vibes", "info");
-                  return;
-                }
-                setEditingVibe(null);
-                setShowCreateModal(true);
-              } else {
-                onRefresh();
-              }
-            }}
-            style={[
-              styles.emptyActionButton,
-              { backgroundColor: colors.primary },
-            ]}
-          >
-            <Text style={styles.emptyActionText}>
-              {activeTab === "feed" || activeTab === "my-vibes"
-                ? "Create Vibe"
-                : "Explore Feed"}
-            </Text>
-          </Pressable>
-        </View>
-      ) : (
-        <FlatList
-          ref={scrollRef}
-          data={currentList}
-          ListHeaderComponent={renderListHeader}
-          renderItem={
-            activeTab === "my-vibes" ? renderMyVibeItem : renderFeedItem
-          }
-          keyExtractor={(item) => item._id}
-          showsVerticalScrollIndicator={false}
-          scrollsToTop={true}
-          keyboardDismissMode="on-drag"
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={[
-            themeStyles.contentPaddingBottom,
-            styles.listContent,
-          ]}
-          onViewableItemsChanged={onViewableItemsChanged}
-          viewabilityConfig={viewabilityConfig}
-          initialNumToRender={3}
-          maxToRenderPerBatch={3}
-          windowSize={5}
-          removeClippedSubviews={Platform.OS === "android"}
-          updateCellsBatchingPeriod={40}
-          refreshControl={
-            <AppRefreshControl
-              refreshing={isRefreshing}
-              onRefresh={onRefresh}
-            />
-          }
-          onEndReached={() => {
-            if (
-              activeTab === "feed" &&
-              hasFeedNextPage &&
-              !isFeedFetchingNext
-            ) {
-              fetchFeedNextPage();
-            } else if (activeTab === "my-vibes" && hasMyVibesNext) {
-              fetchMyVibesNext();
-            } else if (activeTab === "saved" && hasSavedNext) {
-              fetchSavedNext();
-            }
-          }}
-          onEndReachedThreshold={0.4}
-          ListFooterComponent={
-            isFeedFetchingNext ? (
-              <View style={styles.loadingMore}>
-                <ActivityIndicator size="small" color={colors.primary} />
-                <Text
-                  style={[
-                    styles.loadingMoreText,
-                    { color: colors.onSurfaceVariant },
-                  ]}
-                >
-                  Loading more vibes...
-                </Text>
-              </View>
-            ) : null
-          }
-        />
-      )}
+          ) : null
+        }
+      />
 
-      {/* ──── Material 3 Extended Floating Action Button (FAB) ──── */}
+      {/* ──── Extended Floating Action Button (FAB) ──── */}
       {isAuthenticated && (
         <Pressable
           onPress={() => {
@@ -1395,7 +1589,7 @@ export default function VibesScreen() {
         >
           <MaterialIcons
             name="add"
-            size={22}
+            size={20}
             color={colors.onPrimaryContainer}
           />
           <Text
@@ -1521,7 +1715,7 @@ const styles = StyleSheet.create({
   },
   segmentWrapper: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 6,
   },
   segmentContainer: {
     flexDirection: "row",
@@ -1549,10 +1743,10 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.medium,
   },
   feedHeaderContainer: {
-    paddingBottom: 4,
+    paddingBottom: 2,
   },
   categoriesContainer: {
-    paddingVertical: 8,
+    paddingVertical: 6,
   },
   categoriesScroll: {
     paddingHorizontal: 14,
@@ -1570,7 +1764,7 @@ const styles = StyleSheet.create({
   categoryChipText: {
     fontSize: FONT_SIZES.sm,
   },
-  activeTagBanner: {
+  activeFilterBanner: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -1581,73 +1775,109 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 14,
   },
-  activeTagBadge: {
+  activeFilterBadge: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: 5,
+    flex: 1,
   },
-  activeTagText: {
+  activeFilterText: {
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
-  clearTagBtn: {
+  clearFilterBtn: {
     flexDirection: "row",
     alignItems: "center",
     gap: 2,
+    paddingLeft: 8,
   },
-  clearTagText: {
+  clearFilterText: {
     fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
   },
   listContent: {
     paddingTop: 4,
-    paddingBottom: 80,
+    paddingBottom: 85,
+    flexGrow: 1,
   },
   skeletonContainer: {
-    paddingTop: 12,
+    paddingTop: 8,
     paddingHorizontal: 12,
     gap: 16,
   },
   skeletonCard: {
-    borderRadius: 24,
+    borderRadius: 22,
     overflow: "hidden",
   },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
+  skeletonHeader: {
+    flexDirection: "row",
+    padding: 14,
     alignItems: "center",
-    paddingHorizontal: 32,
-    paddingVertical: 60,
     gap: 10,
   },
+  skeletonBody: {
+    padding: 14,
+    gap: 8,
+  },
+  emptyContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 28,
+    paddingVertical: 45,
+    gap: 8,
+  },
   emptyIconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 4,
   },
   emptyTitle: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.base,
     fontFamily: FONTS.bold,
     letterSpacing: -0.2,
+    textAlign: "center",
   },
   emptySubtitle: {
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
     textAlign: "center",
-    lineHeight: 20,
-    paddingHorizontal: 10,
+    lineHeight: 19,
+    paddingHorizontal: 14,
   },
-  emptyActionButton: {
-    marginTop: 10,
-    paddingHorizontal: 22,
-    paddingVertical: 10,
+  emptyActionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginTop: 14,
+    flexWrap: "wrap",
+    justifyContent: "center",
+  },
+  emptyResetBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  emptyResetText: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
+  },
+  emptyPrimaryBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 18,
+    paddingVertical: 9,
     borderRadius: 20,
   },
-  emptyActionText: {
-    color: "#fff",
+  emptyPrimaryBtnText: {
+    color: "#FFFFFF",
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
@@ -1665,7 +1895,7 @@ const styles = StyleSheet.create({
   myVibeCardWrapper: {
     marginHorizontal: 12,
     marginBottom: 16,
-    borderRadius: 24,
+    borderRadius: 22,
     overflow: "hidden",
     borderWidth: StyleSheet.hairlineWidth,
   },
@@ -1736,7 +1966,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginHorizontal: 14,
-    marginBottom: 8,
+    marginBottom: 6,
     paddingHorizontal: 12,
     height: 40,
     borderRadius: 20,
@@ -1753,5 +1983,3 @@ const styles = StyleSheet.create({
     padding: 4,
   },
 });
-
-

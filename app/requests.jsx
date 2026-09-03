@@ -3,7 +3,14 @@ import { View, Text, ScrollView } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "expo-router";
-import { useTheme, FONTS, FONT_SIZES } from "../theme";
+import {
+  useTheme,
+  FONTS,
+  FONT_SIZES,
+  SPACING,
+  RADIUS,
+  ICON_SIZES,
+} from "../theme";
 import Header from "../components/Header";
 import Card from "../components/Card";
 import apiConfig from "../config/apiConfig";
@@ -95,25 +102,30 @@ export default function RequestsScreen() {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        padding: 20,
+        padding: SPACING.lg || 16,
       }}
-      style={{ marginBottom: 16 }}
+      style={{ marginBottom: SPACING.md || 12 }}
     >
       <View
-        style={{ flexDirection: "row", alignItems: "center", gap: 16, flex: 1 }}
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: SPACING.md || 14,
+          flex: 1,
+        }}
       >
         <View
           style={{
-            backgroundColor: color + "15", // 15% opacity
-            padding: 12,
-            borderRadius: 12,
-            width: 52,
-            height: 52,
+            backgroundColor: color + "15",
+            padding: SPACING.md || 10,
+            borderRadius: RADIUS.md || 12,
+            width: 48,
+            height: 48,
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <MaterialIcons name={icon} size={26} color={color} />
+          <MaterialIcons name={icon} size={ICON_SIZES.md || 24} color={color} />
         </View>
         <View style={{ flex: 1 }}>
           <Text
@@ -121,7 +133,7 @@ export default function RequestsScreen() {
               fontSize: FONT_SIZES.md,
               fontFamily: FONTS.bold,
               color: colors.onSurface,
-              marginBottom: 4,
+              marginBottom: 2,
             }}
           >
             {title}
@@ -139,7 +151,7 @@ export default function RequestsScreen() {
       </View>
       <MaterialIcons
         name="chevron-right"
-        size={24}
+        size={ICON_SIZES.md || 24}
         color={colors.onSurfaceVariant}
       />
     </Card>
@@ -155,7 +167,10 @@ export default function RequestsScreen() {
         showsVerticalScrollIndicator={false}
         scrollsToTop={true}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[styles.contentPaddingBottom, { padding: 16 }]}
+        contentContainerStyle={[
+          styles.contentPaddingBottom,
+          { padding: SPACING.lg || 16 },
+        ]}
       >
         <Header
           title={t("requests.title")}
@@ -163,7 +178,7 @@ export default function RequestsScreen() {
           variant="root"
         />
 
-        <View style={{ marginTop: 8 }}>
+        <View style={{ marginTop: SPACING.xs || 4 }}>
           {/* My Attendance Card - For All */}
           {renderActionItem({
             title: t("requests.myAttendance"),
@@ -182,7 +197,7 @@ export default function RequestsScreen() {
                   ? t("requests.markAttendanceAdminSubtitle")
                   : t("requests.markAttendanceTeacherSubtitle"),
               icon: "edit-calendar",
-              color: "#2196F3",
+              color: colors.primary,
               onPress: navigateToMarkAttendance,
             })}
 

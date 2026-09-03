@@ -192,9 +192,9 @@ const MinimalStatTile = ({
       style={({ pressed }) => [
         localStyles.minimalTile,
         {
-          backgroundColor: isDark ? `${tileAccent}18` : `${tileAccent}0A`,
-          borderColor: isDark ? `${tileAccent}38` : `${tileAccent}24`,
-          opacity: pressed ? 0.75 : 1,
+          backgroundColor: isDark ? colors.surfaceContainer : colors.surface,
+          borderColor: isDark ? `${colors.outlineVariant}50` : colors.outlineVariant,
+          opacity: pressed ? 0.82 : 1,
         },
       ]}
       accessibilityRole="button"
@@ -207,11 +207,9 @@ const MinimalStatTile = ({
             localStyles.miniIconWrap,
             {
               backgroundColor: isDark
-                ? `${tileAccent}25`
-                : `${tileAccent}15`,
-              borderColor: isDark
-                ? `${tileAccent}40`
-                : `${tileAccent}28`,
+                ? `${tileAccent}20`
+                : `${tileAccent}10`,
+              borderColor: "transparent",
             },
           ]}
         >
@@ -224,8 +222,8 @@ const MinimalStatTile = ({
               localStyles.miniTrendBadge,
               {
                 backgroundColor: isDark
-                  ? `${trendColor}25`
-                  : `${trendColor}15`,
+                  ? `${trendColor}20`
+                  : `${trendColor}12`,
               },
             ]}
           >
@@ -244,8 +242,8 @@ const MinimalStatTile = ({
               localStyles.miniSubBadge,
               {
                 backgroundColor: isDark
-                  ? `${subBadgeColor || colors.primary}22`
-                  : `${subBadgeColor || colors.primary}15`,
+                  ? `${subBadgeColor || colors.primary}20`
+                  : `${subBadgeColor || colors.primary}12`,
               },
             ]}
           >
@@ -290,58 +288,58 @@ const MinimalStatTile = ({
 const localStyles = StyleSheet.create({
   minimalStatsRow: {
     flexDirection: "row",
-    gap: 8,
+    gap: 12,
   },
   minimalTile: {
     flex: 1,
     minWidth: 0,
-    borderRadius: 14,
-    borderWidth: 1,
-    padding: 10,
+    borderRadius: 16,
+    borderWidth: 0.5,
+    padding: 12,
     justifyContent: "space-between",
   },
   tileTopRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 6,
+    marginBottom: 8,
     gap: 4,
   },
   miniIconWrap: {
-    width: 24,
-    height: 24,
-    borderRadius: 7,
+    width: 26,
+    height: 26,
+    borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
+    borderWidth: 0,
     flexShrink: 0,
   },
   miniTrendBadge: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 4,
-    paddingVertical: 1.5,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
     borderRadius: 6,
-    gap: 1,
+    gap: 2,
     flexShrink: 0,
   },
   miniTrendText: {
     fontSize: FONT_SIZES.micro,
-    fontFamily: FONTS.bold,
+    fontFamily: FONTS.semiBold,
   },
   miniSubBadge: {
-    paddingHorizontal: 4,
-    paddingVertical: 1.5,
-    borderRadius: 5,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
     flexShrink: 1,
   },
   miniSubBadgeText: {
     fontSize: FONT_SIZES.micro,
-    fontFamily: FONTS.bold,
+    fontFamily: FONTS.medium,
   },
   metricValue: {
     fontSize: FONT_SIZES.md,
-    fontFamily: FONTS.bold,
+    fontFamily: FONTS.semiBold,
     letterSpacing: -0.3,
     marginBottom: 2,
   },

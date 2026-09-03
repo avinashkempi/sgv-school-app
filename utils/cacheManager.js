@@ -1,10 +1,12 @@
 import storage from "./storage";
 import { queryClient } from "./queryClient";
+import { resetOfflineQueue } from "./offlineQueue";
 
 /**
  * Clear ALL caches comprehensively:
  * - React Query in-memory cache
  * - React Query persisted cache (AsyncStorage)
+ * - Offline mutation queue (prevents cross-account data leakage)
  * - Legacy manual app caches (from old dual-cache system)
  *
  * Note: We remove the persisted cache key BEFORE clearing in-memory,
@@ -15,13 +17,24 @@ export async function clearAllCaches() {
     console.log("[CacheManager] Starting comprehensive cache clear...");
 
     // 1. Remove the persisted cache from AsyncStorage FIRST
-    //    This prevents the throttled persister from re-saving stale data
-    await storage.removeItem("@react-query-persist");
+    //    We remove both the TanStack default key and custom key
+    await storage.multiRemove([
+      "REACT_QUERY_OFFLINE_CACHE",
+      "@react-query-persist",
+      "@school_app_offline_queue",
+    ]);
 
     // 2. Clear React Query in-memory cache
     queryClient.clear();
 
-    // 3. Clear legacy manual cache keys (kept for cleanup of old installs)
+    // 3. Clear in-memory and persistent offline mutation queue
+    try {
+      await resetOfflineQueue();
+    } catch (qErr) {
+      console.warn("[CacheManager] Error resetting offline queue:", qErr);
+    }
+
+    // 4. Clear legacy manual cache keys (kept for cleanup of old installs)
     const legacyKeys = [
       "@cached_events",
       "@cached_school_info",
@@ -34,9 +47,13 @@ export async function clearAllCaches() {
 
     await storage.multiRemove(legacyKeys);
 
-    // 4. Remove persisted cache again after clear, in case the persister
+    // 5. Remove persisted cache again after clear, in case the persister
     //    re-wrote during the brief window above (belt and suspenders)
-    await storage.removeItem("@react-query-persist");
+    await storage.multiRemove([
+      "REACT_QUERY_OFFLINE_CACHE",
+      "@react-query-persist",
+      "@school_app_offline_queue",
+    ]);
 
     console.log("[CacheManager] All caches cleared successfully");
     return { success: true };

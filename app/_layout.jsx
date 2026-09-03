@@ -29,6 +29,7 @@ import {
   setGlobalAuthHandler,
 } from "../utils/queryClient";
 import DemoBanner from "../components/DemoBanner";
+import OfflineSyncBar from "../components/offline/OfflineSyncBar";
 import useOfflinePrefetch from "../hooks/useOfflinePrefetch";
 import { setupAppStateRefresh } from "../utils/appStateRefresh";
 import { handleNotificationNavigation } from "../utils/notificationRouter";
@@ -202,6 +203,7 @@ function Inner() {
         <NavigationProvider>
           <NotificationProvider>
             {isDemo && !isLogin && <DemoBanner />}
+            {!isLogin && <OfflineSyncBar />}
             <Stack
               screenOptions={{
                 headerShown: false,

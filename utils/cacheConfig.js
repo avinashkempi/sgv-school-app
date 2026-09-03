@@ -13,48 +13,48 @@
  */
 
 export const CACHE_TIERS = {
-  /** 24 h stale, 48 h memory storage */
+  /** 24 h stale, 48 h cache retention */
   STATIC: {
     staleTime: 24 * 60 * 60 * 1000, // 24 hours
     gcTime: 48 * 60 * 60 * 1000, // 48 hours
     refetchOnMount: false,
   },
 
-  /** 30 min stale, 4 h memory storage */
+  /** 30 min stale, 24 h cache retention */
   STABLE: {
     staleTime: 30 * 60 * 1000, // 30 minutes
-    gcTime: 4 * 60 * 60 * 1000, // 4 hours
+    gcTime: 24 * 60 * 60 * 1000, // 24 hours
     refetchOnMount: false,
   },
 
-  /** 5 min stale, 30 min memory storage */
+  /** 5 min stale, 24 h cache retention */
   MODERATE: {
     staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 24 * 60 * 60 * 1000, // 24 hours
   },
 
-  /** 30 s stale, 5 min memory storage */
+  /** 30 s stale, 24 h cache retention */
   REAL_TIME: {
     staleTime: 30 * 1000, // 30 seconds
-    gcTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 24 * 60 * 60 * 1000, // 24 hours
   },
 
-  /** Vibes Feed: 2 min freshness with 2 hours cache persistence for fast/offline browsing */
+  /** Vibes Feed: 2 min freshness with 24 hours cache retention for offline browsing */
   VIBES_FEED: {
     staleTime: 2 * 60 * 1000, // 2 minutes
-    gcTime: 2 * 60 * 60 * 1000, // 2 hours
+    gcTime: 24 * 60 * 60 * 1000, // 24 hours
   },
 
-  /** Vibes Home Widgets: 1 min freshness with 1 hour cache for stories tray & spotlight */
+  /** Vibes Home Widgets: 1 min freshness with 24 hours cache retention */
   VIBES_HOME: {
     staleTime: 60 * 1000, // 1 minute
-    gcTime: 60 * 60 * 1000, // 1 hour
+    gcTime: 24 * 60 * 60 * 1000, // 24 hours
   },
 
-  /** Vibes Realtime: 15s freshness with 10 min cache for comments & active interactions */
+  /** Vibes Realtime: 15s freshness with 24 hours cache retention */
   VIBES_REALTIME: {
     staleTime: 15 * 1000, // 15 seconds
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 24 * 60 * 60 * 1000, // 24 hours
   },
 };
 

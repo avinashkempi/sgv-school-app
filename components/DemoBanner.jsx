@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     color: "#FFF",
-    fontSize: 10,
+    fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.bold,
     letterSpacing: LETTER_SPACINGS.micro,
   },

@@ -65,14 +65,14 @@ const UpcomingEventsCard = () => {
 
   const cyanAccent = isDark ? "#22D3EE" : "#0E7490";
   const cardSurface = isDark
-    ? "rgba(34, 211, 238, 0.08)"
-    : "rgba(14, 116, 144, 0.045)";
+    ? colors.surfaceContainer
+    : colors.surface;
   const subBorder = isDark
-    ? "rgba(34, 211, 238, 0.2)"
-    : "rgba(14, 116, 144, 0.15)";
+    ? `${colors.outlineVariant}50`
+    : colors.outlineVariant;
   const dividerBorder = isDark
-    ? "rgba(34, 211, 238, 0.12)"
-    : "rgba(14, 116, 144, 0.08)";
+    ? `${colors.outlineVariant}30`
+    : `${colors.outlineVariant}80`;
 
   if (!events || events.length === 0) {
     return null;
@@ -85,10 +85,6 @@ const UpcomingEventsCard = () => {
       accentColor={cyanAccent}
       actionText="Calendar"
       onActionPress={handleNavigate}
-      lightBg="rgba(14, 116, 144, 0.045)"
-      darkBg="rgba(34, 211, 238, 0.07)"
-      lightBorder="rgba(14, 116, 144, 0.14)"
-      darkBorder="rgba(34, 211, 238, 0.18)"
     >
       <View
         style={[
@@ -231,8 +227,8 @@ const UpcomingEventsCard = () => {
 
 const styles = StyleSheet.create({
   eventsCard: {
-    borderRadius: 18,
-    borderWidth: 1,
+    borderRadius: 16,
+    borderWidth: 0.5,
     overflow: "hidden",
   },
   eventItem: {
@@ -245,21 +241,21 @@ const styles = StyleSheet.create({
   dateTile: {
     width: 44,
     height: 44,
-    borderRadius: 12,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
+    borderWidth: 0,
     flexShrink: 0,
   },
   dateMonthText: {
     fontSize: FONT_SIZES.micro,
-    fontFamily: FONTS.bold,
+    fontFamily: FONTS.medium,
     letterSpacing: 0.5,
     marginTop: 1,
   },
   dateDayText: {
     fontSize: FONT_SIZES.md,
-    fontFamily: FONTS.bold,
+    fontFamily: FONTS.semiBold,
     marginTop: -2,
   },
   eventInfo: {
@@ -268,7 +264,7 @@ const styles = StyleSheet.create({
   },
   eventTitle: {
     fontSize: FONT_SIZES.md,
-    fontFamily: FONTS.bold,
+    fontFamily: FONTS.semiBold,
     marginBottom: 2,
   },
   metaRow: {
@@ -283,7 +279,7 @@ const styles = StyleSheet.create({
   },
   tagChipText: {
     fontSize: FONT_SIZES.micro,
-    fontFamily: FONTS.bold,
+    fontFamily: FONTS.medium,
   },
   eventDateSubtext: {
     fontSize: FONT_SIZES.xs,

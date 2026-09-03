@@ -4,7 +4,13 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { useTheme, FONTS, FONT_SIZES } from "../theme";
+import {
+  useTheme,
+  FONTS,
+  FONT_SIZES,
+  SPACING,
+  RADIUS,
+} from "../theme";
 import { useNotifications } from "../hooks/useNotifications";
 import YearSelector from "./academic-year/YearSelector";
 import { useApiQuery } from "../hooks/useApi";
@@ -438,17 +444,17 @@ const NotificationBellButton = ({ unreadCount, onPress, colors, t }) => (
 
 const styles = StyleSheet.create({
   welcomeContainer: {
-    paddingTop: 4,
-    paddingBottom: 14,
-    marginBottom: 4,
+    paddingTop: SPACING.xs || 4,
+    paddingBottom: SPACING.md || 14,
+    marginBottom: SPACING.xs || 4,
   },
   standardContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     minHeight: 44,
-    marginBottom: 16,
-    gap: 12,
+    marginBottom: SPACING.lg || 16,
+    gap: SPACING.md || 12,
   },
   topRow: {
     flexDirection: "row",
@@ -460,15 +466,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flex: 1,
     minWidth: 0,
-    marginRight: 8,
+    marginRight: SPACING.sm || 8,
   },
   logoBox: {
     width: 38,
     height: 38,
-    borderRadius: 12,
+    borderRadius: RADIUS.md || 12,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 10,
+    marginRight: SPACING.sm || 10,
     borderWidth: 1,
     padding: 2,
     flexShrink: 0,
@@ -481,10 +487,10 @@ const styles = StyleSheet.create({
   smallLogoBox: {
     width: 34,
     height: 34,
-    borderRadius: 10,
+    borderRadius: RADIUS.sm || 10,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 8,
+    marginRight: SPACING.sm || 8,
     borderWidth: 1,
     padding: 2,
     flexShrink: 0,
@@ -492,7 +498,7 @@ const styles = StyleSheet.create({
   logoImage: {
     width: "100%",
     height: "100%",
-    borderRadius: 8,
+    borderRadius: RADIUS.sm || 8,
   },
   titleColumn: {
     flex: 1,
@@ -500,7 +506,7 @@ const styles = StyleSheet.create({
   },
   brandPrimary: {
     fontSize: FONT_SIZES.sm,
-    fontFamily: FONTS.bold,
+    fontFamily: FONTS.semiBold,
     letterSpacing: 0.3,
   },
   brandSecondary: {
@@ -509,12 +515,12 @@ const styles = StyleSheet.create({
     marginTop: -1,
   },
   welcomeGreetingRow: {
-    marginTop: 14,
-    marginBottom: 2,
+    marginTop: SPACING.xl || 20,
+    marginBottom: SPACING.xs || 4,
   },
   greetingText: {
     fontSize: FONT_SIZES.xl,
-    fontFamily: FONTS.bold,
+    fontFamily: FONTS.semiBold,
     letterSpacing: -0.5,
   },
   greetingDate: {
@@ -554,17 +560,17 @@ const styles = StyleSheet.create({
   iconButton: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: RADIUS.full || 20,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 6,
-    marginLeft: -6,
+    marginRight: SPACING.xs || 6,
+    marginLeft: -(SPACING.xs || 6),
     position: "relative",
   },
   rightActionRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: SPACING.sm || 8,
     flexShrink: 0,
   },
   yearPill: {
@@ -572,7 +578,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 9,
     paddingVertical: 5,
-    borderRadius: 16,
+    borderRadius: RADIUS.lg || 16,
     borderWidth: 1,
     maxWidth: 130,
   },
@@ -585,7 +591,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 4,
     top: 4,
-    borderRadius: 10,
+    borderRadius: RADIUS.sm || 10,
     minWidth: 16,
     height: 16,
     justifyContent: "center",

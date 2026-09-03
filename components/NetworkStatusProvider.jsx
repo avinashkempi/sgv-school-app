@@ -4,10 +4,13 @@ import React, {
   useEffect,
   useState,
   useCallback,
+  useRef,
 } from "react";
 import NetInfo from "@react-native-community/netinfo";
 import { ToastAndroid, Platform } from "react-native";
+import { useQueryClient } from "@tanstack/react-query";
 import storage from "../utils/storage";
+import { syncQueue } from "../utils/offlineQueue";
 
 const NetworkStatusContext = createContext({
   isConnected: true,
@@ -18,9 +21,11 @@ const NetworkStatusContext = createContext({
 export const useNetworkStatus = () => useContext(NetworkStatusContext);
 
 export default function NetworkStatusProvider({ children }) {
+  const queryClient = useQueryClient();
   const [isConnected, setIsConnected] = useState(true);
   const [isInternetReachable, setIsInternetReachable] = useState(true);
   const [onlineCallbacks, setOnlineCallbacks] = useState(new Set());
+  const wasOfflineRef = useRef(false);
 
   // Register a callback to be fired when the device comes online
   const registerOnlineCallback = useCallback((callback) => {
@@ -42,14 +47,20 @@ export default function NetworkStatusProvider({ children }) {
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener((state) => {
-      const wasOffline = !isConnected;
-      const isNowOnline = state.isConnected && state.isInternetReachable;
+      const isConnectedBool = !!state.isConnected;
+      const isReachableBool = state.isInternetReachable !== false;
+      const isOnline = isConnectedBool && isReachableBool;
 
-      setIsConnected(!!state.isConnected);
+      setIsConnected(isConnectedBool);
       setIsInternetReachable(!!state.isInternetReachable);
 
-      // If we just came online, trigger callbacks (but only if user is authenticated)
-      if (wasOffline && isNowOnline) {
+      // If device is offline, mark it in ref
+      if (!isOnline) {
+        wasOfflineRef.current = true;
+      } else if (wasOfflineRef.current) {
+        // Device just transitioned from offline to online!
+        wasOfflineRef.current = false;
+
         if (Platform.OS === "android") {
           ToastAndroid.show("Back online", ToastAndroid.SHORT);
         }
@@ -59,6 +70,11 @@ export default function NetworkStatusProvider({ children }) {
           .getItem("@auth_token")
           .then((token) => {
             if (token) {
+              // Automatically sync any queued offline actions
+              syncQueue(queryClient).catch((syncErr) => {
+                console.warn("[NETWORK] Offline queue sync error:", syncErr);
+              });
+
               // User is authenticated, safe to run callbacks
               onlineCallbacks.forEach((callback) => {
                 try {
@@ -82,7 +98,7 @@ export default function NetworkStatusProvider({ children }) {
     return () => {
       unsubscribe();
     };
-  }, [isConnected, onlineCallbacks]);
+  }, [onlineCallbacks, queryClient]);
 
   return (
     <NetworkStatusContext.Provider

@@ -1,12 +1,18 @@
 import React from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
-import { useTheme, FONTS, FONT_SIZES, LETTER_SPACINGS } from "../theme";
+import {
+  useTheme,
+  FONTS,
+  FONT_SIZES,
+  LETTER_SPACINGS,
+  SPACING,
+  RADIUS,
+} from "../theme";
 
 /**
- * Material 3 Segmented Control / Tab Bar
- * Replaces inline tab bar implementations across the app.
+ * Material 3 Modern Segmented Control / Tab Switcher
  *
- * @param {Array} tabs - Array of { key, label } objects
+ * @param {Array} tabs - Array of { key, label, count } objects
  * @param {string} activeTab - Currently active tab key
  * @param {function} onTabChange - Callback with tab key
  * @param {object} style - Optional container style override
@@ -18,7 +24,11 @@ const SegmentedControl = ({ tabs, activeTab, onTabChange, style }) => {
     <View
       style={[
         styles.container,
-        { backgroundColor: colors.surfaceContainerHighest },
+        {
+          backgroundColor: colors.surfaceContainerHigh,
+          borderRadius: RADIUS.md || 12,
+          padding: 3,
+        },
         style,
       ]}
     >
@@ -32,10 +42,11 @@ const SegmentedControl = ({ tabs, activeTab, onTabChange, style }) => {
             style={({ pressed }) => [
               styles.tab,
               {
+                borderRadius: RADIUS.sm || 8,
                 backgroundColor: isActive
-                  ? colors.secondaryContainer
+                  ? colors.surface
                   : pressed
-                  ? colors.surfaceContainerHigh
+                  ? colors.surfaceContainerHighest
                   : "transparent",
               },
             ]}
@@ -43,37 +54,40 @@ const SegmentedControl = ({ tabs, activeTab, onTabChange, style }) => {
             accessibilityState={{ selected: isActive }}
             accessibilityLabel={`${tab.label}${hasCount ? ` (${tab.count})` : ""}`}
           >
-            <Text
-              style={[
-                styles.label,
-                {
-                  color: isActive
-                    ? colors.onSecondaryContainer
-                    : colors.onSurfaceVariant,
-                  fontFamily: isActive ? FONTS.bold : FONTS.medium,
-                },
-              ]}
-              numberOfLines={1}
-            >
-              {tab.label}
-            </Text>
-            {hasCount && (
+            <View style={styles.tabContent}>
               <Text
                 style={[
-                  styles.countText,
+                  styles.label,
                   {
                     color: isActive
-                      ? colors.onSecondaryContainer
+                      ? colors.onSurface
                       : colors.onSurfaceVariant,
-                    fontFamily: isActive ? FONTS.bold : FONTS.regular,
-                    opacity: isActive ? 1 : 0.8,
+                    fontFamily: isActive ? FONTS.bold : FONTS.medium,
                   },
                 ]}
                 numberOfLines={1}
               >
-                ({tab.count})
+                {tab.label}
               </Text>
-            )}
+              {hasCount && (
+                <Text
+                  style={[
+                    styles.countText,
+                    {
+                      color: isActive
+                        ? colors.onSurface
+                        : colors.onSurfaceVariant,
+                      fontFamily: isActive ? FONTS.bold : FONTS.regular,
+                      opacity: isActive ? 1 : 0.8,
+                      marginLeft: SPACING.xs || 4,
+                    },
+                  ]}
+                  numberOfLines={1}
+                >
+                  ({tab.count})
+                </Text>
+              )}
+            </View>
           </Pressable>
         );
       })}
@@ -84,15 +98,20 @@ const SegmentedControl = ({ tabs, activeTab, onTabChange, style }) => {
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    borderRadius: 12,
-    padding: 4,
+    alignItems: "center",
   },
   tab: {
     flex: 1,
     paddingVertical: 8,
+    paddingHorizontal: 6,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    minHeight: 38,
+  },
+  tabContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   label: {
     fontSize: FONT_SIZES.sm,
@@ -101,7 +120,6 @@ const styles = StyleSheet.create({
   },
   countText: {
     fontSize: FONT_SIZES.xs,
-    marginTop: 2,
     textAlign: "center",
   },
 });

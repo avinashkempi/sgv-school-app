@@ -152,22 +152,18 @@ export default function AcademicYearScreen() {
               totalDays: 0,
               presentDays: 0,
               absentDays: 0,
-              lateDays: 0,
               halfDays: 0,
-              excusedDays: 0,
             };
           }
           const count = Number(item.count || 0);
           teacherMap[name].totalDays += count;
           if (
-            ["present", "late", "excused", "half-day"].includes(item.status)
+            ["present", "half-day"].includes(item.status)
           ) {
             teacherMap[name].presentDays += count;
           }
           if (item.status === "absent") teacherMap[name].absentDays += count;
-          if (item.status === "late") teacherMap[name].lateDays += count;
           if (item.status === "half-day") teacherMap[name].halfDays += count;
-          if (item.status === "excused") teacherMap[name].excusedDays += count;
         });
         processed = Object.values(teacherMap).map((t) => ({
           ...t,

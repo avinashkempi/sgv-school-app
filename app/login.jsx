@@ -7,7 +7,14 @@ import {
   Platform,
 } from "react-native";
 import { Image } from "expo-image";
-import { useTheme, FONTS, FONT_SIZES, LETTER_SPACINGS } from "../theme";
+import {
+  useTheme,
+  FONTS,
+  FONT_SIZES,
+  LETTER_SPACINGS,
+  SPACING,
+  RADIUS,
+} from "../theme";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import apiConfig from "../config/apiConfig";
@@ -27,8 +34,7 @@ export default function Login() {
   const [phoneError, setPhoneError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  // eslint-disable-next-line no-unused-vars
-  const { styles, colors, mode } = useTheme();
+  const { colors } = useTheme();
   const router = useRouter();
   const { showToast } = useToast();
   const { login: authLogin } = useAuth();
@@ -108,23 +114,23 @@ export default function Login() {
       <ScrollView
         contentContainerStyle={{
           flexGrow: 1,
-          padding: 24,
+          padding: SPACING.xxl || 24,
           justifyContent: "center",
         }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
         {/* Header Section */}
-        <View style={{ alignItems: "center", marginBottom: 40 }}>
+        <View style={{ alignItems: "center", marginBottom: SPACING.xxxl || 36 }}>
           <View
             style={{
               width: 88,
               height: 88,
               backgroundColor: colors.surfaceContainerLowest || "#ffffff",
-              borderRadius: 26,
+              borderRadius: RADIUS.xl || 24,
               justifyContent: "center",
               alignItems: "center",
-              marginBottom: 20,
+              marginBottom: SPACING.lg || 16,
               shadowColor: colors.primary,
               shadowOffset: { width: 0, height: 6 },
               shadowOpacity: 0.12,
@@ -137,7 +143,7 @@ export default function Login() {
           >
             <Image
               source={require("../assets/images/icon.png")}
-              style={{ width: "100%", height: "100%", borderRadius: 20 }}
+              style={{ width: "100%", height: "100%", borderRadius: RADIUS.lg || 18 }}
               contentFit="contain"
             />
           </View>
@@ -177,7 +183,7 @@ export default function Login() {
         </View>
 
         {/* Form Section */}
-        <View style={{ gap: 24 }}>
+        <View style={{ gap: SPACING.xl || 20 }}>
           <TextInput
             label={t("login.phoneLabel")}
             icon="phone"
@@ -211,12 +217,13 @@ export default function Login() {
             variant="outlined"
           />
 
-          <View style={{ gap: 16, marginTop: 8 }}>
+          <View style={{ gap: SPACING.md || 12, marginTop: SPACING.sm || 8 }}>
             <Button
               onPress={handleLogin}
               loading={loading}
               variant="filled"
-              size="large"
+              size="lg"
+              fullWidth
             >
               {t("login.signInButton")}
             </Button>
@@ -225,7 +232,7 @@ export default function Login() {
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                marginVertical: 8,
+                marginVertical: SPACING.xs || 4,
               }}
             >
               <View
@@ -237,7 +244,7 @@ export default function Login() {
               />
               <Text
                 style={{
-                  marginHorizontal: 16,
+                  marginHorizontal: SPACING.lg || 16,
                   color: colors.onSurfaceVariant,
                   fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.medium,
@@ -254,7 +261,12 @@ export default function Login() {
               />
             </View>
 
-            <Button variant="outlined" onPress={handleDemoLogin}>
+            <Button
+              variant="outlined"
+              size="lg"
+              fullWidth
+              onPress={handleDemoLogin}
+            >
               {t("login.viewAsGuestButton")}
             </Button>
           </View>

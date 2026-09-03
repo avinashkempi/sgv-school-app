@@ -22,7 +22,6 @@ export default function StudentAttendanceScreen() {
   const [allHistory, setAllHistory] = useState([]);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [historyLoading, setHistoryLoading] = useState(false);
 
   const userId = user?.id || user?._id || authUserId;
 
@@ -37,52 +36,58 @@ export default function StudentAttendanceScreen() {
     { enabled: !!userId, ...CACHE_TIERS.MODERATE }
   );
 
-  // Fetch history page 1 when userId becomes available
-  const fetchHistoryPage = useCallback(
-    async (targetPage, replace = false) => {
-      if (!userId) return;
-      if (targetPage === 1) setHistoryLoading(true);
+  // Fetch Page 1 History with React Query (persisted offline)
+  const {
+    data: historyPage1Data,
+    isLoading: loadingHistoryQuery,
+    refetch: refetchHistoryQuery,
+  } = useApiQuery(
+    ["studentAttendanceHistory", userId],
+    `${apiConfig.baseUrl}/attendance/student/${userId}?page=1&limit=${PAGE_SIZE}`,
+    { enabled: !!userId, ...CACHE_TIERS.MODERATE }
+  );
+
+  useEffect(() => {
+    if (historyPage1Data?.attendance) {
+      setAllHistory(historyPage1Data.attendance);
+      setHasMore(historyPage1Data.pagination?.hasMore || false);
+      setPage(1);
+    }
+  }, [historyPage1Data]);
+
+  // Fetch subsequent pages (> 1)
+  const fetchNextHistoryPage = useCallback(
+    async (targetPage) => {
+      if (!userId || targetPage <= 1) return;
       try {
         const res = await apiFetch(
           `${apiConfig.baseUrl}/attendance/student/${userId}?page=${targetPage}&limit=${PAGE_SIZE}`
         );
         const data = await res.json();
         const records = data?.attendance || [];
-        if (replace) {
-          setAllHistory(records);
-        } else {
-          setAllHistory((prev) => [...prev, ...records]);
-        }
+        setAllHistory((prev) => [...prev, ...records]);
         setHasMore(data?.pagination?.hasMore || false);
         setPage(targetPage);
       } catch (e) {
-        console.error("fetchHistoryPage error:", e);
-      } finally {
-        if (targetPage === 1) setHistoryLoading(false);
+        console.error("fetchNextHistoryPage error:", e);
       }
     },
     [userId]
   );
 
-  useEffect(() => {
-    if (userId) {
-      fetchHistoryPage(1, true);
-    }
-  }, [userId, fetchHistoryPage]);
-
   const loadMore = useCallback(async () => {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
     try {
-      await fetchHistoryPage(page + 1, false);
+      await fetchNextHistoryPage(page + 1);
     } finally {
       setLoadingMore(false);
     }
-  }, [loadingMore, hasMore, page, fetchHistoryPage]);
+  }, [loadingMore, hasMore, page, fetchNextHistoryPage]);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([refetchSummary(), fetchHistoryPage(1, true)]);
+    await Promise.all([refetchSummary(), refetchHistoryQuery()]);
     setRefreshing(false);
   };
 
@@ -94,7 +99,7 @@ export default function StudentAttendanceScreen() {
         summary={summary}
         subjectWise={summary?.subjectWise}
         holidays={summary?.holidays}
-        loading={(loadingSummary || historyLoading) && !summary}
+        loading={(loadingSummary || loadingHistoryQuery) && !summary && allHistory.length === 0}
         refreshing={refreshing}
         onRefresh={onRefresh}
         onLoadMore={loadMore}

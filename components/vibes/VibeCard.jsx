@@ -845,15 +845,15 @@ const VibeCard = ({
 
 const styles = StyleSheet.create({
   card: {
-    marginHorizontal: 12,
+    marginHorizontal: 4,
     marginBottom: 16,
-    borderRadius: 24,
+    borderRadius: 20,
     overflow: "hidden",
     borderWidth: StyleSheet.hairlineWidth,
-    elevation: 1,
+    elevation: 0,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
+    shadowOpacity: 0.03,
     shadowRadius: 6,
   },
   header: {
@@ -877,7 +877,7 @@ const styles = StyleSheet.create({
     borderRadius: 19,
     backgroundColor: "#DBEAFE",
     borderColor: "#93C5FD",
-    borderWidth: 1.5,
+    borderWidth: 1,
     justifyContent: "center",
     alignItems: "center",
     flexShrink: 0,
@@ -895,8 +895,8 @@ const styles = StyleSheet.create({
   },
   authorName: {
     fontSize: FONT_SIZES.sm,
-    fontFamily: FONTS.bold,
-    letterSpacing: -0.2,
+    fontFamily: FONTS.semiBold,
+    letterSpacing: -0.1,
     flexShrink: 1,
   },
   verifiedBadge: {
@@ -929,8 +929,8 @@ const styles = StyleSheet.create({
     maxWidth: 90,
   },
   categoryText: {
-    fontSize: 10.5,
-    fontFamily: FONTS.bold,
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.semiBold,
   },
   spotlightBadge: {
     flexDirection: "row",
@@ -942,8 +942,8 @@ const styles = StyleSheet.create({
     maxWidth: 75,
   },
   spotlightBadgeText: {
-    fontSize: 10.5,
-    fontFamily: FONTS.bold,
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.semiBold,
     color: "#D97706",
   },
   pinBadge: {
@@ -959,7 +959,7 @@ const styles = StyleSheet.create({
   },
   mediaContainer: {
     width: "100%",
-    borderRadius: 18,
+    borderRadius: 16,
     overflow: "hidden",
     alignSelf: "center",
   },
@@ -1026,7 +1026,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
   },
   viewLikesHint: {
-    fontFamily: FONTS.bold,
+    fontFamily: FONTS.semiBold,
   },
   captionContainer: {
     marginTop: 2,
@@ -1038,13 +1038,13 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
   },
   captionAuthor: {
-    fontFamily: FONTS.bold,
+    fontFamily: FONTS.semiBold,
   },
   captionText: {
     fontFamily: FONTS.regular,
   },
   hashtag: {
-    fontFamily: FONTS.bold,
+    fontFamily: FONTS.semiBold,
   },
   morePressable: {
     marginTop: 2,
@@ -1052,7 +1052,7 @@ const styles = StyleSheet.create({
   },
   moreText: {
     fontSize: FONT_SIZES.sm,
-    fontFamily: FONTS.bold,
+    fontFamily: FONTS.semiBold,
   },
   commentsSection: {
     marginTop: 2,
@@ -1072,9 +1072,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 8,
+    paddingVertical: 7,
     paddingHorizontal: 12,
-    borderRadius: 16,
+    borderRadius: 14,
     borderWidth: StyleSheet.hairlineWidth,
     marginTop: 2,
   },

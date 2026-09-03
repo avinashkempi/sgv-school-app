@@ -113,23 +113,36 @@ export default function StudentLeaves() {
     };
   }, [allLeaves]);
 
-  // Apply Leave Mutation
+  // Apply Leave Mutation with Offline Queue support
   const applyLeaveMutation = useApiMutation({
     mutationFn: createApiMutationFn(
       `${apiConfig.baseUrl}/leaves/apply`,
       "POST"
     ),
-    onSuccess: () => {
+    offlineQueue: {
+      type: "APPLY_LEAVE",
+      tag: (vars) => `leave_apply_${vars.startDate}_${vars.endDate}`,
+      description: (vars) =>
+        `Leave: ${vars.reason ? vars.reason.substring(0, 25) : "Request"} (${vars.startDate})`,
+      url: `${apiConfig.baseUrl}/leaves/apply`,
+      method: "POST",
+      invalidateKeys: [["studentLeaves"], ["studentAllLeavesSummary"]],
+    },
+    onSuccess: (_data, _variables, _context, isOfflineQueued) => {
       showToast(
-        t("student.leaveAppliedSuccess", "Leave request submitted to your class teacher"),
-        "success"
+        isOfflineQueued
+          ? "Leave request saved offline. Will auto-submit when connected."
+          : t("student.leaveAppliedSuccess", "Leave request submitted to your class teacher"),
+        isOfflineQueued ? "info" : "success"
       );
       setModalVisible(false);
       setEditingLeave(null);
       setReason("");
       setIsHalfDay(false);
-      queryClient.invalidateQueries({ queryKey: ["studentLeaves"] });
-      queryClient.invalidateQueries({ queryKey: ["studentAllLeavesSummary"] });
+      if (!isOfflineQueued) {
+        queryClient.invalidateQueries({ queryKey: ["studentLeaves"] });
+        queryClient.invalidateQueries({ queryKey: ["studentAllLeavesSummary"] });
+      }
     },
     onError: (error) =>
       showToast(

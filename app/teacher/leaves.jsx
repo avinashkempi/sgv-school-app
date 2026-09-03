@@ -244,14 +244,30 @@ export default function TeacherLeaves() {
       `${apiConfig.baseUrl}/leaves/apply`,
       "POST"
     ),
-    onSuccess: () => {
-      showToast("Leave applied successfully", "success");
+    offlineQueue: {
+      type: "APPLY_LEAVE",
+      tag: (vars) => `leave_apply_staff_${vars.startDate}_${vars.endDate}`,
+      description: (vars) =>
+        `Staff Leave: ${vars.reason ? vars.reason.substring(0, 25) : "Request"} (${vars.startDate})`,
+      url: `${apiConfig.baseUrl}/leaves/apply`,
+      method: "POST",
+      invalidateKeys: [["teacherMyLeaves"], ["teacherLeaveBalance"]],
+    },
+    onSuccess: (_data, _variables, _context, isOfflineQueued) => {
+      showToast(
+        isOfflineQueued
+          ? "Leave request saved offline. Will auto-submit when connected."
+          : "Leave applied successfully",
+        isOfflineQueued ? "info" : "success"
+      );
       setApplyModalVisible(false);
       setEditingLeave(null);
       setReason("");
       setIsHalfDay(false);
-      queryClient.invalidateQueries({ queryKey: ["teacherMyLeaves"] });
-      queryClient.invalidateQueries({ queryKey: ["teacherLeaveBalance"] });
+      if (!isOfflineQueued) {
+        queryClient.invalidateQueries({ queryKey: ["teacherMyLeaves"] });
+        queryClient.invalidateQueries({ queryKey: ["teacherLeaveBalance"] });
+      }
     },
     onError: (error) =>
       showToast(error.message || "Error applying for leave", "error"),

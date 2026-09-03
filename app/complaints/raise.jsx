@@ -2,10 +2,8 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  TextInput,
   Pressable,
   ScrollView,
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Keyboard,
@@ -13,18 +11,27 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme, FONTS, FONT_SIZES } from "../../theme";
+import {
+  useTheme,
+  FONTS,
+  FONT_SIZES,
+  SPACING,
+  RADIUS,
+  ICON_SIZES,
+} from "../../theme";
 import apiConfig from "../../config/apiConfig";
 import { useApiMutation, createApiMutationFn } from "../../hooks/useApi";
 import Header from "../../components/Header";
+import Button from "../../components/Button";
+import TextInput from "../../components/TextInput";
+import Card from "../../components/Card";
 import { useLabel } from "../../context/LabelsContext";
 import { useToast } from "../../components/ToastProvider";
 import { useAuth } from "../../context/AuthContext";
 
 export default function RaiseComplaintScreen() {
   const router = useRouter();
-  // eslint-disable-next-line no-unused-vars
-  const { styles, colors } = useTheme();
+  const { colors } = useTheme();
   const { t } = useLabel();
   const { showToast } = useToast();
   const { user } = useAuth();
@@ -90,7 +97,12 @@ export default function RaiseComplaintScreen() {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={{ flex: 1 }}>
-          <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
+          <View
+            style={{
+              paddingHorizontal: SPACING.lg || 16,
+              paddingTop: SPACING.md || 12,
+            }}
+          >
             <Header
               title={t("complaints.raiseComplaint", "Raise Complaint")}
               subtitle={t("complaints.submitIssue", "Submit an issue or grievance")}
@@ -99,34 +111,38 @@ export default function RaiseComplaintScreen() {
           </View>
 
           <ScrollView
-            contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+            contentContainerStyle={{
+              padding: SPACING.lg || 16,
+              paddingBottom: SPACING.xxxl || 40,
+            }}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
           >
             {/* Visibility Selection (For Students) */}
             {userRole === "student" && (
-              <View style={{ marginBottom: 24 }}>
+              <View style={{ marginBottom: SPACING.xl || 20 }}>
                 <Text
                   style={{
-                    color: colors.textSecondary,
-                    marginBottom: 8,
+                    color: colors.onSurfaceVariant,
+                    marginBottom: SPACING.xs || 8,
                     fontFamily: FONTS.medium,
+                    fontSize: FONT_SIZES.sm,
                   }}
                 >
                   {t("common.to", "To")}
                 </Text>
-                <View style={{ flexDirection: "row", gap: 12 }}>
+                <View style={{ flexDirection: "row", gap: SPACING.md || 12 }}>
                   <Pressable
                     onPress={() => setVisibility("teacher")}
                     style={{
                       flex: 1,
-                      padding: 16,
+                      padding: SPACING.lg || 16,
                       backgroundColor:
                         visibility === "teacher"
-                          ? colors.primary + "15"
-                          : colors.cardBackground,
-                      borderRadius: 12,
-                      borderWidth: 1,
+                          ? colors.primaryContainer
+                          : colors.surfaceContainer,
+                      borderRadius: RADIUS.md || 12,
+                      borderWidth: 1.5,
                       borderColor:
                         visibility === "teacher"
                           ? colors.primary
@@ -136,24 +152,25 @@ export default function RaiseComplaintScreen() {
                   >
                     <MaterialIcons
                       name="person"
-                      size={24}
+                      size={ICON_SIZES.md || 24}
                       color={
                         visibility === "teacher"
-                          ? colors.primary
-                          : colors.textSecondary
+                          ? colors.onPrimaryContainer
+                          : colors.onSurfaceVariant
                       }
                     />
                     <Text
                       style={{
-                        marginTop: 8,
+                        marginTop: SPACING.xs || 8,
                         fontFamily: FONTS.bold,
+                        fontSize: FONT_SIZES.sm,
                         color:
                           visibility === "teacher"
-                            ? colors.primary
-                            : colors.textSecondary,
+                            ? colors.onPrimaryContainer
+                            : colors.onSurfaceVariant,
                       }}
                     >
-                      ${t("common.classTeacher", "Class Teacher")}
+                      {t("common.classTeacher", "Class Teacher")}
                     </Text>
                   </Pressable>
 
@@ -161,13 +178,13 @@ export default function RaiseComplaintScreen() {
                     onPress={() => setVisibility("admin")}
                     style={{
                       flex: 1,
-                      padding: 16,
+                      padding: SPACING.lg || 16,
                       backgroundColor:
                         visibility === "admin"
-                          ? colors.primary + "15"
-                          : colors.cardBackground,
-                      borderRadius: 12,
-                      borderWidth: 1,
+                          ? colors.primaryContainer
+                          : colors.surfaceContainer,
+                      borderRadius: RADIUS.md || 12,
+                      borderWidth: 1.5,
                       borderColor:
                         visibility === "admin" ? colors.primary : "transparent",
                       alignItems: "center",
@@ -175,24 +192,25 @@ export default function RaiseComplaintScreen() {
                   >
                     <MaterialIcons
                       name="admin-panel-settings"
-                      size={24}
+                      size={ICON_SIZES.md || 24}
                       color={
                         visibility === "admin"
-                          ? colors.primary
-                          : colors.textSecondary
+                          ? colors.onPrimaryContainer
+                          : colors.onSurfaceVariant
                       }
                     />
                     <Text
                       style={{
-                        marginTop: 8,
+                        marginTop: SPACING.xs || 8,
                         fontFamily: FONTS.bold,
+                        fontSize: FONT_SIZES.sm,
                         color:
                           visibility === "admin"
-                            ? colors.primary
-                            : colors.textSecondary,
+                            ? colors.onPrimaryContainer
+                            : colors.onSurfaceVariant,
                       }}
                     >
-                      ${t("common.headmaster", "Headmaster")}
+                      {t("common.headmaster", "Headmaster")}
                     </Text>
                   </Pressable>
                 </View>
@@ -201,183 +219,136 @@ export default function RaiseComplaintScreen() {
 
             {/* For Teachers (Read Only) */}
             {userRole === "teacher" && (
-              <View style={{ marginBottom: 24 }}>
+              <View style={{ marginBottom: SPACING.xl || 20 }}>
                 <Text
                   style={{
-                    color: colors.textSecondary,
-                    marginBottom: 8,
+                    color: colors.onSurfaceVariant,
+                    marginBottom: SPACING.xs || 8,
                     fontFamily: FONTS.medium,
+                    fontSize: FONT_SIZES.sm,
                   }}
                 >
-                  To
+                  {t("common.to", "To")}
                 </Text>
-                <View
-                  style={{
-                    padding: 16,
-                    backgroundColor: colors.cardBackground,
-                    borderRadius: 12,
+                <Card
+                  variant="filled"
+                  noMargin
+                  contentStyle={{
+                    padding: SPACING.md || 14,
                     flexDirection: "row",
                     alignItems: "center",
-                    gap: 12,
+                    gap: SPACING.md || 12,
                   }}
                 >
                   <MaterialIcons
                     name="business"
-                    size={24}
+                    size={ICON_SIZES.md || 24}
                     color={colors.primary}
                   />
                   <Text
                     style={{
                       fontFamily: FONTS.bold,
-                      color: colors.textPrimary,
+                      fontSize: FONT_SIZES.sm,
+                      color: colors.onSurface,
                     }}
                   >
-                    $
                     {t(
                       "common.managementSuperAdmin",
                       "Management (Super Admin)"
                     )}
                   </Text>
-                </View>
+                </Card>
               </View>
             )}
 
             {/* Category */}
-            <View style={{ marginBottom: 24 }}>
+            <View style={{ marginBottom: SPACING.xl || 20 }}>
               <Text
                 style={{
-                  color: colors.textSecondary,
-                  marginBottom: 8,
+                  color: colors.onSurfaceVariant,
+                  marginBottom: SPACING.xs || 8,
                   fontFamily: FONTS.medium,
+                  fontSize: FONT_SIZES.sm,
                 }}
               >
                 {t("common.category", "Category")}
               </Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View style={{ flexDirection: "row", gap: 8 }}>
-                  {categories.map((cat) => (
-                    <Pressable
-                      key={cat}
-                      onPress={() => setCategory(cat)}
-                      style={{
-                        paddingHorizontal: 16,
-                        paddingVertical: 8,
-                        backgroundColor:
-                          category === cat
-                            ? colors.primary
-                            : colors.cardBackground,
-                        borderRadius: 20,
-                      }}
-                    >
-                      <Text
+                <View style={{ flexDirection: "row", gap: SPACING.sm || 8 }}>
+                  {categories.map((cat) => {
+                    const isSelected = category === cat;
+                    return (
+                      <Pressable
+                        key={cat}
+                        onPress={() => setCategory(cat)}
                         style={{
-                          color: category === cat ? "#fff" : colors.textPrimary,
-                          fontFamily: FONTS.medium,
+                          paddingHorizontal: SPACING.lg || 16,
+                          paddingVertical: SPACING.xs || 8,
+                          backgroundColor: isSelected
+                            ? colors.primary
+                            : colors.surfaceContainerHighest,
+                          borderRadius: RADIUS.full || 20,
                         }}
                       >
-                        {t("complaints.category_" + cat, cat)}
-                      </Text>
-                    </Pressable>
-                  ))}
+                        <Text
+                          style={{
+                            color: isSelected ? colors.onPrimary : colors.onSurfaceVariant,
+                            fontFamily: isSelected ? FONTS.bold : FONTS.medium,
+                            fontSize: FONT_SIZES.xs,
+                          }}
+                        >
+                          {t("complaints.category_" + cat, cat)}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
                 </View>
               </ScrollView>
             </View>
 
-            {/* Title */}
-            <View style={{ marginBottom: 24 }}>
-              <Text
-                style={{
-                  color: colors.textSecondary,
-                  marginBottom: 8,
-                  fontFamily: FONTS.medium,
-                }}
-              >
-                {t("common.subjectLabel", "Subject")}
-              </Text>
+            {/* Subject / Title */}
+            <View style={{ marginBottom: SPACING.lg || 16 }}>
               <TextInput
+                label={t("common.subjectLabel", "Subject")}
                 value={title}
                 onChangeText={setTitle}
                 placeholder={t(
                   "complaints.subjectPlaceholder",
                   "Brief subject of the complaint"
                 )}
-                placeholderTextColor={colors.textSecondary}
-                style={{
-                  backgroundColor: colors.cardBackground,
-                  padding: 16,
-                  borderRadius: 12,
-                  color: colors.textPrimary,
-                  fontFamily: FONTS.medium,
-                  fontSize: FONT_SIZES.md,
-                }}
+                variant="outlined"
               />
             </View>
 
             {/* Description */}
-            <View style={{ marginBottom: 32 }}>
-              <Text
-                style={{
-                  color: colors.textSecondary,
-                  marginBottom: 8,
-                  fontFamily: FONTS.medium,
-                }}
-              >
-                {t("common.description", "Description")}
-              </Text>
+            <View style={{ marginBottom: SPACING.xxl || 24 }}>
               <TextInput
+                label={t("common.description", "Description")}
                 value={description}
                 onChangeText={setDescription}
                 placeholder={t(
                   "common.detailedDescriptionPlaceholder",
                   "Detailed description..."
                 )}
-                placeholderTextColor={colors.textSecondary}
                 multiline
-                numberOfLines={6}
+                numberOfLines={5}
                 textAlignVertical="top"
-                style={{
-                  backgroundColor: colors.cardBackground,
-                  padding: 16,
-                  borderRadius: 12,
-                  color: colors.textPrimary,
-                  fontFamily: FONTS.medium,
-                  fontSize: FONT_SIZES.md,
-                  minHeight: 120,
-                }}
+                inputStyle={{ height: 110, paddingTop: 10 }}
+                style={{ height: 120, alignItems: "flex-start" }}
+                variant="outlined"
               />
             </View>
 
             {/* Submit Button */}
-            <Pressable
+            <Button
+              variant="filled"
+              size="lg"
+              fullWidth
               onPress={handleSubmit}
-              disabled={raiseComplaintMutation.isPending}
-              style={{
-                backgroundColor: colors.primary,
-                padding: 18,
-                borderRadius: 16,
-                alignItems: "center",
-                shadowColor: colors.primary,
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 8,
-                elevation: 4,
-                opacity: raiseComplaintMutation.isPending ? 0.7 : 1,
-              }}
+              loading={raiseComplaintMutation.isPending}
             >
-              {raiseComplaintMutation.isPending ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text
-                  style={{
-                    color: "#fff",
-                    fontFamily: FONTS.bold,
-                    fontSize: FONT_SIZES.lg,
-                  }}
-                >
-                  ${t("complaints.submitComplaint", "Submit Complaint")}
-                </Text>
-              )}
-            </Pressable>
+              {t("complaints.submitComplaint", "Submit Complaint")}
+            </Button>
           </ScrollView>
         </View>
       </TouchableWithoutFeedback>

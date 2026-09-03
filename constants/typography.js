@@ -363,6 +363,37 @@ export const TYPOGRAPHY = StyleSheet.create({
   },
 });
 
+// ── 6. 12 CANONICAL DESIGN TOKENS ──────────────────────────────────────────
+export const CANONICAL_TYPOGRAPHY = {
+  display: TYPOGRAPHY.displayLarge,      // 40px Bold
+  headline: TYPOGRAPHY.displaySmall,     // 30px Bold
+  titleLg: TYPOGRAPHY.screenTitle,       // 24px Bold
+  titleMd: TYPOGRAPHY.titleLarge,        // 20px Bold
+  titleSm: TYPOGRAPHY.cardHeader,        // 16px Bold
+  bodyLg: TYPOGRAPHY.bodyLarge,          // 16px Regular
+  bodyMd: TYPOGRAPHY.bodyMedium,         // 14px Regular
+  bodySm: TYPOGRAPHY.bodySmallMedium,    // 14px Medium
+  labelLg: TYPOGRAPHY.labelLarge,        // 14px Medium
+  labelMd: TYPOGRAPHY.caption,           // 12px Medium
+  labelSm: TYPOGRAPHY.badge,             // 11px Bold
+  mono: TYPOGRAPHY.mono,                 // 14px Mono
+};
+
+// ── 7. SEMANTIC WEIGHT MAPPING ──────────────────────────────────────────────
+// Maps UI roles to font weights for minimalist hierarchy.
+// Bold reserved for screen/page titles only. Everything else steps down.
+export const WEIGHT = {
+  screenTitle:    FONT_FAMILIES.bold,      // Page-level headings — the only Bold
+  sectionTitle:   FONT_FAMILIES.semiBold,  // Module headers ("My Academics")
+  cardHeader:     FONT_FAMILIES.medium,    // Card titles — calm, not shouting
+  statValue:      FONT_FAMILIES.semiBold,  // Numeric metrics speak for themselves
+  actionLink:     FONT_FAMILIES.medium,    // "Reports →" — distinct via color, not weight
+  greeting:       FONT_FAMILIES.semiBold,  // Softer, friendlier welcome
+  body:           FONT_FAMILIES.regular,   // All paragraph / description text
+  label:          FONT_FAMILIES.medium,    // Chips, tab labels, metadata
+  badge:          FONT_FAMILIES.bold,      // Small badges still need Bold at micro size
+};
+
 export default {
   FONT_FAMILIES,
   FONTS,
@@ -370,4 +401,6 @@ export default {
   LINE_HEIGHTS,
   LETTER_SPACINGS,
   TYPOGRAPHY,
+  CANONICAL_TYPOGRAPHY,
+  WEIGHT,
 };

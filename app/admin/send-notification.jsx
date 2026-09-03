@@ -3,16 +3,21 @@ import {
   View,
   Text,
   ScrollView,
-  TextInput,
   Pressable,
-  ActivityIndicator,
+  Switch,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-
 import { useRouter } from "expo-router";
-import { useTheme, FONTS, FONT_SIZES } from "../../theme";
+import {
+  useTheme,
+  FONTS,
+  FONT_SIZES,
+  SPACING,
+  RADIUS,
+  ICON_SIZES,
+} from "../../theme";
 import {
   useApiQuery,
   useApiMutation,
@@ -20,18 +25,21 @@ import {
 } from "../../hooks/useApi";
 import apiConfig from "../../config/apiConfig";
 import Header from "../../components/Header";
+import Button from "../../components/Button";
+import TextInput from "../../components/TextInput";
+import Card from "../../components/Card";
 import { useToast } from "../../components/ToastProvider";
 import formatClassName from "../../utils/formatClassName";
 
 export default function SendNotificationScreen() {
   const router = useRouter();
-  const { _styles, colors } = useTheme();
+  const { colors } = useTheme();
   const { showToast } = useToast();
 
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [type, setType] = useState("General");
-  const [target, setTarget] = useState("all"); // 'all', 'class', 'user'
+  const [target, setTarget] = useState("all"); // 'all', 'class', 'teacher', 'staff'
   const [selectedClass, setSelectedClass] = useState(null);
   const [sendToPublic, setSendToPublic] = useState(false); // Toggle for public/non-logged-in users
 
@@ -92,7 +100,12 @@ export default function SendNotificationScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <View style={{ flex: 1 }}>
-        <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
+        <View
+          style={{
+            paddingHorizontal: SPACING.lg || 16,
+            paddingTop: SPACING.md || 12,
+          }}
+        >
           <Header
             title="Broadcast Announcement"
             subtitle="Send alerts to users"
@@ -102,323 +115,212 @@ export default function SendNotificationScreen() {
 
         <ScrollView
           style={{ flex: 1 }}
-          contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+          contentContainerStyle={{
+            padding: SPACING.lg || 16,
+            paddingBottom: SPACING.xxxl || 80,
+          }}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
           nestedScrollEnabled={true}
           showsVerticalScrollIndicator={false}
         >
           {/* Title */}
-          <View style={{ marginBottom: 20 }}>
-            <Text style={{ color: colors.textSecondary, marginBottom: 8 }}>
-              Title
-            </Text>
+          <View style={{ marginBottom: SPACING.lg || 16 }}>
             <TextInput
+              label="Title"
               value={title}
               onChangeText={setTitle}
               placeholder="e.g. School Closed Tomorrow"
-              placeholderTextColor={colors.textSecondary + "80"}
-              style={{
-                borderWidth: 1,
-                borderColor: colors.textSecondary + "40",
-                borderRadius: 12,
-                padding: 16,
-                color: colors.textPrimary,
-                fontSize: FONT_SIZES.md,
-                backgroundColor: colors.cardBackground,
-              }}
+              variant="outlined"
             />
           </View>
 
           {/* Message */}
-          <View style={{ marginBottom: 20 }}>
-            <Text style={{ color: colors.textSecondary, marginBottom: 8 }}>
-              Message
-            </Text>
+          <View style={{ marginBottom: SPACING.xl || 20 }}>
             <TextInput
+              label="Message"
               value={message}
               onChangeText={setMessage}
               placeholder="Type your message here..."
-              placeholderTextColor={colors.textSecondary + "80"}
               multiline
-              style={{
-                borderWidth: 1,
-                borderColor: colors.textSecondary + "40",
-                borderRadius: 12,
-                padding: 16,
-                color: colors.textPrimary,
-                fontSize: FONT_SIZES.md,
-                backgroundColor: colors.cardBackground,
-                minHeight: 100,
-                textAlignVertical: "top",
-              }}
+              numberOfLines={4}
+              textAlignVertical="top"
+              inputStyle={{ height: 90, paddingTop: 10 }}
+              style={{ height: 100, alignItems: "flex-start" }}
+              variant="outlined"
             />
           </View>
 
           {/* Type Selection */}
-          <View style={{ marginBottom: 24 }}>
-            <Text style={{ color: colors.textSecondary, marginBottom: 12 }}>
-              Type
+          <View style={{ marginBottom: SPACING.xl || 20 }}>
+            <Text
+              style={{
+                color: colors.onSurfaceVariant,
+                marginBottom: SPACING.xs || 8,
+                fontFamily: FONTS.medium,
+                fontSize: FONT_SIZES.sm,
+              }}
+            >
+              Category
             </Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
               nestedScrollEnabled={true}
             >
-              <View style={{ flexDirection: "row", gap: 8 }}>
-                {notificationTypes.map((t) => (
-                  <Pressable
-                    key={t}
-                    onPress={() => setType(t)}
-                    style={{
-                      paddingHorizontal: 16,
-                      paddingVertical: 10,
-                      backgroundColor:
-                        type === t ? colors.primary : colors.cardBackground,
-                      borderRadius: 20,
-                      borderWidth: 1,
-                      borderColor:
-                        type === t
-                          ? colors.primary
-                          : colors.textSecondary + "20",
-                    }}
-                  >
-                    <Text
+              <View style={{ flexDirection: "row", gap: SPACING.sm || 8 }}>
+                {notificationTypes.map((t) => {
+                  const isSelected = type === t;
+                  return (
+                    <Pressable
+                      key={t}
+                      onPress={() => setType(t)}
                       style={{
-                        color: type === t ? "#fff" : colors.textPrimary,
-                        fontWeight: "600",
+                        paddingHorizontal: SPACING.lg || 16,
+                        paddingVertical: SPACING.xs || 8,
+                        backgroundColor: isSelected
+                          ? colors.primary
+                          : colors.surfaceContainerHighest,
+                        borderRadius: RADIUS.full || 20,
                       }}
                     >
-                      {t}
-                    </Text>
-                  </Pressable>
-                ))}
+                      <Text
+                        style={{
+                          color: isSelected ? colors.onPrimary : colors.onSurfaceVariant,
+                          fontFamily: isSelected ? FONTS.bold : FONTS.medium,
+                          fontSize: FONT_SIZES.xs,
+                        }}
+                      >
+                        {t}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
               </View>
             </ScrollView>
           </View>
 
           {/* Send to Public Users Toggle */}
-          <View
-            style={{
-              marginBottom: 24,
-              backgroundColor: colors.cardBackground,
-              borderRadius: 12,
-              padding: 16,
-              borderWidth: 1,
-              borderColor: colors.textSecondary + "20",
+          <Card
+            variant="filled"
+            noMargin
+            style={{ marginBottom: SPACING.xl || 20 }}
+            contentStyle={{
+              padding: SPACING.lg || 16,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
             }}
           >
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <View style={{ flex: 1, marginRight: 12 }}>
-                <Text
-                  style={{
-                    color: colors.textPrimary,
-                    fontWeight: "600",
-                    fontSize: FONT_SIZES.md,
-                    marginBottom: 4,
-                  }}
-                >
-                  Send to Public Users
-                </Text>
-                <Text style={{ color: colors.textSecondary, fontSize: FONT_SIZES.sm }}>
-                  {sendToPublic
-                    ? "Will reach both logged-in and non-logged-in users"
-                    : "Only logged-in users will receive this notification"}
-                </Text>
-              </View>
-              <Pressable
-                onPress={() => setSendToPublic(!sendToPublic)}
+            <View style={{ flex: 1, marginRight: SPACING.md || 12 }}>
+              <Text
                 style={{
-                  width: 60,
-                  height: 36,
-                  backgroundColor: sendToPublic
-                    ? colors.primary
-                    : colors.textSecondary + "30",
-                  borderRadius: 18,
-                  justifyContent: "center",
-                  alignItems: sendToPublic ? "flex-end" : "flex-start",
-                  paddingHorizontal: 2,
+                  color: colors.onSurface,
+                  fontFamily: FONTS.semiBold,
+                  fontSize: FONT_SIZES.md,
+                  marginBottom: 2,
                 }}
               >
-                <View
-                  style={{
-                    width: 32,
-                    height: 32,
-                    backgroundColor: "#fff",
-                    borderRadius: 16,
-                  }}
-                />
-              </Pressable>
+                Send to Public Users
+              </Text>
+              <Text
+                style={{
+                  color: colors.onSurfaceVariant,
+                  fontSize: FONT_SIZES.xs,
+                  fontFamily: FONTS.regular,
+                }}
+              >
+                {sendToPublic
+                  ? "Will reach both logged-in and non-logged-in users"
+                  : "Only logged-in users will receive this notification"}
+              </Text>
             </View>
-          </View>
+            <Switch
+              value={sendToPublic}
+              onValueChange={setSendToPublic}
+              trackColor={{
+                false: colors.outlineVariant,
+                true: colors.primaryContainer,
+              }}
+              thumbColor={sendToPublic ? colors.primary : "#f4f3f4"}
+            />
+          </Card>
 
           {/* Target Selection */}
-          <View style={{ marginBottom: 24 }}>
-            <Text style={{ color: colors.textSecondary, marginBottom: 12 }}>
+          <View style={{ marginBottom: SPACING.xl || 20 }}>
+            <Text
+              style={{
+                color: colors.onSurfaceVariant,
+                marginBottom: SPACING.xs || 8,
+                fontFamily: FONTS.medium,
+                fontSize: FONT_SIZES.sm,
+              }}
+            >
               Target Audience
             </Text>
-            <View style={{ flexDirection: "row", gap: 12 }}>
-              <Pressable
-                onPress={() => setTarget("all")}
-                style={{
-                  flex: 1,
-                  padding: 16,
-                  backgroundColor:
-                    target === "all"
-                      ? colors.primary + "15"
-                      : colors.cardBackground,
-                  borderWidth: 1,
-                  borderColor:
-                    target === "all"
-                      ? colors.primary
-                      : colors.textSecondary + "20",
-                  borderRadius: 12,
-                  alignItems: "center",
-                }}
-              >
-                <MaterialIcons
-                  name="public"
-                  size={24}
-                  color={
-                    target === "all" ? colors.primary : colors.textSecondary
-                  }
-                />
-                <Text
-                  style={{
-                    marginTop: 8,
-                    color:
-                      target === "all" ? colors.primary : colors.textPrimary,
-                    fontWeight: "600",
-                  }}
-                >
-                  Everyone
-                </Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => setTarget("class")}
-                style={{
-                  flex: 1,
-                  padding: 16,
-                  backgroundColor:
-                    target === "class"
-                      ? colors.primary + "15"
-                      : colors.cardBackground,
-                  borderWidth: 1,
-                  borderColor:
-                    target === "class"
-                      ? colors.primary
-                      : colors.textSecondary + "20",
-                  borderRadius: 12,
-                  alignItems: "center",
-                }}
-              >
-                <MaterialIcons
-                  name="class"
-                  size={24}
-                  color={
-                    target === "class" ? colors.primary : colors.textSecondary
-                  }
-                />
-                <Text
-                  style={{
-                    marginTop: 8,
-                    color:
-                      target === "class" ? colors.primary : colors.textPrimary,
-                    fontWeight: "600",
-                  }}
-                >
-                  Specific Class
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={() => setTarget("teacher")}
-                style={{
-                  flex: 1,
-                  padding: 16,
-                  backgroundColor:
-                    target === "teacher"
-                      ? colors.primary + "15"
-                      : colors.cardBackground,
-                  borderWidth: 1,
-                  borderColor:
-                    target === "teacher"
-                      ? colors.primary
-                      : colors.textSecondary + "20",
-                  borderRadius: 12,
-                  alignItems: "center",
-                }}
-              >
-                <MaterialIcons
-                  name="school"
-                  size={24}
-                  color={
-                    target === "teacher" ? colors.primary : colors.textSecondary
-                  }
-                />
-                <Text
-                  style={{
-                    marginTop: 8,
-                    color:
-                      target === "teacher"
+            <View style={{ flexDirection: "row", gap: SPACING.sm || 8, flexWrap: "wrap" }}>
+              {[
+                { key: "all", label: "Everyone", icon: "public" },
+                { key: "class", label: "Specific Class", icon: "class" },
+                { key: "teacher", label: "Teachers", icon: "school" },
+                { key: "staff", label: "Staff", icon: "badge" },
+              ].map((item) => {
+                const isSelected = target === item.key;
+                return (
+                  <Pressable
+                    key={item.key}
+                    onPress={() => setTarget(item.key)}
+                    style={{
+                      flex: 1,
+                      minWidth: "45%",
+                      padding: SPACING.md || 12,
+                      backgroundColor: isSelected
+                        ? colors.primaryContainer
+                        : colors.surfaceContainer,
+                      borderWidth: 1.5,
+                      borderColor: isSelected
                         ? colors.primary
-                        : colors.textPrimary,
-                    fontWeight: "600",
-                  }}
-                >
-                  Teachers
-                </Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => setTarget("staff")}
-                style={{
-                  flex: 1,
-                  padding: 16,
-                  backgroundColor:
-                    target === "staff"
-                      ? colors.primary + "15"
-                      : colors.cardBackground,
-                  borderWidth: 1,
-                  borderColor:
-                    target === "staff"
-                      ? colors.primary
-                      : colors.textSecondary + "20",
-                  borderRadius: 12,
-                  alignItems: "center",
-                }}
-              >
-                <MaterialIcons
-                  name="badge"
-                  size={24}
-                  color={
-                    target === "staff" ? colors.primary : colors.textSecondary
-                  }
-                />
-                <Text
-                  style={{
-                    marginTop: 8,
-                    color:
-                      target === "staff" ? colors.primary : colors.textPrimary,
-                    fontWeight: "600",
-                  }}
-                >
-                  Staff
-                </Text>
-              </Pressable>
+                        : "transparent",
+                      borderRadius: RADIUS.md || 12,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <MaterialIcons
+                      name={item.icon}
+                      size={ICON_SIZES.md || 22}
+                      color={
+                        isSelected ? colors.onPrimaryContainer : colors.onSurfaceVariant
+                      }
+                    />
+                    <Text
+                      style={{
+                        marginTop: SPACING.xs || 6,
+                        color:
+                          isSelected ? colors.onPrimaryContainer : colors.onSurface,
+                        fontFamily: isSelected ? FONTS.bold : FONTS.medium,
+                        fontSize: FONT_SIZES.xs,
+                      }}
+                    >
+                      {item.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
             </View>
           </View>
 
-          {/* Class Dropdown (if target is class) */}
+          {/* Class Selector (if target is class) */}
           {target === "class" && (
-            <View style={{ marginBottom: 24 }}>
-              <Text style={{ color: colors.textSecondary, marginBottom: 8 }}>
+            <View style={{ marginBottom: SPACING.xl || 20 }}>
+              <Text
+                style={{
+                  color: colors.onSurfaceVariant,
+                  marginBottom: SPACING.xs || 8,
+                  fontFamily: FONTS.medium,
+                  fontSize: FONT_SIZES.sm,
+                }}
+              >
                 Select Class
               </Text>
               <ScrollView
@@ -426,80 +328,50 @@ export default function SendNotificationScreen() {
                 showsHorizontalScrollIndicator={false}
                 nestedScrollEnabled={true}
               >
-                <View style={{ flexDirection: "row", gap: 8 }}>
-                  {classes.map((cls) => (
-                    <Pressable
-                      key={cls._id}
-                      onPress={() => setSelectedClass(cls._id)}
-                      style={{
-                        paddingHorizontal: 16,
-                        paddingVertical: 10,
-                        backgroundColor:
-                          selectedClass === cls._id
-                            ? colors.primary
-                            : colors.cardBackground,
-                        borderRadius: 12,
-                        borderWidth: 1,
-                        borderColor:
-                          selectedClass === cls._id
-                            ? colors.primary
-                            : colors.textSecondary + "20",
-                      }}
-                    >
-                      <Text
+                <View style={{ flexDirection: "row", gap: SPACING.sm || 8 }}>
+                  {classes.map((cls) => {
+                    const isSelected = selectedClass === cls._id;
+                    return (
+                      <Pressable
+                        key={cls._id}
+                        onPress={() => setSelectedClass(cls._id)}
                         style={{
-                          color:
-                            selectedClass === cls._id
-                              ? "#fff"
-                              : colors.textPrimary,
+                          paddingHorizontal: SPACING.lg || 16,
+                          paddingVertical: SPACING.sm || 10,
+                          backgroundColor: isSelected
+                            ? colors.primary
+                            : colors.surfaceContainerHighest,
+                          borderRadius: RADIUS.md || 12,
                         }}
                       >
-                        {formatClassName(cls.name)}
-                      </Text>
-                    </Pressable>
-                  ))}
+                        <Text
+                          style={{
+                            color: isSelected ? colors.onPrimary : colors.onSurface,
+                            fontFamily: isSelected ? FONTS.bold : FONTS.medium,
+                            fontSize: FONT_SIZES.sm,
+                          }}
+                        >
+                          {formatClassName(cls.name, cls.section)}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
                 </View>
               </ScrollView>
             </View>
           )}
 
           {/* Send Button */}
-          <Pressable
+          <Button
+            variant="filled"
+            size="lg"
+            fullWidth
+            icon="send"
             onPress={handleSend}
-            disabled={sendNotificationMutation.isPending}
-            style={{
-              backgroundColor: colors.primary,
-              padding: 18,
-              borderRadius: 16,
-              alignItems: "center",
-              marginTop: 12,
-              opacity: sendNotificationMutation.isPending ? 0.7 : 1,
-              shadowColor: colors.primary,
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.2,
-              shadowRadius: 8,
-              elevation: 4,
-            }}
+            loading={sendNotificationMutation.isPending}
           >
-            {sendNotificationMutation.isPending ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-              >
-                <MaterialIcons name="send" size={20} color="#fff" />
-                <Text
-                  style={{
-                    color: "#fff",
-                    fontSize: FONT_SIZES.lg,
-                    fontFamily: FONTS.bold,
-                  }}
-                >
-                  Send Broadcast
-                </Text>
-              </View>
-            )}
-          </Pressable>
+            Send Broadcast
+          </Button>
         </ScrollView>
       </View>
     </KeyboardAvoidingView>

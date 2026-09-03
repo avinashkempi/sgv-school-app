@@ -328,8 +328,8 @@ const generateAttendance = () => {
       status = "absent";
       remarks = "Sick Leave";
     } else if (rand > 0.88) {
-      status = "late";
-      remarks = "Bus delay";
+      status = "half-day";
+      remarks = "Medical appointment";
     }
 
     history.push({

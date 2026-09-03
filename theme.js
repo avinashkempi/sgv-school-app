@@ -15,7 +15,15 @@ import {
   LINE_HEIGHTS,
   LETTER_SPACINGS,
   TYPOGRAPHY,
+  CANONICAL_TYPOGRAPHY,
+  WEIGHT,
 } from "./constants/typography";
+
+import {
+  SPACING,
+  RADIUS,
+  ICON_SIZES,
+} from "./constants/spacing";
 
 export {
   FONT_FAMILIES,
@@ -24,10 +32,14 @@ export {
   LINE_HEIGHTS,
   LETTER_SPACINGS,
   TYPOGRAPHY,
+  CANONICAL_TYPOGRAPHY,
+  WEIGHT,
+  SPACING,
+  RADIUS,
+  ICON_SIZES,
 };
 
-// Material 3 Expressive Color Palette (Vibrant Blue/Indigo Base)
-// Generated or approximated closest M3 values
+// Material 3 Minimalist Color Palette — Neutral surfaces, accent-only color
 const lightColors = {
   primary: "#4F378B", // Deep distinct purple/indigo
   onPrimary: "#FFFFFF",
@@ -49,24 +61,24 @@ const lightColors = {
   errorContainer: "#F9DEDC",
   onErrorContainer: "#410E0B",
 
-  background: "#FEF7FF", // Very subtle tint
+  background: "#FAFAFA", // Neutral warm white — no color bias
   onBackground: "#1D1B20",
 
-  surface: "#FEF7FF",
+  surface: "#FFFFFF", // Pure white cards
   onSurface: "#1D1B20",
 
-  surfaceVariant: "#E7E0EC",
+  surfaceVariant: "#EBEBEB",
   onSurfaceVariant: "#49454F",
 
   outline: "#79747E",
-  outlineVariant: "#CAC4D0",
+  outlineVariant: "#E0E0E0", // Lighter, thinner-feeling borders
 
-  // Surface Tones (Simulated elevation)
+  // Surface Tones (Neutral elevation ladder)
   surfaceContainerLowest: "#FFFFFF",
-  surfaceContainerLow: "#F7F2FA",
-  surfaceContainer: "#F3EDF7",
-  surfaceContainerHigh: "#ECE6F0",
-  surfaceContainerHighest: "#E6E0E9",
+  surfaceContainerLow: "#FAFAFA",
+  surfaceContainer: "#F5F5F5",
+  surfaceContainerHigh: "#EEEEEE",
+  surfaceContainerHighest: "#E8E8E8",
 
   shadow: "#000000",
   scrim: "#000000",
@@ -84,8 +96,8 @@ const lightColors = {
   white: "#FFFFFF",
   textPrimary: "#1D1B20",
   textSecondary: "#49454F",
-  border: "#CAC4D0",
-  cardBackground: "#F3EDF7",
+  border: "#E0E0E0",
+  cardBackground: "#F5F5F5",
 };
 
 const darkColors = {
@@ -152,7 +164,7 @@ function createGlobalStyles(COLORS, mode) {
     container: {
       flex: 1,
       backgroundColor: COLORS.background,
-      paddingHorizontal: 16,
+      paddingHorizontal: SPACING.xl, // 20 — wider margins for minimalist breathing room
       paddingTop: 12,
       paddingBottom: 32,
     },
@@ -543,6 +555,9 @@ export function ThemeProvider({ children }) {
         colors,
         styles,
         gradients,
+        spacing: SPACING,
+        radius: RADIUS,
+        iconSizes: ICON_SIZES,
       }}
     >
       {isHydrated ? children : null}

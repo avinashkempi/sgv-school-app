@@ -5,7 +5,9 @@ import {
   useInfiniteQuery,
   keepPreviousData,
 } from "@tanstack/react-query";
+import NetInfo from "@react-native-community/netinfo";
 import apiFetch from "../utils/apiFetch";
+import { enqueueAction } from "../utils/offlineQueue";
 
 export { keepPreviousData };
 
@@ -199,25 +201,139 @@ export function useApiInfiniteQuery(key, urlFn, options = {}) {
 }
 
 /**
- * Wrapper around useMutation for API updates
- * @param {Function} mutationFn - Function to perform the mutation
+ * Wrapper around useMutation for API updates with optional Offline Queue support
  * @param {Object} options - Additional useMutation options
+ * @param {Object} [options.offlineQueue] - Offline queue configuration
+ * @param {string} options.offlineQueue.type - Action type identifier (e.g. 'MARK_ATTENDANCE')
+ * @param {string|Function} [options.offlineQueue.tag] - Deduplication tag
+ * @param {string|Function} [options.offlineQueue.description] - User-facing description
+ * @param {string|Function} [options.offlineQueue.url] - Endpoint URL
+ * @param {string} [options.offlineQueue.method='POST'] - HTTP method
+ * @param {Function} [options.offlineQueue.onOptimisticUpdate] - Callback(variables, queryClient) for instant UI updates
  */
 export function useApiMutation(options = {}) {
   const queryClient = useQueryClient();
+  const {
+    offlineQueue: queueConfig,
+    mutationFn,
+    onSuccess,
+    onError,
+    ...restOptions
+  } = options;
+
+  const handleOfflineEnqueue = async (variables) => {
+    const type = queueConfig.type || "MUTATION";
+    const tag =
+      typeof queueConfig.tag === "function"
+        ? queueConfig.tag(variables)
+        : queueConfig.tag || null;
+    const description =
+      typeof queueConfig.description === "function"
+        ? queueConfig.description(variables)
+        : queueConfig.description || type;
+    const url =
+      typeof queueConfig.url === "function"
+        ? queueConfig.url(variables)
+        : queueConfig.url;
+    const method = queueConfig.method || "POST";
+    const body =
+      typeof queueConfig.transformBody === "function"
+        ? queueConfig.transformBody(variables)
+        : variables;
+    const headers =
+      typeof queueConfig.headers === "function"
+        ? queueConfig.headers(variables)
+        : queueConfig.headers || {};
+    const invalidateKeys =
+      queueConfig.invalidateKeys || options.invalidateKeys || [];
+
+    const enqueuedItem = await enqueueAction({
+      type,
+      tag,
+      description,
+      url,
+      method,
+      body,
+      headers,
+      invalidateKeys,
+    });
+
+    // Run optimistic cache updates if specified
+    if (typeof queueConfig.onOptimisticUpdate === "function") {
+      try {
+        queueConfig.onOptimisticUpdate(variables, queryClient);
+      } catch (optErr) {
+        console.warn("[useApiMutation] onOptimisticUpdate error:", optErr);
+      }
+    }
+
+    return {
+      offlineQueued: true,
+      queueItem: enqueuedItem,
+      message: "Action saved offline. Will sync automatically when connected.",
+    };
+  };
+
+  const wrappedMutationFn = async (variables) => {
+    // If offlineQueue is enabled, check current network status before making request
+    if (queueConfig) {
+      try {
+        const netState = await NetInfo.fetch();
+        const isOffline =
+          !netState.isConnected || netState.isInternetReachable === false;
+        if (isOffline) {
+          return await handleOfflineEnqueue(variables);
+        }
+      } catch {
+        // Fall through to standard mutationFn
+      }
+    }
+
+    try {
+      return await mutationFn(variables);
+    } catch (err) {
+      // If mutation fails due to network error and offlineQueue is enabled, enqueue it!
+      const isNetErr =
+        err?.status === 0 ||
+        err?.message?.includes("offline") ||
+        (err instanceof TypeError &&
+          (err.message.includes("Network request failed") ||
+            err.message.includes("Failed to fetch") ||
+            err.message.includes("Network request timed out"))) ||
+        err?.name === "AbortError";
+
+      if (queueConfig && isNetErr) {
+        return await handleOfflineEnqueue(variables);
+      }
+      throw err;
+    }
+  };
+
   return useMutation({
-    ...options,
-    onSuccess: (...args) => {
-      // Invalidate queries if specified
-      if (options.invalidateKeys) {
+    mutationFn: queueConfig ? wrappedMutationFn : mutationFn,
+    onSuccess: (data, variables, context) => {
+      const isOfflineQueued = !!data?.offlineQueued;
+
+      // Only invalidate queries from options when synced live with backend
+      // (Offline queued mutations will invalidate upon successful sync)
+      if (!isOfflineQueued && options.invalidateKeys) {
         options.invalidateKeys.forEach((key) => {
-          queryClient.invalidateQueries({ queryKey: key });
+          queryClient.invalidateQueries({
+            queryKey: Array.isArray(key) ? key : [key],
+          });
         });
       }
-      if (options.onSuccess) {
-        options.onSuccess(...args);
+
+      if (onSuccess) {
+        onSuccess(data, variables, context, isOfflineQueued);
       }
     },
+    onError: (error, variables, context) => {
+      if (onError) {
+        onError(error, variables, context);
+      }
+    },
+    ...restOptions,
   });
 }
 

@@ -125,6 +125,19 @@ export const AcademicYearProvider = ({ children }) => {
         const storedYear = await storage.getItem("selectedAcademicYear");
         if (storedYear) {
           setSelectedYear(JSON.parse(storedYear));
+        } else {
+          // Offline fallback: try to load active year from cached academic years list
+          const cachedYears = await storage.getItem("@cached_academic_years");
+          if (cachedYears) {
+            const parsed = JSON.parse(cachedYears);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              const active = parsed.find((y) => y.isActive) || parsed[0];
+              if (active) {
+                setSelectedYear(active);
+                await storage.setItem("selectedAcademicYear", JSON.stringify(active));
+              }
+            }
+          }
         }
       } catch (error) {
         console.error("Error loading selected academic year:", error);

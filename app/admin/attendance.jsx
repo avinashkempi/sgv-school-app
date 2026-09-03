@@ -390,16 +390,44 @@ export default function AdminAttendance() {
     if (staffList) setLocalStaffList(staffList);
   }, [staffList]);
 
-  // Mutations
+  // Mutations with Offline Queue support
   const saveStudentAttendanceMutation = useApiMutation({
     mutationFn: createApiMutationFn(
       `${apiConfig.baseUrl}/attendance/mark`,
       "POST"
     ),
-    onSuccess: () => {
-      showToast("Student attendance saved", "success");
-      queryClient.invalidateQueries({ queryKey: ["studentAttendance"] });
-      queryClient.invalidateQueries({ queryKey: ["attendanceSummary"] });
+    offlineQueue: {
+      type: "MARK_ATTENDANCE",
+      tag: (vars) => `attendance_${vars.classId}_${vars.date}`,
+      description: (vars) => `Student Attendance (${vars.date})`,
+      url: `${apiConfig.baseUrl}/attendance/mark`,
+      method: "POST",
+      invalidateKeys: (vars) => [
+        ["studentAttendance", vars.classId, vars.date],
+        ["attendanceSummary"],
+        ["adminDashboard"],
+      ],
+      onOptimisticUpdate: (vars) => {
+        queryClient.setQueryData(
+          ["studentAttendance", vars.classId, vars.date],
+          localStudentAttendance
+        );
+      },
+    },
+    onSuccess: (_data, vars, _context, isOfflineQueued) => {
+      showToast(
+        isOfflineQueued
+          ? "Student attendance saved offline. Will auto-sync when connected."
+          : "Student attendance saved",
+        isOfflineQueued ? "info" : "success"
+      );
+      if (!isOfflineQueued) {
+        queryClient.invalidateQueries({
+          queryKey: ["studentAttendance", vars.classId, vars.date],
+        });
+        queryClient.invalidateQueries({ queryKey: ["attendanceSummary"] });
+        queryClient.invalidateQueries({ queryKey: ["adminDashboard"] });
+      }
     },
     onError: () => showToast("Failed to save attendance", "error"),
   });
@@ -409,10 +437,41 @@ export default function AdminAttendance() {
       `${apiConfig.baseUrl}/attendance/mark-staff`,
       "POST"
     ),
-    onSuccess: () => {
-      showToast("Staff attendance saved", "success");
-      queryClient.invalidateQueries({ queryKey: ["staffList"] });
-      queryClient.invalidateQueries({ queryKey: ["attendanceSummary"] });
+    offlineQueue: {
+      type: "MARK_STAFF_ATTENDANCE",
+      tag: (vars) => `attendance_staff_${vars.date}`,
+      description: (vars) => `Staff Attendance (${vars.date})`,
+      url: `${apiConfig.baseUrl}/attendance/mark-staff`,
+      method: "POST",
+      invalidateKeys: (vars) => [
+        ["staffList", vars.date],
+        ["attendanceSummary"],
+        ["adminDashboard"],
+      ],
+      onOptimisticUpdate: (vars) => {
+        queryClient.setQueryData(["staffList", vars.date], (old) => {
+          if (!old) return { success: true, data: localStaffList };
+          return {
+            ...old,
+            data: localStaffList,
+          };
+        });
+      },
+    },
+    onSuccess: (_data, vars, _context, isOfflineQueued) => {
+      showToast(
+        isOfflineQueued
+          ? "Staff attendance saved offline. Will auto-sync when connected."
+          : "Staff attendance saved",
+        isOfflineQueued ? "info" : "success"
+      );
+      if (!isOfflineQueued) {
+        queryClient.invalidateQueries({
+          queryKey: ["staffList", vars.date],
+        });
+        queryClient.invalidateQueries({ queryKey: ["attendanceSummary"] });
+        queryClient.invalidateQueries({ queryKey: ["adminDashboard"] });
+      }
     },
     onError: () => showToast("Failed to save attendance", "error"),
   });
@@ -499,10 +558,6 @@ export default function AdminAttendance() {
         return colors.success;
       case "absent":
         return colors.error;
-      case "late":
-        return "#FF9800";
-      case "excused":
-        return "#2196F3";
       case "half-day":
         return "#9C27B0";
       default:
@@ -516,10 +571,6 @@ export default function AdminAttendance() {
         return "check-circle";
       case "absent":
         return "cancel";
-      case "late":
-        return "schedule";
-      case "excused":
-        return "verified";
       case "half-day":
         return "timelapse";
       default:
@@ -585,7 +636,7 @@ export default function AdminAttendance() {
 
       {/* Status Buttons */}
       <View style={{ flexDirection: "row", gap: 8 }}>
-        {["present", "half-day", "absent", "late", "excused"].map((status) => (
+        {["present", "half-day", "absent"].map((status) => (
           <TouchableOpacity
             key={status}
             onPress={() => handleStaffStatusChange(index, status)}
@@ -621,11 +672,7 @@ export default function AdminAttendance() {
                 ? "P"
                 : status === "half-day"
                 ? "HD"
-                : status === "absent"
-                ? "A"
-                : status === "late"
-                ? "L"
-                : "E"}
+                : "A"}
             </Text>
           </TouchableOpacity>
         ))}
@@ -1430,7 +1477,7 @@ export default function AdminAttendance() {
                                     marginTop: 8,
                                   }}
                                 >
-                                  {["present", "absent", "late", "excused"].map(
+                                  {["present", "absent"].map(
                                     (status) => (
                                       <TouchableOpacity
                                         key={status}
@@ -1468,13 +1515,7 @@ export default function AdminAttendance() {
                                                 : colors.textSecondary + "80",
                                           }}
                                         >
-                                          {status === "present"
-                                            ? "P"
-                                            : status === "absent"
-                                            ? "A"
-                                            : status === "late"
-                                            ? "L"
-                                            : "E"}
+                                          {status === "present" ? "P" : "A"}
                                         </Text>
                                       </TouchableOpacity>
                                     )

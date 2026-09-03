@@ -2,22 +2,39 @@ import React from "react";
 import { Text, Pressable, ActivityIndicator, Platform } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../theme";
+import {
+  useTheme,
+  FONTS,
+  FONT_SIZES,
+  LINE_HEIGHTS,
+  LETTER_SPACINGS,
+  SPACING,
+  RADIUS,
+  ICON_SIZES,
+} from "../theme";
 
 /**
- * Material 3 Button
+ * Material 3 Expressive Button
+ * 
  * Variants:
- * - filled: High emphasis (Primary)
- * - tonal: Medium emphasis (Secondary Container)
- * - outlined: Medium emphasis (Border)
+ * - filled: High emphasis (Primary solid background)
+ * - tonal: Medium emphasis (Secondary container)
+ * - outlined: Medium emphasis (Outline border)
  * - text: Low emphasis (Text only)
- * - elevated: High emphasis (Surface + Shadow)
+ * - elevated: High emphasis (Surface + soft shadow)
+ * 
+ * Sizes:
+ * - sm: Compact for tables, chips, and dense rows (32px min-height)
+ * - md: Standard button (40px min-height)
+ * - lg: Hero/prominent CTA button (48px min-height)
  */
 const Button = ({
   children,
   title,
   onPress,
   variant = "filled",
+  size = "md",
+  fullWidth = false,
   icon,
   iconPosition = "left",
   loading = false,
@@ -26,8 +43,7 @@ const Button = ({
   textStyle,
   ...props
 }) => {
-  // eslint-disable-next-line no-unused-vars
-  const { colors, styles } = useTheme();
+  const { colors } = useTheme();
 
   // Determine Colors based on Variant
   const getColors = () => {
@@ -56,7 +72,7 @@ const Button = ({
         return {
           bg: "transparent",
           text: colors.primary,
-          border: colors.outline,
+          border: colors.outlineVariant || colors.outline,
         };
       case "text":
         return {
@@ -76,31 +92,75 @@ const Button = ({
 
   const themeColors = getColors();
 
+  // Standardized Size Tokens
+  const sizeConfig = {
+    sm: {
+      paddingVertical: 6,
+      paddingHorizontal: SPACING.lg,
+      minHeight: 32,
+      fontSize: FONT_SIZES.xs,
+      lineHeight: LINE_HEIGHTS.xs,
+      letterSpacing: LETTER_SPACINGS.xs,
+      iconSize: ICON_SIZES.xs || 14,
+      gap: SPACING.xs,
+    },
+    md: {
+      paddingVertical: 10,
+      paddingHorizontal: SPACING.xxl,
+      minHeight: 40,
+      fontSize: FONT_SIZES.sm,
+      lineHeight: LINE_HEIGHTS.sm,
+      letterSpacing: LETTER_SPACINGS.sm,
+      iconSize: ICON_SIZES.sm || 18,
+      gap: SPACING.sm,
+    },
+    lg: {
+      paddingVertical: 14,
+      paddingHorizontal: SPACING.xxxl,
+      minHeight: 48,
+      fontSize: FONT_SIZES.md,
+      lineHeight: LINE_HEIGHTS.md,
+      letterSpacing: LETTER_SPACINGS.md,
+      iconSize: ICON_SIZES.md || 20,
+      gap: SPACING.sm,
+    },
+  }[size] || {
+    paddingVertical: 10,
+    paddingHorizontal: SPACING.xxl,
+    minHeight: 40,
+    fontSize: FONT_SIZES.sm,
+    lineHeight: LINE_HEIGHTS.sm,
+    letterSpacing: LETTER_SPACINGS.sm,
+    iconSize: 18,
+    gap: SPACING.sm,
+  };
+
   const containerStyle = [
     {
       backgroundColor: themeColors.bg,
-      paddingVertical: 10,
-      paddingHorizontal: 24,
-      borderRadius: 100, // Pill shape
+      paddingVertical: sizeConfig.paddingVertical,
+      paddingHorizontal: sizeConfig.paddingHorizontal,
+      borderRadius: RADIUS.full || 100,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
       borderWidth: variant === "outlined" ? 1 : 0,
       borderColor: themeColors.border,
-      minHeight: 40,
+      minHeight: sizeConfig.minHeight,
     },
+    fullWidth && { width: "100%" },
     variant === "elevated" &&
       !disabled &&
       Platform.select({
         web: {
-          boxShadow: "0 1px 2px rgba(0, 0, 0, 0.12)",
+          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.08)",
         },
         default: {
-          elevation: 1,
+          elevation: 2,
           shadowColor: colors.shadow,
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 0.15,
-          shadowRadius: 2,
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.12,
+          shadowRadius: 3,
         },
       }),
     style,
@@ -109,15 +169,15 @@ const Button = ({
   const labelStyle = [
     {
       fontFamily: FONTS.medium,
-      fontSize: FONT_SIZES.sm,
-      lineHeight: LINE_HEIGHTS.sm,
-      letterSpacing: LETTER_SPACINGS.sm,
+      fontSize: sizeConfig.fontSize,
+      lineHeight: sizeConfig.lineHeight,
+      letterSpacing: sizeConfig.letterSpacing,
       color: themeColors.text,
       textAlign: "center",
       flexShrink: 1,
     },
-    (icon || loading) && iconPosition === "left" && { marginLeft: 8 },
-    (icon || loading) && iconPosition === "right" && { marginRight: 8 },
+    (icon || loading) && iconPosition === "left" && { marginLeft: sizeConfig.gap },
+    (icon || loading) && iconPosition === "right" && { marginRight: sizeConfig.gap },
     textStyle,
   ];
 
@@ -126,7 +186,7 @@ const Button = ({
       try {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       } catch {
-        // Fallback for non-supported platforms
+        // Fallback for unsupported platforms
       }
       onPress(e);
     }
@@ -136,17 +196,29 @@ const Button = ({
     if (!icon || loading) return null;
     if (React.isValidElement(icon)) return icon;
     if (typeof icon === "string") {
-      return <MaterialIcons name={icon} size={18} color={themeColors.text} />;
+      return (
+        <MaterialIcons
+          name={icon}
+          size={sizeConfig.iconSize}
+          color={themeColors.text}
+        />
+      );
     }
     return null;
   };
 
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ disabled: disabled || loading }}
       onPress={!disabled && !loading ? handlePress : null}
       style={({ pressed }) => [
         containerStyle,
-        pressed && !disabled && { opacity: 0.88, transform: [{ scale: 0.97 }] },
+        pressed &&
+          !disabled && {
+            opacity: 0.82,
+            transform: [{ scale: 0.97 }],
+          },
       ]}
       android_ripple={{
         color: themeColors.text,
@@ -159,7 +231,7 @@ const Button = ({
         <ActivityIndicator
           size="small"
           color={themeColors.text}
-          style={{ marginRight: 8 }}
+          style={{ marginRight: sizeConfig.gap }}
         />
       ) : null}
 

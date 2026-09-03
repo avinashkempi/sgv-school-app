@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  TextInput,
   Pressable,
   ScrollView,
   ActivityIndicator,
@@ -14,7 +13,14 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme, FONTS, FONT_SIZES } from "../../theme";
+import {
+  useTheme,
+  FONTS,
+  FONT_SIZES,
+  SPACING,
+  RADIUS,
+  ICON_SIZES,
+} from "../../theme";
 import apiConfig from "../../config/apiConfig";
 import {
   useApiMutation,
@@ -23,6 +29,8 @@ import {
 } from "../../hooks/useApi";
 import { useQueryClient } from "@tanstack/react-query";
 import Header from "../../components/Header";
+import Button from "../../components/Button";
+import TextInput from "../../components/TextInput";
 import UserAvatar from "../../components/ui/UserAvatar";
 import { useLabel } from "../../context/LabelsContext";
 import { useToast } from "../../components/ToastProvider";
@@ -31,7 +39,7 @@ import { useAuth } from "../../context/AuthContext";
 
 export default function GiveFeedbackScreen() {
   const router = useRouter();
-  const { _styles, colors } = useTheme();
+  const { colors } = useTheme();
   const { t } = useLabel();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
@@ -196,7 +204,12 @@ export default function GiveFeedbackScreen() {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={{ flex: 1 }}>
-          <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
+          <View
+            style={{
+              paddingHorizontal: SPACING.lg || 16,
+              paddingTop: SPACING.md || 12,
+            }}
+          >
             <Header
               title={t("feedback.giveFeedback", "Give Feedback")}
               subtitle={t("feedback.shareExperience", "Share feedback or recognition")}
@@ -205,17 +218,21 @@ export default function GiveFeedbackScreen() {
           </View>
 
           <ScrollView
-            contentContainerStyle={{ padding: 16 }}
+            contentContainerStyle={{
+              padding: SPACING.lg || 16,
+              paddingBottom: SPACING.xxxl || 40,
+            }}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
           >
             {/* Class Selection */}
-            <View style={{ marginBottom: 20 }}>
+            <View style={{ marginBottom: SPACING.lg || 18 }}>
               <Text
                 style={{
-                  color: colors.textSecondary,
-                  marginBottom: 8,
+                  color: colors.onSurfaceVariant,
+                  marginBottom: SPACING.xs || 8,
                   fontFamily: FONTS.medium,
+                  fontSize: FONT_SIZES.sm,
                 }}
               >
                 {t("common.classRequired", "Class *")}
@@ -223,21 +240,21 @@ export default function GiveFeedbackScreen() {
               <Pressable
                 onPress={() => setShowClassModal(true)}
                 style={{
-                  backgroundColor: colors.cardBackground,
-                  padding: 16,
-                  borderRadius: 12,
+                  backgroundColor: colors.surfaceContainer,
+                  padding: SPACING.lg || 16,
+                  borderRadius: RADIUS.md || 12,
                   flexDirection: "row",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  borderWidth: 1,
-                  borderColor: colors.border,
+                  borderWidth: 1.5,
+                  borderColor: colors.outlineVariant,
                 }}
               >
                 <Text
                   style={{
                     color: selectedClass
-                      ? colors.textPrimary
-                      : colors.textSecondary,
+                      ? colors.onSurface
+                      : colors.onSurfaceVariant,
                     fontFamily: selectedClass
                       ? FONTS.semiBold
                       : FONTS.regular,
@@ -259,8 +276,8 @@ export default function GiveFeedbackScreen() {
                 </Text>
                 <MaterialIcons
                   name="arrow-drop-down"
-                  size={24}
-                  color={colors.textSecondary}
+                  size={ICON_SIZES.md || 24}
+                  color={colors.onSurfaceVariant}
                 />
               </Pressable>
             </View>
@@ -269,93 +286,89 @@ export default function GiveFeedbackScreen() {
             {selectedClass &&
               (availableSubjects.length > 0 ||
                 selectedClass.role === "subject_teacher") && (
-                <View style={{ marginBottom: 20 }}>
+                <View style={{ marginBottom: SPACING.lg || 18 }}>
                   <Text
                     style={{
-                      color: colors.textSecondary,
-                      marginBottom: 8,
+                      color: colors.onSurfaceVariant,
+                      marginBottom: SPACING.xs || 8,
                       fontFamily: FONTS.medium,
+                      fontSize: FONT_SIZES.sm,
                     }}
                   >
-                    ${t("common.subject", "Subject")}{" "}
+                    {t("common.subject", "Subject")}{" "}
                     {selectedClass.role === "subject_teacher"
                       ? "*"
                       : t("common.optional", "(Optional)")}
                   </Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    <View style={{ flexDirection: "row", gap: 10 }}>
+                    <View style={{ flexDirection: "row", gap: SPACING.sm || 10 }}>
                       {selectedClass.role === "class_teacher" && (
                         <Pressable
                           onPress={() => setSelectedSubject(null)}
                           style={{
-                            paddingHorizontal: 16,
-                            paddingVertical: 10,
+                            paddingHorizontal: SPACING.lg || 16,
+                            paddingVertical: SPACING.sm || 10,
                             backgroundColor: !selectedSubject
                               ? colors.primary
-                              : colors.cardBackground,
-                            borderRadius: 20,
-                            borderWidth: 1,
-                            borderColor: !selectedSubject
-                              ? colors.primary
-                              : colors.border,
+                              : colors.surfaceContainerHighest,
+                            borderRadius: RADIUS.full || 20,
                           }}
                         >
                           <Text
                             style={{
                               color: !selectedSubject
-                                ? "#fff"
-                                : colors.textPrimary,
+                                ? colors.onPrimary
+                                : colors.onSurfaceVariant,
                               fontFamily: FONTS.medium,
+                              fontSize: FONT_SIZES.xs,
                             }}
                           >
-                            ${t("common.general", "General")}
+                            {t("common.general", "General")}
                           </Text>
                         </Pressable>
                       )}
-                      {availableSubjects.map((sub) => (
-                        <Pressable
-                          key={sub._id}
-                          onPress={() => setSelectedSubject(sub)}
-                          style={{
-                            paddingHorizontal: 16,
-                            paddingVertical: 10,
-                            backgroundColor:
-                              selectedSubject?._id === sub._id
-                                ? colors.primary
-                                : colors.cardBackground,
-                            borderRadius: 20,
-                            borderWidth: 1,
-                            borderColor:
-                              selectedSubject?._id === sub._id
-                                ? colors.primary
-                                : colors.border,
-                          }}
-                        >
-                          <Text
+                      {availableSubjects.map((sub) => {
+                        const isSubSelected = selectedSubject?._id === sub._id;
+                        return (
+                          <Pressable
+                            key={sub._id}
+                            onPress={() => setSelectedSubject(sub)}
                             style={{
-                              color:
-                                selectedSubject?._id === sub._id
-                                  ? "#fff"
-                                  : colors.textPrimary,
-                              fontFamily: FONTS.medium,
+                              paddingHorizontal: SPACING.lg || 16,
+                              paddingVertical: SPACING.sm || 10,
+                              backgroundColor: isSubSelected
+                                ? colors.primary
+                                : colors.surfaceContainerHighest,
+                              borderRadius: RADIUS.full || 20,
                             }}
                           >
-                            {sub.name}
-                          </Text>
-                        </Pressable>
-                      ))}
+                            <Text
+                              style={{
+                                color: isSubSelected
+                                  ? colors.onPrimary
+                                  : colors.onSurfaceVariant,
+                                fontFamily: FONTS.medium,
+                                fontSize: FONT_SIZES.xs,
+                              }}
+                            >
+                              {sub.name}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
                     </View>
                   </ScrollView>
                 </View>
               )}
 
             {/* Student Selection */}
-            <View style={{ marginBottom: 20 }}>
+            <View style={{ marginBottom: SPACING.lg || 18 }}>
               <Text
                 style={{
-                  color: colors.textSecondary,
-                  marginBottom: 8,
+                  color: colors.onSurfaceVariant,
+                  marginBottom: SPACING.xs || 8,
                   fontFamily: FONTS.medium,
+                  fontSize: FONT_SIZES.sm,
                 }}
               >
                 {t("common.studentRequired", "Student *")}
@@ -375,18 +388,25 @@ export default function GiveFeedbackScreen() {
                   setShowStudentModal(true);
                 }}
                 style={{
-                  backgroundColor: colors.cardBackground,
-                  padding: 16,
-                  borderRadius: 12,
+                  backgroundColor: colors.surfaceContainer,
+                  padding: SPACING.lg || 16,
+                  borderRadius: RADIUS.md || 12,
                   flexDirection: "row",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  borderWidth: 1,
-                  borderColor: colors.border,
+                  borderWidth: 1.5,
+                  borderColor: colors.outlineVariant,
                   opacity: selectedClass ? 1 : 0.6,
                 }}
               >
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: 1 }}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: SPACING.sm || 10,
+                    flex: 1,
+                  }}
+                >
                   {selectedStudent && (
                     <UserAvatar
                       photoUrl={selectedStudent.profilePhoto}
@@ -398,8 +418,8 @@ export default function GiveFeedbackScreen() {
                   <Text
                     style={{
                       color: selectedStudent
-                        ? colors.textPrimary
-                        : colors.textSecondary,
+                        ? colors.onSurface
+                        : colors.onSurfaceVariant,
                       fontFamily: selectedStudent
                         ? FONTS.semiBold
                         : FONTS.regular,
@@ -416,81 +436,42 @@ export default function GiveFeedbackScreen() {
                 ) : (
                   <MaterialIcons
                     name="arrow-drop-down"
-                    size={24}
-                    color={colors.textSecondary}
+                    size={ICON_SIZES.md || 24}
+                    color={colors.onSurfaceVariant}
                   />
                 )}
               </Pressable>
             </View>
 
             {/* Feedback Message */}
-            <View style={{ marginBottom: 30 }}>
-              <Text
-                style={{
-                  color: colors.textSecondary,
-                  marginBottom: 8,
-                  fontFamily: FONTS.medium,
-                }}
-              >
-                {t("feedback.feedbackMessageRequired", "Feedback Message *")}
-              </Text>
+            <View style={{ marginBottom: SPACING.xxl || 24 }}>
               <TextInput
+                label={t("feedback.feedbackMessageRequired", "Feedback Message *")}
                 value={message}
                 onChangeText={setMessage}
                 placeholder={t(
                   "feedback.feedbackPlaceholder",
                   "Write your feedback here..."
                 )}
-                placeholderTextColor={colors.textSecondary}
                 multiline
-                numberOfLines={6}
+                numberOfLines={5}
                 textAlignVertical="top"
-                style={{
-                  backgroundColor: colors.cardBackground,
-                  padding: 16,
-                  borderRadius: 12,
-                  color: colors.textPrimary,
-                  fontFamily: FONTS.medium,
-                  fontSize: FONT_SIZES.md,
-                  minHeight: 120,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                }}
+                inputStyle={{ height: 110, paddingTop: 10 }}
+                style={{ height: 120, alignItems: "flex-start" }}
+                variant="outlined"
               />
             </View>
 
             {/* Submit Button */}
-            <Pressable
+            <Button
+              variant="filled"
+              size="lg"
+              fullWidth
               onPress={handleSubmit}
-              disabled={submitMutation.isPending}
-              style={{
-                backgroundColor: colors.primary,
-                padding: 18,
-                borderRadius: 16,
-                alignItems: "center",
-                shadowColor: colors.primary,
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 8,
-                elevation: 4,
-                opacity: submitMutation.isPending ? 0.7 : 1,
-                marginBottom: 40,
-              }}
+              loading={submitMutation.isPending}
             >
-              {submitMutation.isPending ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text
-                  style={{
-                    color: "#fff",
-                    fontFamily: FONTS.bold,
-                    fontSize: FONT_SIZES.lg,
-                  }}
-                >
-                  ${t("feedback.sendFeedback", "Send Feedback")}
-                </Text>
-              )}
-            </Pressable>
+              {t("feedback.sendFeedback", "Send Feedback")}
+            </Button>
           </ScrollView>
 
           {/* Class Selection Modal */}
@@ -514,47 +495,44 @@ export default function GiveFeedbackScreen() {
               >
                 <Pressable
                   style={{
-                    backgroundColor: colors.background,
-                    borderTopLeftRadius: 24,
-                    borderTopRightRadius: 24,
+                    backgroundColor: colors.surface,
+                    borderTopLeftRadius: RADIUS.xl || 24,
+                    borderTopRightRadius: RADIUS.xl || 24,
                     maxHeight: "80%",
                   }}
                   onPress={(e) => e.stopPropagation()}
                 >
                   <View
                     style={{
-                      padding: 20,
+                      padding: SPACING.lg || 20,
                       borderBottomWidth: 1,
-                      borderBottomColor: colors.border,
+                      borderBottomColor: colors.outlineVariant,
                     }}
                   >
                     <Text
                       style={{
                         fontSize: FONT_SIZES.lg,
                         fontFamily: FONTS.bold,
-                        color: colors.textPrimary,
+                        color: colors.onSurface,
                       }}
                     >
-                      ${t("feedback.selectClassTitle", "Select Class")}
+                      {t("feedback.selectClassTitle", "Select Class")}
                     </Text>
-                    <TextInput
-                      placeholder={t(
-                        "feedback.searchClassPlaceholder",
-                        "Search class..."
-                      )}
-                      value={classSearch}
-                      onChangeText={setClassSearch}
-                      style={{
-                        backgroundColor: colors.cardBackground,
-                        padding: 12,
-                        borderRadius: 8,
-                        marginTop: 12,
-                        color: colors.textPrimary,
-                      }}
-                    />
+                    <View style={{ marginTop: SPACING.md || 12 }}>
+                      <TextInput
+                        placeholder={t(
+                          "feedback.searchClassPlaceholder",
+                          "Search class..."
+                        )}
+                        value={classSearch}
+                        onChangeText={setClassSearch}
+                        icon="search"
+                        variant="filled"
+                      />
+                    </View>
                   </View>
                   <ScrollView
-                    contentContainerStyle={{ padding: 20 }}
+                    contentContainerStyle={{ padding: SPACING.lg || 20 }}
                     keyboardShouldPersistTaps="handled"
                   >
                     {loadingClasses ? (
@@ -563,8 +541,9 @@ export default function GiveFeedbackScreen() {
                       <Text
                         style={{
                           textAlign: "center",
-                          color: colors.textSecondary,
-                          padding: 20,
+                          color: colors.onSurfaceVariant,
+                          padding: SPACING.lg || 20,
+                          fontFamily: FONTS.regular,
                         }}
                       >
                         {t("feedback.noClassesFound", "No classes found")}
@@ -575,9 +554,9 @@ export default function GiveFeedbackScreen() {
                           key={cls._id + cls.role}
                           onPress={() => handleClassSelect(cls)}
                           style={{
-                            padding: 16,
+                            paddingVertical: SPACING.md || 14,
                             borderBottomWidth: 1,
-                            borderBottomColor: colors.border,
+                            borderBottomColor: colors.outlineVariant,
                             flexDirection: "row",
                             justifyContent: "space-between",
                             alignItems: "center",
@@ -588,16 +567,17 @@ export default function GiveFeedbackScreen() {
                               style={{
                                 fontSize: FONT_SIZES.md,
                                 fontFamily: FONTS.semiBold,
-                                color: colors.textPrimary,
+                                color: colors.onSurface,
                               }}
                             >
                               {formatClassName(cls.name, cls.section)}
                             </Text>
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.sm,
-                                color: colors.textSecondary,
-                                marginTop: 4,
+                                fontSize: FONT_SIZES.xs,
+                                color: colors.onSurfaceVariant,
+                                marginTop: 2,
+                                fontFamily: FONTS.regular,
                               }}
                             >
                               {cls.role === "admin"
@@ -612,7 +592,7 @@ export default function GiveFeedbackScreen() {
                             selectedClass?.role === cls.role && (
                               <MaterialIcons
                                 name="check"
-                                size={24}
+                                size={ICON_SIZES.md || 24}
                                 color={colors.primary}
                               />
                             )}
@@ -620,16 +600,16 @@ export default function GiveFeedbackScreen() {
                       ))
                     )}
                   </ScrollView>
-                  <Pressable
-                    onPress={() => setShowClassModal(false)}
-                    style={{ padding: 20, alignItems: "center" }}
-                  >
-                    <Text
-                      style={{ color: colors.error, fontFamily: FONTS.bold }}
+                  <View style={{ padding: SPACING.md || 16 }}>
+                    <Button
+                      variant="text"
+                      fullWidth
+                      onPress={() => setShowClassModal(false)}
+                      textStyle={{ color: colors.error }}
                     >
-                      ${t("common.cancel", "Cancel")}
-                    </Text>
-                  </Pressable>
+                      {t("common.cancel", "Cancel")}
+                    </Button>
+                  </View>
                 </Pressable>
               </Pressable>
             </KeyboardAvoidingView>
@@ -656,55 +636,53 @@ export default function GiveFeedbackScreen() {
               >
                 <Pressable
                   style={{
-                    backgroundColor: colors.background,
-                    borderTopLeftRadius: 24,
-                    borderTopRightRadius: 24,
+                    backgroundColor: colors.surface,
+                    borderTopLeftRadius: RADIUS.xl || 24,
+                    borderTopRightRadius: RADIUS.xl || 24,
                     maxHeight: "80%",
                   }}
                   onPress={(e) => e.stopPropagation()}
                 >
                   <View
                     style={{
-                      padding: 20,
+                      padding: SPACING.lg || 20,
                       borderBottomWidth: 1,
-                      borderBottomColor: colors.border,
+                      borderBottomColor: colors.outlineVariant,
                     }}
                   >
                     <Text
                       style={{
                         fontSize: FONT_SIZES.lg,
                         fontFamily: FONTS.bold,
-                        color: colors.textPrimary,
+                        color: colors.onSurface,
                       }}
                     >
-                      ${t("feedback.selectStudentTitle", "Select Student")}
+                      {t("feedback.selectStudentTitle", "Select Student")}
                     </Text>
-                    <TextInput
-                      placeholder={t(
-                        "feedback.searchStudentPlaceholder",
-                        "Search student..."
-                      )}
-                      value={studentSearch}
-                      onChangeText={setStudentSearch}
-                      style={{
-                        backgroundColor: colors.cardBackground,
-                        padding: 12,
-                        borderRadius: 8,
-                        marginTop: 12,
-                        color: colors.textPrimary,
-                      }}
-                    />
+                    <View style={{ marginTop: SPACING.md || 12 }}>
+                      <TextInput
+                        placeholder={t(
+                          "feedback.searchStudentPlaceholder",
+                          "Search student..."
+                        )}
+                        value={studentSearch}
+                        onChangeText={setStudentSearch}
+                        icon="search"
+                        variant="filled"
+                      />
+                    </View>
                   </View>
                   <ScrollView
-                    contentContainerStyle={{ padding: 20 }}
+                    contentContainerStyle={{ padding: SPACING.lg || 20 }}
                     keyboardShouldPersistTaps="handled"
                   >
                     {filteredStudents.length === 0 ? (
                       <Text
                         style={{
                           textAlign: "center",
-                          color: colors.textSecondary,
-                          padding: 20,
+                          color: colors.onSurfaceVariant,
+                          padding: SPACING.lg || 20,
+                          fontFamily: FONTS.regular,
                         }}
                       >
                         {t("feedback.noStudentsFound", "No students found")}
@@ -718,15 +696,22 @@ export default function GiveFeedbackScreen() {
                             setShowStudentModal(false);
                           }}
                           style={{
-                            padding: 16,
+                            paddingVertical: SPACING.md || 12,
                             borderBottomWidth: 1,
-                            borderBottomColor: colors.border,
+                            borderBottomColor: colors.outlineVariant,
                             flexDirection: "row",
                             justifyContent: "space-between",
                             alignItems: "center",
                           }}
                         >
-                          <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}>
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              gap: SPACING.md || 12,
+                              flex: 1,
+                            }}
+                          >
                             <UserAvatar
                               photoUrl={student.profilePhoto}
                               name={student.name}
@@ -738,7 +723,7 @@ export default function GiveFeedbackScreen() {
                                 style={{
                                   fontSize: FONT_SIZES.md,
                                   fontFamily: FONTS.semiBold,
-                                  color: colors.textPrimary,
+                                  color: colors.onSurface,
                                 }}
                               >
                                 {student.name}
@@ -746,9 +731,10 @@ export default function GiveFeedbackScreen() {
                               {student.phone ? (
                                 <Text
                                   style={{
-                                    fontSize: FONT_SIZES.sm,
-                                    color: colors.textSecondary,
+                                    fontSize: FONT_SIZES.xs,
+                                    color: colors.onSurfaceVariant,
                                     marginTop: 2,
+                                    fontFamily: FONTS.regular,
                                   }}
                                 >
                                   {student.phone}
@@ -759,7 +745,7 @@ export default function GiveFeedbackScreen() {
                           {selectedStudent?._id === student._id && (
                             <MaterialIcons
                               name="check"
-                              size={24}
+                              size={ICON_SIZES.md || 24}
                               color={colors.primary}
                             />
                           )}
@@ -767,16 +753,16 @@ export default function GiveFeedbackScreen() {
                       ))
                     )}
                   </ScrollView>
-                  <Pressable
-                    onPress={() => setShowStudentModal(false)}
-                    style={{ padding: 20, alignItems: "center" }}
-                  >
-                    <Text
-                      style={{ color: colors.error, fontFamily: FONTS.bold }}
+                  <View style={{ padding: SPACING.md || 16 }}>
+                    <Button
+                      variant="text"
+                      fullWidth
+                      onPress={() => setShowStudentModal(false)}
+                      textStyle={{ color: colors.error }}
                     >
-                      Cancel
-                    </Text>
-                  </Pressable>
+                      {t("common.cancel", "Cancel")}
+                    </Button>
+                  </View>
                 </Pressable>
               </Pressable>
             </KeyboardAvoidingView>

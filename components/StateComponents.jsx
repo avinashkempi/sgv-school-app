@@ -18,27 +18,32 @@ const EmptyState = ({
       style={{
         alignItems: "center",
         justifyContent: "center",
-        padding: 40,
-        minHeight: 200,
+        padding: 32,
+        minHeight: 180,
       }}
     >
       <View
         style={{
-          width: 80,
-          height: 80,
-          borderRadius: 40,
-          backgroundColor: colors.surfaceContainerHighest,
+          width: 64,
+          height: 64,
+          borderRadius: 32,
+          backgroundColor: colors.surfaceContainerHigh,
           alignItems: "center",
           justifyContent: "center",
-          marginBottom: 16,
+          marginBottom: 14,
         }}
       >
-        <MaterialIcons name={icon} size={40} color={colors.onSurfaceVariant} />
+        <MaterialIcons name={icon} size={32} color={colors.onSurfaceVariant} />
       </View>
       <Text
         style={[
           styles.titleMedium,
-          { color: colors.onSurface, marginBottom: 8, textAlign: "center" },
+          {
+            color: colors.onSurface,
+            marginBottom: 6,
+            textAlign: "center",
+            fontFamily: FONTS.semiBold,
+          },
         ]}
       >
         {title}
@@ -50,6 +55,7 @@ const EmptyState = ({
             color: colors.onSurfaceVariant,
             textAlign: "center",
             marginBottom: 16,
+            fontFamily: FONTS.regular,
           },
         ]}
       >
@@ -59,17 +65,17 @@ const EmptyState = ({
         <Pressable
           onPress={onAction}
           style={({ pressed }) => ({
-            paddingHorizontal: 24,
-            paddingVertical: 12,
+            paddingHorizontal: 20,
+            paddingVertical: 10,
             borderRadius: 20,
             backgroundColor: colors.primary,
-            opacity: pressed ? 0.9 : 1,
+            opacity: pressed ? 0.85 : 1,
           })}
         >
           <Text
             style={{
               fontSize: FONT_SIZES.sm,
-              fontFamily: FONTS.bold,
+              fontFamily: FONTS.medium,
               color: colors.onPrimary,
             }}
           >
@@ -91,15 +97,19 @@ const LoadingState = ({ message }) => {
       style={{
         alignItems: "center",
         justifyContent: "center",
-        padding: 40,
-        minHeight: 200,
+        padding: 32,
+        minHeight: 180,
       }}
     >
       <ActivityIndicator size="large" color={colors.primary} />
       <Text
         style={[
           styles.bodyMedium,
-          { color: colors.onSurfaceVariant, marginTop: 16 },
+          {
+            color: colors.onSurfaceVariant,
+            marginTop: 14,
+            fontFamily: FONTS.regular,
+          },
         ]}
       >
         {displayMessage}
@@ -119,27 +129,32 @@ const ErrorState = ({ title, message, onRetry }) => {
       style={{
         alignItems: "center",
         justifyContent: "center",
-        padding: 40,
-        minHeight: 200,
+        padding: 32,
+        minHeight: 180,
       }}
     >
       <View
         style={{
-          width: 80,
-          height: 80,
-          borderRadius: 40,
+          width: 64,
+          height: 64,
+          borderRadius: 32,
           backgroundColor: colors.errorContainer,
           alignItems: "center",
           justifyContent: "center",
-          marginBottom: 16,
+          marginBottom: 14,
         }}
       >
-        <MaterialIcons name="error-outline" size={40} color={colors.error} />
+        <MaterialIcons name="error-outline" size={32} color={colors.error} />
       </View>
       <Text
         style={[
           styles.titleMedium,
-          { color: colors.error, marginBottom: 8, textAlign: "center" },
+          {
+            color: colors.error,
+            marginBottom: 6,
+            textAlign: "center",
+            fontFamily: FONTS.semiBold,
+          },
         ]}
       >
         {displayTitle}
@@ -152,6 +167,7 @@ const ErrorState = ({ title, message, onRetry }) => {
               color: colors.onSurfaceVariant,
               textAlign: "center",
               marginBottom: 16,
+              fontFamily: FONTS.regular,
             },
           ]}
         >
@@ -162,17 +178,17 @@ const ErrorState = ({ title, message, onRetry }) => {
         <Pressable
           onPress={onRetry}
           style={({ pressed }) => ({
-            paddingHorizontal: 24,
-            paddingVertical: 12,
+            paddingHorizontal: 20,
+            paddingVertical: 10,
             borderRadius: 20,
             backgroundColor: colors.primary,
-            opacity: pressed ? 0.9 : 1,
+            opacity: pressed ? 0.85 : 1,
           })}
         >
           <Text
             style={{
               fontSize: FONT_SIZES.sm,
-              fontFamily: FONTS.bold,
+              fontFamily: FONTS.medium,
               color: colors.onPrimary,
             }}
           >

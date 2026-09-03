@@ -1863,7 +1863,7 @@ export default function ClassPerformanceScreen() {
                               >
                                 <Text
                                   style={{
-                                    fontSize: rank <= 3 ? 18 : 13,
+                                    fontSize: rank <= 3 ? FONT_SIZES.md : FONT_SIZES.xs,
                                     fontFamily: FONTS.bold,
                                     color: colors.onSurface,
                                   }}

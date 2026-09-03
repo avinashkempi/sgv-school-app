@@ -91,42 +91,130 @@ export default function EnterMarksScreen() {
     return map;
   }, [existingMarksData]);
 
-  // Grid update mutation
+  // Grid update mutation with Offline Queue support
   const gridUpdateMutation = useApiMutation({
     mutationFn: createApiMutationFn(
       `${apiConfig.baseUrl}/marks/grid-update`,
       "POST"
     ),
-    onSuccess: (result) => {
-      if (result.errors && result.errors.length > 0) {
-        showToast(`Saved with ${result.errors.length} errors`, "warning");
-      } else {
+    offlineQueue: {
+      type: "ENTER_MARKS",
+      tag: (vars) => `marks_grid_${vars.examId}`,
+      description: `Exam Marks: ${exam?.title || "Exam"}`,
+      url: `${apiConfig.baseUrl}/marks/grid-update`,
+      method: "POST",
+      invalidateKeys: (vars) => [
+        ["examMarks", vars.examId],
+        ["marksStatus", vars.examId],
+      ],
+      onOptimisticUpdate: (vars) => {
+        const inputList = vars.gridData || [];
+        queryClient.setQueryData(["examMarks", vars.examId], (oldData) => {
+          const oldList = Array.isArray(oldData) ? [...oldData] : [];
+          inputList.forEach((item) => {
+            const existingIndex = oldList.findIndex(
+              (m) => (m.student?._id || m.student) === item.studentId
+            );
+            if (existingIndex >= 0) {
+              oldList[existingIndex] = {
+                ...oldList[existingIndex],
+                marksObtained: item.marksObtained,
+              };
+            } else {
+              const studentObj = students.find((s) => s._id === item.studentId) || {
+                _id: item.studentId,
+              };
+              oldList.push({
+                student: studentObj,
+                marksObtained: item.marksObtained,
+              });
+            }
+          });
+          return oldList;
+        });
+      },
+    },
+    onSuccess: (result, _variables, _context, isOfflineQueued) => {
+      if (isOfflineQueued) {
         showToast(
-          `Updated: ${result.updated}, Created: ${result.created}`,
-          "success"
+          "Marks saved offline. Will auto-sync when connected.",
+          "info"
         );
+      } else {
+        if (result.errors && result.errors.length > 0) {
+          showToast(`Saved with ${result.errors.length} errors`, "warning");
+        } else {
+          showToast(
+            `Updated: ${result.updated}, Created: ${result.created}`,
+            "success"
+          );
+        }
+        queryClient.invalidateQueries({ queryKey: ["examMarks", examId] });
+        queryClient.invalidateQueries({ queryKey: ["marksStatus", examId] });
+        refetchMarks();
       }
-      queryClient.invalidateQueries({ queryKey: ["examMarks", examId] });
-      queryClient.invalidateQueries({ queryKey: ["marksStatus", examId] });
-      refetchMarks();
     },
     onError: (error) =>
       showToast(error.message || "Failed to save marks", "error"),
   });
 
-  // Bulk save mutation (for list view)
+  // Bulk save mutation (for list view) with Offline Queue support
   const saveMarksMutation = useApiMutation({
     mutationFn: createApiMutationFn(`${apiConfig.baseUrl}/marks/bulk`, "POST"),
-    onSuccess: (result) => {
-      const failures = result.results.filter((r) => !r.success);
-      if (failures.length > 0) {
-        showToast(`Marks saved with ${failures.length} errors`, "warning");
+    offlineQueue: {
+      type: "ENTER_MARKS",
+      tag: (vars) => `marks_bulk_${vars.examId}`,
+      description: `Exam Marks: ${exam?.title || "Exam"}`,
+      url: `${apiConfig.baseUrl}/marks/bulk`,
+      method: "POST",
+      invalidateKeys: (vars) => [
+        ["examMarks", vars.examId],
+        ["marksStatus", vars.examId],
+      ],
+      onOptimisticUpdate: (vars) => {
+        const inputList = vars.marksData || [];
+        queryClient.setQueryData(["examMarks", vars.examId], (oldData) => {
+          const oldList = Array.isArray(oldData) ? [...oldData] : [];
+          inputList.forEach((item) => {
+            const existingIndex = oldList.findIndex(
+              (m) => (m.student?._id || m.student) === item.studentId
+            );
+            if (existingIndex >= 0) {
+              oldList[existingIndex] = {
+                ...oldList[existingIndex],
+                marksObtained: item.marksObtained,
+              };
+            } else {
+              const studentObj = students.find((s) => s._id === item.studentId) || {
+                _id: item.studentId,
+              };
+              oldList.push({
+                student: studentObj,
+                marksObtained: item.marksObtained,
+              });
+            }
+          });
+          return oldList;
+        });
+      },
+    },
+    onSuccess: (result, _variables, _context, isOfflineQueued) => {
+      if (isOfflineQueued) {
+        showToast(
+          "Marks saved offline. Will auto-sync when connected.",
+          "info"
+        );
       } else {
-        showToast("All marks saved successfully", "success");
+        const failures = result.results?.filter((r) => !r.success) || [];
+        if (failures.length > 0) {
+          showToast(`Marks saved with ${failures.length} errors`, "warning");
+        } else {
+          showToast("All marks saved successfully", "success");
+        }
+        queryClient.invalidateQueries({ queryKey: ["examMarks", examId] });
+        queryClient.invalidateQueries({ queryKey: ["marksStatus", examId] });
+        refetchMarks();
       }
-      queryClient.invalidateQueries({ queryKey: ["examMarks", examId] });
-      queryClient.invalidateQueries({ queryKey: ["marksStatus", examId] });
-      refetchMarks();
     },
     onError: (error) =>
       showToast(error.message || "Failed to save marks", "error"),

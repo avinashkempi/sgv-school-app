@@ -26,7 +26,7 @@ export default function HomeScreen() {
   const { schoolInfo: SCHOOL, refresh: refreshSchoolInfo } = useSchoolInfo();
   const [refreshing, setRefreshing] = useState(false);
   const { showToast: _showToast } = useToast();
-  const { updateUser, isAuthenticated } = useAuth();
+  const { user: authUser, updateUser, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const scrollRef = useRef(null);
 
@@ -45,6 +45,9 @@ export default function HomeScreen() {
       select: (data) => data.user,
     }
   );
+
+  const activeUser = userData || authUser;
+  const activeRole = activeUser?.role;
 
   // Guard: skip redundant updateUser calls to avoid full-tree context re-renders
   const lastUserIdRef = useRef(null);
@@ -95,21 +98,21 @@ export default function HomeScreen() {
         {/* Creative & Stylish Welcome Header (Without Role Tag) */}
         <Header
           title={SCHOOL.name || "Shri Guru Vidya English Medium School"}
-          userName={userData?.name}
+          userName={activeUser?.name}
           variant="welcome"
         />
 
         {/* ═══════════ 1. Role-Based Dynamic Dashboard (Module 1) ═══════════ */}
-        {userData?.role === "admin" || userData?.role === "super admin" ? (
+        {activeRole === "admin" || activeRole === "super admin" ? (
           <AdminDashboard />
-        ) : userData?.role === "teacher" ? (
+        ) : activeRole === "teacher" ? (
           <TeacherDashboard />
-        ) : userData?.role === "student" ? (
+        ) : activeRole === "student" ? (
           <StudentDashboard />
         ) : null}
 
         {/* ═══════════ 2. Today's Timetable / Schedule (Teachers, Admins, Guests) ═══════════ */}
-        {userData?.role !== "student" && <TodayTimetableCard />}
+        {activeRole !== "student" && <TodayTimetableCard />}
 
         {/* ═══════════ 3. Campus Spotlight (Admin-Selected) ═══════════ */}
         <VibeSpotlightCard />

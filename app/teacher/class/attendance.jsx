@@ -17,7 +17,7 @@ import {
   createApiMutationFn,
 } from "../../../hooks/useApi";
 import { CACHE_TIERS } from "../../../utils/cacheConfig";
-import { useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "../../../components/ToastProvider";
 import AppHeader from "../../../components/Header";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -71,24 +71,27 @@ export default function MarkAttendanceScreen() {
     return null;
   }, [classId, subjectId, dateStr]);
 
+  const attendanceTargetKey = useMemo(() => {
+    return subjectId ? `subject_${subjectId}` : `class_${classId}`;
+  }, [classId, subjectId]);
+
   const {
     data: attendanceData,
     isLoading,
     isFetching,
     refetch,
   } = useApiQuery(
-    ["attendance", classId || subjectId, dateStr],
+    ["attendance", attendanceTargetKey, dateStr],
     `${apiConfig.baseUrl}${attendanceEndpoint}`,
     {
       enabled: !!attendanceEndpoint,
-      placeholderData: keepPreviousData,
       staleTime: CACHE_TIERS.REAL_TIME.staleTime,
     }
   );
 
-  // ─── Populate local state from query data ───
+  // ─── Populate local state from query data (with offline roster fallback) ───
   useEffect(() => {
-    if (attendanceData && Array.isArray(attendanceData)) {
+    if (attendanceData && Array.isArray(attendanceData) && attendanceData.length > 0) {
       // Apply on-leave auto-absent logic
       const processed = attendanceData.map((s) =>
         s.onLeave && !s.status ? { ...s, status: "absent" } : s
@@ -96,29 +99,84 @@ export default function MarkAttendanceScreen() {
       setStudents(processed);
       const origMap = {};
       attendanceData.forEach((s) => {
-        origMap[s.student._id] = s.status;
+        if (s?.student?._id) {
+          origMap[s.student._id] = s.status;
+        }
       });
       setOriginalStatuses(origMap);
       setHasUnsavedChanges(false);
+    } else if (!isLoading && (!attendanceData || attendanceData.length === 0)) {
+      // Offline fallback: load student roster from cached class details
+      const cachedClass = queryClient.getQueryData(["classDetails", classId]);
+      if (
+        cachedClass?.students &&
+        Array.isArray(cachedClass.students) &&
+        cachedClass.students.length > 0
+      ) {
+        const fallbackStudents = cachedClass.students.map((student) => ({
+          student,
+          status: "present", // Default to present for new unrecorded day
+          remarks: "",
+        }));
+        setStudents(fallbackStudents);
+        setOriginalStatuses({});
+        setHasUnsavedChanges(false);
+      }
     }
-  }, [attendanceData]);
+  }, [attendanceData, isLoading, classId, queryClient]);
 
-  // ─── Save mutation with cache invalidation ───
+  // ─── Save mutation with offline queue & cache invalidation ───
   const saveMutation = useApiMutation({
     mutationFn: createApiMutationFn(
       `${apiConfig.baseUrl}/attendance/mark`,
       "POST"
     ),
-    onSuccess: () => {
-      showToast(
-        t("toasts.attendanceSaved", "Attendance saved successfully"),
-        "success"
-      );
+    offlineQueue: {
+      type: "MARK_ATTENDANCE",
+      tag: `attendance_${attendanceTargetKey}_${dateStr}`,
+      description: `Attendance: ${classData?.name || subjectData?.name || "Class"} (${dateStr})`,
+      url: `${apiConfig.baseUrl}/attendance/mark`,
+      method: "POST",
+      invalidateKeys: [
+        ["attendance", attendanceTargetKey, dateStr],
+        ["teacherDashboard"],
+        ["adminDashboard"],
+      ],
+      onOptimisticUpdate: () => {
+        // Optimistically update query cache so navigating back/forth keeps saved data
+        queryClient.setQueryData(
+          ["attendance", attendanceTargetKey, dateStr],
+          students
+        );
+      },
+    },
+    onSuccess: (_data, _variables, _context, isOfflineQueued) => {
+      if (isOfflineQueued) {
+        showToast(
+          "Attendance saved offline. Will auto-sync when connected.",
+          "info"
+        );
+      } else {
+        showToast(
+          t("toasts.attendanceSaved", "Attendance saved successfully"),
+          "success"
+        );
+      }
       setHasUnsavedChanges(false);
-      // Invalidate this date's cache so it refetches fresh data
-      queryClient.invalidateQueries({
-        queryKey: ["attendance", classId || subjectId, dateStr],
+      const origMap = {};
+      students.forEach((s) => {
+        if (s?.student?._id) {
+          origMap[s.student._id] = s.status;
+        }
       });
+      setOriginalStatuses(origMap);
+
+      if (!isOfflineQueued) {
+        // Invalidate this date's cache so it refetches fresh data
+        queryClient.invalidateQueries({
+          queryKey: ["attendance", attendanceTargetKey, dateStr],
+        });
+      }
     },
     onError: (error) => {
       showToast(
@@ -196,10 +254,6 @@ export default function MarkAttendanceScreen() {
         return colors.success;
       case "absent":
         return colors.error;
-      case "late":
-        return "#FF9800";
-      case "excused":
-        return "#2196F3";
       default:
         return colors.textSecondary;
     }
@@ -211,10 +265,6 @@ export default function MarkAttendanceScreen() {
         return "check-circle";
       case "absent":
         return "cancel";
-      case "late":
-        return "schedule";
-      case "excused":
-        return "verified";
       default:
         return "radio-button-unchecked";
     }
@@ -815,60 +865,52 @@ export default function MarkAttendanceScreen() {
                         </Text>
                       )}
 
-                      {/* Fine-tune P/A/L/E row — visible when status is set */}
+                      {/* Fine-tune P/A row — visible when status is set */}
                       {studentData.status && (
                         <View
                           style={{ flexDirection: "row", gap: 6, marginTop: 8 }}
                         >
-                          {["present", "absent", "late", "excused"].map(
-                            (status) => (
-                              <Pressable
-                                key={status}
-                                onPress={() =>
-                                  handleStatusChange(
-                                    studentData.student._id,
-                                    status
-                                  )
-                                }
-                                style={({ pressed }) => ({
-                                  flex: 1,
-                                  backgroundColor:
-                                    studentData.status === status
-                                      ? getStatusColor(status) + "20"
-                                      : "transparent",
-                                  borderWidth:
-                                    studentData.status === status ? 1.5 : 1,
-                                  borderColor:
+                          {["present", "absent"].map((status) => (
+                            <Pressable
+                              key={status}
+                              onPress={() =>
+                                handleStatusChange(
+                                  studentData.student._id,
+                                  status
+                                )
+                              }
+                              style={({ pressed }) => ({
+                                flex: 1,
+                                backgroundColor:
+                                  studentData.status === status
+                                    ? getStatusColor(status) + "20"
+                                    : "transparent",
+                                borderWidth:
+                                  studentData.status === status ? 1.5 : 1,
+                                borderColor:
+                                  studentData.status === status
+                                    ? getStatusColor(status)
+                                    : colors.textSecondary + "20",
+                                borderRadius: 6,
+                                paddingVertical: 6,
+                                alignItems: "center",
+                                opacity: pressed ? 0.7 : 1,
+                              })}
+                            >
+                              <Text
+                                style={{
+                                  fontSize: FONT_SIZES.micro,
+                                  fontFamily: FONTS.bold,
+                                  color:
                                     studentData.status === status
                                       ? getStatusColor(status)
-                                      : colors.textSecondary + "20",
-                                  borderRadius: 6,
-                                  paddingVertical: 6,
-                                  alignItems: "center",
-                                  opacity: pressed ? 0.7 : 1,
-                                })}
+                                      : colors.textSecondary + "80",
+                                }}
                               >
-                                <Text
-                                  style={{
-                                    fontSize: FONT_SIZES.micro,
-                                    fontFamily: FONTS.bold,
-                                    color:
-                                      studentData.status === status
-                                        ? getStatusColor(status)
-                                        : colors.textSecondary + "80",
-                                  }}
-                                >
-                                  {status === "present"
-                                    ? "P"
-                                    : status === "absent"
-                                    ? "A"
-                                    : status === "late"
-                                    ? "L"
-                                    : "E"}
-                                </Text>
-                              </Pressable>
-                            )
-                          )}
+                                {status === "present" ? "P" : "A"}
+                              </Text>
+                            </Pressable>
+                          ))}
                         </View>
                       )}
                     </Pressable>

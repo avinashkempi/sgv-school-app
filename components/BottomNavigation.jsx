@@ -344,7 +344,7 @@ const TabItem = memo(({ item, isActive, onPress, colors }) => {
         scaleX: interpolate(
           activeProgress.value,
           [0, 1],
-          [0.4, 1],
+          [0.65, 1],
           Extrapolation.CLAMP
         ),
       },
@@ -352,7 +352,7 @@ const TabItem = memo(({ item, isActive, onPress, colors }) => {
         scaleY: interpolate(
           activeProgress.value,
           [0, 1],
-          [0.8, 1],
+          [0.85, 1],
           Extrapolation.CLAMP
         ),
       },
@@ -366,6 +366,9 @@ const TabItem = memo(({ item, isActive, onPress, colors }) => {
       onPressOut={handlePressOut}
       style={styles.tabItem}
       hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+      accessibilityRole="tab"
+      accessibilityState={{ selected: isActive }}
+      accessibilityLabel={item.label}
     >
       <Animated.View style={[{ alignItems: "center" }, containerStyle]}>
         <View style={styles.iconContainer}>
@@ -393,12 +396,11 @@ const TabItem = memo(({ item, isActive, onPress, colors }) => {
             styles.label,
             {
               color: isActive ? colors.onSurface : colors.onSurfaceVariant,
-              fontFamily: isActive ? FONTS.bold : FONTS.medium,
+              fontFamily: isActive ? FONTS.semiBold : FONTS.medium,
             },
           ]}
           numberOfLines={1}
-          adjustsFontSizeToFit={true}
-          minimumFontScale={0.75}
+          ellipsizeMode="tail"
         >
           {item.label}
         </Text>

@@ -10,6 +10,8 @@
  */
 import { AppState, Platform } from "react-native";
 import { focusManager } from "@tanstack/react-query";
+import { syncQueue } from "./offlineQueue";
+import { queryClient } from "./queryClient";
 
 // Minimum time (ms) the app must be in the background before we
 // trigger a refetch on resume. Prevents battery drain from quick switches.
@@ -28,6 +30,11 @@ function handleAppStateChange(nextAppState) {
   if (nextAppState === "background" || nextAppState === "inactive") {
     lastBackgroundTimestamp = Date.now();
   } else if (nextAppState === "active") {
+    // Also trigger offline mutation queue sync if any actions were pending
+    syncQueue(queryClient).catch((err) => {
+      console.warn("[AppStateRefresh] Offline queue sync error:", err);
+    });
+
     const wasInBackground = lastBackgroundTimestamp !== null;
     const backgroundDuration = wasInBackground
       ? Date.now() - lastBackgroundTimestamp
