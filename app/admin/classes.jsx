@@ -77,7 +77,7 @@ export default function ClassesScreen() {
       queryClient.invalidateQueries({ queryKey: ["adminClassesInit"] });
       showToast("Class created", "success");
       setShowModal(false);
-      setForm({ ...form, name: "", section: "" });
+      setForm({ name: "", section: "", branch: "Main", classTeacher: "" });
       setModalMode("create");
       setEditingClassId(null);
     },
@@ -94,7 +94,7 @@ export default function ClassesScreen() {
       queryClient.invalidateQueries({ queryKey: ["adminClassesInit"] });
       showToast("Class updated", "success");
       setShowModal(false);
-      setForm({ ...form, name: "", section: "" });
+      setForm({ name: "", section: "", branch: "Main", classTeacher: "" });
       setModalMode("create");
       setEditingClassId(null);
     },
@@ -425,52 +425,163 @@ export default function ClassesScreen() {
                 onChangeText={(t) => setForm({ ...form, section: t })}
               />
 
-              {/* Simple Dropdown for Teacher */}
-              <View style={{ marginBottom: 24 }}>
+              {/* Branch Selector */}
+              <View style={{ marginBottom: 14 }}>
                 <Text
                   style={{
                     color: colors.textSecondary,
-                    marginBottom: 4,
+                    marginBottom: 6,
                     fontSize: FONT_SIZES.sm,
+                    fontFamily: FONTS.medium,
                   }}
                 >
-                  Class Teacher (Optional)
+                  Branch
                 </Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  {teachers.map((teacher) => (
-                    <Pressable
-                      key={teacher._id}
-                      onPress={() =>
-                        setForm({ ...form, classTeacher: teacher._id })
-                      }
-                      style={{
-                        paddingHorizontal: 12,
-                        paddingVertical: 8,
-                        backgroundColor:
-                          form.classTeacher === teacher._id
+                <View style={{ flexDirection: "row", gap: 8 }}>
+                  {["Main", "Mangasuli", "Ugar"].map((b) => {
+                    const isSelected = (form.branch || "Main") === b;
+                    return (
+                      <Pressable
+                        key={b}
+                        onPress={() => setForm({ ...form, branch: b })}
+                        style={{
+                          flex: 1,
+                          paddingVertical: 10,
+                          alignItems: "center",
+                          backgroundColor: isSelected
                             ? colors.primary
                             : colors.background,
-                        borderRadius: 8,
-                        marginRight: 8,
-                        borderWidth: 1,
-                        borderColor:
-                          form.classTeacher === teacher._id
+                          borderRadius: 8,
+                          borderWidth: 1,
+                          borderColor: isSelected
                             ? colors.primary
                             : colors.border,
-                      }}
-                    >
-                      <Text
-                        style={{
-                          color:
-                            form.classTeacher === teacher._id
-                              ? "#fff"
-                              : colors.textPrimary,
                         }}
                       >
-                        {teacher.name}
+                        <Text
+                          style={{
+                            color: isSelected ? "#fff" : colors.textPrimary,
+                            fontSize: FONT_SIZES.sm,
+                            fontFamily: isSelected ? FONTS.bold : FONTS.regular,
+                          }}
+                        >
+                          {b}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {/* Class Teacher Selector */}
+              <View style={{ marginBottom: 24 }}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 6,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: colors.textSecondary,
+                      fontSize: FONT_SIZES.sm,
+                      fontFamily: FONTS.medium,
+                    }}
+                  >
+                    Class Teacher (Optional)
+                  </Text>
+                  {!!form.classTeacher && (
+                    <Pressable onPress={() => setForm({ ...form, classTeacher: "" })}>
+                      <Text
+                        style={{
+                          color: colors.error,
+                          fontSize: FONT_SIZES.xs,
+                          fontFamily: FONTS.medium,
+                        }}
+                      >
+                        Clear Selection
                       </Text>
                     </Pressable>
-                  ))}
+                  )}
+                </View>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingVertical: 4 }}
+                >
+                  {/* None / Unassigned option */}
+                  <Pressable
+                    onPress={() => setForm({ ...form, classTeacher: "" })}
+                    delayPressIn={50}
+                    style={{
+                      paddingHorizontal: 12,
+                      paddingVertical: 8,
+                      backgroundColor: !form.classTeacher
+                        ? colors.error + "20"
+                        : colors.background,
+                      borderRadius: 8,
+                      marginRight: 8,
+                      borderWidth: 1,
+                      borderColor: !form.classTeacher
+                        ? colors.error
+                        : colors.border,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: !form.classTeacher
+                          ? colors.error
+                          : colors.textSecondary,
+                        fontFamily: !form.classTeacher
+                          ? FONTS.bold
+                          : FONTS.regular,
+                        fontSize: FONT_SIZES.sm,
+                      }}
+                    >
+                      None
+                    </Text>
+                  </Pressable>
+
+                  {teachers.map((teacher) => {
+                    const isSelected = form.classTeacher === teacher._id;
+                    return (
+                      <Pressable
+                        key={teacher._id}
+                        delayPressIn={50}
+                        onPress={() =>
+                          setForm({
+                            ...form,
+                            classTeacher: isSelected ? "" : teacher._id,
+                          })
+                        }
+                        style={{
+                          paddingHorizontal: 12,
+                          paddingVertical: 8,
+                          backgroundColor: isSelected
+                            ? colors.primary
+                            : colors.background,
+                          borderRadius: 8,
+                          marginRight: 8,
+                          borderWidth: 1,
+                          borderColor: isSelected
+                            ? colors.primary
+                            : colors.border,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: isSelected ? "#fff" : colors.textPrimary,
+                            fontFamily: isSelected ? FONTS.bold : FONTS.regular,
+                            fontSize: FONT_SIZES.sm,
+                          }}
+                        >
+                          {teacher.name}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
                 </ScrollView>
               </View>
 

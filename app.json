@@ -6,12 +6,8 @@
     "icon": "./assets/images/icon.png",
     "scheme": "sgvschool",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "androidStatusBar": {
       "translucent": true
-    },
-    "androidNavigationBar": {
-      "backgroundColor": "#00000000"
     },
     "ios": {
       "supportsTablet": true,
