@@ -15,7 +15,8 @@ const CLOUDINARY_RAW_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/raw/up
  * Cloudinary Organized Folder Paths
  */
 export const CLOUDINARY_FOLDERS = {
-  AVATARS: "sgv_school/avatars",
+  PROFILE_PHOTOS: "sgv_school/profile_photos",
+  AVATARS: "sgv_school/profile_photos", // Maintained for backwards compatibility
   POSTS: "sgv_school/posts",
   VIBES_IMAGES: "sgv_school/vibes/images",
   VIBES_VIDEOS: "sgv_school/vibes/videos",
@@ -420,11 +421,11 @@ export const compressImage = async (uri) => {
 };
 
 /**
- * Compress and format an avatar image into a 500x500 square JPEG.
+ * Compress and format a user profile photo into a 500x500 square JPEG.
  * @param {string} uri - Local image URI
- * @returns {Promise<string>} - Compressed avatar URI
+ * @returns {Promise<string>} - Compressed profile photo URI
  */
-export const compressAvatar = async (uri) => {
+export const compressProfilePhoto = async (uri) => {
   try {
     const manipulated = await ImageManipulator.manipulateAsync(
       uri,
@@ -436,10 +437,11 @@ export const compressAvatar = async (uri) => {
     );
     return manipulated.uri;
   } catch (error) {
-    console.warn("Avatar compression failed, using original:", error);
+    console.warn("Profile photo compression failed, using original:", error);
     return uri;
   }
 };
+export const compressAvatar = compressProfilePhoto;
 
 /**
  * Get file size from a local URI (approximate for RN).
@@ -621,37 +623,132 @@ export const pickAndUploadImage = async (
 };
 
 /**
- * Upload a profile avatar photo to the sgv_school/avatars folder.
+ * Build a human-readable, chronological file name for user profile photos.
+ * Format: profile_photo_{role}_{name}_{regNo/id}_{timestamp}.jpg
+ * E.g., "profile_photo_student_Avinash_Kempi_1725608345.jpg" or "profile_photo_1725608345.jpg"
  *
- * @param {string} uri - Local compressed avatar URI
+ * @param {Object} [params]
+ * @param {string} [params.userName] - User's full name
+ * @param {string} [params.role] - User role (e.g. 'student', 'teacher', 'admin')
+ * @param {string} [params.userId] - User ID
+ * @param {string} [params.regNo] - Student registration number
+ * @param {string} [params.rollNumber] - Student roll number
+ * @returns {string} Sanitized file name with extension
+ */
+export const buildProfilePhotoFileName = ({
+  userName = "",
+  role = "",
+  userId = "",
+  regNo = "",
+  rollNumber = "",
+} = {}) => {
+  const parts = ["profile_photo"];
+
+  const cleanRole = sanitizeCloudinarySegment(role);
+  const cleanName = sanitizeCloudinarySegment(userName);
+  const cleanId = sanitizeCloudinarySegment(
+    regNo || rollNumber || (userId ? String(userId).slice(-6) : "")
+  );
+
+  if (cleanRole) parts.push(cleanRole);
+  if (cleanName) parts.push(cleanName);
+  if (cleanId) parts.push(cleanId);
+
+  parts.push(Date.now());
+
+  return `${parts.join("_")}.jpg`;
+};
+
+/**
+ * Build structured Cloudinary tags and context metadata for profile photos.
+ *
+ * @param {Object} [params]
+ * @returns {{ tags: string[], context: Record<string, string> }}
+ */
+export const buildProfilePhotoTagsAndContext = ({
+  userName = "",
+  role = "",
+  userId = "",
+  regNo = "",
+} = {}) => {
+  const tags = ["profile_photo"];
+  const cleanRole = sanitizeCloudinarySegment(role);
+  if (cleanRole) tags.push(`role_${cleanRole}`);
+
+  const context = { type: "profile_photo" };
+  if (userName) context.name = userName.trim();
+  if (role) context.role = role.trim();
+  if (userId) context.userId = String(userId).trim();
+  if (regNo) context.regNo = String(regNo).trim();
+
+  return { tags, context };
+};
+
+/**
+ * Upload a user profile photo to the sgv_school/profile_photos folder.
+ * Uses the structured naming convention: profile_photo_{role}_{name}_{timestamp}.jpg
+ *
+ * @param {string} uri - Local compressed photo URI
  * @param {(progress: number) => void} [onProgress]
+ * @param {Object} [options] - Additional options or user context
+ * @param {string} [options.userName] - User's full name
+ * @param {string} [options.role] - User role (student, teacher, etc.)
+ * @param {string} [options.userId] - User database ID
+ * @param {string} [options.regNo] - Registration / Admission number
+ * @param {string} [options.rollNumber] - Roll number
+ * @param {Object} [options.userContext] - Nested user context object
  * @returns {Promise<{url: string, publicId: string}>}
  */
-export const uploadProfilePhoto = async (uri, onProgress) => {
+export const uploadProfilePhoto = async (uri, onProgress, options = {}) => {
+  const userContext = {
+    userName: options?.userName || options?.userContext?.userName,
+    role: options?.role || options?.userContext?.role,
+    userId: options?.userId || options?.userContext?.userId,
+    regNo: options?.regNo || options?.userContext?.regNo,
+    rollNumber: options?.rollNumber || options?.userContext?.rollNumber,
+  };
+
+  const folder =
+    options?.folder ||
+    CLOUDINARY_FOLDERS.PROFILE_PHOTOS ||
+    "sgv_school/profile_photos";
+
+  const fileName =
+    options?.fileName || buildProfilePhotoFileName(userContext);
+
+  const { tags: defaultTags, context: defaultContext } =
+    buildProfilePhotoTagsAndContext(userContext);
+
   return uploadToCloudinary(uri, onProgress, {
-    folder: CLOUDINARY_FOLDERS.AVATARS,
-    fileNamePrefix: "avatar",
+    folder,
+    fileName,
+    fileNamePrefix: "profile_photo",
+    tags: options?.tags || defaultTags,
+    context: options?.context || defaultContext,
+    ...options,
   });
 };
 
 /**
- * Complete Profile Photo Pipeline: Pick (1:1 square) → Compress (500x500) → Upload to avatars folder.
+ * Complete Profile Photo Pipeline: Pick (1:1 square) → Compress (500x500) → Upload to profile_photos folder.
  *
  * @param {'gallery'|'camera'} source
  * @param {(progress: number) => void} [onProgress]
+ * @param {Object} [options]
  * @returns {Promise<{url: string, publicId: string, localUri: string}|null>}
  */
 export const pickAndUploadProfilePhoto = async (
   source = "gallery",
-  onProgress
+  onProgress,
+  options = {}
 ) => {
   const picked = await pickProfilePhoto(source);
   if (!picked) return null;
 
   if (onProgress) onProgress(0);
 
-  const compressedUri = await compressAvatar(picked.uri);
-  const result = await uploadProfilePhoto(compressedUri, onProgress);
+  const compressedUri = await compressProfilePhoto(picked.uri);
+  const result = await uploadProfilePhoto(compressedUri, onProgress, options);
 
   return {
     url: result.url,
@@ -962,6 +1059,7 @@ export const getAvatarUrl = (url, size = 200) => {
     `/upload/w_${size},h_${size},c_fill,g_face,q_auto,f_auto/`
   );
 };
+export const getProfilePhotoUrl = getAvatarUrl;
 
 /**
  * Optimized circular story preview thumbnail (200x200 smart face/auto crop)

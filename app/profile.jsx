@@ -41,7 +41,7 @@ import { LoadingState } from "../components/StateComponents";
 import Header from "../components/Header";
 import { Image } from "expo-image";
 import {
-  compressAvatar,
+  compressProfilePhoto,
   uploadProfilePhoto,
   getAvatarUrl,
 } from "../utils/cloudinaryUpload";
@@ -217,13 +217,20 @@ export default function ProfileScreen() {
       setUploadProgress(0);
 
       // Compress to 500×500 square JPEG
-      const compressedUri = await compressAvatar(picked.uri);
+      const compressedUri = await compressProfilePhoto(picked.uri);
 
-      // Upload to Cloudinary avatars folder
+      // Upload to Cloudinary profile photos folder with user-aware naming convention
       const uploadResult = await uploadProfilePhoto(
         compressedUri,
         (progress) => {
           setUploadProgress(progress);
+        },
+        {
+          userName: user?.name || authUser?.name,
+          role: user?.role || authUser?.role,
+          userId: user?._id || authUser?._id || user?.id || authUser?.id,
+          regNo: user?.regNo || authUser?.regNo,
+          rollNumber: user?.rollNumber || authUser?.rollNumber,
         }
       );
 
