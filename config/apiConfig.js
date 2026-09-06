@@ -75,6 +75,7 @@ const endpoints = {
     spotlight: "/vibes/spotlight",
     recordViews: "/vibes/views",
     recordView: (id) => `/vibes/${id}/view`,
+    getViewers: (id) => `/vibes/${id}/viewers`,
     adminPending: "/vibes/admin/pending",
     adminBatchReview: "/vibes/admin/batch-review",
     adminReview: (id) => `/vibes/admin/${id}/review`,

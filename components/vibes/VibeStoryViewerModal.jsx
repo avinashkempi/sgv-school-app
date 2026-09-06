@@ -47,6 +47,7 @@ import { FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
 import formatTimeAgo from "../../utils/formatTimeAgo";
 import VibeVideoPlayer from "./VibeVideoPlayer";
 import VibeCommentsModal from "./VibeCommentsModal";
+import VibeViewersModal from "./VibeViewersModal";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const STORY_DURATION_MS = 5000; // 5 seconds per story photo
@@ -134,7 +135,7 @@ const VibeStoryViewerModal = ({
   initialIndex = 0,
 }) => {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   const { isSlow } = useNetworkQuality();
@@ -143,6 +144,7 @@ const VibeStoryViewerModal = ({
   const [isPaused, setIsPaused] = useState(false);
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const [activeCommentVibe, setActiveCommentVibe] = useState(null);
+  const [showViewersModal, setShowViewersModal] = useState(false);
   const [isLikedLocally, setIsLikedLocally] = useState(false);
   const [likesCountLocally, setLikesCountLocally] = useState(0);
 
@@ -163,6 +165,7 @@ const VibeStoryViewerModal = ({
     if (visible) {
       setCurrentIndex(Math.min(initialIndex, Math.max(stories.length - 1, 0)));
       setIsPaused(false);
+      setShowViewersModal(false);
       setMediaLoaded(false);
       translateY.value = 0;
       translateX.value = 0;
@@ -171,6 +174,16 @@ const VibeStoryViewerModal = ({
   }, [visible, initialIndex, stories.length, translateY, translateX, scale]);
 
   const currentVibe = stories[currentIndex];
+
+  // Permissions: Super Admin, Admin, or the story author can see who viewed
+  const isSuperAdminOrAdmin =
+    user?.role === "super admin" || user?.role === "admin";
+  const isStoryAuthor = !!(
+    user?.userId &&
+    currentVibe?.author?._id &&
+    String(user.userId) === String(currentVibe.author._id)
+  );
+  const canViewStoryViewers = isSuperAdminOrAdmin || isStoryAuthor;
 
   // Sync local like state with current vibe
   useEffect(() => {
@@ -528,7 +541,7 @@ const VibeStoryViewerModal = ({
                     key={idx}
                     index={idx}
                     currentIndex={currentIndex}
-                    isPaused={isPaused || !!activeCommentVibe}
+                    isPaused={isPaused || !!activeCommentVibe || showViewersModal}
                     isMediaLoaded={isVideo || mediaLoaded}
                     onSegmentComplete={handleNext}
                   />
@@ -705,6 +718,33 @@ const VibeStoryViewerModal = ({
                   </Text>
                 </Pressable>
 
+                {/* Viewers Button (For Super Admin, Admin, and Story Author) */}
+                {canViewStoryViewers && (
+                  <Pressable
+                    onPress={() => {
+                      Haptics.impactAsync(
+                        Haptics.ImpactFeedbackStyle.Light
+                      ).catch(() => {});
+                      setIsPaused(true);
+                      setShowViewersModal(true);
+                    }}
+                    style={({ pressed }) => [
+                      styles.actionButton,
+                      { opacity: pressed ? 0.7 : 1 },
+                    ]}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel="View story viewers"
+                  >
+                    <MaterialIcons
+                      name="visibility"
+                      size={24}
+                      color="#fff"
+                    />
+                    <Text style={styles.actionCountText}>Views</Text>
+                  </Pressable>
+                )}
+
                 {/* View Full Post in Feed Button */}
                 <Pressable
                   onPress={handleOpenInFeed}
@@ -728,6 +768,18 @@ const VibeStoryViewerModal = ({
           visible={!!activeCommentVibe}
           onClose={() => setActiveCommentVibe(null)}
           vibe={activeCommentVibe}
+        />
+      )}
+
+      {/* Story Viewers Bottom Sheet Modal */}
+      {showViewersModal && currentVibe?._id && (
+        <VibeViewersModal
+          visible={showViewersModal}
+          onClose={() => {
+            setShowViewersModal(false);
+            setIsPaused(false);
+          }}
+          vibeId={currentVibe._id}
         />
       )}
     </Modal>

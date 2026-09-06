@@ -98,6 +98,7 @@ const VibeCard = ({
   onOpenComments,
   onOpenLikes,
   onBookmark,
+  onOpenViewers,
   onEdit,
   onDelete,
   onTogglePin,
@@ -327,6 +328,10 @@ const VibeCard = ({
     }
 
     if (canModerate) {
+      options.push({
+        text: "👁️ Viewers",
+        onPress: () => onOpenViewers?.(vibe._id),
+      });
       options.push({ text: "Edit", onPress: () => onEdit?.(vibe) });
       options.push({
         text: "Delete",
@@ -360,6 +365,7 @@ const VibeCard = ({
     onToggleSpotlight,
     onTogglePin,
     canModerate,
+    onOpenViewers,
     onEdit,
     onDelete,
   ]);
@@ -748,6 +754,25 @@ const VibeCard = ({
               )}
             </Text>
           </Pressable>
+
+          {canModerate && (
+            <Pressable
+              onPress={() => onOpenViewers?.(vibe._id)}
+              hitSlop={6}
+              style={styles.viewersLinkBtn}
+              accessibilityRole="button"
+              accessibilityLabel="View post viewers"
+            >
+              <MaterialIcons
+                name="visibility"
+                size={13}
+                color={colors.primary}
+              />
+              <Text style={[styles.viewersLinkText, { color: colors.primary }]}>
+                Viewers
+              </Text>
+            </Pressable>
+          )}
         </View>
 
         {/* ──── Caption ──── */}
@@ -1026,6 +1051,18 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
   },
   viewLikesHint: {
+    fontFamily: FONTS.semiBold,
+  },
+  viewersLinkBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
+  viewersLinkText: {
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.semiBold,
   },
   captionContainer: {

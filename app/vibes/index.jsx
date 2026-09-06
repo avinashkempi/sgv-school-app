@@ -35,6 +35,7 @@ import VibeStoriesTray from "../../components/vibes/VibeStoriesTray";
 import CreateVibeModal from "../../components/vibes/CreateVibeModal";
 import VibeCommentsModal from "../../components/vibes/VibeCommentsModal";
 import VibeLikesModal from "../../components/vibes/VibeLikesModal";
+import VibeViewersModal from "../../components/vibes/VibeViewersModal";
 import SkeletonLoader from "../../components/SkeletonLoader";
 
 const VIBES_PER_PAGE = 10;
@@ -115,6 +116,7 @@ export default function VibesScreen() {
   const [editingVibe, setEditingVibe] = useState(null);
   const [activeCommentVibe, setActiveCommentVibe] = useState(null);
   const [activeLikesVibeId, setActiveLikesVibeId] = useState(null);
+  const [activeViewersVibeId, setActiveViewersVibeId] = useState(null);
 
   // Target Vibe Query (from deep link, spotlight, or notification)
   const { data: targetVibeData } = useApiQuery(
@@ -579,6 +581,7 @@ export default function VibesScreen() {
         onBookmark={handleBookmark}
         onOpenComments={setActiveCommentVibe}
         onOpenLikes={setActiveLikesVibeId}
+        onOpenViewers={setActiveViewersVibeId}
         onEdit={handleEdit}
         onDelete={handleDelete}
         onTogglePin={handleTogglePin}
@@ -697,6 +700,7 @@ export default function VibesScreen() {
             onBookmark={handleBookmark}
             onOpenComments={setActiveCommentVibe}
             onOpenLikes={setActiveLikesVibeId}
+            onOpenViewers={setActiveViewersVibeId}
             onEdit={handleEdit}
             onDelete={handleDelete}
             onTogglePin={handleTogglePin}
@@ -1625,6 +1629,13 @@ export default function VibesScreen() {
         visible={!!activeLikesVibeId}
         onClose={() => setActiveLikesVibeId(null)}
         vibeId={activeLikesVibeId}
+      />
+
+      {/* ──── Viewers Modal ──── */}
+      <VibeViewersModal
+        visible={!!activeViewersVibeId}
+        onClose={() => setActiveViewersVibeId(null)}
+        vibeId={activeViewersVibeId}
       />
     </View>
   );
