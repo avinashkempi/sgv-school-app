@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
@@ -512,7 +511,6 @@ const EventCard = React.memo(
 EventCard.displayName = "EventCard";
 
 export default function EventsScreen() {
-  const _navigation = useNavigation();
   const today = getISTToday();
   const [selectedDate, setSelectedDate] = useState(today);
   const [viewMode, setViewMode] = useState("calendar"); // 'calendar' | 'upcoming' | 'holidays'
