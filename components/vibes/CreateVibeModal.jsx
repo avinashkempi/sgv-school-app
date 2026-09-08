@@ -220,8 +220,18 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
     const imagesChanged =
       images.length !== initialImageCount ||
       images.some((img) => img.localUri || img.uploading);
-    return captionChanged || categoryChanged || imagesChanged;
-  }, [isEditing, editVibe, caption, category, images]);
+    const postAsChanged =
+      isAdmin && (postAs || "self") !== (editVibe.postAs || "self");
+    const spotlightChanged =
+      isAdmin && Boolean(isSpotlight) !== Boolean(editVibe.isSpotlight);
+    return (
+      captionChanged ||
+      categoryChanged ||
+      imagesChanged ||
+      postAsChanged ||
+      spotlightChanged
+    );
+  }, [isEditing, editVibe, caption, category, images, isAdmin, postAs, isSpotlight]);
 
   const handleClose = useCallback(() => {
     if (submitting) return;
@@ -564,7 +574,39 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
         3000
       );
 
-      // Invalidate relevant queries
+      // Eagerly update in-memory caches if editing so the UI reflects changes immediately
+      if (isEditing && editVibe?._id && res?.data) {
+        const updatedVibe = res.data;
+        const updateVibesCache = (oldData) => {
+          if (!oldData?.pages) return oldData;
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page) => ({
+              ...page,
+              data: (page.data || []).map((v) =>
+                v._id === editVibe._id ? { ...v, ...updatedVibe } : v
+              ),
+            })),
+          };
+        };
+
+        queryClient.setQueriesData({ queryKey: ["vibes"] }, updateVibesCache);
+        queryClient.setQueriesData({ queryKey: ["myVibes"] }, updateVibesCache);
+        queryClient.setQueriesData({ queryKey: ["savedVibes"] }, updateVibesCache);
+        queryClient.setQueriesData({ queryKey: ["userVibes"] }, updateVibesCache);
+
+        queryClient.setQueryData(["vibeSpotlight"], (old) => {
+          if (!old?.data || old.data._id !== editVibe._id) return old;
+          return { ...old, data: { ...old.data, ...updatedVibe } };
+        });
+
+        queryClient.setQueryData(["targetVibe", String(editVibe._id)], (old) => {
+          if (!old?.data) return old;
+          return { ...old, data: { ...old.data, ...updatedVibe } };
+        });
+      }
+
+      // Invalidate relevant queries for background sync
       queryClient.invalidateQueries({ queryKey: ["vibes"] });
       queryClient.invalidateQueries({ queryKey: ["myVibes"] });
       queryClient.invalidateQueries({ queryKey: ["savedVibes"] });

@@ -469,8 +469,7 @@ export default function StudentClassScreen() {
                         ]}
                         numberOfLines={1}
                       >
-                        {formatClassName(classData.name)}
-                        {classData.section ? ` - ${classData.section}` : ""}
+                        {formatClassName(classData.name, classData.section)}
                       </Text>
                       <Text
                         style={[

@@ -13,6 +13,7 @@ import {
 } from "../../../components/StateComponents";
 import apiFetch from "../../../utils/apiFetch";
 import apiConfig from "../../../config/apiConfig";
+import { formatClassName } from "../../../utils/formatClassName";
 
 export default function StudentHistoryScreen() {
   // eslint-disable-next-line no-unused-vars
@@ -147,9 +148,7 @@ export default function StudentHistoryScreen() {
                           color: colors.onSurface,
                         }}
                       >
-                        ${t("common.class", "Class")} $
-                        {record.class?.label ||
-                          record.class?.name ||
+                        {formatClassName(record.class) ||
                           t("common.unknown", "Unknown")}
                       </Text>
                     </View>

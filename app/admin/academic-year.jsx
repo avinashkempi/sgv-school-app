@@ -28,6 +28,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "../../components/ToastProvider";
 import Header from "../../components/Header";
 import { formatDate } from "../../utils/date";
+import { formatClassName } from "../../utils/formatClassName";
 import {
   formatUserName,
   formatUserDesignationOrRole,
@@ -269,18 +270,15 @@ export default function AcademicYearScreen() {
       // Helper to format class display name
       const getDisplayName = (cls) => {
         if (!cls) return "Unassigned";
-        const base = cls.label || cls.name || "Unnamed Class";
-        const sec =
-          cls.section && !base.toLowerCase().includes(cls.section.toLowerCase())
-            ? ` - ${cls.section}`
-            : "";
+        const formatted = formatClassName(cls.name || cls.label, cls.section);
+        const base = formatted || cls.label || cls.name || "Unnamed Class";
         const br =
           cls.branch &&
           cls.branch !== "Main" &&
           !base.toLowerCase().includes(cls.branch.toLowerCase())
             ? ` (${cls.branch})`
             : "";
-        return `${base}${sec}${br}`.trim();
+        return `${base}${br}`.trim();
       };
 
       // Initialize classes from class list

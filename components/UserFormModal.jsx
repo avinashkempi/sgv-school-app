@@ -16,6 +16,7 @@ import { useForm, Controller } from "react-hook-form";
 
 import { useApiQuery } from "../hooks/useApi";
 import apiConfig from "../config/apiConfig";
+import { formatClassName } from "../utils/formatClassName";
 const availableRoles = [
   "student",
   "teacher",
@@ -656,7 +657,7 @@ export default function UserFormModal({
                                 fontSize: FONT_SIZES.sm,
                               }}
                             >
-                              {cls.name || cls.label}
+                              {formatClassName(cls.name || cls.label, cls.section)}
                             </Text>
                           </Pressable>
                         ))}

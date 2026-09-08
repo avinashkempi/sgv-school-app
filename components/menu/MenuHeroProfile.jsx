@@ -11,6 +11,7 @@ import {
   formatUserName,
   formatUserDesignationOrRole,
 } from "../../utils/userFormatters";
+import { formatClassName } from "../../utils/formatClassName";
 import { useAcademicYear } from "../../context/AcademicYearContext";
 import { useLabel } from "../../context/LabelsContext";
 
@@ -203,18 +204,27 @@ export default function MenuHeroProfile({ user }) {
           </View>
 
           {/* Student Class or Additional Info */}
-          {user.role === "student" && (user.classId?.name || user.className) && (
-            <Text
-              style={[
-                localStyles.classText,
-                { color: colors.onSurfaceVariant },
-              ]}
-              numberOfLines={1}
-            >
-              Class: {user.classId?.name || user.className}
-              {user.rollNo ? ` • Roll: ${user.rollNo}` : ""}
-            </Text>
-          )}
+          {user.role === "student" &&
+            Boolean(
+              formatClassName(
+                user.classId || user.currentClass || user.className,
+                user.classId?.section || user.section
+              )
+            ) && (
+              <Text
+                style={[
+                  localStyles.classText,
+                  { color: colors.onSurfaceVariant },
+                ]}
+                numberOfLines={1}
+              >
+                {formatClassName(
+                  user.classId || user.currentClass || user.className,
+                  user.classId?.section || user.section
+                )}
+                {user.rollNo ? ` • Roll: ${user.rollNo}` : ""}
+              </Text>
+            )}
         </View>
 
         <View

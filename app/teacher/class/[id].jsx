@@ -33,6 +33,7 @@ import { EmptyState } from "../../../components/StateComponents";
 import { useLabel } from "../../../context/LabelsContext";
 import UserAvatar from "../../../components/ui/UserAvatar";
 import { formatUserName, toTitleCase } from "../../../utils/userFormatters";
+import { formatClassName } from "../../../utils/formatClassName";
 import PostContentModal from "../../../components/PostContentModal";
 import ClassMediaAttachmentViewer from "../../../components/class/ClassMediaAttachmentViewer";
 import { CACHE_TIERS } from "../../../utils/cacheConfig";
@@ -424,7 +425,7 @@ export default function ClassDetailsScreen() {
           <AppHeader
             title={
               classData
-                ? `${classData.name} ${classData.section || ""}`
+                ? formatClassName(classData.name, classData.section)
                 : t("teacher.classDetails", "Class Details")
             }
             subtitle={t(
@@ -518,19 +519,19 @@ export default function ClassDetailsScreen() {
             tabs={[
               {
                 key: "subjects",
-                label: `${t("teacher.subjects", "Subjects")} (${
+                label: `${toTitleCase(t("teacher.subjects", "Subjects"))} (${
                   subjects.length
                 })`,
               },
               {
                 key: "feed",
-                label: `${t("student.classFeed", "Feed & Notes")} (${
+                label: `${toTitleCase(t("student.classFeed", "Feed & Notes"))} (${
                   classFeed.length
                 })`,
               },
               {
                 key: "students",
-                label: `${t("common.students", "Students")} (${
+                label: `${toTitleCase(t("common.students", "Students"))} (${
                   students.length
                 })`,
               },

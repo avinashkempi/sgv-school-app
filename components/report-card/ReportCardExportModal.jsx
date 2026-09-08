@@ -17,6 +17,7 @@ import Button from "../Button";
 import { useToast } from "../ToastProvider";
 
 import { formatUserName } from "../../utils/userFormatters";
+import { formatClassName } from "../../utils/formatClassName";
 
 export default function ReportCardExportModal({
   visible,
@@ -43,7 +44,11 @@ export default function ReportCardExportModal({
   // Generate clean, high-resolution printable HTML
   const generateHTML = () => {
     const studentName = formatUserName(student?.name) || "Student";
-    const className = student?.class || student?.className || "N/A";
+    const className =
+      formatClassName(
+        student?.class || student?.className,
+        student?.section
+      ) || "N/A";
     const rollNo = student?.rollNumber || "N/A";
     const admNo = student?.admissionNumber || "N/A";
     const academicYear = student?.academicYear ? `Academic Year ${student.academicYear}` : "Academic Performance";
@@ -328,7 +333,10 @@ export default function ReportCardExportModal({
                 <View style={styles.detailItem}>
                   <Text style={[styles.detailKey, { color: colors.onSurfaceVariant }]}>Class & Section</Text>
                   <Text style={[styles.detailVal, { color: colors.onSurface }]}>
-                    {student?.class || "3rd Standard A"}
+                    {formatClassName(
+                      student?.class || student?.className,
+                      student?.section
+                    ) || "N/A"}
                   </Text>
                 </View>
                 <View style={styles.detailItem}>

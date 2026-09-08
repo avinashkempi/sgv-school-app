@@ -19,6 +19,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "../../../components/ToastProvider";
 import Header from "../../../components/Header";
+import { formatClassName } from "../../../utils/formatClassName";
 
 // ---------- Memoised exam-type card — only re-renders when its own props change ----------
 const ExamTypeCard = memo(function ExamTypeCard({
@@ -382,7 +383,7 @@ export default function QuickExamWizard() {
                 marginBottom: 12,
               }}
             >
-              {group.class.name} {group.class.section}
+              {formatClassName(group.class?.name || group.class, group.class?.section)}
             </Text>
 
             {group.subjects.map((subject) => (
@@ -635,8 +636,10 @@ export default function QuickExamWizard() {
                 marginTop: 4,
               }}
             >
-              {selectedSubjectObj?.class.name}{" "}
-              {selectedSubjectObj?.class.section}
+              {formatClassName(
+                selectedSubjectObj?.class?.name || selectedSubjectObj?.class,
+                selectedSubjectObj?.class?.section
+              )}
             </Text>
           </View>
 

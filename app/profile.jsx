@@ -25,6 +25,7 @@ import {
   formatUserDesignationOrRole,
   toTitleCase,
 } from "../utils/userFormatters";
+import { formatClassName } from "../utils/formatClassName";
 
 import {
   useApiQuery,
@@ -638,11 +639,10 @@ export default function ProfileScreen() {
                                 color: colors.onSurface,
                               }}
                             >
-                              {typeof user.currentClass === "string"
-                                ? user.currentClass
-                                : user.currentClass?.name ||
-                                  user.currentClass?.label ||
-                                  "N/A"}
+                              {formatClassName(user.currentClass) ||
+                                (typeof user.currentClass === "string"
+                                  ? user.currentClass
+                                  : "N/A")}
                             </Text>
                           </View>
                         )}

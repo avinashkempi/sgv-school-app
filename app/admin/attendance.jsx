@@ -1200,10 +1200,9 @@ export default function AdminAttendance() {
                         <View>
                           <Text style={styles.absentName}>{formatUserName(item.name)}</Text>
                           <Text style={styles.absentRole}>
-                            {formatUserDesignationOrRole(item)}{" "}
                             {item.className
-                              ? `• ${formatClassName(item.className)}`
-                              : ""}
+                              ? `Student • ${formatClassName(item.className)}`
+                              : formatUserDesignationOrRole(item)}
                           </Text>
                         </View>
                         <View style={styles.absentTag}>

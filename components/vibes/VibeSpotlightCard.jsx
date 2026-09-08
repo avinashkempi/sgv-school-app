@@ -130,12 +130,25 @@ const VibeSpotlightCard = () => {
     isVideoUrl(primaryMedia?.url) ||
     isVideoUrl(primaryMedia);
 
-  const badgeConfig =
-    vibe.category === "achievement"
-      ? { label: "Achievement Spotlight", bg: "#D97706", icon: "emoji-events" }
-      : vibe.postAs === "school" || vibe.category === "official"
-        ? { label: "Official Broadcast", bg: "#2563EB", icon: "school" }
-        : { label: "Campus Spotlight", bg: colors.primary, icon: "auto-awesome" };
+  const getBadgeConfig = () => {
+    switch (vibe.category) {
+      case "achievement":
+        return { label: "Achievement Spotlight", bg: "#D97706", icon: "emoji-events" };
+      case "sports":
+        return { label: "Sports Spotlight", bg: "#059669", icon: "sports-soccer" };
+      case "arts":
+        return { label: "Arts & Events", bg: "#7C3AED", icon: "palette" };
+      case "life":
+        return { label: "Campus Life", bg: "#0284C7", icon: "local-florist" };
+      case "official":
+        return { label: "Official Broadcast", bg: "#2563EB", icon: "school" };
+      default:
+        return vibe.postAs === "school"
+          ? { label: "Official Broadcast", bg: "#2563EB", icon: "school" }
+          : { label: "Campus Spotlight", bg: colors.primary, icon: "auto-awesome" };
+    }
+  };
+  const badgeConfig = getBadgeConfig();
 
   return (
     <HomeModuleContainer

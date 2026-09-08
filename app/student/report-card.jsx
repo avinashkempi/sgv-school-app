@@ -21,6 +21,7 @@ import AppRefreshControl from "../../components/ui/AppRefreshControl";
 import { useLabel } from "../../context/LabelsContext";
 import { useAcademicYear } from "../../context/AcademicYearContext";
 import { formatUserName } from "../../utils/userFormatters";
+import { formatClassName } from "../../utils/formatClassName";
 import apiConfig from "../../config/apiConfig";
 
 import ReportCardGauge, {
@@ -127,14 +128,21 @@ export default function StudentReportCardScreen() {
     reportCard?.student?.academicYear || selectedYear?.name || "";
 
   // Safe fallback values
-  const studentInfo = reportCard?.student || {
-    name: formatUserName(user?.name) || "Student",
-    class: user?.currentClass?.name
-      ? `${user.currentClass.name} ${user.currentClass.section || ""}`.trim()
-      : "Class",
-    rollNumber: user?.rollNumber || "",
-    academicYear: currentAcademicYear,
-  };
+  const studentInfo = reportCard?.student
+    ? {
+        ...reportCard.student,
+        class:
+          formatClassName(
+            reportCard.student.class,
+            reportCard.student.section
+          ) || reportCard.student.class,
+      }
+    : {
+        name: formatUserName(user?.name) || "Student",
+        class: formatClassName(user?.currentClass) || "Class",
+        rollNumber: user?.rollNumber || "",
+        academicYear: currentAcademicYear,
+      };
 
   const overall = reportCard?.overall || {
     percentage: 0,
@@ -901,7 +909,7 @@ export default function StudentReportCardScreen() {
                 ) : null}
 
                 <Text style={styles.studentClass} numberOfLines={1}>
-                  {studentInfo.class}
+                  {formatClassName(studentInfo.class)}
                   {studentInfo.rollNumber ? ` • Roll #${studentInfo.rollNumber}` : ""}
                 </Text>
 

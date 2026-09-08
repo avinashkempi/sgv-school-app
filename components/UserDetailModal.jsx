@@ -9,6 +9,7 @@ import {
   formatUserDesignationOrRole,
   toTitleCase,
 } from "../utils/userFormatters";
+import { formatClassName } from "../utils/formatClassName";
 import { useApiQuery } from "../hooks/useApi";
 import apiConfig from "../config/apiConfig";
 import { CACHE_TIERS } from "../utils/cacheConfig";
@@ -205,7 +206,7 @@ export default function UserDetailModal({ visible, onClose, user }) {
                   </View>
                   <DetailRow
                     label="Class"
-                    value={user.currentClass?.name || "N/A"}
+                    value={formatClassName(user.currentClass) || "N/A"}
                   />
                   <DetailRow
                     label="Academic Year"

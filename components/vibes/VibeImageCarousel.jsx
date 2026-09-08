@@ -7,6 +7,7 @@ import {
   Dimensions,
   FlatList,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import { Image } from "expo-image";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -34,8 +35,8 @@ import PinchableLightboxModal from "../ui/PinchableLightboxModal";
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
-const MAX_IMAGE_HEIGHT = Math.min(SCREEN_HEIGHT * 0.55, 460);
-const MIN_IMAGE_HEIGHT = 240;
+const MAX_IMAGE_HEIGHT = Math.min(SCREEN_HEIGHT * 0.65, 520);
+const MIN_IMAGE_HEIGHT = 200;
 
 /**
  * Calculates adaptive height based on the image's aspect ratio,
@@ -71,6 +72,7 @@ const VibeImageCarousel = React.memo(
     const [activeSlideIndex, setActiveSlideIndex] = useState(0);
     const [lightboxVisible, setLightboxVisible] = useState(false);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+    const [detectedRatio, setDetectedRatio] = useState(null);
 
     // Heart burst animation values
     const heartScale = useSharedValue(0);
@@ -106,11 +108,28 @@ const VibeImageCarousel = React.memo(
       });
     }, [images]);
 
-    // Derive dynamic height from the first item's aspect ratio
-    const primaryAspectRatio = formattedImages[0]?.aspectRatio || 1;
+    // Derive dynamic height from the first item's aspect ratio or real detected ratio
+    const primaryAspectRatio =
+      detectedRatio || formattedImages[0]?.aspectRatio || 1;
     const carouselHeight = useMemo(() => {
       return calculateAdaptiveHeight(primaryAspectRatio, width);
     }, [primaryAspectRatio, width]);
+
+    // Handle real image dimension detection to refine adaptive height smoothly
+    const handleDimensionsDetected = useCallback(
+      (naturalWidth, naturalHeight) => {
+        if (naturalWidth > 0 && naturalHeight > 0) {
+          const ratio = Number((naturalWidth / naturalHeight).toFixed(3));
+          if (ratio > 0 && isFinite(ratio)) {
+            // Only update if significantly different from initial estimate
+            if (Math.abs(ratio - primaryAspectRatio) > 0.05) {
+              setDetectedRatio(ratio);
+            }
+          }
+        }
+      },
+      [primaryAspectRatio]
+    );
 
     // Preload adjacent carousel slides (2 slides ahead) for instantaneous swipe experience
     useEffect(() => {
@@ -186,9 +205,63 @@ const VibeImageCarousel = React.memo(
 
     if (formattedImages.length === 0) return null;
 
+    // Direct render for single image/video — eliminates nested FlatList touch conflicts and half-scrolled offset bugs
+    if (formattedImages.length === 1) {
+      const singleItem = formattedImages[0];
+      return (
+        <View style={[styles.container, { width, height: carouselHeight }]}>
+          {singleItem.type === "video" ? (
+            <VibeVideoPlayer
+              url={singleItem.url}
+              thumbnailUrl={singleItem.thumbnailUrl}
+              width={width}
+              height={carouselHeight}
+              isVisible={isVisible}
+              isActiveSlide={true}
+              onDoubleTapLike={onDoubleTapLike}
+            />
+          ) : (
+            <Pressable
+              onPress={() => handlePress(0)}
+              onLongPress={() => handleLongPress(0)}
+              delayLongPress={350}
+              style={{ width, height: carouselHeight }}
+            >
+              <CarouselImage
+                url={singleItem.url}
+                width={width}
+                height={carouselHeight}
+                colors={colors}
+                isSlow={isSlow}
+                onDimensionsDetected={handleDimensionsDetected}
+              />
+            </Pressable>
+          )}
+
+          {/* Double Tap Heart Burst Overlay */}
+          <Animated.View
+            pointerEvents="none"
+            style={[styles.heartBurstContainer, animatedHeartStyle]}
+          >
+            <MaterialIcons name="favorite" size={90} color="#FF2D55" />
+          </Animated.View>
+
+          {/* Full-Screen Pinchable & Dismissible Lightbox Modal */}
+          <PinchableLightboxModal
+            visible={lightboxVisible}
+            imageUrl={getOptimizedCloudinaryUrl(
+              singleItem.url,
+              { width: 1440 }
+            )}
+            onClose={() => setLightboxVisible(false)}
+          />
+        </View>
+      );
+    }
+
     return (
       <View style={[styles.container, { width, height: carouselHeight }]}>
-        {/* Horizontal Carousel */}
+        {/* Horizontal Carousel with clean interval snapping and no paging conflicts */}
         <AnimatedFlatList
           data={formattedImages}
           renderItem={({ item, index }) => {
@@ -219,25 +292,32 @@ const VibeImageCarousel = React.memo(
                   height={carouselHeight}
                   colors={colors}
                   isSlow={isSlow}
+                  onDimensionsDetected={
+                    index === 0 ? handleDimensionsDetected : undefined
+                  }
                 />
               </Pressable>
             );
           }}
           keyExtractor={(_, index) => `vibe-img-${index}`}
           horizontal
-          pagingEnabled
+          pagingEnabled={false}
           showsHorizontalScrollIndicator={false}
           bounces={false}
+          nestedScrollEnabled={true}
           onScroll={scrollHandler}
           onMomentumScrollEnd={handleMomentumScrollEnd}
           scrollEventThrottle={16}
           snapToInterval={width}
+          snapToAlignment="start"
           decelerationRate="fast"
+          disableIntervalMomentum={true}
           getItemLayout={(_, index) => ({
             length: width,
             offset: width * index,
             index,
           })}
+          style={{ width, height: carouselHeight }}
         />
 
         {/* Double Tap Heart Burst Overlay */}
@@ -249,29 +329,25 @@ const VibeImageCarousel = React.memo(
         </Animated.View>
 
         {/* Multi-Image Counter Pill */}
-        {formattedImages.length > 1 && (
-          <View style={styles.imageCountBadge}>
-            <MaterialIcons name="photo-library" size={12} color="#fff" />
-            <Text style={styles.imageCountText}>
-              {activeSlideIndex + 1}/{formattedImages.length}
-            </Text>
-          </View>
-        )}
+        <View style={styles.imageCountBadge}>
+          <MaterialIcons name="photo-library" size={12} color="#fff" />
+          <Text style={styles.imageCountText}>
+            {activeSlideIndex + 1}/{formattedImages.length}
+          </Text>
+        </View>
 
         {/* Pagination Dot Indicators */}
-        {formattedImages.length > 1 && (
-          <View style={styles.dotsContainer}>
-            {formattedImages.map((_, index) => (
-              <MiniDot
-                key={index}
-                index={index}
-                scrollX={scrollX}
-                itemWidth={width}
-                color={colors.primary}
-              />
-            ))}
-          </View>
-        )}
+        <View style={styles.dotsContainer}>
+          {formattedImages.map((_, index) => (
+            <MiniDot
+              key={index}
+              index={index}
+              scrollX={scrollX}
+              itemWidth={width}
+              color={colors.primary}
+            />
+          ))}
+        </View>
 
         {/* Full-Screen Pinchable & Dismissible Lightbox Modal */}
         <PinchableLightboxModal
@@ -289,103 +365,130 @@ const VibeImageCarousel = React.memo(
 
 VibeImageCarousel.displayName = "VibeImageCarousel";
 
-const CarouselImage = React.memo(({ url, width, height, colors, isSlow }) => {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
-  const [showSlowHint, setShowSlowHint] = useState(false);
+const CarouselImage = React.memo(
+  ({ url, width, height, colors, isSlow, onDimensionsDetected }) => {
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
+    const [retryCount, setRetryCount] = useState(0);
+    const [showSlowHint, setShowSlowHint] = useState(false);
 
-  // Progressive image delivery:
-  // 1. Instant tiny blurred placeholder (< 1KB)
-  // 2. High-performance retina image (1.5x width on fast, 1.0x on slow)
-  const placeholderUrl = useMemo(() => getBlurPlaceholderUrl(url), [url]);
-  const displayUrl = useMemo(() => {
-    const scaleFactor = isSlow ? 1.0 : 1.5;
-    const base = getOptimizedCloudinaryUrl(url, {
-      width: Math.round(width * scaleFactor),
-      quality: isSlow ? "eco" : "auto",
-      isSlow,
-    });
-    return retryCount > 0
-      ? `${base}${base.includes("?") ? "&" : "?"}retry=${retryCount}`
-      : base;
-  }, [url, width, isSlow, retryCount]);
+    // Progressive image delivery:
+    // 1. Instant tiny blurred placeholder (< 1KB)
+    // 2. High-performance retina image (1.5x width on fast, 1.0x on slow)
+    const placeholderUrl = useMemo(() => getBlurPlaceholderUrl(url), [url]);
+    const displayUrl = useMemo(() => {
+      const scaleFactor = isSlow ? 1.0 : 1.5;
+      const base = getOptimizedCloudinaryUrl(url, {
+        width: Math.round(width * scaleFactor),
+        quality: isSlow ? "eco" : "auto",
+        isSlow,
+      });
+      return retryCount > 0
+        ? `${base}${base.includes("?") ? "&" : "?"}retry=${retryCount}`
+        : base;
+    }, [url, width, isSlow, retryCount]);
 
-  // Show subtle hint if loading exceeds 3.5 seconds
-  useEffect(() => {
-    if (!loading) {
-      setShowSlowHint(false);
-      return;
-    }
-    const timer = setTimeout(() => {
-      if (loading) setShowSlowHint(true);
-    }, 3500);
-    return () => clearTimeout(timer);
-  }, [loading]);
+    // Show subtle hint if loading exceeds 3.5 seconds
+    useEffect(() => {
+      if (!loading) {
+        setShowSlowHint(false);
+        return;
+      }
+      const timer = setTimeout(() => {
+        if (loading) setShowSlowHint(true);
+      }, 3500);
+      return () => clearTimeout(timer);
+    }, [loading]);
 
-  const handleRetry = useCallback(() => {
-    setError(false);
-    setLoading(true);
-    setRetryCount((prev) => prev + 1);
-  }, []);
+    const handleRetry = useCallback(() => {
+      setError(false);
+      setLoading(true);
+      setRetryCount((prev) => prev + 1);
+    }, []);
 
-  return (
-    <View style={[styles.imageWrapper, { width, height }]}>
-      {error ? (
-        <View
-          style={[
-            styles.errorContainer,
-            { backgroundColor: colors.surfaceContainerHighest },
-          ]}
-        >
-          <MaterialIcons
-            name="broken-image"
-            size={36}
-            color={colors.onSurfaceVariant}
-          />
-          <Text style={[styles.errorText, { color: colors.onSurfaceVariant }]}>
-            Couldn't load photo
-          </Text>
-          <Pressable
-            onPress={handleRetry}
-            style={[styles.retryBtn, { backgroundColor: colors.primary }]}
+    return (
+      <View style={[styles.imageWrapper, { width, height }]}>
+        {error ? (
+          <View
+            style={[
+              styles.errorContainer,
+              { backgroundColor: colors.surfaceContainerHighest },
+            ]}
           >
-            <MaterialIcons name="refresh" size={14} color="#fff" />
-            <Text style={styles.retryBtnText}>Tap to Retry</Text>
-          </Pressable>
-        </View>
-      ) : (
-        <Image
-          source={{ uri: displayUrl }}
-          placeholder={placeholderUrl ? { uri: placeholderUrl } : undefined}
-          placeholderContentFit="contain"
-          style={styles.image}
-          contentFit="contain"
-          transition={150}
-          cachePolicy="memory-disk"
-          onLoadStart={() => setLoading(true)}
-          onLoad={() => setLoading(false)}
-          onError={() => {
-            setLoading(false);
-            setError(true);
-          }}
-        />
-      )}
+            <MaterialIcons
+              name="broken-image"
+              size={36}
+              color={colors.onSurfaceVariant}
+            />
+            <Text style={[styles.errorText, { color: colors.onSurfaceVariant }]}>
+              Couldn't load photo
+            </Text>
+            <Pressable
+              onPress={handleRetry}
+              style={[styles.retryBtn, { backgroundColor: colors.primary }]}
+            >
+              <MaterialIcons name="refresh" size={14} color="#fff" />
+              <Text style={styles.retryBtnText}>Tap to Retry</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <>
+            {/* Ambient blurred backdrop for letterboxed/non-square photos so they never show awkward empty margins */}
+            {displayUrl ? (
+              <Image
+                source={{ uri: displayUrl }}
+                style={StyleSheet.absoluteFillObject}
+                contentFit="cover"
+                blurRadius={Platform.OS === "ios" ? 25 : 15}
+                cachePolicy="memory-disk"
+              />
+            ) : null}
+            <View
+              style={[
+                StyleSheet.absoluteFillObject,
+                { backgroundColor: "rgba(0, 0, 0, 0.4)" },
+              ]}
+            />
 
-      {/* Subtle Slow Network Hint */}
-      {loading && showSlowHint && (
-        <View style={styles.slowNetworkPill}>
-          <ActivityIndicator
-            size="small"
-            color="#fff"
-            style={{ transform: [{ scale: 0.7 }] }}
-          />
-          <Text style={styles.slowNetworkText}>Loading photo...</Text>
-        </View>
-      )}
-    </View>
-  );
-});
+            {/* Crisp foreground image */}
+            <Image
+              source={{ uri: displayUrl }}
+              placeholder={placeholderUrl ? { uri: placeholderUrl } : undefined}
+              placeholderContentFit="contain"
+              style={styles.image}
+              contentFit="contain"
+              transition={150}
+              cachePolicy="memory-disk"
+              onLoadStart={() => setLoading(true)}
+              onLoad={(e) => {
+                setLoading(false);
+                if (e?.source?.width && e?.source?.height) {
+                  onDimensionsDetected?.(e.source.width, e.source.height);
+                }
+              }}
+              onError={() => {
+                setLoading(false);
+                setError(true);
+              }}
+            />
+          </>
+        )}
+
+        {/* Subtle Slow Network Hint */}
+        {loading && showSlowHint && (
+          <View style={styles.slowNetworkPill}>
+            <ActivityIndicator
+              size="small"
+              color="#fff"
+              style={{ transform: [{ scale: 0.7 }] }}
+            />
+            <Text style={styles.slowNetworkText}>Loading photo...</Text>
+          </View>
+        )}
+      </View>
+    );
+  }
+);
 
 CarouselImage.displayName = "CarouselImage";
 
@@ -422,11 +525,11 @@ MiniDot.displayName = "MiniDot";
 const styles = StyleSheet.create({
   container: {
     position: "relative",
-    backgroundColor: "transparent",
+    backgroundColor: "#0A0E1A",
     overflow: "hidden",
   },
   imageWrapper: {
-    backgroundColor: "transparent",
+    backgroundColor: "#0A0E1A",
     overflow: "hidden",
     position: "relative",
   },

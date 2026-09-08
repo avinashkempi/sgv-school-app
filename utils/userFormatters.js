@@ -5,6 +5,8 @@
  * and designations across the entire application.
  */
 
+import { formatClassName } from "./formatClassName.js";
+
 const SMALL_WORDS = new Set([
   "of",
   "and",
@@ -140,27 +142,19 @@ export function formatUserRole(role, fallback = "Member") {
 }
 
 /**
- * Safely parse student class or designation to a display string.
+ * Safely parse student class or designation to a formatted display string.
+ * Uses formatClassName to ensure numbers like "1" are displayed as "Grade - 1"
+ * or compact "1st Class".
  * Never returns raw MongoDB ObjectIds (24-hex characters).
  *
  * @param {Object|string} currentClass - Class object or string
+ * @param {Object} [options={}] - Formatting options (e.g. { compact: true })
  * @returns {string|null} Display class name
  */
-export function getClassDisplayName(currentClass) {
+export function getClassDisplayName(currentClass, options = {}) {
   if (!currentClass) return null;
-  if (typeof currentClass === "object") {
-    const raw =
-      currentClass.label ||
-      currentClass.name ||
-      (currentClass.section ? `Sec ${currentClass.section}` : null);
-    if (!raw) return null;
-    return String(raw).trim();
-  }
-  if (typeof currentClass === "string") {
-    if (/^[0-9a-fA-F]{24}$/.test(currentClass)) return null;
-    return currentClass.trim();
-  }
-  return null;
+  const formatted = formatClassName(currentClass, options);
+  return formatted || null;
 }
 
 /**

@@ -9,6 +9,12 @@
   "rules": {
     "react/react-in-jsx-scope": "off",
     "react/prop-types": "off",
+    "react-hooks/immutability": "off",
+    "react-hooks/refs": "off",
+    "react-hooks/set-state-in-effect": "off",
+    "react-hooks/preserve-manual-memoization": "off",
+    "react-hooks/static-components": "off",
+    "react-hooks/incompatible-library": "off",
     "no-unused-vars": [
       "warn",
       {

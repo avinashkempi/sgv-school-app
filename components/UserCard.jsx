@@ -4,6 +4,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { FONTS, FONT_SIZES, LETTER_SPACINGS } from "../theme";
 import UserAvatar from "./ui/UserAvatar";
 import { formatUserName } from "../utils/userFormatters";
+import { formatClassName } from "../utils/formatClassName";
 
 const getTimeAgo = (dateString) => {
   if (!dateString) return "";
@@ -163,28 +164,33 @@ const UserCard = ({
             </View>
 
             {/* Class Badge (Students Only) */}
-            {userItem.role === "student" && userItem.currentClass?.name && (
-              <View
-                style={{
-                  backgroundColor: colors.primary + "10",
-                  paddingHorizontal: 7,
-                  paddingVertical: 2,
-                  borderRadius: 6,
-                  borderWidth: 0,
-                }}
-              >
-                <Text
+            {userItem.role === "student" &&
+              Boolean(
+                formatClassName(userItem.currentClass, { compact: true })
+              ) && (
+                <View
                   style={{
-                    fontSize: FONT_SIZES.micro,
-                    fontFamily: FONTS.semiBold,
-                    color: colors.primary,
-                    letterSpacing: LETTER_SPACINGS.xs,
+                    backgroundColor: colors.primary + "10",
+                    paddingHorizontal: 7,
+                    paddingVertical: 2,
+                    borderRadius: 6,
+                    borderWidth: 0,
                   }}
                 >
-                  {userItem.currentClass.name.toUpperCase()}
-                </Text>
-              </View>
-            )}
+                  <Text
+                    style={{
+                      fontSize: FONT_SIZES.micro,
+                      fontFamily: FONTS.semiBold,
+                      color: colors.primary,
+                      letterSpacing: LETTER_SPACINGS.xs,
+                    }}
+                  >
+                    {formatClassName(userItem.currentClass, {
+                      compact: true,
+                    }).toUpperCase()}
+                  </Text>
+                </View>
+              )}
           </View>
 
           {/* Row 3: Phone & Last Active */}

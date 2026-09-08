@@ -29,6 +29,7 @@ import {
 import { useLabel } from "../../../context/LabelsContext";
 import UserAvatar from "../../../components/ui/UserAvatar";
 import { formatUserName } from "../../../utils/userFormatters";
+import { formatClassName } from "../../../utils/formatClassName";
 
 export default function MarkAttendanceScreen() {
   const _router = useRouter();
@@ -321,8 +322,8 @@ export default function MarkAttendanceScreen() {
             title={t("teacher.markAttendance", "Mark Attendance")}
             subtitle={
               subjectData
-                ? `${subjectData.name} - ${classData?.name}`
-                : classData?.name
+                ? `${subjectData.name} - ${formatClassName(classData?.name, classData?.section)}`
+                : formatClassName(classData?.name, classData?.section)
             }
             showBack={true}
           />

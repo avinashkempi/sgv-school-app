@@ -117,6 +117,17 @@ const VibeCard = ({
     Math.max(0, Number(vibe.commentsCount) || 0)
   );
   const [isBookmarked, setIsBookmarked] = useState(!!vibe.isBookmarked);
+  const [mediaWidth, setMediaWidth] = useState(SCREEN_WIDTH - 8);
+
+  const handleMediaLayout = useCallback(
+    (e) => {
+      const layoutW = Math.round(e.nativeEvent.layout.width);
+      if (layoutW > 0 && Math.abs(layoutW - mediaWidth) > 1) {
+        setMediaWidth(layoutW);
+      }
+    },
+    [mediaWidth]
+  );
 
   useEffect(() => {
     setIsLiked(!!vibe.isLiked);
@@ -588,10 +599,10 @@ const VibeCard = ({
 
       {/* ──── Media Carousel / Video Player ──── */}
       {vibe.images && vibe.images.length > 0 && (
-        <View style={styles.mediaContainer}>
+        <View style={styles.mediaContainer} onLayout={handleMediaLayout}>
           <VibeImageCarousel
             images={vibe.images}
-            width={SCREEN_WIDTH - 24}
+            width={mediaWidth}
             isVisible={isVisible}
             onDoubleTapLike={handleDoubleTapLike}
           />

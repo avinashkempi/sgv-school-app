@@ -22,6 +22,7 @@ import { useToast } from "../../../components/ToastProvider";
 import AppHeader from "../../../components/Header";
 import DataGrid from "../../../components/DataGrid";
 import StatCard from "../../../components/StatCard";
+import { formatClassName } from "../../../utils/formatClassName";
 
 export default function EnterMarksScreen() {
   // eslint-disable-next-line no-unused-vars
@@ -506,7 +507,7 @@ export default function EnterMarksScreen() {
                   color: colors.onSurface,
                 }}
               >
-                {exam.class.name} {exam.class.section}
+                {formatClassName(exam.class?.name || exam.class, exam.class?.section)}
               </Text>
             </View>
             <View

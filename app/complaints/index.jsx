@@ -588,9 +588,10 @@ export default function ComplaintsScreen() {
               }}
             >
               {item.class
-                ? `${formatClassName(item.class.name)} ${
-                    item.class.section || ""
-                  }`
+                ? formatClassName(
+                    item.class.name || item.class,
+                    item.class.section
+                  )
                 : ""}
             </Text>
           </View>

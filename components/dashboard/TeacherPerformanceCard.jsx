@@ -24,10 +24,14 @@ const formatSubjectName = (rawName, index) => {
   if (name.toLowerCase().startsWith("evs")) return "EVS";
   if (name.includes("(")) {
     const parts = name.split("(");
-    const code = parts[0].trim();
-    const full = parts[1].replace(")", "").trim();
-    if (code.length <= 5 && code.length > 0) return code;
-    return full || code;
+    const prefix = parts[0].trim();
+    const suffix = parts[1].replace(")", "").trim();
+    // If suffix contains class/section indicators (digits, "sec", "grade"), preserve the full disambiguated name
+    if (/\d/.test(suffix) || suffix.toLowerCase().includes("sec") || suffix.toLowerCase().includes("grade")) {
+      return name;
+    }
+    if (prefix.length <= 5 && prefix.length > 0) return prefix;
+    return suffix || prefix;
   }
   return name;
 };
@@ -102,8 +106,8 @@ const getScoreGrade = (score, maxScore = 20) => {
 const TeacherPerformanceCard = ({
   labels = [],
   data = [],
-  title = "Class Performance (Avg Marks)",
-  subtitle = "Average marks scored per subject",
+  title = "Class Performance (Avg Score)",
+  subtitle = "Average score percentage per subject",
   onViewPerformance,
 }) => {
   const router = useRouter();
@@ -150,14 +154,12 @@ const TeacherPerformanceCard = ({
     return null;
   }
 
-  // Determine scale max
+  // Determine scale max (percentages baseline: standard 100, or scaled if low ceiling)
   const maxDataMarks = Math.max(...normalizedData.map((d) => d.marks), 1);
-  // Standardize baseline ceiling: if max score <= 20, use 20 or 25; if <= 50, use 50; if <= 100, use 100
-  let chartMaxY = 20;
-  if (maxDataMarks > 50) chartMaxY = 100;
-  else if (maxDataMarks > 25) chartMaxY = 50;
-  else if (maxDataMarks > 15) chartMaxY = Math.ceil(maxDataMarks / 5) * 5;
-  else chartMaxY = Math.max(15, Math.ceil(maxDataMarks / 3) * 3);
+  let chartMaxY = 100;
+  if (maxDataMarks <= 25) chartMaxY = 25;
+  else if (maxDataMarks <= 50) chartMaxY = 50;
+  else chartMaxY = 100;
 
   // Summary KPIs
   const totalMarks = normalizedData.reduce((acc, curr) => acc + curr.marks, 0);
@@ -773,7 +775,7 @@ const TeacherPerformanceCard = ({
                     fontFamily={isSelected ? FONTS.bold : FONTS.medium}
                     textAnchor="middle"
                   >
-                    {d.name.length > 8 ? `${d.name.substring(0, 7)}…` : d.name}
+                    {d.name.length > 11 ? `${d.name.substring(0, 10)}…` : d.name}
                   </SvgText>
                 </G>
               );
@@ -914,7 +916,7 @@ const TeacherPerformanceCard = ({
                         color: grade.color,
                       }}
                     >
-                      {sub.marks}
+                      {sub.marks}%
                     </Text>
                     <View
                       style={{
@@ -1042,7 +1044,7 @@ const TeacherPerformanceCard = ({
                 color: activeGrade.color,
               }}
             >
-              {activeSubject.marks}{" "}
+              {activeSubject.marks}
               <Text
                 style={{
                   fontSize: FONT_SIZES.sm,
@@ -1050,7 +1052,7 @@ const TeacherPerformanceCard = ({
                   color: colors.onSurfaceVariant,
                 }}
               >
-                / {chartMaxY}
+                {chartMaxY === 100 ? "%" : ` / ${chartMaxY}`}
               </Text>
             </Text>
           </View>

@@ -349,7 +349,7 @@ export default function TeacherDashboard() {
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
-                  {subj.name} • {subj.class.name}
+                  {subj.name} • {formatClassName(subj.class?.name || subj.class, subj.class?.section)}
                 </Text>
                 {subj.isClassTeacher && (
                   <View

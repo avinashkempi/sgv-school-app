@@ -29,10 +29,11 @@ import useDoubleTap from "../../hooks/useDoubleTap";
 // Global mute state across the app session (Instagram pattern)
 let globalIsMuted = true;
 const muteListeners = new Set();
-const setGlobalMuted = (muted) => {
+export const setGlobalMuted = (muted) => {
   globalIsMuted = muted;
   muteListeners.forEach((listener) => listener(muted));
 };
+export const getGlobalMuted = () => globalIsMuted;
 
 /**
  * VibeVideoPlayer — Viewport-aware lazy video player for Vibes.
@@ -46,6 +47,8 @@ const setGlobalMuted = (muted) => {
  * @param {boolean} isVisible - Whether this video card is centered in viewport
  * @param {boolean} [isActiveSlide=true] - Whether this slide is active in carousel
  * @param {Function} [onDoubleTapLike] - Double-tap heart trigger
+ * @param {boolean} [disableTapControls=false] - Disable internal taps for story viewer navigation
+ * @param {Function} [onDurationDetected] - Callback with duration in ms
  */
 const VibeVideoPlayer = React.memo(
   ({
@@ -56,6 +59,8 @@ const VibeVideoPlayer = React.memo(
     isVisible,
     isActiveSlide = true,
     onDoubleTapLike,
+    disableTapControls = false,
+    onDurationDetected,
   }) => {
     const { isSlow } = useNetworkQuality();
     const [isMuted, setIsMuted] = useState(globalIsMuted);
@@ -132,9 +137,16 @@ const VibeVideoPlayer = React.memo(
       const statusSub = player.addListener("statusChange", (status) => {
         if (status.status === "readyToPlay") {
           setIsReady(true);
+          if (player.duration && player.duration > 0) {
+            onDurationDetected?.(player.duration * 1000);
+          }
         }
         setIsPlaying(player.playing);
       });
+
+      if (player.duration && player.duration > 0) {
+        onDurationDetected?.(player.duration * 1000);
+      }
 
       const playToEndSub = player.addListener("playToEnd", () => {
         if (player.loop) {
@@ -146,7 +158,7 @@ const VibeVideoPlayer = React.memo(
         statusSub?.remove?.();
         playToEndSub?.remove?.();
       };
-    }, [player]);
+    }, [player, onDurationDetected]);
 
     const triggerMuteBadge = useCallback(() => {
       muteBadgeOpacity.value = withSequence(
@@ -223,20 +235,35 @@ const VibeVideoPlayer = React.memo(
 
         {/* Native expo-video View */}
         {isVisible && isActiveSlide && player && (
-          <Pressable
-            onPress={handlePress}
-            onLongPress={togglePlayPause}
-            delayLongPress={250}
-            style={[styles.videoWrapper, { width, height }]}
-          >
-            <VideoView
-              player={player}
-              style={styles.video}
-              contentFit="contain"
-              nativeControls={false}
-              fullscreenOptions={{ isEnabled: false }}
-            />
-          </Pressable>
+          disableTapControls ? (
+            <View
+              pointerEvents="none"
+              style={[styles.videoWrapper, { width, height }]}
+            >
+              <VideoView
+                player={player}
+                style={styles.video}
+                contentFit="contain"
+                nativeControls={false}
+                fullscreenOptions={{ isEnabled: false }}
+              />
+            </View>
+          ) : (
+            <Pressable
+              onPress={handlePress}
+              onLongPress={togglePlayPause}
+              delayLongPress={250}
+              style={[styles.videoWrapper, { width, height }]}
+            >
+              <VideoView
+                player={player}
+                style={styles.video}
+                contentFit="contain"
+                nativeControls={false}
+                fullscreenOptions={{ isEnabled: false }}
+              />
+            </Pressable>
+          )
         )}
 
         {/* Play / Pause Centered Overlay Animation */}

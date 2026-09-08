@@ -320,8 +320,8 @@ const VibeStoriesTray = ({ onOpenCreate, hideHeader = false }) => {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
 
-  // Full-screen Story Viewer State
-  const [activeStoryGroup, setActiveStoryGroup] = useState(null);
+  // Full-screen Story Viewer State: { groups: Array, initialIndex: number }
+  const [activeStoryState, setActiveStoryState] = useState(null);
 
   const { data: highlightsData, isLoading } = useApiQuery(
     ["vibeHighlights"],
@@ -342,6 +342,45 @@ const VibeStoriesTray = ({ onOpenCreate, hideHeader = false }) => {
     [highlightsData]
   );
 
+  // Ordered array of all playable story groups for continuous WhatsApp/Instagram playback
+  const playableGroups = useMemo(() => {
+    const groups = [];
+
+    if (officialVibes.length > 0) {
+      groups.push({
+        id: "official",
+        title: "SGV Official Broadcasts",
+        stories: officialVibes,
+        isOfficial: true,
+        badgeColor: "#2563EB",
+      });
+    }
+
+    if (achievementVibes.length > 0) {
+      groups.push({
+        id: "achievement",
+        title: "Campus Achievements",
+        stories: achievementVibes,
+        isAchievement: true,
+        badgeColor: "#F59E0B",
+      });
+    }
+
+    authorStories.forEach((story, idx) => {
+      if (!story?.author || !story?.vibes || story.vibes.length === 0) return;
+      groups.push({
+        id: String(story.author?._id || `author-${idx}`),
+        title: formatUserName(story.author?.name, "Campus Moment"),
+        author: story.author,
+        stories: story.vibes,
+        badgeColor:
+          story.author?.role === "teacher" ? "#8B5CF6" : "#10B981",
+      });
+    });
+
+    return groups;
+  }, [officialVibes, achievementVibes, authorStories]);
+
   // Prefetch story avatars/thumbnails when highlights data arrives
   useEffect(() => {
     if (!highlightsData?.data) return;
@@ -357,39 +396,43 @@ const VibeStoriesTray = ({ onOpenCreate, hideHeader = false }) => {
   }, [highlightsData, officialVibes, achievementVibes, authorStories]);
 
   const handleOpenOfficialStories = useCallback(() => {
-    if (officialVibes.length > 0) {
-      setActiveStoryGroup({
-        stories: officialVibes,
-        title: "SGV Official Broadcasts",
+    if (officialVibes.length > 0 && playableGroups.length > 0) {
+      const idx = playableGroups.findIndex((g) => g.id === "official");
+      setActiveStoryState({
+        groups: playableGroups,
+        initialIndex: idx !== -1 ? idx : 0,
       });
     } else {
       router.push("/vibes");
     }
-  }, [officialVibes, router]);
+  }, [officialVibes, playableGroups, router]);
 
   const handleOpenAchievementStories = useCallback(() => {
-    if (achievementVibes.length > 0) {
-      setActiveStoryGroup({
-        stories: achievementVibes,
-        title: "Campus Achievements",
+    if (achievementVibes.length > 0 && playableGroups.length > 0) {
+      const idx = playableGroups.findIndex((g) => g.id === "achievement");
+      setActiveStoryState({
+        groups: playableGroups,
+        initialIndex: idx !== -1 ? idx : 0,
       });
     } else {
       router.push("/vibes");
     }
-  }, [achievementVibes, router]);
+  }, [achievementVibes, playableGroups, router]);
 
   const handleOpenAuthorStories = useCallback(
     (story) => {
-      if (story.vibes && story.vibes.length > 0) {
-        setActiveStoryGroup({
-          stories: story.vibes,
-          title: formatUserName(story.author?.name, "Campus Moment"),
+      if (story.vibes && story.vibes.length > 0 && playableGroups.length > 0) {
+        const id = String(story.author?._id);
+        const idx = playableGroups.findIndex((g) => g.id === id);
+        setActiveStoryState({
+          groups: playableGroups,
+          initialIndex: idx !== -1 ? idx : 0,
         });
       } else {
         router.push("/vibes");
       }
     },
-    [router]
+    [playableGroups, router]
   );
 
   // Combined stories array with seen/unseen calculation
@@ -612,12 +655,12 @@ const VibeStoriesTray = ({ onOpenCreate, hideHeader = false }) => {
       )}
 
       {/* Full-Screen Interactive Story Viewer Modal */}
-      {activeStoryGroup && (
+      {activeStoryState && (
         <VibeStoryViewerModal
-          visible={!!activeStoryGroup}
-          onClose={() => setActiveStoryGroup(null)}
-          stories={activeStoryGroup.stories}
-          groupTitle={activeStoryGroup.title}
+          visible={!!activeStoryState}
+          onClose={() => setActiveStoryState(null)}
+          groups={activeStoryState.groups}
+          initialGroupIndex={activeStoryState.initialIndex}
         />
       )}
     </View>

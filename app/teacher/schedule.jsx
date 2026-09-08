@@ -16,6 +16,7 @@ import { useApiQuery } from "../../hooks/useApi";
 import { useToast } from "../../components/ToastProvider";
 import AppHeader from "../../components/Header";
 import { useLabel } from "../../context/LabelsContext";
+import { formatClassName } from "../../utils/formatClassName";
 
 const DAYS = [
   "Monday",
@@ -317,7 +318,7 @@ export default function TeacherScheduleScreen() {
                         marginBottom: 4,
                       }}
                     >
-                      {period.className}
+                      {formatClassName(period.className)}
                     </Text>
                     <Text
                       style={{

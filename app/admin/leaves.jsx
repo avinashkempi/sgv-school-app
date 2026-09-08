@@ -203,9 +203,7 @@ export default function AdminLeaves() {
       const classMap = {};
       studentRequests.forEach((req) => {
         const classLabel = req.class
-          ? `${formatClassName(req.class.name || req.class.label)} ${
-              req.class.section ? `(${req.class.section})` : ""
-            }`
+          ? formatClassName(req.class.name || req.class.label, req.class.section)
           : "Unassigned Class";
         if (!classMap[classLabel]) classMap[classLabel] = [];
         classMap[classLabel].push(req);
@@ -585,8 +583,7 @@ export default function AdminLeaves() {
                 {isStudent && item.class && (
                   <View style={[styles.classChip, { backgroundColor: "#FFF3E0", borderColor: "#FFE0B2" }]}>
                     <Text style={[styles.classChipText, { color: "#E65100" }]} numberOfLines={1}>
-                      {formatClassName(item.class.name || item.class.label)}{" "}
-                      {item.class.section ? `(${item.class.section})` : ""}
+                      {formatClassName(item.class.name || item.class.label, item.class.section)}
                     </Text>
                   </View>
                 )}
@@ -1519,7 +1516,7 @@ export default function AdminLeaves() {
                               { color: isSel ? colors.onPrimary : colors.onSurface },
                             ]}
                           >
-                            {formatClassName(cls.name || cls.label)} {cls.section ? `(${cls.section})` : ""}
+                            {formatClassName(cls.name || cls.label, cls.section)}
                           </Text>
                         </TouchableOpacity>
                       );

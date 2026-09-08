@@ -181,7 +181,7 @@ export default function SchoolTimetableScreen() {
                           fontSize: FONT_SIZES.sm,
                         }}
                       >
-                        {formatClassName(cls.name)} {cls.section || ""}
+                        {formatClassName(cls.name, cls.section)}
                       </Text>
                     </Pressable>
                   );

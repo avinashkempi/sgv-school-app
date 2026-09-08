@@ -16,6 +16,7 @@ import Header from "../../components/Header";
 import StatCard from "../../components/StatCard";
 import { useToast } from "../../components/ToastProvider";
 import { useLabel } from "../../context/LabelsContext";
+import { formatClassName } from "../../utils/formatClassName";
 
 /**
  * Teacher Exam Dashboard
@@ -196,7 +197,7 @@ export default function TeacherExamDashboard() {
               color: colors.onSurface,
             }}
           >
-            {item.className}
+            {formatClassName(item.className)}
           </Text>
           <Text
             style={{
@@ -538,7 +539,7 @@ export default function TeacherExamDashboard() {
                         color: colors.onSurface,
                       }}
                     >
-                      {item.className}
+                      {formatClassName(item.className)}
                     </Text>
                     <Text
                       style={{

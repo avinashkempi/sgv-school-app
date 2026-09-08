@@ -19,6 +19,7 @@ import {
 import { useToast } from "../../components/ToastProvider";
 import apiConfig from "../../config/apiConfig";
 import Header from "../../components/Header";
+import { formatClassName } from "../../utils/formatClassName";
 
 /**
  * Transition Wizard - 3-Step Process for Academic Year Transitions
@@ -607,8 +608,8 @@ export default function TransitionWizardScreen() {
                     marginTop: 4,
                   }}
                 >
-                  Current: {student.currentClass || "None"} → Next:{" "}
-                  {student.nextClass || "Not assigned"}
+                  Current: {formatClassName(student.currentClass) || "None"} → Next:{" "}
+                  {formatClassName(student.nextClass) || "Not assigned"}
                 </Text>
                 <Text
                   style={{

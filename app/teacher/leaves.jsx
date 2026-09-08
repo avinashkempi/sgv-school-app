@@ -503,8 +503,10 @@ export default function TeacherLeaves() {
                 <View style={[styles.classChip, { backgroundColor: "#FFF3E0", borderColor: "#FFE0B2", maxWidth: "100%" }]}>
                   <Ionicons name="school" size={11} color="#E65100" />
                   <Text style={[styles.classChipText, { color: "#E65100" }]} numberOfLines={1}>
-                    {formatClassName(item.class?.name || item.class?.label)}{" "}
-                    {item.class?.section ? `(${item.class.section})` : ""}
+                    {formatClassName(
+                      item.class?.name || item.class?.label,
+                      item.class?.section
+                    )}
                   </Text>
                 </View>
               </View>
@@ -1258,7 +1260,7 @@ export default function TeacherLeaves() {
                               { color: isSel ? colors.onPrimary : colors.onSurface },
                             ]}
                           >
-                            {formatClassName(cls.name || cls.label)} {cls.section ? `(${cls.section})` : ""}
+                            {formatClassName(cls.name || cls.label, cls.section)}
                           </Text>
                         </TouchableOpacity>
                       );

@@ -25,6 +25,7 @@ import apiConfig from "../../config/apiConfig";
 import { useQueryClient } from "@tanstack/react-query";
 import AppHeader from "../../components/Header";
 import { useToast } from "../../components/ToastProvider";
+import { formatClassName } from "../../utils/formatClassName";
 
 export default function ManageSubjectsScreen() {
   const _router = useRouter();
@@ -576,8 +577,10 @@ export default function ManageSubjectsScreen() {
                         color: colors.textPrimary,
                       }}
                     >
-                      {usage.class?.name}{" "}
-                      {usage.class?.section ? `(${usage.class.section})` : ""}
+                      {formatClassName(
+                        usage.class?.name || usage.class,
+                        usage.class?.section
+                      )}
                     </Text>
                     <Text
                       style={{

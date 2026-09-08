@@ -29,6 +29,7 @@ import {
   formatUserName,
   formatUserDesignationOrRole,
 } from "../../utils/userFormatters";
+import { formatClassName } from "../../utils/formatClassName";
 import { useToast } from "../../components/ToastProvider";
 
 export default function TeacherSubjectsScreen() {
@@ -451,10 +452,10 @@ export default function TeacherSubjectsScreen() {
                                         marginTop: 2,
                                       }}
                                     >
-                                      {subject.class?.name || "Unknown Class"}{" "}
-                                      {subject.class?.section
-                                        ? `- ${subject.class.section}`
-                                        : ""}
+                                      {formatClassName(
+                                        subject.class?.name || subject.class,
+                                        subject.class?.section
+                                      ) || "Unknown Class"}
                                     </Text>
                                   </View>
                                   <Pressable
@@ -747,10 +748,10 @@ export default function TeacherSubjectsScreen() {
                               marginTop: 2,
                             }}
                           >
-                            {subject.class?.name || "Unknown Class"}{" "}
-                            {subject.class?.section
-                              ? `- ${subject.class.section}`
-                              : ""}
+                            {formatClassName(
+                              subject.class?.name || subject.class,
+                              subject.class?.section
+                            ) || "Unknown Class"}
                           </Text>
                         </View>
                         {isAssigned ? (

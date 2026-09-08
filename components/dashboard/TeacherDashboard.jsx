@@ -3,6 +3,7 @@ import {
   View,
   Text,
   Pressable,
+  ScrollView,
   StyleSheet,
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -25,21 +26,27 @@ const TeacherDashboard = () => {
   const isDark = mode === "dark";
   const [dateRange, setDateRange] = useState("thisWeek");
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedClassId, setSelectedClassId] = useState(null);
 
-  // Dashboard Stats Query
+  // Dashboard Stats Query (accepts optional classId)
+  const classParam = selectedClassId ? `&classId=${selectedClassId}` : "";
   const {
     data,
     isLoading: loading,
   } = useApiQuery(
-    ["teacherDashboard", dateRange],
-    `${apiConfig.baseUrl}/dashboard/teacher?range=${dateRange}`,
+    ["teacherDashboard", dateRange, selectedClassId || "default"],
+    `${apiConfig.baseUrl}/dashboard/teacher?range=${dateRange}${classParam}`,
     { staleTime: 1000 * 60 * 5 }
   );
+
+  // Active class context for missing attendance
+  const effectiveClassId = selectedClassId || data?.overview?.selectedClassId || "";
+  const missingClassParam = effectiveClassId ? `&classId=${effectiveClassId}` : "";
 
   // Missing Attendance Query
   const todayStr = getISTToday();
   const { data: missingData } = useApiQuery(
-    ["teacherMissingAttendance", todayStr],
+    ["teacherMissingAttendance", todayStr, effectiveClassId || "default"],
     (() => {
       const endDate = new Date();
       const startDate = new Date();
@@ -48,7 +55,7 @@ const TeacherDashboard = () => {
         apiConfig.baseUrl
       }/attendance/missing-tracker?startDate=${getISTDateString(
         startDate
-      )}&endDate=${getISTDateString(endDate)}`;
+      )}&endDate=${getISTDateString(endDate)}${missingClassParam}`;
     })(),
     { staleTime: 1000 * 60 * 5 }
   );
@@ -155,6 +162,76 @@ const TeacherDashboard = () => {
       lightBorder="rgba(79, 55, 139, 0.14)"
       darkBorder="rgba(208, 188, 255, 0.18)"
     >
+      {/* Multi-Class Switcher if teacher is class teacher of multiple classes */}
+      {data.overview?.classes && data.overview.classes.length > 1 && (
+        <View style={localStyles.classSwitcherContainer}>
+          <Text
+            style={[
+              localStyles.classSwitcherLabel,
+              { color: colors.onSurfaceVariant },
+            ]}
+          >
+            My Class:
+          </Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={localStyles.classChipsScroll}
+          >
+            {data.overview.classes.map((cls) => {
+              const isSelected =
+                (selectedClassId && selectedClassId === cls._id) ||
+                (!selectedClassId && data.overview.selectedClassId === cls._id);
+              return (
+                <Pressable
+                  key={cls._id}
+                  onPress={() => setSelectedClassId(cls._id)}
+                  style={({ pressed }) => [
+                    localStyles.classChip,
+                    {
+                      backgroundColor: isSelected
+                        ? colors.primary
+                        : isDark
+                        ? "rgba(208, 188, 255, 0.12)"
+                        : "rgba(79, 55, 139, 0.08)",
+                      borderColor: isSelected
+                        ? colors.primary
+                        : isDark
+                        ? "rgba(208, 188, 255, 0.28)"
+                        : "rgba(79, 55, 139, 0.2)",
+                      opacity: pressed ? 0.8 : 1,
+                    },
+                  ]}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Select ${cls.className || cls.name}`}
+                >
+                  <MaterialIcons
+                    name="class"
+                    size={14}
+                    color={
+                      isSelected ? colors.onPrimary || "#fff" : colors.primary
+                    }
+                  />
+                  <Text
+                    style={[
+                      localStyles.classChipText,
+                      {
+                        color: isSelected
+                          ? colors.onPrimary || "#fff"
+                          : colors.onSurface,
+                        fontFamily: isSelected ? FONTS.bold : FONTS.medium,
+                      },
+                    ]}
+                  >
+                    {formatClassName(cls.className || cls.name)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </View>
+      )}
+
       {/* Missing Attendance Alert */}
       {missingDays.length > 0 && (
         <View
@@ -584,7 +661,7 @@ const TeacherDashboard = () => {
       {data.charts?.performance && data.charts.performance.data?.length > 0 ? (
         <TeacherPerformanceCard
           title="Subject Performance"
-          subtitle="Average marks scored by subject"
+          subtitle="Average score percentage by subject"
           labels={data.charts.performance.labels}
           data={data.charts.performance.data}
         />
@@ -619,6 +696,36 @@ const localStyles = StyleSheet.create({
   datePickerBtnText: {
     fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.bold,
+  },
+  classSwitcherContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+    gap: 8,
+  },
+  classSwitcherLabel: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  classChipsScroll: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 2,
+  },
+  classChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  classChipText: {
+    fontSize: FONT_SIZES.xs,
   },
   missingAlertCard: {
     borderWidth: 1,

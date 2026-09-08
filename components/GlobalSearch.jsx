@@ -187,7 +187,7 @@ const GlobalSearch = ({ visible, onClose }) => {
         icon = item.role === "student" ? "person" : "person-outline";
         break;
       case "classes":
-        title = `${formatClassName(item.name)} ${item.section || ""}`;
+        title = formatClassName(item.name, item.section);
         subtitle = `Class Teacher: ${
           item.classTeacher?.name ? formatUserName(item.classTeacher.name) : t("common.notAssigned", "Not assigned")
         }`;
@@ -195,9 +195,7 @@ const GlobalSearch = ({ visible, onClose }) => {
         break;
       case "subjects":
         title = item.name;
-        subtitle = `${formatClassName(item.class?.name)} ${
-          item.class?.section || ""
-        }`;
+        subtitle = formatClassName(item.class?.name || item.class, item.class?.section);
         icon = "menu-book";
         break;
       case "exams":

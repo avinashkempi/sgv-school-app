@@ -71,7 +71,7 @@ export default function AssessmentDashboard() {
       `${t(
         "teacher.initializeExamConfirm",
         "Are you sure you want to initialize"
-      )} ${type} for ${selectedClass.name} - ${selectedSubject.name}?`,
+      )} ${type} for ${formatClassName(selectedClass.name, selectedClass.section)} - ${selectedSubject.name}?`,
       [
         { text: t("common.cancel", "Cancel"), style: "cancel" },
         {
