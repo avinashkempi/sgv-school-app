@@ -180,6 +180,7 @@ export const NotificationProvider = ({ children }) => {
       );
 
       if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: ["notificationCenter"] });
         return true;
       } else {
         queryClient.invalidateQueries({ queryKey: ["notifications", userId] });

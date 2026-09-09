@@ -525,6 +525,15 @@ export default function NotificationsScreen() {
   } = useNotifications();
 
   const [localRefreshing, setLocalRefreshing] = useState(false);
+  const hasAutoReadRef = useRef(false);
+
+  // Auto-mark notifications as read on screen open (Watermark pattern)
+  useEffect(() => {
+    if (unreadCount > 0 && !hasAutoReadRef.current) {
+      hasAutoReadRef.current = true;
+      markAllRead();
+    }
+  }, [unreadCount, markAllRead]);
 
   const handleRefresh = useCallback(async () => {
     setLocalRefreshing(true);

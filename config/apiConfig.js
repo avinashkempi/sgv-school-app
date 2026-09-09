@@ -77,6 +77,8 @@ const endpoints = {
     recordView: (id) => `/vibes/${id}/view`,
     getViewers: (id) => `/vibes/${id}/viewers`,
     adminPending: "/vibes/admin/pending",
+    adminRejected: "/vibes/admin/rejected",
+    adminModeration: (status = "pending") => `/vibes/admin/pending?status=${status}`,
     adminBatchReview: "/vibes/admin/batch-review",
     adminReview: (id) => `/vibes/admin/${id}/review`,
     adminPin: (id) => `/vibes/admin/${id}/pin`,

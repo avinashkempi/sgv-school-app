@@ -215,7 +215,36 @@ export default async function apiFetch(input, init = {}) {
       responseData = demoData.DEMO_CLASS_DETAILS.subjects;
     } else if (url.includes("/events")) {
       responseData = demoData.DEMO_EVENTS;
+    } else if (url.includes("/notifications/mark-all-read")) {
+      if (demoData.DEMO_NOTIFICATIONS?.notifications) {
+        demoData.DEMO_NOTIFICATIONS.notifications.forEach((n) => {
+          n.isRead = true;
+          n.read = true;
+        });
+        demoData.DEMO_NOTIFICATIONS.unreadCount = 0;
+      }
+      responseData = { success: true, message: "All notifications marked as read (Demo)" };
+    } else if (url.includes("/notifications") && url.includes("/read")) {
+      const notifIdMatch = url.match(/\/notifications\/([^/]+)\/read/);
+      if (notifIdMatch && demoData.DEMO_NOTIFICATIONS?.notifications) {
+        const notif = demoData.DEMO_NOTIFICATIONS.notifications.find((n) => n._id === notifIdMatch[1]);
+        if (notif) {
+          notif.isRead = true;
+          notif.read = true;
+        }
+      }
+      responseData = { success: true, message: "Notification marked as read (Demo)" };
     } else if (url.includes("/notifications")) {
+      if (demoData.DEMO_NOTIFICATIONS?.notifications) {
+        demoData.DEMO_NOTIFICATIONS.notifications.forEach((n) => {
+          if (n.isRead === undefined) {
+            n.isRead = n.read !== undefined ? n.read : false;
+          }
+        });
+        demoData.DEMO_NOTIFICATIONS.unreadCount = demoData.DEMO_NOTIFICATIONS.notifications.filter(
+          (n) => !n.isRead
+        ).length;
+      }
       responseData = demoData.DEMO_NOTIFICATIONS;
     } else if (url.includes("/dashboard/student")) {
       responseData = demoData.DEMO_STUDENT_DASHBOARD;

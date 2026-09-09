@@ -3,6 +3,7 @@ import {
   View,
   Text,
   FlatList,
+  ScrollView,
   Pressable,
   ActivityIndicator,
   RefreshControl,
@@ -10,6 +11,10 @@ import {
   Modal,
   TextInput,
   Dimensions,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -32,7 +37,7 @@ import {
   formatUserDesignationOrRole,
 } from "../../utils/userFormatters";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const CARD_WIDTH = SCREEN_WIDTH - 24;
 
 const REJECT_REASONS = [
@@ -44,7 +49,7 @@ const REJECT_REASONS = [
 ];
 
 const APPROVAL_FILTERS = [
-  { key: "all", label: "All Pending" },
+  { key: "all", label: "All" },
   { key: "student", label: "Students" },
   { key: "teacher", label: "Teachers" },
   { key: "sports", label: "Sports" },
@@ -53,13 +58,16 @@ const APPROVAL_FILTERS = [
 
 export default function VibeApprovalsScreen() {
   const router = useRouter();
-  const { colors, styles: themeStyles } = useTheme();
+  const { colors, isDark, styles: themeStyles } = useTheme();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
 
+  // Status Tab: 'pending' | 'rejected' | 'approved'
+  const [statusTab, setStatusTab] = useState("pending");
+
   const [activeFilter, setActiveFilter] = useState("all");
   const [selectedIds, setSelectedIds] = useState(new Set());
-  const [rejectingVibe, setRejectingVibe] = useState(null);
+  const [rejectingVibe, setRejectingVibe] = useState(null); // { vibe, isEditing?: boolean }
   const [isBatchReject, setIsBatchReject] = useState(false);
   const [selectedReason, setSelectedReason] = useState(REJECT_REASONS[0]);
   const [customReason, setCustomReason] = useState("");
@@ -79,7 +87,7 @@ export default function VibeApprovalsScreen() {
     itemVisiblePercentThreshold: 60,
   }).current;
 
-  const queryKey = ["pendingVibes"];
+  const queryKey = ["adminVibes", statusTab];
 
   const {
     data,
@@ -92,7 +100,7 @@ export default function VibeApprovalsScreen() {
   } = useApiInfiniteQuery(
     queryKey,
     (page) =>
-      `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.adminPending}?page=${page}&limit=20`,
+      `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.adminModeration(statusTab)}&page=${page}&limit=20`,
     {
       ...CACHE_TIERS.REAL_TIME,
       getNextPageParam: (lastPage, allPages) => {
@@ -107,32 +115,47 @@ export default function VibeApprovalsScreen() {
     }
   );
 
-  const allPendingVibes = useMemo(
+  const allVibes = useMemo(
     () => data?.pages?.flatMap((p) => p?.data || []) || [],
     [data?.pages]
   );
-  const totalPending = data?.pages?.[0]?.pendingCount ?? allPendingVibes.length;
 
-  // Filter pending vibes by role or category
-  const filteredPendingVibes = useMemo(() => {
-    if (activeFilter === "all") return allPendingVibes;
+  const counts = data?.pages?.[0]?.counts || {};
+  const pendingCount = data?.pages?.[0]?.pendingCount ?? counts.pending ?? 0;
+  const rejectedCount = data?.pages?.[0]?.rejectedCount ?? counts.rejected ?? 0;
+  const approvedCount = data?.pages?.[0]?.approvedCount ?? counts.approved ?? 0;
+
+  // Filter vibes by role or category
+  const filteredVibes = useMemo(() => {
+    if (activeFilter === "all") return allVibes;
     if (activeFilter === "student") {
-      return allPendingVibes.filter(
+      return allVibes.filter(
         (v) => v.author?.role === "student" || v.authorRole === "student"
       );
     }
     if (activeFilter === "teacher") {
-      return allPendingVibes.filter(
+      return allVibes.filter(
         (v) =>
           v.author?.role === "teacher" ||
           v.author?.role === "staff" ||
           v.authorRole === "teacher"
       );
     }
-    return allPendingVibes.filter((v) => v.category === activeFilter);
-  }, [allPendingVibes, activeFilter]);
+    return allVibes.filter((v) => v.category === activeFilter);
+  }, [allVibes, activeFilter]);
 
-  // Single review mutation
+  // Helper to invalidate all relevant query caches
+  const invalidateAllCaches = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["adminVibes"] });
+    queryClient.invalidateQueries({ queryKey: ["pendingVibes"] });
+    queryClient.invalidateQueries({ queryKey: ["pendingVibesCount"] });
+    queryClient.invalidateQueries({ queryKey: ["vibes"] });
+    queryClient.invalidateQueries({ queryKey: ["myVibes"] });
+    queryClient.invalidateQueries({ queryKey: ["vibeHighlights"] });
+    queryClient.invalidateQueries({ queryKey: ["vibeSpotlight"] });
+  }, [queryClient]);
+
+  // Single review mutation (approve, reject, or pending)
   const reviewMutation = useApiMutation({
     mutationFn: async ({ vibeId, action, reason }) => {
       return createApiMutationFn(
@@ -151,7 +174,11 @@ export default function VibeApprovalsScreen() {
           pages: old.pages.map((page) => ({
             ...page,
             data: (page.data || []).filter((v) => v._id !== vibeId),
-            pendingCount: Math.max((page.pendingCount || 1) - 1, 0),
+            ...(statusTab === "pending"
+              ? { pendingCount: Math.max((page.pendingCount || 1) - 1, 0) }
+              : statusTab === "rejected"
+              ? { rejectedCount: Math.max((page.rejectedCount || 1) - 1, 0) }
+              : { approvedCount: Math.max((page.approvedCount || 1) - 1, 0) }),
           })),
         };
       });
@@ -160,11 +187,7 @@ export default function VibeApprovalsScreen() {
     },
     onSuccess: (res) => {
       showToast(res.message || "Updated vibe", "success");
-      queryClient.invalidateQueries({ queryKey });
-      queryClient.invalidateQueries({ queryKey: ["pendingVibesCount"] });
-      queryClient.invalidateQueries({ queryKey: ["vibes"] });
-      queryClient.invalidateQueries({ queryKey: ["vibeHighlights"] });
-      queryClient.invalidateQueries({ queryKey: ["vibeSpotlight"] });
+      invalidateAllCaches();
       setRejectingVibe(null);
       setCustomReason("");
     },
@@ -172,7 +195,7 @@ export default function VibeApprovalsScreen() {
       if (context?.prevData) {
         queryClient.setQueryData(queryKey, context.prevData);
       }
-      showToast(err.message || "Failed to review vibe", "error");
+      showToast(err.message || "Failed to update vibe", "error");
     },
   });
 
@@ -190,14 +213,27 @@ export default function VibeApprovalsScreen() {
       setRejectingVibe(null);
       setIsBatchReject(false);
       setCustomReason("");
-      queryClient.invalidateQueries({ queryKey });
-      queryClient.invalidateQueries({ queryKey: ["pendingVibesCount"] });
-      queryClient.invalidateQueries({ queryKey: ["vibes"] });
-      queryClient.invalidateQueries({ queryKey: ["vibeHighlights"] });
-      queryClient.invalidateQueries({ queryKey: ["vibeSpotlight"] });
+      invalidateAllCaches();
     },
     onError: (err) => {
       showToast(err.message || "Failed batch review", "error");
+    },
+  });
+
+  // Delete vibe mutation
+  const deleteMutation = useApiMutation({
+    mutationFn: async ({ vibeId }) => {
+      return createApiMutationFn(
+        `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.delete(vibeId)}`,
+        "DELETE"
+      )({});
+    },
+    onSuccess: () => {
+      showToast("Vibe deleted successfully", "success");
+      invalidateAllCaches();
+    },
+    onError: (err) => {
+      showToast(err.message || "Failed to delete vibe", "error");
     },
   });
 
@@ -213,12 +249,12 @@ export default function VibeApprovalsScreen() {
 
   const handleSelectAll = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-    if (selectedIds.size === filteredPendingVibes.length) {
+    if (selectedIds.size === filteredVibes.length) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(filteredPendingVibes.map((v) => v._id)));
+      setSelectedIds(new Set(filteredVibes.map((v) => v._id)));
     }
-  }, [selectedIds, filteredPendingVibes]);
+  }, [selectedIds, filteredVibes]);
 
   const handleApprove = useCallback(
     async (vibe) => {
@@ -233,6 +269,46 @@ export default function VibeApprovalsScreen() {
       }
     },
     [reviewMutation]
+  );
+
+  const handleRestoreToPending = useCallback(
+    async (vibe) => {
+      setProcessingId(vibe._id);
+      try {
+        await reviewMutation.mutateAsync({
+          vibeId: vibe._id,
+          action: "pending",
+        });
+      } finally {
+        setProcessingId(null);
+      }
+    },
+    [reviewMutation]
+  );
+
+  const handleDelete = useCallback(
+    (vibe) => {
+      Alert.alert(
+        "Delete Vibe",
+        "Are you sure you want to permanently delete this submission? This action cannot be undone.",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: async () => {
+              setProcessingId(vibe._id);
+              try {
+                await deleteMutation.mutateAsync({ vibeId: vibe._id });
+              } finally {
+                setProcessingId(null);
+              }
+            },
+          },
+        ]
+      );
+    },
+    [deleteMutation]
   );
 
   const handleBatchApprove = useCallback(async () => {
@@ -286,13 +362,34 @@ export default function VibeApprovalsScreen() {
     reviewMutation,
   ]);
 
-  const renderItem = useCallback(
-    ({ item }) => {
+  const handleTabChange = useCallback((newTab) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    setStatusTab(newTab);
+    setSelectedIds(new Set());
+  }, []);
+
+  // Format date safely
+  const formatDateTime = useCallback((dateStr) => {
+    if (!dateStr) return "";
+    try {
+      return new Date(dateStr).toLocaleString("en-IN", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      });
+    } catch {
+      return String(dateStr);
+    }
+  }, []);
+
+  // ──── Render Item for Pending Tab ────
+  const renderPendingItem = useCallback(
+    (item) => {
       const isProcessing = processingId === item._id;
       const isSelected = selectedIds.has(item._id);
 
       return (
         <View
+          key={item._id}
           style={[
             styles.reviewCard,
             {
@@ -397,11 +494,7 @@ export default function VibeApprovalsScreen() {
               color={colors.onSurfaceVariant}
             />
             <Text style={[styles.timeText, { color: colors.onSurfaceVariant }]}>
-              Submitted on{" "}
-              {new Date(item.createdAt).toLocaleString("en-IN", {
-                dateStyle: "medium",
-                timeStyle: "short",
-              })}
+              Submitted on {formatDateTime(item.createdAt)}
             </Text>
           </View>
 
@@ -415,6 +508,8 @@ export default function VibeApprovalsScreen() {
             <Pressable
               onPress={() => {
                 setIsBatchReject(false);
+                setSelectedReason(REJECT_REASONS[0]);
+                setCustomReason("");
                 setRejectingVibe(item);
               }}
               disabled={isProcessing}
@@ -434,17 +529,483 @@ export default function VibeApprovalsScreen() {
               {isProcessing ? (
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
-                <>
+                <View style={styles.btnContentRow}>
                   <MaterialIcons name="check" size={18} color="#fff" />
-                  <Text style={styles.approveBtnText}>Approve & Publish</Text>
-                </>
+                  <Text
+                    style={styles.approveBtnText}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    Approve & Publish
+                  </Text>
+                </View>
               )}
             </Pressable>
           </View>
         </View>
       );
     },
-    [colors, processingId, selectedIds, toggleSelect, handleApprove, visibleItemIds]
+    [
+      colors,
+      processingId,
+      selectedIds,
+      toggleSelect,
+      handleApprove,
+      visibleItemIds,
+      formatDateTime,
+    ]
+  );
+
+  // ──── Render Item for Rejected Tab ────
+  const renderRejectedItem = useCallback(
+    (item) => {
+      const isProcessing = processingId === item._id;
+
+      return (
+        <View
+          key={item._id}
+          style={[
+            styles.reviewCard,
+            {
+              backgroundColor: colors.surfaceContainer,
+              borderColor: isDark ? "rgba(220, 38, 38, 0.4)" : "#FECACA",
+              borderWidth: 1.5,
+            },
+          ]}
+        >
+          {/* Header Row: Author & Status Pill */}
+          <View style={styles.authorHeader}>
+            <UserAvatar
+              photoUrl={item.author?.profilePhoto}
+              name={formatUserName(item.author?.name, "Community Member")}
+              role={item.author?.role}
+              size={36}
+            />
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text
+                style={[styles.authorName, { color: colors.onSurface }]}
+                numberOfLines={1}
+              >
+                {formatUserName(item.author?.name, "Community Member")}
+              </Text>
+              <Text
+                style={[styles.authorRole, { color: colors.onSurfaceVariant }]}
+                numberOfLines={1}
+              >
+                {formatUserDesignationOrRole(item.author)}
+                {item.author?.phone ? ` • ${item.author.phone}` : ""}
+              </Text>
+            </View>
+
+            {/* Status & Category Badges */}
+            <View style={{ alignItems: "flex-end", gap: 4 }}>
+              <View
+                style={[
+                  styles.statusBadge,
+                  {
+                    backgroundColor: isDark
+                      ? "rgba(220, 38, 38, 0.2)"
+                      : "#FEE2E2",
+                  },
+                ]}
+              >
+                <MaterialIcons name="cancel" size={12} color="#DC2626" />
+                <Text style={[styles.statusBadgeText, { color: "#DC2626" }]}>
+                  Rejected
+                </Text>
+              </View>
+              <View
+                style={[
+                  styles.categoryBadge,
+                  { backgroundColor: colors.surfaceContainerHighest },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.categoryBadgeText,
+                    { color: colors.onSurfaceVariant },
+                  ]}
+                >
+                  {item.category}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* ──── Prominent Rejection Audit Box ──── */}
+          <View
+            style={[
+              styles.rejectedAuditBox,
+              {
+                backgroundColor: isDark
+                  ? "rgba(220, 38, 38, 0.12)"
+                  : "#FEF2F2",
+                borderColor: isDark ? "rgba(220, 38, 38, 0.3)" : "#FCA5A5",
+              },
+            ]}
+          >
+            <View style={styles.rejectedAuditHeader}>
+              <MaterialIcons name="error-outline" size={16} color="#DC2626" />
+              <Text style={styles.rejectedAuditTitle}>Rejection Feedback</Text>
+            </View>
+
+            <Text
+              style={[
+                styles.rejectedReasonText,
+                { color: colors.onSurface },
+              ]}
+            >
+              {item.rejectionReason ||
+                "Does not meet school community guidelines"}
+            </Text>
+
+            {/* Moderator Audit Info */}
+            <View
+              style={[
+                styles.auditModeratorRow,
+                { borderTopColor: isDark ? "rgba(220,38,38,0.2)" : "#FECACA" },
+              ]}
+            >
+              <MaterialIcons
+                name="shield"
+                size={13}
+                color={colors.onSurfaceVariant}
+              />
+              <Text
+                style={[
+                  styles.auditModeratorText,
+                  { color: colors.onSurfaceVariant },
+                ]}
+                numberOfLines={1}
+              >
+                Reviewed by{" "}
+                <Text style={{ fontFamily: FONTS.bold }}>
+                  {item.reviewedBy?.name || "Admin"}
+                </Text>
+                {item.reviewedAt
+                  ? ` • ${formatDateTime(item.reviewedAt)}`
+                  : item.updatedAt
+                  ? ` • ${formatDateTime(item.updatedAt)}`
+                  : ""}
+              </Text>
+            </View>
+          </View>
+
+          {/* Media Preview bounded within card */}
+          {item.images && item.images.length > 0 && (
+            <VibeImageCarousel
+              images={item.images}
+              width={CARD_WIDTH}
+              isVisible={visibleItemIds.has(item._id)}
+            />
+          )}
+
+          {/* Caption */}
+          {item.caption ? (
+            <View style={styles.captionBox}>
+              <Text style={[styles.captionText, { color: colors.onSurface }]}>
+                {item.caption}
+              </Text>
+            </View>
+          ) : null}
+
+          {/* Submitted timestamp */}
+          <View style={styles.timeRow}>
+            <MaterialIcons
+              name="schedule"
+              size={13}
+              color={colors.onSurfaceVariant}
+            />
+            <Text style={[styles.timeText, { color: colors.onSurfaceVariant }]}>
+              Submitted on {formatDateTime(item.createdAt)}
+            </Text>
+          </View>
+
+          {/* ──── Rejected Item Actions: Spacious 2-tier layout ──── */}
+          <View
+            style={[
+              styles.rejectedActionsContainer,
+              { borderTopColor: colors.outlineVariant },
+            ]}
+          >
+            {/* Primary Action: Re-Approve and Publish Live */}
+            <Pressable
+              onPress={() => handleApprove(item)}
+              disabled={isProcessing}
+              style={[styles.fullApproveBtn, { backgroundColor: "#2E7D32" }]}
+            >
+              {isProcessing ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <View style={styles.btnContentRow}>
+                  <MaterialIcons name="check-circle" size={18} color="#fff" />
+                  <Text style={styles.fullApproveBtnText}>
+                    Approve & Publish Live
+                  </Text>
+                </View>
+              )}
+            </Pressable>
+
+            {/* Secondary Actions Row: Feedback, Restore, Delete */}
+            <View style={styles.rejectedSecondaryRow}>
+              {/* Edit Feedback */}
+              <Pressable
+                onPress={() => {
+                  setIsBatchReject(false);
+                  setSelectedReason(
+                    REJECT_REASONS.includes(item.rejectionReason)
+                      ? item.rejectionReason
+                      : REJECT_REASONS[0]
+                  );
+                  setCustomReason(
+                    REJECT_REASONS.includes(item.rejectionReason)
+                      ? ""
+                      : item.rejectionReason || ""
+                  );
+                  setRejectingVibe({ ...item, isEditing: true });
+                }}
+                disabled={isProcessing}
+                style={[
+                  styles.rejectedSecondaryBtn,
+                  { borderColor: colors.outlineVariant },
+                ]}
+              >
+                <MaterialIcons
+                  name="edit"
+                  size={15}
+                  color={colors.onSurfaceVariant}
+                />
+                <Text
+                  style={[
+                    styles.rejectedSecondaryText,
+                    { color: colors.onSurfaceVariant },
+                  ]}
+                >
+                  Edit Feedback
+                </Text>
+              </Pressable>
+
+              {/* Restore to Queue */}
+              <Pressable
+                onPress={() => handleRestoreToPending(item)}
+                disabled={isProcessing}
+                style={[
+                  styles.rejectedSecondaryBtn,
+                  { borderColor: colors.outlineVariant },
+                ]}
+              >
+                <MaterialIcons
+                  name="replay"
+                  size={15}
+                  color={colors.primary}
+                />
+                <Text
+                  style={[
+                    styles.rejectedSecondaryText,
+                    { color: colors.primary },
+                  ]}
+                >
+                  Restore Queue
+                </Text>
+              </Pressable>
+
+              {/* Delete permanently */}
+              <Pressable
+                onPress={() => handleDelete(item)}
+                disabled={isProcessing}
+                style={[
+                  styles.deleteIconBtn,
+                  { borderColor: isDark ? "rgba(220,38,38,0.4)" : "#FECACA" },
+                ]}
+              >
+                <MaterialIcons
+                  name="delete-outline"
+                  size={18}
+                  color={colors.error}
+                />
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      );
+    },
+    [
+      colors,
+      isDark,
+      processingId,
+      visibleItemIds,
+      formatDateTime,
+      handleApprove,
+      handleRestoreToPending,
+      handleDelete,
+    ]
+  );
+
+  // ──── Render Item for Approved Tab ────
+  const renderApprovedItem = useCallback(
+    (item) => {
+      const isProcessing = processingId === item._id;
+
+      return (
+        <View
+          key={item._id}
+          style={[
+            styles.reviewCard,
+            {
+              backgroundColor: colors.surfaceContainer,
+              borderColor: isDark ? "rgba(5, 150, 105, 0.4)" : "#A7F3D0",
+              borderWidth: 1.5,
+            },
+          ]}
+        >
+          {/* Header Row: Author & Status Pill */}
+          <View style={styles.authorHeader}>
+            <UserAvatar
+              photoUrl={item.author?.profilePhoto}
+              name={formatUserName(item.author?.name, "Community Member")}
+              role={item.author?.role}
+              size={36}
+            />
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text
+                style={[styles.authorName, { color: colors.onSurface }]}
+                numberOfLines={1}
+              >
+                {formatUserName(item.author?.name, "Community Member")}
+              </Text>
+              <Text
+                style={[styles.authorRole, { color: colors.onSurfaceVariant }]}
+                numberOfLines={1}
+              >
+                {formatUserDesignationOrRole(item.author)}
+                {item.author?.phone ? ` • ${item.author.phone}` : ""}
+              </Text>
+            </View>
+
+            {/* Status & Category Badges */}
+            <View style={{ alignItems: "flex-end", gap: 4 }}>
+              <View
+                style={[
+                  styles.statusBadge,
+                  {
+                    backgroundColor: isDark
+                      ? "rgba(5, 150, 105, 0.2)"
+                      : "#D1FAE5",
+                  },
+                ]}
+              >
+                <MaterialIcons name="check-circle" size={12} color="#059669" />
+                <Text style={[styles.statusBadgeText, { color: "#059669" }]}>
+                  Live
+                </Text>
+              </View>
+              <View
+                style={[
+                  styles.categoryBadge,
+                  { backgroundColor: colors.surfaceContainerHighest },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.categoryBadgeText,
+                    { color: colors.onSurfaceVariant },
+                  ]}
+                >
+                  {item.category}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Media Preview bounded within card */}
+          {item.images && item.images.length > 0 && (
+            <VibeImageCarousel
+              images={item.images}
+              width={CARD_WIDTH}
+              isVisible={visibleItemIds.has(item._id)}
+            />
+          )}
+
+          {/* Caption */}
+          {item.caption ? (
+            <View style={styles.captionBox}>
+              <Text style={[styles.captionText, { color: colors.onSurface }]}>
+                {item.caption}
+              </Text>
+            </View>
+          ) : null}
+
+          {/* Audit Row: Approved By */}
+          <View style={styles.timeRow}>
+            <MaterialIcons
+              name="verified"
+              size={13}
+              color={colors.onSurfaceVariant}
+            />
+            <Text style={[styles.timeText, { color: colors.onSurfaceVariant }]}>
+              Approved by {item.reviewedBy?.name || "Admin"}
+              {item.reviewedAt ? ` on ${formatDateTime(item.reviewedAt)}` : ""}
+            </Text>
+          </View>
+
+          {/* Action Row */}
+          <View
+            style={[
+              styles.actionRow,
+              { borderTopColor: colors.outlineVariant },
+            ]}
+          >
+            <Pressable
+              onPress={() => {
+                setIsBatchReject(false);
+                setSelectedReason(REJECT_REASONS[0]);
+                setCustomReason("");
+                setRejectingVibe(item);
+              }}
+              disabled={isProcessing}
+              style={[styles.rejectBtn, { borderColor: colors.error }]}
+            >
+              <MaterialIcons name="close" size={18} color={colors.error} />
+              <Text style={[styles.rejectBtnText, { color: colors.error }]}>
+                Reject / Take Down
+              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => handleDelete(item)}
+              disabled={isProcessing}
+              style={[
+                styles.deleteIconBtn,
+                { borderColor: colors.error, paddingHorizontal: 16 },
+              ]}
+            >
+              <MaterialIcons
+                name="delete-outline"
+                size={18}
+                color={colors.error}
+              />
+            </Pressable>
+          </View>
+        </View>
+      );
+    },
+    [
+      colors,
+      isDark,
+      processingId,
+      visibleItemIds,
+      formatDateTime,
+      handleDelete,
+    ]
+  );
+
+  const renderItem = useCallback(
+    ({ item }) => {
+      if (statusTab === "rejected") return renderRejectedItem(item);
+      if (statusTab === "approved") return renderApprovedItem(item);
+      return renderPendingItem(item);
+    },
+    [statusTab, renderRejectedItem, renderApprovedItem, renderPendingItem]
   );
 
   return (
@@ -467,7 +1028,7 @@ export default function VibeApprovalsScreen() {
           </Pressable>
           <View style={{ flex: 1 }}>
             <Text style={[styles.headerTitle, { color: colors.onSurface }]}>
-              Vibes Approvals
+              Vibes Moderation Hub
             </Text>
             <Text
               style={[
@@ -475,29 +1036,199 @@ export default function VibeApprovalsScreen() {
                 { color: colors.onSurfaceVariant },
               ]}
             >
-              Moderate community submissions
+              Track, approve, & manage community posts
             </Text>
           </View>
-          {totalPending > 0 && (
-            <View
-              style={[
-                styles.pendingPill,
-                { backgroundColor: colors.errorContainer },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.pendingPillText,
-                  { color: colors.onErrorContainer },
-                ]}
-              >
-                {totalPending} Pending
-              </Text>
-            </View>
-          )}
         </View>
 
-        {/* Filter Chips Bar */}
+        {/* ──── Top Segment Control: Pending | Rejected | Approved ──── */}
+        <View
+          style={[
+            styles.segmentWrapper,
+            {
+              backgroundColor: colors.surfaceContainer,
+              borderBottomColor: colors.outlineVariant,
+            },
+          ]}
+        >
+          <View
+            style={[
+              styles.segmentContainer,
+              { backgroundColor: colors.surfaceContainerHighest },
+            ]}
+          >
+            {/* Pending Tab */}
+            <Pressable
+              onPress={() => handleTabChange("pending")}
+              style={[
+                styles.segmentItem,
+                statusTab === "pending" && [
+                  styles.segmentItemActive,
+                  {
+                    backgroundColor: colors.surface,
+                    shadowColor: colors.shadow || "#000",
+                  },
+                ],
+              ]}
+            >
+              <MaterialIcons
+                name="schedule"
+                size={15}
+                color={
+                  statusTab === "pending"
+                    ? colors.primary
+                    : colors.onSurfaceVariant
+                }
+              />
+              <Text
+                style={[
+                  styles.segmentText,
+                  {
+                    color:
+                      statusTab === "pending"
+                        ? colors.primary
+                        : colors.onSurfaceVariant,
+                    fontFamily:
+                      statusTab === "pending" ? FONTS.bold : FONTS.medium,
+                  },
+                ]}
+              >
+                Pending
+              </Text>
+              {pendingCount > 0 && (
+                <View
+                  style={[
+                    styles.tabBadge,
+                    {
+                      backgroundColor: isDark
+                        ? "rgba(217, 119, 6, 0.25)"
+                        : "#FEF3C7",
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.tabBadgeText,
+                      { color: isDark ? "#FBBF24" : "#D97706" },
+                    ]}
+                  >
+                    {pendingCount}
+                  </Text>
+                </View>
+              )}
+            </Pressable>
+
+            {/* Rejected Tab */}
+            <Pressable
+              onPress={() => handleTabChange("rejected")}
+              style={[
+                styles.segmentItem,
+                statusTab === "rejected" && [
+                  styles.segmentItemActive,
+                  {
+                    backgroundColor: colors.surface,
+                    shadowColor: colors.shadow || "#000",
+                  },
+                ],
+              ]}
+            >
+              <MaterialIcons
+                name="cancel"
+                size={15}
+                color={
+                  statusTab === "rejected" ? "#DC2626" : colors.onSurfaceVariant
+                }
+              />
+              <Text
+                style={[
+                  styles.segmentText,
+                  {
+                    color:
+                      statusTab === "rejected"
+                        ? "#DC2626"
+                        : colors.onSurfaceVariant,
+                    fontFamily:
+                      statusTab === "rejected" ? FONTS.bold : FONTS.medium,
+                  },
+                ]}
+              >
+                Rejected
+              </Text>
+              {rejectedCount > 0 && (
+                <View
+                  style={[
+                    styles.tabBadge,
+                    {
+                      backgroundColor: isDark
+                        ? "rgba(220, 38, 38, 0.25)"
+                        : "#FEE2E2",
+                    },
+                  ]}
+                >
+                  <Text style={[styles.tabBadgeText, { color: "#DC2626" }]}>
+                    {rejectedCount}
+                  </Text>
+                </View>
+              )}
+            </Pressable>
+
+            {/* Approved Tab */}
+            <Pressable
+              onPress={() => handleTabChange("approved")}
+              style={[
+                styles.segmentItem,
+                statusTab === "approved" && [
+                  styles.segmentItemActive,
+                  {
+                    backgroundColor: colors.surface,
+                    shadowColor: colors.shadow || "#000",
+                  },
+                ],
+              ]}
+            >
+              <MaterialIcons
+                name="check-circle"
+                size={15}
+                color={
+                  statusTab === "approved" ? "#059669" : colors.onSurfaceVariant
+                }
+              />
+              <Text
+                style={[
+                  styles.segmentText,
+                  {
+                    color:
+                      statusTab === "approved"
+                        ? "#059669"
+                        : colors.onSurfaceVariant,
+                    fontFamily:
+                      statusTab === "approved" ? FONTS.bold : FONTS.medium,
+                  },
+                ]}
+              >
+                Approved
+              </Text>
+              {approvedCount > 0 && (
+                <View
+                  style={[
+                    styles.tabBadge,
+                    {
+                      backgroundColor: isDark
+                        ? "rgba(5, 150, 105, 0.25)"
+                        : "#D1FAE5",
+                    },
+                  ]}
+                >
+                  <Text style={[styles.tabBadgeText, { color: "#059669" }]}>
+                    {approvedCount}
+                  </Text>
+                </View>
+              )}
+            </Pressable>
+          </View>
+        </View>
+
+        {/* ──── Filter Chips Bar ──── */}
         <View style={styles.filterContainer}>
           <FlatList
             horizontal
@@ -545,7 +1276,7 @@ export default function VibeApprovalsScreen() {
             }}
           />
 
-          {filteredPendingVibes.length > 0 && (
+          {statusTab === "pending" && filteredVibes.length > 0 && (
             <Pressable
               onPress={handleSelectAll}
               style={[
@@ -555,8 +1286,8 @@ export default function VibeApprovalsScreen() {
             >
               <MaterialIcons
                 name={
-                  selectedIds.size === filteredPendingVibes.length &&
-                  filteredPendingVibes.length > 0
+                  selectedIds.size === filteredVibes.length &&
+                  filteredVibes.length > 0
                     ? "check-box"
                     : "check-box-outline-blank"
                 }
@@ -566,8 +1297,8 @@ export default function VibeApprovalsScreen() {
               <Text
                 style={[styles.selectAllBtnText, { color: colors.primary }]}
               >
-                {selectedIds.size === filteredPendingVibes.length &&
-                filteredPendingVibes.length > 0
+                {selectedIds.size === filteredVibes.length &&
+                filteredVibes.length > 0
                   ? "Deselect"
                   : "Select All"}
               </Text>
@@ -575,30 +1306,50 @@ export default function VibeApprovalsScreen() {
           )}
         </View>
 
-        {/* Content */}
-        {isLoading && filteredPendingVibes.length === 0 ? (
+        {/* ──── Main Content ──── */}
+        {isLoading && filteredVibes.length === 0 ? (
           <View style={styles.centerContainer}>
             <ActivityIndicator size="large" color={colors.primary} />
             <Text
               style={[styles.loadingText, { color: colors.onSurfaceVariant }]}
             >
-              Loading pending vibes...
+              Loading {statusTab} vibes...
             </Text>
           </View>
-        ) : filteredPendingVibes.length === 0 ? (
+        ) : filteredVibes.length === 0 ? (
           <View style={styles.emptyContainer}>
             <MaterialIcons
-              name="check-circle-outline"
+              name={
+                statusTab === "pending"
+                  ? "check-circle-outline"
+                  : statusTab === "rejected"
+                  ? "assignment-turned-in"
+                  : "verified"
+              }
               size={64}
-              color="#2E7D32"
+              color={
+                statusTab === "pending"
+                  ? "#2E7D32"
+                  : statusTab === "rejected"
+                  ? colors.primary
+                  : "#059669"
+              }
             />
             <Text style={[styles.emptyTitle, { color: colors.onSurface }]}>
-              All Caught Up!
+              {statusTab === "pending"
+                ? "All Caught Up!"
+                : statusTab === "rejected"
+                ? "No Rejected Vibes"
+                : "No Approved Vibes"}
             </Text>
             <Text
               style={[styles.emptySubtitle, { color: colors.onSurfaceVariant }]}
             >
-              No pending vibes matching this filter awaiting approval.
+              {statusTab === "pending"
+                ? "No pending vibes matching this filter awaiting approval."
+                : statusTab === "rejected"
+                ? "None of the community submissions are currently marked as rejected. Whenever a submission is rejected, you will be able to track and manage it here."
+                : "Approved community posts will appear here for historical moderation."}
             </Text>
             <Pressable
               onPress={() => refetch()}
@@ -612,7 +1363,7 @@ export default function VibeApprovalsScreen() {
           </View>
         ) : (
           <FlatList
-            data={filteredPendingVibes}
+            data={filteredVibes}
             renderItem={renderItem}
             keyExtractor={(item) => item._id}
             contentContainerStyle={[
@@ -643,8 +1394,8 @@ export default function VibeApprovalsScreen() {
           />
         )}
 
-        {/* ──── Floating Batch Action Bar ──── */}
-        {selectedIds.size > 0 && (
+        {/* ──── Floating Batch Action Bar (for Pending tab) ──── */}
+        {statusTab === "pending" && selectedIds.size > 0 && (
           <View
             style={[
               styles.batchActionBar,
@@ -682,27 +1433,71 @@ export default function VibeApprovalsScreen() {
           </View>
         )}
 
-        {/* ──── Reject Feedback Modal (Single & Batch) ──── */}
+        {/* ──── Reject / Feedback Modal with KeyboardAvoidingView ──── */}
         {rejectingVibe && (
-          <Modal visible={!!rejectingVibe} transparent animationType="slide">
-            <View style={styles.modalOverlay}>
+          <Modal
+            visible={!!rejectingVibe}
+            transparent
+            animationType="slide"
+            onRequestClose={() => {
+              Keyboard.dismiss();
+              setRejectingVibe(null);
+              setIsBatchReject(false);
+            }}
+          >
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
+              style={styles.modalOverlay}
+            >
+              <Pressable
+                style={styles.modalBackdropTouch}
+                onPress={() => {
+                  Keyboard.dismiss();
+                  setRejectingVibe(null);
+                  setIsBatchReject(false);
+                }}
+              />
               <View
-                style={[styles.modalCard, { backgroundColor: colors.surface }]}
+                style={[
+                  styles.modalCard,
+                  {
+                    backgroundColor: colors.surface,
+                    maxHeight: SCREEN_HEIGHT * 0.88,
+                  },
+                ]}
               >
+                {/* Modal Header */}
                 <View style={styles.modalHeader}>
-                  <Text
-                    style={[styles.modalTitle, { color: colors.onSurface }]}
-                  >
-                    {isBatchReject
-                      ? `Reject ${selectedIds.size} Submissions`
-                      : "Reject Vibe Submission"}
-                  </Text>
+                  <View style={{ flex: 1, marginRight: 8 }}>
+                    <Text
+                      style={[styles.modalTitle, { color: colors.onSurface }]}
+                      numberOfLines={1}
+                    >
+                      {rejectingVibe?.isEditing
+                        ? "Edit Rejection Feedback"
+                        : isBatchReject
+                        ? `Reject ${selectedIds.size} Submissions`
+                        : "Reject Vibe Submission"}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.modalHint,
+                        { color: colors.onSurfaceVariant },
+                      ]}
+                    >
+                      {rejectingVibe?.isEditing
+                        ? "Update the feedback reason sent to the author."
+                        : "Select a reason or write custom feedback."}
+                    </Text>
+                  </View>
                   <Pressable
                     onPress={() => {
+                      Keyboard.dismiss();
                       setRejectingVibe(null);
                       setIsBatchReject(false);
                     }}
                     hitSlop={10}
+                    style={styles.modalCloseBtn}
                   >
                     <MaterialIcons
                       name="close"
@@ -712,90 +1507,119 @@ export default function VibeApprovalsScreen() {
                   </Pressable>
                 </View>
 
-                <Text
-                  style={[styles.modalHint, { color: colors.onSurfaceVariant }]}
+                {/* Scrollable Modal Content */}
+                <ScrollView
+                  showsVerticalScrollIndicator={true}
+                  keyboardShouldPersistTaps="handled"
+                  contentContainerStyle={styles.modalScrollContent}
+                  bounces={false}
                 >
-                  Select a reason or write custom feedback. Authors will be
-                  notified.
-                </Text>
+                  <Text
+                    style={[
+                      styles.sectionLabel,
+                      { color: colors.onSurfaceVariant },
+                    ]}
+                  >
+                    Standard Guidelines
+                  </Text>
 
-                {/* Reasons Radio / Pills */}
-                <View style={styles.reasonsContainer}>
-                  {REJECT_REASONS.map((r) => (
-                    <Pressable
-                      key={r}
-                      onPress={() => {
-                        setSelectedReason(r);
-                        setCustomReason("");
-                      }}
-                      style={[
-                        styles.reasonOption,
-                        {
-                          backgroundColor:
-                            selectedReason === r && !customReason
-                              ? colors.primaryContainer
-                              : colors.surfaceContainerHighest,
-                          borderColor:
-                            selectedReason === r && !customReason
-                              ? colors.primary
-                              : "transparent",
-                        },
-                      ]}
-                    >
-                      <MaterialIcons
-                        name={
-                          selectedReason === r && !customReason
-                            ? "radio-button-checked"
-                            : "radio-button-unchecked"
-                        }
-                        size={18}
-                        color={
-                          selectedReason === r && !customReason
-                            ? colors.primary
-                            : colors.onSurfaceVariant
-                        }
-                      />
-                      <Text
-                        style={[
-                          styles.reasonOptionText,
-                          {
-                            color:
-                              selectedReason === r && !customReason
-                                ? colors.onPrimaryContainer
-                                : colors.onSurface,
-                            fontFamily:
-                              selectedReason === r && !customReason
-                                ? FONTS.bold
-                                : FONTS.regular,
-                          },
-                        ]}
-                      >
-                        {r}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </View>
+                  {/* Reasons Radio / Pills */}
+                  <View style={styles.reasonsContainer}>
+                    {REJECT_REASONS.map((r) => {
+                      const isSelected = selectedReason === r && !customReason;
+                      return (
+                        <Pressable
+                          key={r}
+                          onPress={() => {
+                            setSelectedReason(r);
+                            setCustomReason("");
+                          }}
+                          style={[
+                            styles.reasonOption,
+                            {
+                              backgroundColor: isSelected
+                                ? colors.primaryContainer
+                                : colors.surfaceContainerHighest,
+                              borderColor: isSelected
+                                ? colors.primary
+                                : "transparent",
+                            },
+                          ]}
+                        >
+                          <MaterialIcons
+                            name={
+                              isSelected
+                                ? "radio-button-checked"
+                                : "radio-button-unchecked"
+                            }
+                            size={18}
+                            color={
+                              isSelected
+                                ? colors.primary
+                                : colors.onSurfaceVariant
+                            }
+                          />
+                          <Text
+                            style={[
+                              styles.reasonOptionText,
+                              {
+                                color: isSelected
+                                  ? colors.onPrimaryContainer
+                                  : colors.onSurface,
+                                fontFamily: isSelected
+                                  ? FONTS.bold
+                                  : FONTS.regular,
+                              },
+                            ]}
+                          >
+                            {r}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
 
-                {/* Custom Note */}
-                <TextInput
-                  placeholder="Or write custom feedback reason..."
-                  placeholderTextColor={colors.onSurfaceVariant}
-                  value={customReason}
-                  onChangeText={setCustomReason}
+                  <Text
+                    style={[
+                      styles.sectionLabel,
+                      { color: colors.onSurfaceVariant, marginTop: 12 },
+                    ]}
+                  >
+                    Custom Feedback (Optional)
+                  </Text>
+
+                  {/* Custom Note TextInput */}
+                  <TextInput
+                    placeholder="Type custom feedback reason for the author..."
+                    placeholderTextColor={colors.onSurfaceVariant}
+                    value={customReason}
+                    onChangeText={setCustomReason}
+                    multiline
+                    numberOfLines={3}
+                    textAlignVertical="top"
+                    style={[
+                      styles.customReasonInput,
+                      {
+                        backgroundColor: colors.surfaceContainerHighest,
+                        color: colors.onSurface,
+                        borderColor: customReason.trim()
+                          ? colors.primary
+                          : colors.outlineVariant,
+                      },
+                    ]}
+                  />
+                </ScrollView>
+
+                {/* Fixed Footer with Cancel & Submit Buttons */}
+                <View
                   style={[
-                    styles.customReasonInput,
-                    {
-                      backgroundColor: colors.surfaceContainerHighest,
-                      color: colors.onSurface,
-                      borderColor: colors.outlineVariant,
-                    },
+                    styles.modalActions,
+                    { borderTopColor: colors.outlineVariant },
                   ]}
-                />
-
-                {/* Modal Buttons */}
-                <View style={styles.modalActions}>
+                >
                   <Pressable
                     onPress={() => {
+                      Keyboard.dismiss();
                       setRejectingVibe(null);
                       setIsBatchReject(false);
                     }}
@@ -815,19 +1639,28 @@ export default function VibeApprovalsScreen() {
                   </Pressable>
 
                   <Pressable
-                    onPress={handleConfirmReject}
+                    onPress={() => {
+                      Keyboard.dismiss();
+                      handleConfirmReject();
+                    }}
                     style={[
                       styles.modalRejectBtn,
-                      { backgroundColor: colors.error },
+                      {
+                        backgroundColor: rejectingVibe?.isEditing
+                          ? colors.primary
+                          : colors.error,
+                      },
                     ]}
                   >
                     <Text style={styles.modalRejectText}>
-                      Confirm Rejection
+                      {rejectingVibe?.isEditing
+                        ? "Save Feedback"
+                        : "Confirm Rejection"}
                     </Text>
                   </Pressable>
                 </View>
               </View>
-            </View>
+            </KeyboardAvoidingView>
           </Modal>
         )}
       </View>
@@ -855,13 +1688,43 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
   },
-  pendingPill: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+  segmentWrapper: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  pendingPillText: {
-    fontSize: FONT_SIZES.xs,
+  segmentContainer: {
+    flexDirection: "row",
+    borderRadius: 14,
+    padding: 4,
+    gap: 4,
+  },
+  segmentItem: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    borderRadius: 10,
+    gap: 6,
+  },
+  segmentItemActive: {
+    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+  },
+  segmentText: {
+    fontSize: FONT_SIZES.sm,
+  },
+  tabBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 10,
+  },
+  tabBadgeText: {
+    fontSize: FONT_SIZES.xs - 2,
     fontFamily: FONTS.bold,
   },
   filterContainer: {
@@ -966,15 +1829,65 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
   },
+  statusBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  statusBadgeText: {
+    fontSize: FONT_SIZES.xs - 1,
+    fontFamily: FONTS.bold,
+    textTransform: "uppercase",
+  },
   categoryBadge: {
     paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingVertical: 3,
     borderRadius: 8,
   },
   categoryBadgeText: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.xs - 1,
     fontFamily: FONTS.bold,
     textTransform: "uppercase",
+  },
+  rejectedAuditBox: {
+    marginHorizontal: 12,
+    marginBottom: 10,
+    padding: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    gap: 6,
+  },
+  rejectedAuditHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  rejectedAuditTitle: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+    color: "#DC2626",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  rejectedReasonText: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.medium,
+    lineHeight: 20,
+  },
+  auditModeratorRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingTop: 8,
+    marginTop: 2,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  auditModeratorText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.regular,
   },
   captionBox: {
     paddingHorizontal: 14,
@@ -1010,6 +1923,7 @@ const styles = StyleSheet.create({
   },
   actionRow: {
     flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 14,
     paddingVertical: 12,
     gap: 12,
@@ -1030,18 +1944,73 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
   },
   approveBtn: {
-    flex: 2,
+    flex: 1.8,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 10,
+    paddingHorizontal: 8,
     borderRadius: 14,
+    minWidth: 0,
+  },
+  btnContentRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 6,
+    flexShrink: 1,
   },
   approveBtnText: {
     color: "#fff",
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
+    flexShrink: 1,
+  },
+  rejectedActionsContainer: {
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  fullApproveBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    borderRadius: 14,
+  },
+  fullApproveBtnText: {
+    color: "#fff",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
+  },
+  rejectedSecondaryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  rejectedSecondaryBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 9,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 6,
+  },
+  rejectedSecondaryText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+  },
+  deleteIconBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
   batchActionBar: {
     position: "absolute",
@@ -1104,30 +2073,52 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "flex-end",
   },
+  modalBackdropTouch: {
+    ...StyleSheet.absoluteFillObject,
+  },
   modalCard: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    padding: 20,
-    paddingBottom: 36,
+    paddingHorizontal: 20,
+    paddingTop: 18,
+    paddingBottom: Platform.OS === "ios" ? 28 : 20,
+    elevation: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
   },
   modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
+    alignItems: "flex-start",
+    marginBottom: 10,
+  },
+  modalCloseBtn: {
+    padding: 4,
+    marginTop: -2,
   },
   modalTitle: {
     fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   modalHint: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
-    marginBottom: 16,
+    marginTop: 2,
+  },
+  modalScrollContent: {
+    paddingBottom: 16,
+  },
+  sectionLabel: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: 8,
   },
   reasonsContainer: {
     gap: 8,
-    marginBottom: 14,
   },
   reasonOption: {
     flexDirection: "row",
@@ -1142,17 +2133,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   customReasonInput: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 14,
     borderWidth: 1,
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
-    marginBottom: 16,
+    minHeight: 80,
+    maxHeight: 120,
   },
   modalActions: {
     flexDirection: "row",
     gap: 12,
+    paddingTop: 14,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
   modalCancelBtn: {
     flex: 1,

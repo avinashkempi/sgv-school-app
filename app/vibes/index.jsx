@@ -3,6 +3,7 @@ import {
   View,
   Text,
   FlatList,
+  ScrollView,
   TextInput,
   ActivityIndicator,
   Pressable,
@@ -70,6 +71,8 @@ export default function VibesScreen() {
 
   // Navigation / View Tabs: 'feed' | 'my-vibes' | 'saved'
   const [activeTab, setActiveTab] = useState("feed");
+  // Sub-filter for My Posts: 'all' | 'approved' | 'pending' | 'rejected'
+  const [myVibeStatusFilter, setMyVibeStatusFilter] = useState("all");
 
   const getParam = useCallback((val) => {
     if (Array.isArray(val)) return val[0];
@@ -667,7 +670,7 @@ export default function VibesScreen() {
           </View>
 
           {/* Rejection Note */}
-          {item.status === "rejected" && item.rejectionReason && (
+          {item.status === "rejected" && Boolean(item.rejectionReason) && (
             <View
               style={[
                 styles.rejectionBox,
@@ -678,13 +681,16 @@ export default function VibesScreen() {
                 },
               ]}
             >
-              <Text style={styles.rejectionTitle}>Admin Feedback:</Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                <MaterialIcons name="error-outline" size={15} color="#DC2626" />
+                <Text style={styles.rejectionTitle}>Admin Feedback:</Text>
+              </View>
               <Text
                 style={[
                   styles.rejectionReason,
-                  { color: colors.onSurfaceVariant },
+                  { color: colors.onSurface },
                 ]}
-                numberOfLines={3}
+                numberOfLines={4}
               >
                 {item.rejectionReason}
               </Text>
@@ -725,11 +731,32 @@ export default function VibesScreen() {
     ]
   );
 
+  const myVibeCounts = useMemo(() => {
+    const rawCounts = myVibesData?.pages?.[0]?.counts || {};
+    const approved =
+      rawCounts.approved ?? myVibes.filter((v) => v.status === "approved").length;
+    const pending =
+      rawCounts.pending ?? myVibes.filter((v) => v.status === "pending").length;
+    const rejected =
+      rawCounts.rejected ?? myVibes.filter((v) => v.status === "rejected").length;
+    return {
+      all: myVibes.length,
+      approved,
+      pending,
+      rejected,
+    };
+  }, [myVibesData, myVibes]);
+
+  const filteredMyVibes = useMemo(() => {
+    if (myVibeStatusFilter === "all") return myVibes;
+    return myVibes.filter((v) => v.status === myVibeStatusFilter);
+  }, [myVibes, myVibeStatusFilter]);
+
   const currentList =
     activeTab === "feed"
       ? feedVibes
       : activeTab === "my-vibes"
-      ? myVibes
+      ? filteredMyVibes
       : savedVibes;
 
   const currentLoading =
@@ -760,6 +787,65 @@ export default function VibesScreen() {
   // Header Component for Feed FlatList: Stories Tray + Category Filter Pills
   // KEPT ALWAYS MOUNTED so filters and stories NEVER vanish when switching or empty!
   const renderListHeader = useCallback(() => {
+    if (activeTab === "my-vibes") {
+      const filters = [
+        { key: "all", label: "All", count: myVibeCounts.all },
+        { key: "approved", label: "Approved", count: myVibeCounts.approved },
+        { key: "pending", label: "Pending", count: myVibeCounts.pending },
+        { key: "rejected", label: "Rejected", count: myVibeCounts.rejected },
+      ];
+
+      return (
+        <View style={styles.myVibesHeaderContainer}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.myVibesFilterScroll}
+          >
+            {filters.map((f) => {
+              const isSelected = myVibeStatusFilter === f.key;
+              return (
+                <Pressable
+                  key={f.key}
+                  onPress={() => {
+                    Haptics.impactAsync(
+                      Haptics.ImpactFeedbackStyle.Light
+                    ).catch(() => {});
+                    setMyVibeStatusFilter(f.key);
+                  }}
+                  style={[
+                    styles.myVibeFilterChip,
+                    {
+                      backgroundColor: isSelected
+                        ? colors.primaryContainer
+                        : colors.surfaceContainerHigh,
+                      borderColor: isSelected
+                        ? colors.primary
+                        : colors.outlineVariant || "transparent",
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.myVibeFilterChipText,
+                      {
+                        color: isSelected
+                          ? colors.onPrimaryContainer
+                          : colors.onSurfaceVariant,
+                        fontFamily: isSelected ? FONTS.bold : FONTS.medium,
+                      },
+                    ]}
+                  >
+                    {f.label} ({f.count})
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </View>
+      );
+    }
+
     if (activeTab !== "feed") return null;
 
     return (
@@ -940,6 +1026,8 @@ export default function VibesScreen() {
     handleCategorySelect,
     isAuthenticated,
     showToast,
+    myVibeCounts,
+    myVibeStatusFilter,
   ]);
 
   // Contextual Empty State / Inline Loading component for ListEmptyComponent
@@ -1078,6 +1166,119 @@ export default function VibesScreen() {
 
     // 3. Empty State for My Posts tab
     if (activeTab === "my-vibes") {
+      if (myVibeStatusFilter === "rejected") {
+        return (
+          <View style={styles.emptyContainer}>
+            <View
+              style={[
+                styles.emptyIconCircle,
+                {
+                  backgroundColor: isDark
+                    ? "rgba(5, 150, 105, 0.18)"
+                    : "#ECFDF5",
+                },
+              ]}
+            >
+              <MaterialIcons
+                name="check-circle"
+                size={34}
+                color="#059669"
+              />
+            </View>
+            <Text style={[styles.emptyTitle, { color: colors.onSurface }]}>
+              No Rejected Posts
+            </Text>
+            <Text
+              style={[styles.emptySubtitle, { color: colors.onSurfaceVariant }]}
+            >
+              Great news! None of your campus vibes have been rejected. All your submissions are approved or pending review.
+            </Text>
+            <Pressable
+              onPress={() => setMyVibeStatusFilter("all")}
+              style={[
+                styles.emptyPrimaryBtn,
+                { backgroundColor: colors.primary, marginTop: 12 },
+              ]}
+            >
+              <MaterialIcons name="view-list" size={18} color="#FFFFFF" />
+              <Text style={styles.emptyPrimaryBtnText}>View All Posts</Text>
+            </Pressable>
+          </View>
+        );
+      }
+      if (myVibeStatusFilter === "pending") {
+        return (
+          <View style={styles.emptyContainer}>
+            <View
+              style={[
+                styles.emptyIconCircle,
+                { backgroundColor: colors.surfaceContainerHighest },
+              ]}
+            >
+              <MaterialIcons
+                name="schedule"
+                size={34}
+                color={colors.primary}
+              />
+            </View>
+            <Text style={[styles.emptyTitle, { color: colors.onSurface }]}>
+              No Pending Reviews
+            </Text>
+            <Text
+              style={[styles.emptySubtitle, { color: colors.onSurfaceVariant }]}
+            >
+              You don't have any posts currently waiting for moderator approval.
+            </Text>
+            <Pressable
+              onPress={() => setMyVibeStatusFilter("all")}
+              style={[
+                styles.emptyPrimaryBtn,
+                { backgroundColor: colors.primary, marginTop: 12 },
+              ]}
+            >
+              <MaterialIcons name="view-list" size={18} color="#FFFFFF" />
+              <Text style={styles.emptyPrimaryBtnText}>View All Posts</Text>
+            </Pressable>
+          </View>
+        );
+      }
+      if (myVibeStatusFilter === "approved") {
+        return (
+          <View style={styles.emptyContainer}>
+            <View
+              style={[
+                styles.emptyIconCircle,
+                { backgroundColor: colors.surfaceContainerHighest },
+              ]}
+            >
+              <MaterialIcons
+                name="photo-camera"
+                size={34}
+                color={colors.primary}
+              />
+            </View>
+            <Text style={[styles.emptyTitle, { color: colors.onSurface }]}>
+              No Approved Posts Yet
+            </Text>
+            <Text
+              style={[styles.emptySubtitle, { color: colors.onSurfaceVariant }]}
+            >
+              When your vibe submissions are approved by moderators, they will appear here and on the campus feed.
+            </Text>
+            <Pressable
+              onPress={() => setMyVibeStatusFilter("all")}
+              style={[
+                styles.emptyPrimaryBtn,
+                { backgroundColor: colors.primary, marginTop: 12 },
+              ]}
+            >
+              <MaterialIcons name="view-list" size={18} color="#FFFFFF" />
+              <Text style={styles.emptyPrimaryBtnText}>View All Posts</Text>
+            </Pressable>
+          </View>
+        );
+      }
+
       return (
         <View style={styles.emptyContainer}>
           <View
@@ -1164,6 +1365,8 @@ export default function VibesScreen() {
     debouncedSearch,
     currentCategoryObj,
     colors,
+    isDark,
+    myVibeStatusFilter,
     handleResetFilters,
     isAuthenticated,
     showToast,
@@ -1953,6 +2156,24 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
     marginTop: 2,
+  },
+  myVibesHeaderContainer: {
+    paddingHorizontal: 14,
+    paddingTop: 10,
+    paddingBottom: 8,
+  },
+  myVibesFilterScroll: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  myVibeFilterChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  myVibeFilterChipText: {
+    fontSize: FONT_SIZES.xs,
   },
   extendedFab: {
     position: "absolute",

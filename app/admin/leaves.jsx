@@ -563,7 +563,7 @@ export default function AdminLeaves() {
                 <Text style={[styles.applicantName, { color: colors.onSurface }]} numberOfLines={1}>
                   {applicantDisplayName}
                 </Text>
-                {item.academicYear?.name && (
+                {Boolean(item.academicYear?.name) && (
                   <View style={[styles.tinyYearPill, { backgroundColor: colors.surfaceContainerHigh }]}>
                     <Text style={[styles.tinyYearText, { color: colors.onSurfaceVariant }]} numberOfLines={1}>
                       {item.academicYear.name}
@@ -605,7 +605,7 @@ export default function AdminLeaves() {
             <Ionicons name="calendar-outline" size={14} color={colors.primary} />
             <Text style={[styles.dateText, { color: colors.onSurface }]} numberOfLines={1}>
               {formatDate(item.startDate)}
-              {item.leaveType === "full" && item.startDate !== item.endDate && ` – ${formatDate(item.endDate)}`}
+              {item.leaveType === "full" && item.startDate !== item.endDate ? ` – ${formatDate(item.endDate)}` : ""}
             </Text>
           </View>
 
@@ -630,7 +630,7 @@ export default function AdminLeaves() {
             <Text style={{ color: "#D32F2F", fontFamily: FONTS.bold, fontSize: FONT_SIZES.xs, lineHeight: 18 }}>
               Rejected: {item.rejectionReason}
             </Text>
-            {item.rejectionComments && (
+            {Boolean(item.rejectionComments) && (
               <Text style={{ color: colors.onSurfaceVariant, fontSize: FONT_SIZES.xs, marginTop: 2, lineHeight: 18 }}>
                 Note: {item.rejectionComments}
               </Text>
@@ -638,7 +638,7 @@ export default function AdminLeaves() {
           </View>
         )}
 
-        {item.status === "approved" && item.actionReason && (
+        {item.status === "approved" && Boolean(item.actionReason) && (
           <View style={[styles.decisionBox, { backgroundColor: "#E8F5E9", borderColor: "#C8E6C9" }]}>
             <Text style={{ color: "#2E7D32", fontFamily: FONTS.bold, fontSize: FONT_SIZES.xs, lineHeight: 18 }}>
               Approval Note: {item.actionReason}
@@ -745,7 +745,7 @@ export default function AdminLeaves() {
               <Ionicons name="calendar" size={14} color={colors.primary} />
               <Text style={[styles.dateText, { color: colors.onSurface }]} numberOfLines={1}>
                 {formatDate(item.startDate)}
-                {item.leaveType === "full" && item.startDate !== item.endDate && ` – ${formatDate(item.endDate)}`}
+                {item.leaveType === "full" && item.startDate !== item.endDate ? ` – ${formatDate(item.endDate)}` : ""}
               </Text>
             </View>
             <Text style={{ fontSize: FONT_SIZES.sm, color: colors.onSurfaceVariant, marginTop: 1, fontFamily: FONTS.regular }} numberOfLines={1}>

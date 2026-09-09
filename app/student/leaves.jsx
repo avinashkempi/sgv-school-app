@@ -373,7 +373,7 @@ export default function StudentLeaves() {
             <Text style={{ fontSize: FONT_SIZES.xs, fontFamily: FONTS.bold, color: "#D32F2F" }}>
               Rejection: {item.rejectionReason}
             </Text>
-            {item.rejectionComments && (
+            {Boolean(item.rejectionComments) && (
               <Text style={{ fontSize: FONT_SIZES.xs, color: colors.onSurfaceVariant, fontFamily: FONTS.regular, marginTop: 1, lineHeight: 18 }}>
                 Teacher Note: {item.rejectionComments}
               </Text>
@@ -381,7 +381,7 @@ export default function StudentLeaves() {
           </View>
         )}
 
-        {item.status === "approved" && item.actionReason && (
+        {item.status === "approved" && Boolean(item.actionReason) && (
           <View style={[styles.decisionBox, { backgroundColor: "#E8F5E9", borderColor: "#C8E6C9" }]}>
             <Text style={{ fontSize: FONT_SIZES.xs, fontFamily: FONTS.bold, color: "#2E7D32" }}>
               Teacher Note: {item.actionReason}
