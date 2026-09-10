@@ -4,7 +4,7 @@ import {
   Text,
   Pressable,
   ActivityIndicator,
-  RefreshControl,
+  FlatList,
   Modal,
   TextInput,
   Alert,
@@ -13,7 +13,6 @@ import {
   KeyboardAvoidingView,
   Keyboard,
 } from "react-native";
-import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme, FONTS, FONT_SIZES } from "../../theme";
@@ -34,6 +33,8 @@ import {
   formatUserName,
   formatUserDesignationOrRole,
 } from "../../utils/userFormatters";
+import AppRefreshControl from "../../components/ui/AppRefreshControl";
+import { formatDate } from "../../utils/date";
 
 export default function ComplaintsScreen() {
   const router = useRouter();
@@ -50,7 +51,11 @@ export default function ComplaintsScreen() {
   // Student: 'my_complaints', 'teacher_feedback'
   // Teacher: 'my_complaints', 'sent_feedback'
   // Admin: 'inbox', 'feedback_logs'
-  const [activeTab, setActiveTab] = useState("loading");
+  const getInitialTab = () => {
+    if (userRole === "admin" || userRole === "super admin") return "inbox";
+    return "my_complaints";
+  };
+  const [activeTab, setActiveTab] = useState(getInitialTab);
 
   const [refreshing, setRefreshing] = useState(false);
   // eslint-disable-next-line no-unused-vars
@@ -82,13 +87,9 @@ export default function ComplaintsScreen() {
       normalizedRole === "staff" ||
       normalizedRole === "support_staff"
     ) {
-      setActiveTab((prev) =>
-        prev === "loading" || prev === "inbox" ? "my_complaints" : prev
-      );
+      setActiveTab((prev) => (prev === "inbox" ? "my_complaints" : prev));
     } else {
-      setActiveTab((prev) =>
-        prev === "loading" || prev === "my_complaints" ? "inbox" : prev
-      );
+      setActiveTab((prev) => (prev === "my_complaints" ? "inbox" : prev));
     }
   }, [userRole]);
 
@@ -277,6 +278,20 @@ export default function ComplaintsScreen() {
   const renderComplaintItem = (item) => {
     const isExpanded = !!expandedCards[item._id];
     const isLongDescription = item.description && item.description.length > 90;
+    const author = item.raisedBy || item.student;
+    const authorName = formatUserName(
+      author?.name,
+      author?.role === "student"
+        ? t("roles.student", "Student")
+        : t("common.user", "User")
+    );
+    const authorRole = author ? formatUserDesignationOrRole(author) : "";
+    const authorClass = author?.currentClass
+      ? formatClassName(
+          author.currentClass.name || author.currentClass,
+          author.currentClass.section
+        )
+      : "";
 
     return (
       <Pressable
@@ -285,10 +300,24 @@ export default function ComplaintsScreen() {
           setExpandedCards((prev) => ({ ...prev, [item._id]: !prev[item._id] }))
         }
         style={({ pressed }) => [
-          styles.cardMinimal,
-          { marginBottom: 12, opacity: pressed ? 0.95 : 1 },
+          {
+            backgroundColor:
+              colors.surface || colors.cardBackground || "#FFFFFF",
+            borderRadius: 16,
+            padding: 16,
+            marginBottom: 16,
+            borderWidth: 1,
+            borderColor: colors.outlineVariant || colors.border || "#E2E8F0",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.05,
+            shadowRadius: 8,
+            elevation: 2,
+            opacity: pressed ? 0.96 : 1,
+          },
         ]}
       >
+        {/* Card Header: Author Info and Date */}
         <View
           style={{
             flexDirection: "row",
@@ -297,75 +326,131 @@ export default function ComplaintsScreen() {
             marginBottom: 12,
           }}
         >
-          <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
+          {activeTab === "inbox" || author ? (
             <View
               style={{
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-                backgroundColor: colors.primary + "15",
-                borderRadius: 8,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
+                flex: 1,
+                marginRight: 10,
               }}
             >
-              <Text
-                style={{
-                  color: colors.primary,
-                  fontSize: FONT_SIZES.xs,
-                  fontFamily: FONTS.bold,
-                }}
-              >
-                {item.category}
-              </Text>
-            </View>
-            <View
-              style={{
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-                backgroundColor: getStatusColor(item.status) + "15",
-                borderRadius: 8,
-              }}
-            >
-              <Text
-                style={{
-                  color: getStatusColor(item.status),
-                  fontSize: FONT_SIZES.xs,
-                  fontFamily: FONTS.bold,
-                }}
-              >
-                {item.status}
-              </Text>
-            </View>
-            {item.priority && (
-              <View
-                style={{
-                  paddingHorizontal: 10,
-                  paddingVertical: 4,
-                  backgroundColor: getPriorityColor(item.priority) + "15",
-                  borderRadius: 8,
-                }}
-              >
+              <UserAvatar
+                photoUrl={author?.profilePhoto}
+                name={authorName}
+                role={author?.role}
+                size={36}
+              />
+              <View style={{ flex: 1 }}>
                 <Text
                   style={{
-                    color: getPriorityColor(item.priority),
-                    fontSize: FONT_SIZES.xs,
+                    fontSize: FONT_SIZES.md,
                     fontFamily: FONTS.bold,
+                    color: colors.textPrimary,
                   }}
+                  numberOfLines={1}
                 >
-                  {item.priority}
+                  {authorName}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: FONT_SIZES.xs,
+                    fontFamily: FONTS.medium,
+                    color: colors.textSecondary,
+                    marginTop: 1,
+                  }}
+                  numberOfLines={1}
+                >
+                  {authorRole || t("roles.student", "Student")}
+                  {authorClass ? ` • ${authorClass}` : ""}
                 </Text>
               </View>
-            )}
-          </View>
+            </View>
+          ) : (
+            <View style={{ flex: 1 }} />
+          )}
+
           <Text
             style={{
               color: colors.textSecondary,
-              fontSize: FONT_SIZES.sm,
+              fontSize: FONT_SIZES.xs,
               fontFamily: FONTS.medium,
             }}
           >
-            {new Date(item.createdAt).toLocaleDateString()}
+            {formatDate(item.createdAt)}
           </Text>
         </View>
 
+        {/* Badges Row */}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 8,
+            flexWrap: "wrap",
+            marginBottom: 12,
+          }}
+        >
+          <View
+            style={{
+              paddingHorizontal: 10,
+              paddingVertical: 4,
+              backgroundColor: colors.primaryContainer || colors.primary + "15",
+              borderRadius: 8,
+            }}
+          >
+            <Text
+              style={{
+                color: colors.onPrimaryContainer || colors.primary,
+                fontSize: FONT_SIZES.xs,
+                fontFamily: FONTS.bold,
+              }}
+            >
+              {item.category}
+            </Text>
+          </View>
+          <View
+            style={{
+              paddingHorizontal: 10,
+              paddingVertical: 4,
+              backgroundColor: getStatusColor(item.status) + "15",
+              borderRadius: 8,
+            }}
+          >
+            <Text
+              style={{
+                color: getStatusColor(item.status),
+                fontSize: FONT_SIZES.xs,
+                fontFamily: FONTS.bold,
+              }}
+            >
+              {item.status}
+            </Text>
+          </View>
+          {item.priority && (
+            <View
+              style={{
+                paddingHorizontal: 10,
+                paddingVertical: 4,
+                backgroundColor: getPriorityColor(item.priority) + "15",
+                borderRadius: 8,
+              }}
+            >
+              <Text
+                style={{
+                  color: getPriorityColor(item.priority),
+                  fontSize: FONT_SIZES.xs,
+                  fontFamily: FONTS.bold,
+                }}
+              >
+                {item.priority}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Title */}
         <Text
           style={{
             fontSize: FONT_SIZES.md,
@@ -376,18 +461,21 @@ export default function ComplaintsScreen() {
         >
           {item.title}
         </Text>
+
+        {/* Description */}
         <Text
           style={{
             color: colors.textSecondary,
             fontFamily: FONTS.regular,
             fontSize: FONT_SIZES.sm,
-            lineHeight: 20,
+            lineHeight: 22,
           }}
           numberOfLines={isExpanded ? undefined : 3}
         >
           {item.description}
         </Text>
 
+        {/* Read More / Less Toggle */}
         {isLongDescription && (
           <View
             style={{ flexDirection: "row", alignItems: "center", marginTop: 6 }}
@@ -411,100 +499,20 @@ export default function ComplaintsScreen() {
           </View>
         )}
 
-        {activeTab === "inbox" && (
-          <View
-            style={{
-              marginTop: 12,
-              paddingTop: 12,
-              borderTopWidth: 1,
-              borderTopColor: colors.border,
-            }}
-          >
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 6,
-                  flex: 1,
-                  marginRight: 8,
-                }}
-              >
-                <UserAvatar
-                  photoUrl={item.raisedBy?.profilePhoto}
-                  name={formatUserName(item.raisedBy?.name, "Unknown")}
-                  role={item.raisedBy?.role}
-                  size={24}
-                />
-                <Text
-                  style={{
-                    fontSize: FONT_SIZES.sm,
-                    fontFamily: FONTS.regular,
-                    color: colors.textSecondary,
-                    flex: 1,
-                  }}
-                  numberOfLines={1}
-                >
-                  <Text
-                    style={{
-                      fontFamily: FONTS.bold,
-                      color: colors.textPrimary,
-                    }}
-                  >
-                    {formatUserName(item.raisedBy?.name, "Unknown")}
-                  </Text>
-                  {item.raisedBy?.role
-                    ? ` (${formatUserDesignationOrRole(item.raisedBy)})`
-                    : ""}
-                </Text>
-              </View>
-              <Pressable
-                onPress={(e) => {
-                  e.stopPropagation();
-                  setSelectedComplaint(item);
-                  setStatus(
-                    item.status === "Pending" ? "In Progress" : item.status
-                  );
-                  setResponse(item.adminResponse || "");
-                }}
-                style={{
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
-                  backgroundColor: colors.primary + "10",
-                  borderRadius: 8,
-                }}
-              >
-                <Text
-                  style={{
-                    color: colors.primary,
-                    fontSize: FONT_SIZES.sm,
-                    fontFamily: FONTS.bold,
-                  }}
-                >
-                  ${t("common.update", "Update")}
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-        )}
-
+        {/* Admin Response Box */}
         {item.adminResponse &&
           (activeTab === "my_complaints" || isExpanded) && (
             <View
               style={{
                 marginTop: 12,
-                paddingTop: 12,
-                borderTopWidth: 1,
-                borderTopColor: colors.border,
-                backgroundColor: colors.background + "50",
-                borderRadius: 8,
-                padding: 10,
+                padding: 12,
+                backgroundColor:
+                  colors.surfaceContainerLow ||
+                  colors.surfaceVariant ||
+                  colors.background + "80",
+                borderRadius: 10,
+                borderLeftWidth: 3,
+                borderLeftColor: colors.primary,
               }}
             >
               <Text
@@ -512,10 +520,12 @@ export default function ComplaintsScreen() {
                   color: colors.primary,
                   fontSize: FONT_SIZES.xs,
                   fontFamily: FONTS.bold,
-                  marginBottom: 2,
+                  marginBottom: 4,
+                  textTransform: "uppercase",
+                  letterSpacing: 0.5,
                 }}
               >
-                {t("complaints.adminResponseLabel", "ADMIN RESPONSE")}
+                {t("complaints.adminResponseLabel", "Admin Response")}
               </Text>
               <Text
                 style={{
@@ -530,6 +540,54 @@ export default function ComplaintsScreen() {
               </Text>
             </View>
           )}
+
+        {/* Admin Action Footer (Inbox) */}
+        {activeTab === "inbox" && (
+          <View
+            style={{
+              marginTop: 14,
+              paddingTop: 12,
+              borderTopWidth: 1,
+              borderTopColor: colors.outlineVariant || colors.border,
+              flexDirection: "row",
+              justifyContent: "flex-end",
+              alignItems: "center",
+            }}
+          >
+            <Pressable
+              onPress={(e) => {
+                e.stopPropagation();
+                setSelectedComplaint(item);
+                setStatus(
+                  item.status === "Pending" ? "In Progress" : item.status
+                );
+                setResponse(item.adminResponse || "");
+              }}
+              style={({ pressed }) => ({
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 6,
+                paddingHorizontal: 14,
+                paddingVertical: 8,
+                backgroundColor:
+                  colors.primaryContainer || colors.primary + "15",
+                borderRadius: 8,
+                opacity: pressed ? 0.8 : 1,
+              })}
+            >
+              <MaterialIcons name="edit" size={16} color={colors.primary} />
+              <Text
+                style={{
+                  color: colors.primary,
+                  fontSize: FONT_SIZES.sm,
+                  fontFamily: FONTS.bold,
+                }}
+              >
+                {t("complaints.updateStatus", "Update Status")}
+              </Text>
+            </Pressable>
+          </View>
+        )}
       </Pressable>
     );
   };
@@ -549,12 +607,22 @@ export default function ComplaintsScreen() {
           setExpandedCards((prev) => ({ ...prev, [item._id]: !prev[item._id] }))
         }
         style={({ pressed }) => [
-          styles.cardMinimal,
           {
-            marginBottom: 12,
+            backgroundColor:
+              colors.surface || colors.cardBackground || "#FFFFFF",
+            borderRadius: 16,
+            padding: 16,
+            marginBottom: 16,
+            borderWidth: 1,
+            borderColor: colors.outlineVariant || colors.border || "#E2E8F0",
             borderLeftWidth: 4,
             borderLeftColor: colors.secondary,
-            opacity: pressed ? 0.95 : 1,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.05,
+            shadowRadius: 8,
+            elevation: 2,
+            opacity: pressed ? 0.96 : 1,
           },
         ]}
       >
@@ -602,7 +670,7 @@ export default function ComplaintsScreen() {
               fontFamily: FONTS.medium,
             }}
           >
-            {new Date(item.createdAt).toLocaleDateString()}
+            {formatDate(item.createdAt)}
           </Text>
         </View>
 
@@ -633,7 +701,9 @@ export default function ComplaintsScreen() {
                   fontFamily: FONTS.bold,
                 }}
               >
-                {isExpanded ? "Show Less" : "Read Full Message"}
+                {isExpanded
+                  ? t("common.showLess", "Show Less")
+                  : t("common.readFullMessage", "Read Full Message")}
               </Text>
               <MaterialIcons
                 name={isExpanded ? "keyboard-arrow-up" : "keyboard-arrow-down"}
@@ -651,13 +721,15 @@ export default function ComplaintsScreen() {
             alignItems: "center",
             paddingTop: 12,
             borderTopWidth: 1,
-            borderTopColor: colors.border,
+            borderTopColor: colors.outlineVariant || colors.border,
           }}
         >
           <View style={{ flex: 1, marginRight: 8 }}>
             {activeTab === "teacher_feedback" ||
             activeTab === "feedback_logs" ? (
-              <Text style={{ color: colors.textSecondary, fontSize: FONT_SIZES.sm }}>
+              <Text
+                style={{ color: colors.textSecondary, fontSize: FONT_SIZES.sm }}
+              >
                 {t("common.from", "From")}:{" "}
                 <Text
                   style={{
@@ -669,7 +741,9 @@ export default function ComplaintsScreen() {
                 </Text>
               </Text>
             ) : (
-              <Text style={{ color: colors.textSecondary, fontSize: FONT_SIZES.sm }}>
+              <Text
+                style={{ color: colors.textSecondary, fontSize: FONT_SIZES.sm }}
+              >
                 {t("common.to", "To")}:{" "}
                 <Text
                   style={{
@@ -846,7 +920,7 @@ export default function ComplaintsScreen() {
           style={{ marginTop: 40 }}
         />
       ) : (
-        <FlashList
+        <FlatList
           data={
             listData
               ? activeTab === "inbox" && adminFilter !== "All"
@@ -862,12 +936,10 @@ export default function ComplaintsScreen() {
           contentContainerStyle={{ paddingBottom: 24 }}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
-          estimatedItemSize={130}
           refreshControl={
-            <RefreshControl
+            <AppRefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={[colors.primary]}
             />
           }
           ListEmptyComponent={() => (
@@ -1016,7 +1088,7 @@ export default function ComplaintsScreen() {
                     marginLeft: 12,
                   }}
                 >
-                  ${t("feedback.giveFeedback", "Give Feedback")}
+                  {t("feedback.giveFeedback", "Give Feedback")}
                 </Text>
                 <MaterialIcons
                   name="chevron-right"
@@ -1055,7 +1127,7 @@ export default function ComplaintsScreen() {
                     marginLeft: 12,
                   }}
                 >
-                  ${t("complaints.raiseComplaint", "Raise Complaint")}
+                  {t("complaints.raiseComplaint", "Raise Complaint")}
                 </Text>
                 <MaterialIcons
                   name="chevron-right"
@@ -1194,7 +1266,7 @@ export default function ComplaintsScreen() {
                   marginBottom: 20,
                 }}
               >
-                ${t("feedback.editFeedback", "Edit Feedback")}
+                {t("feedback.editFeedback", "Edit Feedback")}
               </Text>
 
               <TextInput
@@ -1319,7 +1391,7 @@ export default function ComplaintsScreen() {
                       color: colors.textPrimary,
                     }}
                   >
-                    ${t("complaints.updateStatus", "Update Status")}
+                    {t("complaints.updateStatus", "Update Status")}
                   </Text>
                   <Pressable
                     onPress={() => setSelectedComplaint(null)}
@@ -1354,6 +1426,26 @@ export default function ComplaintsScreen() {
                   >
                     {selectedComplaint?.title}
                   </Text>
+                  {(selectedComplaint?.raisedBy ||
+                    selectedComplaint?.student) && (
+                    <Text
+                      style={{
+                        fontSize: FONT_SIZES.xs,
+                        color: colors.textSecondary,
+                        fontFamily: FONTS.medium,
+                        marginTop: 4,
+                      }}
+                    >
+                      {t("common.from", "From")}:{" "}
+                      {formatUserName(
+                        (
+                          selectedComplaint.raisedBy ||
+                          selectedComplaint.student
+                        )?.name,
+                        "Unknown"
+                      )}
+                    </Text>
+                  )}
                 </View>
 
                 <Text
@@ -1456,7 +1548,7 @@ export default function ComplaintsScreen() {
                         fontSize: FONT_SIZES.md,
                       }}
                     >
-                      ${t("complaints.updateComplaint", "Update Complaint")}
+                      {t("complaints.updateComplaint", "Update Complaint")}
                     </Text>
                   )}
                 </Pressable>
