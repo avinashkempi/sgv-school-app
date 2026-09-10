@@ -278,10 +278,20 @@ export default function ComplaintsScreen() {
   const renderComplaintItem = (item) => {
     const isExpanded = !!expandedCards[item._id];
     const isLongDescription = item.description && item.description.length > 90;
-    const author = item.raisedBy || item.student;
+    const isMyComplaints = activeTab === "my_complaints";
+    const rawAuthor = item.raisedBy || item.student;
+    const author =
+      typeof rawAuthor === "object" && rawAuthor !== null
+        ? rawAuthor
+        : isMyComplaints && user
+        ? user
+        : null;
+
     const authorName = formatUserName(
       author?.name,
-      author?.role === "student"
+      isMyComplaints && user?.name
+        ? formatUserName(user.name)
+        : author?.role === "student" || userRole === "student"
         ? t("roles.student", "Student")
         : t("common.user", "User")
     );
@@ -290,6 +300,11 @@ export default function ComplaintsScreen() {
       ? formatClassName(
           author.currentClass.name || author.currentClass,
           author.currentClass.section
+        )
+      : isMyComplaints && user?.currentClass
+      ? formatClassName(
+          user.currentClass.name || user.currentClass,
+          user.currentClass.section
         )
       : "";
 
@@ -339,7 +354,7 @@ export default function ComplaintsScreen() {
               <UserAvatar
                 photoUrl={author?.profilePhoto}
                 name={authorName}
-                role={author?.role}
+                role={author?.role || (userRole === "student" ? "student" : undefined)}
                 size={36}
               />
               <View style={{ flex: 1 }}>
@@ -362,8 +377,12 @@ export default function ComplaintsScreen() {
                   }}
                   numberOfLines={1}
                 >
-                  {authorRole || t("roles.student", "Student")}
-                  {authorClass ? ` • ${authorClass}` : ""}
+                  {authorRole && !/^[0-9a-fA-F]{24}$/.test(authorRole)
+                    ? authorRole
+                    : t("roles.student", "Student")}
+                  {authorClass && !authorRole?.includes(authorClass)
+                    ? ` • ${authorClass}`
+                    : ""}
                 </Text>
               </View>
             </View>

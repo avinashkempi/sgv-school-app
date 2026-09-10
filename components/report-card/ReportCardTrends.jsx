@@ -401,10 +401,12 @@ export default function ReportCardTrends({
                 ? "B"
                 : "C"
             );
-            const isTop = idx === 0;
+            // Only award Top badge if the student actually topped this particular subject in the class
+            const isTop = Boolean(sub.isClassTopper);
             const isBottom =
               idx === subjectSummaries.length - 1 &&
-              subjectSummaries.length > 2;
+              subjectSummaries.length > 2 &&
+              sub.average < 65;
 
             return (
               <View key={sub.subject} style={styles.subjectRow}>
@@ -420,8 +422,8 @@ export default function ReportCardTrends({
                     </Text>
                     {isTop && (
                       <View style={styles.topBadge}>
-                        <MaterialIcons name="star" size={12} color="#D97706" />
-                        <Text style={styles.topBadgeText}>Top</Text>
+                        <MaterialIcons name="emoji-events" size={12} color="#D97706" />
+                        <Text style={styles.topBadgeText}>Class Top</Text>
                       </View>
                     )}
                     {isBottom && (

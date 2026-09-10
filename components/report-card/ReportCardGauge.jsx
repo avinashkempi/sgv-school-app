@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, StyleSheet, Animated } from "react-native";
+import { View, Text, StyleSheet, Animated, Platform } from "react-native";
 import Svg, { Circle, Defs, LinearGradient, Stop } from "react-native-svg";
 import { FONTS, FONT_SIZES } from "../../theme";
 
@@ -64,7 +64,14 @@ export const getGradePalette = (grade) => {
   }
 };
 
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+// Animated.createAnimatedComponent injects `collapsable: false` into wrapped components.
+// SvgCircle strips `collapsable` so it never reaches SVG DOM elements on web.
+const SvgCircle = React.forwardRef(({ collapsable: _collapsable, ...props }, ref) => (
+  <Circle ref={ref} {...props} />
+));
+SvgCircle.displayName = "SvgCircle";
+
+const AnimatedCircle = Animated.createAnimatedComponent(SvgCircle);
 
 export default function ReportCardGauge({
   percentage = 0,
@@ -74,6 +81,7 @@ export default function ReportCardGauge({
   showGrade = true,
   animate = true,
 }) {
+  const isWeb = Platform.OS === "web";
   const palette = getGradePalette(grade);
 
   const radius = (size - strokeWidth) / 2;
@@ -85,6 +93,7 @@ export default function ReportCardGauge({
   // Animated strokeDashoffset and display number
   const animProgress = useRef(new Animated.Value(0)).current;
   const [displayValue, setDisplayValue] = useState("0");
+  const [webProgress, setWebProgress] = useState(animate ? 0 : validPct);
 
   useEffect(() => {
     if (animate) {
@@ -96,15 +105,19 @@ export default function ReportCardGauge({
     } else {
       animProgress.setValue(validPct);
       setDisplayValue(validPct.toFixed(1));
+      setWebProgress(validPct);
     }
   }, [validPct, animate, animProgress]);
 
   useEffect(() => {
     const listener = animProgress.addListener(({ value: v }) => {
       setDisplayValue(v.toFixed(1));
+      if (isWeb) {
+        setWebProgress(v);
+      }
     });
     return () => animProgress.removeListener(listener);
-  }, [animProgress]);
+  }, [animProgress, isWeb]);
 
   const strokeDashoffset = animProgress.interpolate({
     inputRange: [0, 100],
@@ -134,18 +147,33 @@ export default function ReportCardGauge({
         />
 
         {/* Animated Gradient Progress Stroke */}
-        <AnimatedCircle
-          cx={center}
-          cy={center}
-          r={radius}
-          stroke="url(#gaugeGradient)"
-          strokeWidth={strokeWidth}
-          strokeDasharray={`${circumference} ${circumference}`}
-          strokeDashoffset={strokeDashoffset}
-          strokeLinecap="round"
-          fill="none"
-          transform={`rotate(-90 ${center} ${center})`}
-        />
+        {isWeb ? (
+          <Circle
+            cx={center}
+            cy={center}
+            r={radius}
+            stroke="url(#gaugeGradient)"
+            strokeWidth={strokeWidth}
+            strokeDasharray={`${circumference} ${circumference}`}
+            strokeDashoffset={circumference - (webProgress / 100) * circumference}
+            strokeLinecap="round"
+            fill="none"
+            transform={`rotate(-90 ${center} ${center})`}
+          />
+        ) : (
+          <AnimatedCircle
+            cx={center}
+            cy={center}
+            r={radius}
+            stroke="url(#gaugeGradient)"
+            strokeWidth={strokeWidth}
+            strokeDasharray={`${circumference} ${circumference}`}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            fill="none"
+            transform={`rotate(-90 ${center} ${center})`}
+          />
+        )}
       </Svg>
 
       {/* Center Label & Grade */}

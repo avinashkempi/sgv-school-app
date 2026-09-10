@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -7,7 +7,9 @@ import {
   ActivityIndicator,
   TextInput,
   FlatList,
+  Platform,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
 import AppRefreshControl from "../../components/ui/AppRefreshControl";
 import storage from "../../utils/storage";
@@ -102,9 +104,38 @@ export default function AdminFeesScreen() {
     }
   }, [academicYears, selectedYearId]);
 
-  // State for sorting
+  // State for sorting & filtering
   const [sortBy, setSortBy] = useState("className");
   const [sortOrder, setSortOrder] = useState("asc");
+  const [classSearchQuery, setClassSearchQuery] = useState("");
+  const [classSortFilter, setClassSortFilter] = useState("all"); // 'all', 'dues', 'rate', 'target'
+  const [studentStatusFilter, setStudentStatusFilter] = useState("all"); // 'all', 'dues', 'cleared'
+
+  const filteredClasses = useMemo(() => {
+    if (!analytics?.classBreakdown) return [];
+    let list = [...analytics.classBreakdown];
+
+    if (classSearchQuery.trim()) {
+      const q = classSearchQuery.toLowerCase().trim();
+      list = list.filter((c) =>
+        `${c.className || ""} ${c.section || ""}`.toLowerCase().includes(q)
+      );
+    }
+
+    if (classSortFilter === "dues") {
+      list.sort((a, b) => (b.totalPending || 0) - (a.totalPending || 0));
+    } else if (classSortFilter === "rate") {
+      list.sort((a, b) => (a.collectionRate || 0) - (b.collectionRate || 0));
+    } else if (classSortFilter === "target") {
+      list.sort((a, b) => {
+        const targetA = a.totalExpected ?? a.totalFees ?? 0;
+        const targetB = b.totalExpected ?? b.totalFees ?? 0;
+        return targetB - targetA;
+      });
+    }
+
+    return list;
+  }, [analytics?.classBreakdown, classSearchQuery, classSortFilter]);
 
   // Fetch All Students with Fee Summary
   const { data: studentsData, isLoading: studentsLoading } = useApiQuery(
@@ -289,50 +320,64 @@ export default function AdminFeesScreen() {
       </View>
 
       {/* Tabs - Segmented Control */}
-      <View style={{ paddingHorizontal: 16, marginBottom: 24 }}>
+      <View style={{ paddingHorizontal: 16, marginBottom: 18 }}>
         <View
           style={{
             flexDirection: "row",
             backgroundColor: colors.cardBackground,
             borderRadius: 16,
             padding: 4,
+            borderWidth: 1,
+            borderColor: colors.textSecondary + "15",
           }}
         >
-          {["dashboard", "structure", "students"].map((tab) => (
-            <Pressable
-              key={tab}
-              onPress={() => {
-                setActiveTab(tab);
-                setSelectedStudent(null); // Reset selection when changing tabs
-              }}
-              style={{
-                flex: 1,
-                paddingVertical: 10,
-                alignItems: "center",
-                backgroundColor:
-                  activeTab === tab ? colors.background : "transparent",
-                borderRadius: 12,
-                shadowColor: activeTab === tab ? "#000" : "transparent",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: activeTab === tab ? 0.1 : 0,
-                shadowRadius: 4,
-                elevation: activeTab === tab ? 2 : 0,
-              }}
-            >
-              <Text
+          {[
+            { key: "dashboard", label: "Overview", icon: "dashboard" },
+            { key: "structure", label: "Structure", icon: "tune" },
+            { key: "students", label: "Students", icon: "people" },
+          ].map((tab) => {
+            const isActive = activeTab === tab.key;
+            return (
+              <Pressable
+                key={tab.key}
+                onPress={() => {
+                  setActiveTab(tab.key);
+                  setSelectedStudent(null);
+                }}
                 style={{
-                  color:
-                    activeTab === tab ? colors.primary : colors.textSecondary,
-                  fontFamily:
-                    activeTab === tab ? FONTS.bold : FONTS.medium,
-                  textTransform: "capitalize",
-                  fontSize: FONT_SIZES.sm,
+                  flex: 1,
+                  paddingVertical: 10,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexDirection: "row",
+                  gap: 6,
+                  backgroundColor:
+                    isActive ? colors.surface || colors.background : "transparent",
+                  borderRadius: 12,
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: isActive ? 0.08 : 0,
+                  shadowRadius: 4,
+                  elevation: isActive ? 2 : 0,
                 }}
               >
-                {tab}
-              </Text>
-            </Pressable>
-          ))}
+                <MaterialIcons
+                  name={tab.icon}
+                  size={16}
+                  color={isActive ? colors.primary : colors.textSecondary}
+                />
+                <Text
+                  style={{
+                    color: isActive ? colors.primary : colors.textSecondary,
+                    fontFamily: isActive ? FONTS.bold : FONTS.medium,
+                    fontSize: FONT_SIZES.sm,
+                  }}
+                >
+                  {tab.label}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
       </View>
 
@@ -353,7 +398,7 @@ export default function AdminFeesScreen() {
                 flexDirection: "row",
                 justifyContent: "space-between",
                 alignItems: "center",
-                marginBottom: 12,
+                marginBottom: 14,
               }}
             >
               <Text
@@ -363,163 +408,274 @@ export default function AdminFeesScreen() {
                   color: colors.textPrimary,
                 }}
               >
-                Overview
-              </Text>
-              <Text
-                style={{
-                  fontSize: FONT_SIZES.sm,
-                  color: colors.textSecondary,
-                  fontFamily: FONTS.medium,
-                }}
-              >
-                Collection Rate:{" "}
-                {analytics.totalExpectedFees > 0
-                  ? (
-                      (analytics.totalCollected / analytics.totalExpectedFees) *
-                      100
-                    ).toFixed(1)
-                  : 0}
-                %
-              </Text>
-            </View>
-
-            {/* Hero Card */}
-            <View
-              style={{
-                backgroundColor: colors.primary,
-                borderRadius: 24,
-                padding: 24,
-                marginBottom: 20,
-                shadowColor: colors.primary,
-                shadowOffset: { width: 0, height: 8 },
-                shadowOpacity: 0.3,
-                shadowRadius: 16,
-                elevation: 8,
-              }}
-            >
-              <Text
-                style={{
-                  color: "rgba(255,255,255,0.8)",
-                  fontSize: FONT_SIZES.sm,
-                  fontFamily: FONTS.medium,
-                  marginBottom: 8,
-                }}
-              >
-                Total Collected (All Time)
-              </Text>
-              <Text
-                style={{
-                  fontSize: FONT_SIZES.display,
-                  fontFamily: FONTS.bold,
-                  color: "#fff",
-                }}
-              >
-                ₹{analytics.totalCollected.toLocaleString()}
+                Financial Summary
               </Text>
               <View
                 style={{
+                  backgroundColor: colors.primary + "15",
+                  paddingHorizontal: 10,
+                  paddingVertical: 4,
+                  borderRadius: 10,
                   flexDirection: "row",
                   alignItems: "center",
-                  marginTop: 16,
-                  backgroundColor: "rgba(255,255,255,0.2)",
-                  alignSelf: "flex-start",
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
-                  borderRadius: 20,
+                  gap: 4,
                 }}
               >
-                <MaterialIcons
-                  name="trending-up"
-                  size={16}
-                  color="#fff"
-                  style={{ marginRight: 6 }}
-                />
+                <MaterialIcons name="pie-chart" size={14} color={colors.primary} />
                 <Text
                   style={{
-                    color: "#fff",
+                    fontSize: FONT_SIZES.xs,
+                    color: colors.primary,
                     fontFamily: FONTS.bold,
-                    fontSize: FONT_SIZES.sm,
                   }}
                 >
-                  Updated just now
+                  {analytics.totalExpectedFees > 0
+                    ? (
+                        (analytics.totalCollected / analytics.totalExpectedFees) *
+                        100
+                      ).toFixed(1)
+                    : 0}
+                  % Reached
                 </Text>
               </View>
             </View>
 
-            {/* Stats Grid */}
-            <View style={{ flexDirection: "row", gap: 16 }}>
+            {/* Hero Card with LinearGradient */}
+            <LinearGradient
+              colors={[colors.primary, "#6342A6", "#452B82"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{
+                borderRadius: 24,
+                padding: 22,
+                marginBottom: 18,
+                shadowColor: colors.primary,
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 0.28,
+                shadowRadius: 16,
+                elevation: 8,
+                position: "relative",
+                overflow: "hidden",
+              }}
+            >
+              {/* Decorative background glow circles */}
+              <View
+                style={{
+                  position: "absolute",
+                  top: -40,
+                  right: -40,
+                  width: 140,
+                  height: 140,
+                  borderRadius: 70,
+                  backgroundColor: "rgba(255, 255, 255, 0.08)",
+                }}
+              />
+              <View
+                style={{
+                  position: "absolute",
+                  bottom: -30,
+                  left: -30,
+                  width: 100,
+                  height: 100,
+                  borderRadius: 50,
+                  backgroundColor: "rgba(255, 255, 255, 0.05)",
+                }}
+              />
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  marginBottom: 8,
+                }}
+              >
+                <Text
+                  style={{
+                    color: "rgba(255,255,255,0.82)",
+                    fontSize: FONT_SIZES.xs,
+                    fontFamily: FONTS.medium,
+                    letterSpacing: 0.5,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Total Fees Collected
+                </Text>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    backgroundColor: "rgba(255,255,255,0.18)",
+                    paddingHorizontal: 10,
+                    paddingVertical: 4,
+                    borderRadius: 14,
+                    gap: 4,
+                  }}
+                >
+                  <MaterialIcons name="verified" size={13} color="#fff" />
+                  <Text
+                    style={{
+                      color: "#fff",
+                      fontFamily: FONTS.bold,
+                      fontSize: FONT_SIZES.micro,
+                    }}
+                  >
+                    Active Session
+                  </Text>
+                </View>
+              </View>
+
+              <Text
+                style={{
+                  fontSize: 34,
+                  fontFamily: FONTS.bold,
+                  color: "#fff",
+                  letterSpacing: -0.5,
+                }}
+              >
+                ₹{analytics.totalCollected.toLocaleString()}
+              </Text>
+
+              {/* Progress bar inside hero card */}
+              <View style={{ marginTop: 16 }}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 6,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "rgba(255,255,255,0.78)",
+                      fontSize: FONT_SIZES.xs,
+                      fontFamily: FONTS.medium,
+                    }}
+                  >
+                    Target: ₹{analytics.totalExpectedFees.toLocaleString()}
+                  </Text>
+                  <Text
+                    style={{
+                      color: "#fff",
+                      fontSize: FONT_SIZES.xs,
+                      fontFamily: FONTS.bold,
+                    }}
+                  >
+                    {analytics.totalExpectedFees > 0
+                      ? Math.round(
+                          (analytics.totalCollected / analytics.totalExpectedFees) * 100
+                        )
+                      : 0}
+                    %
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    height: 8,
+                    backgroundColor: "rgba(255,255,255,0.22)",
+                    borderRadius: 4,
+                    overflow: "hidden",
+                  }}
+                >
+                  <View
+                    style={{
+                      width: `${Math.min(
+                        100,
+                        Math.max(
+                          0,
+                          analytics.totalExpectedFees > 0
+                            ? (analytics.totalCollected / analytics.totalExpectedFees) *
+                                100
+                            : 0
+                        )
+                      )}%`,
+                      height: "100%",
+                      backgroundColor: "#4ADE80",
+                      borderRadius: 4,
+                    }}
+                  />
+                </View>
+              </View>
+            </LinearGradient>
+
+            {/* Stats Grid: 4 Modern Metric Cards */}
+            <View style={{ flexDirection: "row", gap: 12, marginBottom: 12 }}>
+              {/* Collected Today */}
               <View
                 style={{
                   flex: 1,
                   backgroundColor: colors.cardBackground,
-                  padding: 20,
-                  borderRadius: 20,
+                  padding: 16,
+                  borderRadius: 18,
+                  borderWidth: 1,
+                  borderColor: colors.textSecondary + "15",
                   shadowColor: "#000",
                   shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.05,
-                  shadowRadius: 8,
+                  shadowOpacity: 0.04,
+                  shadowRadius: 6,
                   elevation: 2,
                 }}
               >
                 <View
                   style={{
-                    width: 40,
-                    height: 40,
+                    width: 38,
+                    height: 38,
                     borderRadius: 12,
                     backgroundColor: colors.success + "15",
                     justifyContent: "center",
                     alignItems: "center",
-                    marginBottom: 12,
+                    marginBottom: 10,
                   }}
                 >
-                  <MaterialIcons
-                    name="today"
-                    size={20}
-                    color={colors.success}
-                  />
+                  <MaterialIcons name="today" size={20} color={colors.success} />
                 </View>
                 <Text
                   style={{
                     color: colors.textSecondary,
-                    fontSize: FONT_SIZES.sm,
+                    fontSize: FONT_SIZES.xs,
                     fontFamily: FONTS.medium,
                   }}
                 >
-                  Collected Today
+                  Today
                 </Text>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.xl,
+                    fontSize: FONT_SIZES.lg,
                     fontFamily: FONTS.bold,
                     color: colors.textPrimary,
-                    marginTop: 4,
+                    marginTop: 3,
                   }}
                 >
                   ₹{analytics.collectedToday.toLocaleString()}
                 </Text>
               </View>
+
+              {/* This Month */}
               <View
                 style={{
                   flex: 1,
                   backgroundColor: colors.cardBackground,
-                  padding: 20,
-                  borderRadius: 20,
+                  padding: 16,
+                  borderRadius: 18,
+                  borderWidth: 1,
+                  borderColor: colors.textSecondary + "15",
                   shadowColor: "#000",
                   shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.05,
-                  shadowRadius: 8,
+                  shadowOpacity: 0.04,
+                  shadowRadius: 6,
                   elevation: 2,
                 }}
               >
                 <View
                   style={{
-                    width: 40,
-                    height: 40,
+                    width: 38,
+                    height: 38,
                     borderRadius: 12,
                     backgroundColor: colors.secondary + "15",
                     justifyContent: "center",
                     alignItems: "center",
-                    marginBottom: 12,
+                    marginBottom: 10,
                   }}
                 >
                   <MaterialIcons
@@ -531,7 +687,7 @@ export default function AdminFeesScreen() {
                 <Text
                   style={{
                     color: colors.textSecondary,
-                    fontSize: FONT_SIZES.sm,
+                    fontSize: FONT_SIZES.xs,
                     fontFamily: FONTS.medium,
                   }}
                 >
@@ -539,10 +695,10 @@ export default function AdminFeesScreen() {
                 </Text>
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.xl,
+                    fontSize: FONT_SIZES.lg,
                     fontFamily: FONTS.bold,
                     color: colors.textPrimary,
-                    marginTop: 4,
+                    marginTop: 3,
                   }}
                 >
                   ₹{analytics.collectedThisMonth.toLocaleString()}
@@ -550,162 +706,210 @@ export default function AdminFeesScreen() {
               </View>
             </View>
 
-            {/* Extended Insights Grid */}
-            <Text
-              style={{
-                fontSize: FONT_SIZES.lg,
-                fontFamily: FONTS.bold,
-                color: colors.textPrimary,
-                marginTop: 24,
-                marginBottom: 12,
-              }}
-            >
-              Insights
-            </Text>
-            <View style={{ flexDirection: "row", gap: 16, marginBottom: 16 }}>
+            <View style={{ flexDirection: "row", gap: 12, marginBottom: 16 }}>
+              {/* Total Pending */}
               <View
                 style={{
                   flex: 1,
-                  backgroundColor: colors.error + "15",
+                  backgroundColor: colors.cardBackground,
                   padding: 16,
-                  borderRadius: 16,
+                  borderRadius: 18,
+                  borderWidth: 1,
+                  borderColor: colors.error + "25",
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.04,
+                  shadowRadius: 6,
+                  elevation: 2,
                 }}
               >
+                <View
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 12,
+                    backgroundColor: colors.error + "15",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    marginBottom: 10,
+                  }}
+                >
+                  <MaterialIcons name="schedule" size={20} color={colors.error} />
+                </View>
                 <Text
                   style={{
-                    color: colors.error,
-                    fontSize: FONT_SIZES.sm,
-                    fontFamily: FONTS.bold,
-                    textTransform: "uppercase",
+                    color: colors.textSecondary,
+                    fontSize: FONT_SIZES.xs,
+                    fontFamily: FONTS.medium,
                   }}
                 >
                   Total Pending
                 </Text>
                 <Text
                   style={{
-                    color: colors.error,
                     fontSize: FONT_SIZES.lg,
                     fontFamily: FONTS.bold,
-                    marginTop: 8,
+                    color: colors.error,
+                    marginTop: 3,
                   }}
                 >
                   ₹{analytics.totalPending.toLocaleString()}
                 </Text>
               </View>
+
+              {/* Total Target / Expected */}
               <View
                 style={{
                   flex: 1,
-                  backgroundColor: "#FF980015",
+                  backgroundColor: colors.cardBackground,
                   padding: 16,
-                  borderRadius: 16,
+                  borderRadius: 18,
+                  borderWidth: 1,
+                  borderColor: colors.primary + "25",
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.04,
+                  shadowRadius: 6,
+                  elevation: 2,
                 }}
               >
-                <Text
+                <View
                   style={{
-                    color: "#FF9800",
-                    fontSize: FONT_SIZES.sm,
-                    fontFamily: FONTS.bold,
-                    textTransform: "uppercase",
+                    width: 38,
+                    height: 38,
+                    borderRadius: 12,
+                    backgroundColor: colors.primary + "15",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    marginBottom: 10,
                   }}
                 >
-                  Concessions
-                </Text>
-                <Text
-                  style={{
-                    color: "#FF9800",
-                    fontSize: FONT_SIZES.lg,
-                    fontFamily: FONTS.bold,
-                    marginTop: 8,
-                  }}
-                >
-                  ₹{(analytics.totalConcession || 0).toLocaleString()}
-                </Text>
-              </View>
-            </View>
-            {analytics.totalArrears > 0 && (
-              <View
-                style={{
-                  backgroundColor: (colors.warning || "#FFB020") + "15",
-                  padding: 16,
-                  borderRadius: 16,
-                  marginBottom: 16,
-                }}
-              >
-                <Text
-                  style={{
-                    color: colors.warning || "#FFB020",
-                    fontSize: FONT_SIZES.sm,
-                    fontFamily: FONTS.bold,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Arrears / Previous Dues
-                </Text>
-                <Text
-                  style={{
-                    color: colors.warning || "#FFB020",
-                    fontSize: FONT_SIZES.lg,
-                    fontFamily: FONTS.bold,
-                    marginTop: 4,
-                  }}
-                >
-                  ₹{analytics.totalArrears.toLocaleString()}
-                </Text>
-              </View>
-            )}
-            <View
-              style={{
-                backgroundColor: colors.cardBackground,
-                padding: 16,
-                borderRadius: 16,
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <View>
+                  <MaterialIcons
+                    name="account-balance-wallet"
+                    size={20}
+                    color={colors.primary}
+                  />
+                </View>
                 <Text
                   style={{
                     color: colors.textSecondary,
-                    fontSize: FONT_SIZES.sm,
+                    fontSize: FONT_SIZES.xs,
                     fontFamily: FONTS.medium,
                   }}
                 >
-                  Total Expected Revenue (To Pay)
+                  Total Target
                 </Text>
                 <Text
                   style={{
-                    color: colors.textPrimary,
-                    fontSize: FONT_SIZES.xl,
+                    fontSize: FONT_SIZES.lg,
                     fontFamily: FONTS.bold,
-                    marginTop: 4,
+                    color: colors.textPrimary,
+                    marginTop: 3,
                   }}
                 >
                   ₹{analytics.totalExpectedFees.toLocaleString()}
                 </Text>
               </View>
+            </View>
+
+            {/* Concession & Arrears Secondary Insights Strip */}
+            {(analytics.totalConcession > 0 || analytics.totalArrears > 0) && (
               <View
                 style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 24,
-                  backgroundColor: colors.primary + "15",
-                  justifyContent: "center",
-                  alignItems: "center",
+                  flexDirection: "row",
+                  gap: 10,
+                  marginBottom: 16,
                 }}
               >
-                <MaterialIcons
-                  name="account-balance-wallet"
-                  size={24}
-                  color={colors.primary}
-                />
+                {analytics.totalConcession > 0 && (
+                  <View
+                    style={{
+                      flex: 1,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      backgroundColor: "#FF980012",
+                      paddingHorizontal: 12,
+                      paddingVertical: 8,
+                      borderRadius: 12,
+                      borderWidth: 1,
+                      borderColor: "#FF980025",
+                      gap: 6,
+                    }}
+                  >
+                    <MaterialIcons name="local-offer" size={16} color="#FF9800" />
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={{
+                          fontSize: FONT_SIZES.micro,
+                          color: "#FF9800",
+                          fontFamily: FONTS.bold,
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Concessions
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: FONT_SIZES.sm,
+                          color: colors.textPrimary,
+                          fontFamily: FONTS.bold,
+                        }}
+                      >
+                        ₹{(analytics.totalConcession || 0).toLocaleString()}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+                {analytics.totalArrears > 0 && (
+                  <View
+                    style={{
+                      flex: 1,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      backgroundColor: (colors.warning || "#FFB020") + "12",
+                      paddingHorizontal: 12,
+                      paddingVertical: 8,
+                      borderRadius: 12,
+                      borderWidth: 1,
+                      borderColor: (colors.warning || "#FFB020") + "25",
+                      gap: 6,
+                    }}
+                  >
+                    <MaterialIcons
+                      name="history"
+                      size={16}
+                      color={colors.warning || "#FFB020"}
+                    />
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={{
+                          fontSize: FONT_SIZES.micro,
+                          color: colors.warning || "#FFB020",
+                          fontFamily: FONTS.bold,
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Arrears
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: FONT_SIZES.sm,
+                          color: colors.textPrimary,
+                          fontFamily: FONTS.bold,
+                        }}
+                      >
+                        ₹{analytics.totalArrears.toLocaleString()}
+                      </Text>
+                    </View>
+                  </View>
+                )}
               </View>
-            </View>
+            )}
 
             {/* Class-wise Fee Collection Breakdown */}
             {analytics.classBreakdown &&
               analytics.classBreakdown.length > 0 && (
-                <View style={{ marginTop: 24 }}>
+                <View style={{ marginTop: 12 }}>
                   <View
                     style={{
                       flexDirection: "row",
@@ -714,28 +918,135 @@ export default function AdminFeesScreen() {
                       marginBottom: 12,
                     }}
                   >
-                    <Text
+                    <View>
+                      <Text
+                        style={{
+                          fontSize: FONT_SIZES.lg,
+                          fontFamily: FONTS.bold,
+                          color: colors.textPrimary,
+                        }}
+                      >
+                        Class-wise Breakdown
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: FONT_SIZES.xs,
+                          color: colors.textSecondary,
+                          fontFamily: FONTS.medium,
+                          marginTop: 2,
+                        }}
+                      >
+                        Target, collected & pending per class
+                      </Text>
+                    </View>
+                    <View
                       style={{
-                        fontSize: FONT_SIZES.lg,
-                        fontFamily: FONTS.bold,
-                        color: colors.textPrimary,
+                        backgroundColor: colors.primary + "15",
+                        paddingHorizontal: 10,
+                        paddingVertical: 4,
+                        borderRadius: 12,
                       }}
                     >
-                      Class-wise Collection
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: FONT_SIZES.sm,
-                        color: colors.textSecondary,
-                        fontFamily: FONTS.medium,
-                      }}
-                    >
-                      {analytics.classBreakdown.length} Classes
-                    </Text>
+                      <Text
+                        style={{
+                          fontSize: FONT_SIZES.xs,
+                          color: colors.primary,
+                          fontFamily: FONTS.bold,
+                        }}
+                      >
+                        {analytics.classBreakdown.length} Classes
+                      </Text>
+                    </View>
                   </View>
 
-                  <View style={{ gap: 12 }}>
-                    {analytics.classBreakdown.map((item, idx) => {
+                  {/* Search and Sort Filter Chips */}
+                  <View style={{ marginBottom: 14, gap: 10 }}>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        backgroundColor: colors.cardBackground,
+                        borderRadius: 14,
+                        paddingHorizontal: 12,
+                        paddingVertical: Platform.OS === "ios" ? 10 : 6,
+                        borderWidth: 1,
+                        borderColor: colors.textSecondary + "15",
+                      }}
+                    >
+                      <MaterialIcons
+                        name="search"
+                        size={20}
+                        color={colors.textSecondary}
+                        style={{ marginRight: 8 }}
+                      />
+                      <TextInput
+                        value={classSearchQuery}
+                        onChangeText={setClassSearchQuery}
+                        placeholder="Search class or section..."
+                        placeholderTextColor={colors.textSecondary}
+                        style={{
+                          flex: 1,
+                          color: colors.textPrimary,
+                          fontFamily: FONTS.medium,
+                          fontSize: FONT_SIZES.sm,
+                        }}
+                      />
+                      {classSearchQuery ? (
+                        <Pressable onPress={() => setClassSearchQuery("")} hitSlop={8}>
+                          <MaterialIcons
+                            name="close"
+                            size={18}
+                            color={colors.textSecondary}
+                          />
+                        </Pressable>
+                      ) : null}
+                    </View>
+
+                    {/* Filter Pills */}
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                      <View style={{ flexDirection: "row", gap: 8 }}>
+                        {[
+                          { key: "all", label: "All Classes" },
+                          { key: "dues", label: "Highest Pending" },
+                          { key: "rate", label: "Lowest %" },
+                          { key: "target", label: "Highest Target" },
+                        ].map((chip) => {
+                          const isActive = classSortFilter === chip.key;
+                          return (
+                            <Pressable
+                              key={chip.key}
+                              onPress={() => setClassSortFilter(chip.key)}
+                              style={{
+                                paddingHorizontal: 12,
+                                paddingVertical: 6,
+                                borderRadius: 12,
+                                backgroundColor: isActive
+                                  ? colors.primary
+                                  : colors.cardBackground,
+                                borderWidth: 1,
+                                borderColor: isActive
+                                  ? colors.primary
+                                  : colors.textSecondary + "15",
+                              }}
+                            >
+                              <Text
+                                style={{
+                                  fontSize: FONT_SIZES.xs,
+                                  fontFamily: isActive ? FONTS.bold : FONTS.medium,
+                                  color: isActive ? "#fff" : colors.textSecondary,
+                                }}
+                              >
+                                {chip.label}
+                              </Text>
+                            </Pressable>
+                          );
+                        })}
+                      </View>
+                    </ScrollView>
+                  </View>
+
+                  <View style={{ gap: 14 }}>
+                    {filteredClasses.map((item, idx) => {
                       const rate = item.collectionRate || 0;
                       const rateColor =
                         rate >= 75
@@ -743,6 +1054,12 @@ export default function AdminFeesScreen() {
                           : rate >= 40
                           ? colors.warning || "#FFB020"
                           : colors.error;
+
+                      // Total collectible fees for this class (target expected after concession/arrears)
+                      const totalCollectible =
+                        item.totalExpected !== undefined && item.totalExpected !== null
+                          ? item.totalExpected
+                          : (item.totalPaid || 0) + (item.totalPending || 0) || (item.totalFees || 0);
 
                       return (
                         <Pressable
@@ -755,79 +1072,111 @@ export default function AdminFeesScreen() {
                             );
                             setActiveTab("students");
                           }}
-                          style={{
-                            backgroundColor: colors.cardBackground,
-                            borderRadius: 16,
-                            padding: 16,
-                            shadowColor: "#000",
-                            shadowOffset: { width: 0, height: 1 },
-                            shadowOpacity: 0.05,
-                            shadowRadius: 4,
-                            elevation: 1,
-                          }}
+                          style={({ pressed }) => [
+                            {
+                              backgroundColor: colors.cardBackground,
+                              borderRadius: 18,
+                              padding: 18,
+                              borderWidth: 1,
+                              borderColor: colors.textSecondary + "15",
+                              shadowColor: "#000",
+                              shadowOffset: { width: 0, height: 2 },
+                              shadowOpacity: 0.04,
+                              shadowRadius: 6,
+                              elevation: 2,
+                              opacity: pressed ? 0.95 : 1,
+                            },
+                          ]}
                         >
+                          {/* Card Header: Class Badge + Name + Student Count + Rate Badge */}
                           <View
                             style={{
                               flexDirection: "row",
                               justifyContent: "space-between",
                               alignItems: "center",
-                              marginBottom: 8,
+                              marginBottom: 12,
                             }}
                           >
                             <View
                               style={{
                                 flexDirection: "row",
                                 alignItems: "center",
-                                gap: 8,
+                                gap: 10,
+                                flex: 1,
                               }}
                             >
                               <View
                                 style={{
-                                  width: 10,
-                                  height: 10,
-                                  borderRadius: 5,
+                                  width: 38,
+                                  height: 38,
+                                  borderRadius: 12,
+                                  backgroundColor: colors.primary + "12",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  borderWidth: 1,
+                                  borderColor: colors.primary + "25",
+                                }}
+                              >
+                                <MaterialIcons
+                                  name="school"
+                                  size={20}
+                                  color={colors.primary}
+                                />
+                              </View>
+                              <View style={{ flex: 1 }}>
+                                <Text
+                                  style={{
+                                    fontFamily: FONTS.bold,
+                                    color: colors.textPrimary,
+                                    fontSize: FONT_SIZES.md,
+                                  }}
+                                  numberOfLines={1}
+                                >
+                                  {formatClassName(item.className, item.section)}
+                                </Text>
+                                <Text
+                                  style={{
+                                    color: colors.textSecondary,
+                                    fontSize: FONT_SIZES.xs,
+                                    fontFamily: FONTS.medium,
+                                    marginTop: 1,
+                                  }}
+                                >
+                                  {item.studentCount}{" "}
+                                  {item.studentCount === 1 ? "student" : "students"} enrolled
+                                </Text>
+                              </View>
+                            </View>
+
+                            <View
+                              style={{
+                                backgroundColor: rateColor + "15",
+                                paddingHorizontal: 10,
+                                paddingVertical: 4,
+                                borderRadius: 10,
+                                borderWidth: 1,
+                                borderColor: rateColor + "30",
+                                flexDirection: "row",
+                                alignItems: "center",
+                                gap: 4,
+                              }}
+                            >
+                              <View
+                                style={{
+                                  width: 6,
+                                  height: 6,
+                                  borderRadius: 3,
                                   backgroundColor: rateColor,
                                 }}
                               />
                               <Text
                                 style={{
-                                  fontFamily: FONTS.bold,
-                                  color: colors.textPrimary,
-                                  fontSize: FONT_SIZES.md,
-                                }}
-                              >
-                                {formatClassName(item.className, item.section)}
-                              </Text>
-                              <Text
-                                style={{
-                                  color: colors.textSecondary,
-                                  fontSize: FONT_SIZES.sm,
-                                  fontFamily: FONTS.regular,
-                                }}
-                              >
-                                ({item.studentCount}{" "}
-                                {item.studentCount === 1
-                                  ? "student"
-                                  : "students"}
-                                )
-                              </Text>
-                            </View>
-                            <View
-                              style={{
-                                backgroundColor: rateColor + "15",
-                                paddingHorizontal: 8,
-                                paddingVertical: 3,
-                                borderRadius: 8,
-                              }}
-                            >
-                              <Text
-                                style={{
                                   color: rateColor,
                                   fontFamily: FONTS.bold,
-                                  fontSize: FONT_SIZES.sm,
+                                  fontSize: FONT_SIZES.xs,
                                 }}
                               >
-                                {rate}%
+                                {rate}% Collected
                               </Text>
                             </View>
                           </View>
@@ -835,11 +1184,11 @@ export default function AdminFeesScreen() {
                           {/* Progress Bar */}
                           <View
                             style={{
-                              height: 6,
+                              height: 7,
                               backgroundColor: colors.background,
-                              borderRadius: 3,
+                              borderRadius: 4,
                               overflow: "hidden",
-                              marginBottom: 10,
+                              marginBottom: 14,
                             }}
                           >
                             <View
@@ -847,53 +1196,200 @@ export default function AdminFeesScreen() {
                                 width: `${Math.min(100, Math.max(0, rate))}%`,
                                 height: "100%",
                                 backgroundColor: rateColor,
-                                borderRadius: 3,
+                                borderRadius: 4,
                               }}
                             />
                           </View>
 
-                          {/* Row stats */}
+                          {/* 3-Column Metrics: Total Collectible, Collected, Pending */}
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              backgroundColor: colors.background,
+                              borderRadius: 14,
+                              padding: 12,
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                            }}
+                          >
+                            {/* 1. Total Collectible Fees (Requested by user) */}
+                            <View style={{ flex: 1, alignItems: "center" }}>
+                              <Text
+                                style={{
+                                  fontSize: FONT_SIZES.micro,
+                                  color: colors.textSecondary,
+                                  fontFamily: FONTS.medium,
+                                  textTransform: "uppercase",
+                                  letterSpacing: 0.3,
+                                }}
+                              >
+                                Total Fees
+                              </Text>
+                              <Text
+                                style={{
+                                  fontFamily: FONTS.bold,
+                                  color: colors.primary,
+                                  fontSize: FONT_SIZES.sm,
+                                  marginTop: 3,
+                                }}
+                              >
+                                ₹{totalCollectible.toLocaleString()}
+                              </Text>
+                            </View>
+
+                            <View
+                              style={{
+                                width: 1,
+                                height: 24,
+                                backgroundColor: colors.textSecondary + "20",
+                              }}
+                            />
+
+                            {/* 2. Collected */}
+                            <View style={{ flex: 1, alignItems: "center" }}>
+                              <Text
+                                style={{
+                                  fontSize: FONT_SIZES.micro,
+                                  color: colors.textSecondary,
+                                  fontFamily: FONTS.medium,
+                                  textTransform: "uppercase",
+                                  letterSpacing: 0.3,
+                                }}
+                              >
+                                Collected
+                              </Text>
+                              <Text
+                                style={{
+                                  fontFamily: FONTS.bold,
+                                  color: colors.success,
+                                  fontSize: FONT_SIZES.sm,
+                                  marginTop: 3,
+                                }}
+                              >
+                                ₹{(item.totalPaid || 0).toLocaleString()}
+                              </Text>
+                            </View>
+
+                            <View
+                              style={{
+                                width: 1,
+                                height: 24,
+                                backgroundColor: colors.textSecondary + "20",
+                              }}
+                            />
+
+                            {/* 3. Pending */}
+                            <View style={{ flex: 1, alignItems: "center" }}>
+                              <Text
+                                style={{
+                                  fontSize: FONT_SIZES.micro,
+                                  color: colors.textSecondary,
+                                  fontFamily: FONTS.medium,
+                                  textTransform: "uppercase",
+                                  letterSpacing: 0.3,
+                                }}
+                              >
+                                Pending
+                              </Text>
+                              <Text
+                                style={{
+                                  fontFamily: FONTS.bold,
+                                  color:
+                                    (item.totalPending || 0) > 0
+                                      ? colors.error
+                                      : colors.textSecondary,
+                                  fontSize: FONT_SIZES.sm,
+                                  marginTop: 3,
+                                }}
+                              >
+                                ₹{(item.totalPending || 0).toLocaleString()}
+                              </Text>
+                            </View>
+                          </View>
+
+                          {/* Extra info chips: Concession & Arrears & View link */}
                           <View
                             style={{
                               flexDirection: "row",
                               justifyContent: "space-between",
                               alignItems: "center",
+                              marginTop: 10,
+                              paddingTop: 8,
                             }}
                           >
-                            <Text
+                            <View
                               style={{
-                                fontSize: FONT_SIZES.sm,
-                                color: colors.textSecondary,
-                                fontFamily: FONTS.medium,
+                                flexDirection: "row",
+                                gap: 6,
+                                flexWrap: "wrap",
+                                flex: 1,
                               }}
                             >
-                              Collected:{" "}
+                              {item.totalConcession > 0 && (
+                                <View
+                                  style={{
+                                    backgroundColor: "#FF980015",
+                                    paddingHorizontal: 8,
+                                    paddingVertical: 2,
+                                    borderRadius: 6,
+                                  }}
+                                >
+                                  <Text
+                                    style={{
+                                      fontSize: FONT_SIZES.micro,
+                                      color: "#FF9800",
+                                      fontFamily: FONTS.bold,
+                                    }}
+                                  >
+                                    ₹{item.totalConcession.toLocaleString()} Concession
+                                  </Text>
+                                </View>
+                              )}
+                              {item.totalArrears > 0 && (
+                                <View
+                                  style={{
+                                    backgroundColor:
+                                      (colors.warning || "#FFB020") + "15",
+                                    paddingHorizontal: 8,
+                                    paddingVertical: 2,
+                                    borderRadius: 6,
+                                  }}
+                                >
+                                  <Text
+                                    style={{
+                                      fontSize: FONT_SIZES.micro,
+                                      color: colors.warning || "#FFB020",
+                                      fontFamily: FONTS.bold,
+                                    }}
+                                  >
+                                    ₹{item.totalArrears.toLocaleString()} Arrears
+                                  </Text>
+                                </View>
+                              )}
+                            </View>
+
+                            <View
+                              style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                gap: 2,
+                              }}
+                            >
                               <Text
                                 style={{
-                                  color: colors.success,
+                                  color: colors.primary,
+                                  fontSize: FONT_SIZES.xs,
                                   fontFamily: FONTS.bold,
                                 }}
                               >
-                                ₹{(item.totalPaid || 0).toLocaleString()}
+                                View Students
                               </Text>
-                            </Text>
-                            <Text
-                              style={{
-                                fontSize: FONT_SIZES.sm,
-                                color: colors.textSecondary,
-                                fontFamily: FONTS.medium,
-                              }}
-                            >
-                              Pending:{" "}
-                              <Text
-                                style={{
-                                  color: colors.error,
-                                  fontFamily: FONTS.bold,
-                                }}
-                              >
-                                ₹{(item.totalPending || 0).toLocaleString()}
-                              </Text>
-                            </Text>
+                              <MaterialIcons
+                                name="chevron-right"
+                                size={16}
+                                color={colors.primary}
+                              />
+                            </View>
                           </View>
                         </Pressable>
                       );
@@ -1913,22 +2409,53 @@ export default function AdminFeesScreen() {
               <View>
                 {/* Search and Sort Header */}
                 <View
-                  style={{ flexDirection: "row", gap: 12, marginBottom: 16 }}
+                  style={{ flexDirection: "row", gap: 10, marginBottom: 12 }}
                 >
-                  <TextInput
-                    value={studentSearchQuery}
-                    onChangeText={setStudentSearchQuery}
-                    placeholder="Search by name, class..."
-                    placeholderTextColor={colors.textSecondary}
+                  <View
                     style={{
                       flex: 1,
+                      flexDirection: "row",
+                      alignItems: "center",
                       backgroundColor: colors.cardBackground,
-                      padding: 12,
-                      borderRadius: 12,
-                      color: colors.textPrimary,
-                      fontFamily: FONTS.medium,
+                      borderRadius: 14,
+                      paddingHorizontal: 12,
+                      paddingVertical: Platform.OS === "ios" ? 10 : 6,
+                      borderWidth: 1,
+                      borderColor: colors.textSecondary + "15",
                     }}
-                  />
+                  >
+                    <MaterialIcons
+                      name="search"
+                      size={20}
+                      color={colors.textSecondary}
+                      style={{ marginRight: 8 }}
+                    />
+                    <TextInput
+                      value={studentSearchQuery}
+                      onChangeText={setStudentSearchQuery}
+                      placeholder="Search student name, reg no, class..."
+                      placeholderTextColor={colors.textSecondary}
+                      style={{
+                        flex: 1,
+                        color: colors.textPrimary,
+                        fontFamily: FONTS.medium,
+                        fontSize: FONT_SIZES.sm,
+                      }}
+                    />
+                    {studentSearchQuery ? (
+                      <Pressable
+                        onPress={() => setStudentSearchQuery("")}
+                        hitSlop={8}
+                      >
+                        <MaterialIcons
+                          name="close"
+                          size={18}
+                          color={colors.textSecondary}
+                        />
+                      </Pressable>
+                    ) : null}
+                  </View>
+
                   <Pressable
                     onPress={() => {
                       setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
@@ -1937,19 +2464,25 @@ export default function AdminFeesScreen() {
                     style={{
                       backgroundColor:
                         sortBy === "className"
-                          ? colors.primary + "20"
+                          ? colors.primary + "18"
                           : colors.cardBackground,
-                      paddingHorizontal: 16,
-                      borderRadius: 12,
+                      paddingHorizontal: 14,
+                      borderRadius: 14,
                       justifyContent: "center",
                       alignItems: "center",
                       flexDirection: "row",
                       gap: 4,
+                      borderWidth: 1,
+                      borderColor:
+                        sortBy === "className"
+                          ? colors.primary + "30"
+                          : colors.textSecondary + "15",
                     }}
                   >
                     <Text
                       style={{
-                        fontFamily: FONTS.medium,
+                        fontFamily: FONTS.bold,
+                        fontSize: FONT_SIZES.xs,
                         color:
                           sortBy === "className"
                             ? colors.primary
@@ -1965,22 +2498,106 @@ export default function AdminFeesScreen() {
                             ? "arrow-drop-up"
                             : "arrow-drop-down"
                         }
-                        size={20}
+                        size={18}
                         color={colors.primary}
                       />
                     )}
                   </Pressable>
                 </View>
 
+                {/* Filter Pills: All, Pending Dues, Cleared */}
+                <View style={{ flexDirection: "row", gap: 8, marginBottom: 14 }}>
+                  {[
+                    { key: "all", label: "All Students" },
+                    { key: "dues", label: "With Pending Dues" },
+                    { key: "cleared", label: "Dues Cleared" },
+                  ].map((filter) => {
+                    const isActive = studentStatusFilter === filter.key;
+                    return (
+                      <Pressable
+                        key={filter.key}
+                        onPress={() => setStudentStatusFilter(filter.key)}
+                        style={{
+                          paddingHorizontal: 12,
+                          paddingVertical: 6,
+                          borderRadius: 12,
+                          backgroundColor: isActive
+                            ? colors.primary
+                            : colors.cardBackground,
+                          borderWidth: 1,
+                          borderColor: isActive
+                            ? colors.primary
+                            : colors.textSecondary + "15",
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: FONT_SIZES.xs,
+                            fontFamily: isActive ? FONTS.bold : FONTS.medium,
+                            color: isActive ? "#fff" : colors.textSecondary,
+                          }}
+                        >
+                          {filter.label}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+
+                {/* Active Filter Class Banner (when coming from class breakdown card) */}
+                {studentSearchQuery ? (
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      backgroundColor: colors.primary + "12",
+                      borderRadius: 12,
+                      paddingHorizontal: 12,
+                      paddingVertical: 8,
+                      marginBottom: 12,
+                      borderWidth: 1,
+                      borderColor: colors.primary + "25",
+                    }}
+                  >
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                      <MaterialIcons name="filter-list" size={16} color={colors.primary} />
+                      <Text
+                        style={{
+                          fontSize: FONT_SIZES.xs,
+                          color: colors.primary,
+                          fontFamily: FONTS.bold,
+                        }}
+                      >
+                        Filtered by: &ldquo;{studentSearchQuery}&rdquo;
+                      </Text>
+                    </View>
+                    <Pressable
+                      onPress={() => setStudentSearchQuery("")}
+                      hitSlop={8}
+                    >
+                      <Text
+                        style={{
+                          fontSize: FONT_SIZES.xs,
+                          color: colors.primary,
+                          fontFamily: FONTS.bold,
+                        }}
+                      >
+                        Clear Filter
+                      </Text>
+                    </Pressable>
+                  </View>
+                ) : null}
+
                 {/* Table Header */}
                 <View
                   style={{
                     flexDirection: "row",
-                    paddingVertical: 12,
+                    paddingVertical: 10,
                     paddingHorizontal: 16,
                     backgroundColor: colors.primary + "10",
                     borderRadius: 12,
-                    marginBottom: 8,
+                    marginBottom: 10,
                   }}
                 >
                   <Text
@@ -1988,7 +2605,9 @@ export default function AdminFeesScreen() {
                       flex: 2,
                       fontFamily: FONTS.bold,
                       color: colors.primary,
-                      fontSize: FONT_SIZES.sm,
+                      fontSize: FONT_SIZES.xs,
+                      textTransform: "uppercase",
+                      letterSpacing: 0.5,
                     }}
                   >
                     Student
@@ -1998,8 +2617,10 @@ export default function AdminFeesScreen() {
                       flex: 1.5,
                       fontFamily: FONTS.bold,
                       color: colors.primary,
-                      fontSize: FONT_SIZES.sm,
+                      fontSize: FONT_SIZES.xs,
                       textAlign: "center",
+                      textTransform: "uppercase",
+                      letterSpacing: 0.5,
                     }}
                   >
                     Class
@@ -2009,11 +2630,13 @@ export default function AdminFeesScreen() {
                       flex: 1.5,
                       fontFamily: FONTS.bold,
                       color: colors.primary,
-                      fontSize: FONT_SIZES.sm,
+                      fontSize: FONT_SIZES.xs,
                       textAlign: "right",
+                      textTransform: "uppercase",
+                      letterSpacing: 0.5,
                     }}
                   >
-                    Pending
+                    Dues Status
                   </Text>
                 </View>
 
@@ -2026,16 +2649,26 @@ export default function AdminFeesScreen() {
                 ) : (
                   <FlatList
                     data={allStudents
-                      .filter(
-                        (s) =>
-                          s.name
-                            .toLowerCase()
-                            .includes(studentSearchQuery.toLowerCase()) ||
-                          (s.className &&
-                            s.className
-                              .toLowerCase()
-                              .includes(studentSearchQuery.toLowerCase()))
-                      )
+                      .filter((s) => {
+                        // Text Search
+                        const q = studentSearchQuery.toLowerCase().trim();
+                        const matchQuery =
+                          !q ||
+                          (s.name && s.name.toLowerCase().includes(q)) ||
+                          (s.regNo && s.regNo.toLowerCase().includes(q)) ||
+                          (s.className && s.className.toLowerCase().includes(q));
+
+                        if (!matchQuery) return false;
+
+                        // Status Filter
+                        if (studentStatusFilter === "dues") {
+                          return (s.pendingAmount || 0) > 0;
+                        }
+                        if (studentStatusFilter === "cleared") {
+                          return (s.pendingAmount || 0) <= 0;
+                        }
+                        return true;
+                      })
                       .sort((a, b) => {
                         if (sortBy === "className") {
                           const classA = a.className || "";
@@ -2049,101 +2682,136 @@ export default function AdminFeesScreen() {
                     scrollEnabled={false}
                     keyExtractor={(item) => item._id}
                     contentContainerStyle={{ paddingBottom: 20 }}
-                    renderItem={({ item }) => (
-                      <Pressable
-                        onPress={() => {
-                          setSelectedStudent(item);
-                        }}
-                        style={{
-                          backgroundColor: colors.cardBackground,
-                          paddingVertical: 14,
-                          paddingHorizontal: 16,
-                          borderRadius: 12,
-                          marginBottom: 8,
-                          flexDirection: "row",
-                          alignItems: "center",
-                          borderWidth: 1,
-                          borderColor: colors.textSecondary + "10",
-                        }}
-                      >
-                        <View
-                          style={{
-                            flex: 2,
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: 10,
+                    renderItem={({ item }) => {
+                      const isPending = (item.pendingAmount || 0) > 0;
+                      return (
+                        <Pressable
+                          onPress={() => {
+                            setSelectedStudent(item);
                           }}
+                          style={({ pressed }) => [
+                            {
+                              backgroundColor: colors.cardBackground,
+                              paddingVertical: 14,
+                              paddingHorizontal: 16,
+                              borderRadius: 14,
+                              marginBottom: 10,
+                              flexDirection: "row",
+                              alignItems: "center",
+                              borderWidth: 1,
+                              borderColor: colors.textSecondary + "12",
+                              shadowColor: "#000",
+                              shadowOffset: { width: 0, height: 1 },
+                              shadowOpacity: 0.03,
+                              shadowRadius: 3,
+                              elevation: 1,
+                              opacity: pressed ? 0.95 : 1,
+                            },
+                          ]}
                         >
-                          <UserAvatar
-                            photoUrl={item.profilePhoto}
-                            name={formatUserName(item.name)}
-                            role="student"
-                            size={36}
-                          />
-                          <View style={{ flex: 1 }}>
-                            <Text
-                              style={{
-                                fontFamily: FONTS.bold,
-                                color: colors.textPrimary,
-                                fontSize: FONT_SIZES.sm,
-                              }}
-                              numberOfLines={1}
-                            >
-                              {formatUserName(item.name)}
-                            </Text>
-                            <Text
-                              style={{
-                                color: colors.textSecondary,
-                                fontSize: FONT_SIZES.xs,
-                              }}
-                              numberOfLines={1}
-                            >
-                              {item.regNo ? `Reg No: ${item.regNo}` : ""}
-                            </Text>
-                          </View>
-                        </View>
-                        <View style={{ flex: 1.5, alignItems: "center" }}>
                           <View
                             style={{
-                              backgroundColor: colors.background,
-                              paddingHorizontal: 8,
-                              paddingVertical: 2,
-                              borderRadius: 6,
+                              flex: 2,
+                              flexDirection: "row",
+                              alignItems: "center",
+                              gap: 10,
                             }}
                           >
-                            <Text
+                            <UserAvatar
+                              photoUrl={item.profilePhoto}
+                              name={formatUserName(item.name)}
+                              role="student"
+                              size={38}
+                            />
+                            <View style={{ flex: 1 }}>
+                              <Text
+                                style={{
+                                  fontFamily: FONTS.bold,
+                                  color: colors.textPrimary,
+                                  fontSize: FONT_SIZES.sm,
+                                }}
+                                numberOfLines={1}
+                              >
+                                {formatUserName(item.name)}
+                              </Text>
+                              <Text
+                                style={{
+                                  color: colors.textSecondary,
+                                  fontSize: FONT_SIZES.xs,
+                                  marginTop: 1,
+                                }}
+                                numberOfLines={1}
+                              >
+                                {item.regNo ? `Reg: ${item.regNo}` : "Student"}
+                              </Text>
+                            </View>
+                          </View>
+                          <View style={{ flex: 1.5, alignItems: "center" }}>
+                            <View
                               style={{
-                                fontFamily: FONTS.medium,
-                                color: colors.textSecondary,
-                                fontSize: FONT_SIZES.sm,
+                                backgroundColor: colors.background,
+                                paddingHorizontal: 10,
+                                paddingVertical: 4,
+                                borderRadius: 8,
+                                borderWidth: 1,
+                                borderColor: colors.textSecondary + "15",
                               }}
                             >
-                              {formatClassName(item.className)}{" "}
-                              {item.section ? `- ${item.section}` : ""}
-                            </Text>
+                              <Text
+                                style={{
+                                  fontFamily: FONTS.medium,
+                                  color: colors.textSecondary,
+                                  fontSize: FONT_SIZES.xs,
+                                }}
+                              >
+                                {formatClassName(item.className)}{" "}
+                                {item.section ? `- ${item.section}` : ""}
+                              </Text>
+                            </View>
                           </View>
-                        </View>
-                        <View style={{ flex: 1.5, alignItems: "flex-end" }}>
-                          <Text
-                            style={{
-                              fontFamily: FONTS.bold,
-                              fontSize: FONT_SIZES.sm,
-                              color:
-                                item.pendingAmount > 0
-                                  ? colors.error
-                                  : colors.success,
-                            }}
-                          >
-                            ₹{item.pendingAmount || 0}
-                          </Text>
-                          {item.pendingAmount > 0 && (
-                            <Text style={{ color: colors.error, fontSize: FONT_SIZES.micro }}>
-                              Due
-                            </Text>
-                          )}
-                        </View>
-                      </Pressable>
-                    )}
+                          <View style={{ flex: 1.5, alignItems: "flex-end" }}>
+                            <View
+                              style={{
+                                backgroundColor: isPending
+                                  ? colors.error + "15"
+                                  : colors.success + "15",
+                                paddingHorizontal: 10,
+                                paddingVertical: 4,
+                                borderRadius: 8,
+                                borderWidth: 1,
+                                borderColor: isPending
+                                  ? colors.error + "25"
+                                  : colors.success + "25",
+                                alignItems: "flex-end",
+                              }}
+                            >
+                              <Text
+                                style={{
+                                  fontFamily: FONTS.bold,
+                                  fontSize: FONT_SIZES.xs,
+                                  color: isPending
+                                    ? colors.error
+                                    : colors.success,
+                                }}
+                              >
+                                {isPending ? `₹${item.pendingAmount}` : "Cleared"}
+                              </Text>
+                              {isPending && (
+                                <Text
+                                  style={{
+                                    color: colors.error,
+                                    fontSize: FONT_SIZES.micro,
+                                    fontFamily: FONTS.medium,
+                                  }}
+                                >
+                                  Pending Due
+                                </Text>
+                              )}
+                            </View>
+                          </View>
+                        </Pressable>
+                      );
+                    }}
                     ListEmptyComponent={() => (
                       <View style={{ alignItems: "center", marginTop: 40 }}>
                         <MaterialIcons
@@ -2158,7 +2826,7 @@ export default function AdminFeesScreen() {
                             fontFamily: FONTS.medium,
                           }}
                         >
-                          No students found
+                          No students found matching current filters
                         </Text>
                       </View>
                     )}

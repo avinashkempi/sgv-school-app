@@ -108,36 +108,33 @@ export default function StudentExamScheduleScreen() {
   }, [isLoading, exams.length, upcomingExams.length, pastExams.length]);
 
   const getCountdown = (date) => {
-    const now = new Date();
-    const examDate = new Date(date);
-    const diffMs = examDate - now;
-    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    const hours = Math.floor(
-      (diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-    );
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    if (days === 0 && hours <= 0)
+    const examDay = new Date(date);
+    examDay.setHours(0, 0, 0, 0);
+
+    const diffTime = examDay.getTime() - today.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays <= 0) {
       return {
         text: t("common.todayUrgent", "Today!"),
         unit: "",
         urgent: true,
       };
-    if (days === 0)
-      return {
-        text: `${hours}`,
-        unit: t("common.hoursLeft", "h left"),
-        urgent: true,
-      };
-    if (days === 1)
+    }
+    if (diffDays === 1) {
       return {
         text: t("common.tomorrow", "Tomorrow"),
         unit: "",
         urgent: true,
       };
+    }
     return {
-      text: `${days}`,
+      text: `${diffDays}`,
       unit: t("common.daysLeft", "days left"),
-      urgent: days <= 3,
+      urgent: diffDays <= 3,
     };
   };
 
@@ -332,7 +329,9 @@ export default function StudentExamScheduleScreen() {
                     >
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.xl,
+                          fontSize: getCountdown(nextExam.date).unit
+                            ? FONT_SIZES.xl
+                            : FONT_SIZES.md,
                           fontFamily: FONTS.bold,
                           color: colors.onPrimary,
                           lineHeight: 24,

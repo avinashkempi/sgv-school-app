@@ -105,6 +105,11 @@ export function formatUserName(userOrName, fallback = "") {
     return fallback;
   }
 
+  // Never return raw MongoDB ObjectIds as names
+  if (/^[0-9a-fA-F]{24}$/.test(rawName.trim())) {
+    return fallback;
+  }
+
   return toTitleCase(rawName);
 }
 
@@ -117,7 +122,14 @@ export function formatUserName(userOrName, fallback = "") {
  */
 export function formatUserRole(role, fallback = "Member") {
   if (!role || typeof role !== "string") return fallback;
-  const normalized = role.toLowerCase().trim();
+  const trimmed = role.trim();
+
+  // Never return raw MongoDB ObjectIds as roles
+  if (/^[0-9a-fA-F]{24}$/.test(trimmed)) {
+    return fallback;
+  }
+
+  const normalized = trimmed.toLowerCase();
 
   switch (normalized) {
     case "super admin":
@@ -137,7 +149,7 @@ export function formatUserRole(role, fallback = "Member") {
     case "alumni":
       return "Alumni";
     default:
-      return toTitleCase(role.replace(/_/g, " "));
+      return toTitleCase(trimmed.replace(/_/g, " "));
   }
 }
 

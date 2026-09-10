@@ -13,6 +13,7 @@
  *   - Fetches notification count and stores in AsyncStorage
  *   - On next app open, data is immediately available from cache
  */
+import { Platform } from "react-native";
 import * as BackgroundFetch from "expo-background-fetch";
 import * as TaskManager from "expo-task-manager";
 import storage from "./storage";
@@ -27,7 +28,11 @@ export const BACKGROUND_SYNC_TASK = "BACKGROUND_DATA_SYNC";
  * This runs even when the app is closed/backgrounded.
  * Must be defined in the global scope outside React components.
  */
-if (!TaskManager.isTaskDefined(BACKGROUND_SYNC_TASK)) {
+if (
+  Platform.OS !== "web" &&
+  TaskManager?.isTaskDefined &&
+  !TaskManager.isTaskDefined(BACKGROUND_SYNC_TASK)
+) {
   TaskManager.defineTask(BACKGROUND_SYNC_TASK, async () => {
     try {
       const token = await storage.getItem("@auth_token");
@@ -82,9 +87,13 @@ if (!TaskManager.isTaskDefined(BACKGROUND_SYNC_TASK)) {
  * Call this once during app initialization.
  */
 export async function registerBackgroundSync() {
+  if (Platform.OS === "web") return false;
   try {
     // 1. Verify task is defined in TaskManager before attempting registration
-    if (!TaskManager.isTaskDefined(BACKGROUND_SYNC_TASK)) {
+    if (
+      !TaskManager?.isTaskDefined ||
+      !TaskManager.isTaskDefined(BACKGROUND_SYNC_TASK)
+    ) {
       console.warn(
         `[BackgroundSync] Task '${BACKGROUND_SYNC_TASK}' is not defined. Skipping registration.`
       );
@@ -122,7 +131,7 @@ export async function registerBackgroundSync() {
     console.log("[BackgroundSync] Task registered successfully");
     return true;
   } catch (err) {
-    console.error("[BackgroundSync] Registration failed:", err);
+    console.warn("[BackgroundSync] Registration skipped/failed:", err?.message || err);
     return false;
   }
 }
@@ -132,16 +141,18 @@ export async function registerBackgroundSync() {
  * Call this on logout.
  */
 export async function unregisterBackgroundSync() {
+  if (Platform.OS === "web") return;
   try {
+    if (!TaskManager?.isTaskRegisteredAsync) return;
     const isRegistered = await TaskManager.isTaskRegisteredAsync(
       BACKGROUND_SYNC_TASK
     );
-    if (isRegistered) {
+    if (isRegistered && BackgroundFetch?.unregisterTaskAsync) {
       await BackgroundFetch.unregisterTaskAsync(BACKGROUND_SYNC_TASK);
       console.log("[BackgroundSync] Task unregistered");
     }
   } catch (err) {
-    console.error("[BackgroundSync] Unregister failed:", err);
+    console.warn("[BackgroundSync] Unregister note:", err?.message || err);
   }
 }
 

@@ -597,18 +597,300 @@ export default function StudentReportCardScreen() {
       score: 88,
       label: "Very Stable & Consistent",
     };
+    const benchmark = insights?.benchmark;
+    const assessmentStyle = insights?.assessmentStyle;
+    const momentum = insights?.momentum;
+    const attendance = insights?.attendance;
+    const badges = insights?.badges || [];
+    const recommendations = insights?.recommendations || [];
 
     return (
       <View style={styles.tabContent}>
-        {/* Diagnostics Card */}
+        {/* AI-Driven Intelligence Banner */}
+        <View
+          style={[
+            styles.aiHeaderBanner,
+            {
+              backgroundColor: isDark
+                ? "rgba(139, 92, 246, 0.12)"
+                : "rgba(139, 92, 246, 0.08)",
+              borderColor: isDark
+                ? "rgba(139, 92, 246, 0.3)"
+                : "rgba(139, 92, 246, 0.2)",
+            },
+          ]}
+        >
+          <View style={styles.aiSparkleIconBox}>
+            <MaterialIcons name="auto-awesome" size={18} color="#8B5CF6" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Text
+                style={[
+                  styles.aiHeaderTitle,
+                  { color: isDark ? "#C4B5FD" : "#6D28D9" },
+                ]}
+              >
+                AI-Driven Academic Intelligence
+              </Text>
+              <View
+                style={[
+                  styles.aiPill,
+                  {
+                    backgroundColor: isDark
+                      ? "rgba(139, 92, 246, 0.25)"
+                      : "rgba(139, 92, 246, 0.15)",
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.aiPillText,
+                    { color: isDark ? "#C4B5FD" : "#6D28D9" },
+                  ]}
+                >
+                  AI Powered
+                </Text>
+              </View>
+            </View>
+            <Text
+              style={[styles.aiHeaderSub, { color: colors.onSurfaceVariant }]}
+            >
+              Diagnostic calculations synthesized by AI from your test trajectories, cohort rank & exam volatility
+            </Text>
+          </View>
+        </View>
+
+        {/* 1. Class Benchmark & Standing Card */}
+        {benchmark && benchmark.totalClassStudents > 0 && (
+          <Card variant="filled" style={styles.insightCard}>
+            <View style={styles.benchmarkHeaderRow}>
+              <View style={[styles.insightIconCircle, { backgroundColor: colors.primaryContainer }]}>
+                <MaterialIcons name="leaderboard" size={20} color={colors.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.cardTitle, { color: colors.onSurface }]}>
+                  Class Benchmark & Standing
+                </Text>
+                <Text style={[styles.cardSub, { color: colors.onSurfaceVariant }]}>
+                  Comparative cohort analysis across standardized exams
+                </Text>
+              </View>
+              {benchmark.classRank && (
+                <View style={[styles.rankPill, { backgroundColor: isDark ? "rgba(99, 102, 241, 0.2)" : "rgba(99, 102, 241, 0.12)" }]}>
+                  <Text style={[styles.rankPillText, { color: colors.primary }]}>
+                    Rank #{benchmark.classRank} of {benchmark.totalClassStudents}
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            <View style={styles.benchmarkGrid}>
+              <View style={[styles.benchmarkStatBox, { backgroundColor: isDark ? "rgba(255,255,255,0.04)" : colors.surfaceContainerHighest }]}>
+                <Text style={[styles.benchmarkStatLabel, { color: colors.onSurfaceVariant }]}>
+                  Your Average
+                </Text>
+                <Text style={[styles.benchmarkStatValue, { color: colors.primary }]}>
+                  {benchmark.studentOverall}%
+                </Text>
+              </View>
+
+              <View style={[styles.benchmarkStatBox, { backgroundColor: isDark ? "rgba(255,255,255,0.04)" : colors.surfaceContainerHighest }]}>
+                <Text style={[styles.benchmarkStatLabel, { color: colors.onSurfaceVariant }]}>
+                  Class Average
+                </Text>
+                <Text style={[styles.benchmarkStatValue, { color: colors.onSurface }]}>
+                  {benchmark.classAverageOverall}%
+                </Text>
+              </View>
+
+              <View style={[styles.benchmarkStatBox, { backgroundColor: isDark ? "rgba(255,255,255,0.04)" : colors.surfaceContainerHighest }]}>
+                <Text style={[styles.benchmarkStatLabel, { color: colors.onSurfaceVariant }]}>
+                  Class Bracket
+                </Text>
+                <Text style={[styles.benchmarkStatValue, { color: benchmark.percentile && benchmark.percentile >= 75 ? colors.success : colors.secondary }]}>
+                  {benchmark.percentile ? `Top ${Math.max(1, 100 - benchmark.percentile)}%` : "Active"}
+                </Text>
+              </View>
+            </View>
+
+            {/* Benchmark Difference Bar */}
+            <View style={[styles.diffBanner, {
+              backgroundColor: benchmark.diffFromClass >= 0
+                ? (isDark ? "rgba(16, 185, 129, 0.1)" : "rgba(16, 185, 129, 0.08)")
+                : (isDark ? "rgba(245, 158, 11, 0.1)" : "rgba(245, 158, 11, 0.08)"),
+              borderColor: benchmark.diffFromClass >= 0
+                ? "rgba(16, 185, 129, 0.25)"
+                : "rgba(245, 158, 11, 0.25)"
+            }]}>
+              <MaterialIcons
+                name={benchmark.diffFromClass >= 0 ? "trending-up" : "trending-flat"}
+                size={18}
+                color={benchmark.diffFromClass >= 0 ? "#10B981" : "#D97706"}
+              />
+              <Text style={[styles.diffBannerText, {
+                color: benchmark.diffFromClass >= 0 ? (isDark ? "#34D399" : "#065F46") : (isDark ? "#FBBF24" : "#92400E")
+              }]}>
+                {benchmark.diffFromClass >= 0
+                  ? `Pacing +${benchmark.diffFromClass}% above class median`
+                  : `${Math.abs(benchmark.diffFromClass)}% from class median — steady focus will bridge this gap`}
+              </Text>
+            </View>
+          </Card>
+        )}
+
+        {/* 2. Dynamic Academic Milestone Badges */}
+        {badges.length > 0 && (
+          <Card variant="filled" style={styles.insightCard}>
+            <View style={styles.cardHeaderWithIcon}>
+              <View style={[styles.insightIconCircle, { backgroundColor: "rgba(245, 158, 11, 0.15)" }]}>
+                <MaterialIcons name="military-tech" size={20} color="#F59E0B" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.cardTitle, { color: colors.onSurface }]}>
+                  Earned Milestones & Badges
+                </Text>
+                <Text style={[styles.cardSub, { color: colors.onSurfaceVariant }]}>
+                  Recognized achievements from your examination records
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.badgesWrap}>
+              {badges.map((b) => (
+                <View
+                  key={b.id}
+                  style={[
+                    styles.badgeChip,
+                    {
+                      backgroundColor: isDark ? "rgba(255,255,255,0.04)" : colors.surfaceContainerHighest,
+                      borderColor: b.color ? `${b.color}40` : "rgba(0,0,0,0.08)",
+                    },
+                  ]}
+                >
+                  <View style={[styles.badgeIconCircle, { backgroundColor: b.color ? `${b.color}20` : "rgba(0,0,0,0.06)" }]}>
+                    <MaterialIcons name={b.icon || "star"} size={16} color={b.color || colors.primary} />
+                  </View>
+                  <View style={{ flexShrink: 1 }}>
+                    <Text style={[styles.badgeTitle, { color: colors.onSurface }]}>
+                      {b.title}
+                    </Text>
+                    <Text style={[styles.badgeDesc, { color: colors.onSurfaceVariant }]} numberOfLines={1}>
+                      {b.desc}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </Card>
+        )}
+
+        {/* 3. Assessment Style Analysis (Formative vs Summative) */}
+        {assessmentStyle && (
+          <Card variant="filled" style={styles.insightCard}>
+            <View style={styles.cardHeaderWithIcon}>
+              <View style={[styles.insightIconCircle, { backgroundColor: colors.secondaryContainer }]}>
+                <MaterialIcons name="psychology" size={20} color={colors.secondary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.cardTitle, { color: colors.onSurface }]}>
+                  Assessment Style Profile
+                </Text>
+                <Text style={[styles.cardSub, { color: colors.onSurfaceVariant }]}>
+                  How you perform across test formats
+                </Text>
+              </View>
+              <View style={[styles.styleTag, { backgroundColor: isDark ? "rgba(2, 132, 199, 0.2)" : "rgba(2, 132, 199, 0.12)" }]}>
+                <Text style={[styles.styleTagText, { color: colors.primary }]}>
+                  {assessmentStyle.style}
+                </Text>
+              </View>
+            </View>
+
+            {/* Formative vs Summative Comparison Pills */}
+            <View style={styles.styleComparisonRow}>
+              <View style={[styles.stylePillBox, { backgroundColor: isDark ? "rgba(255,255,255,0.04)" : colors.surfaceContainerHighest }]}>
+                <View style={styles.stylePillHeader}>
+                  <MaterialIcons name="speed" size={16} color={colors.primary} />
+                  <Text style={[styles.stylePillTitle, { color: colors.onSurfaceVariant }]}>
+                    Monthly Unit Tests (FA)
+                  </Text>
+                </View>
+                <Text style={[styles.stylePillScore, { color: colors.onSurface }]}>
+                  {assessmentStyle.faAverage !== null ? `${assessmentStyle.faAverage}%` : "Pending"}
+                </Text>
+                <Text style={[styles.stylePillSub, { color: colors.onSurfaceVariant }]}>
+                  Continuous quizzes
+                </Text>
+              </View>
+
+              <View style={[styles.stylePillBox, { backgroundColor: isDark ? "rgba(255,255,255,0.04)" : colors.surfaceContainerHighest }]}>
+                <View style={styles.stylePillHeader}>
+                  <MaterialIcons name="schedule" size={16} color={colors.tertiary} />
+                  <Text style={[styles.stylePillTitle, { color: colors.onSurfaceVariant }]}>
+                    Term Finals (SA)
+                  </Text>
+                </View>
+                <Text style={[styles.stylePillScore, { color: colors.onSurface }]}>
+                  {assessmentStyle.saAverage !== null ? `${assessmentStyle.saAverage}%` : "Pending"}
+                </Text>
+                <Text style={[styles.stylePillSub, { color: colors.onSurfaceVariant }]}>
+                  Comprehensive exams
+                </Text>
+              </View>
+            </View>
+
+            <Text style={[styles.styleSummaryText, { color: colors.onSurface }]}>
+              {assessmentStyle.summary}
+            </Text>
+
+            {assessmentStyle.tip ? (
+              <View style={[styles.tipBanner, { backgroundColor: isDark ? "rgba(59, 130, 246, 0.1)" : "rgba(59, 130, 246, 0.08)" }]}>
+                <MaterialIcons name="lightbulb" size={18} color="#3B82F6" />
+                <Text style={[styles.tipBannerText, { color: isDark ? "#93C5FD" : "#1E40AF" }]}>
+                  {assessmentStyle.tip}
+                </Text>
+              </View>
+            ) : null}
+          </Card>
+        )}
+
+        {/* 4. Momentum & Subject Velocity Highlight */}
+        {momentum && momentum.topGainer && (
+          <Card variant="filled" style={[styles.insightCard, { borderColor: "rgba(16, 185, 129, 0.3)", borderWidth: 1 }]}>
+            <View style={styles.momentumRow}>
+              <View style={[styles.momentumIconBox, { backgroundColor: "rgba(16, 185, 129, 0.15)" }]}>
+                <MaterialIcons name="rocket-launch" size={24} color="#10B981" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <View style={styles.momentumTitleRow}>
+                  <Text style={[styles.momentumHeading, { color: colors.onSurface }]}>
+                    Top Gainer: {momentum.topGainer.subject}
+                  </Text>
+                  <View style={styles.gainPill}>
+                    <Text style={styles.gainPillText}>+{momentum.topGainer.gain}% Surge</Text>
+                  </View>
+                </View>
+                <Text style={[styles.momentumSub, { color: colors.onSurfaceVariant }]}>
+                  Current average stands at {momentum.topGainer.currentAvg}%. Your active study adjustments in this subject have produced significant upward momentum!
+                </Text>
+              </View>
+            </View>
+          </Card>
+        )}
+
+        {/* 5. Core Diagnostics: Strengths & Growth Areas */}
         <Card variant="filled" style={styles.insightCard}>
-          <View style={styles.cardHeader}>
+          <View style={styles.cardHeaderWithIcon}>
+            <View style={[styles.insightIconCircle, { backgroundColor: "rgba(16, 185, 129, 0.15)" }]}>
+              <MaterialIcons name="insights" size={20} color="#10B981" />
+            </View>
             <View style={{ flex: 1 }}>
               <Text style={[styles.cardTitle, { color: colors.onSurface }]}>
                 Academic Diagnostics
               </Text>
               <Text style={[styles.cardSub, { color: colors.onSurfaceVariant }]}>
-                AI-driven analysis of your performance patterns
+                Granular subject performance with cohort and trajectory context
               </Text>
             </View>
           </View>
@@ -636,18 +918,36 @@ export default function StudentReportCardScreen() {
                     },
                   ]}
                 >
-                  <Text
-                    style={[styles.diagSubject, { color: colors.onSurface }]}
-                    numberOfLines={2}
-                  >
-                    {item.subject}
-                  </Text>
+                  <View style={{ flex: 1, marginRight: 8 }}>
+                    <Text
+                      style={[styles.diagSubject, { color: colors.onSurface }]}
+                      numberOfLines={1}
+                    >
+                      {item.subject}
+                    </Text>
+                    {item.classAverage !== undefined && (
+                      <Text style={[styles.diagCohortSub, { color: colors.onSurfaceVariant }]}>
+                        Class Avg: {item.classAverage}%
+                        {item.diffFromClass > 0 ? ` (+${item.diffFromClass}%)` : ""}
+                      </Text>
+                    )}
+                  </View>
                   <View style={styles.diagScoreRow}>
+                    {item.trajectory && item.trajectory.direction === "up" && (
+                      <View style={styles.diagTrendPill}>
+                        <MaterialIcons name="arrow-upward" size={12} color="#10B981" />
+                        <Text style={[styles.diagTrendText, { color: "#10B981" }]}>
+                          +{item.trajectory.delta}%
+                        </Text>
+                      </View>
+                    )}
                     <Text style={[styles.diagScore, { color: "#10B981" }]}>
-                      {item.average}% Avg
+                      {item.average}%
                     </Text>
                     <View style={styles.starPill}>
-                      <Text style={styles.starText}>Mastery</Text>
+                      <Text style={styles.starText}>
+                        {item.average >= 90 ? "Mastery" : "Strong"}
+                      </Text>
                     </View>
                   </View>
                 </View>
@@ -682,18 +982,36 @@ export default function StudentReportCardScreen() {
                     },
                   ]}
                 >
-                  <Text
-                    style={[styles.diagSubject, { color: colors.onSurface }]}
-                    numberOfLines={2}
-                  >
-                    {item.subject}
-                  </Text>
+                  <View style={{ flex: 1, marginRight: 8 }}>
+                    <Text
+                      style={[styles.diagSubject, { color: colors.onSurface }]}
+                      numberOfLines={1}
+                    >
+                      {item.subject}
+                    </Text>
+                    {item.classAverage !== undefined && (
+                      <Text style={[styles.diagCohortSub, { color: colors.onSurfaceVariant }]}>
+                        Class Avg: {item.classAverage}%
+                        {item.diffFromClass < 0 ? ` (${item.diffFromClass}%)` : ""}
+                      </Text>
+                    )}
+                  </View>
                   <View style={styles.diagScoreRow}>
+                    {item.trajectory && item.trajectory.direction === "down" && (
+                      <View style={[styles.diagTrendPill, { backgroundColor: "rgba(220, 38, 38, 0.12)" }]}>
+                        <MaterialIcons name="arrow-downward" size={12} color="#DC2626" />
+                        <Text style={[styles.diagTrendText, { color: "#DC2626" }]}>
+                          {item.trajectory.delta}%
+                        </Text>
+                      </View>
+                    )}
                     <Text style={[styles.diagScore, { color: "#0284C7" }]}>
-                      {item.average}% Avg
+                      {item.average}%
                     </Text>
                     <View style={styles.focusPill}>
-                      <Text style={styles.focusText}>Opportunity</Text>
+                      <Text style={styles.focusText}>
+                        {item.average < 50 ? "Priority" : "Opportunity"}
+                      </Text>
                     </View>
                   </View>
                 </View>
@@ -705,7 +1023,7 @@ export default function StudentReportCardScreen() {
             )}
           </View>
 
-          {/* Consistency Badge */}
+          {/* Consistency & Stability Index */}
           <View
             style={[
               styles.consistencyBox,
@@ -756,11 +1074,134 @@ export default function StudentReportCardScreen() {
               >
                 Measures performance stability across terms. High consistency indicates steady study habits and minimal mark fluctuations between exams.
               </Text>
+
+              {/* Stability Breakdown Tags */}
+              {(consistency.mostConsistentSubject || consistency.mostVolatileSubject) && (
+                <View style={styles.stabilityBreakdownRow}>
+                  {consistency.mostConsistentSubject && (
+                    <View style={[styles.stabilityChip, { backgroundColor: isDark ? "rgba(16, 185, 129, 0.12)" : "rgba(16, 185, 129, 0.08)" }]}>
+                      <MaterialIcons name="check-circle" size={14} color="#10B981" />
+                      <Text style={[styles.stabilityChipText, { color: isDark ? "#6EE7B7" : "#065F46" }]}>
+                        Most Stable: {consistency.mostConsistentSubject.subject} (±{consistency.mostConsistentSubject.stdDev}%)
+                      </Text>
+                    </View>
+                  )}
+                  {consistency.mostVolatileSubject && (
+                    <View style={[styles.stabilityChip, { backgroundColor: isDark ? "rgba(245, 158, 11, 0.12)" : "rgba(245, 158, 11, 0.08)" }]}>
+                      <MaterialIcons name="sync-problem" size={14} color="#D97706" />
+                      <Text style={[styles.stabilityChipText, { color: isDark ? "#FDE68A" : "#92400E" }]}>
+                        Score Swings: {consistency.mostVolatileSubject.subject} (±{consistency.mostVolatileSubject.stdDev}%)
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              )}
             </View>
           </View>
         </Card>
 
-        {/* Goal Simulator */}
+        {/* 6. Attendance & Conceptual Continuity Diagnostic */}
+        {attendance && (
+          <Card variant="filled" style={styles.insightCard}>
+            <View style={styles.cardHeaderWithIcon}>
+              <View style={[styles.insightIconCircle, { backgroundColor: "rgba(5, 150, 105, 0.15)" }]}>
+                <MaterialIcons name="event-available" size={20} color="#059669" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.cardTitle, { color: colors.onSurface }]}>
+                  Attendance & Academic Continuity
+                </Text>
+                <Text style={[styles.cardSub, { color: colors.onSurfaceVariant }]}>
+                  Classroom attendance link to test readiness
+                </Text>
+              </View>
+              <View style={[styles.attendancePill, {
+                backgroundColor: attendance.rate >= 90
+                  ? "rgba(5, 150, 105, 0.15)"
+                  : attendance.rate >= 75
+                  ? "rgba(2, 132, 199, 0.15)"
+                  : "rgba(220, 38, 38, 0.15)"
+              }]}>
+                <Text style={[styles.attendancePillText, {
+                  color: attendance.rate >= 90
+                    ? "#059669"
+                    : attendance.rate >= 75
+                    ? "#0284C7"
+                    : "#DC2626"
+                }]}>
+                  {attendance.rate}% • {attendance.status}
+                </Text>
+              </View>
+            </View>
+
+            <Text style={[styles.attendanceImpactText, { color: colors.onSurface }]}>
+              {attendance.impact}
+            </Text>
+          </Card>
+        )}
+
+        {/* 7. Actionable AI-Driven Study Playbook */}
+        {recommendations.length > 0 && (
+          <Card variant="filled" style={styles.insightCard}>
+            <View style={styles.cardHeaderWithIcon}>
+              <View style={[styles.insightIconCircle, { backgroundColor: isDark ? "rgba(139, 92, 246, 0.2)" : "rgba(139, 92, 246, 0.12)" }]}>
+                <MaterialIcons name="auto-awesome" size={20} color="#8B5CF6" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <Text style={[styles.cardTitle, { color: colors.onSurface }]}>
+                    AI-Driven Study Playbook
+                  </Text>
+                  <View style={[styles.aiPill, { backgroundColor: isDark ? "rgba(139, 92, 246, 0.25)" : "rgba(139, 92, 246, 0.15)" }]}>
+                    <MaterialIcons name="auto-awesome" size={10} color="#8B5CF6" />
+                    <Text style={[styles.aiPillText, { color: isDark ? "#C4B5FD" : "#6D28D9" }]}>
+                      AI Powered
+                    </Text>
+                  </View>
+                </View>
+                <Text style={[styles.cardSub, { color: colors.onSurfaceVariant }]}>
+                  Personalized action steps synthesized by AI to maximize your upcoming exam performance
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.recsList}>
+              {recommendations.map((rec, index) => (
+                <View
+                  key={rec.id || index}
+                  style={[
+                    styles.recCard,
+                    {
+                      backgroundColor: isDark ? "rgba(255,255,255,0.03)" : colors.surfaceContainerHighest,
+                      borderColor: colors.outlineVariant || "rgba(0,0,0,0.06)",
+                    },
+                  ]}
+                >
+                  <View style={styles.recHeaderRow}>
+                    <View style={[styles.recNumberCircle, { backgroundColor: colors.primary }]}>
+                      <Text style={styles.recNumberText}>{index + 1}</Text>
+                    </View>
+                    <Text style={[styles.recTitle, { color: colors.onSurface }]}>
+                      {rec.title}
+                    </Text>
+                    {rec.category && (
+                      <View style={[styles.recCategoryPill, { backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)" }]}>
+                        <Text style={[styles.recCategoryText, { color: colors.onSurfaceVariant }]}>
+                          {rec.category}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={[styles.recDesc, { color: colors.onSurfaceVariant }]}>
+                    {rec.description}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </Card>
+        )}
+
+        {/* 8. Goal Simulator */}
         <TargetScoreCalculator exams={exams} />
 
         {/* Historical Journey Bridge Card */}
@@ -1735,5 +2176,336 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
     marginTop: 2,
+  },
+  // ── NEW RICH INSIGHTS STYLES ──
+  benchmarkHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 14,
+  },
+  cardHeaderWithIcon: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 14,
+  },
+  insightIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  rankPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  rankPillText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+  },
+  benchmarkGrid: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 12,
+  },
+  benchmarkStatBox: {
+    flex: 1,
+    padding: 10,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  benchmarkStatLabel: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.medium,
+    marginBottom: 3,
+    textAlign: "center",
+  },
+  benchmarkStatValue: {
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.bold,
+    textAlign: "center",
+  },
+  diffBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  diffBannerText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.medium,
+    flex: 1,
+    lineHeight: 17,
+  },
+  badgesWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  badgeChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 7,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    maxWidth: "100%",
+  },
+  badgeIconCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  badgeTitle: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+  },
+  badgeDesc: {
+    fontSize: 10,
+    fontFamily: FONTS.regular,
+    marginTop: 1,
+  },
+  styleTag: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  styleTagText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+  },
+  styleComparisonRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 12,
+  },
+  stylePillBox: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 12,
+  },
+  stylePillHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 6,
+  },
+  stylePillTitle: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.medium,
+    flexShrink: 1,
+  },
+  stylePillScore: {
+    fontSize: FONT_SIZES.lg,
+    fontFamily: FONTS.bold,
+    lineHeight: 24,
+  },
+  stylePillSub: {
+    fontSize: 10,
+    marginTop: 2,
+  },
+  styleSummaryText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.regular,
+    lineHeight: 18,
+    marginBottom: 10,
+  },
+  tipBanner: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+    padding: 10,
+    borderRadius: 10,
+  },
+  tipBannerText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.medium,
+    flex: 1,
+    lineHeight: 18,
+  },
+  momentumRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+  },
+  momentumIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  momentumTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    flexWrap: "wrap",
+    marginBottom: 4,
+  },
+  momentumHeading: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
+  },
+  gainPill: {
+    backgroundColor: "rgba(16, 185, 129, 0.18)",
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  gainPillText: {
+    fontSize: 11,
+    fontFamily: FONTS.bold,
+    color: "#10B981",
+  },
+  momentumSub: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.regular,
+    lineHeight: 17,
+  },
+  diagCohortSub: {
+    fontSize: 10,
+    fontFamily: FONTS.regular,
+    marginTop: 2,
+  },
+  diagTrendPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    backgroundColor: "rgba(16, 185, 129, 0.12)",
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  diagTrendText: {
+    fontSize: 10,
+    fontFamily: FONTS.bold,
+  },
+  stabilityBreakdownRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    marginTop: 10,
+  },
+  stabilityChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  stabilityChipText: {
+    fontSize: 10,
+    fontFamily: FONTS.medium,
+  },
+  attendancePill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  attendancePillText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+  },
+  attendanceImpactText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.regular,
+    lineHeight: 18,
+  },
+  recsList: {
+    gap: 10,
+  },
+  recCard: {
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  recHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 6,
+    flexWrap: "wrap",
+  },
+  recNumberCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  recNumberText: {
+    color: "#FFFFFF",
+    fontSize: 10,
+    fontFamily: FONTS.bold,
+  },
+  recTitle: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
+    flex: 1,
+  },
+  recCategoryPill: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  recCategoryText: {
+    fontSize: 9,
+    fontFamily: FONTS.bold,
+    textTransform: "uppercase",
+  },
+  recDesc: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.regular,
+    lineHeight: 18,
+  },
+  aiHeaderBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    padding: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    marginBottom: 14,
+  },
+  aiSparkleIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "rgba(139, 92, 246, 0.18)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  aiHeaderTitle: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
+  },
+  aiHeaderSub: {
+    fontSize: 11,
+    fontFamily: FONTS.regular,
+    marginTop: 2,
+    lineHeight: 16,
+  },
+  aiPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  aiPillText: {
+    fontSize: 10,
+    fontFamily: FONTS.bold,
   },
 });
