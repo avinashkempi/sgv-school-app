@@ -27,9 +27,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import apiConfig from "../../config/apiConfig";
 import { useToast } from "../../components/ToastProvider";
 import { useTheme, FONTS, FONT_SIZES } from "../../theme";
-import { EmptyState } from "../../components/StateComponents";
 
 import AttendanceView from "../../components/AttendanceView";
+import AttendanceTrackerView from "../../components/AttendanceTrackerView";
+import { useAcademicYear } from "../../context/AcademicYearContext";
 import UserAvatar from "../../components/ui/UserAvatar";
 import { formatClassName } from "../../utils/formatClassName";
 import {
@@ -48,6 +49,7 @@ export default function AdminAttendance() {
   const { showToast } = useToast();
   const { colors } = useTheme();
   const queryClient = useQueryClient();
+  const { selectedYear } = useAcademicYear();
 
   // Parse initial tab from params if coming from dashboard
   const initialTab = params?.tab || "summary";
@@ -75,8 +77,6 @@ export default function AdminAttendance() {
   // Show More state
   const [absentVisible, setAbsentVisible] = useState(15);
   const ABSENT_PAGE = 15;
-  const [trackerVisible, setTrackerVisible] = useState(10);
-  const TRACKER_PAGE = 10;
 
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -198,9 +198,8 @@ export default function AdminAttendance() {
     if (!holidayEvent?._id) return;
     const formattedDate = formatISTDisplayDate(date);
 
-    const confirmMsg = `Are you sure you want to remove the holiday "${
-      holidayEvent.title || "School Holiday"
-    }" on ${formattedDate}?\n\nThis will re-enable attendance marking for this day.`;
+    const confirmMsg = `Are you sure you want to remove the holiday "${holidayEvent.title || "School Holiday"
+      }" on ${formattedDate}?\n\nThis will re-enable attendance marking for this day.`;
 
     let confirmed = false;
     if (Platform.OS === "web") {
@@ -228,13 +227,17 @@ export default function AdminAttendance() {
     ["classes"],
     `${apiConfig.baseUrl}/classes`,
     {
-      enabled: activeTab === "student" || activeTab === "summary",
+      enabled:
+        activeTab === "student" ||
+        activeTab === "summary" ||
+        activeTab === "tracker",
       ...CACHE_TIERS.MODERATE,
     }
   );
-  const classes = Array.isArray(classesData)
-    ? classesData
-    : classesData.data || [];
+  const classes = useMemo(
+    () => (Array.isArray(classesData) ? classesData : classesData.data || []),
+    [classesData]
+  );
 
   // Fetch Student Attendance
   const {
@@ -243,8 +246,7 @@ export default function AdminAttendance() {
     refetch: refetchStudent,
   } = useApiQuery(
     ["studentAttendance", selectedClass?._id, getISTDateString(date)],
-    `${apiConfig.baseUrl}/attendance/class/${
-      selectedClass?._id
+    `${apiConfig.baseUrl}/attendance/class/${selectedClass?._id
     }/date/${getISTDateString(date)}`,
     {
       enabled: activeTab === "student" && !!selectedClass,
@@ -323,13 +325,63 @@ export default function AdminAttendance() {
   );
   const classesMarked = classesMarkedResponse?.markedClasses || [];
 
-  // Fetch Tracker Data
-  // eslint-disable-next-line no-unused-vars
-  const [trackerStartDate, setTrackerStartDate] = useState(
-    new Date(new Date().setDate(new Date().getDate() - 14))
-  ); // Last 14 days
-  // eslint-disable-next-line no-unused-vars
+  // Helper to get June 1st of active academic year
+  const getAcademicYearStartDate = useCallback(
+    (referenceDate = new Date(), currentYearObj = null) => {
+      const yearObj = currentYearObj || selectedYear;
+      if (yearObj?.startDate) {
+        const d = new Date(yearObj.startDate);
+        return new Date(d.getFullYear(), 5, 1);
+      }
+      const now = new Date(referenceDate);
+      const y = now.getFullYear();
+      const m = now.getMonth(); // 0 is Jan, 5 is June
+      const startYear = m < 5 ? y - 1 : y;
+      return new Date(startYear, 5, 1); // June 1st
+    },
+    [selectedYear]
+  );
+
+  // Fetch Tracker Data - Default to All Time in this academic year (starting June 1)
+  const [trackerPreset, setTrackerPreset] = useState("all");
+  const [trackerStartDate, setTrackerStartDate] = useState(() => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = now.getMonth();
+    const startYear = m < 5 ? y - 1 : y;
+    return new Date(startYear, 5, 1);
+  });
   const [trackerEndDate, setTrackerEndDate] = useState(new Date());
+
+  const handleSelectTrackerPreset = useCallback(
+    (presetKey) => {
+      setTrackerPreset(presetKey);
+      const now = new Date();
+      let start = new Date();
+      let end = now;
+
+      if (presetKey === "all") {
+        start = getAcademicYearStartDate(now, selectedYear);
+        end = now;
+      } else if (presetKey === "this_month") {
+        start = new Date(now.getFullYear(), now.getMonth(), 1);
+        end = now;
+      } else if (presetKey === "last_month") {
+        start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        end = new Date(now.getFullYear(), now.getMonth(), 0); // last day of previous month
+      }
+
+      setTrackerStartDate(start);
+      setTrackerEndDate(end);
+    },
+    [getAcademicYearStartDate, selectedYear]
+  );
+
+  const shouldIncludeToday =
+    trackerPreset === "all" ||
+    trackerPreset === "this_month" ||
+    getISTDateString(trackerEndDate) >= getISTDateString(new Date());
+
   const {
     data: trackerDataResponse,
     isLoading: trackerLoading,
@@ -339,15 +391,57 @@ export default function AdminAttendance() {
       "missingTracker",
       getISTDateString(trackerStartDate),
       getISTDateString(trackerEndDate),
+      shouldIncludeToday ? "withToday" : "noToday",
     ],
-    `${
-      apiConfig.baseUrl
+    `${apiConfig.baseUrl
     }/attendance/missing-tracker?startDate=${getISTDateString(
       trackerStartDate
-    )}&endDate=${getISTDateString(trackerEndDate)}`,
+    )}&endDate=${getISTDateString(trackerEndDate)}${shouldIncludeToday ? "&includeToday=true" : ""
+    }`,
     { enabled: activeTab === "tracker", ...CACHE_TIERS.MODERATE }
   );
   const trackerData = trackerDataResponse?.missingData || [];
+  const teacherSummary = trackerDataResponse?.teacherSummary || [];
+  const totalWorkingDays = trackerDataResponse?.totalWorkingDays || 0;
+  const totalClasses = trackerDataResponse?.totalClasses || 0;
+
+  const trackerDateRangeLabel = useMemo(() => {
+    const s = formatISTDisplayDate(trackerStartDate);
+    const e = formatISTDisplayDate(trackerEndDate);
+
+    const daysLabel =
+      totalWorkingDays > 0 ? ` (${totalWorkingDays} working days)` : "";
+
+    if (trackerPreset === "all") {
+      return `Academic Year ${daysLabel}`;
+    }
+    if (trackerPreset === "this_month") {
+      return `This Month (${s} – ${e})${daysLabel}`;
+    }
+    if (trackerPreset === "last_month") {
+      return `Last Month (${s} – ${e})${daysLabel}`;
+    }
+    return `${s} – ${e}${daysLabel}`;
+  }, [trackerStartDate, trackerEndDate, totalWorkingDays, trackerPreset]);
+
+  const handleNavigateToClassAttendance = useCallback(
+    (classItem, dateStr) => {
+      if (!classItem) return;
+      const matchedClass =
+        classes.find((c) => String(c._id) === String(classItem._id)) ||
+        classItem;
+      setSelectedClass(matchedClass);
+      if (dateStr) {
+        setDate(new Date(dateStr));
+      }
+      setActiveTab("student");
+      showToast(
+        `Selected ${formatClassName(classItem.name, classItem.section)} attendance`,
+        "info"
+      );
+    },
+    [classes, showToast]
+  );
 
   const loading =
     summaryLoading ||
@@ -366,7 +460,6 @@ export default function AdminAttendance() {
     if (activeTab === "staff") await refetchStaff();
     if (activeTab === "tracker") {
       await refetchTracker();
-      setTrackerVisible(TRACKER_PAGE);
     }
     if (activeTab === "my_attendance") await refetchMyAttendance();
     setRefreshing(false);
@@ -671,8 +764,8 @@ export default function AdminAttendance() {
               {status === "present"
                 ? "P"
                 : status === "half-day"
-                ? "HD"
-                : "A"}
+                  ? "HD"
+                  : "A"}
             </Text>
           </TouchableOpacity>
         ))}
@@ -1066,13 +1159,12 @@ export default function AdminAttendance() {
                         height: "100%",
                         backgroundColor: colors.primary,
                         borderRadius: 3,
-                        width: `${
-                          schoolSummary?.students?.total > 0
+                        width: `${schoolSummary?.students?.total > 0
                             ? (schoolSummary.students.present /
-                                schoolSummary.students.total) *
-                              100
+                              schoolSummary.students.total) *
+                            100
                             : 0
-                        }%`,
+                          }%`,
                       }}
                     />
                   </View>
@@ -1112,13 +1204,12 @@ export default function AdminAttendance() {
                         height: "100%",
                         backgroundColor: colors.success,
                         borderRadius: 3,
-                        width: `${
-                          schoolSummary?.teachers?.total > 0
+                        width: `${schoolSummary?.teachers?.total > 0
                             ? (schoolSummary.teachers.present /
-                                schoolSummary.teachers.total) *
-                              100
+                              schoolSummary.teachers.total) *
+                            100
                             : 0
-                        }%`,
+                          }%`,
                       }}
                     />
                   </View>
@@ -1261,10 +1352,10 @@ export default function AdminAttendance() {
                             borderColor: colors.primary,
                           },
                           isMarked &&
-                            selectedClass?._id !== cls._id && {
-                              borderColor: colors.success,
-                              backgroundColor: colors.success + "10",
-                            },
+                          selectedClass?._id !== cls._id && {
+                            borderColor: colors.success,
+                            backgroundColor: colors.success + "10",
+                          },
                         ]}
                         onPress={() => setSelectedClass(cls)}
                       >
@@ -1287,11 +1378,11 @@ export default function AdminAttendance() {
                             style={[
                               styles.classChipText,
                               selectedClass?._id === cls._id &&
-                                styles.activeClassChipText,
+                              styles.activeClassChipText,
                               isMarked &&
-                                selectedClass?._id !== cls._id && {
-                                  color: colors.success,
-                                },
+                              selectedClass?._id !== cls._id && {
+                                color: colors.success,
+                              },
                             ]}
                           >
                             {formatClassName(cls.name, cls.section)}
@@ -1787,176 +1878,19 @@ export default function AdminAttendance() {
           )}
 
           {activeTab === "tracker" && (
-            <View style={{ flex: 1, padding: 16 }}>
-              <Text style={styles.titleMedium}>Missing Attendance Tracker</Text>
-              <Text
-                style={{
-                  fontSize: FONT_SIZES.sm,
-                  color: colors.textSecondary,
-                  marginBottom: 16,
-                  fontFamily: FONTS.regular,
-                }}
-              >
-                Shows days where classes missed marking attendance.
-              </Text>
-              <ScrollView
-                refreshControl={
-                  <AppRefreshControl
-                    refreshing={refreshing}
-                    onRefresh={onRefresh}
-                  />
-                }
-                contentContainerStyle={{ paddingBottom: 24 }}
-              >
-                {trackerData.length === 0 ? (
-                  <EmptyState
-                    title="No Tracking Data"
-                    message="There is no attendance tracking data for the selected period."
-                    icon="event-busy"
-                  />
-                ) : (
-                  <>
-                    {trackerData.slice(0, trackerVisible).map((item) => (
-                      <View
-                        key={item.date}
-                        style={{
-                          backgroundColor: colors.cardBackground,
-                          borderRadius: 12,
-                          padding: 16,
-                          marginBottom: 12,
-                          elevation: 1,
-                          borderLeftWidth: 4,
-                          borderLeftColor:
-                            item.missingCount > 0
-                              ? colors.error
-                              : colors.success,
-                        }}
-                      >
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            marginBottom: 8,
-                          }}
-                        >
-                          <Text
-                            style={{
-                              fontSize: FONT_SIZES.md,
-                              fontFamily: FONTS.bold,
-                              color: colors.textPrimary,
-                            }}
-                          >
-                            {new Date(item.date).toDateString()}
-                          </Text>
-                          <View
-                            style={{
-                              backgroundColor:
-                                item.missingCount > 0
-                                  ? colors.error + "20"
-                                  : colors.success + "20",
-                              paddingHorizontal: 10,
-                              paddingVertical: 4,
-                              borderRadius: 12,
-                            }}
-                          >
-                            <Text
-                              style={{
-                                fontSize: FONT_SIZES.sm,
-                                fontFamily: FONTS.bold,
-                                color:
-                                  item.missingCount > 0
-                                    ? colors.error
-                                    : colors.success,
-                              }}
-                            >
-                              {item.missingCount > 0
-                                ? `${item.missingCount} Missing`
-                                : "Complete"}
-                            </Text>
-                          </View>
-                        </View>
-                        {item.missingCount > 0 ? (
-                          <View>
-                            <Text
-                              style={{
-                                fontSize: FONT_SIZES.sm,
-                                color: colors.textSecondary,
-                                marginBottom: 4,
-                                fontFamily: FONTS.medium,
-                              }}
-                            >
-                              Classes that missed attendance:
-                            </Text>
-                            <View
-                              style={{
-                                flexDirection: "row",
-                                flexWrap: "wrap",
-                                gap: 6,
-                              }}
-                            >
-                              {item.missingClasses.map((cls, idx) => (
-                                <Text
-                                  key={idx}
-                                  style={{
-                                    fontSize: FONT_SIZES.sm,
-                                    backgroundColor: colors.surfaceContainer,
-                                    paddingHorizontal: 8,
-                                    paddingVertical: 4,
-                                    borderRadius: 4,
-                                    color: colors.textPrimary,
-                                  }}
-                                >
-                                  {formatClassName(cls.name, cls.section)}
-                                </Text>
-                              ))}
-                            </View>
-                          </View>
-                        ) : (
-                          <Text
-                            style={{
-                              fontSize: FONT_SIZES.sm,
-                              color: colors.textSecondary,
-                              fontFamily: FONTS.regular,
-                            }}
-                          >
-                            All {item.totalCount} classes marked attendance on
-                            this day.
-                          </Text>
-                        )}
-                      </View>
-                    ))}
-                    {trackerVisible < trackerData.length && (
-                      <TouchableOpacity
-                        onPress={() =>
-                          setTrackerVisible((v) => v + TRACKER_PAGE)
-                        }
-                        style={{
-                          alignItems: "center",
-                          paddingVertical: 10,
-                          borderRadius: 10,
-                          borderWidth: 1,
-                          borderColor: colors.primary + "50",
-                          marginTop: 4,
-                          marginBottom: 8,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            fontSize: FONT_SIZES.sm,
-                            fontFamily: FONTS.semiBold,
-                            color: colors.primary,
-                          }}
-                        >
-                          Show More ({trackerData.length - trackerVisible}{" "}
-                          remaining)
-                        </Text>
-                      </TouchableOpacity>
-                    )}
-                  </>
-                )}
-              </ScrollView>
-            </View>
+            <AttendanceTrackerView
+              trackerData={trackerData}
+              teacherSummary={teacherSummary}
+              totalWorkingDays={totalWorkingDays}
+              totalClasses={totalClasses}
+              isLoading={trackerLoading}
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              activeRangePreset={trackerPreset}
+              onSelectRangePreset={handleSelectTrackerPreset}
+              dateRangeLabel={trackerDateRangeLabel}
+              onNavigateToClassAttendance={handleNavigateToClassAttendance}
+            />
           )}
 
           {activeTab === "my_attendance" && (

@@ -227,21 +227,21 @@ const UpcomingEventsCard = () => {
 
 const styles = StyleSheet.create({
   eventsCard: {
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 0.5,
     overflow: "hidden",
   },
   eventItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 14,
     gap: 12,
   },
   dateTile: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
+    width: 46,
+    height: 46,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 0,
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
   },
   eventTitle: {
     fontSize: FONT_SIZES.md,
-    fontFamily: FONTS.semiBold,
+    fontFamily: FONTS.bold,
     marginBottom: 2,
   },
   metaRow: {

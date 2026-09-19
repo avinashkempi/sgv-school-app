@@ -7,6 +7,7 @@ import {
   Platform,
 } from "react-native";
 import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import {
   useTheme,
   FONTS,
@@ -108,34 +109,47 @@ export default function Login() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
       style={{ flex: 1, backgroundColor: colors.background }}
     >
       <ScrollView
         contentContainerStyle={{
           flexGrow: 1,
-          padding: SPACING.xxl || 24,
+          paddingHorizontal: SPACING.xxl || 24,
+          paddingVertical: SPACING.xl || 20,
           justifyContent: "center",
         }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
         {/* Header Section */}
-        <View style={{ alignItems: "center", marginBottom: SPACING.xxxl || 36 }}>
+        <View style={{ alignItems: "center", marginBottom: SPACING.xxl || 28 }}>
+          {/* Subtle radial glow behind logo */}
+          <LinearGradient
+            colors={[colors.primary + "0A", "transparent"]}
+            pointerEvents="none"
+            style={{
+              position: "absolute",
+              width: 180,
+              height: 180,
+              borderRadius: 90,
+              top: -20,
+            }}
+          />
           <View
             style={{
-              width: 88,
-              height: 88,
+              width: 80,
+              height: 80,
               backgroundColor: colors.surfaceContainerLowest || "#ffffff",
               borderRadius: RADIUS.xl || 24,
               justifyContent: "center",
               alignItems: "center",
-              marginBottom: SPACING.lg || 16,
-              shadowColor: colors.primary,
-              shadowOffset: { width: 0, height: 6 },
-              shadowOpacity: 0.12,
-              shadowRadius: 14,
-              elevation: 4,
+              marginBottom: SPACING.md || 12,
+              shadowColor: colors.shadow,
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.08,
+              shadowRadius: 10,
+              elevation: 2,
               borderWidth: 1,
               borderColor: colors.outlineVariant || "rgba(0,0,0,0.08)",
               padding: 6,
@@ -147,6 +161,7 @@ export default function Login() {
               contentFit="contain"
             />
           </View>
+
           <Text
             style={{
               fontSize: FONT_SIZES.display,
@@ -159,9 +174,10 @@ export default function Login() {
           >
             {t("login.title")}
           </Text>
+
           <Text
             style={{
-              fontSize: FONT_SIZES.md,
+              fontSize: FONT_SIZES.sm,
               fontFamily: FONTS.bold,
               color: colors.primary,
               textAlign: "center",
@@ -170,9 +186,10 @@ export default function Login() {
           >
             Shri Guru Vidya English Medium School
           </Text>
+
           <Text
             style={{
-              fontSize: FONT_SIZES.sm,
+              fontSize: FONT_SIZES.xs,
               fontFamily: FONTS.regular,
               color: colors.onSurfaceVariant,
               textAlign: "center",
@@ -183,7 +200,7 @@ export default function Login() {
         </View>
 
         {/* Form Section */}
-        <View style={{ gap: SPACING.xl || 20 }}>
+        <View style={{ gap: SPACING.lg || 16 }}>
           <TextInput
             label={t("login.phoneLabel")}
             icon="phone"
@@ -239,14 +256,14 @@ export default function Login() {
                 style={{
                   flex: 1,
                   height: 1,
-                  backgroundColor: colors.outlineVariant,
+                  backgroundColor: colors.outlineVariant + "80",
                 }}
               />
               <Text
                 style={{
                   marginHorizontal: SPACING.lg || 16,
                   color: colors.onSurfaceVariant,
-                  fontSize: FONT_SIZES.sm,
+                  fontSize: FONT_SIZES.xs,
                   fontFamily: FONTS.medium,
                 }}
               >
@@ -256,7 +273,7 @@ export default function Login() {
                 style={{
                   flex: 1,
                   height: 1,
-                  backgroundColor: colors.outlineVariant,
+                  backgroundColor: colors.outlineVariant + "80",
                 }}
               />
             </View>

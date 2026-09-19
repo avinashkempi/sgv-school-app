@@ -166,8 +166,6 @@ const HomeModuleContainer = ({
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 20,
-    borderWidth: 0,
     marginBottom: 20,
     overflow: "hidden",
   },
@@ -175,8 +173,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingTop: 14,
+    paddingHorizontal: 0,
+    paddingTop: 8,
     paddingBottom: 10,
     gap: 8,
   },
@@ -239,8 +237,8 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.medium,
   },
   content: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingHorizontal: 0,
+    paddingBottom: 0,
   },
   contentNoPadding: {
     paddingHorizontal: 0,

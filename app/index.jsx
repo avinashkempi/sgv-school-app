@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { View, ScrollView } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTheme } from "../theme";
+import { useTheme, SPACING } from "../theme";
 import useSchoolInfo from "../hooks/useSchoolInfo";
 import useTabScrollToTop from "../hooks/useTabScrollToTop";
 import useDoubleBackToExit from "../hooks/useDoubleBackToExit";
@@ -86,7 +86,7 @@ export default function HomeScreen() {
         style={{ flex: 1 }}
         contentContainerStyle={[
           themeStyles.contentPaddingBottom,
-          { paddingHorizontal: 16, paddingTop: 12 },
+          { paddingHorizontal: SPACING.screenPaddingH || 16, paddingTop: 12 },
         ]}
         refreshControl={
           <AppRefreshControl refreshing={refreshing} onRefresh={onRefresh} />

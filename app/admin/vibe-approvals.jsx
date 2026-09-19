@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useRef } from "react";
+import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -41,6 +41,7 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const CARD_WIDTH = SCREEN_WIDTH - 24;
 
 const REJECT_REASONS = [
+  "Approved by mistake / Retracted",
   "Does not meet school community guidelines",
   "Blurry or low-quality photo",
   "Duplicate or redundant submission",
@@ -67,11 +68,21 @@ export default function VibeApprovalsScreen() {
 
   const [activeFilter, setActiveFilter] = useState("all");
   const [selectedIds, setSelectedIds] = useState(new Set());
-  const [rejectingVibe, setRejectingVibe] = useState(null); // { vibe, isEditing?: boolean }
+  const [rejectingVibe, setRejectingVibe] = useState(null); // { vibe, isEditing?: boolean, isTakedown?: boolean }
   const [isBatchReject, setIsBatchReject] = useState(false);
-  const [selectedReason, setSelectedReason] = useState(REJECT_REASONS[0]);
+  const [selectedReason, setSelectedReason] = useState(REJECT_REASONS[1]);
   const [customReason, setCustomReason] = useState("");
   const [processingId, setProcessingId] = useState(null);
+
+  // Immediate Undo / Quick Reject toast banner state
+  const [undoBanner, setUndoBanner] = useState(null); // { vibe, vibeIds: string[], vibeLabel: string, isBatch: boolean }
+  const undoTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    };
+  }, []);
 
   // Viewport visibility tracking for high-performance video autoplay
   const [visibleItemIds, setVisibleItemIds] = useState(new Set());
@@ -264,6 +275,19 @@ export default function VibeApprovalsScreen() {
           vibeId: vibe._id,
           action: "approve",
         });
+
+        // Set immediate Undo / Quick Reject banner
+        if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+        const authorName = formatUserName(vibe.author?.name, "Post");
+        setUndoBanner({
+          vibe,
+          vibeIds: [vibe._id],
+          vibeLabel: authorName ? `${authorName}'s post` : "post",
+          isBatch: false,
+        });
+        undoTimerRef.current = setTimeout(() => {
+          setUndoBanner(null);
+        }, 8500);
       } finally {
         setProcessingId(null);
       }
@@ -316,17 +340,82 @@ export default function VibeApprovalsScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
       () => {}
     );
+    const ids = Array.from(selectedIds);
     await batchReviewMutation.mutateAsync({
-      vibeIds: Array.from(selectedIds),
+      vibeIds: ids,
       action: "approve",
     });
+
+    // Set immediate Undo / Quick Reject banner for batch
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    setUndoBanner({
+      vibe: null,
+      vibeIds: ids,
+      vibeLabel: `${ids.length} vibes`,
+      isBatch: true,
+    });
+    undoTimerRef.current = setTimeout(() => {
+      setUndoBanner(null);
+    }, 8500);
   }, [selectedIds, batchReviewMutation]);
+
+  const handleBatchRestoreToPending = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    await batchReviewMutation.mutateAsync({
+      vibeIds: Array.from(selectedIds),
+      action: "pending",
+    });
+  }, [selectedIds, batchReviewMutation]);
+
+  const handleUndoReject = useCallback(() => {
+    if (!undoBanner) return;
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    const { vibe, vibeIds, isBatch } = undoBanner;
+    setUndoBanner(null);
+
+    setSelectedReason("Approved by mistake / Retracted");
+    setCustomReason("");
+    if (isBatch) {
+      setSelectedIds(new Set(vibeIds));
+      setIsBatchReject(true);
+      setRejectingVibe({ _id: "batch", isTakedown: true });
+    } else {
+      setIsBatchReject(false);
+      setRejectingVibe({ ...(vibe || { _id: vibeIds[0] }), isTakedown: true });
+    }
+  }, [undoBanner]);
+
+  const handleUndoToPending = useCallback(async () => {
+    if (!undoBanner) return;
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    const { vibeIds, isBatch } = undoBanner;
+    setUndoBanner(null);
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    if (isBatch) {
+      await batchReviewMutation.mutateAsync({
+        vibeIds,
+        action: "pending",
+      });
+    } else {
+      await reviewMutation.mutateAsync({
+        vibeId: vibeIds[0],
+        action: "pending",
+      });
+    }
+  }, [undoBanner, batchReviewMutation, reviewMutation]);
+
+  const dismissUndoBanner = useCallback(() => {
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    setUndoBanner(null);
+  }, []);
 
   const handleBatchRejectPrompt = useCallback(() => {
     if (selectedIds.size === 0) return;
     setIsBatchReject(true);
-    setRejectingVibe({ _id: "batch" });
-  }, [selectedIds]);
+    setRejectingVibe({ _id: "batch", isTakedown: statusTab === "approved" });
+  }, [selectedIds, statusTab]);
 
   const handleConfirmReject = useCallback(async () => {
     const finalReason = customReason.trim() || selectedReason;
@@ -845,6 +934,7 @@ export default function VibeApprovalsScreen() {
   const renderApprovedItem = useCallback(
     (item) => {
       const isProcessing = processingId === item._id;
+      const isSelected = selectedIds.has(item._id);
 
       return (
         <View
@@ -853,13 +943,29 @@ export default function VibeApprovalsScreen() {
             styles.reviewCard,
             {
               backgroundColor: colors.surfaceContainer,
-              borderColor: isDark ? "rgba(5, 150, 105, 0.4)" : "#A7F3D0",
-              borderWidth: 1.5,
+              borderColor: isSelected
+                ? colors.primary
+                : isDark
+                ? "rgba(5, 150, 105, 0.4)"
+                : "#A7F3D0",
+              borderWidth: isSelected ? 2 : 1.5,
             },
           ]}
         >
-          {/* Header Row: Author & Status Pill */}
+          {/* Header Row: Checkbox, Author & Status Pill */}
           <View style={styles.authorHeader}>
+            <Pressable
+              onPress={() => toggleSelect(item._id)}
+              hitSlop={8}
+              style={styles.checkboxTouch}
+            >
+              <MaterialIcons
+                name={isSelected ? "check-box" : "check-box-outline-blank"}
+                size={22}
+                color={isSelected ? colors.primary : colors.onSurfaceVariant}
+              />
+            </Pressable>
+
             <UserAvatar
               photoUrl={item.author?.profilePhoto}
               name={formatUserName(item.author?.name, "Community Member")}
@@ -948,43 +1054,85 @@ export default function VibeApprovalsScreen() {
             </Text>
           </View>
 
-          {/* Action Row */}
+          {/* Action Row: Spacious 2-tier layout */}
           <View
             style={[
-              styles.actionRow,
+              styles.rejectedActionsContainer,
               { borderTopColor: colors.outlineVariant },
             ]}
           >
+            {/* Primary Action: Reject & Take Down from Live Feed */}
             <Pressable
               onPress={() => {
                 setIsBatchReject(false);
-                setSelectedReason(REJECT_REASONS[0]);
+                setSelectedReason("Approved by mistake / Retracted");
                 setCustomReason("");
-                setRejectingVibe(item);
+                setRejectingVibe({ ...item, isTakedown: true });
               }}
               disabled={isProcessing}
-              style={[styles.rejectBtn, { borderColor: colors.error }]}
-            >
-              <MaterialIcons name="close" size={18} color={colors.error} />
-              <Text style={[styles.rejectBtnText, { color: colors.error }]}>
-                Reject / Take Down
-              </Text>
-            </Pressable>
-
-            <Pressable
-              onPress={() => handleDelete(item)}
-              disabled={isProcessing}
               style={[
-                styles.deleteIconBtn,
-                { borderColor: colors.error, paddingHorizontal: 16 },
+                styles.fullRejectBtn,
+                { backgroundColor: colors.error || "#DC2626" },
               ]}
             >
-              <MaterialIcons
-                name="delete-outline"
-                size={18}
-                color={colors.error}
-              />
+              {isProcessing ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <View style={styles.btnContentRow}>
+                  <MaterialIcons
+                    name="remove-circle-outline"
+                    size={18}
+                    color="#fff"
+                  />
+                  <Text style={styles.fullRejectBtnText}>
+                    Reject & Take Down
+                  </Text>
+                </View>
+              )}
             </Pressable>
+
+            {/* Secondary Actions Row: Restore to Queue / Delete */}
+            <View style={styles.rejectedSecondaryRow}>
+              {/* Restore to Queue */}
+              <Pressable
+                onPress={() => handleRestoreToPending(item)}
+                disabled={isProcessing}
+                style={[
+                  styles.rejectedSecondaryBtn,
+                  { borderColor: colors.outlineVariant },
+                ]}
+              >
+                <MaterialIcons
+                  name="replay"
+                  size={15}
+                  color={colors.primary}
+                />
+                <Text
+                  style={[
+                    styles.rejectedSecondaryText,
+                    { color: colors.primary },
+                  ]}
+                >
+                  Restore to Queue
+                </Text>
+              </Pressable>
+
+              {/* Delete permanently */}
+              <Pressable
+                onPress={() => handleDelete(item)}
+                disabled={isProcessing}
+                style={[
+                  styles.deleteIconBtn,
+                  { borderColor: isDark ? "rgba(220,38,38,0.4)" : "#FECACA" },
+                ]}
+              >
+                <MaterialIcons
+                  name="delete-outline"
+                  size={18}
+                  color={colors.error}
+                />
+              </Pressable>
+            </View>
           </View>
         </View>
       );
@@ -993,8 +1141,11 @@ export default function VibeApprovalsScreen() {
       colors,
       isDark,
       processingId,
+      selectedIds,
+      toggleSelect,
       visibleItemIds,
       formatDateTime,
+      handleRestoreToPending,
       handleDelete,
     ]
   );
@@ -1276,34 +1427,35 @@ export default function VibeApprovalsScreen() {
             }}
           />
 
-          {statusTab === "pending" && filteredVibes.length > 0 && (
-            <Pressable
-              onPress={handleSelectAll}
-              style={[
-                styles.selectAllBtn,
-                { backgroundColor: colors.surfaceContainerHighest },
-              ]}
-            >
-              <MaterialIcons
-                name={
-                  selectedIds.size === filteredVibes.length &&
-                  filteredVibes.length > 0
-                    ? "check-box"
-                    : "check-box-outline-blank"
-                }
-                size={16}
-                color={colors.primary}
-              />
-              <Text
-                style={[styles.selectAllBtnText, { color: colors.primary }]}
+          {(statusTab === "pending" || statusTab === "approved") &&
+            filteredVibes.length > 0 && (
+              <Pressable
+                onPress={handleSelectAll}
+                style={[
+                  styles.selectAllBtn,
+                  { backgroundColor: colors.surfaceContainerHighest },
+                ]}
               >
-                {selectedIds.size === filteredVibes.length &&
-                filteredVibes.length > 0
-                  ? "Deselect"
-                  : "Select All"}
-              </Text>
-            </Pressable>
-          )}
+                <MaterialIcons
+                  name={
+                    selectedIds.size === filteredVibes.length &&
+                    filteredVibes.length > 0
+                      ? "check-box"
+                      : "check-box-outline-blank"
+                  }
+                  size={16}
+                  color={colors.primary}
+                />
+                <Text
+                  style={[styles.selectAllBtnText, { color: colors.primary }]}
+                >
+                  {selectedIds.size === filteredVibes.length &&
+                  filteredVibes.length > 0
+                    ? "Deselect"
+                    : "Select All"}
+                </Text>
+              </Pressable>
+            )}
         </View>
 
         {/* ──── Main Content ──── */}
@@ -1394,40 +1546,161 @@ export default function VibeApprovalsScreen() {
           />
         )}
 
-        {/* ──── Floating Batch Action Bar (for Pending tab) ──── */}
-        {statusTab === "pending" && selectedIds.size > 0 && (
+        {/* ──── Floating Batch Action Bar ──── */}
+        {(statusTab === "pending" || statusTab === "approved") &&
+          selectedIds.size > 0 && (
+            <View
+              style={[
+                styles.batchActionBar,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.outlineVariant,
+                },
+              ]}
+            >
+              <Text
+                style={[styles.batchCountText, { color: colors.onSurface }]}
+              >
+                {selectedIds.size} selected
+              </Text>
+              <View style={styles.batchBtnRow}>
+                {statusTab === "pending" ? (
+                  <>
+                    <Pressable
+                      onPress={handleBatchRejectPrompt}
+                      style={[
+                        styles.batchRejectBtn,
+                        { borderColor: colors.error },
+                      ]}
+                    >
+                      <MaterialIcons
+                        name="close"
+                        size={16}
+                        color={colors.error}
+                      />
+                      <Text
+                        style={[
+                          styles.batchRejectBtnText,
+                          { color: colors.error },
+                        ]}
+                      >
+                        Reject
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={handleBatchApprove}
+                      style={[
+                        styles.batchApproveBtn,
+                        { backgroundColor: "#2E7D32" },
+                      ]}
+                    >
+                      <MaterialIcons name="check" size={16} color="#fff" />
+                      <Text style={styles.batchApproveBtnText}>
+                        Approve ({selectedIds.size})
+                      </Text>
+                    </Pressable>
+                  </>
+                ) : (
+                  <>
+                    <Pressable
+                      onPress={handleBatchRestoreToPending}
+                      style={[
+                        styles.batchRestoreBtn,
+                        { borderColor: colors.primary },
+                      ]}
+                    >
+                      <MaterialIcons
+                        name="replay"
+                        size={16}
+                        color={colors.primary}
+                      />
+                      <Text
+                        style={[
+                          styles.batchRestoreBtnText,
+                          { color: colors.primary },
+                        ]}
+                      >
+                        Restore Queue ({selectedIds.size})
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => {
+                        setSelectedReason("Approved by mistake / Retracted");
+                        handleBatchRejectPrompt();
+                      }}
+                      style={[
+                        styles.batchRejectBtn,
+                        {
+                          backgroundColor: colors.error,
+                          borderColor: colors.error,
+                        },
+                      ]}
+                    >
+                      <MaterialIcons name="close" size={16} color="#fff" />
+                      <Text
+                        style={[
+                          styles.batchRejectBtnText,
+                          { color: "#fff" },
+                        ]}
+                      >
+                        Reject ({selectedIds.size})
+                      </Text>
+                    </Pressable>
+                  </>
+                )}
+              </View>
+            </View>
+          )}
+
+        {/* ──── Immediate Undo / Quick Reject Floating Banner ──── */}
+        {undoBanner && (
           <View
             style={[
-              styles.batchActionBar,
+              styles.undoBanner,
               {
-                backgroundColor: colors.surface,
-                borderColor: colors.outlineVariant,
+                backgroundColor: isDark ? "#1E293B" : "#0F172A",
+                borderColor: isDark ? "#334155" : "#1E293B",
+                bottom: selectedIds.size > 0 ? 84 : 20,
               },
             ]}
           >
-            <Text style={[styles.batchCountText, { color: colors.onSurface }]}>
-              {selectedIds.size} selected
-            </Text>
-            <View style={styles.batchBtnRow}>
-              <Pressable
-                onPress={handleBatchRejectPrompt}
-                style={[styles.batchRejectBtn, { borderColor: colors.error }]}
-              >
-                <MaterialIcons name="close" size={16} color={colors.error} />
-                <Text
-                  style={[styles.batchRejectBtnText, { color: colors.error }]}
-                >
-                  Reject
+            <View style={styles.undoBannerContent}>
+              <View style={styles.undoIconCircle}>
+                <MaterialIcons name="check" size={14} color="#10B981" />
+              </View>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={styles.undoBannerTitle} numberOfLines={1}>
+                  Approved {undoBanner.vibeLabel}
                 </Text>
+                <Text style={styles.undoBannerSubtitle}>
+                  Approved by mistake?
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.undoBannerActions}>
+              <Pressable
+                onPress={handleUndoReject}
+                style={styles.undoRejectBtn}
+              >
+                <MaterialIcons name="close" size={14} color="#EF4444" />
+                <Text style={styles.undoRejectBtnText}>Reject</Text>
               </Pressable>
+
               <Pressable
-                onPress={handleBatchApprove}
-                style={[styles.batchApproveBtn, { backgroundColor: "#2E7D32" }]}
+                onPress={handleUndoToPending}
+                style={styles.undoPendingBtn}
               >
-                <MaterialIcons name="check" size={16} color="#fff" />
-                <Text style={styles.batchApproveBtnText}>
-                  Approve ({selectedIds.size})
-                </Text>
+                <MaterialIcons name="undo" size={14} color="#38BDF8" />
+                <Text style={styles.undoPendingBtnText}>Undo</Text>
+              </Pressable>
+
+              <Pressable
+                onPress={dismissUndoBanner}
+                hitSlop={8}
+                style={styles.undoDismissBtn}
+              >
+                <MaterialIcons name="close" size={16} color="#94A3B8" />
               </Pressable>
             </View>
           </View>
@@ -1476,7 +1749,11 @@ export default function VibeApprovalsScreen() {
                       {rejectingVibe?.isEditing
                         ? "Edit Rejection Feedback"
                         : isBatchReject
-                        ? `Reject ${selectedIds.size} Submissions`
+                        ? statusTab === "approved"
+                          ? `Take Down & Reject ${selectedIds.size} Submissions`
+                          : `Reject ${selectedIds.size} Submissions`
+                        : rejectingVibe?.isTakedown || statusTab === "approved"
+                        ? "Reject & Take Down Vibe"
                         : "Reject Vibe Submission"}
                     </Text>
                     <Text
@@ -1487,6 +1764,8 @@ export default function VibeApprovalsScreen() {
                     >
                       {rejectingVibe?.isEditing
                         ? "Update the feedback reason sent to the author."
+                        : rejectingVibe?.isTakedown || statusTab === "approved"
+                        ? "This vibe is currently live on the school feed. Confirming will unpublish it immediately and notify the author."
                         : "Select a reason or write custom feedback."}
                     </Text>
                   </View>
@@ -1610,6 +1889,38 @@ export default function VibeApprovalsScreen() {
                   />
                 </ScrollView>
 
+                {/* Secondary Helper for Approved Vibe: Restore to Queue */}
+                {!isBatchReject &&
+                  (rejectingVibe?.isTakedown || statusTab === "approved") &&
+                  !rejectingVibe?.isEditing && (
+                    <Pressable
+                      onPress={() => {
+                        Keyboard.dismiss();
+                        const v = rejectingVibe;
+                        setRejectingVibe(null);
+                        handleRestoreToPending(v);
+                      }}
+                      style={[
+                        styles.modalRestoreQueueBtn,
+                        { borderColor: colors.primary },
+                      ]}
+                    >
+                      <MaterialIcons
+                        name="replay"
+                        size={16}
+                        color={colors.primary}
+                      />
+                      <Text
+                        style={[
+                          styles.modalRestoreQueueText,
+                          { color: colors.primary },
+                        ]}
+                      >
+                        Approved by mistake? Move to Pending Queue instead
+                      </Text>
+                    </Pressable>
+                  )}
+
                 {/* Fixed Footer with Cancel & Submit Buttons */}
                 <View
                   style={[
@@ -1655,6 +1966,8 @@ export default function VibeApprovalsScreen() {
                     <Text style={styles.modalRejectText}>
                       {rejectingVibe?.isEditing
                         ? "Save Feedback"
+                        : (rejectingVibe?.isTakedown || statusTab === "approved")
+                        ? "Take Down & Reject"
                         : "Confirm Rejection"}
                     </Text>
                   </Pressable>
@@ -1984,6 +2297,18 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
   },
+  fullRejectBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    borderRadius: 14,
+  },
+  fullRejectBtnText: {
+    color: "#fff",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
+  },
   rejectedSecondaryRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -2037,6 +2362,19 @@ const styles = StyleSheet.create({
   batchBtnRow: {
     flexDirection: "row",
     gap: 8,
+  },
+  batchRestoreBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1.5,
+  },
+  batchRestoreBtnText: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
   },
   batchRejectBtn: {
     flexDirection: "row",
@@ -2169,5 +2507,105 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.bold,
+  },
+  modalRestoreQueueBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  modalRestoreQueueText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+  },
+  undoBanner: {
+    position: "absolute",
+    left: 16,
+    right: 16,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    elevation: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    zIndex: 999,
+  },
+  undoBannerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    flex: 1,
+    marginRight: 8,
+  },
+  undoIconCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: "rgba(16, 185, 129, 0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  undoBannerTitle: {
+    color: "#F8FAFC",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
+  },
+  undoBannerSubtitle: {
+    color: "#94A3B8",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.regular,
+  },
+  undoBannerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  undoRejectBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: "rgba(239, 68, 68, 0.18)",
+    borderWidth: 1,
+    borderColor: "rgba(239, 68, 68, 0.4)",
+  },
+  undoRejectBtnText: {
+    color: "#EF4444",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+  },
+  undoPendingBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: "rgba(56, 189, 248, 0.18)",
+    borderWidth: 1,
+    borderColor: "rgba(56, 189, 248, 0.4)",
+  },
+  undoPendingBtnText: {
+    color: "#38BDF8",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+  },
+  undoDismissBtn: {
+    padding: 4,
+    marginLeft: 2,
   },
 });

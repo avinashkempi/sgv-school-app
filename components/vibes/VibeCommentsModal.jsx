@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,6 @@ import {
   Platform,
   ActivityIndicator,
   StyleSheet,
-  Alert,
 } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -42,7 +41,15 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
   const [postAsSchool, setPostAsSchool] = useState(isAdmin);
   const [submitting, setSubmitting] = useState(false);
   const [replyingTo, setReplyingTo] = useState(null); // { id, name, text }
+  const [commentToDelete, setCommentToDelete] = useState(null);
   const inputRef = useRef(null);
+
+  // Reset delete confirmation state if modal is closed
+  useEffect(() => {
+    if (!visible) {
+      setCommentToDelete(null);
+    }
+  }, [visible]);
 
   const vibeId = vibe?._id;
   const queryKey = ["vibeComments", vibeId];
@@ -313,23 +320,20 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
     }
   }, [commentText, submitting, addCommentMutation, isAdmin, postAsSchool, replyingTo]);
 
-  const handleDeleteComment = useCallback(
-    (comment) => {
-      Alert.alert(
-        "Delete Comment",
-        "Are you sure you want to remove this comment?",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Delete",
-            style: "destructive",
-            onPress: () => deleteCommentMutation.mutate(comment._id),
-          },
-        ]
-      );
-    },
-    [deleteCommentMutation]
-  );
+  const handleDeleteComment = useCallback((comment) => {
+    setCommentToDelete(comment);
+  }, []);
+
+  const handleConfirmDelete = useCallback(() => {
+    if (commentToDelete?._id) {
+      deleteCommentMutation.mutate(commentToDelete._id);
+    }
+    setCommentToDelete(null);
+  }, [commentToDelete, deleteCommentMutation]);
+
+  const handleCancelDelete = useCallback(() => {
+    setCommentToDelete(null);
+  }, []);
 
   const handleQuickEmoji = useCallback((emoji) => {
     setCommentText((prev) => `${prev}${emoji}`);
@@ -501,7 +505,7 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
       visible={visible}
       animationType="slide"
       transparent
-      onRequestClose={onClose}
+      onRequestClose={commentToDelete ? handleCancelDelete : onClose}
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -728,6 +732,107 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
           </View>
         </View>
       </KeyboardAvoidingView>
+
+      {/* Delete Comment Confirmation Popup Dialog (Android & iOS safe) */}
+      {commentToDelete && (
+        <View style={styles.confirmBackdrop}>
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={handleCancelDelete}
+          />
+          <Animated.View
+            entering={FadeIn.duration(150)}
+            style={[
+              styles.confirmCard,
+              {
+                backgroundColor: colors.surfaceContainerLow || colors.surface,
+                borderColor: colors.outlineVariant,
+              },
+            ]}
+          >
+            {/* Trash Icon Badge */}
+            <View
+              style={[
+                styles.confirmIconBadge,
+                { backgroundColor: colors.errorContainer || "#FFEBEE" },
+              ]}
+            >
+              <MaterialIcons
+                name="delete-outline"
+                size={26}
+                color={colors.error || "#D32F2F"}
+              />
+            </View>
+
+            <Text style={[styles.confirmTitle, { color: colors.onSurface }]}>
+              Delete Comment
+            </Text>
+
+            {commentToDelete?.text ? (
+              <View
+                style={[
+                  styles.confirmCommentPreview,
+                  { backgroundColor: colors.surfaceContainerHighest },
+                ]}
+              >
+                <Text
+                  numberOfLines={2}
+                  style={[
+                    styles.confirmCommentPreviewText,
+                    { color: colors.onSurfaceVariant },
+                  ]}
+                >
+                  "{commentToDelete.text}"
+                </Text>
+              </View>
+            ) : null}
+
+            <Text
+              style={[styles.confirmMessage, { color: colors.onSurfaceVariant }]}
+            >
+              Are you sure you want to remove this comment? This action cannot be undone.
+            </Text>
+
+            <View style={styles.confirmButtonRow}>
+              <Pressable
+                onPress={handleCancelDelete}
+                style={[
+                  styles.confirmBtn,
+                  styles.confirmCancelBtn,
+                  { borderColor: colors.outlineVariant },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.confirmCancelBtnText,
+                    { color: colors.onSurface },
+                  ]}
+                >
+                  Cancel
+                </Text>
+              </Pressable>
+
+              <Pressable
+                onPress={handleConfirmDelete}
+                style={[
+                  styles.confirmBtn,
+                  styles.confirmDeleteBtn,
+                  { backgroundColor: colors.error || "#D32F2F" },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.confirmDeleteBtnText,
+                    { color: colors.onError || "#FFFFFF" },
+                  ]}
+                >
+                  Delete
+                </Text>
+              </Pressable>
+            </View>
+          </Animated.View>
+        </View>
+      )}
     </Modal>
   );
 }
@@ -946,5 +1051,85 @@ const styles = StyleSheet.create({
     borderRadius: 19,
     justifyContent: "center",
     alignItems: "center",
+  },
+  confirmBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 9999,
+    elevation: 24,
+    padding: 24,
+  },
+  confirmCard: {
+    width: "100%",
+    maxWidth: 320,
+    borderRadius: 20,
+    padding: 20,
+    alignItems: "center",
+    borderWidth: 1,
+    elevation: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+  },
+  confirmIconBadge: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 14,
+  },
+  confirmTitle: {
+    fontSize: FONT_SIZES.md,
+    fontFamily: FONTS.bold,
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  confirmCommentPreview: {
+    width: "100%",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  confirmCommentPreviewText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.regular,
+    fontStyle: "italic",
+    textAlign: "center",
+  },
+  confirmMessage: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.regular,
+    textAlign: "center",
+    lineHeight: LINE_HEIGHTS.sm,
+    marginBottom: 20,
+  },
+  confirmButtonRow: {
+    flexDirection: "row",
+    gap: 12,
+    width: "100%",
+  },
+  confirmBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  confirmCancelBtn: {
+    borderWidth: 1,
+  },
+  confirmCancelBtnText: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.medium,
+  },
+  confirmDeleteBtn: {},
+  confirmDeleteBtnText: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
   },
 });

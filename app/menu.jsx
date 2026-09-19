@@ -2,7 +2,7 @@ import React, { useRef, useState, useMemo } from "react";
 import { View, ScrollView, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { useTheme } from "../theme";
+import { useTheme, SPACING } from "../theme";
 import { useToast } from "../components/ToastProvider";
 import Header from "../components/Header";
 import { useAuth } from "../context/AuthContext";
@@ -167,12 +167,12 @@ export default function MenuScreen() {
 
 const localStyles = StyleSheet.create({
   headerWrapper: {
-    paddingHorizontal: 16,
+    paddingHorizontal: SPACING.screenPaddingH || 16,
     paddingTop: 12,
     paddingBottom: 4,
   },
   scrollContainer: {
-    paddingHorizontal: 16,
+    paddingHorizontal: SPACING.screenPaddingH || 16,
     paddingTop: 8,
   },
 });

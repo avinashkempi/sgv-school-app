@@ -14,6 +14,10 @@ export const SPACING = {
   xl:  20,   // Elevated section gaps, dialog padding
   xxl: 24,   // Major section breaks, header bottoms, hero paddings
   xxxl: 32,  // Page-level vertical breathing room
+  // Standardized layout tokens
+  sectionGap: 20,       // Vertical gap between home screen modules
+  screenPaddingH: 16,   // Standard app-wide horizontal margins (16px)
+  cardInnerPadding: 16, // Balanced card interior padding
 };
 
 export const RADIUS = {

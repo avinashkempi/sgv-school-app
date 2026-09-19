@@ -278,7 +278,7 @@ function BottomNavigation() {
       style={[
         styles.container,
         {
-          backgroundColor: colors.surfaceContainer + "CC", // 80% opacity for frosted glass effect
+          backgroundColor: colors.surfaceContainer + "E6", // 90% opacity for frosted glass effect
           paddingBottom: insets.bottom,
           borderTopColor: colors.outlineVariant,
           borderTopWidth: StyleSheet.hairlineWidth, // Crisp glass edge
@@ -318,15 +318,15 @@ const TabItem = memo(({ item, isActive, onPress, colors }) => {
   const activeProgress = useSharedValue(isActive ? 1 : 0);
 
   useEffect(() => {
-    activeProgress.value = withTiming(isActive ? 1 : 0, { duration: 250 });
+    activeProgress.value = withTiming(isActive ? 1 : 0, { duration: 200 });
   }, [isActive, activeProgress]);
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.9, { damping: 15, stiffness: 300 });
+    scale.value = withSpring(0.9, { damping: 12, stiffness: 250 });
   };
 
   const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 15, stiffness: 300 });
+    scale.value = withSpring(1, { damping: 12, stiffness: 250 });
   };
 
   const handlePress = useCallback(() => {
@@ -396,7 +396,7 @@ const TabItem = memo(({ item, isActive, onPress, colors }) => {
             styles.label,
             {
               color: isActive ? colors.onSurface : colors.onSurfaceVariant,
-              fontFamily: isActive ? FONTS.semiBold : FONTS.medium,
+              fontFamily: isActive ? FONTS.bold : FONTS.medium,
             },
           ]}
           numberOfLines={1}
@@ -429,8 +429,8 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     width: 52,
-    height: 28,
-    borderRadius: 14,
+    height: 30,
+    borderRadius: 15,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 2,
@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   activePill: {
-    borderRadius: 14,
+    borderRadius: 15,
   },
   label: {
     fontSize: FONT_SIZES.xs,

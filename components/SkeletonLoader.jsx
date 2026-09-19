@@ -23,7 +23,7 @@ export default function SkeletonLoader({
   width = "100%",
   height = 20,
   style,
-  borderRadius = 8,
+  borderRadius = 10,
 }) {
   const { colors, mode } = useTheme();
   const animatedValue = useSharedValue(0);
@@ -32,8 +32,8 @@ export default function SkeletonLoader({
   useEffect(() => {
     animatedValue.value = withRepeat(
       withTiming(1, {
-        duration: 1100,
-        easing: Easing.bezier(0.4, 0, 0.6, 1),
+        duration: 1400,
+        easing: Easing.bezier(0.25, 0, 0.75, 1),
       }),
       -1,
       false
@@ -47,7 +47,7 @@ export default function SkeletonLoader({
       : colors.surfaceContainer || "rgba(0,0,0,0.06)";
 
   const highlightColor =
-    mode === "dark" ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.6)";
+    mode === "dark" ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.45)";
 
   const animatedStyle = useAnimatedStyle(() => {
     const translateX = interpolate(

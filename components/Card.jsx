@@ -52,14 +52,14 @@ const Card = ({
     if (variant === "elevated") {
       return Platform.select({
         web: {
-          boxShadow: "0 1px 4px rgba(0, 0, 0, 0.04)",
+          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
         },
         default: {
           elevation: 1,
           shadowColor: colors.shadow,
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 0.04,
-          shadowRadius: 8,
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.06,
+          shadowRadius: 12,
         },
       });
     }
@@ -69,7 +69,7 @@ const Card = ({
   const cardContainerStyle = [
     {
       backgroundColor: getBackgroundColor(),
-      borderRadius: compact ? (RADIUS.md + 2 || 14) : (RADIUS.xl || 20),
+      borderRadius: compact ? (RADIUS.md + 2 || 14) : 22,
       overflow: "hidden",
       marginBottom: noMargin ? 0 : (SPACING.lg || 16),
     },
@@ -94,7 +94,7 @@ const Card = ({
             ? ({ pressed }) => [
                 { padding: defaultPadding },
                 contentStyle,
-                pressed && { opacity: 0.88, transform: [{ scale: 0.985 }] },
+                pressed && { opacity: 0.90, transform: [{ scale: 0.988 }] },
               ]
             : [{ padding: defaultPadding }, contentStyle]
         }

@@ -27,7 +27,7 @@ const SegmentedControl = ({ tabs, activeTab, onTabChange, style }) => {
         {
           backgroundColor: colors.surfaceContainerHigh,
           borderRadius: RADIUS.md || 12,
-          padding: 3,
+          padding: 4,
         },
         style,
       ]}
@@ -48,6 +48,13 @@ const SegmentedControl = ({ tabs, activeTab, onTabChange, style }) => {
                   : pressed
                   ? colors.surfaceContainerHighest
                   : "transparent",
+                ...(isActive ? {
+                  shadowColor: colors.shadow,
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.06,
+                  shadowRadius: 3,
+                  elevation: 1,
+                } : {}),
               },
             ]}
             accessibilityRole="tab"
@@ -106,7 +113,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 38,
+    minHeight: 40,
   },
   tabContent: {
     flexDirection: "row",

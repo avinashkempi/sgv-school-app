@@ -140,11 +140,11 @@ const Button = ({
       backgroundColor: themeColors.bg,
       paddingVertical: sizeConfig.paddingVertical,
       paddingHorizontal: sizeConfig.paddingHorizontal,
-      borderRadius: RADIUS.full || 100,
+      borderRadius: RADIUS.full || 9999,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      borderWidth: variant === "outlined" ? 1 : 0,
+      borderWidth: variant === "outlined" ? 1.5 : 0,
       borderColor: themeColors.border,
       minHeight: sizeConfig.minHeight,
     },
@@ -160,6 +160,20 @@ const Button = ({
           shadowColor: colors.shadow,
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.12,
+          shadowRadius: 3,
+        },
+      }),
+    variant === "filled" &&
+      !disabled &&
+      Platform.select({
+        web: {
+          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.06)",
+        },
+        default: {
+          elevation: 1,
+          shadowColor: colors.shadow,
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.08,
           shadowRadius: 3,
         },
       }),
@@ -216,8 +230,8 @@ const Button = ({
         containerStyle,
         pressed &&
           !disabled && {
-            opacity: 0.82,
-            transform: [{ scale: 0.97 }],
+            opacity: 0.88,
+            transform: [{ scale: 0.975 }],
           },
       ]}
       android_ripple={{

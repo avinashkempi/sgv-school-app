@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { MotiView } from "moti";
+import Animated, { FadeInUp } from "react-native-reanimated";
 import {
   useTheme,
   FONTS,
@@ -93,7 +93,7 @@ export default function StatCard({
     const textColor = isGrad ? "#FFFFFF" : colors.onSurface;
     const labelColor = isGrad ? "rgba(255,255,255,0.9)" : colors.onSurfaceVariant;
     const subColor = isGrad ? "rgba(255,255,255,0.75)" : colors.onSurfaceVariant;
-    const badgeBg = isGrad ? "rgba(255,255,255,0.2)" : color + "0F"; // 6% tint — barely there
+    const badgeBg = isGrad ? "rgba(255,255,255,0.2)" : color + "14"; // 8% tint — visible but quiet
     const iconColor = isGrad ? "#FFFFFF" : color;
 
     return (
@@ -123,7 +123,7 @@ export default function StatCard({
                 fontFamily: FONTS.semiBold,
                 color: textColor,
                 marginBottom: subtitle || trend ? (SPACING.xs || 4) : 0,
-                letterSpacing: -0.5,
+                letterSpacing: -0.8,
               }}
               numberOfLines={1}
             >
@@ -190,14 +190,8 @@ export default function StatCard({
   };
 
   return (
-    <MotiView
-      from={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{
-        type: "timing",
-        duration: 300,
-        delay: index * 40,
-      }}
+    <Animated.View
+      entering={FadeInUp.delay(index * 60).duration(400).springify().damping(18).stiffness(160)}
       style={{ flex: 1, minWidth: variant === "compact" ? 130 : 150 }}
     >
       <Card
@@ -207,7 +201,7 @@ export default function StatCard({
       >
         {gradient ? (
           <LinearGradient
-            colors={[color, color + "CC"]}
+            colors={[color, color + "B3"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={{ borderRadius: RADIUS.lg || 16 }}
@@ -218,6 +212,6 @@ export default function StatCard({
           renderContent(false)
         )}
       </Card>
-    </MotiView>
+    </Animated.View>
   );
 }

@@ -71,8 +71,8 @@ const TextInput = ({
 
     // Outlined
     return {
-      backgroundColor: "transparent",
-      borderWidth: 1, // Thinner minimalist border
+      backgroundColor: colors.surfaceContainerLowest || colors.surface || "#ffffff",
+      borderWidth: isFocused ? 1.5 : 1,
       borderColor: borderColor,
       borderRadius: 14,
       paddingHorizontal: SPACING.lg,
@@ -114,7 +114,7 @@ const TextInput = ({
           {
             flexDirection: "row",
             alignItems: "center",
-            height: 48,
+            height: 52,
           },
           getContainerStyles(),
           style,
@@ -143,7 +143,7 @@ const TextInput = ({
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor={colors.onSurfaceVariant + "99"}
+          placeholderTextColor={colors.onSurfaceVariant + "80"}
           secureTextEntry={secureTextEntry}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}

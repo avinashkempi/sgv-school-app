@@ -197,10 +197,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   toastWrapper: {
-    width: "90%",
-    maxWidth: 400,
+    width: "92%",
+    maxWidth: 420,
     marginBottom: 10,
-    borderRadius: 16,
+    borderRadius: 14,
     overflow: "hidden",
     ...Platform.select({
       web: {
@@ -209,8 +209,8 @@ const styles = StyleSheet.create({
       default: {
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
+        shadowOpacity: 0.08,
+        shadowRadius: 16,
         elevation: 8,
       },
     }),
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
   iconContainer: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,

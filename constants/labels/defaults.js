@@ -652,6 +652,7 @@ const LABELS = {
     communication: "Communication",
     complaints: "Complaints",
     broadcast: "Broadcast",
+    dailyReminders: "Daily Reminders",
     userManagement: "User Management",
     addUser: "Add User",
     searchUsersPlaceholder: "Search users...",

@@ -480,8 +480,8 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
     elevation: 1,
   },
   smallLogoBox: {
@@ -515,18 +515,19 @@ const styles = StyleSheet.create({
     marginTop: -1,
   },
   welcomeGreetingRow: {
-    marginTop: SPACING.xl || 20,
+    marginTop: SPACING.xxl || 24,
     marginBottom: SPACING.xs || 4,
   },
   greetingText: {
     fontSize: FONT_SIZES.xl,
-    fontFamily: FONTS.semiBold,
+    fontFamily: FONTS.bold,
     letterSpacing: -0.5,
   },
   greetingDate: {
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.medium,
     marginTop: 2,
+    letterSpacing: 0.3,
   },
   leftContainer: {
     flex: 1,
