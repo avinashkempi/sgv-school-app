@@ -33,6 +33,11 @@ import OfflineSyncBar from "../components/offline/OfflineSyncBar";
 import useOfflinePrefetch from "../hooks/useOfflinePrefetch";
 import { setupAppStateRefresh } from "../utils/appStateRefresh";
 import { handleNotificationNavigation } from "../utils/notificationRouter";
+import {
+  updateWebDocumentTitle,
+  getWebTitle,
+  WebHeadTitle,
+} from "../utils/webTitle";
 
 // Configure how notifications are displayed when app is in foreground
 Notifications.setNotificationHandler({
@@ -107,6 +112,11 @@ function Inner() {
     }
   }, [segments, router, token, isReady]);
 
+  // ── Effect 3: Synchronize document.title with current route in Web mode ──
+  useEffect(() => {
+    updateWebDocumentTitle(segments);
+  }, [segments]);
+
   // Track already processed cold start notification to avoid duplicate navigations
   const lastProcessedNotificationId = useRef(null);
 
@@ -174,6 +184,8 @@ function Inner() {
     }
   }, []);
 
+  const webTitle = getWebTitle(segments);
+
   if (!isReady) {
     return (
       <SafeAreaView
@@ -186,6 +198,7 @@ function Inner() {
           },
         ]}
       >
+        <WebHeadTitle title={webTitle} />
         <ActivityIndicator size="large" color="#2F6CD4" />
       </SafeAreaView>
     );
@@ -198,6 +211,7 @@ function Inner() {
       style={[styles.safeArea, { backgroundColor: colors.background }]}
       edges={["top", "left", "right"]}
     >
+      <WebHeadTitle title={webTitle} />
       <StatusBar style={mode === "dark" ? "light" : "dark"} />
       <NetworkStatusProvider>
         <NavigationProvider>

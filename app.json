@@ -21,7 +21,10 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "name": "SGV School",
+      "shortName": "SGV School",
+      "description": "SGV School Portal - Comprehensive Academic Management System"
     },
     "plugins": [
       "./plugins/withR8Optimizations",
