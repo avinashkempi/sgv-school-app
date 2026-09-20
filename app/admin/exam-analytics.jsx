@@ -39,9 +39,18 @@ export default function ExamAnalyticsScreen() {
   const [selectedItem, setSelectedItem] = useState(null); // { type: 'class' | 'subject', data }
   const [selectedStudent, setSelectedStudent] = useState(null); // student object for deep-dive modal
   const [searchStudentQuery, setSearchStudentQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [studentClassFilter, setStudentClassFilter] = useState("");
   const [classSearchQuery, setClassSearchQuery] = useState("");
   const [subjectSearchQuery, setSubjectSearchQuery] = useState("");
+
+  // Debounce student search query by 350ms to prevent rapid query burst rate limiting
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchStudentQuery.trim());
+    }, 350);
+    return () => clearTimeout(handler);
+  }, [searchStudentQuery]);
 
   // Entrance animation
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -94,8 +103,8 @@ export default function ExamAnalyticsScreen() {
     if (studentClassFilter) params.append("classId", studentClassFilter);
     if (selectedExamType && selectedExamType !== "ALL")
       params.append("examType", selectedExamType);
-    if (searchStudentQuery.trim())
-      params.append("search", searchStudentQuery.trim());
+    if (debouncedSearchQuery)
+      params.append("search", debouncedSearchQuery);
     return `${
       apiConfig.baseUrl
     }/marks/analytics/school/students?${params.toString()}`;
@@ -103,13 +112,15 @@ export default function ExamAnalyticsScreen() {
     selectedYearId,
     studentClassFilter,
     selectedExamType,
-    searchStudentQuery,
+    debouncedSearchQuery,
   ]);
 
   const {
     data: studentsData,
     isLoading: loadingStudents,
     isFetching: fetchingStudents,
+    isError: errorStudents,
+    error: studentsError,
     refetch: refetchStudents,
   } = useApiQuery(
     [
@@ -117,7 +128,7 @@ export default function ExamAnalyticsScreen() {
       selectedYearId,
       studentClassFilter,
       selectedExamType,
-      searchStudentQuery,
+      debouncedSearchQuery,
     ],
     studentsPerfUrl,
     { enabled: activeView === "students" }
@@ -1703,7 +1714,12 @@ export default function ExamAnalyticsScreen() {
           }}
         />
         {searchStudentQuery ? (
-          <Pressable onPress={() => setSearchStudentQuery("")}>
+          <Pressable
+            onPress={() => {
+              setSearchStudentQuery("");
+              setDebouncedSearchQuery("");
+            }}
+          >
             <MaterialIcons
               name="close"
               size={18}
@@ -1772,7 +1788,61 @@ export default function ExamAnalyticsScreen() {
         </View>
       </ScrollView>
 
-      {loadingStudents && !studentsData ? (
+      {errorStudents ? (
+        <Card variant="filled" style={{ padding: 24, alignItems: "center" }}>
+          <MaterialIcons
+            name="error-outline"
+            size={40}
+            color={colors.error}
+          />
+          <Text
+            style={{
+              fontSize: FONT_SIZES.md,
+              fontFamily: FONTS.bold,
+              color: colors.error,
+              marginTop: 10,
+              textAlign: "center",
+            }}
+          >
+            {studentsError?.status === 429
+              ? "Rate Limit Reached"
+              : "Unable to load student rankings"}
+          </Text>
+          <Text
+            style={{
+              fontSize: FONT_SIZES.sm,
+              fontFamily: FONTS.medium,
+              color: colors.onSurfaceVariant,
+              marginTop: 6,
+              textAlign: "center",
+            }}
+          >
+            {studentsError?.status === 429
+              ? "Too many requests were sent in a short time. Please wait a moment and tap Retry."
+              : studentsError?.message || "An error occurred while fetching rankings."}
+          </Text>
+          <Pressable
+            onPress={() => refetchStudents()}
+            style={{
+              marginTop: 14,
+              backgroundColor: colors.primary,
+              paddingHorizontal: 20,
+              paddingVertical: 8,
+              borderRadius: 20,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: FONT_SIZES.sm,
+                fontFamily: FONTS.bold,
+                color: "#FFFFFF",
+              }}
+            >
+              Retry
+            </Text>
+          </Pressable>
+        </Card>
+      ) : loadingStudents && !studentsData ? (
         <View style={{ padding: 40, alignItems: "center" }}>
           <ActivityIndicator size="small" color={colors.primary} />
           <Text
