@@ -238,6 +238,12 @@ export default function ExamAnalyticsScreen() {
     let list = classPerf.map((cls) => {
       if (selectedExamType === "ALL") {
         const pct = parseFloat(cls.avgPercentage) || 0;
+        const initTypesCount = (cls.examTypeBreakdown || []).filter(
+          (b) => b.examsCount > 0
+        ).length;
+        const completedTypesCount = (cls.examTypeBreakdown || []).filter(
+          (b) => b.status === "completed"
+        ).length;
         return {
           ...cls,
           displayPercentage: pct,
@@ -245,11 +251,11 @@ export default function ExamAnalyticsScreen() {
           displayMaxMarks: cls.maxMarksPerStudent || 0,
           displayMarksEntered: cls.marksEnteredCount || 0,
           displayExpectedMarks: cls.totalExpectedMarks || 0,
-          displayExamsCount: `${cls.examsCount}/6 Exams`,
+          displayExamsCount: `${initTypesCount}/6 Exam Types`,
           status:
-            cls.examsCount >= 6
+            completedTypesCount === 6
               ? "completed"
-              : cls.examsCount > 0
+              : initTypesCount > 0
               ? "partial"
               : "not_initialized",
         };
@@ -335,12 +341,29 @@ export default function ExamAnalyticsScreen() {
   // Active Setup & Initialization Summary
   const activeInitSummary = useMemo(() => {
     if (selectedExamType === "ALL") {
+      let full = 0,
+        partial = 0,
+        uninit = 0;
+      classPerf.forEach((cls) => {
+        EXAM_TYPES.forEach((type) => {
+          const b = (cls.examTypeBreakdown || []).find(
+            (x) => x.examType === type
+          );
+          if (!b || b.status === "not_initialized") {
+            uninit++;
+          } else if (b.status === "completed") {
+            full++;
+          } else {
+            partial++;
+          }
+        });
+      });
       return {
-        fullyInitialized: initSummary.fullyInitializedClassesCount || 0,
-        partial: initSummary.partiallyInitializedClassesCount || 0,
-        uninitialized: initSummary.uninitializedClassesCount || 0,
-        labelFully: "Fully Initialized",
-        labelPartial: "Partial Setup",
+        fullyInitialized: full,
+        partial,
+        uninitialized: uninit,
+        labelFully: "Completed",
+        labelPartial: "In Progress",
         labelUninit: "Not Setup",
       };
     }
@@ -367,7 +390,7 @@ export default function ExamAnalyticsScreen() {
       labelPartial: `${selectedExamType} In Progress`,
       labelUninit: `${selectedExamType} Not Setup`,
     };
-  }, [selectedExamType, initSummary, classPerf]);
+  }, [selectedExamType, classPerf]);
 
   const studentsList = studentsData?.studentRankings || [];
 
@@ -2154,6 +2177,9 @@ export default function ExamAnalyticsScreen() {
           (cls.examTypeBreakdown || []).forEach((b) => {
             breakdownMap[b.examType] = b;
           });
+          const initExamTypesCount = EXAM_TYPES.filter(
+            (t) => breakdownMap[t] && breakdownMap[t].examsCount > 0
+          ).length;
 
           return (
             <Card key={cls.classId} variant="elevated" style={{ padding: 16 }}>
@@ -2183,7 +2209,7 @@ export default function ExamAnalyticsScreen() {
                     }}
                   >
                     {selectedExamType === "ALL"
-                      ? `${cls.examsCount}/6 Exams Initialized • ${cls.studentCount} Students`
+                      ? `${initExamTypesCount}/6 Exam Types Initialized • ${cls.studentCount} Students`
                       : breakdownMap[selectedExamType]
                       ? `${selectedExamType} Initialized (${breakdownMap[selectedExamType].maxMarks} M) • ${cls.studentCount} Students`
                       : `Not Initialized for ${selectedExamType}`}
