@@ -149,7 +149,7 @@ export default function ProfileScreen() {
     mutationFn: (data) =>
       createApiMutationFn(
         `${apiConfig.baseUrl}/auth/profile-photo`,
-        "PATCH"
+        "POST"
       )(data),
     onSuccess: async (data) => {
       if (data?.user) {

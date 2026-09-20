@@ -84,7 +84,7 @@ const PostFeed = ({ category, onEditPost }) => {
     mutationFn: async (postId) => {
       return createApiMutationFn(
         `${apiConfig.baseUrl}${apiConfig.endpoints.posts.togglePin(postId)}`,
-        "PATCH"
+        "POST"
       )({});
     },
     onSuccess: () => {

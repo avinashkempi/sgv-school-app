@@ -171,7 +171,7 @@ export default function VibeApprovalsScreen() {
     mutationFn: async ({ vibeId, action, reason }) => {
       return createApiMutationFn(
         `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.adminReview(vibeId)}`,
-        "PATCH"
+        "POST"
       )({ action, reason });
     },
     onMutate: async ({ vibeId }) => {

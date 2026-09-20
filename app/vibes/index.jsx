@@ -459,7 +459,7 @@ export default function VibesScreen() {
     mutationFn: async (vibeId) => {
       return createApiMutationFn(
         `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.adminPin(vibeId)}`,
-        "PATCH"
+        "POST"
       )({});
     },
     onSuccess: (res) => {
@@ -476,7 +476,7 @@ export default function VibesScreen() {
         `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.adminSpotlight(
           vibeId
         )}`,
-        "PATCH"
+        "POST"
       )({});
     },
     onSuccess: (res) => {
