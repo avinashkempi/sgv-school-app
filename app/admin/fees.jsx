@@ -2118,6 +2118,37 @@ export default function AdminFeesScreen() {
                         </Text>
                       </View>
                     )}
+                    {feeDetails?.arrears > 0 && (
+                      <View
+                        style={{
+                          flex: 1,
+                          minWidth: "22%",
+                          backgroundColor: "#6750A415",
+                          padding: 12,
+                          borderRadius: 16,
+                          alignItems: "center",
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: "#6750A4",
+                            fontSize: FONT_SIZES.xs,
+                            marginBottom: 4,
+                          }}
+                        >
+                          Last Year
+                        </Text>
+                        <Text
+                          style={{
+                            fontFamily: FONTS.bold,
+                            color: "#6750A4",
+                            fontSize: FONT_SIZES.md,
+                          }}
+                        >
+                          ₹{feeDetails.arrears.toLocaleString()}
+                        </Text>
+                      </View>
+                    )}
                     <View
                       style={{
                         flex: 1,
@@ -2804,7 +2835,9 @@ export default function AdminFeesScreen() {
                                     fontFamily: FONTS.medium,
                                   }}
                                 >
-                                  Pending Due
+                                  {item.arrears > 0
+                                    ? `Incl. ₹${item.arrears.toLocaleString()} Last Year`
+                                    : "Pending Due"}
                                 </Text>
                               )}
                             </View>

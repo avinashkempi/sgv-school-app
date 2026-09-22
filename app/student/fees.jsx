@@ -139,6 +139,32 @@ export default function StudentFeesScreen() {
                 </Text>
               </Card>
             )}
+            {/* Last Year Dues Card - Only if > 0 */}
+            {feeData?.arrears > 0 && (
+              <Card
+                style={{ flex: 1, minWidth: "45%" }}
+                contentStyle={{ alignItems: "center", padding: 16 }}
+              >
+                <Text
+                  style={{
+                    color: colors.onSurfaceVariant,
+                    fontSize: FONT_SIZES.sm,
+                    marginBottom: 4,
+                  }}
+                >
+                  {t("student.lastYearDues", "Last Year Dues")}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: FONT_SIZES.md,
+                    fontFamily: FONTS.bold,
+                    color: "#6750A4",
+                  }}
+                >
+                  ₹{feeData.arrears.toLocaleString()}
+                </Text>
+              </Card>
+            )}
             <Card
               style={{ flex: 1, minWidth: "45%" }}
               contentStyle={{ alignItems: "center", padding: 16 }}
@@ -251,6 +277,27 @@ export default function StudentFeesScreen() {
                   </Text>
                   <Text style={{ color: "#FF9800", fontFamily: FONTS.bold }}>
                     -₹{feeData.concession}
+                  </Text>
+                </View>
+              )}
+              {feeData?.arrears > 0 && (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    marginBottom: 12,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: colors.textPrimary,
+                      fontFamily: FONTS.medium,
+                    }}
+                  >
+                    {t("student.lastYearDues", "Add: Last Year Dues")}
+                  </Text>
+                  <Text style={{ color: "#6750A4", fontFamily: FONTS.bold }}>
+                    +₹{feeData.arrears.toLocaleString()}
                   </Text>
                 </View>
               )}
