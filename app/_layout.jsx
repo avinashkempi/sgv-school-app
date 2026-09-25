@@ -38,6 +38,7 @@ import {
   getWebTitle,
   WebHeadTitle,
 } from "../utils/webTitle";
+import storage from "../utils/storage";
 
 // Configure how notifications are displayed when app is in foreground
 Notifications.setNotificationHandler({
@@ -81,20 +82,33 @@ function Inner() {
   useEffect(() => {
     if (!isReady || initialRoutingDone.current) return;
 
-    const inLoginGroup = segments[0] === "login";
+    const checkInitialRoute = async () => {
+      const inAuthGroup =
+        segments[0] === "login" || segments[0] === "onboarding";
 
-    if (!token && !inLoginGroup) {
-      // No token — redirect to login
-      router.replace("/login");
-    } else if (token && inLoginGroup) {
-      // Token exists and on login page -> Redirect to home
-      router.replace("/");
-    } else if (token && !inLoginGroup) {
-      // Logged in, sync academic year context
-      syncYear();
-    }
+      if (!token) {
+        try {
+          const onboardingDone = await storage.getItem("@onboarding_complete");
+          if (!onboardingDone && segments[0] !== "onboarding") {
+            router.replace("/onboarding");
+          } else if (onboardingDone && segments[0] !== "login") {
+            router.replace("/login");
+          }
+        } catch (e) {
+          if (!inAuthGroup) router.replace("/login");
+        }
+      } else if (token && inAuthGroup) {
+        // Token exists and on auth page -> Redirect to home
+        router.replace("/");
+      } else if (token && !inAuthGroup) {
+        // Logged in, sync academic year context
+        syncYear();
+      }
 
-    initialRoutingDone.current = true;
+      initialRoutingDone.current = true;
+    };
+
+    checkInitialRoute();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReady]); // Runs when AuthContext finishes loading
 
@@ -103,11 +117,12 @@ function Inner() {
   useEffect(() => {
     if (!initialRoutingDone.current || !isReady) return;
 
-    const inLoginGroup = segments[0] === "login";
+    const inAuthGroup =
+      segments[0] === "login" || segments[0] === "onboarding";
 
-    if (!token && !inLoginGroup) {
+    if (!token && !inAuthGroup) {
       router.replace("/login");
-    } else if (token && inLoginGroup) {
+    } else if (token && inAuthGroup) {
       router.replace("/");
     }
   }, [segments, router, token, isReady]);
@@ -204,7 +219,8 @@ function Inner() {
     );
   }
 
-  const isLogin = segments[0] === "login";
+  const isAuthScreen =
+    segments[0] === "login" || segments[0] === "onboarding";
 
   return (
     <SafeAreaView
@@ -216,8 +232,8 @@ function Inner() {
       <NetworkStatusProvider>
         <NavigationProvider>
           <NotificationProvider>
-            {isDemo && !isLogin && <DemoBanner />}
-            {!isLogin && <OfflineSyncBar />}
+            {isDemo && !isAuthScreen && <DemoBanner />}
+            {!isAuthScreen && <OfflineSyncBar />}
             <Stack
               screenOptions={{
                 headerShown: false,
@@ -234,6 +250,10 @@ function Inner() {
                 detachInactiveScreens: false,
               }}
             >
+              {/* Auth & Onboarding Screens */}
+              <Stack.Screen name="onboarding" options={{ animation: "fade" }} />
+              <Stack.Screen name="login" options={{ animation: "fade" }} />
+
               {/* Primary Peer Tabs (Fast subtle fade to prevent horizontal disorientation when switching tabs) */}
               <Stack.Screen name="index" options={{ animation: "fade" }} />
               <Stack.Screen name="vibes/index" options={{ animation: "fade" }} />
@@ -262,7 +282,7 @@ function Inner() {
                 }}
               />
             </Stack>
-            {!isLogin && <BottomNavigation />}
+            {!isAuthScreen && <BottomNavigation />}
           </NotificationProvider>
         </NavigationProvider>
       </NetworkStatusProvider>

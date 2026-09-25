@@ -21,6 +21,7 @@ import apiConfig from "../../config/apiConfig";
 import { useToast } from "../../components/ToastProvider";
 import { useAuth } from "../../context/AuthContext";
 import { EmptyState, LoadingState } from "../../components/StateComponents";
+import Badge from "../../components/ui/Badge";
 
 const DAYS = [
   "Monday",
@@ -142,55 +143,51 @@ export default function StudentTimetableScreen() {
           <View style={{ marginTop: 16 }}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View style={{ flexDirection: "row", gap: 8 }}>
-                {DAYS.map((day) => (
-                  <Pressable
-                    key={day}
-                    onPress={() => setSelectedDay(day)}
-                    style={{
-                      paddingHorizontal: 16,
-                      paddingVertical: 8,
-                      backgroundColor:
-                        selectedDay === day
-                          ? colors.secondaryContainer
-                          : colors.surfaceContainer,
-                      borderRadius: 12,
-                      borderWidth: 1,
-                      borderColor:
-                        selectedDay === day
-                          ? colors.onSecondaryContainer + "30"
-                          : colors.outlineVariant,
-                    }}
-                  >
-                    <Text
+                {DAYS.map((day) => {
+                  const isSelected = selectedDay === day;
+                  return (
+                    <Pressable
+                      key={day}
+                      onPress={() => setSelectedDay(day)}
                       style={{
-                        fontSize: FONT_SIZES.sm,
-                        color:
-                          selectedDay === day
-                            ? colors.onSecondaryContainer
-                            : colors.onSurfaceVariant,
-                        fontFamily:
-                          selectedDay === day ? FONTS.bold : FONTS.medium,
+                        paddingHorizontal: 16,
+                        paddingVertical: 10,
+                        backgroundColor: isSelected
+                          ? colors.primaryContainer || "#E0ECFF"
+                          : colors.surfaceContainerLow || colors.surface,
+                        borderRadius: 14,
+                        borderWidth: 1,
+                        borderColor: isSelected
+                          ? (colors.primary || "#2F6CD4") + "40"
+                          : colors.outlineVariant
+                          ? colors.outlineVariant + "40"
+                          : "rgba(0,0,0,0.06)",
                       }}
                     >
-                      {t("common.dayShort" + day, day.slice(0, 3))}
-                    </Text>
-                    {day === currentDay && (
-                      <View
+                      <Text
                         style={{
-                          width: 5,
-                          height: 5,
-                          borderRadius: 3,
-                          backgroundColor:
-                            selectedDay === day
-                              ? colors.onSecondaryContainer
-                              : colors.primary,
-                          alignSelf: "center",
-                          marginTop: 4,
+                          fontSize: FONT_SIZES.sm,
+                          color: isSelected ? colors.primary || "#2F6CD4" : colors.onSurfaceVariant,
+                          fontFamily: isSelected ? FONTS.bold : FONTS.medium,
                         }}
-                      />
-                    )}
-                  </Pressable>
-                ))}
+                      >
+                        {t("common.dayShort" + day, day.slice(0, 3))}
+                      </Text>
+                      {day === currentDay && (
+                        <View
+                          style={{
+                            width: 5,
+                            height: 5,
+                            borderRadius: 3,
+                            backgroundColor: colors.primary || "#2F6CD4",
+                            alignSelf: "center",
+                            marginTop: 4,
+                          }}
+                        />
+                      )}
+                    </Pressable>
+                  );
+                })}
               </View>
             </ScrollView>
           </View>
@@ -215,24 +212,12 @@ export default function StudentTimetableScreen() {
                 {t("common.day" + selectedDay, selectedDay)}
               </Text>
               {selectedDay === currentDay && (
-                <View
-                  style={{
-                    backgroundColor: colors.success + "20",
-                    paddingHorizontal: 8,
-                    paddingVertical: 4,
-                    borderRadius: 4,
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: FONT_SIZES.sm,
-                      color: colors.success,
-                      fontFamily: FONTS.bold,
-                    }}
-                  >
-                    {t("common.todayUppercase", "TODAY")}
-                  </Text>
-                </View>
+                <Badge
+                  label={t("common.todayUppercase", "TODAY")}
+                  variant="success"
+                  size="sm"
+                  dot
+                />
               )}
             </View>
 
@@ -253,49 +238,61 @@ export default function StudentTimetableScreen() {
                 <Card
                   key={index}
                   variant="elevated"
-                  style={{ marginBottom: 12 }}
+                  style={{ marginBottom: 12, borderRadius: 16 }}
                   contentStyle={{
                     flexDirection: "row",
-                    gap: 16,
-                    padding: 16,
+                    gap: 14,
+                    padding: 14,
+                    alignItems: "center",
                   }}
                 >
-                  {/* Time Column */}
+                  {/* Time Badge Tile */}
                   <View
                     style={{
                       alignItems: "center",
                       justifyContent: "center",
-                      width: 60,
+                      width: 68,
+                      backgroundColor:
+                        colors.surfaceContainerLow || colors.surface,
+                      borderRadius: 12,
+                      paddingVertical: 8,
+                      borderWidth: 1,
+                      borderColor: colors.outlineVariant
+                        ? colors.outlineVariant + "30"
+                        : "rgba(0,0,0,0.06)",
                     }}
                   >
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.sm,
+                        fontSize: FONT_SIZES.xs,
                         fontFamily: FONTS.bold,
                         color: colors.onSurface,
                       }}
                     >
                       {period.startTime}
                     </Text>
-                    <View
-                      style={{
-                        width: 1,
-                        height: 10,
-                        backgroundColor: colors.outlineVariant,
-                        marginVertical: 2,
-                      }}
+                    <MaterialIcons
+                      name="arrow-downward"
+                      size={10}
+                      color={colors.outline}
+                      style={{ marginVertical: 2 }}
                     />
                     <Text
-                      style={{ fontSize: FONT_SIZES.sm, color: colors.onSurfaceVariant }}
+                      style={{
+                        fontSize: 11,
+                        color: colors.onSurfaceVariant,
+                        fontFamily: FONTS.medium,
+                      }}
                     >
                       {period.endTime}
                     </Text>
                   </View>
 
-                  {/* Divider */}
+                  {/* Accent Divider */}
                   <View
                     style={{
                       width: 4,
+                      height: 38,
                       backgroundColor: colors.primary,
                       borderRadius: 2,
                     }}

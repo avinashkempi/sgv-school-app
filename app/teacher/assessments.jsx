@@ -14,6 +14,9 @@ import { useTheme, FONTS, FONT_SIZES } from "../../theme";
 import { useApiQuery, useApiMutation } from "../../hooks/useApi";
 import { useToast } from "../../components/ToastProvider";
 import AppHeader from "../../components/Header";
+import Card from "../../components/Card";
+import Button from "../../components/Button";
+import Badge from "../../components/ui/Badge";
 import apiConfig from "../../config/apiConfig";
 import { formatClassName } from "../../utils/formatClassName";
 import { useAuth } from "../../context/AuthContext";
@@ -141,41 +144,43 @@ export default function AssessmentDashboard() {
           {loadingClasses ? (
             <ActivityIndicator color={colors.primary} />
           ) : (
-            teacherClasses?.map((cls) => (
-              <TouchableOpacity
-                key={cls._id}
-                style={[
-                  localStyles.chip,
-                  {
-                    backgroundColor:
-                      selectedClass?._id === cls._id
+            teacherClasses?.map((cls) => {
+              const isSelected = selectedClass?._id === cls._id;
+              return (
+                <TouchableOpacity
+                  key={cls._id}
+                  style={[
+                    localStyles.chip,
+                    {
+                      backgroundColor: isSelected
+                        ? colors.primaryContainer || "#E0ECFF"
+                        : colors.surfaceContainerLow || colors.cardBackground,
+                      borderColor: isSelected
                         ? colors.primary
-                        : colors.cardBackground,
-                    borderColor:
-                      selectedClass?._id === cls._id
-                        ? colors.primary
+                        : colors.outlineVariant
+                        ? colors.outlineVariant + "50"
                         : colors.borderColor,
-                  },
-                ]}
-                onPress={() => {
-                  setSelectedClass(cls);
-                  setSelectedSubject(null); // Reset subject
-                }}
-              >
-                <Text
-                  style={{
-                    color:
-                      selectedClass?._id === cls._id
-                        ? "#fff"
-                        : colors.textPrimary,
-                    fontFamily: FONTS.medium,
-                    fontSize: FONT_SIZES.sm,
+                    },
+                  ]}
+                  onPress={() => {
+                    setSelectedClass(cls);
+                    setSelectedSubject(null); // Reset subject
                   }}
                 >
-                  {formatClassName(cls.name, cls.section)}
-                </Text>
-              </TouchableOpacity>
-            ))
+                  <Text
+                    style={{
+                      color: isSelected
+                        ? colors.primary
+                        : colors.textPrimary,
+                      fontFamily: isSelected ? FONTS.bold : FONTS.medium,
+                      fontSize: FONT_SIZES.sm,
+                    }}
+                  >
+                    {formatClassName(cls.name, cls.section)}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })
           )}
         </ScrollView>
 
@@ -193,38 +198,40 @@ export default function AssessmentDashboard() {
               {loadingSubjects ? (
                 <ActivityIndicator color={colors.primary} />
               ) : (
-                subjects?.map((sub) => (
-                  <TouchableOpacity
-                    key={sub._id}
-                    style={[
-                      localStyles.chip,
-                      {
-                        backgroundColor:
-                          selectedSubject?._id === sub._id
+                subjects?.map((sub) => {
+                  const isSelected = selectedSubject?._id === sub._id;
+                  return (
+                    <TouchableOpacity
+                      key={sub._id}
+                      style={[
+                        localStyles.chip,
+                        {
+                          backgroundColor: isSelected
+                            ? colors.primaryContainer || "#E0ECFF"
+                            : colors.surfaceContainerLow || colors.cardBackground,
+                          borderColor: isSelected
                             ? colors.primary
-                            : colors.cardBackground,
-                        borderColor:
-                          selectedSubject?._id === sub._id
-                            ? colors.primary
+                            : colors.outlineVariant
+                            ? colors.outlineVariant + "50"
                             : colors.borderColor,
-                      },
-                    ]}
-                    onPress={() => setSelectedSubject(sub)}
-                  >
-                    <Text
-                      style={{
-                        color:
-                          selectedSubject?._id === sub._id
-                            ? "#fff"
-                            : colors.textPrimary,
-                        fontFamily: FONTS.medium,
-                        fontSize: FONT_SIZES.sm,
-                      }}
+                        },
+                      ]}
+                      onPress={() => setSelectedSubject(sub)}
                     >
-                      {sub.name}
-                    </Text>
-                  </TouchableOpacity>
-                ))
+                      <Text
+                        style={{
+                          color: isSelected
+                            ? colors.primary
+                            : colors.textPrimary,
+                          fontFamily: isSelected ? FONTS.bold : FONTS.medium,
+                          fontSize: FONT_SIZES.sm,
+                        }}
+                      >
+                        {sub.name}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })
               )}
             </ScrollView>
           </>
@@ -241,19 +248,24 @@ export default function AssessmentDashboard() {
           ) : (
             <View style={localStyles.grid}>
               {examStatus?.map((item) => (
-                <View
+                <Card
                   key={item.type}
-                  style={[
-                    localStyles.card,
-                    { backgroundColor: colors.cardBackground },
-                  ]}
+                  variant="elevated"
+                  style={{
+                    width: "48%",
+                    borderRadius: 14,
+                    marginBottom: 10,
+                  }}
+                  contentStyle={{
+                    padding: 12,
+                  }}
                 >
                   <View
                     style={{
                       flexDirection: "row",
                       justifyContent: "space-between",
                       alignItems: "center",
-                      marginBottom: 12,
+                      marginBottom: 10,
                     }}
                   >
                     <Text
@@ -266,23 +278,23 @@ export default function AssessmentDashboard() {
                       {item.type}
                     </Text>
                     {item.exists ? (
-                      <MaterialIcons
-                        name="check-circle"
-                        size={18}
-                        color={colors.success}
+                      <Badge
+                        label={item.marksEntered ? t("teacher.entered", "ENTERED") : t("common.pending", "PENDING")}
+                        variant={item.marksEntered ? "success" : "warning"}
+                        size="xs"
                       />
                     ) : (
-                      <MaterialIcons
-                        name="radio-button-unchecked"
-                        size={18}
-                        color={colors.textSecondary}
+                      <Badge
+                        label={t("teacher.new", "NEW")}
+                        variant="neutral"
+                        size="xs"
                       />
                     )}
                   </View>
 
                   {item.exists ? (
                     <>
-                      <View style={{ marginBottom: 12 }}>
+                      <View style={{ marginBottom: 10 }}>
                         <Text
                           style={{
                             fontSize: FONT_SIZES.xs,
@@ -290,38 +302,19 @@ export default function AssessmentDashboard() {
                             fontFamily: FONTS.regular,
                           }}
                         >
-                          {t("common.status", "Status")}:{" "}
-                          {item.marksEntered
-                            ? t("teacher.marksEntered", "Marks Entered")
-                            : t("teacher.pendingEntry", "Pending Entry")}
-                        </Text>
-                        <Text
-                          style={{
-                            fontSize: FONT_SIZES.xs,
-                            color: colors.textSecondary,
-                            fontFamily: FONTS.regular,
-                            marginTop: 2,
-                          }}
-                        >
-                          {t("teacher.studentsGraded", "Students Graded")}:{" "}
-                          {item.marksCount}
+                          {t("teacher.studentsGraded", "Graded")}: {item.marksCount}
                         </Text>
                       </View>
-                      <TouchableOpacity
-                        style={[
-                          localStyles.button,
-                          { backgroundColor: colors.primary },
-                        ]}
+                      <Button
+                        title={t("teacher.manageMarks", "Manage Marks")}
+                        variant="primary"
+                        size="sm"
                         onPress={() => handleEnterMarks(item.exam)}
-                      >
-                        <Text style={localStyles.buttonText}>
-                          {t("teacher.manageMarks", "Manage Marks")}
-                        </Text>
-                      </TouchableOpacity>
+                      />
                     </>
                   ) : (
                     <>
-                      <View style={{ marginBottom: 12 }}>
+                      <View style={{ marginBottom: 10 }}>
                         <Text
                           style={{
                             fontSize: FONT_SIZES.xs,
@@ -332,29 +325,15 @@ export default function AssessmentDashboard() {
                           {t("teacher.notCreatedYet", "Not Created Yet")}
                         </Text>
                       </View>
-                      <TouchableOpacity
-                        style={[
-                          localStyles.button,
-                          {
-                            backgroundColor: colors.cardBackground,
-                            borderWidth: 1,
-                            borderColor: colors.primary,
-                          },
-                        ]}
+                      <Button
+                        title={t("teacher.initialize", "Initialize")}
+                        variant="outline"
+                        size="sm"
                         onPress={() => handleCreateExam(item.type)}
-                      >
-                        <Text
-                          style={[
-                            localStyles.buttonText,
-                            { color: colors.primary },
-                          ]}
-                        >
-                          {t("teacher.initialize", "Initialize")}
-                        </Text>
-                      </TouchableOpacity>
+                      />
                     </>
                   )}
-                </View>
+                </Card>
               ))}
             </View>
           )

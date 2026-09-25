@@ -5,6 +5,7 @@ import {
   Pressable,
   StyleSheet,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import { Image } from "expo-image";
 import { useVideoPlayer, VideoView } from "expo-video";
@@ -36,15 +37,15 @@ export const setGlobalMuted = (muted) => {
 export const getGlobalMuted = () => globalIsMuted;
 
 /**
- * VibeVideoPlayer — Viewport-aware lazy video player for Vibes.
+ * VibeVideoPlayer — Viewport-aware video player for Vibes.
  * Uses native expo-video with automatic pause/play, adaptive streaming quality,
- * and lazy allocation when scrolled into view.
+ * ambient blurred letterbox backdrop, and smooth playback.
  *
  * @param {string} url - Cloudinary video stream URL
  * @param {string} [thumbnailUrl] - Poster image URL
  * @param {number} width - Container width
  * @param {number} height - Container height
- * @param {boolean} isVisible - Whether this video card is centered in viewport
+ * @param {boolean} isVisible - Whether this video card is in viewport
  * @param {boolean} [isActiveSlide=true] - Whether this slide is active in carousel
  * @param {Function} [onDoubleTapLike] - Double-tap heart trigger
  * @param {boolean} [disableTapControls=false] - Disable internal taps for story viewer navigation
@@ -56,24 +57,37 @@ const VibeVideoPlayer = React.memo(
     thumbnailUrl,
     width,
     height,
+    aspectRatio,
     isVisible,
     isActiveSlide = true,
     onDoubleTapLike,
     disableTapControls = false,
     onDurationDetected,
+    onDimensionsDetected,
   }) => {
     const { isSlow } = useNetworkQuality();
     const [isMuted, setIsMuted] = useState(globalIsMuted);
     const [isPlaying, setIsPlaying] = useState(false);
     const [showPlayOverlay, setShowPlayOverlay] = useState(false);
     const [isReady, setIsReady] = useState(false);
+    const [naturalRatio, setNaturalRatio] = useState(
+      aspectRatio && aspectRatio > 0 ? aspectRatio : null
+    );
+
+    useEffect(() => {
+      if (aspectRatio && aspectRatio > 0) {
+        setNaturalRatio((prev) =>
+          !prev || Math.abs(aspectRatio - prev) > 0.05 ? aspectRatio : prev
+        );
+      }
+    }, [aspectRatio]);
 
     const playOverlayOpacity = useSharedValue(0);
     const muteBadgeOpacity = useSharedValue(0);
 
     // Optimized adaptive video streaming URL & Poster URL
     const videoSource = useMemo(
-      () => getOptimizedVideoUrl(url, { isSlow }),
+      () => (url ? getOptimizedVideoUrl(url, { isSlow }) : null),
       [url, isSlow]
     );
     const posterUrl = useMemo(
@@ -81,26 +95,51 @@ const VibeVideoPlayer = React.memo(
       [url, thumbnailUrl]
     );
     const posterBlurUrl = useMemo(
-      () => getBlurPlaceholderUrl(posterUrl),
+      () => (posterUrl ? getBlurPlaceholderUrl(posterUrl) : ""),
       [posterUrl]
     );
+
+    // Compute exact video render dimensions within container { width, height }
+    const effectiveRatio =
+      naturalRatio ||
+      aspectRatio ||
+      (width && height ? width / height : 0.562);
+
+    const { renderWidth, renderHeight } = useMemo(() => {
+      if (!width || !height || !effectiveRatio || effectiveRatio <= 0) {
+        return { renderWidth: width, renderHeight: height };
+      }
+      const containerRatio = width / height;
+      if (effectiveRatio > containerRatio) {
+        // Video is wider than container: fits container width, height adjusted to aspect ratio
+        const w = width;
+        const h = Math.min(height, Math.round(width / effectiveRatio));
+        return { renderWidth: w, renderHeight: h };
+      } else {
+        // Video is taller than container: fits container height, width adjusted to aspect ratio
+        const h = height;
+        const w = Math.min(width, Math.round(height * effectiveRatio));
+        return { renderWidth: w, renderHeight: h };
+      }
+    }, [width, height, effectiveRatio]);
+
+    // Pass videoSource directly so native player allocates once and doesn't get destroyed on every scroll
+    const player = useVideoPlayer(videoSource, (p) => {
+      p.loop = true;
+      p.muted = globalIsMuted;
+    });
 
     // Sync with global mute changes from other cards
     useEffect(() => {
       const onMuteChange = (muted) => {
         setIsMuted(muted);
+        if (player) {
+          player.muted = muted;
+        }
       };
       muteListeners.add(onMuteChange);
       return () => muteListeners.delete(onMuteChange);
-    }, []);
-
-    // Only allocate active video stream to native hardware player when in viewport or active
-    const activeSource = isVisible && isActiveSlide ? videoSource : null;
-
-    const player = useVideoPlayer(activeSource, (p) => {
-      p.loop = true;
-      p.muted = isMuted;
-    });
+    }, [player]);
 
     // Sync mute state to native player
     useEffect(() => {
@@ -130,9 +169,21 @@ const VibeVideoPlayer = React.memo(
       }
     }, [player, isVisible, isActiveSlide]);
 
-    // Listen to player status
+    // Listen to player status and video dimensions
     useEffect(() => {
       if (!player) return;
+
+      // Check current status immediately in case it loaded before listener
+      if (player.status === "readyToPlay") {
+        setIsReady(true);
+        if (player.duration && player.duration > 0) {
+          onDurationDetected?.(player.duration * 1000);
+        }
+      }
+      if (player.playing) {
+        setIsPlaying(true);
+        setIsReady(true);
+      }
 
       const statusSub = player.addListener("statusChange", (status) => {
         if (status.status === "readyToPlay") {
@@ -144,9 +195,34 @@ const VibeVideoPlayer = React.memo(
         setIsPlaying(player.playing);
       });
 
-      if (player.duration && player.duration > 0) {
-        onDurationDetected?.(player.duration * 1000);
-      }
+      const playingSub = player.addListener?.("playingChange", (payload) => {
+        setIsPlaying(payload.isPlaying);
+        if (payload.isPlaying) {
+          setIsReady(true);
+        }
+      });
+
+      const videoTrackSub = player.addListener?.("videoTrackChange", (payload) => {
+        const size = payload?.videoTrack?.size;
+        if (size?.width && size?.height) {
+          const r = Number((size.width / size.height).toFixed(3));
+          if (r > 0 && isFinite(r)) {
+            setNaturalRatio(r);
+            onDimensionsDetected?.(size.width, size.height);
+          }
+        }
+      });
+
+      const sourceLoadSub = player.addListener?.("sourceLoad", (payload) => {
+        const size = payload?.availableVideoTracks?.[0]?.size;
+        if (size?.width && size?.height) {
+          const r = Number((size.width / size.height).toFixed(3));
+          if (r > 0 && isFinite(r)) {
+            setNaturalRatio(r);
+            onDimensionsDetected?.(size.width, size.height);
+          }
+        }
+      });
 
       const playToEndSub = player.addListener("playToEnd", () => {
         if (player.loop) {
@@ -156,9 +232,12 @@ const VibeVideoPlayer = React.memo(
 
       return () => {
         statusSub?.remove?.();
+        playingSub?.remove?.();
         playToEndSub?.remove?.();
+        videoTrackSub?.remove?.();
+        sourceLoadSub?.remove?.();
       };
-    }, [player, onDurationDetected]);
+    }, [player, onDurationDetected, onDimensionsDetected]);
 
     const triggerMuteBadge = useCallback(() => {
       muteBadgeOpacity.value = withSequence(
@@ -220,51 +299,75 @@ const VibeVideoPlayer = React.memo(
 
     return (
       <View style={[styles.container, { width, height }]}>
-        {/* Instant Blurred Poster Image shown until video is buffered & ready, or when off-screen */}
-        {(!isReady || !isVisible || !isActiveSlide) && (
+        {/* Ambient blurred backdrop fills the card container behind pillarboxed/letterboxed video */}
+        {posterUrl ? (
           <Image
             source={{ uri: posterUrl }}
-            placeholder={posterBlurUrl ? { uri: posterBlurUrl } : undefined}
-            placeholderContentFit="contain"
-            style={[StyleSheet.absoluteFill, styles.posterImage]}
-            contentFit="contain"
+            style={StyleSheet.absoluteFillObject}
+            contentFit="cover"
+            blurRadius={Platform.OS === "ios" ? 30 : 16}
             cachePolicy="memory-disk"
-            transition={150}
           />
-        )}
+        ) : null}
+        <View
+          style={[
+            StyleSheet.absoluteFillObject,
+            { backgroundColor: "rgba(0, 0, 0, 0.55)" },
+          ]}
+        />
 
-        {/* Native expo-video View */}
-        {isVisible && isActiveSlide && player && (
-          disableTapControls ? (
-            <View
-              pointerEvents="none"
-              style={[styles.videoWrapper, { width, height }]}
-            >
-              <VideoView
-                player={player}
-                style={styles.video}
-                contentFit="contain"
-                nativeControls={false}
-                fullscreenOptions={{ isEnabled: false }}
-              />
-            </View>
-          ) : (
-            <Pressable
-              onPress={handlePress}
-              onLongPress={togglePlayPause}
-              delayLongPress={250}
-              style={[styles.videoWrapper, { width, height }]}
-            >
-              <VideoView
-                player={player}
-                style={styles.video}
-                contentFit="contain"
-                nativeControls={false}
-                fullscreenOptions={{ isEnabled: false }}
-              />
-            </Pressable>
-          )
-        )}
+        {/* Video Stage: Perfectly sized and centered with aspect ratio preservation */}
+        <View
+          style={[
+            styles.videoStage,
+            { width: renderWidth, height: renderHeight },
+          ]}
+        >
+          {/* Native expo-video View */}
+          {player && (
+            <VideoView
+              player={player}
+              style={styles.video}
+              contentFit="contain"
+              nativeControls={false}
+              fullscreenOptions={{ isEnabled: false }}
+            />
+          )}
+
+          {/* Instant Poster Image shown until video is buffered & ready */}
+          {(!isReady || !isVisible || !isActiveSlide) && (
+            <Image
+              source={{ uri: posterUrl }}
+              placeholder={posterBlurUrl ? { uri: posterBlurUrl } : undefined}
+              placeholderContentFit="contain"
+              style={[StyleSheet.absoluteFill, styles.posterImage]}
+              contentFit="contain"
+              cachePolicy="memory-disk"
+              transition={150}
+              onLoad={(e) => {
+                if (!aspectRatio && e?.source?.width && e?.source?.height) {
+                  const r = Number((e.source.width / e.source.height).toFixed(3));
+                  if (r > 0 && isFinite(r)) {
+                    if (!naturalRatio || Math.abs(r - naturalRatio) > 0.05) {
+                      setNaturalRatio(r);
+                      onDimensionsDetected?.(e.source.width, e.source.height);
+                    }
+                  }
+                }
+              }}
+            />
+          )}
+        </View>
+
+        {/* Full-width touch overlay to handle single-tap mute and double-tap like across the entire card */}
+        {!disableTapControls ? (
+          <Pressable
+            onPress={handlePress}
+            onLongPress={togglePlayPause}
+            delayLongPress={250}
+            style={StyleSheet.absoluteFillObject}
+          />
+        ) : null}
 
         {/* Play / Pause Centered Overlay Animation */}
         {showPlayOverlay && (
@@ -313,7 +416,7 @@ const VibeVideoPlayer = React.memo(
 
         {/* Loading Spinner */}
         {isVisible && isActiveSlide && !isReady && (
-          <View style={styles.loadingContainer}>
+          <View pointerEvents="none" style={styles.loadingContainer}>
             <ActivityIndicator size="small" color="#fff" />
           </View>
         )}
@@ -327,6 +430,13 @@ VibeVideoPlayer.displayName = "VibeVideoPlayer";
 const styles = StyleSheet.create({
   container: {
     position: "relative",
+    backgroundColor: "#000",
+    overflow: "hidden",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  videoStage: {
+    position: "relative",
     backgroundColor: "transparent",
     overflow: "hidden",
     justifyContent: "center",
@@ -335,13 +445,16 @@ const styles = StyleSheet.create({
   posterImage: {
     width: "100%",
     height: "100%",
+    backgroundColor: "transparent",
   },
   videoWrapper: {
     ...StyleSheet.absoluteFillObject,
+    backgroundColor: "transparent",
   },
   video: {
     width: "100%",
     height: "100%",
+    backgroundColor: "transparent",
   },
   centerOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -361,9 +474,9 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 14,
     right: 14,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     backgroundColor: "rgba(0, 0, 0, 0.65)",
     justifyContent: "center",
     alignItems: "center",
@@ -392,7 +505,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.2)",
+    backgroundColor: "rgba(0, 0, 0, 0.25)",
     zIndex: 5,
   },
 });

@@ -9,6 +9,7 @@ import {
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme, FONTS, FONT_SIZES } from "../../theme";
+import { useAuth } from "../../context/AuthContext";
 import StatCard from "./StatCard";
 import DateRangePicker from "../DateRangePicker";
 import { LoadingState, ErrorState, EmptyState } from "../StateComponents";
@@ -20,6 +21,9 @@ import HomeModuleContainer from "../home/HomeModuleContainer";
 const AdminDashboard = () => {
   const router = useRouter();
   const { colors, mode } = useTheme();
+  const { user } = useAuth();
+  const isSuperAdmin =
+    user?.role === "super admin" || user?.role === "super-admin";
   const isDark = mode === "dark";
   const [dateRange, setDateRange] = useState("thisMonth");
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -56,11 +60,11 @@ const AdminDashboard = () => {
 
   const indigoAccent = colors.primary;
   const cardSurface = isDark
-    ? "rgba(208, 188, 255, 0.08)"
-    : "rgba(79, 55, 139, 0.045)";
+    ? colors.surfaceContainer
+    : colors.surface;
   const subBorder = isDark
-    ? "rgba(208, 188, 255, 0.22)"
-    : "rgba(79, 55, 139, 0.15)";
+    ? colors.outlineVariant + "40"
+    : colors.outlineVariant;
 
   if (loading && !data) {
     return <LoadingState message="Loading dashboard..." />;
@@ -87,7 +91,7 @@ const AdminDashboard = () => {
         localStyles.datePickerBtn,
         {
           backgroundColor: isDark
-            ? "rgba(208, 188, 255, 0.2)"
+            ? "rgba(255, 94, 28, 0.2)"
             : colors.primaryContainer,
           opacity: pressed ? 0.8 : 1,
         },
@@ -117,16 +121,13 @@ const AdminDashboard = () => {
   );
 
   return (
-    <HomeModuleContainer
-      title="Admin Hub"
-      icon="admin-panel-settings"
-      accentColor={indigoAccent}
-      headerRight={datePickerTrigger}
-      lightBg="rgba(79, 55, 139, 0.045)"
-      darkBg="rgba(208, 188, 255, 0.07)"
-      lightBorder="rgba(79, 55, 139, 0.14)"
-      darkBorder="rgba(208, 188, 255, 0.18)"
-    >
+    <View>
+      <HomeModuleContainer
+        title="Admin Hub"
+        icon="admin-panel-settings"
+        accentColor={indigoAccent}
+        headerRight={datePickerTrigger}
+      >
       {/* Quick Actions Scroll */}
       <View style={{ marginBottom: 12 }}>
         <ScrollView
@@ -135,28 +136,24 @@ const AdminDashboard = () => {
           contentContainerStyle={{ gap: 10, paddingVertical: 2 }}
         >
           <QuickActionButton
-            title="Vibes Approvals"
-            icon="verified-user"
-            color="#2E7D32"
-            onPress={() => router.push("/admin/vibe-approvals")}
-          />
-          <QuickActionButton
             title="Import Data"
             icon="cloud-upload"
             color={colors.primary}
             onPress={() => router.push("/admin/import-data")}
           />
-          <QuickActionButton
-            title="Missing Tracker"
-            icon="event-busy"
-            color={colors.error}
-            onPress={() =>
-              router.push({
-                pathname: "/admin/attendance",
-                params: { tab: "tracker" },
-              })
-            }
-          />
+          {!isSuperAdmin && (
+            <QuickActionButton
+              title="Missing Tracker"
+              icon="event-busy"
+              color={colors.error}
+              onPress={() =>
+                router.push({
+                  pathname: "/admin/attendance",
+                  params: { tab: "tracker" },
+                })
+              }
+            />
+          )}
         </ScrollView>
       </View>
 
@@ -284,161 +281,6 @@ const AdminDashboard = () => {
         )}
       </View>
 
-      {/* Detailed Daily Attendance Summary */}
-      {data.charts?.attendance && (
-        <View
-          style={[
-            localStyles.chartCard,
-            {
-              backgroundColor: cardSurface,
-              borderColor: subBorder,
-              marginTop: 10,
-            },
-          ]}
-        >
-          <View style={localStyles.chartHeaderRow}>
-            <Text style={[localStyles.chartTitle, { color: colors.onSurface }]}>
-              Daily Attendance Summary
-            </Text>
-            <MaterialIcons name="date-range" size={19} color={colors.primary} />
-          </View>
-
-          {/* Student Attendance Bar */}
-          <View style={{ marginBottom: 14 }}>
-            <View style={localStyles.progressLabelRow}>
-              <Text
-                style={[
-                  localStyles.progressLabel,
-                  { color: colors.onSurface },
-                ]}
-              >
-                Students
-              </Text>
-              <Text
-                style={[
-                  localStyles.progressValue,
-                  { color: colors.onSurface },
-                ]}
-              >
-                {data.charts.attendance.student?.present || 0} /{" "}
-                {data.charts.attendance.student?.total || 0}
-              </Text>
-            </View>
-            <View
-              style={[
-                localStyles.progressBarTrack,
-                {
-                  backgroundColor: isDark
-                    ? "rgba(255,255,255,0.1)"
-                    : colors.outlineVariant,
-                },
-              ]}
-            >
-              <View
-                style={{
-                  width: `${
-                    data.charts.attendance.student?.total > 0
-                      ? (data.charts.attendance.student.present /
-                          data.charts.attendance.student.total) *
-                        100
-                      : 0
-                  }%`,
-                  backgroundColor: colors.primary,
-                  height: "100%",
-                }}
-              />
-            </View>
-          </View>
-
-          {/* Teacher Attendance Bar */}
-          <View style={{ marginBottom: 14 }}>
-            <View style={localStyles.progressLabelRow}>
-              <Text
-                style={[
-                  localStyles.progressLabel,
-                  { color: colors.onSurface },
-                ]}
-              >
-                Teachers
-              </Text>
-              <Text
-                style={[
-                  localStyles.progressValue,
-                  { color: colors.onSurface },
-                ]}
-              >
-                {data.charts.attendance.teacher?.present || 0} /{" "}
-                {data.charts.attendance.teacher?.total || 0}
-              </Text>
-            </View>
-            <View
-              style={[
-                localStyles.progressBarTrack,
-                {
-                  backgroundColor: isDark
-                    ? "rgba(255,255,255,0.1)"
-                    : colors.outlineVariant,
-                },
-              ]}
-            >
-              <View
-                style={{
-                  width: `${
-                    data.charts.attendance.teacher?.total > 0
-                      ? (data.charts.attendance.teacher.present /
-                          data.charts.attendance.teacher.total) *
-                        100
-                      : 0
-                  }%`,
-                  backgroundColor: colors.tertiary,
-                  height: "100%",
-                }}
-              />
-            </View>
-          </View>
-
-          {/* Classes Marked Stat Tile */}
-          <View
-            style={[
-              localStyles.classesMarkedTile,
-              {
-                backgroundColor: isDark
-                  ? "rgba(208, 188, 255, 0.12)"
-                  : colors.primaryContainer,
-              },
-            ]}
-          >
-            <MaterialIcons
-              name="fact-check"
-              size={20}
-              color={isDark ? colors.primary : colors.onPrimaryContainer}
-              style={{ marginRight: 10 }}
-            />
-            <View>
-              <Text
-                style={{
-                  fontFamily: FONTS.medium,
-                  color: isDark ? colors.onSurface : colors.onPrimaryContainer,
-                  fontSize: FONT_SIZES.sm,
-                }}
-              >
-                Classes Marked Today
-              </Text>
-              <Text
-                style={{
-                  fontFamily: FONTS.bold,
-                  color: isDark ? colors.primary : colors.onPrimaryContainer,
-                  fontSize: FONT_SIZES.md,
-                }}
-              >
-                {data.charts.attendance.classesMarked?.count || 0} out of{" "}
-                {data.charts.attendance.classesMarked?.total || 0}
-              </Text>
-            </View>
-          </View>
-        </View>
-      )}
-
       {/* Date Range Picker Modal */}
       <DateRangePicker
         visible={showDatePicker}
@@ -447,6 +289,7 @@ const AdminDashboard = () => {
         onClose={() => setShowDatePicker(false)}
       />
     </HomeModuleContainer>
+    </View>
   );
 };
 
@@ -556,32 +399,6 @@ const localStyles = StyleSheet.create({
   barMonthLabel: {
     fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.medium,
-    marginTop: 4,
-  },
-  progressLabelRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 6,
-  },
-  progressLabel: {
-    fontFamily: FONTS.medium,
-    fontSize: FONT_SIZES.sm,
-  },
-  progressValue: {
-    fontFamily: FONTS.bold,
-    fontSize: FONT_SIZES.sm,
-  },
-  progressBarTrack: {
-    height: 9,
-    borderRadius: 5,
-    overflow: "hidden",
-    flexDirection: "row",
-  },
-  classesMarkedTile: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 10,
-    borderRadius: 12,
     marginTop: 4,
   },
 });

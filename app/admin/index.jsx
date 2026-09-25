@@ -656,13 +656,13 @@ const AdminHeader = React.memo(function AdminHeader({
               <MenuCard
                 title={t("admin.academicYear", "Academic Year")}
                 icon="calendar-today"
-                color={colors.primary}
+                color={colors.primary || "#2F6CD4"}
                 onPress={() => router.push("/admin/academic-year")}
               />
               <MenuCard
                 title={t("admin.subjects", "Subjects")}
                 icon="menu-book"
-                color="#673AB7"
+                color="#2F6CD4"
                 onPress={() => router.push("/admin/subjects")}
               />
             </View>
@@ -678,7 +678,7 @@ const AdminHeader = React.memo(function AdminHeader({
             <MenuCard
               title={t("admin.teacherSubjects", "Teacher Subjects")}
               icon="assignment-ind"
-              color="#4CAF50"
+              color="#2F6CD4"
               onPress={() => router.push("/admin/teacher-subjects")}
             />
           </View>
@@ -693,19 +693,19 @@ const AdminHeader = React.memo(function AdminHeader({
             <MenuCard
               title={t("admin.timetable", "Timetable")}
               icon="schedule"
-              color="#9C27B0"
+              color="#2F6CD4"
               onPress={() => router.push("/admin/timetable")}
             />
             <MenuCard
               title={t("admin.exams", "Exams")}
               icon="event"
-              color="#E91E63"
+              color="#E11D48"
               onPress={() => router.push("/admin/exam-schedule")}
             />
             <MenuCard
               title={t("admin.examAnalytics", "Exam Analytics")}
               icon="analytics"
-              color="#9C27B0"
+              color="#0284C7"
               onPress={() => router.push("/admin/exam-analytics")}
             />
           </View>
@@ -720,7 +720,7 @@ const AdminHeader = React.memo(function AdminHeader({
             <MenuCard
               title={t("admin.fees", "Fees")}
               icon="attach-money"
-              color="#FF5722"
+              color={colors.primary || "#2F6CD4"}
               onPress={() => router.push("/admin/fees")}
             />
           </View>
@@ -735,19 +735,19 @@ const AdminHeader = React.memo(function AdminHeader({
             <MenuCard
               title={t("admin.complaints", "Complaints")}
               icon="feedback"
-              color="#607D8B"
+              color="#64748B"
               onPress={() => router.push("/complaints")}
             />
             <MenuCard
               title={t("admin.broadcast", "Broadcast")}
               icon="campaign"
-              color="#3F51B5"
+              color="#2F6CD4"
               onPress={() => router.push("/admin/send-notification")}
             />
             <MenuCard
               title={t("admin.dailyReminders", "Daily Cron")}
               icon="cake"
-              color="#E91E63"
+              color="#D97706"
               onPress={onTriggerDailyReminders}
             />
           </View>
@@ -880,22 +880,24 @@ const AdminHeader = React.memo(function AdminHeader({
                   paddingVertical: 8,
                   backgroundColor:
                     roleFilter === role
-                      ? colors.primary
-                      : colors.cardBackground,
+                      ? colors.primaryContainer || "#E0ECFF"
+                      : colors.surfaceContainerLow || colors.cardBackground,
                   borderRadius: 20,
                   borderWidth: 1,
                   borderColor:
-                    roleFilter === role ? colors.primary : colors.border,
-                  elevation: roleFilter === role ? 4 : 0,
-                  shadowColor: roleFilter === role ? colors.primary : "#000",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: roleFilter === role ? 0.3 : 0,
-                  shadowRadius: 4,
+                    roleFilter === role
+                      ? colors.primary
+                      : colors.outlineVariant
+                      ? colors.outlineVariant + "50"
+                      : colors.border,
                 }}
               >
                 <Text
                   style={{
-                    color: roleFilter === role ? "#fff" : colors.textSecondary,
+                    color:
+                      roleFilter === role
+                        ? colors.primary
+                        : colors.textSecondary,
                     fontFamily:
                       roleFilter === role ? FONTS.bold : FONTS.medium,
                     textTransform: "capitalize",

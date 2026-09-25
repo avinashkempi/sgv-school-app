@@ -32,9 +32,9 @@ import {
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-// Material 3 Expressive vibrant gradient colors for unseen stories
-const UNSEEN_GRADIENT = ["#8B5CF6", "#EC4899", "#EF4444", "#F59E0B"];
-const OFFICIAL_GRADIENT = ["#3B82F6", "#1D4ED8", "#60A5FA"];
+// Material 3 Expressive vibrant gradient colors for unseen stories (SGV Brand Blue)
+const UNSEEN_GRADIENT = ["#2F6CD4", "#4D83E8", "#60A5FA"];
+const OFFICIAL_GRADIENT = ["#0891B2", "#06B6D4", "#22D3EE"];
 const ACHIEVEMENT_GRADIENT = ["#F59E0B", "#D97706", "#FCD34D"];
 
 /**
@@ -221,10 +221,10 @@ const StoryBubble = memo(
                 styles.badgePill,
                 {
                   backgroundColor: isOfficial
-                    ? "#2563EB"
+                    ? "#0891B2"
                     : isAchievement
                     ? "#F59E0B"
-                    : "#8B5CF6",
+                    : colors.primary || "#2F6CD4",
                   borderColor: colors.background,
                 },
               ]}
@@ -352,7 +352,7 @@ const VibeStoriesTray = ({ onOpenCreate, hideHeader = false }) => {
         title: "SGV Official Broadcasts",
         stories: officialVibes,
         isOfficial: true,
-        badgeColor: "#2563EB",
+        badgeColor: "#2F6CD4",
       });
     }
 
@@ -374,7 +374,7 @@ const VibeStoriesTray = ({ onOpenCreate, hideHeader = false }) => {
         author: story.author,
         stories: story.vibes,
         badgeColor:
-          story.author?.role === "teacher" ? "#8B5CF6" : "#10B981",
+          story.author?.role === "teacher" ? "#2F6CD4" : "#10B981",
       });
     });
 
@@ -456,7 +456,7 @@ const VibeStoriesTray = ({ onOpenCreate, hideHeader = false }) => {
             ? "1 live"
             : `${officialVibes.length} live`,
         icon: "school",
-        ringColor: "#2563EB",
+        ringColor: "#2F6CD4",
         isSpecial: true,
         isOfficial: true,
         isViewed: isOfficialViewed,
@@ -505,7 +505,7 @@ const VibeStoriesTray = ({ onOpenCreate, hideHeader = false }) => {
         subtitle: role,
         imageUri: story.author?.profilePhoto || story.latestImage,
         ringColor:
-          story.author?.role === "teacher" ? "#8B5CF6" : colors.primary,
+          story.author?.role === "teacher" ? "#2F6CD4" : colors.primary,
         isSpecial: false,
         isViewed: isStoryViewed,
         badgeIcon: story.author?.role === "teacher" ? "school" : undefined,

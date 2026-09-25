@@ -33,16 +33,12 @@ const TodayTimetableCard = ({ style }) => {
     }
   };
 
-  const violetAccent = isDark ? "#A78BFA" : "#6366F1";
-  const cardSurface = isDark
-    ? "rgba(167, 139, 250, 0.09)"
-    : "rgba(99, 102, 241, 0.05)";
-  const borderColor = isDark
-    ? "rgba(167, 139, 250, 0.25)"
-    : "rgba(99, 102, 241, 0.18)";
+  const brandBlueAccent = colors.brandBlue || colors.secondary || "#2F6CD4";
+  const cardSurface = isDark ? colors.surfaceContainer : colors.surface;
+  const borderColor = isDark ? `${colors.outlineVariant}60` : colors.outlineVariant;
   const iconBg = isDark
-    ? "rgba(167, 139, 250, 0.18)"
-    : "rgba(99, 102, 241, 0.12)";
+    ? colors.brandBlueContainer || "rgba(77, 131, 232, 0.15)"
+    : colors.brandBlueContainer || "#EBF2FF";
 
   const now = new Date();
   const todayDayName = now.toLocaleDateString("en-US", { weekday: "short" });
@@ -73,13 +69,11 @@ const TodayTimetableCard = ({ style }) => {
           styles.iconWrap,
           {
             backgroundColor: iconBg,
-            borderColor: isDark
-              ? "rgba(167, 139, 250, 0.3)"
-              : "rgba(99, 102, 241, 0.22)",
+            borderColor: "transparent",
           },
         ]}
       >
-        <MaterialIcons name="schedule" size={24} color={violetAccent} />
+        <MaterialIcons name="schedule" size={24} color={brandBlueAccent} />
       </View>
 
       {/* Center Title & Subtitle */}
@@ -93,12 +87,12 @@ const TodayTimetableCard = ({ style }) => {
               styles.dateBadge,
               {
                 backgroundColor: isDark
-                  ? "rgba(167, 139, 250, 0.15)"
-                  : "rgba(99, 102, 241, 0.08)",
+                  ? `${brandBlueAccent}20`
+                  : colors.brandBlueContainer || "#EBF2FF",
               },
             ]}
           >
-            <Text style={[styles.dateBadgeText, { color: violetAccent }]}>
+            <Text style={[styles.dateBadgeText, { color: brandBlueAccent }]}>
               {todayDayName}, {formattedDate}
             </Text>
           </View>

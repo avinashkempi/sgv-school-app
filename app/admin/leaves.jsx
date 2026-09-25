@@ -503,13 +503,13 @@ export default function AdminLeaves() {
 
   const getRoleBadgeStyle = (role, designation) => {
     if (designation && String(designation).trim()) {
-      return { bg: "#EDE7F6", border: "#D1C4E9", text: "#512DA8", label: toTitleCase(String(designation).trim()), icon: "badge" };
+      return { bg: "#EBF2FF", border: "#C5DCFA", text: "#2F6CD4", label: toTitleCase(String(designation).trim()), icon: "badge" };
     }
     switch (role) {
       case "student":
-        return { bg: "#FFF3E0", border: "#FFE0B2", text: "#E65100", label: "Student", icon: "school" };
+        return { bg: colors.primaryContainer || "#E0ECFF", border: (colors.primary || "#2F6CD4") + "30", text: colors.primary || "#2F6CD4", label: "Student", icon: "school" };
       case "teacher":
-        return { bg: "#EDE7F6", border: "#D1C4E9", text: "#512DA8", label: "Teacher", icon: "person" };
+        return { bg: "#E0F2FE", border: "#BAE6FD", text: "#0284C7", label: "Teacher", icon: "person" };
       case "staff":
       case "support_staff":
         return { bg: "#E0F2F1", border: "#B2DFDB", text: "#00695C", label: role === "support_staff" ? "Support Staff" : "Staff", icon: "work" };
@@ -528,7 +528,7 @@ export default function AdminLeaves() {
       case "rejected":
         return { color: colors.error || "#D32F2F", bg: "#FFEBEE", label: "Rejected", icon: "close-circle" };
       default:
-        return { color: "#E65100", bg: "#FFF3E0", label: "Pending", icon: "time-outline" };
+        return { color: colors.warning || "#D97706", bg: colors.warningContainer || "#FFFBEB", label: "Pending", icon: "time-outline" };
     }
   };
 
@@ -581,8 +581,8 @@ export default function AdminLeaves() {
                 </View>
 
                 {isStudent && item.class && (
-                  <View style={[styles.classChip, { backgroundColor: "#FFF3E0", borderColor: "#FFE0B2" }]}>
-                    <Text style={[styles.classChipText, { color: "#E65100" }]} numberOfLines={1}>
+                  <View style={[styles.classChip, { backgroundColor: colors.primaryContainer || "#E0ECFF", borderColor: (colors.primary || "#2F6CD4") + "30" }]}>
+                    <Text style={[styles.classChipText, { color: colors.primary || "#2F6CD4" }]} numberOfLines={1}>
                       {formatClassName(item.class.name || item.class.label, item.class.section)}
                     </Text>
                   </View>
@@ -1001,7 +1001,7 @@ export default function AdminLeaves() {
                   {tab.label}
                 </Text>
                 {tab.count !== null && tab.count > 0 && (
-                  <View style={[styles.tabBadge, { backgroundColor: tab.key === "requests" ? "#E65100" : colors.primary }]}>
+                  <View style={[styles.tabBadge, { backgroundColor: colors.primary || "#2F6CD4" }]}>
                     <Text style={styles.tabBadgeText}>{tab.count}</Text>
                   </View>
                 )}
@@ -1171,13 +1171,13 @@ export default function AdminLeaves() {
 
           {/* Daily Quick Counts */}
           <View style={styles.dailyCountsRow}>
-            <View style={[styles.dailyCountPill, { backgroundColor: "#FFF3E0" }]}>
-              <Text style={{ color: "#E65100", fontFamily: FONTS.bold, fontSize: FONT_SIZES.xs }} numberOfLines={1}>
+            <View style={[styles.dailyCountPill, { backgroundColor: colors.primaryContainer || "#E0ECFF" }]}>
+              <Text style={{ color: colors.primary || "#2F6CD4", fontFamily: FONTS.bold, fontSize: FONT_SIZES.xs }} numberOfLines={1}>
                 {dailyLeavesGrouped.students.length} Students
               </Text>
             </View>
-            <View style={[styles.dailyCountPill, { backgroundColor: "#EDE7F6" }]}>
-              <Text style={{ color: "#512DA8", fontFamily: FONTS.bold, fontSize: FONT_SIZES.xs }} numberOfLines={1}>
+            <View style={[styles.dailyCountPill, { backgroundColor: "#E0F2FE" }]}>
+              <Text style={{ color: "#0284C7", fontFamily: FONTS.bold, fontSize: FONT_SIZES.xs }} numberOfLines={1}>
                 {dailyLeavesGrouped.teachers.length} Teachers
               </Text>
             </View>
@@ -1243,9 +1243,9 @@ export default function AdminLeaves() {
                 <Text style={[styles.allowanceNum, { color: colors.onSurface }]} numberOfLines={1}>{leaveBalance.total}</Text>
                 <Text style={[styles.allowanceLabel, { color: colors.onSurfaceVariant }]} numberOfLines={1}>Total</Text>
               </View>
-              <View style={[styles.allowanceCol, { backgroundColor: "#FFF3E0" }]}>
-                <Text style={[styles.allowanceNum, { color: "#E65100" }]} numberOfLines={1}>{leaveBalance.used}</Text>
-                <Text style={[styles.allowanceLabel, { color: "#E65100" }]} numberOfLines={1}>Used</Text>
+              <View style={[styles.allowanceCol, { backgroundColor: colors.primaryContainer || "#E0ECFF" }]}>
+                <Text style={[styles.allowanceNum, { color: colors.primary || "#2F6CD4" }]} numberOfLines={1}>{leaveBalance.used}</Text>
+                <Text style={[styles.allowanceLabel, { color: colors.primary || "#2F6CD4" }]} numberOfLines={1}>Used</Text>
               </View>
               <View style={[styles.allowanceCol, { backgroundColor: "#E8F5E9" }]}>
                 <Text style={[styles.allowanceNum, { color: "#2E7D32" }]} numberOfLines={1}>{leaveBalance.remaining}</Text>

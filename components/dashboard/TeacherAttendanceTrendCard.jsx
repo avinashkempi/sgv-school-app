@@ -236,15 +236,15 @@ const TeacherAttendanceTrendCard = ({
       }}
       style={{
         backgroundColor: isDark
-          ? "rgba(208, 188, 255, 0.08)"
-          : "rgba(79, 55, 139, 0.045)",
+          ? colors.surfaceContainer
+          : colors.surface,
         borderRadius: 24,
         padding: 18,
         marginBottom: 20,
         borderWidth: 1,
         borderColor: isDark
-          ? "rgba(208, 188, 255, 0.22)"
-          : "rgba(79, 55, 139, 0.15)",
+          ? `${colors.outlineVariant}50`
+          : colors.outlineVariant,
         shadowColor: colors.shadow || "#000",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: isDark ? 0.2 : 0.04,
@@ -360,15 +360,15 @@ const TeacherAttendanceTrendCard = ({
             flex: 1,
             minWidth: 95,
             backgroundColor: isDark
-              ? "rgba(208, 188, 255, 0.1)"
-              : "rgba(79, 55, 139, 0.06)",
+              ? colors.surfaceContainerHigh
+              : colors.surfaceContainer,
             paddingVertical: 10,
             paddingHorizontal: 12,
             borderRadius: 14,
             borderWidth: 1,
             borderColor: isDark
-              ? "rgba(208, 188, 255, 0.24)"
-              : "rgba(79, 55, 139, 0.18)",
+              ? `${colors.outlineVariant}50`
+              : colors.outlineVariant,
           }}
         >
           <Text
@@ -412,15 +412,15 @@ const TeacherAttendanceTrendCard = ({
             flex: 1,
             minWidth: 95,
             backgroundColor: isDark
-              ? "rgba(208, 188, 255, 0.1)"
-              : "rgba(79, 55, 139, 0.06)",
+              ? colors.surfaceContainerHigh
+              : colors.surfaceContainer,
             paddingVertical: 10,
             paddingHorizontal: 12,
             borderRadius: 14,
             borderWidth: 1,
             borderColor: isDark
-              ? "rgba(208, 188, 255, 0.24)"
-              : "rgba(79, 55, 139, 0.18)",
+              ? `${colors.outlineVariant}50`
+              : colors.outlineVariant,
           }}
         >
           <Text
@@ -465,15 +465,15 @@ const TeacherAttendanceTrendCard = ({
             flex: 1,
             minWidth: 95,
             backgroundColor: isDark
-              ? "rgba(208, 188, 255, 0.1)"
-              : "rgba(79, 55, 139, 0.06)",
+              ? colors.surfaceContainerHigh
+              : colors.surfaceContainer,
             paddingVertical: 10,
             paddingHorizontal: 12,
             borderRadius: 14,
             borderWidth: 1,
             borderColor: isDark
-              ? "rgba(208, 188, 255, 0.24)"
-              : "rgba(79, 55, 139, 0.18)",
+              ? `${colors.outlineVariant}50`
+              : colors.outlineVariant,
           }}
         >
           <Text
@@ -525,16 +525,16 @@ const TeacherAttendanceTrendCard = ({
       <View
         style={{
           backgroundColor: isDark
-            ? "rgba(208, 188, 255, 0.06)"
-            : "rgba(79, 55, 139, 0.035)",
+            ? colors.surfaceContainerLow
+            : colors.surfaceContainerLowest || colors.surface,
           borderRadius: 18,
           paddingTop: 8,
           paddingBottom: 4,
           paddingHorizontal: 6,
           borderWidth: 1,
           borderColor: isDark
-            ? "rgba(208, 188, 255, 0.2)"
-            : "rgba(79, 55, 139, 0.14)",
+            ? `${colors.outlineVariant}40`
+            : colors.outlineVariant,
           overflow: "hidden",
         }}
       >
@@ -758,14 +758,14 @@ const TeacherAttendanceTrendCard = ({
         style={{
           marginTop: 14,
           backgroundColor: isDark
-            ? "rgba(208, 188, 255, 0.09)"
-            : "rgba(79, 55, 139, 0.05)",
+            ? colors.surfaceContainerHigh
+            : colors.surfaceContainer,
           borderRadius: 16,
           padding: 14,
           borderWidth: 1,
           borderColor: isDark
-            ? "rgba(208, 188, 255, 0.24)"
-            : "rgba(79, 55, 139, 0.16)",
+            ? `${colors.outlineVariant}50`
+            : colors.outlineVariant,
         }}
       >
         <View

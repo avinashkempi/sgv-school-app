@@ -79,7 +79,7 @@ const VibeSpotlightCard = () => {
     }
   };
 
-  const amberAccent = isDark ? "#FFB74D" : "#D97706";
+  const amberAccent = colors.primary || "#2F6CD4";
 
   if (isLoading) {
     return (
@@ -87,21 +87,17 @@ const VibeSpotlightCard = () => {
         title="Campus Spotlight"
         icon="auto-awesome"
         accentColor={amberAccent}
-        lightBg="rgba(226, 114, 0, 0.045)"
-        darkBg="rgba(255, 183, 77, 0.07)"
-        lightBorder="rgba(226, 114, 0, 0.14)"
-        darkBorder="rgba(255, 183, 77, 0.18)"
       >
         <View
           style={[
             styles.card,
             {
               backgroundColor: isDark
-                ? "rgba(255, 183, 77, 0.08)"
-                : "rgba(226, 114, 0, 0.045)",
+                ? colors.surfaceContainer
+                : colors.surface,
               borderColor: isDark
-                ? "rgba(255, 183, 77, 0.22)"
-                : "rgba(226, 114, 0, 0.16)",
+                ? `${colors.outlineVariant}50`
+                : colors.outlineVariant,
             },
           ]}
         >
@@ -141,11 +137,11 @@ const VibeSpotlightCard = () => {
       case "life":
         return { label: "Campus Life", bg: "#0284C7", icon: "local-florist" };
       case "official":
-        return { label: "Official Broadcast", bg: "#2563EB", icon: "school" };
+        return { label: "Official Broadcast", bg: colors.brandBlue || "#2F6CD4", icon: "school" };
       default:
         return vibe.postAs === "school"
-          ? { label: "Official Broadcast", bg: "#2563EB", icon: "school" }
-          : { label: "Campus Spotlight", bg: colors.primary, icon: "auto-awesome" };
+          ? { label: "Official Broadcast", bg: colors.brandBlue || "#2F6CD4", icon: "school" }
+          : { label: "Campus Spotlight", bg: colors.brandOrange || colors.primary, icon: "auto-awesome" };
     }
   };
   const badgeConfig = getBadgeConfig();
@@ -157,10 +153,6 @@ const VibeSpotlightCard = () => {
       accentColor={amberAccent}
       actionText="All Vibes"
       onActionPress={handlePress}
-      lightBg="rgba(226, 114, 0, 0.045)"
-      darkBg="rgba(255, 183, 77, 0.07)"
-      lightBorder="rgba(226, 114, 0, 0.14)"
-      darkBorder="rgba(255, 183, 77, 0.18)"
     >
       <AnimatedPressable
         onPress={handlePress}
@@ -171,11 +163,11 @@ const VibeSpotlightCard = () => {
           animatedStyle,
           {
             backgroundColor: isDark
-              ? "rgba(255, 183, 77, 0.08)"
-              : "rgba(226, 114, 0, 0.045)",
+              ? colors.surfaceContainer
+              : colors.surface,
             borderColor: isDark
-              ? "rgba(255, 183, 77, 0.22)"
-              : "rgba(226, 114, 0, 0.16)",
+              ? `${colors.outlineVariant}50`
+              : colors.outlineVariant,
           },
         ]}
         accessibilityRole="button"
@@ -201,7 +193,7 @@ const VibeSpotlightCard = () => {
                 vibe.category === "achievement"
                   ? ["#B45309", "#D97706", "#F59E0B"]
                   : vibe.postAs === "school" || vibe.category === "official"
-                    ? ["#1E40AF", "#2563EB", "#3B82F6"]
+                    ? ["#1E40AF", "#2F6CD4", "#60A5FA"]
                     : ["#1E293B", "#334155", "#475569"]
               }
               style={styles.placeholderMedia}
@@ -282,7 +274,7 @@ const VibeSpotlightCard = () => {
               <MaterialIcons
                 name="verified"
                 size={14}
-                color="#2563EB"
+                color="#2F6CD4"
                 style={{ flexShrink: 0 }}
               />
             )}
@@ -310,7 +302,7 @@ const VibeSpotlightCard = () => {
           >
             <View style={styles.statsGroup}>
               <View style={styles.statItem}>
-                <MaterialIcons name="favorite" size={14} color="#FF2D55" />
+                <MaterialIcons name="favorite" size={14} color={colors.error || "#EF4444"} />
                 <Text
                   style={[
                     styles.statNumber,

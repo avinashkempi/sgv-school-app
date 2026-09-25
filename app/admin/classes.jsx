@@ -25,6 +25,7 @@ import apiConfig from "../../config/apiConfig";
 import { useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useToast } from "../../components/ToastProvider";
 import AppHeader from "../../components/Header";
+import { EmptyState } from "../../components/StateComponents";
 import UserAvatar from "../../components/ui/UserAvatar";
 import { formatUserName } from "../../utils/userFormatters";
 import { formatClassName } from "../../utils/formatClassName";
@@ -212,29 +213,41 @@ export default function ClassesScreen() {
           )}
 
           <View style={{ marginTop: 16 }}>
-            {classes.map((cls) => (
-              <Pressable
-                key={cls._id}
-                onPress={() => {
-                  // Navigate to teacher's class view
-                  router.push(`/teacher/class/${cls._id}`);
-                }}
-                style={({ pressed }) => ({
-                  backgroundColor: colors.cardBackground,
-                  borderRadius: 16,
-                  padding: 16,
-                  marginBottom: 12,
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  opacity: pressed ? 0.9 : 1,
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 1 },
-                  shadowOpacity: 0.05,
-                  shadowRadius: 4,
-                  elevation: 1,
-                })}
-              >
+            {classes.length === 0 ? (
+              <EmptyState
+                icon="school"
+                title="No Classes Found"
+                message="Tap the + button below to create a new class."
+              />
+            ) : (
+              classes.map((cls) => (
+                <Pressable
+                  key={cls._id}
+                  onPress={() => {
+                    // Navigate to teacher's class view
+                    router.push(`/teacher/class/${cls._id}`);
+                  }}
+                  style={({ pressed }) => ({
+                    backgroundColor:
+                      colors.surfaceContainerLow || colors.cardBackground,
+                    borderRadius: 16,
+                    padding: 16,
+                    marginBottom: 12,
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    opacity: pressed ? 0.9 : 1,
+                    borderWidth: 1,
+                    borderColor: colors.outlineVariant
+                      ? colors.outlineVariant + "40"
+                      : "transparent",
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.05,
+                    shadowRadius: 4,
+                    elevation: 1,
+                  })}
+                >
                 <View style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
                   <Text
                     style={{
@@ -328,7 +341,7 @@ export default function ClassesScreen() {
                   />
                 </View>
               </Pressable>
-            ))}
+            )))}
           </View>
         </View>
       </ScrollView>

@@ -4,18 +4,17 @@ import {
   Text,
   FlatList,
   TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import {} from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTheme, FONTS, FONT_SIZES } from "../../theme";
 import { useApiQuery, useApiMutation } from "../../hooks/useApi";
 import { useToast } from "../../components/ToastProvider";
 import AppHeader from "../../components/Header";
+import Button from "../../components/Button";
+import { LoadingState } from "../../components/StateComponents";
 import apiConfig from "../../config/apiConfig";
 import { useLabel } from "../../context/LabelsContext";
 import { formatUserName } from "../../utils/userFormatters";
@@ -129,18 +128,7 @@ export default function MarksEntryScreen() {
   const totalMarks = examDetails?.totalMarks || 0;
 
   if (loadingStudents || loadingMarks) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: colors.background,
-        }}
-      >
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
-    );
+    return <LoadingState message={t("common.loading", "Loading marks...")} />;
   }
 
   return (
@@ -270,38 +258,22 @@ export default function MarksEntryScreen() {
         style={[
           localStyles.footer,
           {
-            backgroundColor: colors.cardBackground,
-            borderTopColor: colors.borderColor,
+            backgroundColor:
+              colors.surfaceContainerLow || colors.cardBackground,
+            borderTopColor: colors.outlineVariant
+              ? colors.outlineVariant + "40"
+              : colors.borderColor,
           },
         ]}
       >
-        <TouchableOpacity
-          style={[
-            localStyles.saveButton,
-            {
-              backgroundColor: colors.primary,
-              opacity: saving ? 0.7 : 1,
-              pointerEvents: saving ? "none" : "auto",
-            },
-          ]}
+        <Button
+          title={t("teacher.saveMarks", "Save Marks")}
+          variant="primary"
+          size="lg"
+          fullWidth
+          loading={saving}
           onPress={handleSave}
-          disabled={saving}
-        >
-          {saving ? (
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-            >
-              <ActivityIndicator color="#fff" size="small" />
-              <Text style={localStyles.saveButtonText}>
-                {t("common.saving", "Saving...")}
-              </Text>
-            </View>
-          ) : (
-            <Text style={localStyles.saveButtonText}>
-              {t("teacher.saveMarks", "Save Marks")}
-            </Text>
-          )}
-        </TouchableOpacity>
+        />
       </View>
     </View>
   );

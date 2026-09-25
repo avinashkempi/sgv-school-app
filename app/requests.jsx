@@ -157,6 +157,9 @@ export default function RequestsScreen() {
     </Card>
   );
 
+  const isSuperAdmin =
+    user?.role === "super admin" || user?.role === "super-admin";
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView
@@ -179,14 +182,15 @@ export default function RequestsScreen() {
         />
 
         <View style={{ marginTop: SPACING.xs || 4 }}>
-          {/* My Attendance Card - For All */}
-          {renderActionItem({
-            title: t("requests.myAttendance"),
-            subtitle: t("requests.myAttendanceSubtitle"),
-            icon: "person",
-            color: "#4CAF50",
-            onPress: navigateToMyAttendance,
-          })}
+          {/* My Attendance Card - For All Except Super Admin */}
+          {!isSuperAdmin &&
+            renderActionItem({
+              title: t("requests.myAttendance"),
+              subtitle: t("requests.myAttendanceSubtitle"),
+              icon: "person",
+              color: "#4CAF50",
+              onPress: navigateToMyAttendance,
+            })}
 
           {/* Mark Attendance Card - For Teachers & Admins */}
           {["teacher", "admin", "super admin"].includes(user?.role) &&

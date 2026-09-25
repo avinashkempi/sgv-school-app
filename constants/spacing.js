@@ -18,6 +18,10 @@ export const SPACING = {
   sectionGap: 20,       // Vertical gap between home screen modules
   screenPaddingH: 16,   // Standard app-wide horizontal margins (16px)
   cardInnerPadding: 16, // Balanced card interior padding
+  cardGap: 12,          // Gap between adjacent cards in a section
+  listItemGap: 8,       // Gap between list items
+  headerBottom: 12,     // Space below screen headers
+  contentTop: 8,        // Top padding for main scroll content
 };
 
 export const RADIUS = {

@@ -512,18 +512,18 @@ const PerformanceTrendCard = ({
           )}
         </View>
 
-        {/* Peak Score Card (if multiple exams) */}
+        {/* Best Score Card */}
         {normalizedData.length > 1 && (
           <View
             style={{
               flex: 1,
-              minWidth: 100,
-              backgroundColor: isDark ? "rgba(56, 189, 248, 0.09)" : "rgba(2, 132, 199, 0.05)",
+              minWidth: 80,
+              backgroundColor: isDark ? "rgba(16, 185, 129, 0.1)" : "rgba(16, 185, 129, 0.05)",
               paddingVertical: 10,
               paddingHorizontal: 12,
               borderRadius: 14,
               borderWidth: 1,
-              borderColor: isDark ? "rgba(56, 189, 248, 0.22)" : "rgba(2, 132, 199, 0.16)",
+              borderColor: isDark ? "rgba(16, 185, 129, 0.25)" : "rgba(16, 185, 129, 0.2)",
             }}
           >
             <Text
@@ -532,21 +532,22 @@ const PerformanceTrendCard = ({
                 fontFamily: FONTS.medium,
                 color:
                   colors.onSurfaceVariant || (isDark ? "#CAC4D0" : "#79747E"),
-              marginBottom: 2,
-            }}
-          >
-            Best ({bestExam.examType})
-          </Text>
-          <Text
-            style={{
-              fontSize: FONT_SIZES.lg,
-              fontFamily: FONTS.bold,
-              color: "#10B981",
-            }}
-          >
-            {bestExam.percentage}%
-          </Text>
-        </View>
+                marginBottom: 2,
+              }}
+              numberOfLines={1}
+            >
+              Best ({bestExam.examType})
+            </Text>
+            <Text
+              style={{
+                fontSize: FONT_SIZES.lg,
+                fontFamily: FONTS.bold,
+                color: "#10B981",
+              }}
+            >
+              {bestExam.percentage}%
+            </Text>
+          </View>
         )}
       </View>
 
@@ -939,19 +940,7 @@ const PerformanceTrendCard = ({
       {/* Interactive Exam Selector Chips */}
       {normalizedData.length > 1 && (
         <View style={{ marginTop: 14 }}>
-          <Text
-            style={{
-              fontSize: FONT_SIZES.sm,
-              fontFamily: FONTS.bold,
-              color:
-                colors.onSurfaceVariant || (isDark ? "#CAC4D0" : "#79747E"),
-              marginBottom: 8,
-              textTransform: "uppercase",
-              letterSpacing: 0.5,
-            }}
-          >
-            Exam History
-          </Text>
+
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}

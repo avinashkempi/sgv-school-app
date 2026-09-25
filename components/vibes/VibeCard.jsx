@@ -423,8 +423,8 @@ const VibeCard = ({
         return {
           label: "Official",
           icon: "school",
-          color: "#2563EB",
-          bg: "#DBEAFE",
+          color: "#2F6CD4",
+          bg: "#EBF2FF",
         };
       default:
         return null;
@@ -441,7 +441,7 @@ const VibeCard = ({
       style={[
         styles.card,
         {
-          backgroundColor: colors.surfaceContainer,
+          backgroundColor: colors.surfaceContainerLow || colors.surfaceContainer,
           borderColor: colors.outlineVariant || "rgba(0,0,0,0.08)",
         },
       ]}
@@ -483,7 +483,7 @@ const VibeCard = ({
                 <MaterialIcons
                   name="verified"
                   size={14}
-                  color="#2563EB"
+                  color="#2F6CD4"
                   style={styles.verifiedBadge}
                 />
               )}
@@ -500,7 +500,7 @@ const VibeCard = ({
                     styles.roleText,
                     {
                       color: isSchoolPost
-                        ? (colors.primary || "#2563EB")
+                        ? (colors.primary || "#2F6CD4")
                         : colors.onSurfaceVariant,
                       fontFamily: isSchoolPost ? FONTS.semiBold : FONTS.medium,
                     },
@@ -620,10 +620,10 @@ const VibeCard = ({
               styles.actionPill,
               {
                 backgroundColor: isLiked
-                  ? "rgba(255, 45, 85, 0.12)"
+                  ? "rgba(255, 94, 28, 0.12)"
                   : colors.surfaceContainerHighest,
                 borderColor: isLiked
-                  ? "rgba(255, 45, 85, 0.28)"
+                  ? "rgba(255, 94, 28, 0.28)"
                   : colors.outlineVariant || "transparent",
               },
             ]}
@@ -634,7 +634,7 @@ const VibeCard = ({
           >
             <Animated.View style={likeAnimatedStyle}>
               {isLiked ? (
-                <MaterialIcons name="favorite" size={19} color="#FF2D55" />
+                <MaterialIcons name="favorite" size={19} color={colors.error || "#EF4444"} />
               ) : (
                 <MaterialIcons
                   name="favorite-border"
@@ -647,7 +647,7 @@ const VibeCard = ({
               style={[
                 styles.actionCountText,
                 {
-                  color: isLiked ? "#FF2D55" : colors.onSurface,
+                  color: isLiked ? (colors.error || "#EF4444") : colors.onSurface,
                   fontFamily: FONTS.bold,
                 },
               ]}
@@ -714,7 +714,7 @@ const VibeCard = ({
             styles.circleActionBtn,
             {
               backgroundColor: isBookmarked
-                ? "rgba(79, 55, 139, 0.12)"
+                ? (colors.primaryContainer || "#E0ECFF")
                 : colors.surfaceContainerHighest,
             },
           ]}
@@ -745,7 +745,7 @@ const VibeCard = ({
             style={styles.likesLinkBtn}
           >
             <View style={styles.tinyHeartIcon}>
-              <MaterialIcons name="favorite" size={11} color="#FF2D55" />
+              <MaterialIcons name="favorite" size={11} color={colors.error || "#EF4444"} />
             </View>
             <Text style={[styles.likesDetailedText, { color: colors.onSurface }]}>
               {likesCount > 0 ? (
@@ -911,7 +911,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: "#DBEAFE",
+    backgroundColor: "#EBF2FF",
     borderColor: "#93C5FD",
     borderWidth: 1,
     justifyContent: "center",
@@ -998,6 +998,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: "hidden",
     alignSelf: "center",
+    backgroundColor: "#000",
   },
   actionBar: {
     flexDirection: "row",
@@ -1053,7 +1054,7 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: "rgba(255, 45, 85, 0.12)",
+    backgroundColor: "rgba(255, 94, 28, 0.12)",
     justifyContent: "center",
     alignItems: "center",
   },

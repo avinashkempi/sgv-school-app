@@ -5,9 +5,12 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  TouchableOpacity,
+  StyleSheet,
 } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import {
   useTheme,
   FONTS,
@@ -26,7 +29,8 @@ import { useAuth } from "../context/AuthContext";
 // UI Components
 import TextInput from "../components/TextInput";
 import Button from "../components/Button";
-
+import Badge from "../components/ui/Badge";
+import Divider from "../components/ui/Divider";
 import { useToast } from "../components/ToastProvider";
 
 export default function Login() {
@@ -53,17 +57,17 @@ export default function Login() {
         // Use AuthContext.login — handles cache clearing, FCM, state
         await authLogin(data.token, data.user);
 
-        showToast(t("toasts.loggedInSuccessfully"), "success", 2000);
+        showToast(t("toasts.loggedInSuccessfully", "Logged in successfully"), "success", 2000);
         router.replace("/");
       } else {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-        showToast(data.message || t("toasts.loginFailed"), "error");
+        showToast(data.message || t("toasts.loginFailed", "Login failed"), "error");
       }
     },
     onError: (error) => {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       console.error("Login error:", error);
-      showToast(error.message || t("toasts.networkError"), "error");
+      showToast(error.message || t("toasts.networkError", "Network error"), "error");
     },
   });
 
@@ -110,107 +114,124 @@ export default function Login() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 12 : 0}
       style={{ flex: 1, backgroundColor: colors.background }}
     >
       <ScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-          paddingHorizontal: SPACING.xxl || 24,
-          paddingVertical: SPACING.xl || 20,
-          justifyContent: "center",
-        }}
+        contentContainerStyle={[
+          styles.scrollContainer,
+          {
+            paddingHorizontal: SPACING.xxl || 24,
+            paddingVertical: SPACING.xxl || 24,
+          },
+        ]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        bounces={false}
       >
-        {/* Header Section */}
-        <View style={{ alignItems: "center", marginBottom: SPACING.xxl || 28 }}>
-          {/* Subtle radial glow behind logo */}
+        <View style={styles.contentWrapper}>
+          {/* Top Tour Action */}
+        <View style={styles.topTourBar}>
+          <TouchableOpacity
+            onPress={() => router.push("/onboarding")}
+            style={[
+              styles.tourButton,
+              {
+                backgroundColor: colors.surfaceContainerLow || "rgba(0,0,0,0.04)",
+                borderColor: colors.outlineVariant + "50",
+              },
+            ]}
+            activeOpacity={0.7}
+          >
+            <MaterialIcons
+              name="lightbulb-outline"
+              size={15}
+              color={colors.primary}
+            />
+            <Text style={[styles.tourText, { color: colors.onSurfaceVariant }]}>
+              Explore Features
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Brand & Logo Header */}
+        <View style={styles.headerSection}>
+          {/* Subtle radial glow */}
           <LinearGradient
-            colors={[colors.primary + "0A", "transparent"]}
+            colors={[colors.primary + "18", colors.primary + "06", "transparent"]}
             pointerEvents="none"
-            style={{
-              position: "absolute",
-              width: 180,
-              height: 180,
-              borderRadius: 90,
-              top: -20,
-            }}
+            style={styles.logoGlow}
           />
+
+          {/* Elevated Logo Card */}
           <View
-            style={{
-              width: 80,
-              height: 80,
-              backgroundColor: colors.surfaceContainerLowest || "#ffffff",
-              borderRadius: RADIUS.xl || 24,
-              justifyContent: "center",
-              alignItems: "center",
-              marginBottom: SPACING.md || 12,
-              shadowColor: colors.shadow,
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.08,
-              shadowRadius: 10,
-              elevation: 2,
-              borderWidth: 1,
-              borderColor: colors.outlineVariant || "rgba(0,0,0,0.08)",
-              padding: 6,
-            }}
+            style={[
+              styles.logoCard,
+              {
+                backgroundColor: colors.surfaceContainerLowest || "#ffffff",
+                borderColor: colors.outlineVariant || "rgba(0,0,0,0.08)",
+                shadowColor: colors.shadow,
+              },
+            ]}
           >
             <Image
               source={require("../assets/images/icon.png")}
-              style={{ width: "100%", height: "100%", borderRadius: RADIUS.lg || 18 }}
+              style={styles.logoImage}
               contentFit="contain"
             />
           </View>
 
-          <Text
-            style={{
-              fontSize: FONT_SIZES.display,
-              fontFamily: FONTS.bold,
-              color: colors.onBackground,
-              marginBottom: 4,
-              textAlign: "center",
-              letterSpacing: LETTER_SPACINGS.display,
-            }}
-          >
-            {t("login.title")}
-          </Text>
+          {/* Digital Campus Pill */}
+          <View style={styles.badgeWrapper}>
+            <Badge
+              label="DIGITAL CAMPUS"
+              variant="brand"
+              size="sm"
+              dot
+            />
+          </View>
 
           <Text
-            style={{
-              fontSize: FONT_SIZES.sm,
-              fontFamily: FONTS.bold,
-              color: colors.primary,
-              textAlign: "center",
-              marginBottom: 4,
-            }}
+            style={[
+              styles.title,
+              {
+                color: colors.onBackground,
+                letterSpacing: LETTER_SPACINGS.display,
+              },
+            ]}
           >
+            {t("login.title", "Welcome Back")}
+          </Text>
+
+          <Text style={[styles.schoolName, { color: colors.primary }]}>
             Shri Guru Vidya English Medium School
           </Text>
 
           <Text
-            style={{
-              fontSize: FONT_SIZES.xs,
-              fontFamily: FONTS.regular,
-              color: colors.onSurfaceVariant,
-              textAlign: "center",
-            }}
+            style={[
+              styles.subtitle,
+              { color: colors.onSurfaceVariant },
+            ]}
           >
-            {t("login.subtitle")}
+            {t(
+              "login.subtitle",
+              "Sign in with your registered mobile number to access your portal"
+            )}
           </Text>
         </View>
 
         {/* Form Section */}
-        <View style={{ gap: SPACING.lg || 16 }}>
+        <View style={[styles.formContainer, { gap: SPACING.lg || 16 }]}>
           <TextInput
-            label={t("login.phoneLabel")}
+            label={t("login.phoneLabel", "Mobile Number")}
             icon="phone"
             value={phone}
             onChangeText={(text) => {
               setPhone(text);
               if (phoneError) setPhoneError("");
             }}
-            placeholder={t("login.phonePlaceholder")}
-            keyboardType="number-pad"
+            placeholder={t("login.phonePlaceholder", "Enter 10-digit mobile number")}
+            keyboardType="phone-pad"
             maxLength={10}
             editable={!loading}
             error={phoneError}
@@ -218,14 +239,14 @@ export default function Login() {
           />
 
           <TextInput
-            label={t("login.passwordLabel")}
+            label={t("login.passwordLabel", "Password")}
             icon="lock"
             value={password}
             onChangeText={(text) => {
               setPassword(text);
               if (passwordError) setPasswordError("");
             }}
-            placeholder={t("login.passwordPlaceholder")}
+            placeholder={t("login.passwordPlaceholder", "Enter your password")}
             secureTextEntry={!showPassword}
             rightIcon={showPassword ? "visibility" : "visibility-off"}
             onRightIconPress={() => setShowPassword(!showPassword)}
@@ -234,61 +255,144 @@ export default function Login() {
             variant="outlined"
           />
 
-          <View style={{ gap: SPACING.md || 12, marginTop: SPACING.sm || 8 }}>
+          <View style={[styles.actionsGroup, { gap: SPACING.md || 12 }]}>
             <Button
               onPress={handleLogin}
               loading={loading}
               variant="filled"
               size="lg"
               fullWidth
+              icon={<MaterialIcons name="login" size={18} color="#FFFFFF" />}
             >
-              {t("login.signInButton")}
+              {t("login.signInButton", "Sign In")}
             </Button>
 
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                marginVertical: SPACING.xs || 4,
-              }}
-            >
-              <View
-                style={{
-                  flex: 1,
-                  height: 1,
-                  backgroundColor: colors.outlineVariant + "80",
-                }}
-              />
-              <Text
-                style={{
-                  marginHorizontal: SPACING.lg || 16,
-                  color: colors.onSurfaceVariant,
-                  fontSize: FONT_SIZES.xs,
-                  fontFamily: FONTS.medium,
-                }}
-              >
-                {t("common.or")}
-              </Text>
-              <View
-                style={{
-                  flex: 1,
-                  height: 1,
-                  backgroundColor: colors.outlineVariant + "80",
-                }}
-              />
-            </View>
+            <Divider label={t("common.or", "OR")} inset={SPACING.lg || 16} />
 
             <Button
               variant="outlined"
               size="lg"
               fullWidth
               onPress={handleDemoLogin}
+              icon={<MaterialIcons name="bolt" size={18} color={colors.primary} />}
             >
-              {t("login.viewAsGuestButton")}
+              {t("login.viewAsGuestButton", "Explore Demo as Guest")}
             </Button>
           </View>
+        </View>
+
+        {/* Footer Support Info */}
+        <View style={styles.footerSection}>
+          <Text style={[styles.footerText, { color: colors.onSurfaceVariant }]}>
+            Trouble logging in? Contact School Admin
+          </Text>
+          <Text style={[styles.versionText, { color: colors.outline }]}>
+            SGV Digital Campus • v2.0
+          </Text>
+        </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+  },
+  contentWrapper: {
+    flexGrow: 1,
+    justifyContent: "center",
+  },
+  topTourBar: {
+    alignItems: "flex-end",
+    marginBottom: SPACING.md || 12,
+  },
+  tourButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: RADIUS.full || 999,
+    borderWidth: 1,
+  },
+  tourText: {
+    fontFamily: FONTS.medium,
+    fontSize: 12,
+  },
+  headerSection: {
+    alignItems: "center",
+    marginBottom: SPACING.xxl || 28,
+    position: "relative",
+  },
+  logoGlow: {
+    position: "absolute",
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    top: -24,
+  },
+  logoCard: {
+    width: 84,
+    height: 84,
+    borderRadius: RADIUS.xxl || 26,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: SPACING.md || 12,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 3,
+    borderWidth: 1,
+    padding: 8,
+  },
+  logoImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: RADIUS.lg || 18,
+  },
+  badgeWrapper: {
+    marginBottom: SPACING.sm || 8,
+  },
+  title: {
+    fontSize: FONT_SIZES.display,
+    fontFamily: FONTS.bold,
+    marginBottom: 4,
+    textAlign: "center",
+  },
+  schoolName: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
+    textAlign: "center",
+    marginBottom: 6,
+  },
+  subtitle: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.regular,
+    textAlign: "center",
+    maxWidth: 280,
+    lineHeight: 18,
+  },
+  formContainer: {
+    width: "100%",
+  },
+  actionsGroup: {
+    marginTop: SPACING.sm || 8,
+  },
+  footerSection: {
+    alignItems: "center",
+    marginTop: SPACING.xxl || 32,
+    gap: 4,
+  },
+  footerText: {
+    fontFamily: FONTS.medium,
+    fontSize: 12,
+    textAlign: "center",
+  },
+  versionText: {
+    fontFamily: FONTS.regular,
+    fontSize: 11,
+    textAlign: "center",
+  },
+});

@@ -350,11 +350,11 @@ const Header = ({
                   styles.yearPill,
                   {
                     backgroundColor: selectedYear.isActive
-                      ? (colors.primaryContainer ? colors.primaryContainer + "70" : colors.primary + "18")
-                      : (colors.surfaceContainerHigh || "#f0f0f0"),
+                      ? colors.primaryContainer || "#E0ECFF"
+                      : colors.surfaceContainer || "#F0F1F5",
                     borderColor: selectedYear.isActive
-                      ? colors.primary + "30"
-                      : colors.outlineVariant || "rgba(0,0,0,0.12)",
+                      ? (colors.primary || "#2F6CD4") + "40"
+                      : colors.outlineVariant || "rgba(0,0,0,0.08)",
                   },
                 ]}
               >
@@ -363,8 +363,8 @@ const Header = ({
                   size={13}
                   color={
                     selectedYear.isActive
-                      ? colors.primary
-                      : colors.onSurfaceVariant
+                      ? colors.primary || "#2F6CD4"
+                      : colors.textSecondary || colors.onSurfaceVariant
                   }
                   style={{ marginRight: 4 }}
                 />
@@ -373,8 +373,8 @@ const Header = ({
                     styles.yearPillText,
                     {
                       color: selectedYear.isActive
-                        ? colors.onSurface
-                        : colors.onSurfaceVariant,
+                        ? colors.primary || "#2F6CD4"
+                        : colors.textSecondary || colors.onSurfaceVariant,
                     },
                   ]}
                   numberOfLines={1}
@@ -418,17 +418,17 @@ const NotificationBellButton = ({ unreadCount, onPress, colors, t }) => (
     ]}
   >
     <MaterialIcons
-      name={unreadCount > 0 ? "notifications-active" : "notifications-none"}
-      size={24}
-      color={unreadCount > 0 ? colors.primary : colors.onSurfaceVariant}
+      name={unreadCount > 0 ? "notifications" : "notifications-none"}
+      size={23}
+      color={unreadCount > 0 ? colors.primary || "#2F6CD4" : colors.textSecondary || colors.onSurfaceVariant}
     />
     {unreadCount > 0 && (
       <View
         style={[
           styles.badgeDot,
           {
-            backgroundColor: colors.error,
-            borderColor: colors.background,
+            backgroundColor: colors.error || "#DC2626",
+            borderColor: colors.surface || colors.background,
           },
         ]}
       >

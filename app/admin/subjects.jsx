@@ -24,6 +24,8 @@ import {
 import apiConfig from "../../config/apiConfig";
 import { useQueryClient } from "@tanstack/react-query";
 import AppHeader from "../../components/Header";
+import Badge from "../../components/ui/Badge";
+import { EmptyState, LoadingState } from "../../components/StateComponents";
 import { useToast } from "../../components/ToastProvider";
 import { formatClassName } from "../../utils/formatClassName";
 
@@ -170,22 +172,17 @@ export default function ManageSubjectsScreen() {
         contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
       >
         {loading ? (
-          <ActivityIndicator
-            size="large"
-            color={colors.primary}
-            style={{ marginTop: 40 }}
-          />
+          <LoadingState message="Loading subjects..." />
         ) : filteredSubjects.length === 0 ? (
-          <View style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}>
-            <MaterialIcons
-              name="menu-book"
-              size={48}
-              color={colors.textSecondary}
-            />
-            <Text style={{ color: colors.textSecondary, marginTop: 16 }}>
-              No subjects found
-            </Text>
-          </View>
+          <EmptyState
+            icon="menu-book"
+            title="No Subjects Found"
+            message={
+              searchQuery
+                ? "Try adjusting your search query."
+                : "Tap the + button below to add a subject."
+            }
+          />
         ) : (
           filteredSubjects.map((subject) => (
             <Pressable
@@ -195,7 +192,8 @@ export default function ManageSubjectsScreen() {
                 setShowDetailsModal(true);
               }}
               style={({ pressed }) => ({
-                backgroundColor: colors.cardBackground,
+                backgroundColor:
+                  colors.surfaceContainerLow || colors.cardBackground,
                 borderRadius: 16,
                 padding: 16,
                 marginBottom: 12,
@@ -203,6 +201,10 @@ export default function ManageSubjectsScreen() {
                 justifyContent: "space-between",
                 alignItems: "center",
                 opacity: pressed ? 0.9 : 1,
+                borderWidth: 1,
+                borderColor: colors.outlineVariant
+                  ? colors.outlineVariant + "40"
+                  : "transparent",
                 shadowColor: "#000",
                 shadowOffset: { width: 0, height: 1 },
                 shadowOpacity: 0.05,
@@ -210,45 +212,29 @@ export default function ManageSubjectsScreen() {
                 elevation: 1,
               })}
             >
-              <View>
+              <View style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
                 <Text
                   style={{
                     fontSize: FONT_SIZES.md,
                     fontFamily: FONTS.bold,
                     color: colors.textPrimary,
                   }}
+                  numberOfLines={1}
                 >
                   {subject.name}
                 </Text>
-                <View style={{ flexDirection: "row", gap: 8, marginTop: 4 }}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 8,
+                    marginTop: 6,
+                  }}
+                >
                   {subject.code && (
-                    <Text
-                      style={{
-                        fontSize: FONT_SIZES.xs,
-                        fontFamily: FONTS.medium,
-                        color: colors.textSecondary,
-                        backgroundColor: colors.background,
-                        paddingHorizontal: 6,
-                        paddingVertical: 2,
-                        borderRadius: 4,
-                      }}
-                    >
-                      {subject.code}
-                    </Text>
+                    <Badge label={subject.code} variant="neutral" size="xs" />
                   )}
-                  <Text
-                    style={{
-                      fontSize: FONT_SIZES.xs,
-                      fontFamily: FONTS.medium,
-                      color: colors.textSecondary,
-                      backgroundColor: colors.background,
-                      paddingHorizontal: 6,
-                      paddingVertical: 2,
-                      borderRadius: 4,
-                    }}
-                  >
-                    {subject.type}
-                  </Text>
+                  <Badge label={subject.type} variant="info" size="xs" />
                 </View>
               </View>
 

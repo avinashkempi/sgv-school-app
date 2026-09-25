@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   Pressable,
-  ActivityIndicator,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -18,6 +17,8 @@ import { useAuth } from "../../context/AuthContext";
 import { useLabel } from "../../context/LabelsContext";
 import useTabScrollToTop from "../../hooks/useTabScrollToTop";
 import AppRefreshControl from "../../components/ui/AppRefreshControl";
+import Badge from "../../components/ui/Badge";
+import { EmptyState, LoadingState } from "../../components/StateComponents";
 
 export default function TeacherClassesScreen() {
   const router = useRouter();
@@ -74,15 +75,13 @@ export default function TeacherClassesScreen() {
           />
 
           {loading ? (
-            <View
-              style={{
-                flex: 1,
-                justifyContent: "center",
-                alignItems: "center",
-                marginTop: 100,
-              }}
-            >
-              <ActivityIndicator size="large" color={colors.primary} />
+            <View style={{ marginTop: 60 }}>
+              <LoadingState
+                message={t(
+                  "teacher.loadingClasses",
+                  "Loading assigned classes..."
+                )}
+              />
             </View>
           ) : (
             <View style={{ gap: 24 }}>
@@ -91,32 +90,14 @@ export default function TeacherClassesScreen() {
                   {t("teacher.classesTitle", "My Classes")}
                 </Text>
                 {classes.length === 0 ? (
-                  <View
-                    style={{
-                      alignItems: "center",
-                      marginTop: 40,
-                      opacity: 0.6,
-                    }}
-                  >
-                    <MaterialIcons
-                      name="class"
-                      size={48}
-                      color={colors.textSecondary}
-                    />
-                    <Text
-                      style={{
-                        color: colors.textSecondary,
-                        marginTop: 16,
-                        fontSize: FONT_SIZES.md,
-                        fontFamily: FONTS.medium,
-                      }}
-                    >
-                      {t(
-                        "teacher.noClassesAssigned",
-                        "No classes assigned to you yet."
-                      )}
-                    </Text>
-                  </View>
+                  <EmptyState
+                    icon="class"
+                    title={t("teacher.noClassesTitle", "No Classes Assigned")}
+                    message={t(
+                      "teacher.noClassesAssigned",
+                      "No classes assigned to you yet."
+                    )}
+                  />
                 ) : (
                   <View style={{ gap: 12 }}>
                     {classes.map((cls) => (
@@ -139,6 +120,13 @@ export default function TeacherClassesScreen() {
                             justifyContent: "space-between",
                             alignItems: "center",
                             padding: 20,
+                            borderRadius: 16,
+                            backgroundColor:
+                              colors.surfaceContainerLow || colors.surface,
+                            borderWidth: 1,
+                            borderColor: colors.outlineVariant
+                              ? colors.outlineVariant + "30"
+                              : "rgba(0,0,0,0.06)",
                             opacity: pressed ? 0.9 : 1,
                           },
                         ]}
@@ -165,25 +153,15 @@ export default function TeacherClassesScreen() {
                           >
                             {cls.academicYear?.name} • {cls.branch}
                           </Text>
-                          <View
-                            style={{
-                              backgroundColor: colors.primary + "15",
-                              alignSelf: "flex-start",
-                              paddingHorizontal: 8,
-                              paddingVertical: 3,
-                              borderRadius: 8,
-                              marginTop: 10,
-                            }}
-                          >
-                            <Text
-                              style={{
-                                color: colors.primary,
-                                fontSize: FONT_SIZES.micro,
-                                fontFamily: FONTS.bold,
-                              }}
-                            >
-                              {t("teacher.classTeacher", "CLASS TEACHER")}
-                            </Text>
+                          <View style={{ marginTop: 10 }}>
+                            <Badge
+                              label={t(
+                                "teacher.classTeacher",
+                                "CLASS TEACHER"
+                              )}
+                              variant="brand"
+                              size="sm"
+                            />
                           </View>
                         </View>
                         <MaterialIcons

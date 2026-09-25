@@ -86,6 +86,14 @@ export default function MenuFooter({ user, onLogoutPress, onLoginPress }) {
             },
           ]}
         >
+          <Text
+            style={[
+              localStyles.versionText,
+              { color: colors.onSurfaceVariant },
+            ]}
+          >
+            v2.4.0 • SGV Digital Campus
+          </Text>
         </View>
 
         <Text

@@ -25,6 +25,15 @@ import {
   ICON_SIZES,
 } from "./constants/spacing";
 
+import {
+  lightColors,
+  darkColors,
+  SGV_BRAND,
+} from "./constants/colors";
+
+import { createElevations, ELEVATION_USES } from "./constants/shadows";
+import { DURATIONS, EASINGS, SPRINGS, STAGGER } from "./constants/animations";
+
 export {
   FONT_FAMILIES,
   FONTS,
@@ -37,126 +46,12 @@ export {
   SPACING,
   RADIUS,
   ICON_SIZES,
-};
-
-// Material 3 Minimalist Color Palette — Warm surfaces, accent-only color
-const lightColors = {
-  primary: "#4F378B", // Deep distinct purple/indigo
-  onPrimary: "#FFFFFF",
-  primaryContainer: "#EADDFF",
-  onPrimaryContainer: "#21005D",
-
-  secondary: "#625B71",
-  onSecondary: "#FFFFFF",
-  secondaryContainer: "#E8DEF8",
-  onSecondaryContainer: "#1D192B",
-
-  tertiary: "#7D5260", // Expressive pinkish tone
-  onTertiary: "#FFFFFF",
-  tertiaryContainer: "#FFD8E4",
-  onTertiaryContainer: "#31111D",
-
-  error: "#B3261E",
-  onError: "#FFFFFF",
-  errorContainer: "#F9DEDC",
-  onErrorContainer: "#410E0B",
-
-  background: "#FEFCF9", // Warm ivory — morning sunlight, not fluorescent
-  onBackground: "#1D1B20",
-
-  surface: "#FFFFFF", // Pure white cards still pop against warm background
-  onSurface: "#1D1B20",
-
-  surfaceVariant: "#EBE8E4",
-  onSurfaceVariant: "#49454F",
-
-  outline: "#79747E",
-  outlineVariant: "#E5E0D8", // Warm borders that disappear into background
-
-  // Surface Tones (Warm elevation ladder)
-  surfaceContainerLowest: "#FFFFFF",
-  surfaceContainerLow: "#FDFBF8",
-  surfaceContainer: "#F7F5F2",
-  surfaceContainerHigh: "#F0EDE8",
-  surfaceContainerHighest: "#E8E4DE",
-
-  shadow: "#000000",
-  scrim: "#000000",
-
-  // Role Colors
-  roleSuperAdmin: "#B3261E",
-  roleAdmin: "#146C2E",       // Green
-  roleStaff: "#4F378B",       // Primary
-  roleClassTeacher: "#7D5260",// Tertiary
-  roleStudent: "#E27200",     // Orange
-
-  success: "#146C2E",
-
-  // Legacy support
-  white: "#FFFFFF",
-  textPrimary: "#1D1B20",
-  textSecondary: "#49454F",
-  border: "#E5E0D8",
-  cardBackground: "#F7F5F2",
-};
-
-const darkColors = {
-  primary: "#D0BCFF",
-  onPrimary: "#381E72",
-  primaryContainer: "#4F378B",
-  onPrimaryContainer: "#EADDFF",
-
-  secondary: "#CCC2DC",
-  onSecondary: "#332D41",
-  secondaryContainer: "#4A4458",
-  onSecondaryContainer: "#E8DEF8",
-
-  tertiary: "#EFB8C8",
-  onTertiary: "#492532",
-  tertiaryContainer: "#633B48",
-  onTertiaryContainer: "#FFD8E4",
-
-  error: "#F2B8B5",
-  onError: "#601410",
-  errorContainer: "#8C1D18",
-  onErrorContainer: "#F9DEDC",
-
-  background: "#111113", // Slightly bluer-black, less purple — night sky feel
-  onBackground: "#E6E1E5",
-
-  surface: "#111113",
-  onSurface: "#E6E1E5",
-
-  surfaceVariant: "#49454F",
-  onSurfaceVariant: "#CAC4D0",
-
-  outline: "#938F99",
-  outlineVariant: "#49454F",
-
-  surfaceContainerLowest: "#0D0D10",
-  surfaceContainerLow: "#1B1B1F",
-  surfaceContainer: "#1A1A1E", // Less purple cast
-  surfaceContainerHigh: "#232328",
-  surfaceContainerHighest: "#2E2E34",
-
-  shadow: "#000000",
-  scrim: "#000000",
-
-  // Role Colors
-  roleSuperAdmin: "#F2B8B5",
-  roleAdmin: "#6DD58C",
-  roleStaff: "#D0BCFF",
-  roleClassTeacher: "#EFB8C8",
-  roleStudent: "#FFB74D",
-
-  success: "#6DD58C",
-
-  // Legacy support
-  white: "#FFFFFF",
-  textPrimary: "#E6E1E5",
-  textSecondary: "#CAC4D0",
-  border: "#49454F",
-  cardBackground: "#1B1B1F",
+  SGV_BRAND,
+  DURATIONS,
+  EASINGS,
+  SPRINGS,
+  STAGGER,
+  ELEVATION_USES,
 };
 
 function createGlobalStyles(COLORS, mode) {
@@ -409,52 +304,52 @@ function createGlobalStyles(COLORS, mode) {
       backgroundColor: COLORS.outlineVariant,
       marginVertical: 20,
     },
-    // Elevations (Level 0 - 5 for Material 3 depth without expensive shadow calculations)
+    // Elevations (Level 0 - 5 for Material 3 depth — softened for SGV neutral palette)
     elevation0: { elevation: 0, shadowOpacity: 0 },
     elevation1: {
       elevation: 1,
       shadowColor: COLORS.shadow,
       shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.06,
+      shadowOpacity: 0.05,
       shadowRadius: 3,
     },
     elevation2: {
       elevation: 2,
       shadowColor: COLORS.shadow,
       shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.10,
-      shadowRadius: 6,
+      shadowOpacity: 0.08,
+      shadowRadius: 8,
     },
     elevation3: {
       elevation: 3,
       shadowColor: COLORS.shadow,
       shadowOffset: { width: 0, height: 3 },
-      shadowOpacity: 0.16,
+      shadowOpacity: 0.10,
       shadowRadius: 6,
     },
     elevation4: {
       elevation: 4,
       shadowColor: COLORS.shadow,
       shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.2,
+      shadowOpacity: 0.14,
       shadowRadius: 8,
     },
     elevation5: {
       elevation: 6,
       shadowColor: COLORS.shadow,
       shadowOffset: { width: 0, height: 6 },
-      shadowOpacity: 0.24,
+      shadowOpacity: 0.18,
       shadowRadius: 12,
     },
 
     // Fast Frosted Surface (1px outline + high opacity background to prevent GPU overdraw)
     glassSurface: {
-      backgroundColor: mode === 'dark' ? 'rgba(26, 26, 30, 0.90)' : 'rgba(254, 252, 249, 0.92)',
+      backgroundColor: mode === 'dark' ? 'rgba(20, 22, 26, 0.92)' : 'rgba(247, 248, 250, 0.94)',
       borderWidth: 1,
       borderColor: COLORS.outlineVariant,
     },
     glass: {
-      backgroundColor: mode === 'dark' ? 'rgba(26, 26, 30, 0.82)' : 'rgba(247, 245, 242, 0.82)',
+      backgroundColor: mode === 'dark' ? 'rgba(20, 22, 26, 0.82)' : 'rgba(247, 248, 250, 0.82)',
     },
 
     // Layout Helpers
@@ -533,12 +428,24 @@ export function ThemeProvider({ children }) {
 
   const colors = useMemo(() => (mode === "dark" ? darkColors : lightColors), [mode]);
   const styles = useMemo(() => createGlobalStyles(colors, mode), [colors, mode]);
+  const elevations = useMemo(() => createElevations(colors.shadow), [colors]);
 
   const gradients = useMemo(() => ({
-    primary: mode === 'dark' ? [colors.primary, '#9A82DB'] : [colors.primary, '#6750A4'],
-    card: mode === 'dark' ? [colors.surfaceContainer, colors.surfaceContainerHigh] : [colors.surfaceContainer, colors.surfaceContainerLow],
-    warm: mode === 'dark' ? ['#4F378B', '#3B2D6B'] : ['#F5E6D3', '#FEFCF9'],
-    subtleGlow: mode === 'dark' ? ['rgba(208, 188, 255, 0.06)', 'transparent'] : ['rgba(79, 55, 139, 0.03)', 'transparent'],
+    primary: mode === 'dark'
+      ? [colors.primary, '#2A5BB8']
+      : [colors.primary, '#1D4ED8'],
+    card: mode === 'dark'
+      ? [colors.surfaceContainer, colors.surfaceContainerHigh]
+      : [colors.surfaceContainer, colors.surfaceContainerLow],
+    warm: mode === 'dark'
+      ? ['#1A3A6B', '#0A1A33']
+      : ['#E0ECFF', '#F7F8FA'],
+    subtleGlow: mode === 'dark'
+      ? ['rgba(77, 131, 232, 0.08)', 'transparent']
+      : ['rgba(47, 108, 212, 0.04)', 'transparent'],
+    blue: mode === 'dark'
+      ? [colors.primary, '#2A5BB8']
+      : [colors.primary, '#1D4ED8'],
   }), [colors, mode]);
 
   const toggle = () => {
@@ -557,6 +464,7 @@ export function ThemeProvider({ children }) {
         colors,
         styles,
         gradients,
+        elevations,
         spacing: SPACING,
         radius: RADIUS,
         iconSizes: ICON_SIZES,

@@ -33,6 +33,7 @@ import AttendanceTrackerView from "../../components/AttendanceTrackerView";
 import { useAcademicYear } from "../../context/AcademicYearContext";
 import UserAvatar from "../../components/ui/UserAvatar";
 import { formatClassName } from "../../utils/formatClassName";
+import { useAuth } from "../../context/AuthContext";
 import {
   formatUserName,
   formatUserDesignationOrRole,
@@ -51,16 +52,41 @@ export default function AdminAttendance() {
   const queryClient = useQueryClient();
   const { selectedYear } = useAcademicYear();
 
+  const { user: authUser } = useAuth();
+
   // Parse initial tab from params if coming from dashboard
   const initialTab = params?.tab || "summary";
   const [activeTab, setActiveTab] = useState(initialTab); // 'summary', 'student', 'staff', 'tracker', 'my_attendance'
 
+  // Fetch User
+  const { data: user } = useApiQuery(
+    ["currentUser"],
+    `${apiConfig.baseUrl}/auth/me`,
+    { select: (data) => data.user }
+  );
+
+  const effectiveUser = user || authUser;
+  const isSuperAdmin =
+    effectiveUser?.role === "super admin" ||
+    effectiveUser?.role === "super-admin";
+
   // Reactively synchronize active tab if route params change (e.g. from /requests to /admin/attendance?tab=my_attendance)
   useEffect(() => {
     if (params?.tab) {
-      setActiveTab((prev) => (params.tab !== prev ? params.tab : prev));
+      if (isSuperAdmin && params.tab === "my_attendance") {
+        setActiveTab("summary");
+      } else {
+        setActiveTab((prev) => (params.tab !== prev ? params.tab : prev));
+      }
     }
-  }, [params?.tab]);
+  }, [params?.tab, isSuperAdmin]);
+
+  useEffect(() => {
+    if (isSuperAdmin && activeTab === "my_attendance") {
+      setActiveTab("summary");
+    }
+  }, [isSuperAdmin, activeTab]);
+
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
@@ -79,13 +105,6 @@ export default function AdminAttendance() {
   const ABSENT_PAGE = 15;
 
   const styles = useMemo(() => createStyles(colors), [colors]);
-
-  // Fetch User
-  const { data: user } = useApiQuery(
-    ["currentUser"],
-    `${apiConfig.baseUrl}/auth/me`,
-    { select: (data) => data.user }
-  );
 
   // Fetch School Summary
   const {
@@ -652,7 +671,7 @@ export default function AdminAttendance() {
       case "absent":
         return colors.error;
       case "half-day":
-        return "#9C27B0";
+        return colors.warning || "#D97706";
       default:
         return colors.textSecondary;
     }
@@ -867,7 +886,7 @@ export default function AdminAttendance() {
             Tracker
           </Text>
         </TouchableOpacity>
-        {user?.role !== "super admin" && (
+        {!isSuperAdmin && (
           <TouchableOpacity
             style={[
               styles.tab,

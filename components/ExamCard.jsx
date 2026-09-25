@@ -1,8 +1,10 @@
 import React from "react";
 import { View, Text, Pressable } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme, FONTS, FONT_SIZES } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, RADIUS } from "../theme";
 import Card from "./Card";
+import Badge from "./ui/Badge";
+import ProgressBar from "./ui/ProgressBar";
 
 /**
  * ExamCard Component
@@ -30,17 +32,6 @@ export default function ExamCard({
 }) {
   const { colors } = useTheme();
 
-  const getStatusColor = (status) => {
-    const statusColors = {
-      draft: "#9E9E9E",
-      scheduled: "#2196F3",
-      ongoing: "#FF9800",
-      completed: "#4CAF50",
-      cancelled: "#F44336",
-    };
-    return statusColors[status] || "#2196F3";
-  };
-
   const getExamTypeColor = (type) => {
     const typeColors = {
       FA1: "#2196F3",
@@ -53,7 +44,6 @@ export default function ExamCard({
     return typeColors[type] || "#2196F3";
   };
 
-  const statusColor = getStatusColor(exam.status);
   const typeColor = getExamTypeColor(exam.standardizedType);
 
   const formatDate = (date) => {
@@ -101,16 +91,18 @@ export default function ExamCard({
             >
               <View
                 style={{
-                  backgroundColor: typeColor + "20",
+                  backgroundColor: typeColor + "18",
                   paddingHorizontal: 8,
-                  paddingVertical: 4,
+                  paddingVertical: 3,
                   borderRadius: 6,
+                  borderWidth: 1,
+                  borderColor: typeColor + "30",
                 }}
               >
                 <Text
                   style={{
                     color: typeColor,
-                    fontSize: FONT_SIZES.sm,
+                    fontSize: FONT_SIZES.xs,
                     fontFamily: FONTS.bold,
                   }}
                 >
@@ -118,32 +110,12 @@ export default function ExamCard({
                 </Text>
               </View>
               {exam.marksPublished && (
-                <View
-                  style={{
-                    backgroundColor: colors.success + "20",
-                    paddingHorizontal: 8,
-                    paddingVertical: 4,
-                    borderRadius: 6,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 4,
-                  }}
-                >
-                  <MaterialIcons
-                    name="check-circle"
-                    size={12}
-                    color={colors.success}
-                  />
-                  <Text
-                    style={{
-                      color: colors.success,
-                      fontSize: FONT_SIZES.micro,
-                      fontFamily: FONTS.medium,
-                    }}
-                  >
-                    Published
-                  </Text>
-                </View>
+                <Badge
+                  label="Published"
+                  variant="success"
+                  size="sm"
+                  dot
+                />
               )}
             </View>
             <Text
@@ -168,25 +140,19 @@ export default function ExamCard({
               </Text>
             )}
           </View>
-          <View
-            style={{
-              backgroundColor: statusColor + "15",
-              paddingHorizontal: 8,
-              paddingVertical: 4,
-              borderRadius: 8,
-            }}
-          >
-            <Text
-              style={{
-                color: statusColor,
-                fontSize: FONT_SIZES.micro,
-                fontFamily: FONTS.bold,
-                textTransform: "capitalize",
-              }}
-            >
-              {exam.status || "Scheduled"}
-            </Text>
-          </View>
+          <Badge
+            label={exam.status || "Scheduled"}
+            variant={
+              exam.status === "completed"
+                ? "success"
+                : exam.status === "ongoing"
+                ? "warning"
+                : exam.status === "cancelled"
+                ? "error"
+                : "neutral"
+            }
+            size="sm"
+          />
         </View>
 
         {/* Divider */}
@@ -311,26 +277,11 @@ export default function ExamCard({
                 %)
               </Text>
             </View>
-            <View
-              style={{
-                height: 6,
-                backgroundColor: colors.surfaceContainerHighest,
-                borderRadius: 3,
-                overflow: "hidden",
-              }}
-            >
-              <View
-                style={{
-                  height: "100%",
-                  width: `${progressPercentage}%`,
-                  backgroundColor:
-                    progressPercentage === 100
-                      ? colors.success
-                      : colors.primary,
-                  borderRadius: 3,
-                }}
-              />
-            </View>
+            <ProgressBar
+              progress={totalStudents > 0 ? marksEntered / totalStudents : 0}
+              variant={progressPercentage === 100 ? "success" : "primary"}
+              height={6}
+            />
           </View>
         )}
 
@@ -348,7 +299,7 @@ export default function ExamCard({
                     : colors.primary,
                   paddingVertical: 10,
                   paddingHorizontal: 16,
-                  borderRadius: 8,
+                  borderRadius: RADIUS.md || 12,
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "center",
@@ -376,7 +327,7 @@ export default function ExamCard({
                     : colors.success,
                   paddingVertical: 10,
                   paddingHorizontal: 16,
-                  borderRadius: 8,
+                  borderRadius: RADIUS.md || 12,
                   flexDirection: "row",
                   alignItems: "center",
                   gap: 6,
@@ -403,7 +354,7 @@ export default function ExamCard({
                     : colors.surfaceContainerHigh,
                   paddingVertical: 10,
                   paddingHorizontal: 12,
-                  borderRadius: 8,
+                  borderRadius: RADIUS.md || 12,
                 })}
               >
                 <MaterialIcons name="edit" size={18} color={colors.onSurface} />
@@ -418,7 +369,7 @@ export default function ExamCard({
                     : colors.errorContainer + "80",
                   paddingVertical: 10,
                   paddingHorizontal: 12,
-                  borderRadius: 8,
+                  borderRadius: RADIUS.md || 12,
                 })}
               >
                 <MaterialIcons name="delete" size={18} color={colors.error} />

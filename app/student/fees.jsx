@@ -158,7 +158,7 @@ export default function StudentFeesScreen() {
                   style={{
                     fontSize: FONT_SIZES.md,
                     fontFamily: FONTS.bold,
-                    color: "#6750A4",
+                    color: colors.tertiary || "#8B5CF6",
                   }}
                 >
                   ₹{feeData.arrears.toLocaleString()}
@@ -227,8 +227,10 @@ export default function StudentFeesScreen() {
             </Text>
             <View
               style={{
-                backgroundColor: colors.cardBackground,
+                backgroundColor: colors.surfaceContainerLow || colors.surface,
                 borderRadius: 16,
+                borderWidth: 1,
+                borderColor: colors.outlineVariant ? colors.outlineVariant + "30" : "rgba(0,0,0,0.06)",
                 padding: 16,
               }}
             >
@@ -296,7 +298,7 @@ export default function StudentFeesScreen() {
                   >
                     {t("student.lastYearDues", "Add: Last Year Dues")}
                   </Text>
-                  <Text style={{ color: "#6750A4", fontFamily: FONTS.bold }}>
+                  <Text style={{ color: colors.tertiary || "#8B5CF6", fontFamily: FONTS.bold }}>
                     +₹{feeData.arrears.toLocaleString()}
                   </Text>
                 </View>
@@ -350,8 +352,10 @@ export default function StudentFeesScreen() {
                 </Text>
                 <View
                   style={{
-                    backgroundColor: colors.cardBackground,
+                    backgroundColor: colors.surfaceContainerLow || colors.surface,
                     borderRadius: 16,
+                    borderWidth: 1,
+                    borderColor: colors.outlineVariant ? colors.outlineVariant + "30" : "rgba(0,0,0,0.06)",
                     padding: 16,
                   }}
                 >

@@ -24,6 +24,8 @@ import {
 import apiConfig from "../../config/apiConfig";
 import { useQueryClient } from "@tanstack/react-query";
 import AppHeader from "../../components/Header";
+import Badge from "../../components/ui/Badge";
+import { EmptyState, LoadingState } from "../../components/StateComponents";
 import UserAvatar from "../../components/ui/UserAvatar";
 import {
   formatUserName,
@@ -230,47 +232,33 @@ export default function TeacherSubjectsScreen() {
           </View>
 
           {loading ? (
-            <View
-              style={{
-                flex: 1,
-                justifyContent: "center",
-                alignItems: "center",
-                marginTop: 100,
-              }}
-            >
-              <ActivityIndicator size="large" color={colors.primary} />
-            </View>
+            <LoadingState message="Loading teachers & subjects..." />
           ) : (
             <>
               {/* Teachers List */}
               {filteredTeachers.length === 0 ? (
-                <View
-                  style={{ alignItems: "center", marginTop: 60, opacity: 0.6 }}
-                >
-                  <MaterialIcons
-                    name="search-off"
-                    size={56}
-                    color={colors.textSecondary}
-                  />
-                  <Text
-                    style={{
-                      color: colors.textSecondary,
-                      marginTop: 20,
-                      fontSize: FONT_SIZES.md,
-                      fontFamily: FONTS.medium,
-                    }}
-                  >
-                    No teachers found
-                  </Text>
-                </View>
+                <EmptyState
+                  icon="search-off"
+                  title="No Teachers Found"
+                  message={
+                    searchQuery
+                      ? "Try a different search query."
+                      : "No teachers available."
+                  }
+                />
               ) : (
                 filteredTeachers.map((teacher) => (
                   <View
                     key={teacher._id}
                     style={{
-                      backgroundColor: colors.cardBackground,
+                      backgroundColor:
+                        colors.surfaceContainerLow || colors.cardBackground,
                       borderRadius: 16,
                       marginBottom: 16,
+                      borderWidth: 1,
+                      borderColor: colors.outlineVariant
+                        ? colors.outlineVariant + "40"
+                        : "transparent",
                       shadowColor: "#000",
                       shadowOffset: { width: 0, height: 2 },
                       shadowOpacity: 0.05,
@@ -316,25 +304,11 @@ export default function TeacherSubjectsScreen() {
                               marginTop: 4,
                             }}
                           >
-                          <View
-                            style={{
-                              backgroundColor: colors.primary + "15",
-                              paddingHorizontal: 8,
-                              paddingVertical: 2,
-                              borderRadius: 4,
-                            }}
-                          >
-                            <Text
-                              style={{
-                                fontSize: FONT_SIZES.xs,
-                                color: colors.primary,
-                                fontFamily: FONTS.bold,
-                                textTransform: "uppercase",
-                              }}
-                            >
-                              {formatUserDesignationOrRole(teacher, { fallback: teacher?.role || "Teacher" })}
-                            </Text>
-                          </View>
+                            <Badge
+                              label={formatUserDesignationOrRole(teacher, { fallback: teacher?.role || "Teacher" })}
+                              variant="primary"
+                              size="xs"
+                            />
                           <Text
                             style={{
                               fontSize: FONT_SIZES.sm,

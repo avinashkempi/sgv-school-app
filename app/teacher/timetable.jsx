@@ -18,6 +18,8 @@ import { formatUserName } from "../../utils/userFormatters";
 import apiConfig from "../../config/apiConfig";
 import formatClassName from "../../utils/formatClassName";
 import { useLabel } from "../../context/LabelsContext";
+import Badge from "../../components/ui/Badge";
+import { EmptyState } from "../../components/StateComponents";
 
 const DAYS = [
   "Monday",
@@ -162,22 +164,21 @@ export default function SchoolTimetableScreen() {
                         paddingHorizontal: 18,
                         paddingVertical: 9,
                         backgroundColor: isSelected
-                          ? colors.primary
-                          : colors.cardBackground,
-                        borderRadius: 20,
+                          ? colors.primaryContainer || "#E0ECFF"
+                          : colors.surfaceContainerLow || colors.surface,
+                        borderRadius: 14,
                         borderWidth: 1,
                         borderColor: isSelected
-                          ? colors.primary
-                          : colors.textSecondary + "20",
-                        elevation: isSelected ? 3 : 0,
+                          ? (colors.primary || "#2F6CD4") + "40"
+                          : colors.outlineVariant
+                          ? colors.outlineVariant + "40"
+                          : "rgba(0,0,0,0.06)",
                       }}
                     >
                       <Text
                         style={{
-                          color: isSelected ? "#fff" : colors.textPrimary,
-                          fontFamily: isSelected
-                            ? FONTS.bold
-                            : FONTS.medium,
+                          color: isSelected ? colors.primary || "#2F6CD4" : colors.textPrimary,
+                          fontFamily: isSelected ? FONTS.bold : FONTS.medium,
                           fontSize: FONT_SIZES.sm,
                         }}
                       >
@@ -200,23 +201,25 @@ export default function SchoolTimetableScreen() {
                     onPress={() => setSelectedDay(day)}
                     style={{
                       paddingHorizontal: 16,
-                      paddingVertical: 8,
+                      paddingVertical: 9,
                       backgroundColor:
                         selectedDay === day
-                          ? colors.secondary
-                          : colors.cardBackground,
-                      borderRadius: 12,
+                          ? colors.primaryContainer || "#E0ECFF"
+                          : colors.surfaceContainerLow || colors.surface,
+                      borderRadius: 14,
                       borderWidth: 1,
                       borderColor:
                         selectedDay === day
-                          ? colors.secondary
-                          : colors.textSecondary + "20",
+                          ? (colors.primary || "#2F6CD4") + "40"
+                          : colors.outlineVariant
+                          ? colors.outlineVariant + "40"
+                          : "rgba(0,0,0,0.06)",
                     }}
                   >
                     <Text
                       style={{
                         color:
-                          selectedDay === day ? "#fff" : colors.textPrimary,
+                          selectedDay === day ? colors.primary || "#2F6CD4" : colors.textPrimary,
                         fontFamily:
                           selectedDay === day ? FONTS.bold : FONTS.medium,
                         fontSize: FONT_SIZES.sm,
@@ -250,24 +253,12 @@ export default function SchoolTimetableScreen() {
                 {selectedDay}
               </Text>
               {selectedDay === currentDay && (
-                <View
-                  style={{
-                    backgroundColor: colors.success + "20",
-                    paddingHorizontal: 8,
-                    paddingVertical: 4,
-                    borderRadius: 4,
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: FONT_SIZES.xs,
-                      color: colors.success,
-                      fontFamily: FONTS.bold,
-                    }}
-                  >
-                    {t("common.today", "TODAY")}
-                  </Text>
-                </View>
+                <Badge
+                  label={t("common.today", "TODAY")}
+                  variant="success"
+                  size="sm"
+                  dot
+                />
               )}
             </View>
 
@@ -294,29 +285,14 @@ export default function SchoolTimetableScreen() {
             ) : (
               <View style={{ opacity: isFetching && !loading ? 0.85 : 1 }}>
                 {dayPeriods.length === 0 ? (
-                  <View
-                    style={{
-                      alignItems: "center",
-                      marginTop: 40,
-                      opacity: 0.6,
-                    }}
-                  >
-                    <MaterialIcons
-                      name="event-busy"
-                      size={48}
-                      color={colors.textSecondary}
-                    />
-                    <Text
-                      style={{
-                        color: colors.textSecondary,
-                        marginTop: 16,
-                        fontSize: FONT_SIZES.md,
-                        fontFamily: FONTS.medium,
-                      }}
-                    >
-                      {t("teacher.noClassesScheduled", "No classes scheduled")}
-                    </Text>
-                  </View>
+                  <EmptyState
+                    icon="event-busy"
+                    title={t("teacher.noClassesTitle", "No Classes")}
+                    message={t(
+                      "teacher.noClassesScheduled",
+                      "No classes scheduled"
+                    )}
+                  />
                 ) : (
                   dayPeriods.map((period, index) => (
                     <Card
@@ -324,49 +300,64 @@ export default function SchoolTimetableScreen() {
                       variant="elevated"
                       style={{
                         marginBottom: 12,
+                        borderRadius: 16,
                       }}
                       contentStyle={{
                         flexDirection: "row",
-                        gap: 16,
+                        gap: 14,
+                        padding: 14,
+                        alignItems: "center",
                       }}
                     >
-                      {/* Time Column */}
+                      {/* Time Badge Tile */}
                       <View
                         style={{
                           alignItems: "center",
                           justifyContent: "center",
-                          width: 60,
+                          width: 68,
+                          backgroundColor:
+                            colors.surfaceContainerLow || colors.surface,
+                          borderRadius: 12,
+                          paddingVertical: 8,
+                          borderWidth: 1,
+                          borderColor: colors.outlineVariant
+                            ? colors.outlineVariant + "30"
+                            : "rgba(0,0,0,0.06)",
                         }}
                       >
                         <Text
                           style={{
-                            fontSize: FONT_SIZES.sm,
+                            fontSize: FONT_SIZES.xs,
                             fontFamily: FONTS.bold,
                             color: colors.textPrimary,
                           }}
                         >
                           {period.startTime}
                         </Text>
-                        <View
-                          style={{
-                            width: 1,
-                            height: 10,
-                            backgroundColor: colors.textSecondary + "40",
-                            marginVertical: 2,
-                          }}
+                        <MaterialIcons
+                          name="arrow-downward"
+                          size={10}
+                          color={colors.outline}
+                          style={{ marginVertical: 2 }}
                         />
                         <Text
-                          style={{ fontSize: FONT_SIZES.xs, fontFamily: FONTS.medium, color: colors.textSecondary }}
+                          style={{
+                            fontSize: 11,
+                            fontFamily: FONTS.medium,
+                            color: colors.textSecondary,
+                          }}
                         >
                           {period.endTime}
                         </Text>
                       </View>
 
-                      {/* Divider */}
+                      {/* Accent Divider */}
                       <View
                         style={{
-                          width: 1,
-                          backgroundColor: colors.textSecondary + "20",
+                          width: 4,
+                          height: 38,
+                          backgroundColor: colors.primary,
+                          borderRadius: 2,
                         }}
                       />
 

@@ -197,7 +197,7 @@ export default function VibesScreen() {
   }).current;
 
   const viewabilityConfig = useRef({
-    itemVisiblePercentThreshold: 60,
+    itemVisiblePercentThreshold: 35,
   }).current;
 
   // ──── Main Feed Infinite Query ────
@@ -702,6 +702,7 @@ export default function VibesScreen() {
             vibe={item}
             currentUserId={user?.id || user?._id}
             isAdmin={isAdmin}
+            isVisible={visibleItemIds.has(item._id)}
             onLike={handleLike}
             onBookmark={handleBookmark}
             onOpenComments={setActiveCommentVibe}
@@ -721,6 +722,7 @@ export default function VibesScreen() {
       isDark,
       user,
       isAdmin,
+      visibleItemIds,
       handleLike,
       handleBookmark,
       handleEdit,

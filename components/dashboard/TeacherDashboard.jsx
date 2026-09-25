@@ -19,6 +19,7 @@ import { useApiQuery } from "../../hooks/useApi";
 import { formatClassName } from "../../utils/formatClassName";
 import { getISTDateString, getISTToday } from "../../utils/date";
 import HomeModuleContainer from "../home/HomeModuleContainer";
+import DayGlanceCard from "../home/DayGlanceCard";
 
 const TeacherDashboard = () => {
   const router = useRouter();
@@ -90,11 +91,11 @@ const TeacherDashboard = () => {
 
   const indigoAccent = colors.primary;
   const cardSurface = isDark
-    ? "rgba(208, 188, 255, 0.08)"
-    : "rgba(79, 55, 139, 0.045)";
+    ? colors.surfaceContainer
+    : colors.surface;
   const subBorder = isDark
-    ? "rgba(208, 188, 255, 0.22)"
-    : "rgba(79, 55, 139, 0.15)";
+    ? colors.outlineVariant + "40"
+    : colors.outlineVariant;
 
   if (loading && !data) {
     return <LoadingState message="Loading dashboard..." />;
@@ -117,7 +118,7 @@ const TeacherDashboard = () => {
         localStyles.datePickerBtn,
         {
           backgroundColor: isDark
-            ? "rgba(208, 188, 255, 0.2)"
+            ? "rgba(255, 94, 28, 0.2)"
             : colors.primaryContainer,
           opacity: pressed ? 0.8 : 1,
         },
@@ -147,20 +148,19 @@ const TeacherDashboard = () => {
   );
 
   return (
-    <HomeModuleContainer
-      title="Teacher Space"
-      icon="co-present"
-      accentColor={indigoAccent}
+    <View>
+      <DayGlanceCard role="teacher" data={{ ...data, missingDays }} />
+
+      <HomeModuleContainer
+        title="Teacher Space"
+        icon="co-present"
+        accentColor={indigoAccent}
       badge={
         data.overview?.className
           ? `Class: ${formatClassName(data.overview.className)}`
           : undefined
       }
       headerRight={datePickerTrigger}
-      lightBg="rgba(79, 55, 139, 0.045)"
-      darkBg="rgba(208, 188, 255, 0.07)"
-      lightBorder="rgba(79, 55, 139, 0.14)"
-      darkBorder="rgba(208, 188, 255, 0.18)"
     >
       {/* Multi-Class Switcher if teacher is class teacher of multiple classes */}
       {data.overview?.classes && data.overview.classes.length > 1 && (
@@ -192,13 +192,11 @@ const TeacherDashboard = () => {
                       backgroundColor: isSelected
                         ? colors.primary
                         : isDark
-                        ? "rgba(208, 188, 255, 0.12)"
-                        : "rgba(79, 55, 139, 0.08)",
+                        ? colors.surfaceContainerHigh
+                        : colors.surfaceContainer,
                       borderColor: isSelected
                         ? colors.primary
-                        : isDark
-                        ? "rgba(208, 188, 255, 0.28)"
-                        : "rgba(79, 55, 139, 0.2)",
+                        : colors.outlineVariant,
                       opacity: pressed ? 0.8 : 1,
                     },
                   ]}
@@ -532,8 +530,8 @@ const TeacherDashboard = () => {
                     localStyles.statTile,
                     {
                       backgroundColor: isDark
-                        ? "rgba(208, 188, 255, 0.15)"
-                        : "rgba(79, 55, 139, 0.09)",
+                        ? colors.surfaceContainerHigh
+                        : colors.brandOrangeContainer || colors.surfaceContainer,
                     },
                   ]}
                 >
@@ -681,6 +679,7 @@ const TeacherDashboard = () => {
         onClose={() => setShowDatePicker(false)}
       />
     </HomeModuleContainer>
+    </View>
   );
 };
 

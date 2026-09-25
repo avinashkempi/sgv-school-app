@@ -140,7 +140,7 @@ export default function YearDetailsScreen() {
             icon="person"
             label="Teachers"
             value={snapshot.totalTeachers}
-            color="#9C27B0"
+            color="#2F6CD4"
           />
           <MetricCard
             icon="how-to-reg"

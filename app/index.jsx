@@ -10,7 +10,8 @@ import { ROUTES } from "../constants/routes";
 import Header from "../components/Header";
 import VibeSpotlightCard from "../components/vibes/VibeSpotlightCard";
 import UpcomingEventsCard from "../components/UpcomingEventsCard";
-import TodayTimetableCard from "../components/home/TodayTimetableCard";
+import QuickActions from "../components/home/QuickActions";
+import TodayScheduleHero from "../components/home/TodayScheduleHero";
 import AdminDashboard from "../components/dashboard/AdminDashboard";
 import TeacherDashboard from "../components/dashboard/TeacherDashboard";
 import StudentDashboard from "../components/dashboard/StudentDashboard";
@@ -66,7 +67,7 @@ export default function HomeScreen() {
         refetchUser(),
         queryClient.invalidateQueries({ queryKey: ["vibeSpotlight"] }),
         queryClient.invalidateQueries({ queryKey: ["events"] }),
-        queryClient.invalidateQueries({ queryKey: ["myTimetable"] }),
+        queryClient.invalidateQueries({ queryKey: ["studentTimetable"] }),
         queryClient.invalidateQueries({ queryKey: ["teacherSchedule"] }),
         queryClient.invalidateQueries({ queryKey: ["studentDashboard"] }),
         queryClient.invalidateQueries({ queryKey: ["adminDashboard"] }),
@@ -78,6 +79,10 @@ export default function HomeScreen() {
       setRefreshing(false);
     }
   };
+
+  const isAdmin = activeRole === "admin" || activeRole === "super admin";
+  const isStudent = activeRole === "student";
+  const isTeacher = activeRole === "teacher" || activeRole === "staff";
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -95,29 +100,36 @@ export default function HomeScreen() {
         scrollsToTop={true}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Creative & Stylish Welcome Header (Without Role Tag) */}
+        {/* Creative & Stylish Welcome Header */}
         <Header
           title={SCHOOL.name || "Shri Guru Vidya English Medium School"}
           userName={activeUser?.name}
           variant="welcome"
         />
 
-        {/* ═══════════ 1. Role-Based Dynamic Dashboard (Module 1) ═══════════ */}
-        {activeRole === "admin" || activeRole === "super admin" ? (
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* HERO: Today's Timetable (Student & Teacher)                     */}
+        {/* HERO: Admin Dashboard (Admin / Super Admin)                     */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {isAdmin ? (
           <AdminDashboard />
-        ) : activeRole === "teacher" ? (
-          <TeacherDashboard />
-        ) : activeRole === "student" ? (
-          <StudentDashboard />
+        ) : (isStudent || isTeacher) ? (
+          <>
+            {/* Hero: live today's schedule card (shows actual periods) */}
+            <TodayScheduleHero />
+
+            {/* Secondary: role-specific stats & modules */}
+            {isTeacher ? <TeacherDashboard /> : <StudentDashboard />}
+          </>
         ) : null}
 
-        {/* ═══════════ 2. Today's Timetable / Schedule (Teachers, Admins, Guests) ═══════════ */}
-        {activeRole !== "student" && <TodayTimetableCard />}
+        {/* ═══════════ Quick Action Shortcuts ═══════════ */}
+        <QuickActions role={activeRole} />
 
-        {/* ═══════════ 3. Campus Spotlight (Admin-Selected) ═══════════ */}
-        <VibeSpotlightCard />
+        {/* ═══════════ Campus Spotlight (students & teachers only) ═══════════ */}
+        {!isAdmin && <VibeSpotlightCard />}
 
-        {/* ═══════════ 4. Upcoming Events Calendar ═══════════ */}
+        {/* ═══════════ Upcoming Events Calendar ═══════════ */}
         <UpcomingEventsCard />
       </ScrollView>
     </View>

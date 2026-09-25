@@ -43,7 +43,7 @@ const Button = ({
   textStyle,
   ...props
 }) => {
-  const { colors } = useTheme();
+  const { colors, elevations } = useTheme();
 
   // Determine Colors based on Variant
   const getColors = () => {
@@ -58,21 +58,35 @@ const Button = ({
     switch (variant) {
       case "elevated":
         return {
-          bg: colors.surfaceContainerLow,
+          bg: colors.surfaceContainerLow || colors.surface,
           text: colors.primary,
+          border: "transparent",
+        };
+      case "tonalPrimary":
+      case "soft":
+        return {
+          bg: colors.primaryContainer || "#E0ECFF",
+          text: colors.onPrimaryContainer || colors.primary || "#2F6CD4",
           border: "transparent",
         };
       case "tonal":
         return {
-          bg: colors.secondaryContainer,
-          text: colors.onSecondaryContainer,
+          bg: colors.secondaryContainer || "#EBF2FF",
+          text: colors.onSecondaryContainer || colors.secondary,
+          border: "transparent",
+        };
+      case "destructive":
+      case "danger":
+        return {
+          bg: colors.error,
+          text: colors.onError || "#FFFFFF",
           border: "transparent",
         };
       case "outlined":
         return {
           bg: "transparent",
           text: colors.primary,
-          border: colors.outlineVariant || colors.outline,
+          border: colors.outlineVariant || colors.outline || colors.border,
         };
       case "text":
         return {
@@ -96,44 +110,70 @@ const Button = ({
   const sizeConfig = {
     sm: {
       paddingVertical: 6,
-      paddingHorizontal: SPACING.lg,
+      paddingHorizontal: SPACING.lg || 16,
       minHeight: 32,
       fontSize: FONT_SIZES.xs,
       lineHeight: LINE_HEIGHTS.xs,
       letterSpacing: LETTER_SPACINGS.xs,
       iconSize: ICON_SIZES.xs || 14,
-      gap: SPACING.xs,
+      gap: SPACING.xs || 4,
     },
     md: {
       paddingVertical: 10,
-      paddingHorizontal: SPACING.xxl,
+      paddingHorizontal: SPACING.xxl || 24,
       minHeight: 40,
       fontSize: FONT_SIZES.sm,
       lineHeight: LINE_HEIGHTS.sm,
       letterSpacing: LETTER_SPACINGS.sm,
       iconSize: ICON_SIZES.sm || 18,
-      gap: SPACING.sm,
+      gap: SPACING.sm || 8,
     },
     lg: {
       paddingVertical: 14,
-      paddingHorizontal: SPACING.xxxl,
+      paddingHorizontal: SPACING.xxxl || 32,
       minHeight: 48,
       fontSize: FONT_SIZES.md,
       lineHeight: LINE_HEIGHTS.md,
       letterSpacing: LETTER_SPACINGS.md,
       iconSize: ICON_SIZES.md || 20,
-      gap: SPACING.sm,
+      gap: SPACING.sm || 8,
     },
   }[size] || {
     paddingVertical: 10,
-    paddingHorizontal: SPACING.xxl,
+    paddingHorizontal: SPACING.xxl || 24,
     minHeight: 40,
     fontSize: FONT_SIZES.sm,
     lineHeight: LINE_HEIGHTS.sm,
     letterSpacing: LETTER_SPACINGS.sm,
     iconSize: 18,
-    gap: SPACING.sm,
+    gap: SPACING.sm || 8,
   };
+
+  const buttonElevation =
+    variant === "elevated" && !disabled
+      ? elevations?.sm ||
+        Platform.select({
+          web: { boxShadow: "0 2px 4px rgba(0, 0, 0, 0.08)" },
+          default: {
+            elevation: 2,
+            shadowColor: colors.shadow,
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 3,
+          },
+        })
+      : variant === "filled" && !disabled
+      ? Platform.select({
+          web: { boxShadow: "0 1px 3px rgba(0, 0, 0, 0.06)" },
+          default: {
+            elevation: 1,
+            shadowColor: colors.shadow,
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.06,
+            shadowRadius: 2,
+          },
+        })
+      : null;
 
   const containerStyle = [
     {
@@ -149,40 +189,13 @@ const Button = ({
       minHeight: sizeConfig.minHeight,
     },
     fullWidth && { width: "100%" },
-    variant === "elevated" &&
-      !disabled &&
-      Platform.select({
-        web: {
-          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.08)",
-        },
-        default: {
-          elevation: 2,
-          shadowColor: colors.shadow,
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.12,
-          shadowRadius: 3,
-        },
-      }),
-    variant === "filled" &&
-      !disabled &&
-      Platform.select({
-        web: {
-          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.06)",
-        },
-        default: {
-          elevation: 1,
-          shadowColor: colors.shadow,
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 0.08,
-          shadowRadius: 3,
-        },
-      }),
+    buttonElevation,
     style,
   ];
 
   const labelStyle = [
     {
-      fontFamily: FONTS.medium,
+      fontFamily: FONTS.semiBold || FONTS.medium,
       fontSize: sizeConfig.fontSize,
       lineHeight: sizeConfig.lineHeight,
       letterSpacing: sizeConfig.letterSpacing,
@@ -221,9 +234,15 @@ const Button = ({
     return null;
   };
 
+  const accessibilityLabel =
+    props.accessibilityLabel ||
+    (typeof children === "string" ? children : title) ||
+    "Button";
+
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled: disabled || loading }}
       onPress={!disabled && !loading ? handlePress : null}
       style={({ pressed }) => [

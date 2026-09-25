@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, memo } from "react";
 import { View, StyleSheet } from "react-native";
 import Animated, {
   useSharedValue,
@@ -19,12 +19,12 @@ import { useTheme } from "../theme";
  * @param {number} borderRadius
  * @param {object} style
  */
-export default function SkeletonLoader({
+const SkeletonLoader = memo(({
   width = "100%",
   height = 20,
   style,
   borderRadius = 10,
-}) {
+}) => {
   const { colors, mode } = useTheme();
   const animatedValue = useSharedValue(0);
   const [containerWidth, setContainerWidth] = useState(200);
@@ -32,7 +32,7 @@ export default function SkeletonLoader({
   useEffect(() => {
     animatedValue.value = withRepeat(
       withTiming(1, {
-        duration: 1400,
+        duration: 1350,
         easing: Easing.bezier(0.25, 0, 0.75, 1),
       }),
       -1,
@@ -44,10 +44,10 @@ export default function SkeletonLoader({
   const baseColor =
     mode === "dark"
       ? colors.surfaceContainerHigh || "rgba(255,255,255,0.06)"
-      : colors.surfaceContainer || "rgba(0,0,0,0.06)";
+      : colors.surfaceContainer || "#F0F1F5";
 
   const highlightColor =
-    mode === "dark" ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.45)";
+    mode === "dark" ? "rgba(255,255,255,0.09)" : "rgba(255,255,255,0.65)";
 
   const animatedStyle = useAnimatedStyle(() => {
     const translateX = interpolate(
@@ -88,4 +88,38 @@ export default function SkeletonLoader({
       </Animated.View>
     </View>
   );
-}
+});
+
+SkeletonLoader.displayName = "SkeletonLoader";
+
+/**
+ * Convenience circular skeleton for avatars/icons
+ */
+export const SkeletonCircle = memo(({ size = 40, style }) => (
+  <SkeletonLoader
+    width={size}
+    height={size}
+    borderRadius={size / 2}
+    style={style}
+  />
+));
+SkeletonCircle.displayName = "SkeletonCircle";
+
+/**
+ * Convenience multi-line skeleton for paragraphs
+ */
+export const SkeletonText = memo(({ lines = 3, lineHeight = 14, gap = 8, style }) => (
+  <View style={[{ gap }, style]}>
+    {Array.from({ length: lines }).map((_, i) => (
+      <SkeletonLoader
+        key={i}
+        height={lineHeight}
+        width={i === lines - 1 && lines > 1 ? "60%" : "100%"}
+        borderRadius={lineHeight / 2}
+      />
+    ))}
+  </View>
+));
+SkeletonText.displayName = "SkeletonText";
+
+export default SkeletonLoader;

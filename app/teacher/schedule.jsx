@@ -15,6 +15,9 @@ import apiConfig from "../../config/apiConfig";
 import { useApiQuery } from "../../hooks/useApi";
 import { useToast } from "../../components/ToastProvider";
 import AppHeader from "../../components/Header";
+import Card from "../../components/Card";
+import Badge from "../../components/ui/Badge";
+import { EmptyState } from "../../components/StateComponents";
 import { useLabel } from "../../context/LabelsContext";
 import { formatClassName } from "../../utils/formatClassName";
 
@@ -164,20 +167,22 @@ export default function TeacherScheduleScreen() {
                       paddingVertical: 8,
                       backgroundColor:
                         selectedDay === day
-                          ? colors.primary
-                          : colors.cardBackground,
-                      borderRadius: 12,
+                          ? colors.primaryContainer || "#E0ECFF"
+                          : colors.surfaceContainerLow || colors.surface,
+                      borderRadius: 14,
                       borderWidth: 1,
                       borderColor:
                         selectedDay === day
-                          ? colors.primary
-                          : colors.textSecondary + "20",
+                          ? (colors.primary || "#2F6CD4") + "40"
+                          : colors.outlineVariant
+                          ? colors.outlineVariant + "40"
+                          : "rgba(0,0,0,0.06)",
                     }}
                   >
                     <Text
                       style={{
                         color:
-                          selectedDay === day ? "#fff" : colors.textPrimary,
+                          selectedDay === day ? colors.primary || "#2F6CD4" : colors.textPrimary,
                         fontFamily:
                           selectedDay === day ? FONTS.bold : FONTS.medium,
                       }}
@@ -210,101 +215,86 @@ export default function TeacherScheduleScreen() {
                 {selectedDay}
               </Text>
               {selectedDay === currentDay && (
-                <View
-                  style={{
-                    backgroundColor: colors.success + "20",
-                    paddingHorizontal: 8,
-                    paddingVertical: 4,
-                    borderRadius: 4,
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: FONT_SIZES.sm,
-                      color: colors.success,
-                      fontFamily: FONTS.bold,
-                    }}
-                  >
-                    {t("common.today", "TODAY")}
-                  </Text>
-                </View>
+                <Badge
+                  label={t("common.today", "TODAY")}
+                  variant="success"
+                  size="sm"
+                  dot
+                />
               )}
             </View>
 
             {!schedule[selectedDay] || schedule[selectedDay].length === 0 ? (
-              <View
-                style={{ alignItems: "center", marginTop: 40, opacity: 0.6 }}
-              >
-                <MaterialIcons
-                  name="free-breakfast"
-                  size={48}
-                  color={colors.textSecondary}
-                />
-                <Text
-                  style={{
-                    color: colors.textSecondary,
-                    marginTop: 16,
-                    fontSize: FONT_SIZES.md,
-                  }}
-                >
-                  {t("teacher.noClassesScheduled", "No classes scheduled")}
-                </Text>
-              </View>
+              <EmptyState
+                icon="free-breakfast"
+                title={t("teacher.noClassesTitle", "No Classes")}
+                message={t("teacher.noClassesScheduled", "No classes scheduled")}
+              />
             ) : (
               schedule[selectedDay].map((period, index) => (
-                <View
+                <Card
                   key={index}
+                  variant="elevated"
                   style={{
-                    backgroundColor: colors.cardBackground,
-                    borderRadius: 16,
-                    padding: 16,
                     marginBottom: 12,
+                    borderRadius: 16,
+                  }}
+                  contentStyle={{
                     flexDirection: "row",
-                    gap: 16,
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 1 },
-                    shadowOpacity: 0.05,
-                    shadowRadius: 4,
-                    elevation: 1,
-                    borderLeftWidth: 4,
-                    borderLeftColor: colors.secondary,
+                    gap: 14,
+                    padding: 14,
+                    alignItems: "center",
                   }}
                 >
-                  {/* Time Column */}
+                  {/* Time Column Tile */}
                   <View
                     style={{
                       alignItems: "center",
                       justifyContent: "center",
-                      width: 60,
+                      width: 68,
+                      backgroundColor:
+                        colors.surfaceContainerLow || colors.surface,
+                      borderRadius: 12,
+                      paddingVertical: 8,
+                      borderWidth: 1,
+                      borderColor: colors.outlineVariant
+                        ? colors.outlineVariant + "30"
+                        : "rgba(0,0,0,0.06)",
                     }}
                   >
                     <Text
                       style={{
-                        fontSize: FONT_SIZES.sm,
+                        fontSize: FONT_SIZES.xs,
                         fontFamily: FONTS.bold,
                         color: colors.textPrimary,
                       }}
                     >
                       {period.startTime}
                     </Text>
-                    <View
-                      style={{
-                        width: 1,
-                        height: 10,
-                        backgroundColor: colors.textSecondary + "40",
-                        marginVertical: 2,
-                      }}
+                    <MaterialIcons
+                      name="arrow-downward"
+                      size={10}
+                      color={colors.outline}
+                      style={{ marginVertical: 2 }}
                     />
-                    <Text style={{ fontSize: FONT_SIZES.sm, color: colors.textSecondary }}>
+                    <Text
+                      style={{
+                        fontSize: 11,
+                        fontFamily: FONTS.medium,
+                        color: colors.textSecondary,
+                      }}
+                    >
                       {period.endTime}
                     </Text>
                   </View>
 
-                  {/* Divider */}
+                  {/* Accent Divider */}
                   <View
                     style={{
-                      width: 1,
-                      backgroundColor: colors.textSecondary + "20",
+                      width: 4,
+                      height: 38,
+                      backgroundColor: colors.secondary || colors.primary,
+                      borderRadius: 2,
                     }}
                   />
 
@@ -325,7 +315,7 @@ export default function TeacherScheduleScreen() {
                         fontSize: FONT_SIZES.sm,
                         color: colors.primary,
                         fontFamily: FONTS.medium,
-                        marginBottom: 4,
+                        marginBottom: period.roomNumber ? 4 : 0,
                       }}
                     >
                       {period.subject?.name || t("common.subject", "Subject")}
@@ -345,14 +335,17 @@ export default function TeacherScheduleScreen() {
                           color={colors.textSecondary}
                         />
                         <Text
-                          style={{ fontSize: FONT_SIZES.sm, color: colors.textSecondary }}
+                          style={{
+                            fontSize: FONT_SIZES.sm,
+                            color: colors.textSecondary,
+                          }}
                         >
                           {t("common.room", "Room")} {period.roomNumber}
                         </Text>
                       </View>
                     )}
                   </View>
-                </View>
+                </Card>
               ))
             )}
           </View>

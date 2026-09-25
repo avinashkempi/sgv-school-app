@@ -216,12 +216,10 @@ export default function EventFormModal({
               style={[
                 styles.dateBadge,
                 {
-                  backgroundColor: isDark
-                    ? "rgba(208, 188, 255, 0.12)"
-                    : "rgba(79, 55, 139, 0.08)",
-                  borderColor: isDark
-                    ? "rgba(208, 188, 255, 0.25)"
-                    : "rgba(79, 55, 139, 0.2)",
+                  backgroundColor: colors.primaryContainer || (isDark
+                    ? "rgba(47, 108, 212, 0.15)"
+                    : "#E0ECFF"),
+                  borderColor: (colors.primary || "#2F6CD4") + "40",
                 },
               ]}
             >

@@ -7,7 +7,6 @@ import {
   Dimensions,
   FlatList,
   ActivityIndicator,
-  Platform,
 } from "react-native";
 import { Image } from "expo-image";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -26,6 +25,8 @@ import { useTheme, FONTS, FONT_SIZES } from "../../theme";
 import {
   getOptimizedCloudinaryUrl,
   getBlurPlaceholderUrl,
+  isVideoUrl,
+  getVideoPosterUrl,
 } from "../../utils/cloudinaryUpload";
 import useNetworkQuality from "../../hooks/useNetworkQuality";
 import useDoubleTap from "../../hooks/useDoubleTap";
@@ -82,28 +83,44 @@ const VibeImageCarousel = React.memo(
     const formattedImages = useMemo(() => {
       return images.map((img) => {
         if (typeof img === "string") {
+          const isVid = isVideoUrl(img);
           return {
-            type: "image",
+            type: isVid ? "video" : "image",
             url: img,
-            aspectRatio: 1,
-            width: 1080,
-            height: 1080,
+            thumbnailUrl: isVid ? getVideoPosterUrl(img) : "",
+            duration: 0,
+            aspectRatio: isVid ? 0.562 : 1,
+            width: isVid ? 720 : 1080,
+            height: isVid ? 1280 : 1080,
           };
         }
+
+        const rawUrl = img?.url || img?.thumbnailUrl || "";
+        const isVid =
+          img.type === "video" ||
+          isVideoUrl(rawUrl) ||
+          (typeof img.thumbnailUrl === "string" && isVideoUrl(img.thumbnailUrl));
+
+        let computedRatio = img.aspectRatio;
+        if (!computedRatio || computedRatio <= 0) {
+          if (img.width && img.height && img.width !== img.height) {
+            computedRatio = Number((img.width / img.height).toFixed(3));
+          } else if (isVid) {
+            computedRatio = 0.562; // Standard 9:16 vertical video default
+          } else {
+            computedRatio = 1;
+          }
+        }
+
         return {
-          type: img.type || "image",
+          type: isVid ? "video" : "image",
           url: img.url,
-          thumbnailUrl: img.thumbnailUrl || "",
+          thumbnailUrl:
+            img.thumbnailUrl || (isVid ? getVideoPosterUrl(img.url) : ""),
           duration: img.duration || 0,
-          aspectRatio:
-            img.aspectRatio ||
-            (img.width && img.height
-              ? img.width / img.height
-              : img.type === "video"
-              ? 0.562
-              : 1),
-          width: img.width || 1080,
-          height: img.height || 1080,
+          aspectRatio: computedRatio,
+          width: img.width || (isVid ? 720 : 1080),
+          height: img.height || (isVid ? 1280 : 1080),
         };
       });
     }, [images]);
@@ -216,9 +233,11 @@ const VibeImageCarousel = React.memo(
               thumbnailUrl={singleItem.thumbnailUrl}
               width={width}
               height={carouselHeight}
+              aspectRatio={singleItem.aspectRatio || primaryAspectRatio}
               isVisible={isVisible}
               isActiveSlide={true}
               onDoubleTapLike={onDoubleTapLike}
+              onDimensionsDetected={handleDimensionsDetected}
             />
           ) : (
             <Pressable
@@ -272,9 +291,13 @@ const VibeImageCarousel = React.memo(
                   thumbnailUrl={item.thumbnailUrl}
                   width={width}
                   height={carouselHeight}
+                  aspectRatio={item.aspectRatio || primaryAspectRatio}
                   isVisible={isVisible}
                   isActiveSlide={activeSlideIndex === index}
                   onDoubleTapLike={onDoubleTapLike}
+                  onDimensionsDetected={
+                    index === 0 ? handleDimensionsDetected : undefined
+                  }
                 />
               );
             }
@@ -432,46 +455,26 @@ const CarouselImage = React.memo(
             </Pressable>
           </View>
         ) : (
-          <>
-            {/* Ambient blurred backdrop for letterboxed/non-square photos so they never show awkward empty margins */}
-            {displayUrl ? (
-              <Image
-                source={{ uri: displayUrl }}
-                style={StyleSheet.absoluteFillObject}
-                contentFit="cover"
-                blurRadius={Platform.OS === "ios" ? 25 : 15}
-                cachePolicy="memory-disk"
-              />
-            ) : null}
-            <View
-              style={[
-                StyleSheet.absoluteFillObject,
-                { backgroundColor: "rgba(0, 0, 0, 0.4)" },
-              ]}
-            />
-
-            {/* Crisp foreground image */}
-            <Image
-              source={{ uri: displayUrl }}
-              placeholder={placeholderUrl ? { uri: placeholderUrl } : undefined}
-              placeholderContentFit="contain"
-              style={styles.image}
-              contentFit="contain"
-              transition={150}
-              cachePolicy="memory-disk"
-              onLoadStart={() => setLoading(true)}
-              onLoad={(e) => {
-                setLoading(false);
-                if (e?.source?.width && e?.source?.height) {
-                  onDimensionsDetected?.(e.source.width, e.source.height);
-                }
-              }}
-              onError={() => {
-                setLoading(false);
-                setError(true);
-              }}
-            />
-          </>
+          <Image
+            source={{ uri: displayUrl }}
+            placeholder={placeholderUrl ? { uri: placeholderUrl } : undefined}
+            placeholderContentFit="contain"
+            style={styles.image}
+            contentFit="contain"
+            transition={150}
+            cachePolicy="memory-disk"
+            onLoadStart={() => setLoading(true)}
+            onLoad={(e) => {
+              setLoading(false);
+              if (e?.source?.width && e?.source?.height) {
+                onDimensionsDetected?.(e.source.width, e.source.height);
+              }
+            }}
+            onError={() => {
+              setLoading(false);
+              setError(true);
+            }}
+          />
         )}
 
         {/* Subtle Slow Network Hint */}
@@ -525,17 +528,20 @@ MiniDot.displayName = "MiniDot";
 const styles = StyleSheet.create({
   container: {
     position: "relative",
-    backgroundColor: "#0A0E1A",
+    backgroundColor: "transparent",
     overflow: "hidden",
   },
   imageWrapper: {
-    backgroundColor: "#0A0E1A",
+    backgroundColor: "transparent",
     overflow: "hidden",
     position: "relative",
+    justifyContent: "center",
+    alignItems: "center",
   },
   image: {
     width: "100%",
     height: "100%",
+    backgroundColor: "transparent",
   },
   errorContainer: {
     ...StyleSheet.absoluteFillObject,

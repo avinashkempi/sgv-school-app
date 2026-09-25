@@ -532,40 +532,38 @@ export default function AdminTimetableScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }}
           >
-            {(classes || []).map((cls) => (
-              <Pressable
-                key={cls._id}
-                onPress={() => setSelectedClassId(cls._id)}
-                style={{
-                  paddingHorizontal: 20,
-                  paddingVertical: 10,
-                  backgroundColor:
-                    selectedClassId === cls._id
-                      ? colors.primary
-                      : colors.cardBackground,
-                  borderRadius: 20,
-                  borderWidth: 1,
-                  borderColor:
-                    selectedClassId === cls._id
-                      ? colors.primary
-                      : colors.textSecondary + "20",
-                  elevation: selectedClassId === cls._id ? 4 : 0,
-                }}
-              >
-                <Text
+            {(classes || []).map((cls) => {
+              const isSelected = selectedClassId === cls._id;
+              return (
+                <Pressable
+                  key={cls._id}
+                  onPress={() => setSelectedClassId(cls._id)}
                   style={{
-                    color:
-                      selectedClassId === cls._id ? "#fff" : colors.textPrimary,
-                    fontFamily:
-                      selectedClassId === cls._id
-                        ? FONTS.bold
-                        : FONTS.medium,
+                    paddingHorizontal: 20,
+                    paddingVertical: 10,
+                    backgroundColor: isSelected
+                      ? colors.primaryContainer || "#E0ECFF"
+                      : colors.surfaceContainerLow || colors.cardBackground,
+                    borderRadius: 20,
+                    borderWidth: 1,
+                    borderColor: isSelected
+                      ? colors.primary
+                      : colors.outlineVariant
+                      ? colors.outlineVariant + "50"
+                      : colors.textSecondary + "20",
                   }}
                 >
-                  {formatClassName(cls.name, cls.section)}
-                </Text>
-              </Pressable>
-            ))}
+                  <Text
+                    style={{
+                      color: isSelected ? colors.primary : colors.textPrimary,
+                      fontFamily: isSelected ? FONTS.bold : FONTS.medium,
+                    }}
+                  >
+                    {formatClassName(cls.name, cls.section)}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </ScrollView>
         </View>
 
@@ -578,32 +576,40 @@ export default function AdminTimetableScreen() {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
               >
-                {DAYS.map((day) => (
-                  <Pressable
-                    key={day}
-                    onPress={() => setSelectedDay(day)}
-                    style={{
-                      paddingHorizontal: 16,
-                      paddingVertical: 8,
-                      backgroundColor:
-                        selectedDay === day ? colors.secondary : "transparent",
-                      borderRadius: 12,
-                      borderWidth: 1,
-                      borderColor:
-                        selectedDay === day ? colors.secondary : "transparent",
-                    }}
-                  >
-                    <Text
+                {DAYS.map((day) => {
+                  const isDaySelected = selectedDay === day;
+                  return (
+                    <Pressable
+                      key={day}
+                      onPress={() => setSelectedDay(day)}
                       style={{
-                        color:
-                          selectedDay === day ? "#fff" : colors.textSecondary,
-                        fontFamily: FONTS.bold,
+                        paddingHorizontal: 16,
+                        paddingVertical: 8,
+                        backgroundColor: isDaySelected
+                          ? colors.primaryContainer || "#E0ECFF"
+                          : colors.surfaceContainerLow || "transparent",
+                        borderRadius: 12,
+                        borderWidth: 1,
+                        borderColor: isDaySelected
+                          ? colors.primary
+                          : colors.outlineVariant
+                          ? colors.outlineVariant + "40"
+                          : "transparent",
                       }}
                     >
-                      {day.slice(0, 3)}
-                    </Text>
-                  </Pressable>
-                ))}
+                      <Text
+                        style={{
+                          color: isDaySelected
+                            ? colors.primary
+                            : colors.textSecondary,
+                          fontFamily: FONTS.bold,
+                        }}
+                      >
+                        {day.slice(0, 3)}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
               </ScrollView>
             </View>
 

@@ -273,25 +273,32 @@ function BottomNavigation() {
 
   return (
     <Container
-      intensity={80}
+      intensity={90}
       tint={mode === "dark" ? "dark" : "light"}
       style={[
         styles.container,
         {
-          backgroundColor: colors.surfaceContainer + "E6", // 90% opacity for frosted glass effect
-          paddingBottom: insets.bottom,
-          borderTopColor: colors.outlineVariant,
-          borderTopWidth: StyleSheet.hairlineWidth, // Crisp glass edge
-          elevation: 0, // Elevation on Android breaks BlurView transparency
+          backgroundColor:
+            Platform.OS === "android"
+              ? mode === "dark"
+                ? colors.surface || "#14161A"
+                : colors.surface || "#FFFFFF"
+              : mode === "dark"
+              ? "rgba(14, 16, 20, 0.88)"
+              : "rgba(255, 255, 255, 0.90)",
+          paddingBottom: Math.max(insets.bottom, 6),
+          borderTopColor: colors.outlineVariant || colors.border || "rgba(0,0,0,0.06)",
+          borderTopWidth: StyleSheet.hairlineWidth,
+          elevation: 0,
           ...Platform.select({
             web: {
-              boxShadow: "0 -4px 10px rgba(0, 0, 0, 0.05)",
+              boxShadow: "0 -4px 16px rgba(0, 0, 0, 0.04)",
             },
             default: {
-              shadowColor: colors.shadow,
-              shadowOpacity: 0.1,
+              shadowColor: colors.shadow || "#000",
+              shadowOpacity: mode === "dark" ? 0.3 : 0.06,
               shadowRadius: 10,
-              shadowOffset: { width: 0, height: -4 },
+              shadowOffset: { width: 0, height: -3 },
             },
           }),
         },
@@ -322,11 +329,11 @@ const TabItem = memo(({ item, isActive, onPress, colors }) => {
   }, [isActive, activeProgress]);
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.9, { damping: 12, stiffness: 250 });
+    scale.value = withSpring(0.92, { damping: 14, stiffness: 260 });
   };
 
   const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 12, stiffness: 250 });
+    scale.value = withSpring(1, { damping: 14, stiffness: 260 });
   };
 
   const handlePress = useCallback(() => {
@@ -344,7 +351,7 @@ const TabItem = memo(({ item, isActive, onPress, colors }) => {
         scaleX: interpolate(
           activeProgress.value,
           [0, 1],
-          [0.65, 1],
+          [0.6, 1],
           Extrapolation.CLAMP
         ),
       },
@@ -352,12 +359,16 @@ const TabItem = memo(({ item, isActive, onPress, colors }) => {
         scaleY: interpolate(
           activeProgress.value,
           [0, 1],
-          [0.85, 1],
+          [0.8, 1],
           Extrapolation.CLAMP
         ),
       },
     ],
   }));
+
+  const activeColor = colors.primary || "#2F6CD4";
+  const inactiveColor = colors.textSecondary || colors.onSurfaceVariant || "#6B7280";
+  const activeBg = colors.primaryContainer || "#E0ECFF";
 
   return (
     <Pressable
@@ -372,22 +383,20 @@ const TabItem = memo(({ item, isActive, onPress, colors }) => {
     >
       <Animated.View style={[{ alignItems: "center" }, containerStyle]}>
         <View style={styles.iconContainer}>
-          {/* Active Pill */}
+          {/* Active SGV Brand Pill */}
           <Animated.View
             style={[
               StyleSheet.absoluteFill,
               styles.activePill,
-              { backgroundColor: colors.secondaryContainer },
+              { backgroundColor: activeBg },
               pillStyle,
             ]}
           />
 
           <MaterialIcons
             name={isActive ? item.icon : item.inactiveIcon || item.icon}
-            size={24}
-            color={
-              isActive ? colors.onSecondaryContainer : colors.onSurfaceVariant
-            }
+            size={22}
+            color={isActive ? activeColor : inactiveColor}
           />
         </View>
 
@@ -395,7 +404,7 @@ const TabItem = memo(({ item, isActive, onPress, colors }) => {
           style={[
             styles.label,
             {
-              color: isActive ? colors.onSurface : colors.onSurfaceVariant,
+              color: isActive ? activeColor : inactiveColor,
               fontFamily: isActive ? FONTS.bold : FONTS.medium,
             },
           ]}
@@ -417,20 +426,20 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-around",
-    paddingTop: 8,
-    paddingHorizontal: 4,
+    paddingTop: 6,
+    paddingHorizontal: 2,
   },
   tabItem: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    height: 56,
+    height: 52,
     paddingHorizontal: 1,
   },
   iconContainer: {
-    width: 52,
-    height: 30,
-    borderRadius: 15,
+    width: 48,
+    height: 28,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 2,
@@ -438,13 +447,13 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   activePill: {
-    borderRadius: 15,
+    borderRadius: 14,
   },
   label: {
-    fontSize: FONT_SIZES.xs,
-    lineHeight: LINE_HEIGHTS.xs,
-    letterSpacing: LETTER_SPACINGS.xs,
+    fontSize: FONT_SIZES.xs || 11,
+    lineHeight: LINE_HEIGHTS.xs || 14,
+    letterSpacing: LETTER_SPACINGS.xs || 0.2,
     textAlign: "center",
-    marginTop: 2,
+    marginTop: 1,
   },
 });

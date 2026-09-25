@@ -9,7 +9,7 @@ import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS } from "../../theme";
  * 
  * @param {string} title - Module title
  * @param {string} icon - MaterialIcons name for header icon
- * @param {string} accentColor - Dominant color token (e.g. '#4F378B', '#0E7490', '#146C2E')
+ * @param {string} accentColor - Dominant color token (e.g. colors.primary, colors.secondary)
  * @param {string} lightBg - Optional custom pastel background for light mode
  * @param {string} darkBg - Optional custom pastel background for dark mode
  * @param {string} lightBorder - Optional custom border for light mode

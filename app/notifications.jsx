@@ -48,8 +48,8 @@ const getCategoryConfig = (type, colors) => {
     case "Homework":
       return {
         icon: "assignment",
-        color: "#8B5CF6", // Modern violet
-        bgLight: "#F3E8FF",
+        color: "#2F6CD4", // SGV brand blue
+        bgLight: "#EBF2FF",
         label: "Homework",
       };
     case "Exam":
@@ -76,15 +76,15 @@ const getCategoryConfig = (type, colors) => {
     case "Event":
       return {
         icon: "celebration",
-        color: "#10B981", // Emerald
-        bgLight: "#D1FAE5",
+        color: colors.primary || "#2F6CD4",
+        bgLight: colors.primaryContainer || "#E0ECFF",
         label: "Events",
       };
     default:
       return {
         icon: "notifications-active",
-        color: colors.primary || "#6366F1",
-        bgLight: colors.primaryContainer || "#EEF2FF",
+        color: colors.primary || "#2F6CD4",
+        bgLight: colors.primaryContainer || "#E0ECFF",
         label: "General",
       };
   }
@@ -118,7 +118,7 @@ const getRelativeTime = (dateInput) => {
 };
 
 // Animated Category Icon with subtle entrance and pulse
-const AnimatedCategoryIcon = memo(({ type, isRead, colors }) => {
+const AnimatedCategoryIcon = memo(({ type, isRead, colors, isDark }) => {
   const config = getCategoryConfig(type, colors);
   const scaleAnim = useRef(new Animated.Value(0.85)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -163,13 +163,11 @@ const AnimatedCategoryIcon = memo(({ type, isRead, colors }) => {
     outputRange: ["-12deg", "0deg", "12deg"],
   });
 
-  const isDarkMode =
-    colors.background === "#141218" || colors.surface === "#141218";
   const bgColor = isRead
-    ? isDarkMode
+    ? isDark
       ? "rgba(255,255,255,0.06)"
       : colors.surfaceContainerHighest
-    : isDarkMode
+    : isDark
     ? `${config.color}25`
     : config.bgLight;
 
@@ -252,12 +250,11 @@ AnimatedUnreadDot.displayName = "AnimatedUnreadDot";
 
 // Extracted and memoized notification card item
 const NotificationItem = memo(
-  ({ notif, colors, markAsRead, handleDelete, isAdmin, userRole, router }) => {
+  ({ notif, colors, isDark, markAsRead, handleDelete, isAdmin, userRole, router }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const config = getCategoryConfig(notif.type, colors);
     const isLongMessage = notif.message && notif.message.length > 120;
-    const isDarkMode =
-      colors.background === "#141218" || colors.surface === "#141218";
+    const isDarkMode = isDark;
 
     const destination = useMemo(
       () =>
@@ -333,6 +330,7 @@ const NotificationItem = memo(
               type={notif.type}
               isRead={notif.isRead}
               colors={colors}
+              isDark={isDarkMode}
             />
 
             {/* Main Body */}
@@ -505,7 +503,8 @@ const FILTER_CATEGORIES = [
 ];
 
 export default function NotificationsScreen() {
-  const { colors } = useTheme();
+  const { colors, mode } = useTheme();
+  const isDarkMode = mode === "dark";
   const { showToast } = useToast();
   const router = useRouter();
   const [showSettings, setShowSettings] = useState(false);
@@ -636,6 +635,7 @@ export default function NotificationsScreen() {
       <NotificationItem
         notif={item}
         colors={colors}
+        isDark={isDarkMode}
         markAsRead={markAsRead}
         handleDelete={handleDelete}
         isAdmin={isAdmin}
@@ -643,11 +643,8 @@ export default function NotificationsScreen() {
         router={router}
       />
     ),
-    [colors, markAsRead, handleDelete, isAdmin, userData?.role, router]
+    [colors, isDarkMode, markAsRead, handleDelete, isAdmin, userData?.role, router]
   );
-
-  const isDarkMode =
-    colors.background === "#141218" || colors.surface === "#141218";
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>

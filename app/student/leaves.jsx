@@ -308,8 +308,8 @@ export default function StudentLeaves() {
         };
       default:
         return {
-          color: "#E65100",
-          bg: "#FFF3E0",
+          color: colors.warning || "#D97706",
+          bg: colors.warningContainer || "#FFFBEB",
           label: "Pending",
           icon: "time-outline",
         };

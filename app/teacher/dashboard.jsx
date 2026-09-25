@@ -21,6 +21,7 @@ import { useAuth } from "../../context/AuthContext";
 import SegmentedControl from "../../components/SegmentedControl";
 import { EmptyState, LoadingState } from "../../components/StateComponents";
 import { useLabel } from "../../context/LabelsContext";
+import Badge from "../../components/ui/Badge";
 
 export default function TeacherDashboard() {
   const router = useRouter();
@@ -110,7 +111,7 @@ export default function TeacherDashboard() {
               >
                 <View
                   style={{
-                    backgroundColor: "#2196F315",
+                    backgroundColor: "#2F6CD415",
                     padding: 12,
                     borderRadius: 14,
                     width: 52,
@@ -119,7 +120,7 @@ export default function TeacherDashboard() {
                     justifyContent: "center",
                   }}
                 >
-                  <MaterialIcons name="schedule" size={26} color="#2196F3" />
+                  <MaterialIcons name="schedule" size={26} color="#2F6CD4" />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text
@@ -267,26 +268,12 @@ export default function TeacherDashboard() {
                 )}
               </View>
 
-              <View
-                style={{
-                  backgroundColor: colors.primary + "15",
-                  alignSelf: "flex-start",
-                  paddingHorizontal: 8,
-                  paddingVertical: 3,
-                  borderRadius: 6,
-                  marginTop: 10,
-                }}
-              >
-                <Text
-                  style={{
-                    color: colors.primary,
-                    fontSize: FONT_SIZES.micro,
-                    fontFamily: FONTS.bold,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {t("teacher.classTeacher")}
-                </Text>
+              <View style={{ marginTop: 10 }}>
+                <Badge
+                  label={t("teacher.classTeacher")}
+                  variant="brand"
+                  size="sm"
+                />
               </View>
             </View>
 
@@ -352,24 +339,11 @@ export default function TeacherDashboard() {
                   {subj.name} • {formatClassName(subj.class?.name || subj.class, subj.class?.section)}
                 </Text>
                 {subj.isClassTeacher && (
-                  <View
-                    style={{
-                      backgroundColor: colors.success + "20",
-                      paddingHorizontal: 6,
-                      paddingVertical: 2,
-                      borderRadius: 4,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: FONT_SIZES.micro,
-                        color: colors.success,
-                        fontFamily: FONTS.bold,
-                      }}
-                    >
-                      {t("teacher.myClass")}
-                    </Text>
-                  </View>
+                  <Badge
+                    label={t("teacher.myClass")}
+                    variant="success"
+                    size="sm"
+                  />
                 )}
               </View>
             </View>
@@ -434,7 +408,7 @@ export default function TeacherDashboard() {
             >
               <View
                 style={{
-                  backgroundColor: "#E91E6315",
+                  backgroundColor: colors.primaryContainer || "#E0ECFF",
                   padding: 16,
                   borderRadius: 20,
                   marginBottom: 12,
@@ -442,7 +416,7 @@ export default function TeacherDashboard() {
                   justifyContent: "center",
                 }}
               >
-                <MaterialIcons name="assignment" size={28} color="#E91E63" />
+                <MaterialIcons name="assignment" size={28} color={colors.primary || "#2F6CD4"} />
               </View>
               <Text
                 style={{
@@ -477,7 +451,7 @@ export default function TeacherDashboard() {
             >
               <View
                 style={{
-                  backgroundColor: "#2196F315",
+                  backgroundColor: "#2F6CD415",
                   padding: 16,
                   borderRadius: 20,
                   marginBottom: 12,
@@ -485,7 +459,7 @@ export default function TeacherDashboard() {
                   justifyContent: "center",
                 }}
               >
-                <MaterialIcons name="schedule" size={28} color="#2196F3" />
+                <MaterialIcons name="schedule" size={28} color="#2F6CD4" />
               </View>
               <Text
                 style={{

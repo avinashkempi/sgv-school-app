@@ -2123,7 +2123,7 @@ export default function AdminFeesScreen() {
                         style={{
                           flex: 1,
                           minWidth: "22%",
-                          backgroundColor: "#6750A415",
+                          backgroundColor: (colors.tertiary || colors.primary) + "15",
                           padding: 12,
                           borderRadius: 16,
                           alignItems: "center",
@@ -2131,7 +2131,7 @@ export default function AdminFeesScreen() {
                       >
                         <Text
                           style={{
-                            color: "#6750A4",
+                            color: colors.tertiary || colors.primary,
                             fontSize: FONT_SIZES.xs,
                             marginBottom: 4,
                           }}
@@ -2141,7 +2141,7 @@ export default function AdminFeesScreen() {
                         <Text
                           style={{
                             fontFamily: FONTS.bold,
-                            color: "#6750A4",
+                            color: colors.tertiary || colors.primary,
                             fontSize: FONT_SIZES.md,
                           }}
                         >

@@ -263,37 +263,38 @@ export default function UserFormModal({
                   minLength: { value: 10, message: "Enter 10 digit number" },
                 }}
                 render={({ field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                    style={[
-                      [
+                  <View pointerEvents={modalMode === "edit" ? "none" : "auto"}>
+                    <TextInput
+                      style={[
                         styles.bodyLarge,
                         {
-                          borderWidth: errors.phone ? 1.5 : 1,
+                          borderWidth: 1.5,
                           borderColor: errors.phone ? colors.error : colors.outline,
                           borderRadius: 8,
                           padding: 14,
                           backgroundColor: "transparent",
                         },
-                      ],
-                      modalMode === "edit" && {
-                        backgroundColor: colors.surfaceVariant,
-                        opacity: 0.7,
-                      },
-                    ]}
-                    placeholder="Enter phone number"
-                    placeholderTextColor={colors.textSecondary}
-                    value={value}
-                    onChangeText={(text) => {
-                      onChange(text);
-                      if (modalMode === "add") {
-                        setValue("password", `${text}@123`);
-                      }
-                    }}
-                    onBlur={onBlur}
-                    keyboardType="phone-pad"
-                    maxLength={10}
-                    editable={modalMode === "add"}
-                  />
+                        modalMode === "edit" && {
+                          backgroundColor: colors.surfaceVariant,
+                          opacity: 0.7,
+                        },
+                      ]}
+                      placeholder="Enter phone number"
+                      placeholderTextColor={colors.textSecondary}
+                      value={value}
+                      onChangeText={(text) => {
+                        onChange(text);
+                        if (modalMode === "add") {
+                          setValue("password", `${text}@123`);
+                        }
+                      }}
+                      onBlur={onBlur}
+                      keyboardType="phone-pad"
+                      maxLength={10}
+                      editable={modalMode === "add"}
+                      showSoftInputOnFocus={modalMode === "add"}
+                    />
+                  </View>
                 )}
               />
               {errors.phone && (

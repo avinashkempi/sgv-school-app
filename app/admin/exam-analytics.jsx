@@ -155,7 +155,7 @@ export default function ExamAnalyticsScreen() {
     const typeColors = {
       FA1: "#2196F3",
       FA2: "#03A9F4",
-      SA1: "#9C27B0",
+      SA1: "#2F6CD4",
       FA3: "#FF9800",
       FA4: "#FF5722",
       SA2: "#E91E63",
@@ -181,10 +181,6 @@ export default function ExamAnalyticsScreen() {
     [schoolData?.subjectwiseSummary]
   );
   const kpis = useMemo(() => schoolData?.kpis || {}, [schoolData?.kpis]);
-  const initSummary = useMemo(
-    () => schoolData?.initializationSummary || {},
-    [schoolData?.initializationSummary]
-  );
 
   // Current Exam Type Performance for KPIs
   const currentExamTypePerf = useMemo(() => {

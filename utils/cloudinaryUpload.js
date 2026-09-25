@@ -912,16 +912,23 @@ export const uploadVideoToCloudinary = async (
  * @returns {string} Optimized streaming URL
  */
 export const getOptimizedVideoUrl = (url, { isSlow = false } = {}) => {
-  if (!url || !url.includes("cloudinary.com")) return url;
+  if (!url || typeof url !== "string") return url || "";
+  if (!url.includes("cloudinary.com")) return url;
   if (url.includes("/upload/w_") || url.includes("/upload/q_")) return url;
 
   const targetWidth = isSlow ? 480 : 720;
   const targetQuality = isSlow ? "eco" : "auto";
 
-  return url.replace(
+  let transformed = url.replace(
     "/upload/",
-    `/upload/w_${targetWidth},q_${targetQuality},f_auto,vc_auto,c_limit/`
+    `/upload/w_${targetWidth},q_${targetQuality},vc_auto,c_limit/`
   );
+  // Ensure video extension is .mp4 for universal cross-platform playback (iOS, Android, Web)
+  transformed = transformed.replace(
+    /\.(mov|qt|webm|m4v|avi|3gp|mkv|flv|wmv)(\?.*)?$/i,
+    ".mp4$2"
+  );
+  return transformed;
 };
 
 /**
@@ -947,14 +954,14 @@ export const getBlurPlaceholderUrl = (url) => {
 export const isVideoUrl = (url) => {
   if (!url || typeof url !== "string") return false;
   return (
-    url.includes("/video/upload/") ||
+    /\/video\/upload\//i.test(url) ||
     /\.(mp4|mov|webm|m4v|avi|3gp|mkv|flv|wmv|qt)(\?.*)?$/i.test(url)
   );
 };
 
 /**
  * Generate a high-quality JPEG poster frame from a Cloudinary video URL.
- * Cloudinary allows generating JPEG posters from video files at start offset (so_0).
+ * Preserves the video's natural aspect ratio instead of hardcoding 600px landscape crop.
  *
  * @param {string} videoUrl - Cloudinary video URL
  * @param {string|object} [optionsOrThumbnail] - Precomputed thumbnail URL OR options object
@@ -965,14 +972,14 @@ export const getVideoPosterUrl = (
   optionsOrThumbnail = {}
 ) => {
   if (typeof optionsOrThumbnail === "string" && optionsOrThumbnail.trim()) {
-    return optionsOrThumbnail;
+    return optionsOrThumbnail.trim();
   }
 
   const options =
     typeof optionsOrThumbnail === "object" && optionsOrThumbnail !== null
       ? optionsOrThumbnail
       : {};
-  const { width = 1080, height = 600, mode = "fill", timeOffset = "so_0" } = options;
+  const { width = 1080, height, mode = "limit", timeOffset = "so_0" } = options;
 
   if (!videoUrl || typeof videoUrl !== "string") return "";
   if (!videoUrl.includes("cloudinary.com")) return videoUrl;
@@ -980,10 +987,10 @@ export const getVideoPosterUrl = (
   // Replace video file extension with .jpg
   let posterUrl = videoUrl.replace(
     /\.(mp4|mov|webm|m4v|avi|3gp|mkv|flv|wmv|qt)(\?.*)?$/i,
-    ".jpg"
+    ".jpg$2"
   );
 
-  const crop = mode === "fill" ? "c_fill,g_auto" : "c_limit";
+  const crop = height ? (mode === "fill" ? "c_fill,g_auto" : "c_limit") : "c_limit";
   const transform = `${timeOffset},w_${width}${height ? `,h_${height}` : ""},${crop},q_auto,f_auto`;
 
   if (hasCloudinaryTransform(posterUrl)) {

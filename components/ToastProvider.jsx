@@ -95,24 +95,34 @@ export function ToastProvider({ children }) {
 }
 
 function ToastItem({ msg, type, _onDismiss }) {
-  const { mode, colors: themeColors } = useTheme();
+  const { mode, colors: themeColors, elevations } = useTheme();
+
   const getToastConfig = () => {
     switch (type) {
       case "success":
         return {
           icon: "check-circle",
-          accentColor: "#10B981", // Green
+          accentColor: themeColors.success || "#16A34A",
+          bgTone: themeColors.successContainer || "rgba(22, 163, 74, 0.12)",
         };
       case "error":
         return {
           icon: "alert-circle",
-          accentColor: "#EF4444", // Red
+          accentColor: themeColors.error || "#DC2626",
+          bgTone: themeColors.errorContainer || "rgba(220, 38, 38, 0.12)",
+        };
+      case "warning":
+        return {
+          icon: "alert-triangle",
+          accentColor: themeColors.warning || "#D97706",
+          bgTone: themeColors.warningContainer || "rgba(217, 119, 6, 0.12)",
         };
       case "info":
       default:
         return {
           icon: "info",
-          accentColor: "#3B82F6", // Blue
+          accentColor: themeColors.brandBlue || themeColors.secondary || "#2F6CD4",
+          bgTone: themeColors.brandBlueContainer || "rgba(47, 108, 212, 0.12)",
         };
     }
   };
@@ -124,18 +134,27 @@ function ToastItem({ msg, type, _onDismiss }) {
       entering={SlideInUp.springify().damping(20).stiffness(150)}
       exiting={SlideOutUp.springify().damping(20).stiffness(150)}
       layout={Layout.springify()}
-      style={styles.toastWrapper}
+      style={[
+        styles.toastWrapper,
+        elevations?.lg || {},
+        {
+          borderColor:
+            mode === "dark"
+              ? themeColors.border || "rgba(255,255,255,0.08)"
+              : themeColors.outlineVariant || "rgba(0,0,0,0.06)",
+        },
+      ]}
     >
       {Platform.OS === "ios" ? (
         <BlurView
-          intensity={80}
+          intensity={85}
           tint={mode === "dark" ? "dark" : "light"}
           style={styles.blurContainer}
         >
           <ToastContent
             msg={msg}
             config={config}
-            textColor={themeColors.onSurface}
+            textColor={themeColors.textPrimary || themeColors.onSurface}
           />
         </BlurView>
       ) : (
@@ -145,18 +164,15 @@ function ToastItem({ msg, type, _onDismiss }) {
             {
               backgroundColor:
                 mode === "dark"
-                  ? "rgba(30, 30, 30, 0.95)"
-                  : "rgba(255, 255, 255, 0.95)",
-              borderWidth: 1,
-              borderColor:
-                mode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
+                  ? themeColors.surface || "rgba(20, 22, 26, 0.96)"
+                  : themeColors.surface || "rgba(255, 255, 255, 0.98)",
             },
           ]}
         >
           <ToastContent
             msg={msg}
             config={config}
-            textColor={themeColors.onSurface}
+            textColor={themeColors.textPrimary || themeColors.onSurface}
           />
         </View>
       )}
@@ -177,12 +193,12 @@ function ToastContent({ msg, config, textColor }) {
       <View
         style={[
           styles.iconContainer,
-          { backgroundColor: config.accentColor + "15" },
+          { backgroundColor: config.bgTone },
         ]}
       >
-        <Feather name={config.icon} size={18} color={config.accentColor} />
+        <Feather name={config.icon} size={17} color={config.accentColor} />
       </View>
-      <Text style={[styles.text, { color: textColor || "#1F2937" }]}>
+      <Text style={[styles.text, { color: textColor || "#111318" }]}>
         {displayText}
       </Text>
     </View>
@@ -195,33 +211,34 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: "center",
+    zIndex: 9999,
   },
   toastWrapper: {
     width: "92%",
     maxWidth: 420,
     marginBottom: 10,
-    borderRadius: 14,
+    borderRadius: 16,
     overflow: "hidden",
+    borderWidth: 1,
     ...Platform.select({
       web: {
-        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+        boxShadow: "0 6px 20px rgba(0, 0, 0, 0.12)",
       },
       default: {
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 16,
+        shadowOpacity: 0.1,
+        shadowRadius: 14,
         elevation: 8,
       },
     }),
   },
   blurContainer: {
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingVertical: 12,
     flexDirection: "row",
     alignItems: "center",
   },
-  // androidBackground styles are now inline to support dark mode
   contentContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -237,9 +254,8 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: FONT_SIZES.sm,
-    fontFamily: FONTS.semiBold,
+    fontFamily: FONTS.medium,
     lineHeight: LINE_HEIGHTS.sm,
-    color: "#1F2937", // Dark gray
     flex: 1,
   },
 });

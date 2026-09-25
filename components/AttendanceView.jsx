@@ -346,14 +346,13 @@ export default function AttendanceView({
             borderRadius: 10,
             backgroundColor:
               existingContainer.backgroundColor ||
-              (isDark ? "rgba(208, 188, 255, 0.15)" : "#EADDFF"),
+              (isDark ? "rgba(47, 108, 212, 0.18)" : (colors.primaryContainer || "#E0ECFF")),
           },
           text: {
             ...(existing.customStyles?.text || {}),
             fontFamily: FONTS.bold,
             color:
-              existing.customStyles?.text?.color ||
-              (isDark ? "#D0BCFF" : colors.primary),
+              existing.customStyles?.text?.color || colors.primary,
           },
         },
       };
