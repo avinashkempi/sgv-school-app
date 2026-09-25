@@ -33,6 +33,12 @@ export default function AdminLayout() {
             gestureDirection: "vertical",
           }}
         />
+        <Stack.Screen
+          name="daily-reminders"
+          options={{
+            animation: "slide_from_right",
+          }}
+        />
       </Stack>
     </RoleGuard>
   );

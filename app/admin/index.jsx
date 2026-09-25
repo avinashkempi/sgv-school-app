@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
   FlatList,
   StyleSheet,
-  Alert,
 } from "react-native";
 
 import { MaterialIcons } from "@expo/vector-icons";
@@ -165,70 +164,8 @@ export default function AdminScreen() {
       ),
   });
 
-  // Manual Trigger Cron Mutation
-  const triggerCronMutation = useApiMutation({
-    mutationFn: createApiMutationFn(
-      `${apiConfig.baseUrl}/notifications/trigger-cron`,
-      "POST"
-    ),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["cronLogs"] });
-
-      const b = data?.result?.birthdays;
-      const ev = data?.result?.events;
-      const ex = data?.result?.examReminders;
-
-      let bText = "No birthdays today";
-      if (b?.sent) {
-        bText = `Sent for ${b.userCount} student(s) (${b.names?.join(", ") || ""})`;
-      } else if (b?.skipped) {
-        bText = `Skipped: ${b.reason || "Already sent today"}`;
-      } else if (b?.reason) {
-        bText = b.reason;
-      }
-
-      let evText = "No events today";
-      if (ev?.sent) {
-        evText = `Notified for ${ev.sentCount} event(s)`;
-      } else if (ev?.reason) {
-        evText = ev.reason;
-      }
-
-      let exText = "No exams today";
-      if (ex?.sent) {
-        exText = `Notified for ${ex.sentCount} exam(s)`;
-      } else if (ex?.reason) {
-        exText = ex.reason;
-      }
-
-      Alert.alert(
-        "Daily Cron Execution Results",
-        `🎂 Birthdays:\n${bText}\n\n📅 Events:\n${evText}\n\n📝 Exams:\n${exText}`,
-        [
-          { text: "Done" },
-          {
-            text: "View Audit Logs",
-            onPress: () => router.push("/admin/send-notification"),
-          },
-        ]
-      );
-    },
-    onError: (error) =>
-      showToast(error.message || "Failed to trigger daily reminders", "error"),
-  });
-
-  const handleTriggerDailyReminders = () => {
-    Alert.alert(
-      "Run Daily Reminders?",
-      "This will immediately run today's scheduled checks for birthdays, events, and exams, and send out any due notifications.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Run Now",
-          onPress: () => triggerCronMutation.mutate({ job: "all-daily" }),
-        },
-      ]
-    );
+  const handleOpenDailyReminders = () => {
+    router.push("/admin/daily-reminders");
   };
 
   // eslint-disable-next-line no-unused-vars
@@ -529,7 +466,7 @@ export default function AdminScreen() {
               setEditingUser(null);
               setShowUserModal(true);
             }}
-            onTriggerDailyReminders={handleTriggerDailyReminders}
+            onOpenDailyReminders={handleOpenDailyReminders}
           />
         }
         ListFooterComponent={renderFooter}
@@ -632,7 +569,7 @@ const AdminHeader = React.memo(function AdminHeader({
   roleFilter,
   setRoleFilter,
   onAddUser,
-  onTriggerDailyReminders,
+  onOpenDailyReminders,
 }) {
   const { t } = useLabel();
   return (
@@ -745,10 +682,10 @@ const AdminHeader = React.memo(function AdminHeader({
               onPress={() => router.push("/admin/send-notification")}
             />
             <MenuCard
-              title={t("admin.dailyReminders", "Daily Cron")}
-              icon="cake"
+              title={t("admin.dailyReminders", "Daily Reminders")}
+              icon="alarm-on"
               color="#D97706"
-              onPress={onTriggerDailyReminders}
+              onPress={onOpenDailyReminders}
             />
           </View>
         </View>

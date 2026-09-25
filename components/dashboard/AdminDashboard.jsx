@@ -141,6 +141,12 @@ const AdminDashboard = () => {
             color={colors.primary}
             onPress={() => router.push("/admin/import-data")}
           />
+          <QuickActionButton
+            title="Daily Reminders"
+            icon="alarm-on"
+            color="#D97706"
+            onPress={() => router.push("/admin/daily-reminders")}
+          />
           {!isSuperAdmin && (
             <QuickActionButton
               title="Missing Tracker"
