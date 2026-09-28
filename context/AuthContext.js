@@ -7,7 +7,6 @@ import React, {
   useRef,
 } from "react";
 import { Platform } from "react-native";
-import { decode as atob } from "base-64";
 import storage from "../utils/storage";
 import { clearAllCaches, cancelAllQueries } from "../utils/cacheManager";
 import {
@@ -23,12 +22,28 @@ import {
 const AuthContext = createContext(null);
 
 /**
+ * Safe cross-platform base64 decoder (Web, Hermes, React Native, Node).
+ */
+function safeAtob(str) {
+  if (typeof atob === "function") {
+    return atob(str);
+  }
+  if (typeof global !== "undefined" && typeof global.atob === "function") {
+    return global.atob(str);
+  }
+  if (typeof Buffer !== "undefined") {
+    return Buffer.from(str, "base64").toString("binary");
+  }
+  throw new Error("No base64 decoder available");
+}
+
+/**
  * Decode a base64url-encoded string.
  */
 function base64UrlDecode(str) {
   let base64 = str.replace(/-/g, "+").replace(/_/g, "/");
   while (base64.length % 4 !== 0) base64 += "=";
-  return atob(base64);
+  return safeAtob(base64);
 }
 
 function isTokenExpired(token) {

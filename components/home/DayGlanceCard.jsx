@@ -39,7 +39,6 @@ const DayGlanceCard = memo(({ role, data = {}, onAction: _onAction }) => {
     const dueAmount = data?.overview?.dueAmount ?? 0;
     const nextExamName = data?.overview?.nextExamName || "No upcoming exam";
 
-    const accent = colors.primary || "#2F6CD4";
     const cardBg = isDark ? "rgba(47, 108, 212, 0.12)" : "rgba(47, 108, 212, 0.06)";
     const cardBorder = isDark ? "rgba(47, 108, 212, 0.35)" : "rgba(47, 108, 212, 0.22)";
 
@@ -212,7 +211,6 @@ const DayGlanceCard = memo(({ role, data = {}, onAction: _onAction }) => {
     const classesToday = data?.overview?.totalClassesToday ?? data?.overview?.assignedClasses ?? 0;
     const pendingAttendance = data?.missingDays?.length || 0;
 
-    const accent = colors.primary || "#4F46E5";
     const cardBg = isDark ? "rgba(79, 70, 229, 0.11)" : "rgba(79, 70, 229, 0.05)";
     const cardBorder = isDark ? "rgba(79, 70, 229, 0.35)" : "rgba(79, 70, 229, 0.2)";
 
