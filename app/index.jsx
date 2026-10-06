@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, ScrollView } from "react-native";
+import { View, ScrollView, StyleSheet } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTheme, SPACING } from "../theme";
 import useSchoolInfo from "../hooks/useSchoolInfo";
@@ -84,14 +84,30 @@ export default function HomeScreen() {
   const isStudent = activeRole === "student";
   const isTeacher = activeRole === "teacher" || activeRole === "staff";
 
+  const localStyles = StyleSheet.create({
+    page: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scrollContent: {
+      paddingTop: 14,
+      paddingBottom: 28,
+    },
+  });
+
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <View style={localStyles.page}>
       <ScrollView
         ref={scrollRef}
         style={{ flex: 1 }}
         contentContainerStyle={[
           themeStyles.contentPaddingBottom,
-          { paddingHorizontal: SPACING.screenPaddingH || 16, paddingTop: 12 },
+          {
+            paddingHorizontal: SPACING.screenPaddingH || 16,
+            paddingTop: 14,
+            paddingBottom: 28,
+          },
+          localStyles.scrollContent,
         ]}
         refreshControl={
           <AppRefreshControl refreshing={refreshing} onRefresh={onRefresh} />

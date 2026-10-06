@@ -36,6 +36,9 @@ const TextInput = ({
   icon,
   rightIcon,
   onRightIconPress,
+  rightIconAccessibilityLabel,
+  accessibilityLabel,
+  accessibilityHint,
   error,
   secureTextEntry,
   keyboardType,
@@ -185,15 +188,23 @@ const TextInput = ({
           onFocus={handleFocus}
           onBlur={handleBlur}
           selectionColor={colors.primary}
+          accessibilityLabel={accessibilityLabel || label || placeholder}
+          accessibilityHint={error || helperText || accessibilityHint}
           {...props}
         />
 
         {rightIcon && (
           <Pressable
             accessibilityRole="button"
+            accessibilityLabel={rightIconAccessibilityLabel || `${label || "Field"} action`}
             onPress={handleRightIconPress}
             hitSlop={8}
-            style={{ padding: SPACING.xs || 4 }}
+            style={{
+              minWidth: 44,
+              minHeight: 44,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
           >
             <MaterialIcons
               name={rightIcon}

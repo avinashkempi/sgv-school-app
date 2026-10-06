@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 40,
+    minHeight: 44,
   },
   tabContent: {
     flexDirection: "row",

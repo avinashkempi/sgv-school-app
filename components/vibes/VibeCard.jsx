@@ -370,7 +370,7 @@ const VibeCard = ({
       default:
         return null;
     }
-  }, [vibe.category]);
+  }, [colors.primary, colors.primaryContainer, vibe.category]);
 
   const authorRoleLabel = useMemo(() => {
     return formatVibeAuthorSubtitle(vibe);

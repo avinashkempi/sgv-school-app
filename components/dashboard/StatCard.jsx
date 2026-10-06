@@ -34,10 +34,11 @@ const StatCard = ({
       style={[
         {
           backgroundColor: isDark ? `${cardColor}16` : `${cardColor}0A`,
-          borderRadius: 16,
-          padding: 12,
+          borderRadius: 12,
+          padding: 14,
           flex: 1,
           minWidth: 95,
+          minHeight: 112,
           margin: 4,
           borderWidth: 1,
           borderColor: isDark ? `${cardColor}38` : `${cardColor}22`,
@@ -126,7 +127,6 @@ const StatCard = ({
               fontSize: FONT_SIZES.md,
               fontFamily: FONTS.bold,
               color: colors.onSurface,
-              letterSpacing: -0.3,
               marginBottom: 1,
             }}
             numberOfLines={1}
@@ -167,10 +167,13 @@ const StatCard = ({
     return (
       <Pressable
         onPress={handlePress}
+        accessibilityRole="button"
+        accessibilityLabel={`${title}: ${value}${subtitle ? `, ${subtitle}` : ""}`}
         style={({ pressed }) => ({
           opacity: pressed ? 0.75 : 1,
           flex: 1,
           minWidth: 95,
+          minHeight: 112,
         })}
       >
         {content}

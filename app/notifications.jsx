@@ -48,36 +48,36 @@ const getCategoryConfig = (type, colors) => {
     case "Homework":
       return {
         icon: "assignment",
-        color: colors.primary || "#6750A4", // Standard M3 Purple
+        color: colors.primary || "#6750A4",
         bgLight: colors.primaryContainer || "#EADDFF",
         label: "Homework",
       };
     case "Exam":
       return {
         icon: "analytics",
-        color: "#EC4899", // Modern pink/rose
-        bgLight: "#FCE7F3",
+        color: colors.secondary || "#EC4899",
+        bgLight: colors.secondaryContainer || "#FCE7F3",
         label: "Exams",
       };
     case "Fee":
       return {
         icon: "account-balance-wallet",
-        color: "#F59E0B", // Amber
-        bgLight: "#FEF3C7",
+        color: colors.warning || "#F59E0B",
+        bgLight: colors.warningContainer || "#FEF3C7",
         label: "Fee",
       };
     case "Emergency":
       return {
         icon: "warning-amber",
-        color: "#EF4444", // Red
-        bgLight: "#FEE2E2",
+        color: colors.error || "#EF4444",
+        bgLight: colors.errorContainer || "#FEE2E2",
         label: "Urgent",
       };
     case "Event":
       return {
         icon: "celebration",
         color: colors.tertiary || "#7D5260",
-        bgLight: colors.tertiaryContainer || "#FFD8E4",
+        bgLight: colors.tertiaryContainer || "#FFE6EF",
         label: "Events",
       };
     default:

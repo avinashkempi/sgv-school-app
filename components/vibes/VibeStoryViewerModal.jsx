@@ -45,7 +45,7 @@ import {
   getBlurPlaceholderUrl,
 } from "../../utils/cloudinaryUpload";
 import useNetworkQuality from "../../hooks/useNetworkQuality";
-import { FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS } from "../../theme";
+import { FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS, useTheme } from "../../theme";
 import formatTimeAgo from "../../utils/formatTimeAgo";
 import VibeVideoPlayer, {
   getGlobalMuted,
@@ -153,6 +153,7 @@ const VibeStoryViewerModal = ({
 }) => {
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
+  const { colors } = useTheme();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   const { isSlow } = useNetworkQuality();

@@ -59,7 +59,7 @@ export default function MenuScreen() {
           "School calendar, activities & upcoming holidays"
         ),
         icon: "event",
-        color: "#E11D48",
+        color: colors.tertiary || "#E11D48",
         route: "/events",
       },
     ];
@@ -74,13 +74,13 @@ export default function MenuScreen() {
           "Raise issues or track resolutions"
         ),
         icon: "feedback",
-        color: "#EF4444",
+        color: colors.error || "#EF4444",
         route: "/complaints",
       });
     }
 
     return items;
-  }, [user, t]);
+  }, [colors.error, colors.tertiary, t, user]);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>

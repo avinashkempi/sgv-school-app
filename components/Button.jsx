@@ -111,7 +111,7 @@ const Button = ({
     sm: {
       paddingVertical: 6,
       paddingHorizontal: SPACING.lg || 16,
-      minHeight: 32,
+      minHeight: 40,
       fontSize: FONT_SIZES.xs,
       lineHeight: LINE_HEIGHTS.xs,
       letterSpacing: LETTER_SPACINGS.xs,
@@ -121,7 +121,7 @@ const Button = ({
     md: {
       paddingVertical: 10,
       paddingHorizontal: SPACING.xxl || 24,
-      minHeight: 40,
+      minHeight: 44,
       fontSize: FONT_SIZES.sm,
       lineHeight: LINE_HEIGHTS.sm,
       letterSpacing: LETTER_SPACINGS.sm,

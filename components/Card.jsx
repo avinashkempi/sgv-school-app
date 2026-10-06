@@ -25,6 +25,8 @@ const Card = ({
   elevationLevel = "sm",
   haptic = true,
   onPress,
+  accessibilityLabel,
+  accessibilityHint,
   style,
   contentStyle,
   ...props
@@ -77,7 +79,7 @@ const Card = ({
   const cardContainerStyle = [
     {
       backgroundColor: getBackgroundColor(),
-      borderRadius: compact ? (RADIUS.md || 14) : (RADIUS.lg || 20),
+      borderRadius: compact ? (RADIUS.sm || 8) : (RADIUS.md || 12),
       overflow: "hidden",
       marginBottom: noMargin ? 0 : (SPACING.cardGap || SPACING.lg || 16),
     },
@@ -106,6 +108,8 @@ const Card = ({
     <View style={cardContainerStyle} {...props}>
       <InnerComponent
         accessibilityRole={onPress ? "button" : undefined}
+        accessibilityLabel={onPress ? accessibilityLabel : undefined}
+        accessibilityHint={onPress ? accessibilityHint : undefined}
         onPress={onPress ? handlePress : undefined}
         android_ripple={
           onPress ? { color: colors.onSurface, opacity: 0.08 } : undefined

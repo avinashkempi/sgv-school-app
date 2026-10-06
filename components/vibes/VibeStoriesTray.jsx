@@ -379,7 +379,7 @@ const VibeStoriesTray = ({ onOpenCreate, hideHeader = false }) => {
     });
 
     return groups;
-  }, [officialVibes, achievementVibes, authorStories]);
+  }, [officialVibes, achievementVibes, authorStories, colors.primary, colors.tertiary]);
 
   // Prefetch story avatars/thumbnails when highlights data arrives
   useEffect(() => {
@@ -519,6 +519,7 @@ const VibeStoriesTray = ({ onOpenCreate, hideHeader = false }) => {
     achievementVibes,
     authorStories,
     colors.primary,
+    colors.tertiary,
     handleOpenOfficialStories,
     handleOpenAchievementStories,
     handleOpenAuthorStories,

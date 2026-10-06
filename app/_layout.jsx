@@ -2,13 +2,6 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import { useFonts } from "expo-font";
 import { Text, Platform, ActivityIndicator, LogBox } from "react-native";
 import { useEffect, useRef } from "react";
-
-// Ignore known non-fatal AVFoundation warnings from expo-video on iOS
-// (occurs when videos lack embedded subtitle tracks or during initial asset stream connection)
-LogBox.ignoreLogs([
-  "Failed to load available audio tracks",
-  "Failed to load available subtitle tracks",
-]);
 import { SafeAreaView } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ThemeProvider, useTheme, FONTS } from "../theme";
@@ -46,6 +39,13 @@ import {
   WebHeadTitle,
 } from "../utils/webTitle";
 import storage from "../utils/storage";
+
+// Ignore known non-fatal AVFoundation warnings from expo-video on iOS
+// (occurs when videos lack embedded subtitle tracks or during initial asset stream connection)
+LogBox.ignoreLogs([
+  "Failed to load available audio tracks",
+  "Failed to load available subtitle tracks",
+]);
 
 // Configure how notifications are displayed when app is in foreground
 Notifications.setNotificationHandler({
