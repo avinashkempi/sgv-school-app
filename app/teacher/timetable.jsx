@@ -164,12 +164,12 @@ export default function SchoolTimetableScreen() {
                         paddingHorizontal: 18,
                         paddingVertical: 9,
                         backgroundColor: isSelected
-                          ? colors.primaryContainer || "#E0ECFF"
+                          ? colors.primaryContainer || "#EADDFF"
                           : colors.surfaceContainerLow || colors.surface,
                         borderRadius: 14,
                         borderWidth: 1,
                         borderColor: isSelected
-                          ? (colors.primary || "#2F6CD4") + "40"
+                          ? (colors.primary || "#6750A4") + "40"
                           : colors.outlineVariant
                           ? colors.outlineVariant + "40"
                           : "rgba(0,0,0,0.06)",
@@ -177,7 +177,7 @@ export default function SchoolTimetableScreen() {
                     >
                       <Text
                         style={{
-                          color: isSelected ? colors.primary || "#2F6CD4" : colors.textPrimary,
+                          color: isSelected ? colors.primary || "#6750A4" : colors.textPrimary,
                           fontFamily: isSelected ? FONTS.bold : FONTS.medium,
                           fontSize: FONT_SIZES.sm,
                         }}
@@ -204,13 +204,13 @@ export default function SchoolTimetableScreen() {
                       paddingVertical: 9,
                       backgroundColor:
                         selectedDay === day
-                          ? colors.primaryContainer || "#E0ECFF"
+                          ? colors.primaryContainer || "#EADDFF"
                           : colors.surfaceContainerLow || colors.surface,
                       borderRadius: 14,
                       borderWidth: 1,
                       borderColor:
                         selectedDay === day
-                          ? (colors.primary || "#2F6CD4") + "40"
+                          ? (colors.primary || "#6750A4") + "40"
                           : colors.outlineVariant
                           ? colors.outlineVariant + "40"
                           : "rgba(0,0,0,0.06)",
@@ -219,7 +219,7 @@ export default function SchoolTimetableScreen() {
                     <Text
                       style={{
                         color:
-                          selectedDay === day ? colors.primary || "#2F6CD4" : colors.textPrimary,
+                          selectedDay === day ? colors.primary || "#6750A4" : colors.textPrimary,
                         fontFamily:
                           selectedDay === day ? FONTS.bold : FONTS.medium,
                         fontSize: FONT_SIZES.sm,

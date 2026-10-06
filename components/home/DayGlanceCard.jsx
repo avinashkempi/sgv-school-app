@@ -39,8 +39,8 @@ const DayGlanceCard = memo(({ role, data = {}, onAction: _onAction }) => {
     const dueAmount = data?.overview?.dueAmount ?? 0;
     const nextExamName = data?.overview?.nextExamName || "No upcoming exam";
 
-    const cardBg = isDark ? "rgba(47, 108, 212, 0.12)" : "rgba(47, 108, 212, 0.06)";
-    const cardBorder = isDark ? "rgba(47, 108, 212, 0.35)" : "rgba(47, 108, 212, 0.22)";
+    const cardBg = isDark ? "rgba(103, 80, 164, 0.14)" : "rgba(103, 80, 164, 0.07)";
+    const cardBorder = isDark ? "rgba(208, 188, 255, 0.35)" : "rgba(103, 80, 164, 0.22)";
 
     return (
       <View
@@ -232,7 +232,7 @@ const DayGlanceCard = memo(({ role, data = {}, onAction: _onAction }) => {
             <View
               style={[
                 styles.dot,
-                { backgroundColor: colors.brandBlue || colors.secondary },
+                { backgroundColor: colors.roleStaff || colors.secondary },
               ]}
             />
             <Text
@@ -297,7 +297,7 @@ const DayGlanceCard = memo(({ role, data = {}, onAction: _onAction }) => {
             <Text
               style={[
                 styles.actionPillText,
-                { color: colors.brandBlue || colors.secondary },
+                { color: colors.primary },
               ]}
             >
               Schedule
@@ -305,7 +305,7 @@ const DayGlanceCard = memo(({ role, data = {}, onAction: _onAction }) => {
             <MaterialIcons
               name="arrow-forward"
               size={13}
-              color={colors.brandBlue || colors.secondary}
+              color={colors.primary}
             />
           </Pressable>
         </View>

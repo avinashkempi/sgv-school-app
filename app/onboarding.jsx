@@ -27,7 +27,7 @@ const ONBOARDING_SLIDES = [
     subtitle:
       "A modern, connected digital campus platform designed specifically for students, teachers, and parents.",
     icon: "school",
-    accentColor: "#2F6CD4", // SGV Brand Blue
+    accentColor: "#6750A4", // Standard M3 Purple
     highlights: [
       "Real-time academic records & timetables",
       "Unified school management workflows",
@@ -40,7 +40,7 @@ const ONBOARDING_SLIDES = [
     subtitle:
       "Stay ahead with live exam schedules, subject-wise progress, interactive report cards, and attendance trends.",
     icon: "insights",
-    accentColor: "#2F6CD4", // SGV Brand Blue
+    accentColor: "#7D5260", // M3 Tertiary Rose
     highlights: [
       "Term-wise marksheets & grading",
       "Daily class timetables & room alerts",
@@ -241,7 +241,7 @@ export default function OnboardingScreen() {
               fullWidth
               style={
                 isLastSlide
-                  ? { backgroundColor: colors.primary || "#2F6CD4" }
+                  ? { backgroundColor: colors.primary || "#6750A4" }
                   : { backgroundColor: currentAccent }
               }
               icon={

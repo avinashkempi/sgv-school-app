@@ -33,12 +33,12 @@ const TodayTimetableCard = ({ style }) => {
     }
   };
 
-  const brandBlueAccent = colors.brandBlue || colors.secondary || "#2F6CD4";
+  const timetableAccent = colors.primary || "#6750A4";
   const cardSurface = isDark ? colors.surfaceContainer : colors.surface;
   const borderColor = isDark ? `${colors.outlineVariant}60` : colors.outlineVariant;
   const iconBg = isDark
-    ? colors.brandBlueContainer || "rgba(77, 131, 232, 0.15)"
-    : colors.brandBlueContainer || "#EBF2FF";
+    ? colors.primaryContainer || "rgba(208, 188, 255, 0.15)"
+    : colors.primaryContainer || "#EADDFF";
 
   const now = new Date();
   const todayDayName = now.toLocaleDateString("en-US", { weekday: "short" });
@@ -73,7 +73,7 @@ const TodayTimetableCard = ({ style }) => {
           },
         ]}
       >
-        <MaterialIcons name="schedule" size={24} color={brandBlueAccent} />
+        <MaterialIcons name="schedule" size={24} color={timetableAccent} />
       </View>
 
       {/* Center Title & Subtitle */}
@@ -87,12 +87,12 @@ const TodayTimetableCard = ({ style }) => {
               styles.dateBadge,
               {
                 backgroundColor: isDark
-                  ? `${brandBlueAccent}20`
-                  : colors.brandBlueContainer || "#EBF2FF",
+                  ? `${timetableAccent}20`
+                  : colors.primaryContainer || "#EADDFF",
               },
             ]}
           >
-            <Text style={[styles.dateBadgeText, { color: brandBlueAccent }]}>
+            <Text style={[styles.dateBadgeText, { color: timetableAccent }]}>
               {todayDayName}, {formattedDate}
             </Text>
           </View>

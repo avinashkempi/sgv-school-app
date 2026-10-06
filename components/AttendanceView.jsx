@@ -346,7 +346,7 @@ export default function AttendanceView({
             borderRadius: 10,
             backgroundColor:
               existingContainer.backgroundColor ||
-              (isDark ? "rgba(47, 108, 212, 0.18)" : (colors.primaryContainer || "#E0ECFF")),
+              (isDark ? "rgba(208, 188, 255, 0.18)" : (colors.primaryContainer || "#EADDFF")),
           },
           text: {
             ...(existing.customStyles?.text || {}),

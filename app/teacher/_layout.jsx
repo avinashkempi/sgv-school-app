@@ -17,6 +17,8 @@ export default function TeacherLayout() {
       >
         <Stack.Screen name="dashboard" options={{ animation: "fade" }} />
         <Stack.Screen name="classes" options={{ animation: "fade" }} />
+        <Stack.Screen name="monthly-ratings" options={{ animation: "slide_from_right" }} />
+        <Stack.Screen name="rate-students" options={{ animation: "slide_from_right" }} />
         <Stack.Screen
           name="subject/create-exam"
           options={{

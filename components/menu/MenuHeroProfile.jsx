@@ -117,9 +117,9 @@ export default function MenuHeroProfile({ user }) {
         return colors.roleAdmin || "#146C2E";
       case "teacher":
       case "staff":
-        return colors.roleStaff || colors.brandBlue || "#2F6CD4";
+        return colors.roleStaff || colors.primary || "#6750A4";
       case "student":
-        return colors.roleStudent || colors.secondary || "#2F6CD4";
+        return colors.roleStudent || colors.info || "#00639B";
       default:
         return colors.primary;
     }

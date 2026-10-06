@@ -6,7 +6,6 @@ import {
   StyleSheet,
   Dimensions,
   Share,
-  Alert,
   Platform,
   ActivityIndicator,
   LayoutAnimation,
@@ -28,6 +27,7 @@ import * as Haptics from "expo-haptics";
 import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS } from "../../theme";
 import formatTimeAgo from "../../utils/formatTimeAgo";
 import VibeImageCarousel from "./VibeImageCarousel";
+import VibeActionSheetModal from "./VibeActionSheetModal";
 import UserAvatar from "../ui/UserAvatar";
 import {
   formatUserName,
@@ -117,6 +117,7 @@ const VibeCard = ({
     Math.max(0, Number(vibe.commentsCount) || 0)
   );
   const [isBookmarked, setIsBookmarked] = useState(!!vibe.isBookmarked);
+  const [showActionSheet, setShowActionSheet] = useState(false);
   const [mediaWidth, setMediaWidth] = useState(SCREEN_WIDTH - 8);
 
   const handleMediaLayout = useCallback(
@@ -317,69 +318,9 @@ const VibeCard = ({
   ]);
 
   const handleMenuPress = useCallback(() => {
-    const options = [
-      { text: "Share", onPress: handleShare },
-      {
-        text: isBookmarked ? "Remove from Saved" : "Save Vibe",
-        onPress: handleBookmarkPress,
-      },
-    ];
-
-    if (isAdmin) {
-      options.push({
-        text: vibe.isSpotlight
-          ? "⭐ Remove from Home Spotlight"
-          : "⭐ Feature on Home Spotlight",
-        onPress: () => onToggleSpotlight?.(vibe),
-      });
-      options.push({
-        text: vibe.isPinned ? "📌 Unpin from Top" : "📌 Pin to Top",
-        onPress: () => onTogglePin?.(vibe),
-      });
-    }
-
-    if (canModerate) {
-      options.push({
-        text: "👁️ Viewers",
-        onPress: () => onOpenViewers?.(vibe._id),
-      });
-      options.push({ text: "Edit", onPress: () => onEdit?.(vibe) });
-      options.push({
-        text: "Delete",
-        style: "destructive",
-        onPress: () => {
-          Alert.alert(
-            "Delete Vibe",
-            "Are you sure you want to delete this vibe?",
-            [
-              { text: "Cancel", style: "cancel" },
-              {
-                text: "Delete",
-                style: "destructive",
-                onPress: () => onDelete?.(vibe),
-              },
-            ]
-          );
-        },
-      });
-    }
-
-    options.push({ text: "Cancel", style: "cancel" });
-
-    Alert.alert("Vibe Options", undefined, options);
-  }, [
-    handleShare,
-    isBookmarked,
-    handleBookmarkPress,
-    isAdmin,
-    vibe,
-    onToggleSpotlight,
-    onTogglePin,
-    canModerate,
-    onOpenViewers,
-    onEdit,
-    onDelete,
-  ]);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    setShowActionSheet(true);
+  }, []);
 
   const likeAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: likeScale.value }],
@@ -423,8 +364,8 @@ const VibeCard = ({
         return {
           label: "Official",
           icon: "school",
-          color: "#2F6CD4",
-          bg: "#EBF2FF",
+          color: colors.primary || "#6750A4",
+          bg: colors.primaryContainer || "#EADDFF",
         };
       default:
         return null;
@@ -483,7 +424,7 @@ const VibeCard = ({
                 <MaterialIcons
                   name="verified"
                   size={14}
-                  color="#2F6CD4"
+                  color={colors.primary || "#6750A4"}
                   style={styles.verifiedBadge}
                 />
               )}
@@ -500,7 +441,7 @@ const VibeCard = ({
                     styles.roleText,
                     {
                       color: isSchoolPost
-                        ? (colors.primary || "#2F6CD4")
+                        ? (colors.primary || "#6750A4")
                         : colors.onSurfaceVariant,
                       fontFamily: isSchoolPost ? FONTS.semiBold : FONTS.medium,
                     },
@@ -714,7 +655,7 @@ const VibeCard = ({
             styles.circleActionBtn,
             {
               backgroundColor: isBookmarked
-                ? (colors.primaryContainer || "#E0ECFF")
+                ? (colors.primaryContainer || "#EADDFF")
                 : colors.surfaceContainerHighest,
             },
           ]}
@@ -875,6 +816,23 @@ const VibeCard = ({
           </Pressable>
         </View>
       </View>
+
+      {/* ──── Material 3 Options Action Sheet Modal (Reliable on Android, iOS & Web) ──── */}
+      <VibeActionSheetModal
+        visible={showActionSheet}
+        onClose={() => setShowActionSheet(false)}
+        vibe={vibe}
+        isAdmin={isAdmin}
+        canModerate={canModerate}
+        isBookmarked={isBookmarked}
+        onShare={handleShare}
+        onToggleBookmark={handleBookmarkPress}
+        onToggleSpotlight={() => onToggleSpotlight?.(vibe)}
+        onTogglePin={() => onTogglePin?.(vibe)}
+        onOpenViewers={() => onOpenViewers?.(vibe._id)}
+        onEdit={() => onEdit?.(vibe)}
+        onDelete={() => onDelete?.(vibe)}
+      />
     </Animated.View>
   );
 };

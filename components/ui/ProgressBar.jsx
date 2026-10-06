@@ -63,18 +63,20 @@ const ProgressBar = memo(({
     if (progressColor) return progressColor;
     switch (variant) {
       case "secondary":
-        return colors.brandBlue || colors.secondary || "#2F6CD4";
+        return colors.secondary || "#625B71";
+      case "tertiary":
+        return colors.tertiary || "#7D5260";
       case "success":
-        return colors.success || "#16A34A";
+        return colors.success || "#146C2E";
       case "warning":
-        return colors.warning || "#D97706";
+        return colors.warning || "#8A5100";
       case "error":
-        return colors.error || "#DC2626";
+        return colors.error || "#B3261E";
       case "neutral":
-        return colors.textSecondary || "#6B7280";
+        return colors.textSecondary || "#49454F";
       case "primary":
       default:
-        return colors.primary || "#2F6CD4";
+        return colors.primary || "#6750A4";
     }
   };
 

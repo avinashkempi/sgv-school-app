@@ -155,7 +155,7 @@ export default function ExamAnalyticsScreen() {
     const typeColors = {
       FA1: "#2196F3",
       FA2: "#03A9F4",
-      SA1: "#2F6CD4",
+      SA1: "#6750A4",
       FA3: "#FF9800",
       FA4: "#FF5722",
       SA2: "#E91E63",

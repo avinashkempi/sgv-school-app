@@ -544,8 +544,8 @@ export default function StudentExamScheduleScreen() {
                 tabKey: "upcoming",
                 label: t("student.upcoming", "Upcoming"),
                 value: upcomingExams.length,
-                color: "#2563EB",
-                bg: isDark ? "#2563EB20" : "#2563EB10",
+                color: colors.primary,
+                bg: isDark ? colors.primary + "20" : colors.primaryContainer || (colors.primary + "12"),
               },
               {
                 tabKey: "past",

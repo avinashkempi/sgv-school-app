@@ -344,12 +344,12 @@ function createGlobalStyles(COLORS, mode) {
 
     // Fast Frosted Surface (1px outline + high opacity background to prevent GPU overdraw)
     glassSurface: {
-      backgroundColor: mode === 'dark' ? 'rgba(20, 22, 26, 0.92)' : 'rgba(247, 248, 250, 0.94)',
+      backgroundColor: mode === 'dark' ? 'rgba(33, 31, 38, 0.90)' : 'rgba(254, 247, 255, 0.92)',
       borderWidth: 1,
       borderColor: COLORS.outlineVariant,
     },
     glass: {
-      backgroundColor: mode === 'dark' ? 'rgba(20, 22, 26, 0.82)' : 'rgba(247, 248, 250, 0.82)',
+      backgroundColor: mode === 'dark' ? 'rgba(33, 31, 38, 0.82)' : 'rgba(254, 247, 255, 0.82)',
     },
 
     // Layout Helpers
@@ -432,20 +432,26 @@ export function ThemeProvider({ children }) {
 
   const gradients = useMemo(() => ({
     primary: mode === 'dark'
-      ? [colors.primary, '#2A5BB8']
-      : [colors.primary, '#1D4ED8'],
+      ? [colors.primary, '#9A82DB']
+      : [colors.primary, '#4F378B'],
     card: mode === 'dark'
       ? [colors.surfaceContainer, colors.surfaceContainerHigh]
       : [colors.surfaceContainer, colors.surfaceContainerLow],
     warm: mode === 'dark'
-      ? ['#1A3A6B', '#0A1A33']
-      : ['#E0ECFF', '#F7F8FA'],
+      ? ['#4F378B', '#3B2D6B']
+      : ['#F5E6D3', '#FEF7FF'],
     subtleGlow: mode === 'dark'
-      ? ['rgba(77, 131, 232, 0.08)', 'transparent']
-      : ['rgba(47, 108, 212, 0.04)', 'transparent'],
+      ? ['rgba(208, 188, 255, 0.08)', 'transparent']
+      : ['rgba(103, 80, 164, 0.05)', 'transparent'],
+    purple: mode === 'dark'
+      ? [colors.primary, '#9A82DB']
+      : [colors.primary, '#4F378B'],
     blue: mode === 'dark'
-      ? [colors.primary, '#2A5BB8']
-      : [colors.primary, '#1D4ED8'],
+      ? [colors.primary, '#9A82DB']
+      : [colors.primary, '#4F378B'],
+    tertiary: mode === 'dark'
+      ? [colors.tertiary, '#633B48']
+      : [colors.tertiary, '#FFD8E4'],
   }), [colors, mode]);
 
   const toggle = () => {

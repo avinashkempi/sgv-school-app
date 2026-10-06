@@ -57,7 +57,7 @@ const PeriodRow = memo(({ period, isActive, isStudent, colors, isDark }) => {
         : period.className || "")
     : null;
 
-  const accent = colors.primary || "#2F6CD4";
+  const accent = colors.primary || "#6750A4";
   const rowBg = isActive
     ? isDark
       ? `${accent}18`
@@ -201,7 +201,7 @@ const TodayScheduleHero = () => {
   };
 
   // ── Accent & surface tokens ──
-  const accent = colors.primary || "#2F6CD4";
+  const accent = colors.primary || "#6750A4";
   const cardBg = isDark ? colors.surfaceContainer : colors.surface;
   const cardBorder = isDark
     ? colors.outlineVariant + "50"

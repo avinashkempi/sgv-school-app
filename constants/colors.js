@@ -2,206 +2,242 @@
  * SGV School App — Semantic Color Design Tokens
  *
  * Central single source of truth for all colors across the application.
- * Follows Material 3 structure with SGV brand identity.
+ * Strictly follows official Material Design 3 (M3) design principles.
  *
- * Distribution:  ~85% neutral surfaces
- *                ~10% typography / dark elements
- *                ~5%  SGV brand colors (blue primary, emerald secondary)
- *
- * Brand Colors:
- *   Blue    #2F6CD4 — Campus base color, primary actions, active tabs, identity & trust
- *   Emerald #16A34A — Secondary actions, success states, growth & academics
- *   Amber   #D97706 — Achievements, awards, pending alerts, warm tertiary
+ * M3 Baseline Palette:
+ *   Primary:   #6750A4 (Light) / #D0BCFF (Dark) — Key actions, active tabs, brand expression
+ *   Secondary: #625B71 (Light) / #CCC2DC (Dark) — Supporting components, filters, chips
+ *   Tertiary:  #7D5260 (Light) / #EFB8C8 (Dark) — Contrasting accents, highlights, variety
+ *   Surfaces:  #FEF7FF / #F3EDF7 (Light) / #141218 / #211F26 (Dark) — Tonal surface ladder
  */
 
-// ── SGV BRAND CONSTANTS ─────────────────────────────────────────────────────
+// ── SGV BRAND & M3 PALETTE CONSTANTS ────────────────────────────────────────
 export const SGV_BRAND = {
-  blue: "#2F6CD4",        // SGV Brand Blue (Primary base)
-  blueDark: "#4D83E8",    // Brightened blue for dark surfaces
-  emerald: "#16A34A",     // Campus Emerald Green (Secondary support)
-  emeraldDark: "#22C55E", // Vibrant emerald for dark mode
-  orange: "#FF5E1C",      // Legacy brand reference
-  orangeDark: "#FF6A2A",
+  purple: "#6750A4",        // Standard M3 Purple (Primary base)
+  purpleDark: "#D0BCFF",    // M3 Purple for dark surfaces
+  secondary: "#625B71",     // M3 Secondary Slate
+  secondaryDark: "#CCC2DC",
+  tertiary: "#7D5260",      // M3 Tertiary Rose
+  tertiaryDark: "#EFB8C8",
+  emerald: "#146C2E",       // M3 Forest Green
+  emeraldDark: "#6DD58C",
+  amber: "#8A5100",         // M3 Warm Amber
+  amberDark: "#FFBA28",
+  // Aliases for compatibility
+  blue: "#6750A4",
+  blueDark: "#D0BCFF",
+  orange: "#7D5260",
+  orangeDark: "#EFB8C8",
 };
 
 // ── LIGHT THEME ─────────────────────────────────────────────────────────────
 export const lightColors = {
-  // ─── Brand Base (Primary = SGV Brand Blue) ───
-  primary: "#2F6CD4",
+  // ─── Primary (Standard M3 Baseline Purple) ───
+  primary: "#6750A4",
   onPrimary: "#FFFFFF",
-  primaryContainer: "#E0ECFF",         // Soft fresh blue tint
-  onPrimaryContainer: "#0A1F40",
+  primaryContainer: "#EADDFF",         // Soft M3 lavender tint
+  onPrimaryContainer: "#21005D",
+  inversePrimary: "#D0BCFF",
 
-  // ─── Secondary (Campus Emerald Green) ───
-  secondary: "#16A34A",
+  // ─── Secondary (M3 Secondary Slate/Mauve) ───
+  secondary: "#625B71",
   onSecondary: "#FFFFFF",
-  secondaryContainer: "#DCFCE7",       // Soft emerald tint
-  onSecondaryContainer: "#052E16",
+  secondaryContainer: "#E8DEF8",       // Soft muted purple/slate tint
+  onSecondaryContainer: "#1D192B",
 
-  // ─── Tertiary (Warm Amber / Achievement / Gold tone for balance) ───
-  tertiary: "#D97706",
+  // ─── Tertiary (M3 Warm Rose / Balanced Contrasting Accent) ───
+  tertiary: "#7D5260",
   onTertiary: "#FFFFFF",
-  tertiaryContainer: "#FEF3C7",
-  onTertiaryContainer: "#451A03",
+  tertiaryContainer: "#FFD8E4",        // Soft warm rose tint
+  onTertiaryContainer: "#31111D",
 
-  // ─── Error ───
-  error: "#DC2626",
+  // ─── Error (M3 Standard) ───
+  error: "#B3261E",
   onError: "#FFFFFF",
-  errorContainer: "#FEF2F2",
-  onErrorContainer: "#7F1D1D",
+  errorContainer: "#F9DEDC",
+  onErrorContainer: "#410E0B",
 
-  // ─── Surfaces ───
-  background: "#F7F8FA",              // Cool neutral canvas
-  onBackground: "#111318",
+  // ─── Surfaces & Canvas (M3 Expressive Neutral Surfaces) ───
+  background: "#FEF7FF",
+  onBackground: "#1D1B20",
 
-  surface: "#FFFFFF",                  // Card surface
-  onSurface: "#111318",
+  surface: "#FEF7FF",
+  onSurface: "#1D1B20",
 
-  surfaceVariant: "#EDEEF2",
-  onSurfaceVariant: "#6B7280",
+  surfaceVariant: "#E7E0EC",
+  onSurfaceVariant: "#49454F",
 
   // ─── Outline ───
-  outline: "#9CA3AF",
-  outlineVariant: "#E5E7EB",
+  outline: "#79747E",
+  outlineVariant: "#CAC4D0",
 
-  // ─── Surface Elevation Ladder ───
+  // ─── Surface Elevation Ladder (M3 Tonal Surface Ladder) ───
   surfaceContainerLowest: "#FFFFFF",
-  surfaceContainerLow: "#F9FAFB",
-  surfaceContainer: "#F3F4F6",
-  surfaceContainerHigh: "#EDEEF2",
-  surfaceContainerHighest: "#E5E7EB",
+  surfaceContainerLow: "#F7F2FA",
+  surfaceContainer: "#F3EDF7",
+  surfaceContainerHigh: "#ECE6F0",
+  surfaceContainerHighest: "#E6E0E9",
+
+  // ─── Inverse Surfaces ───
+  inverseSurface: "#313033",
+  inverseOnSurface: "#F4EFF4",
 
   // ─── System ───
   shadow: "#000000",
   scrim: "#000000",
 
-  // ─── Semantic Status ───
-  success: "#16A34A",
-  successContainer: "#ECFDF5",
+  // ─── Semantic Status (M3 Tonal Green, Amber, Info) ───
+  success: "#146C2E",
   onSuccess: "#FFFFFF",
+  successContainer: "#C4EED0",
+  onSuccessContainer: "#002107",
 
-  warning: "#D97706",
-  warningContainer: "#FFFBEB",
+  warning: "#8A5100",
+  onWarning: "#FFFFFF",
+  warningContainer: "#FFDEAC",
+  onWarningContainer: "#2C1600",
 
-  // ─── Role Colors (M3 unified) ───
-  roleSuperAdmin: "#DC2626",
-  roleAdmin: "#16A34A",
-  roleStaff: "#0284C7",
+  info: "#00639B",
+  onInfo: "#FFFFFF",
+  infoContainer: "#C2E7FF",
+  onInfoContainer: "#001D33",
+
+  // ─── Role Colors (M3 Unified Roles) ───
+  roleSuperAdmin: "#B3261E",
+  roleAdmin: "#146C2E",
+  roleStaff: "#6750A4",
   roleClassTeacher: "#7D5260",
-  roleStudent: "#2F6CD4",
+  roleStudent: "#00639B",
 
   // ─── Legacy / Convenience Aliases ───
   white: "#FFFFFF",
-  textPrimary: "#111318",
-  textSecondary: "#6B7280",
-  textMuted: "#9CA3AF",
-  border: "#E5E7EB",
-  borderLight: "#F3F4F6",
-  divider: "#F0F1F4",
-  cardBackground: "#F3F4F6",
+  textPrimary: "#1D1B20",
+  textSecondary: "#49454F",
+  textMuted: "#79747E",
+  border: "#CAC4D0",
+  borderLight: "#E7E0EC",
+  divider: "#E7E0EC",
+  cardBackground: "#F3EDF7",
 
-  // ─── Brand-specific tokens for targeted usage ───
-  brandBlue: "#2F6CD4",
-  brandBlueLight: "#E0ECFF",
-  brandBlueContainer: "#E0ECFF",
-  brandEmerald: "#16A34A",
-  brandEmeraldLight: "#DCFCE7",
-  brandGreen: "#16A34A",
-  brandGreenLight: "#DCFCE7",
-  // Aliases for smooth compatibility
-  brandOrange: "#2F6CD4",
-  brandOrangeLight: "#E0ECFF",
-  brandOrangeContainer: "#E0ECFF",
+  // ─── Brand-specific & Compatibility Tokens ───
+  brandPurple: "#6750A4",
+  brandPurpleLight: "#EADDFF",
+  brandPurpleContainer: "#EADDFF",
+  brandBlue: "#6750A4",
+  brandBlueLight: "#EADDFF",
+  brandBlueContainer: "#EADDFF",
+  brandEmerald: "#146C2E",
+  brandEmeraldLight: "#C4EED0",
+  brandGreen: "#146C2E",
+  brandGreenLight: "#C4EED0",
+  brandOrange: "#7D5260",
+  brandOrangeLight: "#FFD8E4",
+  brandOrangeContainer: "#FFD8E4",
 };
 
 // ── DARK THEME ──────────────────────────────────────────────────────────────
 export const darkColors = {
-  // ─── Brand Base (Primary = SGV Brand Blue — brightened) ───
-  primary: "#4D83E8",
-  onPrimary: "#0A1F40",
-  primaryContainer: "#1A3A6B",
-  onPrimaryContainer: "#C5D8FF",
+  // ─── Primary (Standard M3 Purple — brightened for dark surfaces) ───
+  primary: "#D0BCFF",
+  onPrimary: "#381E72",
+  primaryContainer: "#4F378B",
+  onPrimaryContainer: "#EADDFF",
+  inversePrimary: "#6750A4",
 
-  // ─── Secondary (Campus Emerald Green — brightened) ───
-  secondary: "#22C55E",
-  onSecondary: "#052E16",
-  secondaryContainer: "#0F4220",
-  onSecondaryContainer: "#BBF7D0",
+  // ─── Secondary (M3 Secondary Slate/Mauve — brightened) ───
+  secondary: "#CCC2DC",
+  onSecondary: "#332D41",
+  secondaryContainer: "#4A4458",
+  onSecondaryContainer: "#E8DEF8",
 
-  // ─── Tertiary (Warm Amber / Achievement tone) ───
-  tertiary: "#F59E0B",
-  onTertiary: "#451A03",
-  tertiaryContainer: "#78350F",
-  onTertiaryContainer: "#FEF3C7",
+  // ─── Tertiary (M3 Warm Rose / Balanced Contrasting Accent) ───
+  tertiary: "#EFB8C8",
+  onTertiary: "#492532",
+  tertiaryContainer: "#633B48",
+  onTertiaryContainer: "#FFD8E4",
 
-  // ─── Error ───
-  error: "#EF4444",
-  onError: "#7F1D1D",
-  errorContainer: "#450A0A",
-  onErrorContainer: "#FECACA",
+  // ─── Error (M3 Standard) ───
+  error: "#F2B8B5",
+  onError: "#601410",
+  errorContainer: "#8C1D18",
+  onErrorContainer: "#F9DEDC",
 
-  // ─── Surfaces ───
-  background: "#090A0C",              // Deep near-black
-  onBackground: "#F5F5F5",
+  // ─── Surfaces & Canvas (M3 Dark Palette) ───
+  background: "#141218",
+  onBackground: "#E6E1E5",
 
-  surface: "#14161A",                  // Dark card surface
-  onSurface: "#F5F5F5",
+  surface: "#141218",
+  onSurface: "#E6E1E5",
 
-  surfaceVariant: "#2A2D32",
-  onSurfaceVariant: "#A1A1AA",
+  surfaceVariant: "#49454F",
+  onSurfaceVariant: "#CAC4D0",
 
   // ─── Outline ───
-  outline: "#6B7280",
-  outlineVariant: "#2A2D32",
+  outline: "#938F99",
+  outlineVariant: "#49454F",
 
-  // ─── Surface Elevation Ladder ───
-  surfaceContainerLowest: "#060708",
-  surfaceContainerLow: "#111318",
-  surfaceContainer: "#1A1C20",
-  surfaceContainerHigh: "#232528",
-  surfaceContainerHighest: "#2E3034",
+  // ─── Surface Elevation Ladder (M3 Tonal Surface Ladder) ───
+  surfaceContainerLowest: "#0F0D13",
+  surfaceContainerLow: "#1D1B20",
+  surfaceContainer: "#211F26",
+  surfaceContainerHigh: "#2B2930",
+  surfaceContainerHighest: "#36343B",
+
+  // ─── Inverse Surfaces ───
+  inverseSurface: "#E6E1E5",
+  inverseOnSurface: "#313033",
 
   // ─── System ───
   shadow: "#000000",
   scrim: "#000000",
 
   // ─── Semantic Status ───
-  success: "#22C55E",
-  successContainer: "#0A2A1B",
-  onSuccess: "#FFFFFF",
+  success: "#6DD58C",
+  onSuccess: "#003910",
+  successContainer: "#00531B",
+  onSuccessContainer: "#C4EED0",
 
-  warning: "#F59E0B",
-  warningContainer: "#2A1E0A",
+  warning: "#FFBA28",
+  onWarning: "#472A00",
+  warningContainer: "#653B00",
+  onWarningContainer: "#FFDEAC",
+
+  info: "#76D1FF",
+  onInfo: "#003454",
+  infoContainer: "#004B76",
+  onInfoContainer: "#C2E7FF",
 
   // ─── Role Colors ───
-  roleSuperAdmin: "#FCA5A5",
+  roleSuperAdmin: "#F2B8B5",
   roleAdmin: "#6DD58C",
-  roleStaff: "#38BDF8",
+  roleStaff: "#D0BCFF",
   roleClassTeacher: "#EFB8C8",
-  roleStudent: "#4D83E8",
+  roleStudent: "#76D1FF",
 
   // ─── Legacy / Convenience Aliases ───
   white: "#FFFFFF",
-  textPrimary: "#F5F5F5",
-  textSecondary: "#A1A1AA",
-  textMuted: "#6B7280",
-  border: "#2A2D32",
-  borderLight: "#1A1C20",
-  divider: "#1A1C20",
-  cardBackground: "#1A1C20",
+  textPrimary: "#E6E1E5",
+  textSecondary: "#CAC4D0",
+  textMuted: "#938F99",
+  border: "#49454F",
+  borderLight: "#2B2930",
+  divider: "#2B2930",
+  cardBackground: "#211F26",
 
-  // ─── Brand-specific tokens for targeted usage ───
-  brandBlue: "#4D83E8",
-  brandBlueLight: "#1A3A6B",
-  brandBlueContainer: "#1A3A6B",
-  brandEmerald: "#22C55E",
-  brandEmeraldLight: "#0F4220",
-  brandGreen: "#22C55E",
-  brandGreenLight: "#0F4220",
-  // Aliases for smooth compatibility
-  brandOrange: "#4D83E8",
-  brandOrangeLight: "#1A3A6B",
-  brandOrangeContainer: "#1A3A6B",
+  // ─── Brand-specific & Compatibility Tokens ───
+  brandPurple: "#D0BCFF",
+  brandPurpleLight: "#4F378B",
+  brandPurpleContainer: "#4F378B",
+  brandBlue: "#D0BCFF",
+  brandBlueLight: "#4F378B",
+  brandBlueContainer: "#4F378B",
+  brandEmerald: "#6DD58C",
+  brandEmeraldLight: "#00531B",
+  brandGreen: "#6DD58C",
+  brandGreenLight: "#00531B",
+  brandOrange: "#EFB8C8",
+  brandOrangeLight: "#633B48",
+  brandOrangeContainer: "#633B48",
 };
 
 export default { lightColors, darkColors, SGV_BRAND };

@@ -38,18 +38,13 @@ export const getGlobalMuted = () => globalIsMuted;
 
 /**
  * VibeVideoPlayer — Viewport-aware video player for Vibes.
- * Uses native expo-video with automatic pause/play, adaptive streaming quality,
- * ambient blurred letterbox backdrop, and smooth playback.
- *
- * @param {string} url - Cloudinary video stream URL
- * @param {string} [thumbnailUrl] - Poster image URL
- * @param {number} width - Container width
- * @param {number} height - Container height
- * @param {boolean} isVisible - Whether this video card is in viewport
- * @param {boolean} [isActiveSlide=true] - Whether this slide is active in carousel
- * @param {Function} [onDoubleTapLike] - Double-tap heart trigger
- * @param {boolean} [disableTapControls=false] - Disable internal taps for story viewer navigation
- * @param {Function} [onDurationDetected] - Callback with duration in ms
+ * Features:
+ * - Cross-platform rock-solid playback on iPhones (iOS AVPlayer), Android, and Web browsers.
+ * - `playsInline={true}` to prevent iOS Safari and WKWebView from blocking inline playback.
+ * - Universal H.264 streaming with automatic raw URL fallback if transcoding encounters an error.
+ * - Handled async promises on play/pause preventing uncaught DOMException rejections on Web browsers.
+ * - Ambient blurred letterbox backdrop.
+ * - Single-tap sound toggle, double-tap heart burst, long-press play/pause, or full-screen expansion.
  */
 const VibeVideoPlayer = React.memo(
   ({
@@ -58,18 +53,22 @@ const VibeVideoPlayer = React.memo(
     width,
     height,
     aspectRatio,
-    isVisible,
+    isVisible = true,
     isActiveSlide = true,
     onDoubleTapLike,
+    onPressMedia,
     disableTapControls = false,
     onDurationDetected,
     onDimensionsDetected,
+    onReady,
   }) => {
     const { isSlow } = useNetworkQuality();
     const [isMuted, setIsMuted] = useState(globalIsMuted);
     const [isPlaying, setIsPlaying] = useState(false);
     const [showPlayOverlay, setShowPlayOverlay] = useState(false);
     const [isReady, setIsReady] = useState(false);
+    const [hasError, setHasError] = useState(false);
+    const [useOptimizedSource, setUseOptimizedSource] = useState(true);
     const [naturalRatio, setNaturalRatio] = useState(
       aspectRatio && aspectRatio > 0 ? aspectRatio : null
     );
@@ -85,11 +84,15 @@ const VibeVideoPlayer = React.memo(
     const playOverlayOpacity = useSharedValue(0);
     const muteBadgeOpacity = useSharedValue(0);
 
-    // Optimized adaptive video streaming URL & Poster URL
-    const videoSource = useMemo(
-      () => (url ? getOptimizedVideoUrl(url, { isSlow }) : null),
-      [url, isSlow]
-    );
+    // Optimized adaptive video streaming URL or raw fallback URL
+    const videoSource = useMemo(() => {
+      if (!url) return null;
+      if (useOptimizedSource) {
+        return getOptimizedVideoUrl(url, { isSlow });
+      }
+      return url;
+    }, [url, isSlow, useOptimizedSource]);
+
     const posterUrl = useMemo(
       () => getVideoPosterUrl(url, thumbnailUrl),
       [url, thumbnailUrl]
@@ -107,7 +110,7 @@ const VibeVideoPlayer = React.memo(
 
     const { renderWidth, renderHeight } = useMemo(() => {
       if (!width || !height || !effectiveRatio || effectiveRatio <= 0) {
-        return { renderWidth: width, renderHeight: height };
+        return { renderWidth: width || "100%", renderHeight: height || 320 };
       }
       const containerRatio = width / height;
       if (effectiveRatio > containerRatio) {
@@ -123,7 +126,7 @@ const VibeVideoPlayer = React.memo(
       }
     }, [width, height, effectiveRatio]);
 
-    // Pass videoSource directly so native player allocates once and doesn't get destroyed on every scroll
+    // Native expo-video player instance
     const player = useVideoPlayer(videoSource, (p) => {
       p.loop = true;
       p.muted = globalIsMuted;
@@ -152,44 +155,50 @@ const VibeVideoPlayer = React.memo(
     useEffect(() => {
       if (!player) return;
 
-      if (isVisible && isActiveSlide) {
+      if (isVisible && isActiveSlide && !hasError) {
         try {
-          player.play();
+          const res = player.play();
+          if (res && typeof res.catch === "function") {
+            res.catch(() => {});
+          }
           setIsPlaying(true);
-        } catch (err) {
-          console.warn("Video play error:", err);
-        }
+        } catch (_) {}
       } else {
         try {
           player.pause();
           setIsPlaying(false);
-        } catch (err) {
-          console.warn("Video pause error:", err);
-        }
+        } catch (_) {}
       }
-    }, [player, isVisible, isActiveSlide]);
+    }, [player, isVisible, isActiveSlide, hasError]);
 
-    // Listen to player status and video dimensions
+    // Listen to player status, errors, and video dimensions
     useEffect(() => {
       if (!player) return;
 
-      // Check current status immediately in case it loaded before listener
-      if (player.status === "readyToPlay") {
+      // Check current status immediately
+      if (player.status === "readyToPlay" || player.playing) {
         setIsReady(true);
+        setHasError(false);
         if (player.duration && player.duration > 0) {
           onDurationDetected?.(player.duration * 1000);
         }
-      }
-      if (player.playing) {
-        setIsPlaying(true);
-        setIsReady(true);
+        onReady?.();
       }
 
-      const statusSub = player.addListener("statusChange", (status) => {
+      const statusSub = player.addListener?.("statusChange", (status) => {
         if (status.status === "readyToPlay") {
           setIsReady(true);
+          setHasError(false);
           if (player.duration && player.duration > 0) {
             onDurationDetected?.(player.duration * 1000);
+          }
+          onReady?.();
+        } else if (status.status === "error") {
+          // If optimized video URL failed, try falling back to the raw source
+          if (useOptimizedSource && url) {
+            setUseOptimizedSource(false);
+          } else {
+            setHasError(true);
           }
         }
         setIsPlaying(player.playing);
@@ -199,6 +208,7 @@ const VibeVideoPlayer = React.memo(
         setIsPlaying(payload.isPlaying);
         if (payload.isPlaying) {
           setIsReady(true);
+          setHasError(false);
         }
       });
 
@@ -224,9 +234,11 @@ const VibeVideoPlayer = React.memo(
         }
       });
 
-      const playToEndSub = player.addListener("playToEnd", () => {
+      const playToEndSub = player.addListener?.("playToEnd", () => {
         if (player.loop) {
-          player.replay();
+          try {
+            player.replay();
+          } catch (_) {}
         }
       });
 
@@ -237,7 +249,14 @@ const VibeVideoPlayer = React.memo(
         videoTrackSub?.remove?.();
         sourceLoadSub?.remove?.();
       };
-    }, [player, onDurationDetected, onDimensionsDetected]);
+    }, [
+      player,
+      url,
+      useOptimizedSource,
+      onDurationDetected,
+      onDimensionsDetected,
+      onReady,
+    ]);
 
     const triggerMuteBadge = useCallback(() => {
       muteBadgeOpacity.value = withSequence(
@@ -250,16 +269,31 @@ const VibeVideoPlayer = React.memo(
     const toggleMute = useCallback(() => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
       const nextMuted = !isMuted;
+      setIsMuted(nextMuted);
       setGlobalMuted(nextMuted);
+      if (player) {
+        player.muted = nextMuted;
+        if (!nextMuted && !isPlaying) {
+          try {
+            const res = player.play();
+            if (res && typeof res.catch === "function") {
+              res.catch(() => {});
+            }
+            setIsPlaying(true);
+          } catch (_) {}
+        }
+      }
       triggerMuteBadge();
-    }, [isMuted, triggerMuteBadge]);
+    }, [isMuted, player, isPlaying, triggerMuteBadge]);
 
     const togglePlayPause = useCallback(() => {
       if (!player) return;
 
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
       if (isPlaying) {
-        player.pause();
+        try {
+          player.pause();
+        } catch (_) {}
         setIsPlaying(false);
         setShowPlayOverlay(true);
         playOverlayOpacity.value = withSequence(
@@ -268,7 +302,12 @@ const VibeVideoPlayer = React.memo(
           withTiming(0, { duration: 250 }, () => setShowPlayOverlay(false))
         );
       } else {
-        player.play();
+        try {
+          const res = player.play();
+          if (res && typeof res.catch === "function") {
+            res.catch(() => {});
+          }
+        } catch (_) {}
         setIsPlaying(true);
         setShowPlayOverlay(true);
         playOverlayOpacity.value = withSequence(
@@ -279,14 +318,37 @@ const VibeVideoPlayer = React.memo(
       }
     }, [player, isPlaying, playOverlayOpacity]);
 
-    // Double tap -> heart like, single tap -> toggle mute
+    const handleSingleTap = useCallback(() => {
+      if (typeof onPressMedia === "function") {
+        onPressMedia();
+      } else {
+        toggleMute();
+      }
+    }, [onPressMedia, toggleMute]);
+
+    // Double tap -> heart like, single tap -> toggle mute / open media viewer
     const handlePress = useDoubleTap(
       useCallback(() => {
         onDoubleTapLike?.();
       }, [onDoubleTapLike]),
-      toggleMute,
+      handleSingleTap,
       280
     );
+
+    const handleRetry = useCallback(() => {
+      setHasError(false);
+      setUseOptimizedSource(false);
+      setIsReady(false);
+      if (player) {
+        try {
+          player.replace(url);
+          const res = player.play();
+          if (res && typeof res.catch === "function") {
+            res.catch(() => {});
+          }
+        } catch (_) {}
+      }
+    }, [player, url]);
 
     const playOverlayStyle = useAnimatedStyle(() => ({
       opacity: playOverlayOpacity.value,
@@ -316,7 +378,7 @@ const VibeVideoPlayer = React.memo(
           ]}
         />
 
-        {/* Video Stage: Perfectly sized and centered with aspect ratio preservation */}
+        {/* Video Stage: Centered with aspect ratio preservation */}
         <View
           style={[
             styles.videoStage,
@@ -330,6 +392,8 @@ const VibeVideoPlayer = React.memo(
               style={styles.video}
               contentFit="contain"
               nativeControls={false}
+              playsInline={true}
+              allowsPictureInPicture={false}
               fullscreenOptions={{ isEnabled: false }}
             />
           )}
@@ -359,7 +423,7 @@ const VibeVideoPlayer = React.memo(
           )}
         </View>
 
-        {/* Full-width touch overlay to handle single-tap mute and double-tap like across the entire card */}
+        {/* Full-width touch overlay to handle single-tap and double-tap gestures */}
         {!disableTapControls ? (
           <Pressable
             onPress={handlePress}
@@ -415,9 +479,21 @@ const VibeVideoPlayer = React.memo(
         </View>
 
         {/* Loading Spinner */}
-        {isVisible && isActiveSlide && !isReady && (
+        {isVisible && isActiveSlide && !isReady && !hasError && (
           <View pointerEvents="none" style={styles.loadingContainer}>
             <ActivityIndicator size="small" color="#fff" />
+          </View>
+        )}
+
+        {/* Error Fallback & Retry Pill */}
+        {hasError && (
+          <View style={styles.errorContainer}>
+            <MaterialIcons name="error-outline" size={28} color="#ffffff" />
+            <Text style={styles.errorText}>Video playback error</Text>
+            <Pressable onPress={handleRetry} style={styles.retryButton}>
+              <MaterialIcons name="refresh" size={16} color="#ffffff" />
+              <Text style={styles.retryText}>Retry</Text>
+            </Pressable>
           </View>
         )}
       </View>
@@ -445,10 +521,6 @@ const styles = StyleSheet.create({
   posterImage: {
     width: "100%",
     height: "100%",
-    backgroundColor: "transparent",
-  },
-  videoWrapper: {
-    ...StyleSheet.absoluteFillObject,
     backgroundColor: "transparent",
   },
   video: {
@@ -507,6 +579,35 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.25)",
     zIndex: 5,
+  },
+  errorContainer: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.75)",
+    gap: 8,
+    zIndex: 20,
+    padding: 16,
+  },
+  errorText: {
+    color: "#ffffff",
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.medium,
+  },
+  retryButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "rgba(255, 255, 255, 0.25)",
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 16,
+    marginTop: 4,
+  },
+  retryText: {
+    color: "#ffffff",
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
   },
 });
 

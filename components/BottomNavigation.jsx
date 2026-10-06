@@ -366,9 +366,9 @@ const TabItem = memo(({ item, isActive, onPress, colors }) => {
     ],
   }));
 
-  const activeColor = colors.primary || "#2F6CD4";
+  const activeColor = colors.primary || "#6750A4";
   const inactiveColor = colors.textSecondary || colors.onSurfaceVariant || "#6B7280";
-  const activeBg = colors.primaryContainer || "#E0ECFF";
+  const activeBg = colors.primaryContainer || "#EADDFF";
 
   return (
     <Pressable

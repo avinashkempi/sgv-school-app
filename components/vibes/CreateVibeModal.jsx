@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from "react";
+import React, { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import {
   View,
   Text,
@@ -37,7 +37,7 @@ import {
 
 const MAX_IMAGES = 5;
 const MAX_CAPTION_LENGTH = 2200;
-const DRAFT_STORAGE_KEY = "@vibe_create_draft_v2";
+const DRAFT_STORAGE_KEY = "@vibe_create_draft_v3";
 
 const FALLBACK_CATEGORIES = [
   { key: "general", label: "General", icon: "auto-awesome" },
@@ -46,6 +46,15 @@ const FALLBACK_CATEGORIES = [
   { key: "arts", label: "Arts & Events", icon: "palette" },
   { key: "life", label: "Campus Life", icon: "local-florist" },
   { key: "official", label: "Official", icon: "school", adminOnly: true },
+];
+
+const SUGGESTED_HASHTAGS = [
+  "#CampusLife",
+  "#Achievements",
+  "#SGVPride",
+  "#SportsDay",
+  "#AnnualFest",
+  "#CreativeHub",
 ];
 
 // Exponential backoff upload retry helper
@@ -60,12 +69,22 @@ const uploadWithRetry = async (uploadFn, retries = 2) => {
   }
 };
 
+/**
+ * CreateVibeModal — Material 3 Creator and Editor for Vibes.
+ *
+ * Ground-up rewrite solving:
+ * 1. Android Edit popup getting stuck or never closing (safe dirty check & dismiss).
+ * 2. Category selector clipping on Android (responsive Material 3 chips).
+ * 3. Full keyboard adaptation & scrolling without content collapse on Android.
+ * 4. Location and hashtags support.
+ * 5. Instant draft persistence and reliable submission.
+ */
 export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
   const { colors } = useTheme();
   const { showToast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const isEditing = !!editVibe;
+  const isEditing = Boolean(editVibe);
 
   const isAdmin = user?.role === "admin" || user?.role === "super admin";
 
@@ -75,7 +94,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
     `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.categories}`,
     {
       ...CACHE_TIERS.VIBES_FEED,
-      staleTime: 1000 * 60 * 30, // 30 mins
+      staleTime: 1000 * 60 * 30,
     }
   );
 
@@ -90,21 +109,29 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
 
   const [caption, setCaption] = useState("");
   const [category, setCategory] = useState("general");
-  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
+  const [location, setLocation] = useState("");
   const [postAs, setPostAs] = useState(isAdmin ? "school" : "self");
   const [isSpotlight, setIsSpotlight] = useState(false);
   const [images, setImages] = useState([]);
   const [submitting, setSubmitting] = useState(false);
 
-  // Keyboard awareness state for seamless keypad closing
+  // Initial values snapshot to accurately detect user changes without false positives
+  const initialValuesRef = useRef(null);
+  const isInitializedRef = useRef(false);
+
+  // Keyboard awareness
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [isCaptionFocused, setIsCaptionFocused] = useState(false);
 
   useEffect(() => {
-    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
-    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const showEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
 
-    const showSub = Keyboard.addListener(showEvent, () => setIsKeyboardVisible(true));
+    const showSub = Keyboard.addListener(showEvent, () =>
+      setIsKeyboardVisible(true)
+    );
     const hideSub = Keyboard.addListener(hideEvent, () => {
       setIsKeyboardVisible(false);
       setIsCaptionFocused(false);
@@ -121,40 +148,56 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
     setIsCaptionFocused(false);
   }, []);
 
-  // Sync state whenever modal opens or editVibe changes
+  // Initialize form state when modal becomes visible
   useEffect(() => {
     if (visible) {
-      setIsCategoryDropdownOpen(false);
       if (editVibe) {
-        setCaption(editVibe.caption || "");
-        setCategory(editVibe.category || (isAdmin ? "official" : "general"));
-        setPostAs(editVibe.postAs || (isAdmin ? "school" : "self"));
-        setIsSpotlight(Boolean(editVibe.isSpotlight));
-        setImages(
-          editVibe.images?.map((img) => {
-            const rawUrl = typeof img === "string" ? img : img?.url || "";
-            const isVideo =
-              img?.type === "video" ||
-              /\.(mp4|mov|webm|m4v|avi|3gp|mkv|flv|wmv|qt)(\?.*)?$/i.test(
-                rawUrl
-              );
-            return {
-              type: isVideo ? "video" : "image",
-              url: rawUrl,
-              thumbnailUrl:
-                typeof img === "object" ? img?.thumbnailUrl || "" : "",
-              duration: typeof img === "object" ? img?.duration || 0 : 0,
-              localUri: null,
-              uploading: false,
-              progress: 0,
-              width: typeof img === "object" ? img?.width || 1080 : 1080,
-              height: typeof img === "object" ? img?.height || 1080 : 1080,
-              aspectRatio:
-                typeof img === "object" ? img?.aspectRatio || 1 : 1,
-              publicId: typeof img === "object" ? img?.publicId || "" : "",
-            };
-          }) || []
-        );
+        const initialCaption = editVibe.caption || "";
+        const initialCategory =
+          editVibe.category || (isAdmin ? "official" : "general");
+        const initialLocation = editVibe.location || "";
+        const initialPostAs = editVibe.postAs || (isAdmin ? "school" : "self");
+        const initialSpotlight = Boolean(editVibe.isSpotlight);
+
+        const initialMedia = (editVibe.images || []).map((img) => {
+          const rawUrl = typeof img === "string" ? img : img?.url || "";
+          const isVideo =
+            img?.type === "video" ||
+            /\.(mp4|mov|webm|m4v|avi|3gp|mkv|flv|wmv|qt)(\?.*)?$/i.test(rawUrl);
+          return {
+            id: `edit_${Math.random()}`,
+            type: isVideo ? "video" : "image",
+            url: rawUrl,
+            thumbnailUrl:
+              typeof img === "object" ? img?.thumbnailUrl || "" : "",
+            duration: typeof img === "object" ? img?.duration || 0 : 0,
+            localUri: null,
+            uploading: false,
+            progress: 100,
+            width: typeof img === "object" ? img?.width || 1080 : 1080,
+            height: typeof img === "object" ? img?.height || 1080 : 1080,
+            aspectRatio:
+              typeof img === "object" ? img?.aspectRatio || 1 : 1,
+            publicId: typeof img === "object" ? img?.publicId || "" : "",
+          };
+        });
+
+        setCaption(initialCaption);
+        setCategory(initialCategory);
+        setLocation(initialLocation);
+        setPostAs(initialPostAs);
+        setIsSpotlight(initialSpotlight);
+        setImages(initialMedia);
+
+        initialValuesRef.current = {
+          caption: initialCaption,
+          category: initialCategory,
+          location: initialLocation,
+          postAs: initialPostAs,
+          isSpotlight: initialSpotlight,
+          imagesLength: initialMedia.length,
+        };
+        isInitializedRef.current = true;
       } else {
         // Create mode: load draft if available
         AsyncStorage.getItem(DRAFT_STORAGE_KEY)
@@ -164,34 +207,53 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                 const saved = JSON.parse(raw);
                 setCaption(saved.caption || "");
                 setCategory(saved.category || "general");
+                setLocation(saved.location || "");
               } catch {
-                // Ignore parse errors
+                setCaption("");
+                setCategory("general");
+                setLocation("");
               }
             } else {
               setCaption("");
               setCategory("general");
+              setLocation("");
             }
           })
           .catch(() => {});
+
         setPostAs(isAdmin ? "school" : "self");
         setIsSpotlight(false);
         setImages([]);
+
+        initialValuesRef.current = {
+          caption: "",
+          category: "general",
+          location: "",
+          postAs: isAdmin ? "school" : "self",
+          isSpotlight: false,
+          imagesLength: 0,
+        };
+        isInitializedRef.current = true;
       }
+    } else {
+      isInitializedRef.current = false;
+      initialValuesRef.current = null;
     }
   }, [visible, editVibe, isAdmin]);
 
   // Persist draft on text changes (create mode only)
   useEffect(() => {
-    if (visible && !isEditing && caption) {
+    if (visible && !isEditing && (caption || location)) {
       AsyncStorage.setItem(
         DRAFT_STORAGE_KEY,
         JSON.stringify({
           caption,
           category,
+          location,
         })
       ).catch(() => {});
     }
-  }, [visible, caption, category, isEditing]);
+  }, [visible, caption, category, location, isEditing]);
 
   const clearDraft = useCallback(() => {
     AsyncStorage.removeItem(DRAFT_STORAGE_KEY).catch(() => {});
@@ -200,41 +262,55 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
   const resetForm = useCallback(() => {
     setCaption("");
     setCategory("general");
-    setIsCategoryDropdownOpen(false);
+    setLocation("");
     setPostAs(isAdmin ? "school" : "self");
     setIsSpotlight(false);
     setImages([]);
     setSubmitting(false);
+    isInitializedRef.current = false;
+    initialValuesRef.current = null;
     clearDraft();
   }, [isAdmin, clearDraft]);
 
+  // Precise dirty check
   const isDirty = useMemo(() => {
-    if (!isEditing) {
-      return Boolean(caption.trim() || images.length > 0);
+    if (!visible || !isInitializedRef.current || !initialValuesRef.current) {
+      return false;
     }
-    if (!editVibe) return false;
-    const captionChanged =
-      (caption || "").trim() !== (editVibe.caption || "").trim();
-    const categoryChanged = (category || "") !== (editVibe.category || "");
-    const initialImageCount = editVibe.images?.length || 0;
+    const init = initialValuesRef.current;
+    if (!isEditing) {
+      return Boolean(caption.trim() || location.trim() || images.length > 0);
+    }
+    const captionChanged = caption.trim() !== (init.caption || "").trim();
+    const categoryChanged = category !== init.category;
+    const locationChanged = location.trim() !== (init.location || "").trim();
     const imagesChanged =
-      images.length !== initialImageCount ||
+      images.length !== init.imagesLength ||
       images.some((img) => img.localUri || img.uploading);
-    const postAsChanged =
-      isAdmin && (postAs || "self") !== (editVibe.postAs || "self");
-    const spotlightChanged =
-      isAdmin && Boolean(isSpotlight) !== Boolean(editVibe.isSpotlight);
+    const postAsChanged = isAdmin && postAs !== init.postAs;
+    const spotlightChanged = isAdmin && isSpotlight !== init.isSpotlight;
+
     return (
       captionChanged ||
       categoryChanged ||
+      locationChanged ||
       imagesChanged ||
       postAsChanged ||
       spotlightChanged
     );
-  }, [isEditing, editVibe, caption, category, images, isAdmin, postAs, isSpotlight]);
+  }, [
+    visible,
+    isEditing,
+    caption,
+    category,
+    location,
+    images,
+    isAdmin,
+    postAs,
+    isSpotlight,
+  ]);
 
   const handleClose = useCallback(() => {
-    if (submitting) return;
     dismissKeyboard();
     if (isDirty) {
       Alert.alert(
@@ -258,11 +334,11 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
       resetForm();
       onClose();
     }
-  }, [submitting, dismissKeyboard, isDirty, isEditing, resetForm, onClose]);
+  }, [dismissKeyboard, isDirty, isEditing, resetForm, onClose]);
 
   const hasVideo = images.some((img) => img.type === "video");
 
-  // Parallel Photo Picking and Concurrency Uploads (Up to 5 Photos)
+  // Parallel Photo Picking
   const handleAddPhotos = useCallback(
     async (source) => {
       dismissKeyboard();
@@ -297,7 +373,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
 
         const newPhotosToUpload = picked.slice(0, remainingSlots);
 
-        // 1. If video picked by mistake in gallery, switch to video pipeline
+        // If video picked by mistake in gallery
         if (newPhotosToUpload[0]?.type === "video") {
           const video = newPhotosToUpload[0];
           const videoId = `${Date.now()}_${Math.random()}`;
@@ -350,7 +426,6 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
           return;
         }
 
-        // 2. Prepare placeholder items in state immediately for instant UI responsiveness
         const placeholderItems = newPhotosToUpload.map((photo) => ({
           id: `${Date.now()}_${Math.random()}`,
           type: "image",
@@ -368,7 +443,6 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
           ...placeholderItems,
         ]);
 
-        // 3. Parallelize compression and upload across all picked images simultaneously
         await Promise.all(
           placeholderItems.map(async (item) => {
             try {
@@ -416,7 +490,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
     [dismissKeyboard, hasVideo, images.length, showToast]
   );
 
-  // Video Picking (Only 1 Video - Max 30s)
+  // Video Picking
   const handleAddVideo = useCallback(
     async (source) => {
       dismissKeyboard();
@@ -460,24 +534,16 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
 
         setImages([newVideo]);
 
-        // Background upload to Cloudinary Video endpoint with retry
         (async () => {
           try {
             const result = await uploadWithRetry(() =>
-              uploadVideoToCloudinary(
-                video.uri,
-                (progress) => {
-                  setImages((prev) =>
-                    prev.map((item) =>
-                      item.id === videoId ? { ...item, progress } : item
-                    )
-                  );
-                },
-                {
-                  folder: CLOUDINARY_FOLDERS.VIBES_VIDEOS,
-                  fileNamePrefix: "vibe_video",
-                }
-              )
+              uploadVideoToCloudinary(video.uri, (progress) => {
+                setImages((prev) =>
+                  prev.map((item) =>
+                    item.id === videoId ? { ...item, progress } : item
+                  )
+                );
+              })
             );
 
             setImages((prev) =>
@@ -488,9 +554,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                       url: result.url,
                       publicId: result.publicId,
                       thumbnailUrl: result.thumbnailUrl,
-                      duration: result.duration || video.duration,
-                      width: result.width || video.width,
-                      height: result.height || video.height,
+                      duration: result.duration || item.duration,
                       uploading: false,
                       progress: 100,
                     }
@@ -511,6 +575,16 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
 
   const handleRemoveImage = useCallback((index) => {
     setImages((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handleAppendHashtag = useCallback((tag) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    setCaption((prev) => {
+      const cleanPrev = prev.trim();
+      if (!cleanPrev) return tag;
+      if (cleanPrev.includes(tag)) return prev;
+      return `${cleanPrev} ${tag}`;
+    });
   }, []);
 
   // Submit Vibe
@@ -534,10 +608,10 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
         url: img.url,
         thumbnailUrl: img.thumbnailUrl || "",
         duration: img.duration || 0,
-        publicId: img.publicId,
-        width: img.width,
-        height: img.height,
-        aspectRatio: img.aspectRatio,
+        publicId: img.publicId || "",
+        width: img.width || 1080,
+        height: img.height || 1080,
+        aspectRatio: img.aspectRatio || 1,
       }));
 
     if (finalImages.length === 0) {
@@ -551,6 +625,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
       const vibePayload = {
         caption: caption.trim(),
         category,
+        location: location.trim(),
         postAs: isAdmin ? postAs : "self",
         images: finalImages,
         ...(isAdmin ? { isSpotlight } : {}),
@@ -566,15 +641,17 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
       const mutationFn = createApiMutationFn(url, method);
       const res = await mutationFn(vibePayload);
 
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      Haptics.notificationAsync(
+        Haptics.NotificationFeedbackType.Success
+      ).catch(() => {});
       showToast(
         res.message ||
-          (isAdmin ? "Vibe published!" : "Vibe submitted for admin approval!"),
+          (isAdmin ? "Vibe published!" : "Vibe submitted for review!"),
         "success",
         3000
       );
 
-      // Eagerly update in-memory caches if editing so the UI reflects changes immediately
+      // Eagerly update caches
       if (isEditing && editVibe?._id && res?.data) {
         const updatedVibe = res.data;
         const updateVibesCache = (oldData) => {
@@ -600,13 +677,16 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
           return { ...old, data: { ...old.data, ...updatedVibe } };
         });
 
-        queryClient.setQueryData(["targetVibe", String(editVibe._id)], (old) => {
-          if (!old?.data) return old;
-          return { ...old, data: { ...old.data, ...updatedVibe } };
-        });
+        queryClient.setQueryData(
+          ["targetVibe", String(editVibe._id)],
+          (old) => {
+            if (!old?.data) return old;
+            return { ...old, data: { ...old.data, ...updatedVibe } };
+          }
+        );
       }
 
-      // Invalidate relevant queries for background sync
+      // Invalidate relevant queries for sync
       queryClient.invalidateQueries({ queryKey: ["vibes"] });
       queryClient.invalidateQueries({ queryKey: ["myVibes"] });
       queryClient.invalidateQueries({ queryKey: ["savedVibes"] });
@@ -633,6 +713,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
     images,
     caption,
     category,
+    location,
     isAdmin,
     postAs,
     isSpotlight,
@@ -647,27 +728,20 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
   const canSubmit =
     images.length > 0 && !submitting && !images.some((img) => img.uploading);
 
-  const selectedCategoryMeta = useMemo(() => {
-    return (
-      categories.find((c) => c.key === category) ||
-      categories[0] ||
-      FALLBACK_CATEGORIES[0]
-    );
-  }, [categories, category]);
-
   return (
     <Modal
       visible={visible}
       animationType="slide"
       transparent
       onRequestClose={handleClose}
+      statusBarTranslucent
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
         style={styles.overlay}
       >
-        {/* Backdrop tap to dismiss keypad or modal */}
+        {/* Backdrop tap to dismiss */}
         <Pressable
           style={StyleSheet.absoluteFill}
           onPress={() => {
@@ -677,22 +751,36 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
               handleClose();
             }
           }}
+          accessibilityLabel="Dismiss modal backdrop"
         />
 
-        <View style={[styles.container, { backgroundColor: colors.surface }]}>
+        <View
+          style={[
+            styles.container,
+            { backgroundColor: colors.surfaceContainerHigh || colors.surface },
+          ]}
+        >
           {/* ──── Header ──── */}
           <View
             style={[
               styles.header,
-              { borderBottomColor: colors.outlineVariant },
+              { borderBottomColor: colors.outlineVariant || "rgba(0,0,0,0.08)" },
             ]}
           >
-            <Pressable onPress={handleClose} disabled={submitting} hitSlop={12}>
+            <Pressable
+              onPress={handleClose}
+              hitSlop={12}
+              style={styles.headerIconButton}
+              accessibilityRole="button"
+              accessibilityLabel="Close"
+            >
               <MaterialIcons name="close" size={24} color={colors.onSurface} />
             </Pressable>
+
             <Text style={[styles.headerTitle, { color: colors.onSurface }]}>
               {isEditing ? "Edit Vibe" : "New Vibe"}
             </Text>
+
             <Pressable
               onPress={handleSubmit}
               disabled={!canSubmit}
@@ -704,6 +792,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                     : colors.surfaceContainerHighest,
                 },
               ]}
+              accessibilityRole="button"
             >
               {submitting ? (
                 <ActivityIndicator size="small" color="#fff" />
@@ -711,15 +800,18 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                 <Text
                   style={[
                     styles.publishText,
-                    { color: canSubmit ? "#fff" : colors.onSurfaceVariant },
+                    {
+                      color: canSubmit ? "#fff" : colors.onSurfaceVariant,
+                    },
                   ]}
                 >
-                  {isAdmin ? "Share" : "Submit"}
+                  {isEditing ? "Save" : isAdmin ? "Share" : "Submit"}
                 </Text>
               )}
             </Pressable>
           </View>
 
+          {/* ──── Scrollable Form Content ──── */}
           <ScrollView
             style={styles.scrollContent}
             contentContainerStyle={styles.scrollContentContainer}
@@ -727,8 +819,8 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
             keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
             showsVerticalScrollIndicator={false}
           >
-            {/* ──── Non-Admin Approval Notice Banner ──── */}
-            {!isAdmin && (
+            {/* Non-Admin Approval Notice Banner */}
+            {!isAdmin && !isEditing && (
               <View
                 style={[
                   styles.infoBanner,
@@ -747,12 +839,12 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                   ]}
                 >
                   Your vibe will appear on the school feed once approved by
-                  school administrators.
+                  administrators.
                 </Text>
               </View>
             )}
 
-            {/* ──── Admin Identity Selector (Post as School vs Myself) ──── */}
+            {/* Admin Identity Selector */}
             {isAdmin && (
               <View style={styles.section}>
                 <Text
@@ -766,6 +858,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                 <View style={styles.identityRow}>
                   <Pressable
                     onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
                       setPostAs("school");
                       setCategory("official");
                     }}
@@ -835,6 +928,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
 
                   <Pressable
                     onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
                       setPostAs("self");
                       if (category === "official") {
                         setCategory("general");
@@ -856,7 +950,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                       photoUrl={user?.profilePhoto}
                       name={formatUserName(user?.name, "User")}
                       role={user?.role}
-                      size={32}
+                      size={34}
                     />
                     <View style={{ flex: 1 }}>
                       <Text
@@ -893,7 +987,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
               </View>
             )}
 
-            {/* ──── Admin Feature on Home Spotlight Toggle ──── */}
+            {/* Admin Home Spotlight Toggle */}
             {isAdmin && (
               <View style={styles.section}>
                 <Pressable
@@ -911,7 +1005,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                         : colors.surfaceContainerHighest,
                       borderColor: isSpotlight
                         ? "#F59E0B"
-                        : colors.outlineVariant,
+                        : colors.outlineVariant || "transparent",
                     },
                   ]}
                   accessibilityRole="switch"
@@ -964,14 +1058,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
 
             {/* ──── Media Upload Section ──── */}
             <View style={styles.section}>
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: 8,
-                }}
-              >
+              <View style={styles.sectionTitleRow}>
                 <Text
                   style={[
                     styles.sectionLabel,
@@ -1029,7 +1116,9 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                       <View style={styles.uploadOverlay}>
                         <ActivityIndicator size="small" color="#fff" />
                         <Text style={styles.uploadPercent}>
-                          {img.progress > 0 ? `${img.progress}%` : "Optimizing..."}
+                          {img.progress > 0
+                            ? `${img.progress}%`
+                            : "Optimizing..."}
                         </Text>
                       </View>
                     )}
@@ -1038,6 +1127,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                         onPress={() => handleRemoveImage(index)}
                         style={styles.removeButton}
                         hitSlop={8}
+                        accessibilityLabel="Remove media"
                       >
                         <MaterialIcons name="close" size={14} color="#fff" />
                       </Pressable>
@@ -1054,7 +1144,8 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                         styles.addMediaLargeButton,
                         {
                           backgroundColor: colors.surfaceContainerHighest,
-                          borderColor: colors.outlineVariant,
+                          borderColor:
+                            colors.outlineVariant || "rgba(0,0,0,0.08)",
                         },
                       ]}
                     >
@@ -1087,7 +1178,8 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                         styles.addMediaLargeButton,
                         {
                           backgroundColor: colors.surfaceContainerHighest,
-                          borderColor: colors.outlineVariant,
+                          borderColor:
+                            colors.outlineVariant || "rgba(0,0,0,0.08)",
                         },
                       ]}
                     >
@@ -1120,14 +1212,15 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                         styles.addMediaLargeButton,
                         {
                           backgroundColor: colors.surfaceContainerHighest,
-                          borderColor: colors.outlineVariant,
+                          borderColor:
+                            colors.outlineVariant || "rgba(0,0,0,0.08)",
                         },
                       ]}
                     >
                       <MaterialIcons
                         name="photo-camera"
                         size={24}
-                        color={colors.tertiary}
+                        color={colors.tertiary || "#0284C7"}
                       />
                       <Text
                         style={[
@@ -1155,13 +1248,14 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                         styles.addImageButton,
                         {
                           backgroundColor: colors.surfaceContainerHighest,
-                          borderColor: colors.outlineVariant,
+                          borderColor:
+                            colors.outlineVariant || "rgba(0,0,0,0.08)",
                         },
                       ]}
                     >
                       <MaterialIcons
                         name="add-photo-alternate"
-                        size={24}
+                        size={22}
                         color={colors.primary}
                       />
                       <Text
@@ -1178,7 +1272,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
               </ScrollView>
             </View>
 
-            {/* ──── Category Dropdown Selector ──── */}
+            {/* ──── Material 3 Category Chips (No Android Dropdown Clipping) ──── */}
             <View style={styles.section}>
               <Text
                 style={[
@@ -1188,150 +1282,63 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
               >
                 CATEGORY
               </Text>
-
-              {/* Dropdown Trigger Button */}
-              <Pressable
-                onPress={() => {
-                  dismissKeyboard();
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-                  setIsCategoryDropdownOpen((prev) => !prev);
-                }}
-                style={[
-                  styles.dropdownTrigger,
-                  {
-                    backgroundColor: colors.surfaceContainerHighest,
-                    borderColor: isCategoryDropdownOpen
-                      ? colors.primary
-                      : colors.outlineVariant,
-                  },
-                ]}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.categoryChipsContainer}
               >
-                <View style={styles.dropdownLeft}>
-                  <View
-                    style={[
-                      styles.categoryIconBadge,
-                      { backgroundColor: colors.primaryContainer },
-                    ]}
-                  >
-                    <MaterialIcons
-                      name={selectedCategoryMeta.icon || "auto-awesome"}
-                      size={18}
-                      color={colors.onPrimaryContainer}
-                    />
-                  </View>
-                  <View>
-                    <Text
+                {categories.map((cat) => {
+                  const isSelected = cat.key === category;
+                  return (
+                    <Pressable
+                      key={cat.key}
+                      onPress={() => {
+                        Haptics.impactAsync(
+                          Haptics.ImpactFeedbackStyle.Light
+                        ).catch(() => {});
+                        setCategory(cat.key);
+                      }}
                       style={[
-                        styles.dropdownSelectedLabel,
-                        { color: colors.onSurface },
+                        styles.categoryChip,
+                        {
+                          backgroundColor: isSelected
+                            ? colors.primaryContainer
+                            : colors.surfaceContainerHighest,
+                          borderColor: isSelected
+                            ? colors.primary
+                            : "transparent",
+                        },
                       ]}
+                      accessibilityRole="button"
                     >
-                      {selectedCategoryMeta.label}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.dropdownSubtitle,
-                        { color: colors.onSurfaceVariant },
-                      ]}
-                    >
-                      {selectedCategoryMeta.key === "general"
-                        ? "General (Default)"
-                        : "Selected Category"}
-                    </Text>
-                  </View>
-                </View>
-
-                <MaterialIcons
-                  name={
-                    isCategoryDropdownOpen
-                      ? "keyboard-arrow-up"
-                      : "keyboard-arrow-down"
-                  }
-                  size={24}
-                  color={colors.onSurfaceVariant}
-                />
-              </Pressable>
-
-              {/* Dropdown Menu List */}
-              {isCategoryDropdownOpen && (
-                <View
-                  style={[
-                    styles.dropdownMenu,
-                    {
-                      backgroundColor: colors.surfaceContainerHigh,
-                      borderColor: colors.outlineVariant,
-                    },
-                  ]}
-                >
-                  {categories.map((cat, idx) => {
-                    const isSelected = cat.key === category;
-                    const isLast = idx === categories.length - 1;
-                    return (
-                      <Pressable
-                        key={cat.key}
-                        onPress={() => {
-                          Haptics.impactAsync(
-                            Haptics.ImpactFeedbackStyle.Light
-                          ).catch(() => {});
-                          setCategory(cat.key);
-                          setIsCategoryDropdownOpen(false);
-                        }}
-                        style={({ pressed }) => [
-                          styles.dropdownItem,
+                      <MaterialIcons
+                        name={cat.icon || "auto-awesome"}
+                        size={16}
+                        color={
+                          isSelected
+                            ? colors.onPrimaryContainer
+                            : colors.onSurfaceVariant
+                        }
+                      />
+                      <Text
+                        style={[
+                          styles.categoryChipText,
                           {
-                            backgroundColor: isSelected
-                              ? colors.primaryContainer
-                              : pressed
-                              ? colors.surfaceContainerHighest
-                              : "transparent",
-                            borderBottomColor: isLast
-                              ? "transparent"
-                              : colors.outlineVariant,
-                            borderBottomWidth: isLast
-                              ? 0
-                              : StyleSheet.hairlineWidth,
+                            color: isSelected
+                              ? colors.onPrimaryContainer
+                              : colors.onSurface,
+                            fontFamily: isSelected
+                              ? FONTS.bold
+                              : FONTS.medium,
                           },
                         ]}
                       >
-                        <View style={styles.dropdownItemLeft}>
-                          <MaterialIcons
-                            name={cat.icon || "auto-awesome"}
-                            size={18}
-                            color={
-                              isSelected
-                                ? colors.onPrimaryContainer
-                                : colors.onSurfaceVariant
-                            }
-                          />
-                          <Text
-                            style={[
-                              styles.dropdownItemText,
-                              {
-                                color: isSelected
-                                  ? colors.onPrimaryContainer
-                                  : colors.onSurface,
-                                fontFamily: isSelected
-                                  ? FONTS.bold
-                                  : FONTS.medium,
-                              },
-                            ]}
-                          >
-                            {cat.label}
-                          </Text>
-                        </View>
-
-                        {isSelected && (
-                          <MaterialIcons
-                            name="check"
-                            size={18}
-                            color={colors.onPrimaryContainer}
-                          />
-                        )}
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              )}
+                        {cat.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
             </View>
 
             {/* ──── Caption Input ──── */}
@@ -1346,7 +1353,6 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                   CAPTION
                 </Text>
 
-                {/* Keypad Dismiss Action Button */}
                 {(isKeyboardVisible || isCaptionFocused) && (
                   <Pressable
                     onPress={dismissKeyboard}
@@ -1378,10 +1384,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                 placeholderTextColor={colors.onSurfaceVariant}
                 value={caption}
                 onChangeText={setCaption}
-                onFocus={() => {
-                  setIsCaptionFocused(true);
-                  setIsCategoryDropdownOpen(false);
-                }}
+                onFocus={() => setIsCaptionFocused(true)}
                 onBlur={() => setIsCaptionFocused(false)}
                 maxLength={MAX_CAPTION_LENGTH}
                 multiline
@@ -1393,7 +1396,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                     color: colors.onSurface,
                     borderColor: isCaptionFocused
                       ? colors.primary
-                      : colors.outlineVariant,
+                      : colors.outlineVariant || "transparent",
                   },
                 ]}
               />
@@ -1402,6 +1405,71 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
               >
                 {caption.length}/{MAX_CAPTION_LENGTH}
               </Text>
+
+              {/* Hashtag Quick-Tap Suggestions */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.hashtagsRow}
+              >
+                {SUGGESTED_HASHTAGS.map((tag) => (
+                  <Pressable
+                    key={tag}
+                    onPress={() => handleAppendHashtag(tag)}
+                    style={[
+                      styles.hashtagChip,
+                      {
+                        backgroundColor: colors.surfaceContainerHighest,
+                        borderColor: colors.outlineVariant || "transparent",
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.hashtagChipText,
+                        { color: colors.primary },
+                      ]}
+                    >
+                      {tag}
+                    </Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            </View>
+
+            {/* ──── Location / Campus Spot ──── */}
+            <View style={styles.section}>
+              <Text
+                style={[
+                  styles.sectionLabel,
+                  { color: colors.onSurfaceVariant },
+                ]}
+              >
+                CAMPUS SPOT (OPTIONAL)
+              </Text>
+              <View
+                style={[
+                  styles.locationInputWrapper,
+                  {
+                    backgroundColor: colors.surfaceContainerHighest,
+                    borderColor: colors.outlineVariant || "transparent",
+                  },
+                ]}
+              >
+                <MaterialIcons
+                  name="place"
+                  size={18}
+                  color={colors.onSurfaceVariant}
+                />
+                <TextInput
+                  placeholder="e.g. Main Auditorium, Library, Sports Ground"
+                  placeholderTextColor={colors.onSurfaceVariant}
+                  value={location}
+                  onChangeText={setLocation}
+                  style={[styles.locationInput, { color: colors.onSurface }]}
+                  maxLength={60}
+                />
+              </View>
             </View>
           </ScrollView>
         </View>
@@ -1413,32 +1481,37 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.45)",
+    backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "flex-end",
   },
   container: {
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
-    maxHeight: "92%",
+    maxHeight: "94%",
+    height: "94%",
     overflow: "hidden",
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
+  headerIconButton: {
+    padding: 6,
+    borderRadius: 20,
+  },
   headerTitle: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontFamily: FONTS.bold,
   },
   publishButton: {
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    minWidth: 76,
+    minWidth: 72,
     alignItems: "center",
   },
   publishText: {
@@ -1446,11 +1519,12 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
   },
   scrollContent: {
-    flexGrow: 0,
-    paddingHorizontal: 20,
+    flex: 1,
+    paddingHorizontal: 18,
   },
   scrollContentContainer: {
-    paddingBottom: 28,
+    paddingBottom: 48,
+    paddingTop: 8,
   },
   infoBanner: {
     flexDirection: "row",
@@ -1458,16 +1532,22 @@ const styles = StyleSheet.create({
     gap: 8,
     padding: 12,
     borderRadius: 14,
-    marginTop: 14,
+    marginTop: 6,
   },
   infoBannerText: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.medium,
     flex: 1,
-    lineHeight: LINE_HEIGHTS.sm,
+    lineHeight: LINE_HEIGHTS.xs,
   },
   section: {
-    marginTop: 16,
+    marginTop: 18,
+  },
+  sectionTitleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
   },
   sectionLabel: {
     fontSize: FONT_SIZES.xs,
@@ -1487,9 +1567,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   identityIconBox: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: "rgba(0,0,0,0.05)",
     justifyContent: "center",
     alignItems: "center",
@@ -1501,6 +1581,30 @@ const styles = StyleSheet.create({
   identitySub: {
     fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
+  },
+  spotlightToggleCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    gap: 12,
+  },
+  spotlightIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  spotlightToggleTitle: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
+  },
+  spotlightToggleSub: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.regular,
+    marginTop: 2,
   },
   imageScroll: {
     gap: 10,
@@ -1550,90 +1654,57 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     paddingVertical: 2,
     borderRadius: 6,
-    gap: 2,
+    gap: 3,
   },
   videoDurationText: {
     color: "#fff",
-    fontSize: FONT_SIZES.micro,
+    fontSize: 9,
     fontFamily: FONTS.bold,
   },
   addMediaLargeButton: {
     width: 96,
     height: 96,
     borderRadius: 16,
-    borderWidth: 1,
+    borderWidth: 1.5,
+    borderStyle: "dashed",
     justifyContent: "center",
     alignItems: "center",
     gap: 2,
-  },
-  addMediaSubtext: {
-    fontSize: FONT_SIZES.micro,
-    fontFamily: FONTS.regular,
   },
   addImageButton: {
     width: 96,
     height: 96,
     borderRadius: 16,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderStyle: "dashed",
     justifyContent: "center",
     alignItems: "center",
     gap: 4,
   },
   addImageText: {
-    fontSize: FONT_SIZES.sm,
-    fontFamily: FONTS.bold,
-  },
-  dropdownTrigger: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  dropdownLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  categoryIconBadge: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  dropdownSelectedLabel: {
-    fontSize: FONT_SIZES.sm,
-    fontFamily: FONTS.bold,
-  },
-  dropdownSubtitle: {
     fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+  },
+  addMediaSubtext: {
+    fontSize: 9,
     fontFamily: FONTS.regular,
-    marginTop: 1,
   },
-  dropdownMenu: {
-    marginTop: 8,
-    borderRadius: 16,
-    borderWidth: 1,
-    overflow: "hidden",
+  categoryChipsContainer: {
+    flexDirection: "row",
+    gap: 8,
+    paddingVertical: 4,
   },
-  dropdownItem: {
+  categoryChip: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1.5,
   },
-  dropdownItemLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  dropdownItemText: {
-    fontSize: FONT_SIZES.sm,
+  categoryChipText: {
+    fontSize: FONT_SIZES.xs,
   },
   captionHeaderRow: {
     flexDirection: "row",
@@ -1654,43 +1725,46 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
   },
   captionInput: {
-    padding: 14,
     borderRadius: 16,
     borderWidth: 1,
+    padding: 12,
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
-    minHeight: 90,
+    minHeight: 100,
     textAlignVertical: "top",
   },
   charCount: {
     fontSize: FONT_SIZES.xs,
-    fontFamily: FONTS.regular,
     textAlign: "right",
     marginTop: 4,
   },
-  spotlightToggleCard: {
+  hashtagsRow: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    padding: 12,
-    borderRadius: 18,
+    gap: 6,
+    marginTop: 8,
+  },
+  hashtagChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
     borderWidth: 1,
   },
-  spotlightIconWrap: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  spotlightToggleTitle: {
-    fontSize: FONT_SIZES.sm,
-    fontFamily: FONTS.bold,
-    marginBottom: 2,
-  },
-  spotlightToggleSub: {
+  hashtagChipText: {
     fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.medium,
+  },
+  locationInputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 8,
+  },
+  locationInput: {
+    flex: 1,
+    paddingVertical: 10,
+    fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
-    lineHeight: LINE_HEIGHTS.xs,
   },
 });

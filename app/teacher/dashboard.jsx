@@ -111,7 +111,7 @@ export default function TeacherDashboard() {
               >
                 <View
                   style={{
-                    backgroundColor: "#2F6CD415",
+                    backgroundColor: (colors.primary || "#6750A4") + "15",
                     padding: 12,
                     borderRadius: 14,
                     width: 52,
@@ -120,7 +120,7 @@ export default function TeacherDashboard() {
                     justifyContent: "center",
                   }}
                 >
-                  <MaterialIcons name="schedule" size={26} color="#2F6CD4" />
+                  <MaterialIcons name="schedule" size={26} color={colors.primary || "#6750A4"} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text
@@ -391,9 +391,9 @@ export default function TeacherDashboard() {
               onPress={() => router.push("/teacher/exams-dashboard")}
               style={({ pressed }) => ({
                 flex: 1,
-                minWidth: "30%",
+                minWidth: "28%",
                 backgroundColor: colors.surfaceContainer,
-                padding: 20,
+                padding: 16,
                 borderRadius: 24,
                 alignItems: "center",
                 shadowColor: colors.shadow,
@@ -408,25 +408,70 @@ export default function TeacherDashboard() {
             >
               <View
                 style={{
-                  backgroundColor: colors.primaryContainer || "#E0ECFF",
-                  padding: 16,
+                  backgroundColor: colors.primaryContainer || "#EADDFF",
+                  padding: 14,
                   borderRadius: 20,
-                  marginBottom: 12,
+                  marginBottom: 10,
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
-                <MaterialIcons name="assignment" size={28} color={colors.primary || "#2F6CD4"} />
+                <MaterialIcons name="assignment" size={26} color={colors.primary || "#6750A4"} />
               </View>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.sm,
+                  fontSize: FONT_SIZES.xs,
                   fontFamily: FONTS.bold,
                   color: colors.onSurface,
                   textAlign: "center",
                 }}
+                numberOfLines={2}
               >
-                {t("teacher.manageExams")}
+                {t("teacher.manageExams", "Manage Exams")}
+              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => router.push("/teacher/monthly-ratings")}
+              style={({ pressed }) => ({
+                flex: 1,
+                minWidth: "28%",
+                backgroundColor: colors.surfaceContainer,
+                padding: 16,
+                borderRadius: 24,
+                alignItems: "center",
+                shadowColor: colors.shadow,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.05,
+                shadowRadius: 12,
+                elevation: 3,
+                borderWidth: 1,
+                borderColor: colors.outlineVariant,
+                opacity: pressed ? 0.9 : 1,
+              })}
+            >
+              <View
+                style={{
+                  backgroundColor: colors.secondaryContainer || "#DCFCE7",
+                  padding: 14,
+                  borderRadius: 20,
+                  marginBottom: 10,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <MaterialIcons name="star-rate" size={26} color={colors.secondary || "#16A34A"} />
+              </View>
+              <Text
+                style={{
+                  fontSize: FONT_SIZES.xs,
+                  fontFamily: FONTS.bold,
+                  color: colors.onSurface,
+                  textAlign: "center",
+                }}
+                numberOfLines={2}
+              >
+                {t("teacher.monthlyRatings", "Student Ratings")}
               </Text>
             </Pressable>
 
@@ -434,9 +479,9 @@ export default function TeacherDashboard() {
               onPress={() => router.push("/teacher/timetable")}
               style={({ pressed }) => ({
                 flex: 1,
-                minWidth: "30%",
+                minWidth: "28%",
                 backgroundColor: colors.surfaceContainer,
-                padding: 20,
+                padding: 16,
                 borderRadius: 24,
                 alignItems: "center",
                 shadowColor: colors.shadow,
@@ -451,25 +496,26 @@ export default function TeacherDashboard() {
             >
               <View
                 style={{
-                  backgroundColor: "#2F6CD415",
-                  padding: 16,
+                  backgroundColor: (colors.primary || "#6750A4") + "15",
+                  padding: 14,
                   borderRadius: 20,
-                  marginBottom: 12,
+                  marginBottom: 10,
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
-                <MaterialIcons name="schedule" size={28} color="#2F6CD4" />
+                <MaterialIcons name="schedule" size={26} color={colors.primary || "#6750A4"} />
               </View>
               <Text
                 style={{
-                  fontSize: FONT_SIZES.sm,
+                  fontSize: FONT_SIZES.xs,
                   fontFamily: FONTS.bold,
                   color: colors.onSurface,
                   textAlign: "center",
                 }}
+                numberOfLines={2}
               >
-                {t("teacher.viewTimetable")}
+                {t("teacher.viewTimetable", "View Timetable")}
               </Text>
             </Pressable>
           </View>

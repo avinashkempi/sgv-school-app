@@ -79,6 +79,12 @@ export default function VibeLikesModal({ visible, onClose, vibeId }) {
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
+        <Pressable
+          style={StyleSheet.absoluteFillObject}
+          onPress={onClose}
+          accessibilityRole="button"
+          accessibilityLabel="Dismiss likes sheet"
+        />
         <View style={[styles.container, { backgroundColor: colors.surface }]}>
           {/* Header */}
           <View

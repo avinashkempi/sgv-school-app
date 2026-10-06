@@ -65,13 +65,13 @@ const Button = ({
       case "tonalPrimary":
       case "soft":
         return {
-          bg: colors.primaryContainer || "#E0ECFF",
-          text: colors.onPrimaryContainer || colors.primary || "#2F6CD4",
+          bg: colors.primaryContainer || "#EADDFF",
+          text: colors.onPrimaryContainer || colors.primary || "#6750A4",
           border: "transparent",
         };
       case "tonal":
         return {
-          bg: colors.secondaryContainer || "#EBF2FF",
+          bg: colors.secondaryContainer || "#E8DEF8",
           text: colors.onSecondaryContainer || colors.secondary,
           border: "transparent",
         };

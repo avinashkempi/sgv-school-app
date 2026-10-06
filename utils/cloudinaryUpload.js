@@ -914,14 +914,21 @@ export const uploadVideoToCloudinary = async (
 export const getOptimizedVideoUrl = (url, { isSlow = false } = {}) => {
   if (!url || typeof url !== "string") return url || "";
   if (!url.includes("cloudinary.com")) return url;
-  if (url.includes("/upload/w_") || url.includes("/upload/q_")) return url;
+  if (
+    url.includes("/upload/w_") ||
+    url.includes("/upload/q_") ||
+    url.includes("/upload/vc_")
+  ) {
+    return url;
+  }
 
   const targetWidth = isSlow ? 480 : 720;
-  const targetQuality = isSlow ? "eco" : "auto";
+  const targetQuality = isSlow ? "eco" : "auto:good";
 
+  // Use vc_h264 for universal hardware-accelerated playback across iOS, Android, and Web browsers
   let transformed = url.replace(
     "/upload/",
-    `/upload/w_${targetWidth},q_${targetQuality},vc_auto,c_limit/`
+    `/upload/w_${targetWidth},q_${targetQuality},vc_h264,c_limit/`
   );
   // Ensure video extension is .mp4 for universal cross-platform playback (iOS, Android, Web)
   transformed = transformed.replace(

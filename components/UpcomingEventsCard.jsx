@@ -63,7 +63,7 @@ const UpcomingEventsCard = () => {
     router.push("/events");
   };
 
-  const cyanAccent = colors.brandBlue || colors.secondary || "#2F6CD4";
+  const cyanAccent = colors.tertiary || colors.primary || "#7D5260";
   const cardSurface = isDark
     ? colors.surfaceContainer
     : colors.surface;

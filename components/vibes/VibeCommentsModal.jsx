@@ -511,6 +511,12 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.overlay}
       >
+        <Pressable
+          style={StyleSheet.absoluteFillObject}
+          onPress={onClose}
+          accessibilityRole="button"
+          accessibilityLabel="Dismiss comments sheet"
+        />
         <View style={[styles.container, { backgroundColor: colors.surface }]}>
           {/* Header */}
           <View

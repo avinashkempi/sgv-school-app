@@ -94,6 +94,12 @@ export default function VibeViewersModal({ visible, onClose, vibeId }) {
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
+        <Pressable
+          style={StyleSheet.absoluteFillObject}
+          onPress={onClose}
+          accessibilityRole="button"
+          accessibilityLabel="Dismiss viewers sheet"
+        />
         <View style={[styles.container, { backgroundColor: colors.surface }]}>
           {/* Header */}
           <View

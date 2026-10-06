@@ -500,9 +500,9 @@ export default function TeacherLeaves() {
               </View>
 
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 }}>
-                <View style={[styles.classChip, { backgroundColor: colors.primaryContainer || "#E0ECFF", borderColor: (colors.primary || "#2F6CD4") + "30", maxWidth: "100%" }]}>
-                  <Ionicons name="school" size={11} color={colors.primary || "#2F6CD4"} />
-                  <Text style={[styles.classChipText, { color: colors.primary || "#2F6CD4" }]} numberOfLines={1}>
+                <View style={[styles.classChip, { backgroundColor: colors.primaryContainer || "#EADDFF", borderColor: (colors.primary || "#6750A4") + "30", maxWidth: "100%" }]}>
+                  <Ionicons name="school" size={11} color={colors.primary || "#6750A4"} />
+                  <Text style={[styles.classChipText, { color: colors.primary || "#6750A4" }]} numberOfLines={1}>
                     {formatClassName(
                       item.class?.name || item.class?.label,
                       item.class?.section
@@ -893,7 +893,7 @@ export default function TeacherLeaves() {
                 Student Requests
               </Text>
               {summaryMetrics.pending > 0 && (
-                <View style={[styles.tabBadge, { backgroundColor: colors.primary || "#2F6CD4" }]}>
+                <View style={[styles.tabBadge, { backgroundColor: colors.primary || "#6750A4" }]}>
                   <Text style={styles.tabBadgeText}>{summaryMetrics.pending}</Text>
                 </View>
               )}
@@ -1035,9 +1035,9 @@ export default function TeacherLeaves() {
                 <Text style={[styles.allowanceLabel, { color: colors.onSurfaceVariant }]} numberOfLines={1}>Total</Text>
               </View>
 
-              <View style={[styles.allowanceCol, { backgroundColor: colors.primaryContainer || "#E0ECFF" }]}>
-                <Text style={[styles.allowanceNum, { color: colors.primary || "#2F6CD4" }]} numberOfLines={1}>{leaveBalance.used}</Text>
-                <Text style={[styles.allowanceLabel, { color: colors.primary || "#2F6CD4" }]} numberOfLines={1}>Used</Text>
+              <View style={[styles.allowanceCol, { backgroundColor: colors.primaryContainer || "#EADDFF" }]}>
+                <Text style={[styles.allowanceNum, { color: colors.primary || "#6750A4" }]} numberOfLines={1}>{leaveBalance.used}</Text>
+                <Text style={[styles.allowanceLabel, { color: colors.primary || "#6750A4" }]} numberOfLines={1}>Used</Text>
               </View>
 
               <View style={[styles.allowanceCol, { backgroundColor: "#E8F5E9" }]}>

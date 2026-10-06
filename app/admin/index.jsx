@@ -593,13 +593,13 @@ const AdminHeader = React.memo(function AdminHeader({
               <MenuCard
                 title={t("admin.academicYear", "Academic Year")}
                 icon="calendar-today"
-                color={colors.primary || "#2F6CD4"}
+                color={colors.primary || "#6750A4"}
                 onPress={() => router.push("/admin/academic-year")}
               />
               <MenuCard
                 title={t("admin.subjects", "Subjects")}
                 icon="menu-book"
-                color="#2F6CD4"
+                color={colors.tertiary || "#7D5260"}
                 onPress={() => router.push("/admin/subjects")}
               />
             </View>
@@ -615,7 +615,7 @@ const AdminHeader = React.memo(function AdminHeader({
             <MenuCard
               title={t("admin.teacherSubjects", "Teacher Subjects")}
               icon="assignment-ind"
-              color="#2F6CD4"
+              color={colors.primary || "#6750A4"}
               onPress={() => router.push("/admin/teacher-subjects")}
             />
           </View>
@@ -630,7 +630,7 @@ const AdminHeader = React.memo(function AdminHeader({
             <MenuCard
               title={t("admin.timetable", "Timetable")}
               icon="schedule"
-              color="#2F6CD4"
+              color={colors.primary || "#6750A4"}
               onPress={() => router.push("/admin/timetable")}
             />
             <MenuCard
@@ -645,6 +645,12 @@ const AdminHeader = React.memo(function AdminHeader({
               color="#0284C7"
               onPress={() => router.push("/admin/exam-analytics")}
             />
+            <MenuCard
+              title={t("admin.studentRatings", "Student Ratings")}
+              icon="star-rate"
+              color="#16A34A"
+              onPress={() => router.push("/admin/student-ratings")}
+            />
           </View>
         </View>
 
@@ -657,7 +663,7 @@ const AdminHeader = React.memo(function AdminHeader({
             <MenuCard
               title={t("admin.fees", "Fees")}
               icon="attach-money"
-              color={colors.primary || "#2F6CD4"}
+              color={colors.primary || "#6750A4"}
               onPress={() => router.push("/admin/fees")}
             />
           </View>
@@ -678,7 +684,7 @@ const AdminHeader = React.memo(function AdminHeader({
             <MenuCard
               title={t("admin.broadcast", "Broadcast")}
               icon="campaign"
-              color="#2F6CD4"
+              color={colors.primary || "#6750A4"}
               onPress={() => router.push("/admin/send-notification")}
             />
             <MenuCard
@@ -817,7 +823,7 @@ const AdminHeader = React.memo(function AdminHeader({
                   paddingVertical: 8,
                   backgroundColor:
                     roleFilter === role
-                      ? colors.primaryContainer || "#E0ECFF"
+                      ? colors.primaryContainer || "#EADDFF"
                       : colors.surfaceContainerLow || colors.cardBackground,
                   borderRadius: 20,
                   borderWidth: 1,

@@ -32,8 +32,8 @@ import {
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-// Material 3 Expressive vibrant gradient colors for unseen stories (SGV Brand Blue)
-const UNSEEN_GRADIENT = ["#2F6CD4", "#4D83E8", "#60A5FA"];
+// Material 3 Expressive vibrant gradient colors for unseen stories (Standard M3 Purple)
+const UNSEEN_GRADIENT = ["#6750A4", "#9A82DB", "#D0BCFF"];
 const OFFICIAL_GRADIENT = ["#0891B2", "#06B6D4", "#22D3EE"];
 const ACHIEVEMENT_GRADIENT = ["#F59E0B", "#D97706", "#FCD34D"];
 
@@ -224,7 +224,7 @@ const StoryBubble = memo(
                     ? "#0891B2"
                     : isAchievement
                     ? "#F59E0B"
-                    : colors.primary || "#2F6CD4",
+                    : colors.primary || "#6750A4",
                   borderColor: colors.background,
                 },
               ]}
@@ -352,7 +352,7 @@ const VibeStoriesTray = ({ onOpenCreate, hideHeader = false }) => {
         title: "SGV Official Broadcasts",
         stories: officialVibes,
         isOfficial: true,
-        badgeColor: "#2F6CD4",
+        badgeColor: colors.primary || "#6750A4",
       });
     }
 
@@ -374,7 +374,7 @@ const VibeStoriesTray = ({ onOpenCreate, hideHeader = false }) => {
         author: story.author,
         stories: story.vibes,
         badgeColor:
-          story.author?.role === "teacher" ? "#2F6CD4" : "#10B981",
+          story.author?.role === "teacher" ? colors.primary || "#6750A4" : colors.tertiary || "#7D5260",
       });
     });
 
@@ -456,7 +456,7 @@ const VibeStoriesTray = ({ onOpenCreate, hideHeader = false }) => {
             ? "1 live"
             : `${officialVibes.length} live`,
         icon: "school",
-        ringColor: "#2F6CD4",
+        ringColor: colors.primary || "#6750A4",
         isSpecial: true,
         isOfficial: true,
         isViewed: isOfficialViewed,
@@ -505,7 +505,7 @@ const VibeStoriesTray = ({ onOpenCreate, hideHeader = false }) => {
         subtitle: role,
         imageUri: story.author?.profilePhoto || story.latestImage,
         ringColor:
-          story.author?.role === "teacher" ? "#2F6CD4" : colors.primary,
+          story.author?.role === "teacher" ? colors.primary || "#6750A4" : colors.tertiary || "#7D5260",
         isSpecial: false,
         isViewed: isStoryViewed,
         badgeIcon: story.author?.role === "teacher" ? "school" : undefined,

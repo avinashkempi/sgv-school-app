@@ -503,14 +503,14 @@ export default function ExamTimeline({ exams = [], onExamPress }) {
 
   const getExamTypeColor = (type) => {
     const typeColors = {
-      FA1: "#2563EB",
+      FA1: colors.primary || "#6750A4",
       FA2: "#0284C7",
       SA1: "#7C3AED",
       FA3: "#D97706",
       FA4: "#DB2777",
       SA2: "#DC2626",
     };
-    return typeColors[type] || "#2563EB";
+    return typeColors[type] || colors.primary || "#6750A4";
   };
 
   if (!exams || exams.length === 0) {

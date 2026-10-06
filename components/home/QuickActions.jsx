@@ -34,8 +34,8 @@ const QuickActions = memo(({ role = "student", style }) => {
             label: "Enter Marks",
             icon: "edit-note",
             route: "/teacher/marks-entry",
-            accent: colors.brandBlue || colors.secondary,
-            bg: colors.brandBlueContainer || "#EBF2FF",
+            accent: colors.tertiary || "#7D5260",
+            bg: colors.tertiaryContainer || "#FFD8E4",
           },
           {
             id: "schedule",

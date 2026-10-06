@@ -16,7 +16,7 @@ import { useNetworkStatus } from "../NetworkStatusProvider";
 import OfflineQueueModal from "./OfflineQueueModal";
 
 export default function OfflineSyncBar() {
-  const { mode } = useTheme();
+  const { mode, colors } = useTheme();
   const queryClient = useQueryClient();
   const { pendingCount, failedCount, totalCount, isSyncing, syncNow } =
     useOfflineQueue(queryClient);
@@ -50,11 +50,11 @@ export default function OfflineSyncBar() {
   let statusText = `${pendingCount} action${pendingCount === 1 ? "" : "s"} saved offline`;
 
   if (isSyncing) {
-    bannerBg = isDark ? "#1E3A8A" : "#EFF6FF";
-    borderColor = isDark ? "#2563EB" : "#BFDBFE";
-    textColor = isDark ? "#DBEAFE" : "#1E40AF";
+    bannerBg = colors.primaryContainer || (isDark ? "#4F378B" : "#EADDFF");
+    borderColor = colors.primary || (isDark ? "#D0BCFF" : "#6750A4");
+    textColor = colors.onPrimaryContainer || (isDark ? "#EADDFF" : "#21005D");
     iconName = "sync";
-    iconColor = isDark ? "#93C5FD" : "#2563EB";
+    iconColor = colors.primary || (isDark ? "#D0BCFF" : "#6750A4");
     statusText = `Syncing ${pendingCount} offline action${pendingCount === 1 ? "" : "s"}...`;
   } else if (failedCount > 0) {
     bannerBg = isDark ? "#3B1111" : "#FEF2F2";

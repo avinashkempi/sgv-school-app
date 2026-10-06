@@ -153,7 +153,7 @@ export default function AssessmentDashboard() {
                     localStyles.chip,
                     {
                       backgroundColor: isSelected
-                        ? colors.primaryContainer || "#E0ECFF"
+                        ? colors.primaryContainer || "#EADDFF"
                         : colors.surfaceContainerLow || colors.cardBackground,
                       borderColor: isSelected
                         ? colors.primary
@@ -207,7 +207,7 @@ export default function AssessmentDashboard() {
                         localStyles.chip,
                         {
                           backgroundColor: isSelected
-                            ? colors.primaryContainer || "#E0ECFF"
+                            ? colors.primaryContainer || "#EADDFF"
                             : colors.surfaceContainerLow || colors.cardBackground,
                           borderColor: isSelected
                             ? colors.primary

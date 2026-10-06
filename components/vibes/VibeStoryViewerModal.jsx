@@ -265,6 +265,19 @@ const VibeStoryViewerModal = ({
     }
   }, [currentVibe]);
 
+  // Safety fallback so slow or buffering story videos do not block progress indefinitely
+  useEffect(() => {
+    if (visible && currentVibe) {
+      const isVid = currentVibe.images?.[0]?.type === "video";
+      if (isVid && !mediaLoaded) {
+        const timer = setTimeout(() => {
+          setMediaLoaded(true);
+        }, 3500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [visible, currentVibe, storyIndex, mediaLoaded]);
+
   // Record view of current vibe (server-side & client-side)
   useEffect(() => {
     if (
@@ -680,9 +693,9 @@ const VibeStoryViewerModal = ({
       : currentVibe.category === "life"
       ? "#0284C7"
       : currentVibe.category === "official"
-      ? "#2F6CD4"
+      ? (colors.primary || "#6750A4")
       : currentVibe.postAs === "school"
-      ? "#2F6CD4"
+      ? (colors.primary || "#6750A4")
       : "#10B981");
 
   const authorDisplayName =
@@ -733,7 +746,11 @@ const VibeStoryViewerModal = ({
                     isActiveSlide={true}
                     onDoubleTapLike={handleToggleLike}
                     disableTapControls={true}
-                    onDurationDetected={(dur) => setDetectedVideoDuration(dur)}
+                    onReady={() => setMediaLoaded(true)}
+                    onDurationDetected={(dur) => {
+                      setDetectedVideoDuration(dur);
+                      setMediaLoaded(true);
+                    }}
                   />
                 </>
               ) : optimizedImage ? (
@@ -773,8 +790,8 @@ const VibeStoryViewerModal = ({
                 </View>
               )}
 
-              {/* Shimmer loading spinner while image buffers */}
-              {!isVideo && !mediaLoaded && (
+              {/* Shimmer loading spinner while image or video buffers */}
+              {!mediaLoaded && (
                 <View style={styles.mediaLoaderContainer}>
                   <ActivityIndicator size="large" color="#ffffff" />
                 </View>
@@ -811,7 +828,7 @@ const VibeStoryViewerModal = ({
                       showViewersModal ||
                       showMenuModal
                     }
-                    isMediaLoaded={isVideo || mediaLoaded}
+                    isMediaLoaded={mediaLoaded}
                     durationMs={
                       isVideo && detectedVideoDuration && detectedVideoDuration > 0
                         ? detectedVideoDuration
@@ -1455,7 +1472,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: "#2F6CD4",
+    backgroundColor: "#6750A4",
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,

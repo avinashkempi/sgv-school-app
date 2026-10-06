@@ -52,7 +52,7 @@ const EmptyState = memo(({
           width: 68,
           height: 68,
           borderRadius: RADIUS.full || 34,
-          backgroundColor: colors.primaryContainer || colors.surfaceContainerHigh || "#E0ECFF",
+          backgroundColor: colors.primaryContainer || colors.surfaceContainerHigh || "#EADDFF",
           alignItems: "center",
           justifyContent: "center",
           marginBottom: SPACING.md || 16,
@@ -63,7 +63,7 @@ const EmptyState = memo(({
         <MaterialIcons
           name={icon}
           size={32}
-          color={colors.primary || "#2F6CD4"}
+          color={colors.primary || "#6750A4"}
         />
       </View>
 
@@ -159,7 +159,7 @@ const LoadingState = memo(({ message, style }) => {
           elevation: 2,
         }}
       >
-        <ActivityIndicator size="small" color={colors.primary || "#2F6CD4"} />
+        <ActivityIndicator size="small" color={colors.primary || "#6750A4"} />
       </View>
 
       <Text

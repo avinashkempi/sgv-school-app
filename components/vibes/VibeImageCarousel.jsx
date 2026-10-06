@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -29,7 +29,6 @@ import {
   getVideoPosterUrl,
 } from "../../utils/cloudinaryUpload";
 import useNetworkQuality from "../../hooks/useNetworkQuality";
-import useDoubleTap from "../../hooks/useDoubleTap";
 import VibeVideoPlayer from "./VibeVideoPlayer";
 import PinchableLightboxModal from "../ui/PinchableLightboxModal";
 
@@ -199,20 +198,50 @@ const VibeImageCarousel = React.memo(
       );
     }, [heartScale, heartOpacity]);
 
-    const handleDoubleTap = useCallback(() => {
-      triggerHeartAnimation();
-      onDoubleTapLike?.();
-    }, [triggerHeartAnimation, onDoubleTapLike]);
-
-    const handlePress = useDoubleTap(handleDoubleTap, null, 280);
-
-    const handleLongPress = useCallback(
+    const openFullscreen = useCallback(
       (index) => {
-        if (formattedImages[index]?.type === "video") return;
         setSelectedImageIndex(index);
         setLightboxVisible(true);
       },
-      [formattedImages]
+      []
+    );
+
+    const handlePressImage = useCallback(
+      (index) => {
+        let lastTap = 0;
+        let timer = null;
+        return () => {
+          const now = Date.now();
+          if (now - lastTap < 280) {
+            if (timer) {
+              clearTimeout(timer);
+              timer = null;
+            }
+            lastTap = 0;
+            triggerHeartAnimation();
+            onDoubleTapLike?.();
+          } else {
+            lastTap = now;
+            timer = setTimeout(() => {
+              openFullscreen(index);
+              timer = null;
+            }, 280);
+          }
+        };
+      },
+      [triggerHeartAnimation, onDoubleTapLike, openFullscreen]
+    );
+
+    // Cached click handlers per item index
+    const pressHandlers = useRef(new Map());
+    const getPressHandler = useCallback(
+      (index) => {
+        if (!pressHandlers.current.has(index)) {
+          pressHandlers.current.set(index, handlePressImage(index));
+        }
+        return pressHandlers.current.get(index);
+      },
+      [handlePressImage]
     );
 
     const animatedHeartStyle = useAnimatedStyle(() => ({
@@ -228,23 +257,36 @@ const VibeImageCarousel = React.memo(
       return (
         <View style={[styles.container, { width, height: carouselHeight }]}>
           {singleItem.type === "video" ? (
-            <VibeVideoPlayer
-              url={singleItem.url}
-              thumbnailUrl={singleItem.thumbnailUrl}
-              width={width}
-              height={carouselHeight}
-              aspectRatio={singleItem.aspectRatio || primaryAspectRatio}
-              isVisible={isVisible}
-              isActiveSlide={true}
-              onDoubleTapLike={onDoubleTapLike}
-              onDimensionsDetected={handleDimensionsDetected}
-            />
+            <View style={{ width, height: carouselHeight }}>
+              <VibeVideoPlayer
+                url={singleItem.url}
+                thumbnailUrl={singleItem.thumbnailUrl}
+                width={width}
+                height={carouselHeight}
+                aspectRatio={singleItem.aspectRatio || primaryAspectRatio}
+                isVisible={isVisible}
+                isActiveSlide={true}
+                onDoubleTapLike={onDoubleTapLike}
+                onDimensionsDetected={handleDimensionsDetected}
+              />
+              <Pressable
+                onPress={() => openFullscreen(0)}
+                style={styles.videoExpandButton}
+                hitSlop={8}
+                accessibilityLabel="Open video full screen"
+                accessibilityRole="button"
+              >
+                <MaterialIcons name="fullscreen" size={20} color="#ffffff" />
+              </Pressable>
+            </View>
           ) : (
             <Pressable
-              onPress={() => handlePress(0)}
-              onLongPress={() => handleLongPress(0)}
+              onPress={getPressHandler(0)}
+              onLongPress={() => openFullscreen(0)}
               delayLongPress={350}
               style={{ width, height: carouselHeight }}
+              accessibilityRole="button"
+              accessibilityLabel="View photo full screen"
             >
               <CarouselImage
                 url={singleItem.url}
@@ -268,11 +310,10 @@ const VibeImageCarousel = React.memo(
           {/* Full-Screen Pinchable & Dismissible Lightbox Modal */}
           <PinchableLightboxModal
             visible={lightboxVisible}
-            imageUrl={getOptimizedCloudinaryUrl(
-              singleItem.url,
-              { width: 1440 }
-            )}
+            media={formattedImages}
+            initialIndex={selectedImageIndex}
             onClose={() => setLightboxVisible(false)}
+            onDoubleTapLike={onDoubleTapLike}
           />
         </View>
       );
@@ -286,28 +327,41 @@ const VibeImageCarousel = React.memo(
           renderItem={({ item, index }) => {
             if (item.type === "video") {
               return (
-                <VibeVideoPlayer
-                  url={item.url}
-                  thumbnailUrl={item.thumbnailUrl}
-                  width={width}
-                  height={carouselHeight}
-                  aspectRatio={item.aspectRatio || primaryAspectRatio}
-                  isVisible={isVisible}
-                  isActiveSlide={activeSlideIndex === index}
-                  onDoubleTapLike={onDoubleTapLike}
-                  onDimensionsDetected={
-                    index === 0 ? handleDimensionsDetected : undefined
-                  }
-                />
+                <View style={{ width, height: carouselHeight }}>
+                  <VibeVideoPlayer
+                    url={item.url}
+                    thumbnailUrl={item.thumbnailUrl}
+                    width={width}
+                    height={carouselHeight}
+                    aspectRatio={item.aspectRatio || primaryAspectRatio}
+                    isVisible={isVisible}
+                    isActiveSlide={activeSlideIndex === index}
+                    onDoubleTapLike={onDoubleTapLike}
+                    onDimensionsDetected={
+                      index === 0 ? handleDimensionsDetected : undefined
+                    }
+                  />
+                  <Pressable
+                    onPress={() => openFullscreen(index)}
+                    style={styles.videoExpandButton}
+                    hitSlop={8}
+                    accessibilityLabel="Open video full screen"
+                    accessibilityRole="button"
+                  >
+                    <MaterialIcons name="fullscreen" size={20} color="#ffffff" />
+                  </Pressable>
+                </View>
               );
             }
 
             return (
               <Pressable
-                onPress={() => handlePress(index)}
-                onLongPress={() => handleLongPress(index)}
+                onPress={getPressHandler(index)}
+                onLongPress={() => openFullscreen(index)}
                 delayLongPress={350}
                 style={{ width, height: carouselHeight }}
+                accessibilityRole="button"
+                accessibilityLabel="View photo full screen"
               >
                 <CarouselImage
                   url={item.url}
@@ -375,11 +429,10 @@ const VibeImageCarousel = React.memo(
         {/* Full-Screen Pinchable & Dismissible Lightbox Modal */}
         <PinchableLightboxModal
           visible={lightboxVisible}
-          imageUrl={getOptimizedCloudinaryUrl(
-            formattedImages[selectedImageIndex]?.url,
-            { width: 1440 }
-          )}
+          media={formattedImages}
+          initialIndex={selectedImageIndex}
           onClose={() => setLightboxVisible(false)}
+          onDoubleTapLike={onDoubleTapLike}
         />
       </View>
     );
@@ -572,6 +625,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     zIndex: 10,
+  },
+  videoExpandButton: {
+    position: "absolute",
+    top: 14,
+    right: 14,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: "rgba(0, 0, 0, 0.65)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
   },
   imageCountBadge: {
     position: "absolute",

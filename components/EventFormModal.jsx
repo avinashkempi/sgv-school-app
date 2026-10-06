@@ -217,9 +217,9 @@ export default function EventFormModal({
                 styles.dateBadge,
                 {
                   backgroundColor: colors.primaryContainer || (isDark
-                    ? "rgba(47, 108, 212, 0.15)"
-                    : "#E0ECFF"),
-                  borderColor: (colors.primary || "#2F6CD4") + "40",
+                    ? "rgba(208, 188, 255, 0.15)"
+                    : "#EADDFF"),
+                  borderColor: (colors.primary || "#6750A4") + "40",
                 },
               ]}
             >

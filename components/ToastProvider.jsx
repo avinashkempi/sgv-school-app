@@ -121,8 +121,8 @@ function ToastItem({ msg, type, _onDismiss }) {
       default:
         return {
           icon: "info",
-          accentColor: themeColors.brandBlue || themeColors.secondary || "#2F6CD4",
-          bgTone: themeColors.brandBlueContainer || "rgba(47, 108, 212, 0.12)",
+          accentColor: themeColors.info || themeColors.primary || "#6750A4",
+          bgTone: themeColors.infoContainer || themeColors.primaryContainer || "rgba(103, 80, 164, 0.12)",
         };
     }
   };

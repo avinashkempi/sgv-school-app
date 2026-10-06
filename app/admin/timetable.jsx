@@ -542,7 +542,7 @@ export default function AdminTimetableScreen() {
                     paddingHorizontal: 20,
                     paddingVertical: 10,
                     backgroundColor: isSelected
-                      ? colors.primaryContainer || "#E0ECFF"
+                      ? colors.primaryContainer || "#EADDFF"
                       : colors.surfaceContainerLow || colors.cardBackground,
                     borderRadius: 20,
                     borderWidth: 1,
@@ -586,7 +586,7 @@ export default function AdminTimetableScreen() {
                         paddingHorizontal: 16,
                         paddingVertical: 8,
                         backgroundColor: isDaySelected
-                          ? colors.primaryContainer || "#E0ECFF"
+                          ? colors.primaryContainer || "#EADDFF"
                           : colors.surfaceContainerLow || "transparent",
                         borderRadius: 12,
                         borderWidth: 1,

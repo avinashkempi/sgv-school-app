@@ -48,8 +48,8 @@ const getCategoryConfig = (type, colors) => {
     case "Homework":
       return {
         icon: "assignment",
-        color: "#2F6CD4", // SGV brand blue
-        bgLight: "#EBF2FF",
+        color: colors.primary || "#6750A4", // Standard M3 Purple
+        bgLight: colors.primaryContainer || "#EADDFF",
         label: "Homework",
       };
     case "Exam":
@@ -76,15 +76,15 @@ const getCategoryConfig = (type, colors) => {
     case "Event":
       return {
         icon: "celebration",
-        color: colors.primary || "#2F6CD4",
-        bgLight: colors.primaryContainer || "#E0ECFF",
+        color: colors.tertiary || "#7D5260",
+        bgLight: colors.tertiaryContainer || "#FFD8E4",
         label: "Events",
       };
     default:
       return {
         icon: "notifications-active",
-        color: colors.primary || "#2F6CD4",
-        bgLight: colors.primaryContainer || "#E0ECFF",
+        color: colors.primary || "#6750A4",
+        bgLight: colors.primaryContainer || "#EADDFF",
         label: "General",
       };
   }

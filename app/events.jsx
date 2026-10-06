@@ -133,8 +133,8 @@ const DayRenderer = React.memo(
               borderWidth: 1.5,
               borderColor: colors.primary,
               backgroundColor: isDark
-                ? "rgba(47, 108, 212, 0.15)"
-                : (colors.primaryContainer || "#E0ECFF"),
+                ? "rgba(208, 188, 255, 0.20)"
+                : (colors.primaryContainer || "#EADDFF"),
               borderRadius: 14,
             },
         ]}
@@ -245,12 +245,12 @@ const EventCard = React.memo(
         ? "rgba(245, 158, 11, 0.16)"
         : isHoliday
         ? "rgba(239, 68, 68, 0.16)"
-        : "rgba(47, 108, 212, 0.15)"
+        : "rgba(208, 188, 255, 0.20)"
       : isSchoolEvent
       ? "rgba(245, 158, 11, 0.10)"
       : isHoliday
       ? "rgba(239, 68, 68, 0.08)"
-      : (colors.primaryContainer || "#E0ECFF");
+      : (colors.primaryContainer || "#EADDFF");
 
     const tileBorder = isDark
       ? isSchoolEvent
@@ -1095,8 +1095,8 @@ export default function EventsScreen() {
                           styles.todayChip,
                           {
                             backgroundColor: isDark
-                              ? "rgba(47, 108, 212, 0.18)"
-                              : (colors.primaryContainer || "#E0ECFF"),
+                              ? "rgba(208, 188, 255, 0.24)"
+                              : (colors.primaryContainer || "#EADDFF"),
                           },
                         ]}
                       >

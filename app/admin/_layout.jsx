@@ -39,6 +39,12 @@ export default function AdminLayout() {
             animation: "slide_from_right",
           }}
         />
+        <Stack.Screen
+          name="student-ratings"
+          options={{
+            animation: "slide_from_right",
+          }}
+        />
       </Stack>
     </RoleGuard>
   );
