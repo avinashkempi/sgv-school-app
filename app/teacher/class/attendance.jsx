@@ -6,8 +6,10 @@ import {
   Pressable,
   ActivityIndicator,
   RefreshControl,
+  Modal,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme, FONTS, FONT_SIZES } from "../../../theme";
 import apiConfig from "../../../config/apiConfig";
@@ -45,6 +47,7 @@ export default function MarkAttendanceScreen() {
     initialDate ? new Date(initialDate + "T00:00:00") : new Date()
   );
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [confirmModalVisible, setConfirmModalVisible] = useState(false);
   const [students, setStudents] = useState([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   // eslint-disable-next-line no-unused-vars
@@ -197,6 +200,7 @@ export default function MarkAttendanceScreen() {
   }, [refetch]);
 
   const handleStatusChange = (studentId, newStatus) => {
+    Haptics.selectionAsync().catch(() => {});
     setStudents((prevStudents) =>
       prevStudents.map((s) =>
         s.student._id === studentId ? { ...s, status: newStatus } : s
@@ -206,6 +210,7 @@ export default function MarkAttendanceScreen() {
   };
 
   const handleMarkAllPresent = () => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     setStudents((prevStudents) =>
       prevStudents.map((s) =>
         s.onLeave ? { ...s, status: "absent" } : { ...s, status: "present" }
@@ -214,15 +219,8 @@ export default function MarkAttendanceScreen() {
     setHasUnsavedChanges(true);
   };
 
-  const handleSaveAttendance = () => {
-    const attendanceRecords = students
-      .filter((s) => s.status !== null)
-      .map((s) => ({
-        studentId: s.student._id,
-        status: s.status,
-        remarks: s.remarks || "",
-      }));
-
+  const handleRequestSave = () => {
+    const attendanceRecords = students.filter((s) => s.status !== null);
     if (attendanceRecords.length === 0) {
       showToast(
         t(
@@ -233,6 +231,18 @@ export default function MarkAttendanceScreen() {
       );
       return;
     }
+    setConfirmModalVisible(true);
+  };
+
+  const handleConfirmSave = () => {
+    setConfirmModalVisible(false);
+    const attendanceRecords = students
+      .filter((s) => s.status !== null)
+      .map((s) => ({
+        studentId: s.student._id,
+        status: s.status,
+        remarks: s.remarks || "",
+      }));
 
     saveMutation.mutate({
       classId,
@@ -255,17 +265,21 @@ export default function MarkAttendanceScreen() {
         return colors.success;
       case "absent":
         return colors.error;
+      case "late":
+        return colors.warning || "#D97706";
       default:
         return colors.textSecondary;
     }
   };
 
-  const getStatusIcon = (status) => {
+  const _getStatusIcon = (status) => {
     switch (status) {
       case "present":
         return "check-circle";
       case "absent":
         return "cancel";
+      case "late":
+        return "schedule";
       default:
         return "radio-button-unchecked";
     }
@@ -486,8 +500,12 @@ export default function MarkAttendanceScreen() {
             <View style={{ flexDirection: "row", gap: 10, marginTop: 16 }}>
               <Pressable
                 onPress={handleMarkAllPresent}
+                accessibilityRole="button"
+                accessibilityLabel="Mark all students as present"
+                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                 style={({ pressed }) => ({
                   flex: 1,
+                  minHeight: 48,
                   backgroundColor: colors.success + "15",
                   borderWidth: 1.5,
                   borderColor: colors.success,
@@ -517,10 +535,14 @@ export default function MarkAttendanceScreen() {
               </Pressable>
 
               <Pressable
-                onPress={handleSaveAttendance}
+                onPress={handleRequestSave}
                 disabled={saving}
+                accessibilityRole="button"
+                accessibilityLabel="Save Attendance"
+                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                 style={({ pressed }) => ({
                   flex: 1.5,
+                  minHeight: 48,
                   backgroundColor: colors.primary,
                   borderRadius: 12,
                   paddingVertical: 12,
@@ -552,7 +574,7 @@ export default function MarkAttendanceScreen() {
                           width: 8,
                           height: 8,
                           borderRadius: 4,
-                          backgroundColor: "#FF9800",
+                          backgroundColor: "#F59E0B",
                           marginLeft: 2,
                         }}
                       />
@@ -563,114 +585,197 @@ export default function MarkAttendanceScreen() {
             </View>
           )}
 
-          {/* Live Counter */}
+          {/* Sticky Summary Card & Visual Progress Bar */}
           {!isHoliday && !isLoading && students.length > 0 && (
             <View
               style={{
-                flexDirection: "row",
-                justifyContent: "center",
-                gap: 16,
-                marginTop: 12,
-                marginBottom: 4,
+                backgroundColor: colors.surface,
+                borderRadius: 14,
+                padding: 14,
+                marginTop: 14,
+                marginBottom: 6,
+                borderWidth: 1,
+                borderColor: colors.outlineVariant || colors.border,
               }}
             >
               <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
-              >
-                <View
-                  style={{
-                    width: 10,
-                    height: 10,
-                    borderRadius: 5,
-                    backgroundColor: colors.success,
-                  }}
-                />
-                <Text
-                  style={{
-                    fontSize: FONT_SIZES.sm,
-                    fontFamily: FONTS.bold,
-                    color: colors.success,
-                  }}
-                >
-                  {presentCount} P
-                </Text>
-              </View>
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
-              >
-                <View
-                  style={{
-                    width: 10,
-                    height: 10,
-                    borderRadius: 5,
-                    backgroundColor: colors.error,
-                  }}
-                />
-                <Text
-                  style={{
-                    fontSize: FONT_SIZES.sm,
-                    fontFamily: FONTS.bold,
-                    color: colors.error,
-                  }}
-                >
-                  {absentCount} A
-                </Text>
-              </View>
-              {lateCount > 0 && (
-                <View
-                  style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
-                >
-                  <View
-                    style={{
-                      width: 10,
-                      height: 10,
-                      borderRadius: 5,
-                      backgroundColor: "#FF9800",
-                    }}
-                  />
-                  <Text
-                    style={{
-                      fontSize: FONT_SIZES.sm,
-                      fontFamily: FONTS.bold,
-                      color: "#FF9800",
-                    }}
-                  >
-                    {lateCount} L
-                  </Text>
-                </View>
-              )}
-              {unmarkedCount > 0 && (
-                <View
-                  style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
-                >
-                  <View
-                    style={{
-                      width: 10,
-                      height: 10,
-                      borderRadius: 5,
-                      backgroundColor: "#FF9800",
-                    }}
-                  />
-                  <Text
-                    style={{
-                      fontSize: FONT_SIZES.sm,
-                      fontFamily: FONTS.bold,
-                      color: "#FF9800",
-                    }}
-                  >
-                    {unmarkedCount} ?
-                  </Text>
-                </View>
-              )}
-              <Text
                 style={{
-                  fontSize: FONT_SIZES.sm,
-                  fontFamily: FONTS.bold,
-                  color: colors.textSecondary,
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 10,
                 }}
               >
-                / {students.length}
-              </Text>
+                <Text
+                  style={{
+                    fontSize: FONT_SIZES.xs,
+                    fontFamily: FONTS.bold,
+                    color: colors.onSurfaceVariant,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  Summary ({students.length} Students)
+                </Text>
+                {hasUnsavedChanges && (
+                  <Text
+                    style={{
+                      fontSize: FONT_SIZES.micro,
+                      fontFamily: FONTS.medium,
+                      color: colors.warning || "#D97706",
+                    }}
+                  >
+                    ● Unsaved changes
+                  </Text>
+                )}
+              </View>
+
+              {/* Progress Breakdown Bar */}
+              <View
+                style={{
+                  height: 8,
+                  borderRadius: 4,
+                  backgroundColor: colors.surfaceVariant || "#E2E8F0",
+                  flexDirection: "row",
+                  overflow: "hidden",
+                  marginBottom: 12,
+                }}
+              >
+                {presentCount > 0 && (
+                  <View
+                    style={{
+                      flex: presentCount,
+                      backgroundColor: colors.success,
+                    }}
+                  />
+                )}
+                {lateCount > 0 && (
+                  <View
+                    style={{
+                      flex: lateCount,
+                      backgroundColor: colors.warning || "#D97706",
+                    }}
+                  />
+                )}
+                {absentCount > 0 && (
+                  <View
+                    style={{
+                      flex: absentCount,
+                      backgroundColor: colors.error,
+                    }}
+                  />
+                )}
+                {unmarkedCount > 0 && (
+                  <View
+                    style={{
+                      flex: unmarkedCount,
+                      backgroundColor: colors.outlineVariant || "#CBD5E1",
+                    }}
+                  />
+                )}
+              </View>
+
+              {/* Counts Grid */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <View style={{ alignItems: "center", flex: 1 }}>
+                  <Text
+                    style={{
+                      fontSize: FONT_SIZES.md,
+                      fontFamily: FONTS.bold,
+                      color: colors.success,
+                    }}
+                  >
+                    {presentCount}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: FONT_SIZES.micro,
+                      fontFamily: FONTS.medium,
+                      color: colors.onSurfaceVariant,
+                    }}
+                  >
+                    Present ({Math.round((presentCount / (students.length || 1)) * 100)}%)
+                  </Text>
+                </View>
+
+                <View style={{ width: 1, height: 20, backgroundColor: colors.outlineVariant || "#E2E8F0" }} />
+
+                <View style={{ alignItems: "center", flex: 1 }}>
+                  <Text
+                    style={{
+                      fontSize: FONT_SIZES.md,
+                      fontFamily: FONTS.bold,
+                      color: colors.error,
+                    }}
+                  >
+                    {absentCount}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: FONT_SIZES.micro,
+                      fontFamily: FONTS.medium,
+                      color: colors.onSurfaceVariant,
+                    }}
+                  >
+                    Absent ({Math.round((absentCount / (students.length || 1)) * 100)}%)
+                  </Text>
+                </View>
+
+                <View style={{ width: 1, height: 20, backgroundColor: colors.outlineVariant || "#E2E8F0" }} />
+
+                <View style={{ alignItems: "center", flex: 1 }}>
+                  <Text
+                    style={{
+                      fontSize: FONT_SIZES.md,
+                      fontFamily: FONTS.bold,
+                      color: colors.warning || "#D97706",
+                    }}
+                  >
+                    {lateCount}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: FONT_SIZES.micro,
+                      fontFamily: FONTS.medium,
+                      color: colors.onSurfaceVariant,
+                    }}
+                  >
+                    Late
+                  </Text>
+                </View>
+
+                {unmarkedCount > 0 && (
+                  <>
+                    <View style={{ width: 1, height: 20, backgroundColor: colors.outlineVariant || "#E2E8F0" }} />
+                    <View style={{ alignItems: "center", flex: 1 }}>
+                      <Text
+                        style={{
+                          fontSize: FONT_SIZES.md,
+                          fontFamily: FONTS.bold,
+                          color: colors.onSurfaceVariant,
+                        }}
+                      >
+                        {unmarkedCount}
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: FONT_SIZES.micro,
+                          fontFamily: FONTS.medium,
+                          color: colors.onSurfaceVariant,
+                        }}
+                      >
+                        Unmarked
+                      </Text>
+                    </View>
+                  </>
+                )}
+              </View>
             </View>
           )}
 
@@ -683,17 +788,26 @@ export default function MarkAttendanceScreen() {
                   justifyContent: "space-between",
                   alignItems: "center",
                   marginTop: 12,
-                  marginBottom: 12,
+                  marginBottom: 10,
                 }}
               >
                 <Text
                   style={{
-                    fontSize: FONT_SIZES.lg,
+                    fontSize: FONT_SIZES.md,
                     fontFamily: FONTS.bold,
-                    color: colors.textPrimary,
+                    color: colors.onSurface,
                   }}
                 >
                   {t("common.students", "Students")} ({students.length})
+                </Text>
+                <Text
+                  style={{
+                    fontSize: FONT_SIZES.xs,
+                    fontFamily: FONTS.regular,
+                    color: colors.onSurfaceVariant,
+                  }}
+                >
+                  Select P / A / L
                 </Text>
               </View>
 
@@ -714,39 +828,32 @@ export default function MarkAttendanceScreen() {
                     ? getStatusColor(studentData.status)
                     : null;
                   const borderColor = studentData.onLeave
-                    ? "#FF9800"
+                    ? (colors.warning || "#D97706")
                     : statusColor;
 
                   return (
-                    <Pressable
+                    <View
                       key={studentData.student._id}
-                      onPress={() => {
-                        const newStatus =
-                          studentData.status === "present"
-                            ? "absent"
-                            : "present";
-                        handleStatusChange(studentData.student._id, newStatus);
-                      }}
-                      style={({ pressed }) => ({
-                        backgroundColor: colors.cardBackground,
-                        borderRadius: 12,
+                      style={{
+                        backgroundColor: colors.surface,
+                        borderRadius: 14,
                         padding: 12,
-                        marginBottom: 8,
-                        elevation: 1,
-                        opacity: pressed ? 0.85 : 1,
+                        marginBottom: 10,
+                        borderWidth: 1,
+                        borderColor: colors.outlineVariant || colors.border,
                         ...(borderColor && {
                           borderLeftWidth: 4,
                           borderLeftColor: borderColor,
                         }),
-                      })}
+                      }}
                     >
-                      {/* Top row: name + status badge */}
+                      {/* Top row: name + info */}
                       <View
                         style={{
                           flexDirection: "row",
                           justifyContent: "space-between",
                           alignItems: "center",
-                          gap: 8,
+                          marginBottom: 10,
                         }}
                       >
                         <View
@@ -762,92 +869,53 @@ export default function MarkAttendanceScreen() {
                             photoUrl={studentData.student.profilePhoto}
                             name={formatUserName(studentData.student.name)}
                             role="student"
-                            size={34}
+                            size={36}
                           />
-                          <View
-                            style={{
-                              flex: 1,
-                              minWidth: 0,
-                              flexDirection: "row",
-                              alignItems: "center",
-                              gap: 8,
-                              flexWrap: "wrap",
-                            }}
-                          >
+                          <View style={{ flex: 1, minWidth: 0 }}>
                             <Text
                               style={{
                                 fontSize: FONT_SIZES.md,
                                 fontFamily: FONTS.semiBold,
-                                color: colors.textPrimary,
+                                color: colors.onSurface,
                               }}
                               numberOfLines={1}
                             >
                               {index + 1}. {formatUserName(studentData.student.name)}
                             </Text>
-                            {studentData.onLeave && (
-                              <View
+                            {studentData.student.rollNumber && (
+                              <Text
                                 style={{
-                                  backgroundColor: "#FF9800" + "20",
-                                  paddingHorizontal: 6,
-                                  paddingVertical: 1,
-                                  borderRadius: 6,
-                                  flexShrink: 0,
+                                  fontSize: FONT_SIZES.xs,
+                                  fontFamily: FONTS.regular,
+                                  color: colors.onSurfaceVariant,
                                 }}
                               >
-                                <Text
-                                  style={{
-                                    fontSize: FONT_SIZES.micro,
-                                    fontFamily: FONTS.bold,
-                                    color: "#FF9800",
-                                  }}
-                                >
-                                  {t("teacher.onLeave", "ON LEAVE")}
-                                </Text>
-                              </View>
+                                Roll: {studentData.student.rollNumber}
+                              </Text>
                             )}
                           </View>
                         </View>
-                        {studentData.status ? (
+
+                        {studentData.onLeave && (
                           <View
                             style={{
-                              backgroundColor:
-                                getStatusColor(studentData.status) + "20",
-                              paddingHorizontal: 10,
-                              paddingVertical: 4,
-                              borderRadius: 8,
-                              flexDirection: "row",
-                              alignItems: "center",
-                              gap: 4,
+                              backgroundColor: (colors.warning || "#D97706") + "20",
+                              paddingHorizontal: 8,
+                              paddingVertical: 3,
+                              borderRadius: 6,
                               flexShrink: 0,
                             }}
                           >
-                            <MaterialIcons
-                              name={getStatusIcon(studentData.status)}
-                              size={16}
-                              color={getStatusColor(studentData.status)}
-                            />
                             <Text
                               style={{
-                                fontSize: FONT_SIZES.sm,
+                                fontSize: FONT_SIZES.micro,
                                 fontFamily: FONTS.bold,
-                                color: getStatusColor(studentData.status),
-                                textTransform: "capitalize",
+                                color: colors.warning || "#D97706",
                               }}
                             >
-                              {studentData.status}
+                              {t("teacher.onLeave", "ON LEAVE")}
                             </Text>
                           </View>
-                        ) : (
-                          <Text
-                            style={{
-                              fontSize: FONT_SIZES.sm,
-                              fontFamily: FONTS.medium,
-                              color: colors.textSecondary,
-                              flexShrink: 0,
-                            }}
-                          >
-                            {t("teacher.tapToMark", "Tap to mark")}
-                          </Text>
                         )}
                       </View>
 
@@ -856,76 +924,177 @@ export default function MarkAttendanceScreen() {
                         <Text
                           style={{
                             fontSize: FONT_SIZES.xs,
-                            color: "#FF9800",
-                            marginTop: 4,
+                            color: colors.warning || "#D97706",
+                            marginBottom: 8,
                             fontFamily: FONTS.medium,
                           }}
                         >
-                          {t("common.reason", "Reason")}:{" "}
-                          {studentData.leaveReason}
+                          {t("common.reason", "Reason")}: {studentData.leaveReason}
                         </Text>
                       )}
 
-                      {/* Fine-tune P/A row — visible when status is set */}
-                      {studentData.status && (
-                        <View
-                          style={{ flexDirection: "row", gap: 6, marginTop: 8 }}
+                      {/* Segmented P / A / L Action Bar (Minimum 44pt touch targets) */}
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          gap: 8,
+                          backgroundColor: colors.surfaceVariant || "#F1F5F9",
+                          padding: 4,
+                          borderRadius: 10,
+                        }}
+                      >
+                        {/* Present Button */}
+                        <Pressable
+                          onPress={() =>
+                            handleStatusChange(studentData.student._id, "present")
+                          }
+                          accessibilityRole="button"
+                          accessibilityLabel={`Mark ${formatUserName(studentData.student.name)} as present`}
+                          accessibilityState={{ selected: studentData.status === "present" }}
+                          hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                          style={({ pressed }) => ({
+                            flex: 1,
+                            minHeight: 44,
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 4,
+                            borderRadius: 8,
+                            backgroundColor:
+                              studentData.status === "present"
+                                ? colors.success
+                                : pressed
+                                ? colors.success + "20"
+                                : "transparent",
+                          })}
                         >
-                          {["present", "absent"].map((status) => (
-                            <Pressable
-                              key={status}
-                              onPress={() =>
-                                handleStatusChange(
-                                  studentData.student._id,
-                                  status
-                                )
-                              }
-                              style={({ pressed }) => ({
-                                flex: 1,
-                                backgroundColor:
-                                  studentData.status === status
-                                    ? getStatusColor(status) + "20"
-                                    : "transparent",
-                                borderWidth:
-                                  studentData.status === status ? 1.5 : 1,
-                                borderColor:
-                                  studentData.status === status
-                                    ? getStatusColor(status)
-                                    : colors.textSecondary + "20",
-                                borderRadius: 6,
-                                paddingVertical: 6,
-                                alignItems: "center",
-                                opacity: pressed ? 0.7 : 1,
-                              })}
-                            >
-                              <Text
-                                style={{
-                                  fontSize: FONT_SIZES.micro,
-                                  fontFamily: FONTS.bold,
-                                  color:
-                                    studentData.status === status
-                                      ? getStatusColor(status)
-                                      : colors.textSecondary + "80",
-                                }}
-                              >
-                                {status === "present" ? "P" : "A"}
-                              </Text>
-                            </Pressable>
-                          ))}
-                        </View>
-                      )}
-                    </Pressable>
+                          <MaterialIcons
+                            name="check-circle"
+                            size={16}
+                            color={studentData.status === "present" ? "#FFFFFF" : colors.success}
+                          />
+                          <Text
+                            style={{
+                              fontSize: FONT_SIZES.sm,
+                              fontFamily: FONTS.bold,
+                              color:
+                                studentData.status === "present"
+                                  ? "#FFFFFF"
+                                  : colors.success,
+                            }}
+                          >
+                            Present
+                          </Text>
+                        </Pressable>
+
+                        {/* Absent Button */}
+                        <Pressable
+                          onPress={() =>
+                            handleStatusChange(studentData.student._id, "absent")
+                          }
+                          accessibilityRole="button"
+                          accessibilityLabel={`Mark ${formatUserName(studentData.student.name)} as absent`}
+                          accessibilityState={{ selected: studentData.status === "absent" }}
+                          hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                          style={({ pressed }) => ({
+                            flex: 1,
+                            minHeight: 44,
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 4,
+                            borderRadius: 8,
+                            backgroundColor:
+                              studentData.status === "absent"
+                                ? colors.error
+                                : pressed
+                                ? colors.error + "20"
+                                : "transparent",
+                          })}
+                        >
+                          <MaterialIcons
+                            name="cancel"
+                            size={16}
+                            color={studentData.status === "absent" ? "#FFFFFF" : colors.error}
+                          />
+                          <Text
+                            style={{
+                              fontSize: FONT_SIZES.sm,
+                              fontFamily: FONTS.bold,
+                              color:
+                                studentData.status === "absent"
+                                  ? "#FFFFFF"
+                                  : colors.error,
+                            }}
+                          >
+                            Absent
+                          </Text>
+                        </Pressable>
+
+                        {/* Late Button */}
+                        <Pressable
+                          onPress={() =>
+                            handleStatusChange(studentData.student._id, "late")
+                          }
+                          accessibilityRole="button"
+                          accessibilityLabel={`Mark ${formatUserName(studentData.student.name)} as late`}
+                          accessibilityState={{ selected: studentData.status === "late" }}
+                          hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                          style={({ pressed }) => ({
+                            flex: 1,
+                            minHeight: 44,
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 4,
+                            borderRadius: 8,
+                            backgroundColor:
+                              studentData.status === "late"
+                                ? (colors.warning || "#D97706")
+                                : pressed
+                                ? (colors.warning || "#D97706") + "20"
+                                : "transparent",
+                          })}
+                        >
+                          <MaterialIcons
+                            name="schedule"
+                            size={16}
+                            color={
+                              studentData.status === "late"
+                                ? "#FFFFFF"
+                                : (colors.warning || "#D97706")
+                            }
+                          />
+                          <Text
+                            style={{
+                              fontSize: FONT_SIZES.sm,
+                              fontFamily: FONTS.bold,
+                              color:
+                                studentData.status === "late"
+                                  ? "#FFFFFF"
+                                  : (colors.warning || "#D97706"),
+                            }}
+                          >
+                            Late
+                          </Text>
+                        </Pressable>
+                      </View>
+                    </View>
                   );
                 })
               )}
 
-              {/* Bottom Save Button (after student list) */}
+              {/* Bottom Action Bar */}
               {!isLoading && students.length > 0 && (
                 <View style={{ flexDirection: "row", gap: 10, marginTop: 16 }}>
                   <Pressable
                     onPress={handleMarkAllPresent}
+                    accessibilityRole="button"
+                    accessibilityLabel="Mark all students as present"
+                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                     style={({ pressed }) => ({
                       flex: 1,
+                      minHeight: 48,
                       backgroundColor: colors.success + "15",
                       borderWidth: 1.5,
                       borderColor: colors.success,
@@ -955,10 +1124,14 @@ export default function MarkAttendanceScreen() {
                   </Pressable>
 
                   <Pressable
-                    onPress={handleSaveAttendance}
+                    onPress={handleRequestSave}
                     disabled={saving}
+                    accessibilityRole="button"
+                    accessibilityLabel="Review and save attendance"
+                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                     style={({ pressed }) => ({
                       flex: 1.5,
+                      minHeight: 48,
                       backgroundColor: colors.primary,
                       borderRadius: 12,
                       paddingVertical: 12,
@@ -993,6 +1166,253 @@ export default function MarkAttendanceScreen() {
           )}
         </View>
       </ScrollView>
+
+      {/* Confirmation Sheet Modal */}
+      <Modal
+        visible={confirmModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setConfirmModalVisible(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: 20,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: colors.surface,
+              borderRadius: 20,
+              padding: 20,
+              width: "100%",
+              maxWidth: 420,
+              borderWidth: 1,
+              borderColor: colors.outlineVariant || colors.border,
+              elevation: 8,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
+                marginBottom: 12,
+              }}
+            >
+              <View
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: colors.primary + "18",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <MaterialIcons name="fact-check" size={24} color={colors.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{
+                    fontSize: FONT_SIZES.lg,
+                    fontFamily: FONTS.bold,
+                    color: colors.onSurface,
+                  }}
+                >
+                  Submit Attendance
+                </Text>
+                <Text
+                  style={{
+                    fontSize: FONT_SIZES.xs,
+                    fontFamily: FONTS.regular,
+                    color: colors.onSurfaceVariant,
+                  }}
+                >
+                  {formatISTDisplayDate(selectedDate, {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                  {classData?.name ? ` • ${formatClassName(classData.name, classData.section)}` : ""}
+                </Text>
+              </View>
+            </View>
+
+            {/* Breakdown summary */}
+            <View
+              style={{
+                backgroundColor: colors.surfaceVariant || "#F8FAFC",
+                borderRadius: 12,
+                padding: 12,
+                marginVertical: 12,
+                gap: 8,
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ fontSize: FONT_SIZES.sm, color: colors.onSurfaceVariant }}>
+                  Total Roster:
+                </Text>
+                <Text style={{ fontSize: FONT_SIZES.sm, fontFamily: FONTS.bold, color: colors.onSurface }}>
+                  {students.length} students
+                </Text>
+              </View>
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ fontSize: FONT_SIZES.sm, color: colors.success }}>
+                  ● Present:
+                </Text>
+                <Text style={{ fontSize: FONT_SIZES.sm, fontFamily: FONTS.bold, color: colors.success }}>
+                  {presentCount} ({Math.round((presentCount / (students.length || 1)) * 100)}%)
+                </Text>
+              </View>
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ fontSize: FONT_SIZES.sm, color: colors.error }}>
+                  ● Absent:
+                </Text>
+                <Text style={{ fontSize: FONT_SIZES.sm, fontFamily: FONTS.bold, color: colors.error }}>
+                  {absentCount} ({Math.round((absentCount / (students.length || 1)) * 100)}%)
+                </Text>
+              </View>
+
+              {lateCount > 0 && (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <Text style={{ fontSize: FONT_SIZES.sm, color: colors.warning || "#D97706" }}>
+                    ● Late:
+                  </Text>
+                  <Text style={{ fontSize: FONT_SIZES.sm, fontFamily: FONTS.bold, color: colors.warning || "#D97706" }}>
+                    {lateCount} ({Math.round((lateCount / (students.length || 1)) * 100)}%)
+                  </Text>
+                </View>
+              )}
+
+              {unmarkedCount > 0 && (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <Text style={{ fontSize: FONT_SIZES.sm, color: colors.onSurfaceVariant }}>
+                    ● Unmarked:
+                  </Text>
+                  <Text style={{ fontSize: FONT_SIZES.sm, fontFamily: FONTS.bold, color: colors.onSurfaceVariant }}>
+                    {unmarkedCount}
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            {unmarkedCount > 0 && (
+              <View
+                style={{
+                  backgroundColor: (colors.warning || "#D97706") + "15",
+                  borderLeftWidth: 3,
+                  borderLeftColor: colors.warning || "#D97706",
+                  padding: 10,
+                  borderRadius: 8,
+                  marginBottom: 16,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: FONT_SIZES.xs,
+                    fontFamily: FONTS.medium,
+                    color: colors.warning || "#D97706",
+                  }}
+                >
+                  ⚠️ Warning: {unmarkedCount} student(s) remain unmarked and will not have an attendance entry recorded.
+                </Text>
+              </View>
+            )}
+
+            {/* Modal Actions */}
+            <View style={{ flexDirection: "row", gap: 10, marginTop: 4 }}>
+              <Pressable
+                onPress={() => setConfirmModalVisible(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Cancel and keep editing"
+                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                style={({ pressed }) => ({
+                  flex: 1,
+                  minHeight: 48,
+                  borderWidth: 1,
+                  borderColor: colors.outlineVariant || colors.border,
+                  borderRadius: 12,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  opacity: pressed ? 0.7 : 1,
+                })}
+              >
+                <Text
+                  style={{
+                    fontSize: FONT_SIZES.sm,
+                    fontFamily: FONTS.semiBold,
+                    color: colors.onSurface,
+                  }}
+                >
+                  Keep Editing
+                </Text>
+              </Pressable>
+
+              <Pressable
+                onPress={handleConfirmSave}
+                accessibilityRole="button"
+                accessibilityLabel="Confirm and submit attendance"
+                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                style={({ pressed }) => ({
+                  flex: 1.2,
+                  minHeight: 48,
+                  backgroundColor: colors.primary,
+                  borderRadius: 12,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  opacity: pressed ? 0.7 : 1,
+                })}
+              >
+                <Text
+                  style={{
+                    fontSize: FONT_SIZES.sm,
+                    fontFamily: FONTS.bold,
+                    color: "#FFFFFF",
+                  }}
+                >
+                  Confirm & Submit
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }

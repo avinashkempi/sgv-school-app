@@ -33,12 +33,12 @@ const TodayTimetableCard = ({ style }) => {
     }
   };
 
-  const timetableAccent = colors.primary || "#6750A4";
+  const timetableAccent = colors.primary || "#4F46E5";
   const cardSurface = isDark ? colors.surfaceContainer : colors.surface;
   const borderColor = isDark ? `${colors.outlineVariant}60` : colors.outlineVariant;
   const iconBg = isDark
-    ? colors.primaryContainer || "rgba(208, 188, 255, 0.15)"
-    : colors.primaryContainer || "#EADDFF";
+    ? colors.primaryContainer || "rgba(165, 180, 252, 0.15)"
+    : colors.primaryContainer || "#EEF2FF";
 
   const now = new Date();
   const todayDayName = now.toLocaleDateString("en-US", { weekday: "short" });
@@ -88,7 +88,7 @@ const TodayTimetableCard = ({ style }) => {
               {
                 backgroundColor: isDark
                   ? `${timetableAccent}20`
-                  : colors.primaryContainer || "#EADDFF",
+                  : colors.primaryContainer || "#EEF2FF",
               },
             ]}
           >

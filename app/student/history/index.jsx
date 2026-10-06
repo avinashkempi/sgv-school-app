@@ -62,12 +62,12 @@ export default function StudentHistoryScreen() {
 
   const getGradeColor = (grade) => {
     if (!grade) return colors.outline;
-    if (grade === "A+") return colors.success;
-    if (grade === "A") return "#2196F3";
-    if (grade === "B+") return "#FF9800";
-    if (grade === "B") return "#FF5722";
-    if (grade === "C") return colors.error;
-    return colors.error;
+    if (grade === "A+") return colors.success || "#16A34A";
+    if (grade === "A") return colors.primary || "#4F46E5";
+    if (grade === "B+") return colors.warning || "#D97706";
+    if (grade === "B") return "#EA580C";
+    if (grade === "C") return colors.error || "#DC2626";
+    return colors.error || "#DC2626";
   };
 
   if (loading && !refreshing) {

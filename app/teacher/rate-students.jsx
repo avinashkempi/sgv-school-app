@@ -90,8 +90,8 @@ const SCALE_LABELS = {
   3: {
     label: "Average / Meets expectation",
     shortLabel: "Meets Expectation",
-    color: "#6750A4",
-    bg: "#EADDFF",
+    color: "#4F46E5",
+    bg: "#EEF2FF",
     icon: "done",
   },
   4: {
@@ -579,7 +579,7 @@ export default function RateStudentsScreen() {
               onPress={() => setShowGuideModal(true)}
               style={[
                 styles.guideHeaderBtn,
-                { backgroundColor: colors.primaryContainer || "#EADDFF" },
+                { backgroundColor: colors.primaryContainer || "#EEF2FF" },
               ]}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >

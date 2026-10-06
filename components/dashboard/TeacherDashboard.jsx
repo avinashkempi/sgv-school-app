@@ -531,7 +531,7 @@ const TeacherDashboard = () => {
                     {
                       backgroundColor: isDark
                         ? colors.surfaceContainerHigh
-                        : colors.brandOrangeContainer || colors.surfaceContainer,
+                        : colors.surfaceContainer,
                     },
                   ]}
                 >

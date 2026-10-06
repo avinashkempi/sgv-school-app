@@ -278,7 +278,7 @@ const PerformanceTrendCard = ({
                 width: 42,
                 height: 42,
                 borderRadius: 12,
-                backgroundColor: (colors.primary || "#6750A4") + "1A",
+                backgroundColor: (colors.primary || "#4F46E5") + "1A",
                 alignItems: "center",
                 justifyContent: "center",
                 marginRight: 12,
@@ -287,7 +287,7 @@ const PerformanceTrendCard = ({
               <MaterialCommunityIcons
                 name="trending-up"
                 size={24}
-                color={colors.primary || "#6750A4"}
+                color={colors.primary || "#4F46E5"}
               />
             </View>
             <View style={{ flex: 1 }}>
@@ -323,7 +323,7 @@ const PerformanceTrendCard = ({
             style={({ pressed }) => ({
               flexDirection: "row",
               alignItems: "center",
-              backgroundColor: (colors.primary || "#6750A4") + "15",
+              backgroundColor: (colors.primary || "#4F46E5") + "15",
               paddingHorizontal: 12,
               paddingVertical: 7,
               borderRadius: 100,
@@ -334,7 +334,7 @@ const PerformanceTrendCard = ({
               style={{
                 fontSize: FONT_SIZES.sm,
                 fontFamily: FONTS.bold,
-                color: colors.primary || "#6750A4",
+                color: colors.primary || "#4F46E5",
                 marginRight: 2,
               }}
             >
@@ -343,7 +343,7 @@ const PerformanceTrendCard = ({
             <MaterialIcons
               name="chevron-right"
               size={16}
-              color={colors.primary || "#6750A4"}
+              color={colors.primary || "#4F46E5"}
             />
           </Pressable>
         </View>
@@ -504,7 +504,7 @@ const PerformanceTrendCard = ({
               style={{
                 fontSize: FONT_SIZES.sm,
                 fontFamily: FONTS.bold,
-                color: colors.primary || "#6750A4",
+                color: colors.primary || "#4F46E5",
               }}
             >
               Baseline
@@ -580,17 +580,17 @@ const PerformanceTrendCard = ({
             >
               <Stop
                 offset="0%"
-                stopColor={colors.primary || "#6750A4"}
+                stopColor={colors.primary || "#4F46E5"}
                 stopOpacity="0.45"
               />
               <Stop
                 offset="70%"
-                stopColor={colors.primary || "#6750A4"}
+                stopColor={colors.primary || "#4F46E5"}
                 stopOpacity="0.08"
               />
               <Stop
                 offset="100%"
-                stopColor={colors.primary || "#6750A4"}
+                stopColor={colors.primary || "#4F46E5"}
                 stopOpacity="0.00"
               />
             </LinearGradient>
@@ -603,8 +603,8 @@ const PerformanceTrendCard = ({
               x2="1"
               y2="0"
             >
-              <Stop offset="0%" stopColor={colors.primary || "#6750A4"} />
-              <Stop offset="100%" stopColor={colors.tertiary || "#7D5260"} />
+              <Stop offset="0%" stopColor={colors.primary || "#4F46E5"} />
+              <Stop offset="100%" stopColor={colors.tertiary || "#6D28D9"} />
             </LinearGradient>
 
             {/* Selected Node Glow */}
@@ -714,7 +714,7 @@ const PerformanceTrendCard = ({
                   r={isSelected ? "7" : "5"}
                   fill={colors.surface || (isDark ? "#2B2832" : "#FFFFFF")}
                   stroke={
-                    isSelected ? grade.color : colors.primary || "#6750A4"
+                    isSelected ? grade.color : colors.primary || "#4F46E5"
                   }
                   strokeWidth={isSelected ? "3" : "2"}
                 />
@@ -767,7 +767,7 @@ const PerformanceTrendCard = ({
                   y={paddingTop + plotHeight + 18}
                   fill={
                     isSelected
-                      ? colors.primary || "#6750A4"
+                      ? colors.primary || "#4F46E5"
                       : colors.onSurfaceVariant || "#757575"
                   }
                   fontSize={isSelected ? FONT_SIZES.sm : FONT_SIZES.xs}
@@ -958,7 +958,7 @@ const PerformanceTrendCard = ({
                     flexDirection: "row",
                     alignItems: "center",
                     backgroundColor: isSelected
-                      ? colors.primary || "#6750A4"
+                      ? colors.primary || "#4F46E5"
                       : isDark
                       ? "rgba(56, 189, 248, 0.1)"
                       : "rgba(2, 132, 199, 0.06)",
@@ -967,7 +967,7 @@ const PerformanceTrendCard = ({
                     borderRadius: 12,
                     borderWidth: 1,
                     borderColor: isSelected
-                      ? colors.primary || "#6750A4"
+                      ? colors.primary || "#4F46E5"
                       : isDark
                       ? "rgba(56, 189, 248, 0.25)"
                       : "rgba(2, 132, 199, 0.18)",

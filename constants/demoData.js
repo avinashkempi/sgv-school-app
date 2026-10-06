@@ -5,7 +5,7 @@ const DEMO_ACADEMIC_YEAR_ID = "650e8400e29b41d4a716446655440000";
 const DEMO_CLASS_ID = "550e8400e29b41d4a716446655440001";
 const DEMO_STUDENT_ID = "660e8400e29b41d4a716446655440002";
 
-// 1. User Profile
+// 1. User Profiles for Multi-Role Demo
 export const DEMO_USER = {
   _id: DEMO_STUDENT_ID,
   name: "Harshika Patil",
@@ -21,6 +21,44 @@ export const DEMO_USER = {
     section: "A",
     academicYear: DEMO_ACADEMIC_YEAR_ID,
   },
+};
+
+export const DEMO_STUDENT_USER = DEMO_USER;
+
+export const DEMO_TEACHER_USER = {
+  _id: "770e8400e29b41d4a716446655440010",
+  name: "Mrs. Savita Patil",
+  email: "savita.patil@demo.com",
+  role: "teacher",
+  phone: "9876543211",
+  profileImage:
+    "https://api.dicebear.com/7.x/avataaars/png?seed=Savita&gender=female",
+  designation: "Class Teacher - 3A",
+  classes: [DEMO_CLASS_ID],
+  isClassTeacher: true,
+  classTeacherOf: [DEMO_CLASS_ID],
+};
+
+export const DEMO_ADMIN_USER = {
+  _id: "880e8400e29b41d4a716446655440020",
+  name: "Mr. Rajesh Biradar",
+  email: "admin@demo.com",
+  role: "admin",
+  phone: "9876543212",
+  profileImage:
+    "https://api.dicebear.com/7.x/avataaars/png?seed=Rajesh&gender=male",
+  designation: "Vice Principal",
+};
+
+export const DEMO_SUPER_ADMIN_USER = {
+  _id: "990e8400e29b41d4a716446655440030",
+  name: "Dr. Sangamesh Patil",
+  email: "superadmin@demo.com",
+  role: "super admin",
+  phone: "9876543213",
+  profileImage:
+    "https://api.dicebear.com/7.x/avataaars/png?seed=Sangamesh&gender=male",
+  designation: "Managing Trustee",
 };
 
 // 1.5. Academic Years
@@ -1356,3 +1394,57 @@ export const DEMO_CLASSES = [
     branch: "Main",
   },
 ];
+
+export const DEMO_TEACHER_DASHBOARD = {
+  overview: {
+    selectedClassId: "550e8400e29b41d4a716446655440001",
+    attendanceRate: 94.2,
+    classesCount: 3,
+    totalStudents: 35,
+    pendingTasks: 2,
+    todayPeriodsCount: 4,
+  },
+  stats: {
+    totalStudents: 35,
+    attendanceRate: 94.2,
+    classesCount: 3,
+    avgScore: 82.5,
+  },
+  charts: {
+    attendanceTrend: [
+      { day: "Mon", rate: 96 },
+      { day: "Tue", rate: 94 },
+      { day: "Wed", rate: 91 },
+      { day: "Thu", rate: 95 },
+      { day: "Fri", rate: 94 },
+    ],
+  },
+};
+
+export const DEMO_ADMIN_DASHBOARD = {
+  overview: {
+    attendancePercentage: 93.8,
+    attendanceTrend: 2.1,
+    totalCollected: 2450000,
+    feeCollectionTrend: 5.4,
+    totalStudents: 450,
+    totalStaff: 28,
+  },
+  charts: {
+    feeTrend: [
+      { month: "Jun", amount: 650000 },
+      { month: "Jul", amount: 420000 },
+      { month: "Aug", amount: 380000 },
+      { month: "Sep", amount: 510000 },
+      { month: "Oct", amount: 490000 },
+    ],
+    attendanceTrend: [
+      { month: "Jun", rate: 95.2 },
+      { month: "Jul", rate: 94.1 },
+      { month: "Aug", rate: 92.8 },
+      { month: "Sep", rate: 93.5 },
+      { month: "Oct", rate: 93.8 },
+    ],
+  },
+};
+

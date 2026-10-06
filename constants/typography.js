@@ -58,38 +58,44 @@ export const FONTS = {
 // barely distinguishable and caused visual inconsistency.
 //
 export const FONT_SIZES = {
-  micro:   11,   // Badges, status pills, sub-info, dense charts
-  xs:      12,   // Captions, metadata, chips, tab labels, micro-dates
-  sm:      14,   // Body text, inputs, buttons, descriptions, timestamps
-  md:      16,   // Card headers, subheadings, nav items, prominent labels
-  lg:      20,   // Screen/section titles, large headings, dialog titles
-  xl:      24,   // Page headlines, hero tags, major titles
-  display: 30,   // Login titles, hero headings, display text
-  jumbo:   40,   // Celebrations, giant counters, attendance percentage
+  micro:      11,   // Nonessential sub-metadata ONLY (strictly prohibited on actionable buttons/status)
+  xs:         12,   // Captions, chips, tab labels, micro-dates
+  supporting: 13,   // Secondary metadata, timestamps, helper text
+  sm:         14,   // Standard body text, inputs, compact buttons, descriptions
+  md:         16,   // Body-large, prominent inputs, CTA buttons, section subheadings
+  h3:         18,   // H3, card titles, table section headings
+  lg:         20,   // H2, screen/section titles, modal headers
+  xl:         24,   // H1, page headlines, major titles
+  display:    30,   // Display titles, hero headlines
+  jumbo:      40,   // Celebrations, giant counters
 };
 
 // ── 3. MATCHING LINE HEIGHTS ────────────────────────────────────────────────
 export const LINE_HEIGHTS = {
-  micro:   15,
-  xs:      17,
-  sm:      20,
-  md:      23,
-  lg:      26,
-  xl:      30,
-  display: 36,
-  jumbo:   48,
+  micro:      15,
+  xs:         18,
+  supporting: 18,
+  sm:         20,
+  md:         24,
+  h3:         24,
+  lg:         26,
+  xl:         30,
+  display:    36,
+  jumbo:      48,
 };
 
 // ── 4. MATCHING LETTER SPACINGS ─────────────────────────────────────────────
 export const LETTER_SPACINGS = {
-  micro:    0.3,
-  xs:       0.2,
-  sm:       0,
-  md:       0.1,
-  lg:      -0.1,
-  xl:      -0.2,
-  display: -0.5,
-  jumbo:   -1.0,
+  micro:       0.3,
+  xs:          0.2,
+  supporting:  0.1,
+  sm:          0,
+  md:          0.1,
+  h3:          0,
+  lg:         -0.1,
+  xl:         -0.2,
+  display:    -0.5,
+  jumbo:      -1.0,
 };
 
 // ── 5. COMPOSITE TYPOGRAPHY PRESETS ─────────────────────────────────────────

@@ -234,7 +234,7 @@ const ExamCardItem = React.memo(
                       backgroundColor: past
                         ? colors.surfaceContainerHigh
                         : daysLabel.toLowerCase().includes("tomorrow")
-                        ? "#FF980018"
+                        ? (colors.warning || "#D97706") + "18"
                         : colors.primaryContainer,
                       paddingHorizontal: 8,
                       paddingVertical: 2.5,
@@ -248,7 +248,7 @@ const ExamCardItem = React.memo(
                         color: past
                           ? colors.onSurfaceVariant
                           : daysLabel.toLowerCase().includes("tomorrow")
-                          ? "#E65100"
+                          ? (colors.warning || "#D97706")
                           : colors.primary,
                       }}
                     >
@@ -503,14 +503,14 @@ export default function ExamTimeline({ exams = [], onExamPress }) {
 
   const getExamTypeColor = (type) => {
     const typeColors = {
-      FA1: colors.primary || "#6750A4",
+      FA1: colors.primary || "#4F46E5",
       FA2: "#0284C7",
       SA1: "#7C3AED",
       FA3: "#D97706",
       FA4: "#DB2777",
       SA2: "#DC2626",
     };
-    return typeColors[type] || colors.primary || "#6750A4";
+    return typeColors[type] || colors.primary || "#4F46E5";
   };
 
   if (!exams || exams.length === 0) {

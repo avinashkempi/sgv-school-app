@@ -34,14 +34,14 @@ export default function ExamCard({
 
   const getExamTypeColor = (type) => {
     const typeColors = {
-      FA1: "#2196F3",
-      FA2: "#03A9F4",
-      SA1: "#9C27B0",
-      FA3: "#FF9800",
-      FA4: "#FF5722",
-      SA2: "#F44336",
+      FA1: colors.primary || "#4F46E5",
+      FA2: colors.secondary || "#0F766E",
+      SA1: "#6366F1",
+      FA3: colors.warning || "#D97706",
+      FA4: "#EA580C",
+      SA2: colors.tertiary || "#6D28D9",
     };
-    return typeColors[type] || "#2196F3";
+    return typeColors[type] || (colors.primary || "#4F46E5");
   };
 
   const typeColor = getExamTypeColor(exam.standardizedType);

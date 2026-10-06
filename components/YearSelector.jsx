@@ -4,8 +4,10 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme, FONTS, FONT_SIZES } from "../theme";
 
 /**
- * YearSelector Component
- * Reusable dropdown for selecting academic year across all dashboards
+ * YearSelector Component (Standalone / Controlled Form Variant)
+ * Reusable controlled dropdown for selecting academic year in custom reports or standalone forms.
+ * NOTE: For the app-wide academic year picker integrated with AcademicYearContext and Header,
+ * import from `components/academic-year/YearSelector.jsx`.
  *
  * @param {Object} currentYear - Currently selected year
  * @param {Array} availableYears - All years user can access

@@ -281,9 +281,16 @@ export default function RaiseComplaintScreen() {
                       <Pressable
                         key={cat}
                         onPress={() => setCategory(cat)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Category ${cat}`}
+                        accessibilityState={{ selected: isSelected }}
+                        hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
                         style={{
+                          minHeight: 44,
                           paddingHorizontal: SPACING.lg || 16,
                           paddingVertical: SPACING.xs || 8,
+                          justifyContent: "center",
+                          alignItems: "center",
                           backgroundColor: isSelected
                             ? colors.primary
                             : colors.surfaceContainerHighest,

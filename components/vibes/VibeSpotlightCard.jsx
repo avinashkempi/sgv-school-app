@@ -79,7 +79,7 @@ const VibeSpotlightCard = () => {
     }
   };
 
-  const amberAccent = colors.primary || "#6750A4";
+  const amberAccent = colors.primary || "#4F46E5";
 
   if (isLoading) {
     return (
@@ -137,11 +137,11 @@ const VibeSpotlightCard = () => {
       case "life":
         return { label: "Campus Life", bg: "#0284C7", icon: "local-florist" };
       case "official":
-        return { label: "Official Broadcast", bg: colors.primary || "#6750A4", icon: "school" };
+        return { label: "Official Broadcast", bg: colors.primary || "#4F46E5", icon: "school" };
       default:
         return vibe.postAs === "school"
-          ? { label: "Official Broadcast", bg: colors.primary || "#6750A4", icon: "school" }
-          : { label: "Campus Spotlight", bg: colors.tertiary || "#7D5260", icon: "auto-awesome" };
+          ? { label: "Official Broadcast", bg: colors.primary || "#4F46E5", icon: "school" }
+          : { label: "Campus Spotlight", bg: colors.tertiary || "#6D28D9", icon: "auto-awesome" };
     }
   };
   const badgeConfig = getBadgeConfig();
@@ -193,7 +193,7 @@ const VibeSpotlightCard = () => {
                 vibe.category === "achievement"
                   ? ["#B45309", "#D97706", "#F59E0B"]
                   : vibe.postAs === "school" || vibe.category === "official"
-                    ? ["#4F378B", "#6750A4", "#9A82DB"]
+                    ? ["#312E81", "#4F46E5", "#6366F1"]
                     : ["#1E293B", "#334155", "#475569"]
               }
               style={styles.placeholderMedia}
@@ -274,7 +274,7 @@ const VibeSpotlightCard = () => {
               <MaterialIcons
                 name="verified"
                 size={14}
-                color={colors.primary || "#6750A4"}
+                color={colors.primary || "#4F46E5"}
                 style={{ flexShrink: 0 }}
               />
             )}

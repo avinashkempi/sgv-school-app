@@ -350,10 +350,10 @@ const Header = ({
                   styles.yearPill,
                   {
                     backgroundColor: selectedYear.isActive
-                      ? colors.primaryContainer || "#EADDFF"
+                      ? colors.primaryContainer || "#EEF2FF"
                       : colors.surfaceContainer || "#F0F1F5",
                     borderColor: selectedYear.isActive
-                      ? (colors.primary || "#6750A4") + "40"
+                      ? (colors.primary || "#4F46E5") + "40"
                       : colors.outlineVariant || "rgba(0,0,0,0.08)",
                   },
                 ]}
@@ -363,7 +363,7 @@ const Header = ({
                   size={13}
                   color={
                     selectedYear.isActive
-                      ? colors.primary || "#6750A4"
+                      ? colors.primary || "#4F46E5"
                       : colors.textSecondary || colors.onSurfaceVariant
                   }
                   style={{ marginRight: 4 }}
@@ -373,7 +373,7 @@ const Header = ({
                     styles.yearPillText,
                     {
                       color: selectedYear.isActive
-                        ? colors.primary || "#6750A4"
+                        ? colors.primary || "#4F46E5"
                         : colors.textSecondary || colors.onSurfaceVariant,
                     },
                   ]}
@@ -420,7 +420,7 @@ const NotificationBellButton = ({ unreadCount, onPress, colors, t }) => (
     <MaterialIcons
       name={unreadCount > 0 ? "notifications" : "notifications-none"}
       size={23}
-      color={unreadCount > 0 ? colors.primary || "#6750A4" : colors.textSecondary || colors.onSurfaceVariant}
+      color={unreadCount > 0 ? colors.primary || "#4F46E5" : colors.textSecondary || colors.onSurfaceVariant}
     />
     {unreadCount > 0 && (
       <View

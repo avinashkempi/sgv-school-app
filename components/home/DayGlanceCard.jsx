@@ -61,7 +61,7 @@ const DayGlanceCard = memo(({ role, data = {}, onAction: _onAction }) => {
             <View
               style={[
                 styles.dot,
-                { backgroundColor: colors.brandOrange || colors.primary },
+                { backgroundColor: colors.primary },
               ]}
             />
             <Text
@@ -121,7 +121,7 @@ const DayGlanceCard = memo(({ role, data = {}, onAction: _onAction }) => {
             <Text
               style={[
                 styles.actionPillText,
-                { color: colors.brandOrange || colors.primary },
+                { color: colors.primary },
               ]}
             >
               View Record
@@ -129,7 +129,7 @@ const DayGlanceCard = memo(({ role, data = {}, onAction: _onAction }) => {
             <MaterialIcons
               name="arrow-forward"
               size={13}
-              color={colors.brandOrange || colors.primary}
+              color={colors.primary}
             />
           </Pressable>
         </View>

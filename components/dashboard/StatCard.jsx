@@ -31,10 +31,12 @@ const StatCard = ({
 
   const content = (
     <View
+      accessibilityRole={onPress ? undefined : "summary"}
+      accessibilityLabel={`${title || ""}: ${value}${subtitle ? `, ${subtitle}` : ""}`}
       style={[
         {
           backgroundColor: isDark ? `${cardColor}16` : `${cardColor}0A`,
-          borderRadius: 12,
+          borderRadius: 14,
           padding: 14,
           flex: 1,
           minWidth: 95,
@@ -98,7 +100,7 @@ const StatCard = ({
                   flexDirection: "row",
                   alignItems: "center",
                   backgroundColor: isDark ? `${trendColor}25` : `${trendColor}15`,
-                  paddingHorizontal: 5,
+                  paddingHorizontal: 6,
                   paddingVertical: 2,
                   borderRadius: 6,
                 }}
@@ -113,7 +115,7 @@ const StatCard = ({
                     fontSize: FONT_SIZES.micro,
                     color: trendColor,
                     fontFamily: FONTS.bold,
-                    marginLeft: 1,
+                    marginLeft: 2,
                   }}
                 >
                   {Math.abs(trendValue)}%
@@ -168,7 +170,8 @@ const StatCard = ({
       <Pressable
         onPress={handlePress}
         accessibilityRole="button"
-        accessibilityLabel={`${title}: ${value}${subtitle ? `, ${subtitle}` : ""}`}
+        accessibilityLabel={`${title || ""}: ${value}${subtitle ? `, ${subtitle}` : ""}`}
+        hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
         style={({ pressed }) => ({
           opacity: pressed ? 0.75 : 1,
           flex: 1,

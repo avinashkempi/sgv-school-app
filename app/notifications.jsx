@@ -48,43 +48,43 @@ const getCategoryConfig = (type, colors) => {
     case "Homework":
       return {
         icon: "assignment",
-        color: colors.primary || "#6750A4",
-        bgLight: colors.primaryContainer || "#EADDFF",
+        color: colors.primary || "#4F46E5",
+        bgLight: colors.primaryContainer || "#EEF2FF",
         label: "Homework",
       };
     case "Exam":
       return {
         icon: "analytics",
-        color: colors.secondary || "#EC4899",
-        bgLight: colors.secondaryContainer || "#FCE7F3",
+        color: colors.secondary || "#0F766E",
+        bgLight: colors.secondaryContainer || "#CCFBF1",
         label: "Exams",
       };
     case "Fee":
       return {
         icon: "account-balance-wallet",
-        color: colors.warning || "#F59E0B",
+        color: colors.warning || "#D97706",
         bgLight: colors.warningContainer || "#FEF3C7",
         label: "Fee",
       };
     case "Emergency":
       return {
         icon: "warning-amber",
-        color: colors.error || "#EF4444",
+        color: colors.error || "#DC2626",
         bgLight: colors.errorContainer || "#FEE2E2",
         label: "Urgent",
       };
     case "Event":
       return {
         icon: "celebration",
-        color: colors.tertiary || "#7D5260",
-        bgLight: colors.tertiaryContainer || "#FFE6EF",
+        color: colors.tertiary || "#6D28D9",
+        bgLight: colors.tertiaryContainer || "#EDE9FE",
         label: "Events",
       };
     default:
       return {
         icon: "notifications-active",
-        color: colors.primary || "#6750A4",
-        bgLight: colors.primaryContainer || "#EADDFF",
+        color: colors.primary || "#4F46E5",
+        bgLight: colors.primaryContainer || "#EEF2FF",
         label: "General",
       };
   }

@@ -218,7 +218,11 @@ const PostCard = ({ post, isAdmin, onEdit, onDelete, onTogglePin }) => {
 
   const categoryColor =
     post.category === "achievement"
-      ? { bg: "#FFF3E0", text: "#E65100", icon: "emoji-events" }
+      ? {
+          bg: colors.tertiaryContainer || "#EDE9FE",
+          text: colors.onTertiaryContainer || colors.tertiary || "#6D28D9",
+          icon: "emoji-events",
+        }
       : {
           bg: colors.primaryContainer,
           text: colors.onPrimaryContainer,

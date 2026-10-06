@@ -134,19 +134,19 @@ export default function YearDetailsScreen() {
             icon="book"
             label="Subjects"
             value={snapshot.totalSubjects}
-            color="#FF9800"
+            color={colors.warning || "#D97706"}
           />
           <MetricCard
             icon="person"
             label="Teachers"
             value={snapshot.totalTeachers}
-            color={colors.primary || "#6750A4"}
+            color={colors.primary || "#4F46E5"}
           />
           <MetricCard
             icon="how-to-reg"
             label="Avg Attendance"
             value={`${snapshot.averageAttendance?.toFixed(1) || 0}%`}
-            color="#4CAF50"
+            color={colors.success || "#16A34A"}
           />
         </View>
 

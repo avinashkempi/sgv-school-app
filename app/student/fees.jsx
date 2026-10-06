@@ -132,7 +132,7 @@ export default function StudentFeesScreen() {
                   style={{
                     fontSize: FONT_SIZES.md,
                     fontFamily: FONTS.bold,
-                    color: "#FF9800",
+                    color: colors.warning || "#D97706",
                   }}
                 >
                   ₹{feeData.concession.toLocaleString()}
@@ -158,7 +158,7 @@ export default function StudentFeesScreen() {
                   style={{
                     fontSize: FONT_SIZES.md,
                     fontFamily: FONTS.bold,
-                    color: colors.tertiary || "#8B5CF6",
+                    color: colors.tertiary,
                   }}
                 >
                   ₹{feeData.arrears.toLocaleString()}
@@ -277,7 +277,7 @@ export default function StudentFeesScreen() {
                   >
                     {t("student.lessConcession", "Less: Concession")}
                   </Text>
-                  <Text style={{ color: "#FF9800", fontFamily: FONTS.bold }}>
+                  <Text style={{ color: colors.warning || "#D97706", fontFamily: FONTS.bold }}>
                     -₹{feeData.concession}
                   </Text>
                 </View>
@@ -298,7 +298,7 @@ export default function StudentFeesScreen() {
                   >
                     {t("student.lastYearDues", "Add: Last Year Dues")}
                   </Text>
-                  <Text style={{ color: colors.tertiary || "#8B5CF6", fontFamily: FONTS.bold }}>
+                  <Text style={{ color: colors.tertiary, fontFamily: FONTS.bold }}>
                     +₹{feeData.arrears.toLocaleString()}
                   </Text>
                 </View>
@@ -370,10 +370,10 @@ export default function StudentFeesScreen() {
                       : isOverdue
                       ? colors.error
                       : isDueSoon
-                      ? colors.warning || "#FFB020"
+                      ? colors.warning || "#D97706"
                       : isPartial
                       ? colors.primary
-                      : colors.textSecondary;
+                      : colors.onSurfaceVariant;
                     const badgeBg = badgeColor + "15";
                     const badgeText = isPaid
                       ? t("common.paidUppercase", "PAID")

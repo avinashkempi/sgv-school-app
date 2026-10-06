@@ -88,7 +88,7 @@ export default function TeacherExamDashboard() {
         label={t("teacher.examsCreated", "Exams Created")}
         value={overallSummary.examsCreated}
         icon="school"
-        color="#2196F3"
+        color={colors.primary || "#4F46E5"}
         gradient
         variant="compact"
       />
@@ -96,7 +96,7 @@ export default function TeacherExamDashboard() {
         label={t("teacher.marksEntered", "Marks Entered")}
         value={overallSummary.marksEntered}
         icon="check-circle"
-        color="#4CAF50"
+        color={colors.success || "#16A34A"}
         gradient
         variant="compact"
       />
@@ -104,7 +104,7 @@ export default function TeacherExamDashboard() {
         label={t("common.pending", "Pending")}
         value={overallSummary.pending}
         icon="pending-actions"
-        color="#FF9800"
+        color={colors.warning || "#D97706"}
         gradient
         variant="compact"
       />
@@ -125,10 +125,10 @@ export default function TeacherExamDashboard() {
           let icon = "radio-button-unchecked";
 
           if (complete) {
-            bgColor = "#4CAF50";
+            bgColor = colors.success || "#16A34A";
             icon = "check-circle";
           } else if (exists) {
-            bgColor = "#FF9800";
+            bgColor = colors.warning || "#D97706";
             icon = "circle";
           }
 
@@ -351,17 +351,19 @@ export default function TeacherExamDashboard() {
                   style={({ pressed }) => ({
                     backgroundColor: exam.marksComplete
                       ? pressed
-                        ? "#388E3C"
-                        : "#4CAF50"
+                        ? "#15803D"
+                        : (colors.success || "#16A34A")
                       : pressed
                       ? colors.primary + "DD"
                       : colors.primary,
-                    paddingVertical: 5,
-                    paddingHorizontal: 10,
+                    paddingVertical: 8,
+                    paddingHorizontal: 12,
+                    minHeight: 44,
+                    justifyContent: "center",
                     borderRadius: 14,
                     flexDirection: "row",
                     alignItems: "center",
-                    gap: 3,
+                    gap: 4,
                   })}
                 >
                   <MaterialIcons

@@ -299,6 +299,38 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  /**
+   * Switch between Student, Teacher, Admin, and Super Admin in Demo mode.
+   * Clears query cache, updates credentials, and preserves demo-token.
+   */
+  const switchDemoPersona = useCallback(
+    async (role = "student") => {
+      try {
+        const {
+          DEMO_STUDENT_USER,
+          DEMO_TEACHER_USER,
+          DEMO_ADMIN_USER,
+          DEMO_SUPER_ADMIN_USER,
+        } = require("../constants/demoData");
+
+        let targetUser = DEMO_STUDENT_USER;
+        if (role === "teacher" || role === "staff") {
+          targetUser = DEMO_TEACHER_USER;
+        } else if (role === "admin") {
+          targetUser = DEMO_ADMIN_USER;
+        } else if (role === "super admin" || role === "super-admin") {
+          targetUser = DEMO_SUPER_ADMIN_USER;
+        }
+
+        await login("demo-token", targetUser);
+        return targetUser;
+      } catch (err) {
+        console.error("[AuthContext] Error switching demo persona:", err);
+      }
+    },
+    [login]
+  );
+
   return (
     <AuthContext.Provider
       value={{
@@ -311,6 +343,7 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         updateUser,
+        switchDemoPersona,
       }}
     >
       {children}

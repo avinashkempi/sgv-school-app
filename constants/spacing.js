@@ -14,13 +14,16 @@ export const SPACING = {
   xl:  20,   // Elevated section gaps, dialog padding
   xxl: 24,   // Major section breaks, header bottoms, hero paddings
   xxxl: 32,  // Page-level vertical breathing room
+  xxxxl: 40, // Hero vertical margins, empty state spacing
   // Standardized layout tokens
-  sectionGap: 20,       // Vertical gap between home screen modules
+  sectionGap: 24,       // Standard section gap
   screenPaddingH: 16,   // Standard app-wide horizontal margins (16px)
   cardInnerPadding: 16, // Balanced card interior padding
+  cardInset: 16,        // Standard card inset
   cardGap: 12,          // Gap between adjacent cards in a section
+  formGap: 16,          // Vertical gap between form fields
   listItemGap: 8,       // Gap between list items
-  headerBottom: 12,     // Space below screen headers
+  headerBottom: 16,     // Space below screen headers
   contentTop: 8,        // Top padding for main scroll content
 };
 

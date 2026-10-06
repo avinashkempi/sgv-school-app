@@ -271,9 +271,14 @@ export default function SendNotificationScreen() {
                   <Pressable
                     key={item.key}
                     onPress={() => setTarget(item.key)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Target audience: ${item.label}`}
+                    accessibilityState={{ selected: isSelected }}
+                    hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
                     style={{
                       flex: 1,
                       minWidth: "45%",
+                      minHeight: 52,
                       padding: SPACING.md || 12,
                       backgroundColor: isSelected
                         ? colors.primaryContainer
@@ -336,7 +341,14 @@ export default function SendNotificationScreen() {
                       <Pressable
                         key={cls._id}
                         onPress={() => setSelectedClass(cls._id)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Class ${formatClassName(cls.name, cls.section)}`}
+                        accessibilityState={{ selected: isSelected }}
+                        hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
                         style={{
+                          minHeight: 44,
+                          justifyContent: "center",
+                          alignItems: "center",
                           paddingHorizontal: SPACING.lg || 16,
                           paddingVertical: SPACING.sm || 10,
                           backgroundColor: isSelected
@@ -359,6 +371,88 @@ export default function SendNotificationScreen() {
                   })}
                 </View>
               </ScrollView>
+            </View>
+          )}
+
+          {/* Live Recipient Preview Card */}
+          {(title.trim() || message.trim()) && (
+            <View style={{ marginBottom: SPACING.xl || 20 }}>
+              <Text
+                style={{
+                  color: colors.onSurfaceVariant,
+                  marginBottom: SPACING.xs || 8,
+                  fontFamily: FONTS.medium,
+                  fontSize: FONT_SIZES.sm,
+                }}
+              >
+                Recipient Preview
+              </Text>
+              <Card
+                variant="elevated"
+                noMargin
+                contentStyle={{
+                  padding: 16,
+                  borderLeftWidth: 4,
+                  borderLeftColor: colors.primary,
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 8,
+                  }}
+                >
+                  <View
+                    style={{
+                      backgroundColor: colors.primaryContainer,
+                      paddingHorizontal: 8,
+                      paddingVertical: 2,
+                      borderRadius: 6,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: FONT_SIZES.micro,
+                        fontFamily: FONTS.bold,
+                        color: colors.onPrimaryContainer,
+                      }}
+                    >
+                      {type.toUpperCase()}
+                    </Text>
+                  </View>
+                  <Text
+                    style={{
+                      fontSize: FONT_SIZES.micro,
+                      color: colors.onSurfaceVariant,
+                      fontFamily: FONTS.medium,
+                    }}
+                  >
+                    Target: {target === "all" ? "All Users" : target.toUpperCase()}
+                  </Text>
+                </View>
+
+                <Text
+                  style={{
+                    fontSize: FONT_SIZES.md,
+                    fontFamily: FONTS.bold,
+                    color: colors.onSurface,
+                    marginBottom: 4,
+                  }}
+                >
+                  {title || "Untitled Notification"}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: FONT_SIZES.sm,
+                    color: colors.onSurfaceVariant,
+                    lineHeight: 20,
+                  }}
+                >
+                  {message || "Message preview will appear here..."}
+                </Text>
+              </Card>
             </View>
           )}
 

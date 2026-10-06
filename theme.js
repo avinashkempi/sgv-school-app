@@ -28,7 +28,6 @@ import {
 import {
   lightColors,
   darkColors,
-  SGV_BRAND,
 } from "./constants/colors";
 
 import { createElevations, ELEVATION_USES } from "./constants/shadows";
@@ -46,7 +45,6 @@ export {
   SPACING,
   RADIUS,
   ICON_SIZES,
-  SGV_BRAND,
   DURATIONS,
   EASINGS,
   SPRINGS,
@@ -432,26 +430,26 @@ export function ThemeProvider({ children }) {
 
   const gradients = useMemo(() => ({
     primary: mode === 'dark'
-      ? [colors.primary, '#9A82DB']
-      : [colors.primary, '#4F378B'],
+      ? [colors.primary, '#6366F1']
+      : [colors.primary, '#4338CA'],
     card: mode === 'dark'
       ? [colors.surfaceContainer, colors.surfaceContainerHigh]
       : [colors.surfaceContainer, colors.surfaceContainerLow],
     warm: mode === 'dark'
-      ? ['#4F378B', '#3B2D6B']
-      : ['#F5E6D3', '#FEF7FF'],
+      ? ['#312E81', '#1E1B4B']
+      : ['#EEF2FF', '#E0E7FF'],
     subtleGlow: mode === 'dark'
-      ? ['rgba(208, 188, 255, 0.08)', 'transparent']
-      : ['rgba(103, 80, 164, 0.05)', 'transparent'],
+      ? ['rgba(165, 180, 252, 0.12)', 'transparent']
+      : ['rgba(79, 70, 229, 0.08)', 'transparent'],
     purple: mode === 'dark'
-      ? [colors.primary, '#9A82DB']
-      : [colors.primary, '#4F378B'],
+      ? [colors.tertiary, '#A78BFA']
+      : [colors.tertiary, '#5B21B6'],
     blue: mode === 'dark'
-      ? [colors.primary, '#9A82DB']
-      : [colors.primary, '#4F378B'],
+      ? [colors.primary, '#818CF8']
+      : [colors.primary, '#3730A3'],
     tertiary: mode === 'dark'
-      ? [colors.tertiary, '#633B48']
-      : [colors.tertiary, '#FFD8E4'],
+      ? [colors.secondary, '#14B8A6']
+      : [colors.secondary, '#0D9488'],
   }), [colors, mode]);
 
   const toggle = () => {

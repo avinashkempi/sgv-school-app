@@ -20,12 +20,12 @@ import {} from "react-native-chart-kit";
 const { _width } = Dimensions.get("window");
 
 const EXAM_COLORS = {
-  FA1: "#4CAF50",
-  FA2: "#2196F3",
-  SA1: "#FF9800",
-  FA3: "#9C27B0",
-  FA4: "#E91E63",
-  SA2: "#F44336",
+  FA1: "#16A34A",
+  FA2: "#4F46E5",
+  SA1: "#D97706",
+  FA3: "#6D28D9",
+  FA4: "#0F766E",
+  SA2: "#DC2626",
 };
 
 export default function SubjectPerformanceScreen() {
@@ -56,9 +56,9 @@ export default function SubjectPerformanceScreen() {
 
   const getGradeColor = (percentage) => {
     if (percentage >= 90) return colors.success;
-    if (percentage >= 70) return "#2196F3";
-    if (percentage >= 50) return "#FF9800";
-    if (percentage >= 30) return "#FF5722";
+    if (percentage >= 70) return colors.primary;
+    if (percentage >= 50) return colors.warning || "#D97706";
+    if (percentage >= 30) return "#EA580C";
     return colors.error;
   };
 

@@ -92,11 +92,11 @@ export default function PerformanceInsights({ reportData }) {
   };
 
   const getGradeColor = (percentage) => {
-    if (percentage >= 90) return "#4CAF50";
-    if (percentage >= 70) return "#2196F3";
-    if (percentage >= 50) return "#FF9800";
-    if (percentage >= 30) return "#FF5722";
-    return "#F44336";
+    if (percentage >= 90) return colors.success || "#16A34A";
+    if (percentage >= 70) return colors.primary || "#4F46E5";
+    if (percentage >= 50) return colors.warning || "#D97706";
+    if (percentage >= 30) return "#EA580C";
+    return colors.error || "#DC2626";
   };
 
   const insights = calculateInsights();

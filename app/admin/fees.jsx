@@ -827,21 +827,21 @@ export default function AdminFeesScreen() {
                       flex: 1,
                       flexDirection: "row",
                       alignItems: "center",
-                      backgroundColor: "#FF980012",
+                      backgroundColor: (colors.warning || "#D97706") + "12",
                       paddingHorizontal: 12,
                       paddingVertical: 8,
                       borderRadius: 12,
                       borderWidth: 1,
-                      borderColor: "#FF980025",
+                      borderColor: (colors.warning || "#D97706") + "25",
                       gap: 6,
                     }}
                   >
-                    <MaterialIcons name="local-offer" size={16} color="#FF9800" />
+                    <MaterialIcons name="local-offer" size={16} color={colors.warning || "#D97706"} />
                     <View style={{ flex: 1 }}>
                       <Text
                         style={{
                           fontSize: FONT_SIZES.micro,
-                          color: "#FF9800",
+                          color: colors.warning || "#D97706",
                           fontFamily: FONTS.bold,
                           textTransform: "uppercase",
                         }}
@@ -1328,7 +1328,7 @@ export default function AdminFeesScreen() {
                               {item.totalConcession > 0 && (
                                 <View
                                   style={{
-                                    backgroundColor: "#FF980015",
+                                    backgroundColor: (colors.warning || "#D97706") + "15",
                                     paddingHorizontal: 8,
                                     paddingVertical: 2,
                                     borderRadius: 6,
@@ -1337,7 +1337,7 @@ export default function AdminFeesScreen() {
                                   <Text
                                     style={{
                                       fontSize: FONT_SIZES.micro,
-                                      color: "#FF9800",
+                                      color: colors.warning || "#D97706",
                                       fontFamily: FONTS.bold,
                                     }}
                                   >
@@ -2092,7 +2092,7 @@ export default function AdminFeesScreen() {
                         style={{
                           flex: 1,
                           minWidth: "22%",
-                          backgroundColor: "#FF980015",
+                          backgroundColor: (colors.warning || "#D97706") + "15",
                           padding: 12,
                           borderRadius: 16,
                           alignItems: "center",
@@ -2100,7 +2100,7 @@ export default function AdminFeesScreen() {
                       >
                         <Text
                           style={{
-                            color: "#FF9800",
+                            color: colors.warning || "#D97706",
                             fontSize: FONT_SIZES.xs,
                             marginBottom: 4,
                           }}
@@ -2110,7 +2110,7 @@ export default function AdminFeesScreen() {
                         <Text
                           style={{
                             fontFamily: FONTS.bold,
-                            color: "#FF9800",
+                            color: colors.warning || "#D97706",
                             fontSize: FONT_SIZES.md,
                           }}
                         >

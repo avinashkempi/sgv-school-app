@@ -52,7 +52,7 @@ const EmptyState = memo(({
           width: 68,
           height: 68,
           borderRadius: RADIUS.full || 34,
-          backgroundColor: colors.primaryContainer || colors.surfaceContainerHigh || "#EADDFF",
+          backgroundColor: colors.primaryContainer || colors.surfaceContainerHigh || "#EEF2FF",
           alignItems: "center",
           justifyContent: "center",
           marginBottom: SPACING.md || 16,
@@ -63,7 +63,7 @@ const EmptyState = memo(({
         <MaterialIcons
           name={icon}
           size={32}
-          color={colors.primary || "#6750A4"}
+          color={colors.primary || "#4F46E5"}
         />
       </View>
 
@@ -159,7 +159,7 @@ const LoadingState = memo(({ message, style }) => {
           elevation: 2,
         }}
       >
-        <ActivityIndicator size="small" color={colors.primary || "#6750A4"} />
+        <ActivityIndicator size="small" color={colors.primary || "#4F46E5"} />
       </View>
 
       <Text
@@ -272,4 +272,142 @@ const ErrorState = memo(({ title, message, onRetry, retryLabel, style }) => {
 
 ErrorState.displayName = "ErrorState";
 
-export { EmptyState, LoadingState, ErrorState };
+/**
+ * Premium Offline State Component
+ */
+const OfflineState = memo(({ onRetry, style }) => {
+  const { colors } = useTheme();
+  const { t } = useLabel();
+
+  return (
+    <View
+      style={[
+        {
+          alignItems: "center",
+          justifyContent: "center",
+          paddingVertical: 40,
+          paddingHorizontal: 24,
+          minHeight: 220,
+        },
+        style,
+      ]}
+    >
+      <View
+        style={{
+          width: 68,
+          height: 68,
+          borderRadius: RADIUS.full || 34,
+          backgroundColor: colors.surfaceContainerHigh || "#E2E8F0",
+          alignItems: "center",
+          justifyContent: "center",
+          marginBottom: SPACING.md || 16,
+          borderWidth: 1,
+          borderColor: colors.outlineVariant || "transparent",
+        }}
+      >
+        <MaterialIcons
+          name="cloud-off"
+          size={32}
+          color={colors.textSecondary || "#64748B"}
+        />
+      </View>
+
+      <Text
+        style={{
+          fontSize: FONT_SIZES.md || 16,
+          color: colors.textPrimary || colors.onSurface,
+          marginBottom: 6,
+          textAlign: "center",
+          fontFamily: FONTS.bold || FONTS.semiBold,
+        }}
+      >
+        {t("states.offlineTitle", "You are offline")}
+      </Text>
+
+      <Text
+        style={{
+          fontSize: FONT_SIZES.sm || 13,
+          color: colors.textSecondary || colors.onSurfaceVariant,
+          textAlign: "center",
+          lineHeight: 19,
+          maxWidth: 290,
+          marginBottom: onRetry ? 20 : 0,
+          fontFamily: FONTS.regular,
+        }}
+      >
+        {t(
+          "states.offlineMessage",
+          "Showing saved offline data. Please check your internet connection to sync latest changes."
+        )}
+      </Text>
+
+      {onRetry && (
+        <Button
+          variant="outlined"
+          size="md"
+          icon="refresh"
+          onPress={onRetry}
+          title={t("states.reconnectButton", "Try Reconnecting")}
+          style={{ minWidth: 160 }}
+        />
+      )}
+    </View>
+  );
+});
+
+OfflineState.displayName = "OfflineState";
+
+/**
+ * Premium Partial Data State Banner Component
+ */
+const PartialDataState = memo(({ message, onRetry, style }) => {
+  const { colors } = useTheme();
+
+  return (
+    <View
+      style={[
+        {
+          flexDirection: "row",
+          alignItems: "center",
+          backgroundColor: colors.surfaceContainer,
+          borderColor: colors.outlineVariant,
+          borderWidth: 1,
+          borderRadius: RADIUS.md || 12,
+          paddingHorizontal: 14,
+          paddingVertical: 10,
+          gap: 10,
+          marginVertical: 8,
+        },
+        style,
+      ]}
+    >
+      <MaterialIcons
+        name="info-outline"
+        size={20}
+        color={colors.warning || "#D97706"}
+      />
+      <Text
+        style={{
+          flex: 1,
+          fontSize: FONT_SIZES.xs || 12,
+          color: colors.textSecondary,
+          fontFamily: FONTS.medium,
+        }}
+      >
+        {message || "Some content could not be updated. Showing cached version."}
+      </Text>
+      {onRetry && (
+        <Button
+          variant="text"
+          size="sm"
+          onPress={onRetry}
+          title="Retry"
+        />
+      )}
+    </View>
+  );
+});
+
+PartialDataState.displayName = "PartialDataState";
+
+export { EmptyState, LoadingState, ErrorState, OfflineState, PartialDataState };

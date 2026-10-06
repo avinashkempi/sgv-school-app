@@ -7,6 +7,8 @@ import {
   Platform,
   TouchableOpacity,
   StyleSheet,
+  Modal,
+  Pressable,
 } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
@@ -98,14 +100,30 @@ export default function Login() {
     loginMutation.mutate({ phone, password });
   };
 
-  const handleDemoLogin = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    const { DEMO_USER } = require("../constants/demoData");
+  const [showDemoRoleModal, setShowDemoRoleModal] = useState(false);
 
-    // Use AuthContext.login for demo mode too — ensures cache clearing
-    await authLogin("demo-token", DEMO_USER);
+  const handleSelectDemoRole = async (roleKey) => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch {}
 
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    const {
+      DEMO_STUDENT_USER,
+      DEMO_TEACHER_USER,
+      DEMO_ADMIN_USER,
+      DEMO_SUPER_ADMIN_USER,
+    } = require("../constants/demoData");
+
+    let targetUser = DEMO_STUDENT_USER;
+    if (roleKey === "teacher") targetUser = DEMO_TEACHER_USER;
+    if (roleKey === "admin") targetUser = DEMO_ADMIN_USER;
+    if (roleKey === "super-admin") targetUser = DEMO_SUPER_ADMIN_USER;
+
+    setShowDemoRoleModal(false);
+    await authLogin("demo-token", targetUser);
+    try {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch {}
     router.replace("/");
   };
 
@@ -273,7 +291,7 @@ export default function Login() {
               variant="outlined"
               size="lg"
               fullWidth
-              onPress={handleDemoLogin}
+              onPress={() => setShowDemoRoleModal(true)}
               icon={<MaterialIcons name="bolt" size={18} color={colors.primary} />}
             >
               {t("login.viewAsGuestButton", "Explore Demo as Guest")}
@@ -292,6 +310,120 @@ export default function Login() {
         </View>
         </View>
       </ScrollView>
+
+      {/* Multi-Role Demo Persona Modal */}
+      <Modal
+        visible={showDemoRoleModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowDemoRoleModal(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setShowDemoRoleModal(false)}
+        >
+          <Pressable
+            style={[
+              styles.modalCard,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.outlineVariant,
+              },
+            ]}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={styles.modalHeader}>
+              <View>
+                <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
+                  Choose Demo Persona
+                </Text>
+                <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>
+                  Explore the school app from any perspective
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setShowDemoRoleModal(false)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel="Close persona selector"
+              >
+                <MaterialIcons name="close" size={22} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.roleList}>
+              {[
+                {
+                  id: "student",
+                  title: "Student",
+                  subtitle: "Harshika Patil • Class 3A",
+                  icon: "school",
+                },
+                {
+                  id: "teacher",
+                  title: "Teacher",
+                  subtitle: "Mrs. Savita Patil • Kannada & Math",
+                  icon: "person",
+                },
+                {
+                  id: "admin",
+                  title: "School Admin",
+                  subtitle: "Mr. Rajesh Biradar • Vice Principal",
+                  icon: "admin-panel-settings",
+                },
+                {
+                  id: "super-admin",
+                  title: "Super Admin",
+                  subtitle: "Dr. Sangamesh Patil • Management",
+                  icon: "shield",
+                },
+              ].map((role) => (
+                <TouchableOpacity
+                  key={role.id}
+                  style={[
+                    styles.roleCard,
+                    {
+                      backgroundColor:
+                        colors.surfaceContainerLowest ||
+                        (colors.mode === "dark" ? colors.surfaceContainer : "#F8FAFC"),
+                      borderColor: colors.outlineVariant,
+                    },
+                  ]}
+                  onPress={() => handleSelectDemoRole(role.id)}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Explore as ${role.title}: ${role.subtitle}`}
+                >
+                  <View
+                    style={[
+                      styles.roleIconContainer,
+                      { backgroundColor: colors.primaryContainer },
+                    ]}
+                  >
+                    <MaterialIcons name={role.icon} size={22} color={colors.primary} />
+                  </View>
+                  <View style={styles.roleTextContainer}>
+                    <Text style={[styles.roleCardTitle, { color: colors.textPrimary }]}>
+                      {role.title}
+                    </Text>
+                    <Text
+                      style={[styles.roleCardSubtitle, { color: colors.textSecondary }]}
+                      numberOfLines={1}
+                    >
+                      {role.subtitle}
+                    </Text>
+                  </View>
+                  <MaterialIcons
+                    name="chevron-right"
+                    size={20}
+                    color={colors.textSecondary}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -394,5 +526,69 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
     fontSize: 11,
     textAlign: "center",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.45)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: SPACING.lg || 16,
+  },
+  modalCard: {
+    width: "100%",
+    maxWidth: 420,
+    borderRadius: RADIUS.lg || 16,
+    borderWidth: 1,
+    padding: SPACING.xl || 20,
+    gap: SPACING.lg || 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  modalTitle: {
+    fontSize: FONT_SIZES.lg || 18,
+    fontFamily: FONTS.bold,
+  },
+  modalSubtitle: {
+    fontSize: FONT_SIZES.sm || 13,
+    fontFamily: FONTS.regular,
+    marginTop: 2,
+  },
+  roleList: {
+    gap: SPACING.sm || 8,
+  },
+  roleCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    borderRadius: RADIUS.md || 12,
+    borderWidth: 1,
+    gap: 12,
+  },
+  roleIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: RADIUS.sm || 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  roleTextContainer: {
+    flex: 1,
+  },
+  roleCardTitle: {
+    fontSize: FONT_SIZES.sm || 14,
+    fontFamily: FONTS.semiBold,
+  },
+  roleCardSubtitle: {
+    fontSize: FONT_SIZES.xs || 12,
+    fontFamily: FONTS.regular,
+    marginTop: 1,
   },
 });

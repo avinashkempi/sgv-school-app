@@ -503,11 +503,11 @@ export default function AdminLeaves() {
 
   const getRoleBadgeStyle = (role, designation) => {
     if (designation && String(designation).trim()) {
-      return { bg: colors.primaryContainer || "#EADDFF", border: (colors.primary || "#6750A4") + "30", text: colors.primary || "#6750A4", label: toTitleCase(String(designation).trim()), icon: "badge" };
+      return { bg: colors.primaryContainer || "#EEF2FF", border: (colors.primary || "#4F46E5") + "30", text: colors.primary || "#4F46E5", label: toTitleCase(String(designation).trim()), icon: "badge" };
     }
     switch (role) {
       case "student":
-        return { bg: colors.primaryContainer || "#EADDFF", border: (colors.primary || "#6750A4") + "30", text: colors.primary || "#6750A4", label: "Student", icon: "school" };
+        return { bg: colors.primaryContainer || "#EEF2FF", border: (colors.primary || "#4F46E5") + "30", text: colors.primary || "#4F46E5", label: "Student", icon: "school" };
       case "teacher":
         return { bg: "#E0F2FE", border: "#BAE6FD", text: "#0284C7", label: "Teacher", icon: "person" };
       case "staff":
@@ -581,8 +581,8 @@ export default function AdminLeaves() {
                 </View>
 
                 {isStudent && item.class && (
-                  <View style={[styles.classChip, { backgroundColor: colors.primaryContainer || "#EADDFF", borderColor: (colors.primary || "#6750A4") + "30" }]}>
-                    <Text style={[styles.classChipText, { color: colors.primary || "#6750A4" }]} numberOfLines={1}>
+                  <View style={[styles.classChip, { backgroundColor: colors.primaryContainer || "#EEF2FF", borderColor: (colors.primary || "#4F46E5") + "30" }]}>
+                    <Text style={[styles.classChipText, { color: colors.primary || "#4F46E5" }]} numberOfLines={1}>
                       {formatClassName(item.class.name || item.class.label, item.class.section)}
                     </Text>
                   </View>
@@ -806,19 +806,19 @@ export default function AdminLeaves() {
               {
                 backgroundColor:
                   statusFilter === "pending"
-                    ? (colors.warning || "#FF9800") + "25"
+                    ? (colors.warning || "#D97706") + "25"
                     : colors.surface,
                 borderColor:
                   statusFilter === "pending"
-                    ? colors.warning || "#FF9800"
+                    ? colors.warning || "#D97706"
                     : colors.outlineVariant + "40",
               },
             ]}
             onPress={() => setStatusFilter(statusFilter === "pending" ? "all" : "pending")}
           >
             <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-              <View style={[styles.kpiDot, { backgroundColor: colors.warning || "#FF9800" }]} />
-              <Text style={[styles.kpiCapsuleNum, { color: colors.warning || "#FF9800" }]} numberOfLines={1}>
+              <View style={[styles.kpiDot, { backgroundColor: colors.warning || "#D97706" }]} />
+              <Text style={[styles.kpiCapsuleNum, { color: colors.warning || "#D97706" }]} numberOfLines={1}>
                 {summaryMetrics.pending}
               </Text>
             </View>
@@ -1001,7 +1001,7 @@ export default function AdminLeaves() {
                   {tab.label}
                 </Text>
                 {tab.count !== null && tab.count > 0 && (
-                  <View style={[styles.tabBadge, { backgroundColor: colors.primary || "#6750A4" }]}>
+                  <View style={[styles.tabBadge, { backgroundColor: colors.primary || "#4F46E5" }]}>
                     <Text style={styles.tabBadgeText}>{tab.count}</Text>
                   </View>
                 )}
@@ -1171,8 +1171,8 @@ export default function AdminLeaves() {
 
           {/* Daily Quick Counts */}
           <View style={styles.dailyCountsRow}>
-            <View style={[styles.dailyCountPill, { backgroundColor: colors.primaryContainer || "#EADDFF" }]}>
-              <Text style={{ color: colors.primary || "#6750A4", fontFamily: FONTS.bold, fontSize: FONT_SIZES.xs }} numberOfLines={1}>
+            <View style={[styles.dailyCountPill, { backgroundColor: colors.primaryContainer || "#EEF2FF" }]}>
+              <Text style={{ color: colors.primary || "#4F46E5", fontFamily: FONTS.bold, fontSize: FONT_SIZES.xs }} numberOfLines={1}>
                 {dailyLeavesGrouped.students.length} Students
               </Text>
             </View>
@@ -1243,13 +1243,13 @@ export default function AdminLeaves() {
                 <Text style={[styles.allowanceNum, { color: colors.onSurface }]} numberOfLines={1}>{leaveBalance.total}</Text>
                 <Text style={[styles.allowanceLabel, { color: colors.onSurfaceVariant }]} numberOfLines={1}>Total</Text>
               </View>
-              <View style={[styles.allowanceCol, { backgroundColor: colors.primaryContainer || "#EADDFF" }]}>
-                <Text style={[styles.allowanceNum, { color: colors.primary || "#6750A4" }]} numberOfLines={1}>{leaveBalance.used}</Text>
-                <Text style={[styles.allowanceLabel, { color: colors.primary || "#6750A4" }]} numberOfLines={1}>Used</Text>
+              <View style={[styles.allowanceCol, { backgroundColor: colors.primaryContainer || "#EEF2FF" }]}>
+                <Text style={[styles.allowanceNum, { color: colors.primary || "#4F46E5" }]} numberOfLines={1}>{leaveBalance.used}</Text>
+                <Text style={[styles.allowanceLabel, { color: colors.primary || "#4F46E5" }]} numberOfLines={1}>Used</Text>
               </View>
-              <View style={[styles.allowanceCol, { backgroundColor: "#E8F5E9" }]}>
-                <Text style={[styles.allowanceNum, { color: "#2E7D32" }]} numberOfLines={1}>{leaveBalance.remaining}</Text>
-                <Text style={[styles.allowanceLabel, { color: "#2E7D32" }]} numberOfLines={1}>Remaining</Text>
+              <View style={[styles.allowanceCol, { backgroundColor: colors.successContainer || "#DCFCE7" }]}>
+                <Text style={[styles.allowanceNum, { color: colors.success || "#16A34A" }]} numberOfLines={1}>{leaveBalance.remaining}</Text>
+                <Text style={[styles.allowanceLabel, { color: colors.success || "#16A34A" }]} numberOfLines={1}>Remaining</Text>
               </View>
             </View>
           </View>

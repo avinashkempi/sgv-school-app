@@ -59,7 +59,7 @@ export default function MenuScreen() {
           "School calendar, activities & upcoming holidays"
         ),
         icon: "event",
-        color: colors.tertiary || "#E11D48",
+        color: colors.tertiary || "#6D28D9",
         route: "/events",
       },
     ];

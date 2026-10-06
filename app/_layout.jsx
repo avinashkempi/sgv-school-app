@@ -221,7 +221,7 @@ function Inner() {
         ]}
       >
         <WebHeadTitle title={webTitle} />
-        <ActivityIndicator size="large" color={colors.primary || "#6750A4"} />
+        <ActivityIndicator size="large" color={colors.primary || "#4F46E5"} />
       </SafeAreaView>
     );
   }

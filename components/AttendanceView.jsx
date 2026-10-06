@@ -346,7 +346,7 @@ export default function AttendanceView({
             borderRadius: 10,
             backgroundColor:
               existingContainer.backgroundColor ||
-              (isDark ? "rgba(208, 188, 255, 0.18)" : (colors.primaryContainer || "#EADDFF")),
+              (isDark ? "rgba(165, 180, 252, 0.20)" : (colors.primaryContainer || "#EEF2FF")),
           },
           text: {
             ...(existing.customStyles?.text || {}),
@@ -480,8 +480,8 @@ export default function AttendanceView({
         <LinearGradient
           colors={
             isDark
-              ? ["#381E72", "#1D192B"]
-              : [colors.onPrimaryContainer || "#21005D", colors.primary || "#4F378B"]
+              ? ["#1E1B4B", "#0F172A"]
+              : [colors.onPrimaryContainer || "#312E81", colors.primary || "#4F46E5"]
           }
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -555,7 +555,7 @@ export default function AttendanceView({
             <View style={styles.trackLabelsRow}>
               <Text style={styles.trackLabelLeft}>0%</Text>
               <View style={styles.trackTargetPin}>
-                <MaterialIcons name="flag" size={11} color="#EADDFF" />
+                <MaterialIcons name="flag" size={11} color="#C7D2FE" />
                 <Text style={styles.trackTargetText}>90% Target</Text>
               </View>
               <Text style={styles.trackLabelRight}>100%</Text>
@@ -1649,7 +1649,7 @@ const styles = StyleSheet.create({
   },
   trackTargetText: {
     fontSize: FONT_SIZES.micro,
-    color: "#EADDFF",
+    color: "#C7D2FE",
     fontFamily: FONTS.bold,
   },
   trackLabelRight: {

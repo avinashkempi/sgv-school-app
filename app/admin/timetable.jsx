@@ -541,8 +541,10 @@ export default function AdminTimetableScreen() {
                   style={{
                     paddingHorizontal: 20,
                     paddingVertical: 10,
+                    minHeight: 44,
+                    justifyContent: "center",
                     backgroundColor: isSelected
-                      ? colors.primaryContainer || "#EADDFF"
+                      ? colors.primaryContainer || "#EEF2FF"
                       : colors.surfaceContainerLow || colors.cardBackground,
                     borderRadius: 20,
                     borderWidth: 1,
@@ -585,8 +587,10 @@ export default function AdminTimetableScreen() {
                       style={{
                         paddingHorizontal: 16,
                         paddingVertical: 8,
+                        minHeight: 44,
+                        justifyContent: "center",
                         backgroundColor: isDaySelected
-                          ? colors.primaryContainer || "#EADDFF"
+                          ? colors.primaryContainer || "#EEF2FF"
                           : colors.surfaceContainerLow || "transparent",
                         borderRadius: 12,
                         borderWidth: 1,

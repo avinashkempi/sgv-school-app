@@ -188,10 +188,10 @@ export default function SchoolContactSection({ onOpenAbout }) {
             <View
               style={[
                 localStyles.connectCircle,
-                { backgroundColor: (colors.primary || "#6750A4") + "18" },
+                { backgroundColor: (colors.primary || "#4F46E5") + "18" },
               ]}
             >
-              <MaterialIcons name="location-on" size={22} color={colors.primary || "#6750A4"} />
+              <MaterialIcons name="location-on" size={22} color={colors.primary || "#4F46E5"} />
             </View>
             <Text
               style={[

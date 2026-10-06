@@ -14,7 +14,7 @@ import { useLabel } from "../../context/LabelsContext";
 import HomeModuleContainer from "./HomeModuleContainer";
 
 const SchoolOverviewSection = ({ schoolInfo }) => {
-  const { mode } = useTheme();
+  const { colors, mode } = useTheme();
   const isDark = mode === "dark";
   const { t } = useLabel();
 
@@ -59,19 +59,19 @@ const SchoolOverviewSection = ({ schoolInfo }) => {
     );
   };
 
-  // Pastel Color Accents
-  const mulberryAccent = isDark ? "#EFB8C8" : "#7D5260";
+  // Design System Accents
+  const violetAccent = isDark ? (colors.tertiary || "#C4B5FD") : (colors.tertiary || "#6D28D9");
 
   return (
     <View style={{ marginTop: 2 }}>
       <HomeModuleContainer
         title={t("menu.followUs", "Connect With Us")}
         icon="alternate-email"
-        accentColor={mulberryAccent}
-        lightBg="rgba(125, 82, 96, 0.035)"
-        darkBg="rgba(239, 184, 200, 0.05)"
-        lightBorder="rgba(125, 82, 96, 0.12)"
-        darkBorder="rgba(239, 184, 200, 0.15)"
+        accentColor={violetAccent}
+        lightBg="rgba(109, 40, 217, 0.04)"
+        darkBg="rgba(196, 181, 253, 0.08)"
+        lightBorder="rgba(109, 40, 217, 0.12)"
+        darkBorder="rgba(196, 181, 253, 0.18)"
       >
         {/* Minimal 1-Row Connect Action Bar: Call, Map, YouTube, Instagram */}
         <View style={localStyles.chipRow}>

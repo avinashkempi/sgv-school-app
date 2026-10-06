@@ -50,11 +50,11 @@ export default function OfflineSyncBar() {
   let statusText = `${pendingCount} action${pendingCount === 1 ? "" : "s"} saved offline`;
 
   if (isSyncing) {
-    bannerBg = colors.primaryContainer || (isDark ? "#4F378B" : "#EADDFF");
-    borderColor = colors.primary || (isDark ? "#D0BCFF" : "#6750A4");
-    textColor = colors.onPrimaryContainer || (isDark ? "#EADDFF" : "#21005D");
+    bannerBg = colors.primaryContainer || (isDark ? "#312E81" : "#EEF2FF");
+    borderColor = colors.primary || (isDark ? "#A5B4FC" : "#4F46E5");
+    textColor = colors.onPrimaryContainer || (isDark ? "#EEF2FF" : "#312E81");
     iconName = "sync";
-    iconColor = colors.primary || (isDark ? "#D0BCFF" : "#6750A4");
+    iconColor = colors.primary || (isDark ? "#A5B4FC" : "#4F46E5");
     statusText = `Syncing ${pendingCount} offline action${pendingCount === 1 ? "" : "s"}...`;
   } else if (failedCount > 0) {
     bannerBg = isDark ? "#3B1111" : "#FEF2F2";

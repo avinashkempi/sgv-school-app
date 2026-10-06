@@ -1450,7 +1450,7 @@ export default function AdminAttendance() {
                             ? getStatusColor(item.status)
                             : null;
                           const borderColor = item.onLeave
-                            ? "#FF9800"
+                            ? (colors.warning || "#D97706")
                             : statusColor;
                           return (
                             <Pressable
@@ -1507,7 +1507,7 @@ export default function AdminAttendance() {
                                   {item.onLeave && (
                                     <View
                                       style={{
-                                        backgroundColor: "#FF9800" + "20",
+                                        backgroundColor: (colors.warning || "#D97706") + "20",
                                         paddingHorizontal: 6,
                                         paddingVertical: 1,
                                         borderRadius: 6,
@@ -1517,7 +1517,7 @@ export default function AdminAttendance() {
                                         style={{
                                           fontSize: FONT_SIZES.micro,
                                           fontFamily: FONTS.bold,
-                                          color: "#FF9800",
+                                          color: colors.warning || "#D97706",
                                         }}
                                       >
                                         ON LEAVE
@@ -1570,7 +1570,7 @@ export default function AdminAttendance() {
                                 <Text
                                   style={{
                                     fontSize: FONT_SIZES.xs,
-                                    color: "#FF9800",
+                                    color: colors.warning || "#D97706",
                                     marginTop: 4,
                                     fontFamily: FONTS.medium,
                                   }}

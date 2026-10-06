@@ -527,7 +527,7 @@ const TeacherPerformanceCard = ({
             borderRadius: 8,
             backgroundColor:
               viewMode === "chart"
-                ? colors.primary || "#6750A4"
+                ? colors.primary || "#4F46E5"
                 : "transparent",
           }}
         >
@@ -565,7 +565,7 @@ const TeacherPerformanceCard = ({
             paddingVertical: 6,
             borderRadius: 8,
             backgroundColor:
-              viewMode === "list" ? colors.primary || "#6750A4" : "transparent",
+              viewMode === "list" ? colors.primary || "#4F46E5" : "transparent",
           }}
         >
           <MaterialCommunityIcons
@@ -768,7 +768,7 @@ const TeacherPerformanceCard = ({
                     y={paddingTop + plotHeight + 18}
                     fill={
                       isSelected
-                        ? colors.primary || "#6750A4"
+                        ? colors.primary || "#4F46E5"
                         : colors.onSurfaceVariant || "#757575"
                     }
                     fontSize={isSelected ? FONT_SIZES.xs : FONT_SIZES.micro}
@@ -824,7 +824,7 @@ const TeacherPerformanceCard = ({
                 }
                 style={({ pressed }) => ({
                   backgroundColor: isSelected
-                    ? (colors.primary || "#6750A4") + "18"
+                    ? (colors.primary || "#4F46E5") + "18"
                     : isDark
                     ? "rgba(167, 139, 250, 0.08)"
                     : "rgba(99, 102, 241, 0.05)",
@@ -832,7 +832,7 @@ const TeacherPerformanceCard = ({
                   padding: 12,
                   borderWidth: 1,
                   borderColor: isSelected
-                    ? colors.primary || "#6750A4"
+                    ? colors.primary || "#4F46E5"
                     : isDark
                     ? "rgba(167, 139, 250, 0.2)"
                     : "rgba(99, 102, 241, 0.15)",

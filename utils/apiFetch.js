@@ -185,7 +185,16 @@ export default async function apiFetch(input, init = {}) {
     let responseData = null;
 
     if (url.includes("/auth/me")) {
-      responseData = { user: demoData.DEMO_USER };
+      let activeUser = demoData.DEMO_USER;
+      try {
+        const storedUser = await storage.getItem("@auth_user");
+        if (storedUser) {
+          activeUser = JSON.parse(storedUser);
+        }
+      } catch {
+        // fallback to default
+      }
+      responseData = { user: activeUser };
     } else if (
       url.includes("/attendance/student/") &&
       url.includes("/summary")
@@ -248,6 +257,12 @@ export default async function apiFetch(input, init = {}) {
       responseData = demoData.DEMO_NOTIFICATIONS;
     } else if (url.includes("/dashboard/student")) {
       responseData = demoData.DEMO_STUDENT_DASHBOARD;
+    } else if (url.includes("/dashboard/teacher")) {
+      responseData = demoData.DEMO_TEACHER_DASHBOARD;
+    } else if (url.includes("/dashboard/admin")) {
+      responseData = demoData.DEMO_ADMIN_DASHBOARD;
+    } else if (url.includes("/timetable/my-schedule")) {
+      responseData = { schedule: demoData.DEMO_TIMETABLE.schedule };
     } else if (url.includes("/academic-year")) {
       responseData = demoData.DEMO_ACADEMIC_YEARS;
     } else if (url.includes("/teachers/my-subjects")) {

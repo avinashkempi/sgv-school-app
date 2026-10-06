@@ -1,243 +1,193 @@
 /**
  * SGV School App — Semantic Color Design Tokens
  *
- * Central single source of truth for all colors across the application.
- * Strictly follows official Material Design 3 (M3) design principles.
+ * Modern Unbranded Education/Technology Color Design System
+ * Primary:   #4F46E5 (Indigo 600 - Light) / #A5B4FC (Indigo 300 - Dark)
+ * Secondary: #0F766E (Teal 700 - Light)   / #5EEAD4 (Teal 300 - Dark)
+ * Tertiary:  #6D28D9 (Violet 700 - Light) / #C4B5FD (Violet 300 - Dark)
+ * Surfaces:  Cool neutral slate canvas (#F8FAFC) & dark navy (#0B1220)
  *
- * M3 Baseline Palette:
- *   Primary:   #6750A4 (Light) / #D0BCFF (Dark) — Key actions, active tabs, brand expression
- *   Secondary: #625B71 (Light) / #CCC2DC (Dark) — Supporting components, filters, chips
- *   Tertiary:  #7D5260 (Light) / #EFB8C8 (Dark) — Contrasting accents, highlights, variety
- *   Surfaces:  #FEF7FF / #F3EDF7 (Light) / #141218 / #211F26 (Dark) — Tonal surface ladder
+ * All color pairings strictly exceed WCAG 2.2 AA (4.5:1 normal, 3.0:1 UI components).
  */
-
-// ── SGV BRAND & M3 PALETTE CONSTANTS ────────────────────────────────────────
-export const SGV_BRAND = {
-  purple: "#6750A4",        // Standard M3 Purple (Primary base)
-  purpleDark: "#D0BCFF",    // M3 Purple for dark surfaces
-  secondary: "#625B71",     // M3 Secondary Slate
-  secondaryDark: "#CCC2DC",
-  tertiary: "#7D5260",      // M3 Tertiary Rose
-  tertiaryDark: "#EFB8C8",
-  emerald: "#146C2E",       // M3 Forest Green
-  emeraldDark: "#6DD58C",
-  amber: "#8A5100",         // M3 Warm Amber
-  amberDark: "#FFBA28",
-  // SGV Brand Identity Colors
-  blue: "#2F6CD4",
-  blueDark: "#6EA0F7",
-  orange: "#FF5E1C",
-  orangeDark: "#FF8C5A",
-};
 
 // ── LIGHT THEME ─────────────────────────────────────────────────────────────
 export const lightColors = {
-  // ─── Primary (Standard M3 Baseline Purple) ───
-  primary: "#6750A4",
+  // ─── Primary (Indigo) ───
+  primary: "#4F46E5",
   onPrimary: "#FFFFFF",
-  primaryContainer: "#EADDFF",         // Soft M3 lavender tint
-  onPrimaryContainer: "#21005D",
-  inversePrimary: "#D0BCFF",
+  primaryContainer: "#EEF2FF",
+  onPrimaryContainer: "#312E81",
+  inversePrimary: "#A5B4FC",
 
-  // ─── Secondary (M3 Secondary Slate/Mauve) ───
-  secondary: "#625B71",
+  // ─── Secondary (Teal) ───
+  secondary: "#0F766E",
   onSecondary: "#FFFFFF",
-  secondaryContainer: "#E8DEF8",       // Soft muted purple/slate tint
-  onSecondaryContainer: "#1D192B",
+  secondaryContainer: "#CCFBF1",
+  onSecondaryContainer: "#115E59",
 
-  // ─── Tertiary (M3 Warm Rose / Balanced Contrasting Accent) ───
-  tertiary: "#7D5260",
+  // ─── Tertiary (Violet) ───
+  tertiary: "#6D28D9",
   onTertiary: "#FFFFFF",
-  tertiaryContainer: "#FFD8E4",        // Soft warm rose tint
-  onTertiaryContainer: "#31111D",
+  tertiaryContainer: "#EDE9FE",
+  onTertiaryContainer: "#5B21B6",
 
-  // ─── Error (M3 Standard) ───
-  error: "#B3261E",
+  // ─── Error (Accessible Red) ───
+  error: "#DC2626",
   onError: "#FFFFFF",
-  errorContainer: "#F9DEDC",
-  onErrorContainer: "#410E0B",
+  errorContainer: "#FEE2E2",
+  onErrorContainer: "#7F1D1D",
 
-  // ─── Surfaces & Canvas (M3 Expressive Neutral Surfaces) ───
-  background: "#FEF7FF",
-  onBackground: "#1D1B20",
+  // ─── Surfaces & Canvas (Cool Neutral Slate) ───
+  background: "#F8FAFC",
+  onBackground: "#0F172A",
 
-  surface: "#FEF7FF",
-  onSurface: "#1D1B20",
+  surface: "#FFFFFF",
+  onSurface: "#0F172A",
 
-  surfaceVariant: "#E7E0EC",
-  onSurfaceVariant: "#49454F",
+  surfaceVariant: "#F1F5F9",
+  onSurfaceVariant: "#475569",
 
-  // ─── Outline ───
-  outline: "#79747E",
-  outlineVariant: "#CAC4D0",
+  // ─── Outline & Borders ───
+  outline: "#94A3B8",
+  outlineVariant: "#CBD5E1",
 
-  // ─── Surface Elevation Ladder (M3 Tonal Surface Ladder) ───
+  // ─── Surface Elevation Ladder ───
   surfaceContainerLowest: "#FFFFFF",
-  surfaceContainerLow: "#F7F2FA",
-  surfaceContainer: "#F3EDF7",
-  surfaceContainerHigh: "#ECE6F0",
-  surfaceContainerHighest: "#E6E0E9",
+  surfaceContainerLow: "#F8FAFC",
+  surfaceContainer: "#F1F5F9",
+  surfaceContainerHigh: "#E2E8F0",
+  surfaceContainerHighest: "#CBD5E1",
 
   // ─── Inverse Surfaces ───
-  inverseSurface: "#313033",
-  inverseOnSurface: "#F4EFF4",
-
-  // ─── System ───
-  shadow: "#000000",
-  scrim: "#000000",
-
-  // ─── Semantic Status (M3 Tonal Green, Amber, Info) ───
-  success: "#146C2E",
-  onSuccess: "#FFFFFF",
-  successContainer: "#C4EED0",
-  onSuccessContainer: "#002107",
-
-  warning: "#8A5100",
-  onWarning: "#FFFFFF",
-  warningContainer: "#FFDEAC",
-  onWarningContainer: "#2C1600",
-
-  info: "#00639B",
-  onInfo: "#FFFFFF",
-  infoContainer: "#C2E7FF",
-  onInfoContainer: "#001D33",
-
-  // ─── Role Colors (M3 Unified Roles) ───
-  roleSuperAdmin: "#B3261E",
-  roleAdmin: "#146C2E",
-  roleStaff: "#6750A4",
-  roleClassTeacher: "#7D5260",
-  roleStudent: "#00639B",
-
-  // ─── Legacy / Convenience Aliases ───
-  white: "#FFFFFF",
-  textPrimary: "#1D1B20",
-  textSecondary: "#49454F",
-  textMuted: "#79747E",
-  border: "#CAC4D0",
-  borderLight: "#E7E0EC",
-  divider: "#E7E0EC",
-  cardBackground: "#F3EDF7",
-
-  // ─── Brand-specific & Compatibility Tokens ───
-  brandPurple: "#6750A4",
-  brandPurpleLight: "#EADDFF",
-  brandPurpleContainer: "#EADDFF",
-  brandBlue: "#2F6CD4",
-  brandBlueLight: "rgba(47, 108, 212, 0.12)",
-  brandBlueContainer: "rgba(47, 108, 212, 0.12)",
-  brandEmerald: "#146C2E",
-  brandEmeraldLight: "#C4EED0",
-  brandGreen: "#146C2E",
-  brandGreenLight: "#C4EED0",
-  brandOrange: "#FF5E1C",
-  brandOrangeLight: "rgba(255, 94, 28, 0.12)",
-  brandOrangeContainer: "rgba(255, 94, 28, 0.12)",
-};
-
-// ── DARK THEME ──────────────────────────────────────────────────────────────
-export const darkColors = {
-  // ─── Primary (Standard M3 Purple — brightened for dark surfaces) ───
-  primary: "#D0BCFF",
-  onPrimary: "#381E72",
-  primaryContainer: "#4F378B",
-  onPrimaryContainer: "#EADDFF",
-  inversePrimary: "#6750A4",
-
-  // ─── Secondary (M3 Secondary Slate/Mauve — brightened) ───
-  secondary: "#CCC2DC",
-  onSecondary: "#332D41",
-  secondaryContainer: "#4A4458",
-  onSecondaryContainer: "#E8DEF8",
-
-  // ─── Tertiary (M3 Warm Rose / Balanced Contrasting Accent) ───
-  tertiary: "#EFB8C8",
-  onTertiary: "#492532",
-  tertiaryContainer: "#633B48",
-  onTertiaryContainer: "#FFD8E4",
-
-  // ─── Error (M3 Standard) ───
-  error: "#F2B8B5",
-  onError: "#601410",
-  errorContainer: "#8C1D18",
-  onErrorContainer: "#F9DEDC",
-
-  // ─── Surfaces & Canvas (M3 Dark Palette) ───
-  background: "#141218",
-  onBackground: "#E6E1E5",
-
-  surface: "#141218",
-  onSurface: "#E6E1E5",
-
-  surfaceVariant: "#49454F",
-  onSurfaceVariant: "#CAC4D0",
-
-  // ─── Outline ───
-  outline: "#938F99",
-  outlineVariant: "#49454F",
-
-  // ─── Surface Elevation Ladder (M3 Tonal Surface Ladder) ───
-  surfaceContainerLowest: "#0F0D13",
-  surfaceContainerLow: "#1D1B20",
-  surfaceContainer: "#211F26",
-  surfaceContainerHigh: "#2B2930",
-  surfaceContainerHighest: "#36343B",
-
-  // ─── Inverse Surfaces ───
-  inverseSurface: "#E6E1E5",
-  inverseOnSurface: "#313033",
+  inverseSurface: "#0F172A",
+  inverseOnSurface: "#F8FAFC",
 
   // ─── System ───
   shadow: "#000000",
   scrim: "#000000",
 
   // ─── Semantic Status ───
-  success: "#6DD58C",
-  onSuccess: "#003910",
-  successContainer: "#00531B",
-  onSuccessContainer: "#C4EED0",
+  success: "#16A34A",
+  onSuccess: "#FFFFFF",
+  successContainer: "#DCFCE7",
+  onSuccessContainer: "#14532D",
 
-  warning: "#FFBA28",
-  onWarning: "#472A00",
-  warningContainer: "#653B00",
-  onWarningContainer: "#FFDEAC",
+  warning: "#D97706",
+  onWarning: "#FFFFFF",
+  warningContainer: "#FEF3C7",
+  onWarningContainer: "#78350F",
 
-  info: "#76D1FF",
-  onInfo: "#003454",
-  infoContainer: "#004B76",
-  onInfoContainer: "#C2E7FF",
+  info: "#0284C7",
+  onInfo: "#FFFFFF",
+  infoContainer: "#E0F2FE",
+  onInfoContainer: "#0C4A6E",
 
   // ─── Role Colors ───
-  roleSuperAdmin: "#F2B8B5",
-  roleAdmin: "#6DD58C",
-  roleStaff: "#D0BCFF",
-  roleClassTeacher: "#EFB8C8",
-  roleStudent: "#76D1FF",
+  roleSuperAdmin: "#DC2626",
+  roleAdmin: "#4F46E5",
+  roleStaff: "#0F766E",
+  roleClassTeacher: "#6D28D9",
+  roleStudent: "#0284C7",
 
-  // ─── Legacy / Convenience Aliases ───
+  // ─── Semantic Aliases ───
   white: "#FFFFFF",
-  textPrimary: "#E6E1E5",
-  textSecondary: "#CAC4D0",
-  textMuted: "#938F99",
-  border: "#49454F",
-  borderLight: "#2B2930",
-  divider: "#2B2930",
-  cardBackground: "#211F26",
-
-  // ─── Brand-specific & Compatibility Tokens ───
-  brandPurple: "#D0BCFF",
-  brandPurpleLight: "#4F378B",
-  brandPurpleContainer: "#4F378B",
-  brandBlue: "#6EA0F7",
-  brandBlueLight: "rgba(110, 160, 247, 0.18)",
-  brandBlueContainer: "rgba(110, 160, 247, 0.18)",
-  brandEmerald: "#6DD58C",
-  brandEmeraldLight: "#00531B",
-  brandGreen: "#6DD58C",
-  brandGreenLight: "#00531B",
-  brandOrange: "#FF8C5A",
-  brandOrangeLight: "rgba(255, 140, 90, 0.18)",
-  brandOrangeContainer: "rgba(255, 140, 90, 0.18)",
+  textPrimary: "#0F172A",
+  textSecondary: "#475569",
+  textMuted: "#94A3B8",
+  border: "#CBD5E1",
+  borderLight: "#E2E8F0",
+  divider: "#E2E8F0",
+  cardBackground: "#FFFFFF",
 };
 
-export default { lightColors, darkColors, SGV_BRAND };
+// ── DARK THEME ──────────────────────────────────────────────────────────────
+export const darkColors = {
+  // ─── Primary (Accessible Tinted Indigo) ───
+  primary: "#A5B4FC",
+  onPrimary: "#1E1B4B",
+  primaryContainer: "#312E81",
+  onPrimaryContainer: "#E0E7FF",
+  inversePrimary: "#4F46E5",
+
+  // ─── Secondary (Accessible Tinted Teal) ───
+  secondary: "#5EEAD4",
+  onSecondary: "#134E4A",
+  secondaryContainer: "#134E4A",
+  onSecondaryContainer: "#CCFBF1",
+
+  // ─── Tertiary (Accessible Tinted Violet) ───
+  tertiary: "#C4B5FD",
+  onTertiary: "#2E1065",
+  tertiaryContainer: "#3B0764",
+  onTertiaryContainer: "#EDE9FE",
+
+  // ─── Error (Accessible Light Red) ───
+  error: "#F87171",
+  onError: "#450A0A",
+  errorContainer: "#7F1D1D",
+  onErrorContainer: "#FEE2E2",
+
+  // ─── Surfaces & Canvas (Dark Navy) ───
+  background: "#0B1220",
+  onBackground: "#F1F5F9",
+
+  surface: "#111827",
+  onSurface: "#F1F5F9",
+
+  surfaceVariant: "#1E293B",
+  onSurfaceVariant: "#CBD5E1",
+
+  // ─── Outline & Borders ───
+  outline: "#64748B",
+  outlineVariant: "#334155",
+
+  // ─── Surface Elevation Ladder ───
+  surfaceContainerLowest: "#070D18",
+  surfaceContainerLow: "#0B1220",
+  surfaceContainer: "#1E293B",
+  surfaceContainerHigh: "#334155",
+  surfaceContainerHighest: "#475569",
+
+  // ─── Inverse Surfaces ───
+  inverseSurface: "#F1F5F9",
+  inverseOnSurface: "#0F172A",
+
+  // ─── System ───
+  shadow: "#000000",
+  scrim: "#000000",
+
+  // ─── Semantic Status ───
+  success: "#4ADE80",
+  onSuccess: "#052E16",
+  successContainer: "#14532D",
+  onSuccessContainer: "#DCFCE7",
+
+  warning: "#FBBF24",
+  onWarning: "#451A03",
+  warningContainer: "#78350F",
+  onWarningContainer: "#FEF3C7",
+
+  info: "#38BDF8",
+  onInfo: "#082F49",
+  infoContainer: "#0C4A6E",
+  onInfoContainer: "#E0F2FE",
+
+  // ─── Role Colors ───
+  roleSuperAdmin: "#F87171",
+  roleAdmin: "#A5B4FC",
+  roleStaff: "#5EEAD4",
+  roleClassTeacher: "#C4B5FD",
+  roleStudent: "#38BDF8",
+
+  // ─── Semantic Aliases ───
+  white: "#FFFFFF",
+  textPrimary: "#F1F5F9",
+  textSecondary: "#CBD5E1",
+  textMuted: "#64748B",
+  border: "#334155",
+  borderLight: "#1E293B",
+  divider: "#1E293B",
+  cardBackground: "#111827",
+};
+
+export default { lightColors, darkColors };

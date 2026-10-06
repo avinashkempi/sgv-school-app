@@ -38,7 +38,7 @@ const MAX_DESC_LENGTH = 2000;
  * @param {Object|null} editPost - If provided, opens in edit mode
  */
 export default function CreatePostModal({ visible, onClose, editPost = null }) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   const isEditing = !!editPost;
@@ -296,7 +296,7 @@ export default function CreatePostModal({ visible, onClose, editPost = null }) {
                   label="Achievement"
                   icon="emoji-events"
                   isActive={category === "achievement"}
-                  activeColor="#E65100"
+                  activeColor={colors.warning || "#D97706"}
                   activeTextColor="#fff"
                   inactiveColor={colors.surfaceContainerHighest}
                   inactiveTextColor={colors.onSurfaceVariant}
@@ -305,14 +305,14 @@ export default function CreatePostModal({ visible, onClose, editPost = null }) {
               </View>
               {category === "achievement" && (
                 <View
-                  style={[styles.notifHint, { backgroundColor: "#FFF3E0" }]}
+                  style={[styles.notifHint, { backgroundColor: colors.warningContainer || (isDark ? "#451A03" : "#FEF3C7") }]}
                 >
                   <MaterialIcons
                     name="notifications-active"
                     size={14}
-                    color="#E65100"
+                    color={colors.warning || "#D97706"}
                   />
-                  <Text style={[styles.notifHintText, { color: "#BF360C" }]}>
+                  <Text style={[styles.notifHintText, { color: colors.onWarningContainer || (isDark ? "#FDE68A" : "#92400E") }]}>
                     Students will receive a push notification for achievements
                   </Text>
                 </View>

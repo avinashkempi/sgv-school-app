@@ -111,7 +111,7 @@ export default function TeacherDashboard() {
               >
                 <View
                   style={{
-                    backgroundColor: (colors.primary || "#6750A4") + "15",
+                    backgroundColor: (colors.primary || "#4F46E5") + "15",
                     padding: 12,
                     borderRadius: 14,
                     width: 52,
@@ -120,7 +120,7 @@ export default function TeacherDashboard() {
                     justifyContent: "center",
                   }}
                 >
-                  <MaterialIcons name="schedule" size={26} color={colors.primary || "#6750A4"} />
+                  <MaterialIcons name="schedule" size={26} color={colors.primary || "#4F46E5"} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text
@@ -408,7 +408,7 @@ export default function TeacherDashboard() {
             >
               <View
                 style={{
-                  backgroundColor: colors.primaryContainer || "#EADDFF",
+                  backgroundColor: colors.primaryContainer || "#EEF2FF",
                   padding: 14,
                   borderRadius: 20,
                   marginBottom: 10,
@@ -416,7 +416,7 @@ export default function TeacherDashboard() {
                   justifyContent: "center",
                 }}
               >
-                <MaterialIcons name="assignment" size={26} color={colors.primary || "#6750A4"} />
+                <MaterialIcons name="assignment" size={26} color={colors.primary || "#4F46E5"} />
               </View>
               <Text
                 style={{
@@ -496,7 +496,7 @@ export default function TeacherDashboard() {
             >
               <View
                 style={{
-                  backgroundColor: (colors.primary || "#6750A4") + "15",
+                  backgroundColor: (colors.primary || "#4F46E5") + "15",
                   padding: 14,
                   borderRadius: 20,
                   marginBottom: 10,
@@ -504,7 +504,7 @@ export default function TeacherDashboard() {
                   justifyContent: "center",
                 }}
               >
-                <MaterialIcons name="schedule" size={26} color={colors.primary || "#6750A4"} />
+                <MaterialIcons name="schedule" size={26} color={colors.primary || "#4F46E5"} />
               </View>
               <Text
                 style={{

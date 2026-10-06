@@ -363,7 +363,7 @@ export default function SubmissionTrackerView({
                 styles.filterPill,
                 {
                   backgroundColor: isActive
-                    ? colors.primaryContainer || "#EADDFF"
+                    ? colors.primaryContainer || "#EEF2FF"
                     : colors.surfaceContainer,
                   borderColor: isActive
                     ? colors.primary
@@ -538,7 +538,7 @@ export default function SubmissionTrackerView({
                                   styles.quickRateBtn,
                                   {
                                     backgroundColor:
-                                      colors.primaryContainer || "#EADDFF",
+                                      colors.primaryContainer || "#EEF2FF",
                                   },
                                 ]}
                               >
@@ -603,7 +603,7 @@ export default function SubmissionTrackerView({
                         styles.classIconCircle,
                         {
                           backgroundColor:
-                            colors.primaryContainer || "#EADDFF",
+                            colors.primaryContainer || "#EEF2FF",
                         },
                       ]}
                     >

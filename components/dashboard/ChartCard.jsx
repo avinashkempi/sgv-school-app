@@ -23,9 +23,9 @@ const ChartCard = ({
     containerWidth > 0 ? containerWidth - 32 : screenWidth - 64;
 
   const chartColor = secondary
-    ? colors.tertiary || "#7D5260"
-    : colors.primary || "#6750A4";
-  const surfaceColor = colors.surface || (isDark ? "#2B2832" : "#FFFFFF");
+    ? colors.tertiary || "#6D28D9"
+    : colors.primary || "#4F46E5";
+  const surfaceColor = colors.surface || (isDark ? "#12111A" : "#FFFFFF");
 
   const chartConfig = {
     backgroundColor: surfaceColor,
@@ -34,7 +34,7 @@ const ChartCard = ({
     decimalPlaces: 0,
     color: (_opacity = 1) => chartColor,
     labelColor: (_opacity = 1) =>
-      colors.onSurfaceVariant || (isDark ? "#CAC4D0" : "#49454F"),
+      colors.onSurfaceVariant || (isDark ? "#94A3B8" : "#64748B"),
     style: {
       borderRadius: 16,
     },

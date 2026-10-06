@@ -153,12 +153,12 @@ export default function StudentTimetableScreen() {
                         paddingHorizontal: 16,
                         paddingVertical: 10,
                         backgroundColor: isSelected
-                          ? colors.primaryContainer || "#EADDFF"
+                          ? colors.primaryContainer || "#EEF2FF"
                           : colors.surfaceContainerLow || colors.surface,
                         borderRadius: 14,
                         borderWidth: 1,
                         borderColor: isSelected
-                          ? (colors.primary || "#6750A4") + "40"
+                          ? (colors.primary || "#4F46E5") + "40"
                           : colors.outlineVariant
                           ? colors.outlineVariant + "40"
                           : "rgba(0,0,0,0.06)",
@@ -167,7 +167,7 @@ export default function StudentTimetableScreen() {
                       <Text
                         style={{
                           fontSize: FONT_SIZES.sm,
-                          color: isSelected ? colors.primary || "#6750A4" : colors.onSurfaceVariant,
+                          color: isSelected ? colors.primary || "#4F46E5" : colors.onSurfaceVariant,
                           fontFamily: isSelected ? FONTS.bold : FONTS.medium,
                         }}
                       >
@@ -179,7 +179,7 @@ export default function StudentTimetableScreen() {
                             width: 5,
                             height: 5,
                             borderRadius: 3,
-                            backgroundColor: colors.primary || "#6750A4",
+                            backgroundColor: colors.primary || "#4F46E5",
                             alignSelf: "center",
                             marginTop: 4,
                           }}

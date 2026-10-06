@@ -65,13 +65,13 @@ const Button = ({
       case "tonalPrimary":
       case "soft":
         return {
-          bg: colors.primaryContainer || "#EADDFF",
-          text: colors.onPrimaryContainer || colors.primary || "#6750A4",
+          bg: colors.primaryContainer || "#EEF2FF",
+          text: colors.onPrimaryContainer || colors.primary || "#4F46E5",
           border: "transparent",
         };
       case "tonal":
         return {
-          bg: colors.secondaryContainer || "#E8DEF8",
+          bg: colors.secondaryContainer || "#CCFBF1",
           text: colors.onSecondaryContainer || colors.secondary,
           border: "transparent",
         };
@@ -106,10 +106,10 @@ const Button = ({
 
   const themeColors = getColors();
 
-  // Standardized Size Tokens
+  // Standardized Size Tokens (48px primary standard, 40px table row small with hitSlop)
   const sizeConfig = {
     sm: {
-      paddingVertical: 6,
+      paddingVertical: 8,
       paddingHorizontal: SPACING.lg || 16,
       minHeight: 40,
       fontSize: FONT_SIZES.xs,
@@ -117,19 +117,21 @@ const Button = ({
       letterSpacing: LETTER_SPACINGS.xs,
       iconSize: ICON_SIZES.xs || 14,
       gap: SPACING.xs || 4,
+      hitSlop: { top: 4, bottom: 4, left: 4, right: 4 },
     },
     md: {
-      paddingVertical: 10,
+      paddingVertical: 12,
       paddingHorizontal: SPACING.xxl || 24,
-      minHeight: 44,
+      minHeight: 48,
       fontSize: FONT_SIZES.sm,
       lineHeight: LINE_HEIGHTS.sm,
       letterSpacing: LETTER_SPACINGS.sm,
       iconSize: ICON_SIZES.sm || 18,
       gap: SPACING.sm || 8,
+      hitSlop: undefined,
     },
     lg: {
-      paddingVertical: 14,
+      paddingVertical: 13,
       paddingHorizontal: SPACING.xxxl || 32,
       minHeight: 48,
       fontSize: FONT_SIZES.md,
@@ -137,16 +139,18 @@ const Button = ({
       letterSpacing: LETTER_SPACINGS.md,
       iconSize: ICON_SIZES.md || 20,
       gap: SPACING.sm || 8,
+      hitSlop: undefined,
     },
   }[size] || {
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: SPACING.xxl || 24,
-    minHeight: 40,
+    minHeight: 48,
     fontSize: FONT_SIZES.sm,
     lineHeight: LINE_HEIGHTS.sm,
     letterSpacing: LETTER_SPACINGS.sm,
     iconSize: 18,
     gap: SPACING.sm || 8,
+    hitSlop: undefined,
   };
 
   const buttonElevation =
@@ -243,7 +247,12 @@ const Button = ({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      accessibilityState={{ disabled: disabled || loading }}
+      accessibilityState={{ disabled: Boolean(disabled), busy: Boolean(loading) }}
+      hitSlop={
+        props.hitSlop ||
+        sizeConfig.hitSlop ||
+        (variant === "text" ? { top: 8, bottom: 8, left: 8, right: 8 } : undefined)
+      }
       onPress={!disabled && !loading ? handlePress : null}
       style={({ pressed }) => [
         containerStyle,

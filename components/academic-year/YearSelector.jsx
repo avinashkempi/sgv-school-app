@@ -324,7 +324,7 @@ const YearSelector = ({ onYearChanged, style, compact = false }) => {
               style={[
                 styles.pastChipText,
                 {
-                  color: colors.onTertiaryContainer || "#e65100",
+                  color: colors.onTertiaryContainer || colors.warning,
                 },
               ]}
             >

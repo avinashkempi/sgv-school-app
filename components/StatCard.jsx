@@ -30,6 +30,7 @@ import { LinearGradient } from "expo-linear-gradient";
  */
 export default function StatCard({
   label,
+  title,
   value,
   icon = "analytics",
   color: customColor,
@@ -39,7 +40,9 @@ export default function StatCard({
   gradient = false,
   variant = "default",
   index = 0,
+  onPress,
 }) {
+  const displayLabel = label || title;
   const { colors } = useTheme();
   const color = customColor || colors.primary;
 
@@ -115,7 +118,7 @@ export default function StatCard({
               }}
               numberOfLines={1}
             >
-              {label}
+              {displayLabel}
             </Text>
             <Text
               style={{
@@ -196,6 +199,9 @@ export default function StatCard({
     >
       <Card
         variant="elevated"
+        onPress={onPress}
+        accessibilityRole={onPress ? "button" : "summary"}
+        accessibilityLabel={`${displayLabel || ""}: ${value}${subtitle ? `, ${subtitle}` : ""}`}
         style={{ flex: 1, overflow: "hidden" }}
         contentStyle={{ padding: 0 }}
       >

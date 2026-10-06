@@ -500,9 +500,9 @@ export default function TeacherLeaves() {
               </View>
 
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 }}>
-                <View style={[styles.classChip, { backgroundColor: colors.primaryContainer || "#EADDFF", borderColor: (colors.primary || "#6750A4") + "30", maxWidth: "100%" }]}>
-                  <Ionicons name="school" size={11} color={colors.primary || "#6750A4"} />
-                  <Text style={[styles.classChipText, { color: colors.primary || "#6750A4" }]} numberOfLines={1}>
+                <View style={[styles.classChip, { backgroundColor: colors.primaryContainer || "#EEF2FF", borderColor: (colors.primary || "#4F46E5") + "30", maxWidth: "100%" }]}>
+                  <Ionicons name="school" size={11} color={colors.primary || "#4F46E5"} />
+                  <Text style={[styles.classChipText, { color: colors.primary || "#4F46E5" }]} numberOfLines={1}>
                     {formatClassName(
                       item.class?.name || item.class?.label,
                       item.class?.section
@@ -715,19 +715,19 @@ export default function TeacherLeaves() {
               {
                 backgroundColor:
                   statusFilter === "pending"
-                    ? (colors.warning || "#FF9800") + "25"
+                    ? (colors.warning || "#D97706") + "25"
                     : colors.surface,
                 borderColor:
                   statusFilter === "pending"
-                    ? colors.warning || "#FF9800"
+                    ? colors.warning || "#D97706"
                     : colors.outlineVariant + "40",
               },
             ]}
             onPress={() => setStatusFilter(statusFilter === "pending" ? "all" : "pending")}
           >
             <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-              <View style={[styles.kpiDot, { backgroundColor: colors.warning || "#FF9800" }]} />
-              <Text style={[styles.kpiCapsuleNum, { color: colors.warning || "#FF9800" }]} numberOfLines={1}>
+              <View style={[styles.kpiDot, { backgroundColor: colors.warning || "#D97706" }]} />
+              <Text style={[styles.kpiCapsuleNum, { color: colors.warning || "#D97706" }]} numberOfLines={1}>
                 {summaryMetrics.pending}
               </Text>
             </View>
@@ -893,7 +893,7 @@ export default function TeacherLeaves() {
                 Student Requests
               </Text>
               {summaryMetrics.pending > 0 && (
-                <View style={[styles.tabBadge, { backgroundColor: colors.primary || "#6750A4" }]}>
+                <View style={[styles.tabBadge, { backgroundColor: colors.primary || "#4F46E5" }]}>
                   <Text style={styles.tabBadgeText}>{summaryMetrics.pending}</Text>
                 </View>
               )}
@@ -1035,14 +1035,14 @@ export default function TeacherLeaves() {
                 <Text style={[styles.allowanceLabel, { color: colors.onSurfaceVariant }]} numberOfLines={1}>Total</Text>
               </View>
 
-              <View style={[styles.allowanceCol, { backgroundColor: colors.primaryContainer || "#EADDFF" }]}>
-                <Text style={[styles.allowanceNum, { color: colors.primary || "#6750A4" }]} numberOfLines={1}>{leaveBalance.used}</Text>
-                <Text style={[styles.allowanceLabel, { color: colors.primary || "#6750A4" }]} numberOfLines={1}>Used</Text>
+              <View style={[styles.allowanceCol, { backgroundColor: colors.primaryContainer || "#EEF2FF" }]}>
+                <Text style={[styles.allowanceNum, { color: colors.primary || "#4F46E5" }]} numberOfLines={1}>{leaveBalance.used}</Text>
+                <Text style={[styles.allowanceLabel, { color: colors.primary || "#4F46E5" }]} numberOfLines={1}>Used</Text>
               </View>
 
-              <View style={[styles.allowanceCol, { backgroundColor: "#E8F5E9" }]}>
-                <Text style={[styles.allowanceNum, { color: "#2E7D32" }]} numberOfLines={1}>{leaveBalance.remaining}</Text>
-                <Text style={[styles.allowanceLabel, { color: "#2E7D32" }]}>Remaining</Text>
+              <View style={[styles.allowanceCol, { backgroundColor: colors.successContainer || "#DCFCE7" }]}>
+                <Text style={[styles.allowanceNum, { color: colors.success || "#16A34A" }]} numberOfLines={1}>{leaveBalance.remaining}</Text>
+                <Text style={[styles.allowanceLabel, { color: colors.success || "#16A34A" }]}>Remaining</Text>
               </View>
             </View>
           </View>

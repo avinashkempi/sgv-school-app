@@ -364,8 +364,8 @@ const VibeCard = ({
         return {
           label: "Official",
           icon: "school",
-          color: colors.primary || "#6750A4",
-          bg: colors.primaryContainer || "#EADDFF",
+          color: colors.primary || "#4F46E5",
+          bg: colors.primaryContainer || "#EEF2FF",
         };
       default:
         return null;
@@ -424,7 +424,7 @@ const VibeCard = ({
                 <MaterialIcons
                   name="verified"
                   size={14}
-                  color={colors.primary || "#6750A4"}
+                  color={colors.primary || "#4F46E5"}
                   style={styles.verifiedBadge}
                 />
               )}
@@ -441,7 +441,7 @@ const VibeCard = ({
                     styles.roleText,
                     {
                       color: isSchoolPost
-                        ? (colors.primary || "#6750A4")
+                        ? (colors.primary || "#4F46E5")
                         : colors.onSurfaceVariant,
                       fontFamily: isSchoolPost ? FONTS.semiBold : FONTS.medium,
                     },
@@ -655,7 +655,7 @@ const VibeCard = ({
             styles.circleActionBtn,
             {
               backgroundColor: isBookmarked
-                ? (colors.primaryContainer || "#EADDFF")
+                ? (colors.primaryContainer || "#EEF2FF")
                 : colors.surfaceContainerHighest,
             },
           ]}

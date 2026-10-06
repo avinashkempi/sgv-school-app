@@ -49,7 +49,7 @@ const DATA_POINTS = [
     label: "Class Engagement",
     desc: "Attentiveness, listening, participation, and answering questions",
     icon: "record-voice-over",
-    color: "#6750A4",
+    color: "#4F46E5",
   },
   {
     key: "homeworkClasswork",
@@ -78,7 +78,7 @@ const getRatingLabel = (score) => {
   if (!score || score <= 0) return { label: "Unrated", color: "#6B7280", variant: "neutral" };
   if (score < 2.0) return { label: "Needs Significant Imp.", color: "#DC2626", variant: "error" };
   if (score < 3.0) return { label: "Needs Improvement", color: "#EA580C", variant: "warning" };
-  if (score < 4.0) return { label: "Meets Expectation", color: "#6750A4", variant: "primary" };
+  if (score < 4.0) return { label: "Meets Expectation", color: "#4F46E5", variant: "primary" };
   if (score < 4.8) return { label: "Good", color: "#16A34A", variant: "success" };
   return { label: "Excellent", color: "#059669", variant: "success" };
 };
@@ -329,7 +329,7 @@ export default function AdminStudentRatingsScreen() {
           <View
             style={[
               styles.heroIconCircle,
-              { backgroundColor: colors.primaryContainer || "#EADDFF" },
+              { backgroundColor: colors.primaryContainer || "#EEF2FF" },
             ]}
           >
             <MaterialIcons name="auto-awesome" size={32} color={colors.primary} />
@@ -661,7 +661,7 @@ export default function AdminStudentRatingsScreen() {
                     styles.sortPillBtn,
                     {
                       backgroundColor: isActive
-                        ? colors.primaryContainer || "#EADDFF"
+                        ? colors.primaryContainer || "#EEF2FF"
                         : colors.surfaceContainer,
                       borderColor: isActive
                         ? colors.primary

@@ -1324,8 +1324,8 @@ export default function StudentReportCardScreen() {
           <LinearGradient
             colors={
               isDark
-                ? ["#2A1E4A", "#181428"]
-                : ["#4F378B", "#21005D"]
+                ? ["#1E1B4B", "#0F172A"]
+                : ["#4F46E5", "#312E81"]
             }
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}

@@ -694,9 +694,9 @@ const VibeStoryViewerModal = ({
       : currentVibe.category === "life"
       ? "#0284C7"
       : currentVibe.category === "official"
-      ? (colors.primary || "#6750A4")
+      ? (colors.primary || "#4F46E5")
       : currentVibe.postAs === "school"
-      ? (colors.primary || "#6750A4")
+      ? (colors.primary || "#4F46E5")
       : "#10B981");
 
   const authorDisplayName =
@@ -1473,7 +1473,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: "#6750A4",
+    backgroundColor: "#4F46E5",
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,

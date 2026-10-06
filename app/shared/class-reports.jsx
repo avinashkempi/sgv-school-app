@@ -71,11 +71,11 @@ export default function ClassReportsDashboard() {
   // Grade color mapping helper
   const getGradeColor = (grade) => {
     const gradeColors = {
-      "A+": "#4CAF50",
-      A: "#2196F3",
-      "B+": "#FF9800",
-      B: "#FF5722",
-      C: "#F44336",
+      "A+": colors.success || "#16A34A",
+      A: colors.primary || "#4F46E5",
+      "B+": colors.warning || "#D97706",
+      B: "#EA580C",
+      C: colors.error || "#DC2626",
     };
     return gradeColors[grade] || colors.onSurfaceVariant;
   };
@@ -166,7 +166,7 @@ export default function ClassReportsDashboard() {
             label={t("common.students", "Students")}
             value={analyticsData?.totalStudents ?? 0}
             icon="people"
-            color="#2196F3"
+            color={colors.primary || "#4F46E5"}
             gradient
             variant="compact"
           />
@@ -178,7 +178,7 @@ export default function ClassReportsDashboard() {
                 : t("common.na", "N/A")
             }
             icon="insights"
-            color="#4CAF50"
+            color={colors.success || "#16A34A"}
             gradient
             variant="compact"
           />
@@ -188,7 +188,7 @@ export default function ClassReportsDashboard() {
               analyticsData?.totalMarksEvaluated || 0
             }`}
             icon="assignment"
-            color="#9C27B0"
+            color={colors.tertiary || "#6D28D9"}
             gradient
             variant="compact"
           />
@@ -200,7 +200,7 @@ export default function ClassReportsDashboard() {
                 : t("common.na", "N/A")
             }
             icon="arrow-upward"
-            color="#FF9800"
+            color={colors.warning || "#D97706"}
             gradient
             variant="compact"
           />

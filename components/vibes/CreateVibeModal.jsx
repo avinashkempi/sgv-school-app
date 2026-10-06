@@ -895,7 +895,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                             {
                               color:
                                 postAs === "school"
-                                  ? "#E65100"
+                                  ? colors.primary
                                   : colors.onSurface,
                             },
                           ]}
@@ -1186,7 +1186,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                       <MaterialIcons
                         name="videocam"
                         size={24}
-                        color="#E91E63"
+                        color={colors.tertiary || "#6D28D9"}
                       />
                       <Text
                         style={[

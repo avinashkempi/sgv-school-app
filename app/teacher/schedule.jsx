@@ -165,15 +165,17 @@ export default function TeacherScheduleScreen() {
                     style={{
                       paddingHorizontal: 16,
                       paddingVertical: 8,
+                      minHeight: 44,
+                      justifyContent: "center",
                       backgroundColor:
                         selectedDay === day
-                          ? colors.primaryContainer || "#EADDFF"
+                          ? colors.primaryContainer || "#EEF2FF"
                           : colors.surfaceContainerLow || colors.surface,
                       borderRadius: 14,
                       borderWidth: 1,
                       borderColor:
                         selectedDay === day
-                          ? (colors.primary || "#6750A4") + "40"
+                          ? (colors.primary || "#4F46E5") + "40"
                           : colors.outlineVariant
                           ? colors.outlineVariant + "40"
                           : "rgba(0,0,0,0.06)",
@@ -182,7 +184,7 @@ export default function TeacherScheduleScreen() {
                     <Text
                       style={{
                         color:
-                          selectedDay === day ? colors.primary || "#6750A4" : colors.textPrimary,
+                          selectedDay === day ? colors.primary || "#4F46E5" : colors.textPrimary,
                         fontFamily:
                           selectedDay === day ? FONTS.bold : FONTS.medium,
                       }}

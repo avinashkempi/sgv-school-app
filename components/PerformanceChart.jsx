@@ -198,16 +198,16 @@ export default function PerformanceChart({
   );
 
   const getPieColor = (index) => {
-    const colors = [
-      "#4CAF50", // A+/A - Green
-      "#66BB6A",
-      "#2196F3", // B+/B - Blue
-      "#42A5F5",
-      "#FF9800", // C - Orange
-      "#FF5722", // D - Deep Orange
-      "#F44336", // F - Red
+    const piePalette = [
+      "#16A34A", // A+ Emerald
+      "#22C55E", // A Green
+      "#4F46E5", // B+ Indigo
+      "#6366F1", // B Light Indigo
+      "#D97706", // C Amber
+      "#EA580C", // D Orange
+      "#DC2626", // F Red
     ];
-    return colors[index % colors.length];
+    return piePalette[index % piePalette.length];
   };
 
   return (

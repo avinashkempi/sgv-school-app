@@ -27,7 +27,7 @@ const ONBOARDING_SLIDES = [
     subtitle:
       "A modern, connected digital campus platform designed specifically for students, teachers, and parents.",
     icon: "school",
-    accentColor: "#6750A4", // Standard M3 Purple
+    accentColor: "#4F46E5", // Primary Indigo
     highlights: [
       "Real-time academic records & timetables",
       "Unified school management workflows",
@@ -40,7 +40,7 @@ const ONBOARDING_SLIDES = [
     subtitle:
       "Stay ahead with live exam schedules, subject-wise progress, interactive report cards, and attendance trends.",
     icon: "insights",
-    accentColor: "#7D5260", // M3 Tertiary Rose
+    accentColor: "#0F766E", // Secondary Teal
     highlights: [
       "Term-wise marksheets & grading",
       "Daily class timetables & room alerts",
@@ -53,7 +53,7 @@ const ONBOARDING_SLIDES = [
     subtitle:
       "Experience campus life together. Celebrate sports, cultural days, school events, and student achievements in the Vibes feed.",
     icon: "auto-awesome",
-    accentColor: "#8B5CF6", // Accent Violet
+    accentColor: "#6D28D9", // Tertiary Violet
     highlights: [
       "Curated school event highlights",
       "Photo stories and student achievements",
@@ -241,7 +241,7 @@ export default function OnboardingScreen() {
               fullWidth
               style={
                 isLastSlide
-                  ? { backgroundColor: colors.primary || "#6750A4" }
+                  ? { backgroundColor: colors.primary || "#4F46E5" }
                   : { backgroundColor: currentAccent }
               }
               icon={

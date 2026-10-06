@@ -697,7 +697,7 @@ export default function MonthlyRatingsScreen() {
                               styles.classBadge,
                               {
                                 backgroundColor:
-                                  colors.primaryContainer || "#EADDFF",
+                                  colors.primaryContainer || "#EEF2FF",
                               },
                             ]}
                           >

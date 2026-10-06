@@ -88,7 +88,7 @@ const TextInput = ({
     const focusGlow =
       isFocused && !error && Platform.OS === "web"
         ? {
-            boxShadow: `0 0 0 3px ${colors.brandOrangeContainer || "rgba(255, 94, 28, 0.12)"}`,
+            boxShadow: `0 0 0 3px ${colors.primaryContainer || "rgba(79, 70, 229, 0.15)"}`,
           }
         : {};
 
@@ -196,7 +196,14 @@ const TextInput = ({
         {rightIcon && (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={rightIconAccessibilityLabel || `${label || "Field"} action`}
+            accessibilityLabel={
+              rightIconAccessibilityLabel ||
+              (rightIcon === "visibility"
+                ? "Show password"
+                : rightIcon === "visibility-off"
+                ? "Hide password"
+                : `${label || "Field"} action`)
+            }
             onPress={handleRightIconPress}
             hitSlop={8}
             style={{
@@ -216,7 +223,10 @@ const TextInput = ({
       </View>
 
       {error ? (
-        <View style={{ flexDirection: "row", alignItems: "center", marginTop: SPACING.xs || 4, marginLeft: 2 }}>
+        <View
+          accessibilityLiveRegion="polite"
+          style={{ flexDirection: "row", alignItems: "center", marginTop: SPACING.xs || 4, marginLeft: 2 }}
+        >
           <MaterialIcons name="error-outline" size={13} color={colors.error} style={{ marginRight: 4 }} />
           <Text
             style={[

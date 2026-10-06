@@ -188,7 +188,7 @@ export default function RequestsScreen() {
               title: t("requests.myAttendance"),
               subtitle: t("requests.myAttendanceSubtitle"),
               icon: "person",
-              color: "#4CAF50",
+              color: colors.success || "#16A34A",
               onPress: navigateToMyAttendance,
             })}
 
@@ -213,7 +213,7 @@ export default function RequestsScreen() {
                 ? t("requests.leaveRequestsStudentSubtitle")
                 : t("requests.leaveRequestsAdminSubtitle"),
             icon: "event-note",
-            color: "#FF9800",
+            color: colors.warning || "#D97706",
             onPress: navigateToLeaves,
           })}
         </View>

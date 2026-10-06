@@ -32,7 +32,9 @@ const ExamTypeCard = memo(function ExamTypeCard({
   onChangeMark,
   colors,
 }) {
-  const accentColor = type.startsWith("SA") ? "#9C27B0" : "#2196F3";
+  const accentColor = type.startsWith("SA")
+    ? colors.tertiary || "#6D28D9"
+    : colors.primary || "#4F46E5";
   return (
     <View
       style={{

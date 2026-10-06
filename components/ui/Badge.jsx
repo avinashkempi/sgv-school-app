@@ -43,8 +43,8 @@ const Badge = memo(({
           return { bg: colors.primary, text: colors.onPrimary, border: "transparent" };
         }
         return {
-          bg: colors.primaryContainer || "#EADDFF",
-          text: colors.primary || "#6750A4",
+          bg: colors.primaryContainer || "#EEF2FF",
+          text: colors.primary || "#4F46E5",
           border: "transparent",
         };
       case "secondary":
@@ -52,8 +52,8 @@ const Badge = memo(({
           return { bg: colors.secondary, text: colors.onSecondary, border: "transparent" };
         }
         return {
-          bg: colors.secondaryContainer || "#E8DEF8",
-          text: colors.secondary || "#625B71",
+          bg: colors.secondaryContainer || "#CCFBF1",
+          text: colors.secondary || "#0F766E",
           border: "transparent",
         };
       case "tertiary":
@@ -61,17 +61,17 @@ const Badge = memo(({
           return { bg: colors.tertiary, text: colors.onTertiary || "#FFFFFF", border: "transparent" };
         }
         return {
-          bg: colors.tertiaryContainer || "#FFD8E4",
-          text: colors.tertiary || "#7D5260",
+          bg: colors.tertiaryContainer || "#EDE9FE",
+          text: colors.tertiary || "#6D28D9",
           border: "transparent",
         };
       case "info":
         if (type === "filled") {
-          return { bg: colors.info || "#00639B", text: colors.onInfo || "#FFFFFF", border: "transparent" };
+          return { bg: colors.info || "#0284C7", text: colors.onInfo || "#FFFFFF", border: "transparent" };
         }
         return {
-          bg: colors.infoContainer || "#C2E7FF",
-          text: colors.info || "#00639B",
+          bg: colors.infoContainer || "#E0F2FE",
+          text: colors.info || "#0284C7",
           border: "transparent",
         };
       case "success":

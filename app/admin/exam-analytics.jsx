@@ -145,22 +145,22 @@ export default function ExamAnalyticsScreen() {
 
   const getGradeColor = (percentage) => {
     if (percentage >= 90) return colors.success;
-    if (percentage >= 70) return "#2196F3";
-    if (percentage >= 50) return "#FF9800";
-    if (percentage >= 30) return "#FF5722";
+    if (percentage >= 70) return colors.primary;
+    if (percentage >= 50) return colors.warning || "#D97706";
+    if (percentage >= 30) return "#EA580C";
     return colors.error;
   };
 
   const getExamTypeColor = (type) => {
     const typeColors = {
-      FA1: "#2196F3",
-      FA2: "#03A9F4",
-      SA1: "#6750A4",
-      FA3: "#FF9800",
-      FA4: "#FF5722",
-      SA2: "#E91E63",
+      FA1: colors.primary || "#4F46E5",
+      FA2: colors.secondary || "#0F766E",
+      SA1: "#6366F1",
+      FA3: colors.warning || "#D97706",
+      FA4: "#EA580C",
+      SA2: colors.tertiary || "#6D28D9",
     };
-    return typeColors[type] || "#2196F3";
+    return typeColors[type] || (colors.primary || "#4F46E5");
   };
 
   const handleSelectExamType = (type) => {
@@ -930,12 +930,12 @@ export default function ExamAnalyticsScreen() {
             <View
               style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
             >
-              <MaterialIcons name="trending-down" size={20} color="#FF9800" />
+              <MaterialIcons name="trending-down" size={20} color={colors.warning || "#D97706"} />
               <Text
                 style={{
                   fontSize: FONT_SIZES.xs,
                   fontFamily: FONTS.bold,
-                  color: "#FF9800",
+                  color: colors.warning || "#D97706",
                   textTransform: "uppercase",
                 }}
               >
@@ -956,7 +956,7 @@ export default function ExamAnalyticsScreen() {
               style={{
                 fontSize: FONT_SIZES.lg,
                 fontFamily: FONTS.bold,
-                color: "#FF9800",
+                color: colors.warning || "#D97706",
                 marginTop: 4,
               }}
             >
@@ -1110,8 +1110,8 @@ export default function ExamAnalyticsScreen() {
                 label: "Completed",
               },
               partial: {
-                bg: "#FF980018",
-                text: "#FF9800",
+                bg: (colors.warning || "#D97706") + "20",
+                text: colors.warning || "#D97706",
                 label: `Partial (${cls.displayMarksEntered}/${cls.displayExpectedMarks})`,
               },
               pending: {
@@ -2116,7 +2116,7 @@ export default function ExamAnalyticsScreen() {
           variant="outlined"
           style={{ flex: 1, padding: 12, alignItems: "center" }}
         >
-          <MaterialIcons name="hourglass-empty" size={24} color="#FF9800" />
+          <MaterialIcons name="hourglass-empty" size={24} color={colors.warning || "#D97706"} />
           <Text
             style={{
               fontSize: FONT_SIZES.lg,
@@ -2253,8 +2253,8 @@ export default function ExamAnalyticsScreen() {
                       bg = colors.success + "20";
                       textColor = colors.success;
                     } else if (isPartial) {
-                      bg = "#FF980020";
-                      textColor = "#FF9800";
+                      bg = (colors.warning || "#D97706") + "20";
+                      textColor = colors.warning || "#D97706";
                     } else {
                       bg = colors.primary + "18";
                       textColor = colors.primary;

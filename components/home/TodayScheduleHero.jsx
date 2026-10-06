@@ -69,13 +69,13 @@ const PeriodRow = memo(({ period, isActive, isStudent, colors, isDark }) => {
         : period.className || "")
     : null;
 
-  const accent = colors.primary || "#6750A4";
+  const accent = colors.primary || "#4F46E5";
   const rowBg = isActive
     ? isDark
-      ? `${accent}18`
+      ? `${accent}20`
       : `${accent}0E`
     : "transparent";
-  const dividerColor = isActive ? accent : colors.outlineVariant || "rgba(0,0,0,0.08)";
+  const dividerColor = isActive ? accent : colors.outlineVariant || "rgba(0,0,0,0.12)";
 
   return (
     <View
@@ -84,58 +84,85 @@ const PeriodRow = memo(({ period, isActive, isStudent, colors, isDark }) => {
         {
           backgroundColor: rowBg,
           borderRadius: isActive ? 12 : 8,
+          borderColor: isActive ? `${accent}40` : "transparent",
+          borderWidth: isActive ? 1 : 0,
         },
       ]}
     >
-      {/* Time column */}
+      {/* Time column (minWidth 72, non-wrapping stacked time) */}
       <View style={styles.timeCol}>
         <Text
           style={[
             styles.timeText,
             {
-              color: isActive ? accent : colors.onSurfaceVariant,
-              fontFamily: isActive ? FONTS.bold : FONTS.medium,
+              color: isActive ? accent : colors.textPrimary || colors.onSurface,
+              fontFamily: isActive ? FONTS.bold : FONTS.semiBold,
             },
           ]}
+          numberOfLines={1}
         >
           {period.startTime}
         </Text>
-        {isActive && (
-          <View style={[styles.nowDot, { backgroundColor: accent }]} />
+        {period.endTime && (
+          <Text
+            style={[
+              styles.endTimeText,
+              { color: colors.textSecondary || colors.onSurfaceVariant },
+            ]}
+            numberOfLines={1}
+          >
+            {period.endTime}
+          </Text>
         )}
       </View>
 
       {/* Accent divider */}
       <View style={[styles.divider, { backgroundColor: dividerColor }]} />
 
-      {/* Subject + meta */}
+      {/* Subject + meta (flexible 2-line layout) */}
       <View style={styles.subjectCol}>
         <Text
           style={[
             styles.subjectText,
             {
-              color: isActive ? colors.onSurface : colors.onSurface,
+              color: colors.textPrimary || colors.onSurface,
               fontFamily: isActive ? FONTS.bold : FONTS.semiBold,
             },
           ]}
           numberOfLines={1}
+          ellipsizeMode="tail"
         >
           {subjectName}
         </Text>
         {(teacherName || className) && (
           <Text
-            style={[styles.metaText, { color: colors.onSurfaceVariant }]}
+            style={[
+              styles.metaText,
+              { color: colors.textSecondary || colors.onSurfaceVariant },
+            ]}
             numberOfLines={1}
+            ellipsizeMode="tail"
           >
             {teacherName || className}
           </Text>
         )}
       </View>
 
-      {/* End time */}
-      <Text style={[styles.endTime, { color: colors.onSurfaceVariant }]}>
-        {period.endTime}
-      </Text>
+      {/* Active Indicator Badge */}
+      {isActive && (
+        <View
+          style={[
+            styles.nowPill,
+            {
+              backgroundColor: isDark ? `${accent}30` : colors.primaryContainer,
+              borderColor: accent,
+            },
+          ]}
+        >
+          <View style={[styles.nowDot, { backgroundColor: accent }]} />
+          <Text style={[styles.nowText, { color: accent }]}>NOW</Text>
+        </View>
+      )}
     </View>
   );
 });
@@ -213,7 +240,7 @@ const TodayScheduleHero = () => {
   };
 
   // ── Accent & surface tokens ──
-  const accent = colors.primary || "#6750A4";
+  const accent = colors.primary || "#4F46E5";
   const cardBg = isDark ? colors.surfaceContainer : colors.surface;
   const cardBorder = isDark
     ? colors.outlineVariant + "50"
@@ -487,35 +514,54 @@ const styles = StyleSheet.create({
   periodRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 8,
-    paddingVertical: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 9,
     gap: 10,
   },
   timeCol: {
-    width: 52,
-    alignItems: "flex-end",
+    minWidth: 72,
+    alignItems: "flex-start",
     flexShrink: 0,
   },
   timeText: {
-    fontSize: FONT_SIZES.xs,
-    letterSpacing: 0.1,
+    fontSize: FONT_SIZES.xs || 12,
+    letterSpacing: 0.2,
+  },
+  endTimeText: {
+    fontSize: FONT_SIZES.micro || 11,
+    fontFamily: FONTS.regular,
+    marginTop: 1,
   },
   nowDot: {
-    width: 5,
-    height: 5,
+    width: 6,
+    height: 6,
     borderRadius: 3,
-    marginTop: 3,
-    alignSelf: "flex-end",
+  },
+  nowPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: RADIUS.full || 9999,
+    borderWidth: 1,
+    flexShrink: 0,
+  },
+  nowText: {
+    fontSize: FONT_SIZES.micro || 11,
+    fontFamily: FONTS.bold,
+    letterSpacing: 0.3,
   },
   divider: {
     width: 3,
-    height: 32,
+    height: 36,
     borderRadius: 2,
     flexShrink: 0,
   },
   subjectCol: {
     flex: 1,
     minWidth: 0,
+    justifyContent: "center",
   },
   subjectText: {
     fontSize: FONT_SIZES.sm,
@@ -525,11 +571,6 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.medium,
     marginTop: 2,
-  },
-  endTime: {
-    fontSize: FONT_SIZES.xs,
-    fontFamily: FONTS.medium,
-    flexShrink: 0,
   },
   footerBtn: {
     flexDirection: "row",

@@ -432,19 +432,19 @@ export default function StudentLeaves() {
               {
                 backgroundColor:
                   statusFilter === "pending"
-                    ? (colors.warning || "#FF9800") + "25"
+                    ? (colors.warning || "#D97706") + "25"
                     : colors.surface,
                 borderColor:
                   statusFilter === "pending"
-                    ? colors.warning || "#FF9800"
+                    ? colors.warning || "#D97706"
                     : colors.outlineVariant + "40",
               },
             ]}
             onPress={() => setStatusFilter(statusFilter === "pending" ? "all" : "pending")}
           >
             <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-              <View style={[styles.kpiDot, { backgroundColor: colors.warning || "#FF9800" }]} />
-              <Text style={[styles.kpiCapsuleNum, { color: colors.warning || "#FF9800" }]} numberOfLines={1}>
+              <View style={[styles.kpiDot, { backgroundColor: colors.warning || "#D97706" }]} />
+              <Text style={[styles.kpiCapsuleNum, { color: colors.warning || "#D97706" }]} numberOfLines={1}>
                 {metrics.pending}
               </Text>
             </View>

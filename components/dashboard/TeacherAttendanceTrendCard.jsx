@@ -274,7 +274,7 @@ const TeacherAttendanceTrendCard = ({
               width: 42,
               height: 42,
               borderRadius: 14,
-              backgroundColor: (colors.primary || "#6750A4") + "18",
+              backgroundColor: (colors.primary || "#4F46E5") + "18",
               alignItems: "center",
               justifyContent: "center",
               marginRight: 10,
@@ -283,7 +283,7 @@ const TeacherAttendanceTrendCard = ({
             <MaterialCommunityIcons
               name="calendar-check-outline"
               size={24}
-              color={colors.primary || "#6750A4"}
+              color={colors.primary || "#4F46E5"}
             />
           </View>
           <View style={{ flex: 1 }}>
@@ -319,7 +319,7 @@ const TeacherAttendanceTrendCard = ({
           style={({ pressed }) => ({
             flexDirection: "row",
             alignItems: "center",
-            backgroundColor: (colors.primary || "#6750A4") + "15",
+            backgroundColor: (colors.primary || "#4F46E5") + "15",
             paddingHorizontal: 12,
             paddingVertical: 7,
             borderRadius: 100,
@@ -331,7 +331,7 @@ const TeacherAttendanceTrendCard = ({
             style={{
               fontSize: FONT_SIZES.sm,
               fontFamily: FONTS.bold,
-              color: colors.primary || "#6750A4",
+              color: colors.primary || "#4F46E5",
               marginRight: 2,
             }}
           >
@@ -340,7 +340,7 @@ const TeacherAttendanceTrendCard = ({
           <MaterialIcons
             name="chevron-right"
             size={16}
-            color={colors.primary || "#6750A4"}
+            color={colors.primary || "#4F46E5"}
           />
         </Pressable>
       </View>
@@ -512,7 +512,7 @@ const TeacherAttendanceTrendCard = ({
               style={{
                 fontSize: FONT_SIZES.sm,
                 fontFamily: FONTS.bold,
-                color: colors.primary || "#6750A4",
+                color: colors.primary || "#4F46E5",
               }}
             >
               Active
@@ -548,17 +548,17 @@ const TeacherAttendanceTrendCard = ({
             <LinearGradient id="attendanceAreaGrad" x1="0" y1="0" x2="0" y2="1">
               <Stop
                 offset="0%"
-                stopColor={colors.primary || "#6750A4"}
+                stopColor={colors.primary || "#4F46E5"}
                 stopOpacity="0.4"
               />
               <Stop
                 offset="65%"
-                stopColor={colors.primary || "#6750A4"}
+                stopColor={colors.primary || "#4F46E5"}
                 stopOpacity="0.08"
               />
               <Stop
                 offset="100%"
-                stopColor={colors.primary || "#6750A4"}
+                stopColor={colors.primary || "#4F46E5"}
                 stopOpacity="0.00"
               />
             </LinearGradient>
@@ -571,7 +571,7 @@ const TeacherAttendanceTrendCard = ({
               x2="1"
               y2="0"
             >
-              <Stop offset="0%" stopColor={colors.primary || "#6750A4"} />
+              <Stop offset="0%" stopColor={colors.primary || "#4F46E5"} />
               <Stop offset="60%" stopColor="#7C3AED" />
               <Stop offset="100%" stopColor="#06B6D4" />
             </LinearGradient>
@@ -683,7 +683,7 @@ const TeacherAttendanceTrendCard = ({
                   r={isSelected ? "7" : "5"}
                   fill={colors.surface || (isDark ? "#2B2832" : "#FFFFFF")}
                   stroke={
-                    isSelected ? health.color : colors.primary || "#6750A4"
+                    isSelected ? health.color : colors.primary || "#4F46E5"
                   }
                   strokeWidth={isSelected ? "3" : "2"}
                 />
@@ -738,7 +738,7 @@ const TeacherAttendanceTrendCard = ({
                   y={paddingTop + plotHeight + 18}
                   fill={
                     isSelected
-                      ? colors.primary || "#6750A4"
+                      ? colors.primary || "#4F46E5"
                       : colors.onSurfaceVariant || "#757575"
                   }
                   fontSize={isSelected ? FONT_SIZES.sm : FONT_SIZES.xs}
@@ -888,14 +888,14 @@ const TeacherAttendanceTrendCard = ({
                   flexDirection: "row",
                   alignItems: "center",
                   backgroundColor: isSelected
-                    ? colors.primary || "#6750A4"
+                    ? colors.primary || "#4F46E5"
                     : colors.surface || (isDark ? "#2B2832" : "#FFFFFF"),
                   paddingHorizontal: 12,
                   paddingVertical: 7,
                   borderRadius: 12,
                   borderWidth: 1,
                   borderColor: isSelected
-                    ? colors.primary || "#6750A4"
+                    ? colors.primary || "#4F46E5"
                     : colors.outlineVariant
                     ? colors.outlineVariant + "35"
                     : "rgba(0,0,0,0.08)",

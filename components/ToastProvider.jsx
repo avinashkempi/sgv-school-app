@@ -121,7 +121,7 @@ function ToastItem({ msg, type, _onDismiss }) {
       default:
         return {
           icon: "info",
-          accentColor: themeColors.info || themeColors.primary || "#6750A4",
+          accentColor: themeColors.info || themeColors.primary || "#4F46E5",
           bgTone: themeColors.infoContainer || themeColors.primaryContainer || "rgba(103, 80, 164, 0.12)",
         };
     }
