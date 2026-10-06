@@ -144,9 +144,7 @@ function resolveActiveTab(pathname, userRole, searchParams = {}) {
 
     if (
       pathname === "/admin" ||
-      (pathname.startsWith("/admin/") &&
-        pathname !== "/admin/classes" &&
-        !pathname.startsWith("/admin/classes/")) ||
+      pathname.startsWith("/admin/") ||
       pathname.startsWith("/super-admin")
     ) {
       return ROUTES.ADMIN;
@@ -211,7 +209,7 @@ function BottomNavigation() {
             },
             {
               route: "/admin/classes",
-              label: t("nav.classes"),
+              label: t("nav.classes", "Classes"),
               icon: "class",
               inactiveIcon: "class",
             },

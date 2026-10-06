@@ -67,7 +67,7 @@ export default function OnboardingPage({ item, width }) {
               color: accent,
               fontFamily: FONTS.bold,
               letterSpacing: 1,
-              fontSize: 10,
+              fontSize: FONT_SIZES.micro || 11,
             }}
           />
         </View>

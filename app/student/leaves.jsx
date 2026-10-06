@@ -626,18 +626,6 @@ export default function StudentLeaves() {
         />
       )}
 
-      {/* Floating Action Button */}
-      <TouchableOpacity
-        style={[styles.fabBtn, { backgroundColor: colors.primary }]}
-        onPress={openApplyModal}
-        activeOpacity={0.85}
-      >
-        <Ionicons name="add" size={24} color={colors.onPrimary} />
-        <Text style={{ color: colors.onPrimary, fontFamily: FONTS.bold, fontSize: FONT_SIZES.sm }}>
-          Apply
-        </Text>
-      </TouchableOpacity>
-
       {/* Academic Year Filter Modal */}
       <Modal
         visible={filterModalVisible}

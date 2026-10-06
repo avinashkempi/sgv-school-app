@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   tagText: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.micro || 11,
     fontFamily: FONTS.bold,
     letterSpacing: 0.8,
   },

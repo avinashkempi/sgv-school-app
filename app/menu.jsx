@@ -64,21 +64,6 @@ export default function MenuScreen() {
       },
     ];
 
-    // Admin / Super Admin moderation tool (not in bottom tabs or admin page)
-    if (user && (user.role === "admin" || user.role === "super admin")) {
-      items.push({
-        id: "vibe_approvals",
-        title: t("menu.vibeApprovals", "Vibes Approvals"),
-        subtitle: t(
-          "menu.vibeApprovalsSubtitle",
-          "Review & moderate community posts"
-        ),
-        icon: "verified-user",
-        color: "#15803D",
-        route: "/admin/vibe-approvals",
-      });
-    }
-
     // Complaints & Grievances (not in any other tab)
     if (user) {
       items.push({
@@ -142,7 +127,7 @@ export default function MenuScreen() {
         <MenuFooter
           user={user}
           onLogoutPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => { });
             setShowLogoutModal(true);
           }}
           onLoginPress={() => router.push("/login")}

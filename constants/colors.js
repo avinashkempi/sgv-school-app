@@ -23,11 +23,11 @@ export const SGV_BRAND = {
   emeraldDark: "#6DD58C",
   amber: "#8A5100",         // M3 Warm Amber
   amberDark: "#FFBA28",
-  // Aliases for compatibility
-  blue: "#6750A4",
-  blueDark: "#D0BCFF",
-  orange: "#7D5260",
-  orangeDark: "#EFB8C8",
+  // SGV Brand Identity Colors
+  blue: "#2F6CD4",
+  blueDark: "#6EA0F7",
+  orange: "#FF5E1C",
+  orangeDark: "#FF8C5A",
 };
 
 // ── LIGHT THEME ─────────────────────────────────────────────────────────────
@@ -123,16 +123,16 @@ export const lightColors = {
   brandPurple: "#6750A4",
   brandPurpleLight: "#EADDFF",
   brandPurpleContainer: "#EADDFF",
-  brandBlue: "#6750A4",
-  brandBlueLight: "#EADDFF",
-  brandBlueContainer: "#EADDFF",
+  brandBlue: "#2F6CD4",
+  brandBlueLight: "rgba(47, 108, 212, 0.12)",
+  brandBlueContainer: "rgba(47, 108, 212, 0.12)",
   brandEmerald: "#146C2E",
   brandEmeraldLight: "#C4EED0",
   brandGreen: "#146C2E",
   brandGreenLight: "#C4EED0",
-  brandOrange: "#7D5260",
-  brandOrangeLight: "#FFD8E4",
-  brandOrangeContainer: "#FFD8E4",
+  brandOrange: "#FF5E1C",
+  brandOrangeLight: "rgba(255, 94, 28, 0.12)",
+  brandOrangeContainer: "rgba(255, 94, 28, 0.12)",
 };
 
 // ── DARK THEME ──────────────────────────────────────────────────────────────
@@ -228,16 +228,16 @@ export const darkColors = {
   brandPurple: "#D0BCFF",
   brandPurpleLight: "#4F378B",
   brandPurpleContainer: "#4F378B",
-  brandBlue: "#D0BCFF",
-  brandBlueLight: "#4F378B",
-  brandBlueContainer: "#4F378B",
+  brandBlue: "#6EA0F7",
+  brandBlueLight: "rgba(110, 160, 247, 0.18)",
+  brandBlueContainer: "rgba(110, 160, 247, 0.18)",
   brandEmerald: "#6DD58C",
   brandEmeraldLight: "#00531B",
   brandGreen: "#6DD58C",
   brandGreenLight: "#00531B",
-  brandOrange: "#EFB8C8",
-  brandOrangeLight: "#633B48",
-  brandOrangeContainer: "#633B48",
+  brandOrange: "#FF8C5A",
+  brandOrangeLight: "rgba(255, 140, 90, 0.18)",
+  brandOrangeContainer: "rgba(255, 140, 90, 0.18)",
 };
 
 export default { lightColors, darkColors, SGV_BRAND };

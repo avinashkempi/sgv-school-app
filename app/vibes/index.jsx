@@ -1567,58 +1567,58 @@ export default function VibesScreen() {
         </View>
       )}
 
-      {/* ──── Segmented Button: Feed / My Posts / Saved ──── */}
-      <View style={[styles.segmentWrapper, { backgroundColor: colors.surface }]}>
-        <View
-          style={[
-            styles.segmentContainer,
-            { backgroundColor: colors.surfaceContainerHigh },
-          ]}
-        >
-          <Pressable
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
-                () => {}
-              );
-              setActiveTab("feed");
-              setSelectedTag(null);
-            }}
+      {/* ──── Segmented Button: Feed / My Posts / Saved (Shown when authenticated) ──── */}
+      {isAuthenticated && (
+        <View style={[styles.segmentWrapper, { backgroundColor: colors.surface }]}>
+          <View
             style={[
-              styles.segmentItem,
-              activeTab === "feed" && [
-                styles.segmentItemActive,
-                {
-                  backgroundColor: colors.surface,
-                  shadowColor: colors.shadow || "#000",
-                },
-              ],
+              styles.segmentContainer,
+              { backgroundColor: colors.surfaceContainerHigh },
             ]}
           >
-            <MaterialIcons
-              name="dynamic-feed"
-              size={15}
-              color={
-                activeTab === "feed" ? colors.primary : colors.onSurfaceVariant
-              }
-            />
-            <Text
+            <Pressable
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
+                  () => {}
+                );
+                setActiveTab("feed");
+                setSelectedTag(null);
+              }}
               style={[
-                styles.segmentText,
-                {
-                  color:
-                    activeTab === "feed"
-                      ? colors.primary
-                      : colors.onSurfaceVariant,
-                  fontFamily:
-                    activeTab === "feed" ? FONTS.bold : FONTS.medium,
-                },
+                styles.segmentItem,
+                activeTab === "feed" && [
+                  styles.segmentItemActive,
+                  {
+                    backgroundColor: colors.surface,
+                    shadowColor: colors.shadow || "#000",
+                  },
+                ],
               ]}
             >
-              Feed
-            </Text>
-          </Pressable>
+              <MaterialIcons
+                name="dynamic-feed"
+                size={15}
+                color={
+                  activeTab === "feed" ? colors.primary : colors.onSurfaceVariant
+                }
+              />
+              <Text
+                style={[
+                  styles.segmentText,
+                  {
+                    color:
+                      activeTab === "feed"
+                        ? colors.primary
+                        : colors.onSurfaceVariant,
+                    fontFamily:
+                      activeTab === "feed" ? FONTS.bold : FONTS.medium,
+                  },
+                ]}
+              >
+                Feed
+              </Text>
+            </Pressable>
 
-          {isAuthenticated && (
             <Pressable
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
@@ -1664,9 +1664,7 @@ export default function VibesScreen() {
                 My Posts
               </Text>
             </Pressable>
-          )}
 
-          {isAuthenticated && (
             <Pressable
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
@@ -1710,9 +1708,9 @@ export default function VibesScreen() {
                 Saved
               </Text>
             </Pressable>
-          )}
+          </View>
         </View>
-      </View>
+      )}
 
       {/* ──── Vibes Content Feed (Always mounted FlatList) ──── */}
       <FlatList

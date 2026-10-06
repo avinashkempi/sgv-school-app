@@ -628,6 +628,12 @@ const AdminHeader = React.memo(function AdminHeader({
           </Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
             <MenuCard
+              title={t("admin.classes", "Classes")}
+              icon="class"
+              color={colors.primary || "#6750A4"}
+              onPress={() => router.push("/admin/classes")}
+            />
+            <MenuCard
               title={t("admin.timetable", "Timetable")}
               icon="schedule"
               color={colors.primary || "#6750A4"}

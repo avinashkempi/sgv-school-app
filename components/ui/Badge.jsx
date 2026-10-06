@@ -37,6 +37,7 @@ const Badge = memo(({
   // Color Mapping
   const getColorScheme = () => {
     switch (variant) {
+      case "brand":
       case "primary":
         if (type === "filled") {
           return { bg: colors.primary, text: colors.onPrimary, border: "transparent" };
@@ -126,8 +127,14 @@ const Badge = memo(({
 
   const scheme = getColorScheme();
 
-  // Status Dot
-  if (dot) {
+  // Content text
+  let content = label ?? children;
+  if (count !== undefined && count !== null) {
+    content = count > maxCount ? `${maxCount}+` : String(count);
+  }
+
+  // Standalone Status Dot (only when dot=true AND no content text is provided)
+  if (dot && (content === undefined || content === null || content === "")) {
     const dotSizes = { sm: 6, md: 8, lg: 10 };
     const dSize = dotSizes[size] || 8;
     return (
@@ -151,44 +158,54 @@ const Badge = memo(({
   const sizeConfig = {
     sm: {
       paddingVertical: 2,
-      paddingHorizontal: 6,
-      fontSize: 10,
+      paddingHorizontal: 7,
+      fontSize: FONT_SIZES.micro || 11,
       iconSize: 11,
-      gap: 3,
+      dotSize: 5,
+      gap: 4,
       minHeight: 18,
     },
     md: {
       paddingVertical: 3,
       paddingHorizontal: 8,
-      fontSize: FONT_SIZES.xs || 11,
+      fontSize: FONT_SIZES.xs || 12,
       iconSize: 13,
+      dotSize: 6,
       gap: 4,
       minHeight: 22,
     },
     lg: {
       paddingVertical: 5,
       paddingHorizontal: 10,
-      fontSize: FONT_SIZES.sm || 13,
+      fontSize: FONT_SIZES.sm || 14,
       iconSize: 15,
+      dotSize: 8,
       gap: 5,
       minHeight: 26,
     },
   }[size] || {
     paddingVertical: 3,
     paddingHorizontal: 8,
-    fontSize: 11,
+    fontSize: FONT_SIZES.xs || 12,
     iconSize: 13,
+    dotSize: 6,
     gap: 4,
     minHeight: 22,
   };
 
-  // Content text
-  let content = label ?? children;
-  if (count !== undefined && count !== null) {
-    content = count > maxCount ? `${maxCount}+` : String(count);
-  }
-
-  const renderIcon = () => {
+  const renderIconOrDot = () => {
+    if (dot) {
+      return (
+        <View
+          style={{
+            width: sizeConfig.dotSize,
+            height: sizeConfig.dotSize,
+            borderRadius: sizeConfig.dotSize / 2,
+            backgroundColor: scheme.text,
+          }}
+        />
+      );
+    }
     if (!icon) return null;
     if (React.isValidElement(icon)) return icon;
     if (typeof icon === "string") {
@@ -222,7 +239,7 @@ const Badge = memo(({
       accessibilityLabel={typeof content === "string" ? content : "Badge"}
       {...props}
     >
-      {renderIcon()}
+      {renderIconOrDot()}
       {content !== undefined && content !== null && (
         <Text
           style={[

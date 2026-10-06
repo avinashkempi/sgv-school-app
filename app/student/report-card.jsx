@@ -2270,7 +2270,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
   },
   badgeDesc: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.micro || 11,
     fontFamily: FONTS.regular,
     marginTop: 1,
   },
@@ -2310,7 +2310,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   stylePillSub: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.micro || 11,
     marginTop: 2,
   },
   styleSummaryText: {
@@ -2373,7 +2373,7 @@ const styles = StyleSheet.create({
     lineHeight: 17,
   },
   diagCohortSub: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.micro || 11,
     fontFamily: FONTS.regular,
     marginTop: 2,
   },
@@ -2387,7 +2387,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   diagTrendText: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.micro || 11,
     fontFamily: FONTS.bold,
   },
   stabilityBreakdownRow: {
@@ -2405,7 +2405,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   stabilityChipText: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.micro || 11,
     fontFamily: FONTS.medium,
   },
   attendancePill: {
@@ -2446,7 +2446,7 @@ const styles = StyleSheet.create({
   },
   recNumberText: {
     color: "#FFFFFF",
-    fontSize: 10,
+    fontSize: FONT_SIZES.micro || 11,
     fontFamily: FONTS.bold,
   },
   recTitle: {
@@ -2460,7 +2460,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   recCategoryText: {
-    fontSize: 9,
+    fontSize: FONT_SIZES.micro || 11,
     fontFamily: FONTS.bold,
     textTransform: "uppercase",
   },
@@ -2505,7 +2505,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   aiPillText: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.micro || 11,
     fontFamily: FONTS.bold,
   },
 });

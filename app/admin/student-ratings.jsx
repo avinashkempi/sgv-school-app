@@ -1685,12 +1685,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   miniBarLabel: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.micro || 11,
     fontFamily: FONTS.medium,
     marginBottom: 4,
   },
   miniBarVal: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.micro || 11,
     fontFamily: FONTS.bold,
     marginTop: 2,
     textAlign: "right",
@@ -1826,11 +1826,11 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.sm,
   },
   subjectMiniChipText: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.micro || 11,
     fontFamily: FONTS.medium,
   },
   moreSubjectsCount: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.micro || 11,
     fontFamily: FONTS.bold,
   },
   moversStatGrid: {
@@ -1976,7 +1976,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   trendBarScore: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.micro || 11,
     fontFamily: FONTS.bold,
     marginBottom: 4,
   },
@@ -1992,7 +1992,7 @@ const styles = StyleSheet.create({
     borderRadius: 7,
   },
   trendBarMonth: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.micro || 11,
     fontFamily: FONTS.medium,
     marginTop: 4,
   },
@@ -2049,7 +2049,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   pointChipLabel: {
-    fontSize: 9,
+    fontSize: FONT_SIZES.micro || 11,
     fontFamily: FONTS.medium,
     color: "#6B7280",
   },

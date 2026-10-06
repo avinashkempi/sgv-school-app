@@ -561,10 +561,10 @@ const VibeCard = ({
               styles.actionPill,
               {
                 backgroundColor: isLiked
-                  ? "rgba(255, 94, 28, 0.12)"
+                  ? (colors.errorContainer || "rgba(239, 68, 68, 0.12)")
                   : colors.surfaceContainerHighest,
                 borderColor: isLiked
-                  ? "rgba(255, 94, 28, 0.28)"
+                  ? (colors.error ? colors.error + "40" : "rgba(239, 68, 68, 0.28)")
                   : colors.outlineVariant || "transparent",
               },
             ]}

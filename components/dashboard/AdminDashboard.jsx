@@ -128,173 +128,161 @@ const AdminDashboard = () => {
         accentColor={indigoAccent}
         headerRight={datePickerTrigger}
       >
-      {/* Quick Actions Scroll */}
-      <View style={{ marginBottom: 12 }}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 10, paddingVertical: 2 }}
-        >
-          <QuickActionButton
-            title="Import Data"
-            icon="cloud-upload"
-            color={colors.primary}
-            onPress={() => router.push("/admin/import-data")}
-          />
-          <QuickActionButton
-            title="Daily Reminders"
-            icon="alarm-on"
-            color="#D97706"
-            onPress={() => router.push("/admin/daily-reminders")}
-          />
-          {!isSuperAdmin && (
-            <QuickActionButton
-              title="Missing Tracker"
-              icon="event-busy"
-              color={colors.error}
-              onPress={() =>
-                router.push({
-                  pathname: "/admin/attendance",
-                  params: { tab: "tracker" },
-                })
-              }
-            />
-          )}
-        </ScrollView>
-      </View>
-
-      {/* Stat Cards Grid */}
-      <View
-        style={{ flexDirection: "row", flexWrap: "wrap", marginHorizontal: -4 }}
-      >
-        <StatCard
-          title="Attendance"
-          value={`${data.overview?.attendancePercentage || 0}%`}
-          icon="calendar-check"
-          color={colors.tertiary}
-          trend="up"
-          trendValue={data.overview?.attendanceTrend || 0}
-          onPress={() => router.push("/admin/attendance")}
-        />
-        <StatCard
-          title="Fees Collected"
-          value={`₹${(data.overview?.totalCollected || 0).toLocaleString()}`}
-          icon="currency-inr"
-          color={colors.success}
-          trendValue={data.overview?.feeCollectionTrend || 0}
-          trend="up"
-          onPress={() => router.push("/admin/fees")}
-        />
-        <StatCard
-          title="School Timetable"
-          value="View"
-          icon="calendar-today"
-          color={colors.tertiary}
-          onPress={() => router.push("/admin/timetable")}
-        />
-      </View>
-
-      {/* Fee Trend Chart */}
-      <View style={{ marginTop: 12 }}>
-        <View style={localStyles.sectionHeader}>
-          <MaterialIcons name="trending-up" size={17} color={indigoAccent} />
-          <Text style={[localStyles.sectionTitle, { color: colors.onSurface }]}>
-            Trends & Insights
-          </Text>
+        {/* Quick Actions Scroll */}
+        <View style={{ marginBottom: 12 }}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 10, paddingVertical: 2 }}
+          >
+            {!isSuperAdmin && (
+              <QuickActionButton
+                title="Missing Tracker"
+                icon="event-busy"
+                color={colors.error}
+                onPress={() =>
+                  router.push({
+                    pathname: "/admin/attendance",
+                    params: { tab: "tracker" },
+                  })
+                }
+              />
+            )}
+          </ScrollView>
         </View>
 
-        {data.charts?.feeTrend && data.charts.feeTrend.length > 0 ? (
-          <Pressable
+        {/* Stat Cards Grid */}
+        <View
+          style={{ flexDirection: "row", flexWrap: "wrap", marginHorizontal: -4 }}
+        >
+          <StatCard
+            title="Attendance"
+            value={`${data.overview?.attendancePercentage || 0}%`}
+            icon="calendar-check"
+            color={colors.tertiary}
+            trend="up"
+            trendValue={data.overview?.attendanceTrend || 0}
+            onPress={() => router.push("/admin/attendance")}
+          />
+          <StatCard
+            title="Fees Collected"
+            value={`₹${(data.overview?.totalCollected || 0).toLocaleString()}`}
+            icon="currency-inr"
+            color={colors.success}
+            trendValue={data.overview?.feeCollectionTrend || 0}
+            trend="up"
             onPress={() => router.push("/admin/fees")}
-            style={({ pressed }) => [
-              localStyles.chartCard,
-              {
-                backgroundColor: cardSurface,
-                borderColor: subBorder,
-                opacity: pressed ? 0.9 : 1,
-              },
-            ]}
-          >
-            <View style={localStyles.chartHeaderRow}>
-              <Text style={[localStyles.chartTitle, { color: colors.onSurface }]}>
-                Fee Collection (Academic Year)
-              </Text>
-              <MaterialIcons
-                name="chevron-right"
-                size={20}
-                color={colors.onSurfaceVariant}
-              />
-            </View>
-            <View style={localStyles.chartBarContainer}>
-              {(() => {
-                const maxAmount = Math.max(
-                  ...data.charts.feeTrend.map((d) => d.amount),
-                  1
-                );
-                return data.charts.feeTrend.map((d, i) => {
-                  const barHeight = Math.max((d.amount / maxAmount) * 95, 4);
-                  const hasValue = d.amount > 0;
-                  return (
-                    <View key={i} style={localStyles.barCol}>
-                      {hasValue && (
+          />
+          <StatCard
+            title="School Timetable"
+            value="View"
+            icon="calendar-today"
+            color={colors.tertiary}
+            onPress={() => router.push("/admin/timetable")}
+          />
+        </View>
+
+        {/* Fee Trend Chart */}
+        <View style={{ marginTop: 12 }}>
+          <View style={localStyles.sectionHeader}>
+            <MaterialIcons name="trending-up" size={17} color={indigoAccent} />
+            <Text style={[localStyles.sectionTitle, { color: colors.onSurface }]}>
+              Trends & Insights
+            </Text>
+          </View>
+
+          {data.charts?.feeTrend && data.charts.feeTrend.length > 0 ? (
+            <Pressable
+              onPress={() => router.push("/admin/fees")}
+              style={({ pressed }) => [
+                localStyles.chartCard,
+                {
+                  backgroundColor: cardSurface,
+                  borderColor: subBorder,
+                  opacity: pressed ? 0.9 : 1,
+                },
+              ]}
+            >
+              <View style={localStyles.chartHeaderRow}>
+                <Text style={[localStyles.chartTitle, { color: colors.onSurface }]}>
+                  Fee Collection (Academic Year)
+                </Text>
+                <MaterialIcons
+                  name="chevron-right"
+                  size={20}
+                  color={colors.onSurfaceVariant}
+                />
+              </View>
+              <View style={localStyles.chartBarContainer}>
+                {(() => {
+                  const maxAmount = Math.max(
+                    ...data.charts.feeTrend.map((d) => d.amount),
+                    1
+                  );
+                  return data.charts.feeTrend.map((d, i) => {
+                    const barHeight = Math.max((d.amount / maxAmount) * 95, 4);
+                    const hasValue = d.amount > 0;
+                    return (
+                      <View key={i} style={localStyles.barCol}>
+                        {hasValue && (
+                          <Text
+                            style={[
+                              localStyles.barValueText,
+                              { color: colors.onSurfaceVariant },
+                            ]}
+                          >
+                            {d.amount >= 100000
+                              ? `${(d.amount / 100000).toFixed(1)}L`
+                              : d.amount >= 1000
+                                ? `${(d.amount / 1000).toFixed(0)}K`
+                                : d.amount}
+                          </Text>
+                        )}
+                        <View
+                          style={{
+                            width: "60%",
+                            maxWidth: 20,
+                            height: barHeight,
+                            borderRadius: 4,
+                            backgroundColor: hasValue
+                              ? colors.primary
+                              : isDark
+                                ? "rgba(255,255,255,0.1)"
+                                : colors.outlineVariant,
+                            opacity: hasValue ? 1 : 0.3,
+                          }}
+                        />
                         <Text
                           style={[
-                            localStyles.barValueText,
+                            localStyles.barMonthLabel,
                             { color: colors.onSurfaceVariant },
                           ]}
                         >
-                          {d.amount >= 100000
-                            ? `${(d.amount / 100000).toFixed(1)}L`
-                            : d.amount >= 1000
-                            ? `${(d.amount / 1000).toFixed(0)}K`
-                            : d.amount}
+                          {d.month.substring(0, 3)}
                         </Text>
-                      )}
-                      <View
-                        style={{
-                          width: "60%",
-                          maxWidth: 20,
-                          height: barHeight,
-                          borderRadius: 4,
-                          backgroundColor: hasValue
-                            ? colors.primary
-                            : isDark
-                            ? "rgba(255,255,255,0.1)"
-                            : colors.outlineVariant,
-                          opacity: hasValue ? 1 : 0.3,
-                        }}
-                      />
-                      <Text
-                        style={[
-                          localStyles.barMonthLabel,
-                          { color: colors.onSurfaceVariant },
-                        ]}
-                      >
-                        {d.month.substring(0, 3)}
-                      </Text>
-                    </View>
-                  );
-                });
-              })()}
-            </View>
-          </Pressable>
-        ) : (
-          <EmptyState
-            icon="bar-chart"
-            title="No Fee Data"
-            message="Fee collection data is not available for the selected period"
-          />
-        )}
-      </View>
+                      </View>
+                    );
+                  });
+                })()}
+              </View>
+            </Pressable>
+          ) : (
+            <EmptyState
+              icon="bar-chart"
+              title="No Fee Data"
+              message="Fee collection data is not available for the selected period"
+            />
+          )}
+        </View>
 
-      {/* Date Range Picker Modal */}
-      <DateRangePicker
-        visible={showDatePicker}
-        selectedRange={dateRange}
-        onRangeSelect={handleDateRangeChange}
-        onClose={() => setShowDatePicker(false)}
-      />
-    </HomeModuleContainer>
+        {/* Date Range Picker Modal */}
+        <DateRangePicker
+          visible={showDatePicker}
+          selectedRange={dateRange}
+          onRangeSelect={handleDateRangeChange}
+          onClose={() => setShowDatePicker(false)}
+        />
+      </HomeModuleContainer>
     </View>
   );
 };

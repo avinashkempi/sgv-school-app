@@ -1658,7 +1658,7 @@ const styles = StyleSheet.create({
   },
   videoDurationText: {
     color: "#fff",
-    fontSize: 9,
+    fontSize: FONT_SIZES.micro || 11,
     fontFamily: FONTS.bold,
   },
   addMediaLargeButton: {
@@ -1686,7 +1686,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
   },
   addMediaSubtext: {
-    fontSize: 9,
+    fontSize: FONT_SIZES.micro || 11,
     fontFamily: FONTS.regular,
   },
   categoryChipsContainer: {

@@ -368,30 +368,32 @@ export default function StudentExamScheduleScreen() {
                       borderTopColor: "rgba(255, 255, 255, 0.16)",
                     }}
                   >
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 4,
-                      }}
-                    >
-                      <MaterialIcons
-                        name="grade"
-                        size={13}
-                        color={colors.onPrimary}
-                        style={{ opacity: 0.9 }}
-                      />
-                      <Text
+                    {nextExam.totalMarks != null && (
+                      <View
                         style={{
-                          fontSize: FONT_SIZES.xs,
-                          fontFamily: FONTS.medium,
-                          color: colors.onPrimary,
-                          opacity: 0.95,
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 4,
                         }}
                       >
-                        {nextExam.totalMarks} {t("student.marks", "marks")}
-                      </Text>
-                    </View>
+                        <MaterialIcons
+                          name="grade"
+                          size={13}
+                          color={colors.onPrimary}
+                          style={{ opacity: 0.9 }}
+                        />
+                        <Text
+                          style={{
+                            fontSize: FONT_SIZES.xs,
+                            fontFamily: FONTS.medium,
+                            color: colors.onPrimary,
+                            opacity: 0.95,
+                          }}
+                        >
+                          {nextExam.totalMarks} {t("student.marks", "marks")}
+                        </Text>
+                      </View>
+                    )}
 
                     {nextExam.duration ? (
                       <View

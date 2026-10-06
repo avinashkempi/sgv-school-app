@@ -45,11 +45,23 @@ function getCurrentPeriodIndex(periods) {
   });
 }
 
+function formatTeacherShortName(name) {
+  if (!name) return "";
+  const trimmed = name.trim();
+  const parts = trimmed.split(/\s+/);
+  if (parts.length <= 1) return trimmed;
+  const isTitle = /^(mr\.|mr|ms\.|ms|mrs\.|mrs|dr\.|dr|prof\.|prof)$/i.test(parts[0]);
+  if (isTitle && parts.length >= 2) {
+    return parts.length >= 3 ? `${parts[0]} ${parts[1]} ${parts[2][0]}.` : `${parts[0]} ${parts[1]}`;
+  }
+  return parts.length >= 2 ? `${parts[0]} ${parts[1][0]}.` : parts[0];
+}
+
 // ─── Period Row ──────────────────────────────────────────────────────────────
 const PeriodRow = memo(({ period, isActive, isStudent, colors, isDark }) => {
   const subjectName = period.subject?.name || period.subject || "—";
   const teacherName = isStudent
-    ? period.teacher?.name?.split(" ")[0] || ""
+    ? formatTeacherShortName(period.teacher?.name)
     : null;
   const className = !isStudent
     ? (period.class?.name

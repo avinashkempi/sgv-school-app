@@ -1018,7 +1018,7 @@ const styles = StyleSheet.create({
   },
   triggerBadgeText: {
     fontFamily: FONTS.medium,
-    fontSize: 10,
+    fontSize: FONT_SIZES.micro || 11,
     textTransform: "capitalize",
   },
   statusPill: {
@@ -1028,7 +1028,7 @@ const styles = StyleSheet.create({
   },
   statusPillText: {
     fontFamily: FONTS.bold,
-    fontSize: 10,
+    fontSize: FONT_SIZES.micro || 11,
   },
   logMessage: {
     fontFamily: FONTS.regular,
@@ -1047,7 +1047,7 @@ const styles = StyleSheet.create({
   },
   logFooterText: {
     fontFamily: FONTS.regular,
-    fontSize: 10,
+    fontSize: FONT_SIZES.micro || 11,
   },
   emptyContainer: {
     padding: 24,
