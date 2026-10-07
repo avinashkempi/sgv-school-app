@@ -28,12 +28,19 @@ export const SPACING = {
 };
 
 export const RADIUS = {
-  xs: 4,     // Subtle rounding (progress bars, micro indicators)
-  sm: 8,     // Small interactive elements (chips, segmented control items)
-  md: 12,    // Medium elements (text inputs, modal action buttons, small cards)
-  lg: 16,    // Standard cards, bottom sheet top edges, dialogs
-  xl: 24,    // Hero cards, prominent banners, container envelopes
-  full: 9999,// Circular buttons, avatar containers, pill badges
+  none: 0,          // Full-bleed containers
+  xs: 4,            // Backward-compat alias
+  extraSmall: 4,    // M3 Extra Small: Snackbars, micro status badges
+  sm: 8,            // Backward-compat alias
+  small: 8,         // M3 Small: Chips, segmented buttons, inputs
+  md: 12,           // Backward-compat alias
+  medium: 12,       // M3 Medium: Standard cards, mini dialogs
+  lg: 16,           // Backward-compat alias
+  large: 16,        // M3 Large: Large cards, navigation drawer items, search views
+  xl: 24,           // Elevated banners
+  xxl: 28,          // Backward-compat alias
+  extraLarge: 28,   // M3 Extra Large: Dialogs, bottom sheets, large FABs, hero sheets
+  full: 9999,       // M3 Full: Pill buttons, circular avatars, toggle switches, filter chips
 };
 
 export const ICON_SIZES = {

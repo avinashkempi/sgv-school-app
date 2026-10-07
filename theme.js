@@ -430,26 +430,26 @@ export function ThemeProvider({ children }) {
 
   const gradients = useMemo(() => ({
     primary: mode === 'dark'
-      ? [colors.primary, '#6366F1']
-      : [colors.primary, '#4338CA'],
+      ? [colors.primary, colors.primaryContainer]
+      : [colors.primary, '#4F378B'],
     card: mode === 'dark'
       ? [colors.surfaceContainer, colors.surfaceContainerHigh]
       : [colors.surfaceContainer, colors.surfaceContainerLow],
     warm: mode === 'dark'
-      ? ['#312E81', '#1E1B4B']
-      : ['#EEF2FF', '#E0E7FF'],
+      ? [colors.primaryContainer, colors.surfaceContainer]
+      : [colors.primaryContainer, colors.surfaceContainerLow],
     subtleGlow: mode === 'dark'
-      ? ['rgba(165, 180, 252, 0.12)', 'transparent']
-      : ['rgba(79, 70, 229, 0.08)', 'transparent'],
+      ? ['rgba(208, 188, 255, 0.12)', 'transparent']
+      : ['rgba(103, 80, 164, 0.08)', 'transparent'],
     purple: mode === 'dark'
-      ? [colors.tertiary, '#A78BFA']
-      : [colors.tertiary, '#5B21B6'],
+      ? [colors.tertiary, colors.tertiaryContainer]
+      : [colors.tertiary, colors.onTertiaryContainer],
     blue: mode === 'dark'
-      ? [colors.primary, '#818CF8']
-      : [colors.primary, '#3730A3'],
+      ? [colors.primary, '#9A82DB']
+      : [colors.primary, '#4F378B'],
     tertiary: mode === 'dark'
-      ? [colors.secondary, '#14B8A6']
-      : [colors.secondary, '#0D9488'],
+      ? [colors.secondary, colors.secondaryContainer]
+      : [colors.secondary, colors.onSecondaryContainer],
   }), [colors, mode]);
 
   const toggle = () => {

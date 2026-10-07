@@ -1,66 +1,70 @@
 /**
- * SGV School App — Semantic Color Design Tokens
+ * SGV School App — Material 3 (M3) Design System Color Tokens
  *
- * Modern Unbranded Education/Technology Color Design System
- * Primary:   #4F46E5 (Indigo 600 - Light) / #A5B4FC (Indigo 300 - Dark)
- * Secondary: #0F766E (Teal 700 - Light)   / #5EEAD4 (Teal 300 - Dark)
- * Tertiary:  #6D28D9 (Violet 700 - Light) / #C4B5FD (Violet 300 - Dark)
- * Surfaces:  Cool neutral slate canvas (#F8FAFC) & dark navy (#0B1220)
+ * Official Google Material Design 3 Baseline Color System
+ * Strictly exceeds WCAG 2.2 AA (4.5:1 normal text, 3.0:1 UI components).
  *
- * All color pairings strictly exceed WCAG 2.2 AA (4.5:1 normal, 3.0:1 UI components).
+ * Standard M3 Baseline Palette:
+ * Primary:   #6750A4 (Key 40 - Light) / #D0BCFF (Key 80 - Dark)
+ * Secondary: #625B71 (Key 40 - Light) / #CCC2DC (Key 80 - Dark)
+ * Tertiary:  #7D5260 (Key 40 - Light) / #EFB8C8 (Key 80 - Dark)
+ * Neutral:   Cool Slate surfaces with full 5-tier elevation container ladder
  */
 
-// ── LIGHT THEME ─────────────────────────────────────────────────────────────
+// ── LIGHT THEME (Google Material 3 Baseline) ─────────────────────────────────
 export const lightColors = {
-  // ─── Primary (Indigo) ───
-  primary: "#4F46E5",
+  // ─── Primary ───
+  primary: "#6750A4",
   onPrimary: "#FFFFFF",
-  primaryContainer: "#EEF2FF",
-  onPrimaryContainer: "#312E81",
-  inversePrimary: "#A5B4FC",
+  primaryContainer: "#EADDFF",
+  onPrimaryContainer: "#21005D",
+  inversePrimary: "#D0BCFF",
 
-  // ─── Secondary (Teal) ───
-  secondary: "#0F766E",
+  // ─── Secondary ───
+  secondary: "#625B71",
   onSecondary: "#FFFFFF",
-  secondaryContainer: "#CCFBF1",
-  onSecondaryContainer: "#115E59",
+  secondaryContainer: "#E8DEF8",
+  onSecondaryContainer: "#1D192B",
 
-  // ─── Tertiary (Violet) ───
-  tertiary: "#6D28D9",
+  // ─── Tertiary ───
+  tertiary: "#7D5260",
   onTertiary: "#FFFFFF",
-  tertiaryContainer: "#EDE9FE",
-  onTertiaryContainer: "#5B21B6",
+  tertiaryContainer: "#FFD8E4",
+  onTertiaryContainer: "#31111D",
 
-  // ─── Error (Accessible Red) ───
-  error: "#DC2626",
+  // ─── Error (M3 Standard) ───
+  error: "#B3261E",
   onError: "#FFFFFF",
-  errorContainer: "#FEE2E2",
-  onErrorContainer: "#7F1D1D",
+  errorContainer: "#F9DEDC",
+  onErrorContainer: "#410E0B",
 
-  // ─── Surfaces & Canvas (Cool Neutral Slate) ───
-  background: "#F8FAFC",
-  onBackground: "#0F172A",
+  // ─── Surfaces & Canvas (M3 Baseline) ───
+  background: "#FEF7FF",
+  onBackground: "#1D1B20",
 
-  surface: "#FFFFFF",
-  onSurface: "#0F172A",
+  surface: "#FEF7FF",
+  onSurface: "#1D1B20",
 
-  surfaceVariant: "#F1F5F9",
-  onSurfaceVariant: "#475569",
+  surfaceDim: "#DED8E1",
+  surfaceBright: "#FEF7FF",
+
+  surfaceVariant: "#E7E0EC",
+  onSurfaceVariant: "#49454F",
 
   // ─── Outline & Borders ───
-  outline: "#94A3B8",
-  outlineVariant: "#CBD5E1",
+  outline: "#79747E",
+  outlineVariant: "#CAC4D0",
 
-  // ─── Surface Elevation Ladder ───
+  // ─── M3 5-Tier Surface Container Elevation Ladder ───
   surfaceContainerLowest: "#FFFFFF",
-  surfaceContainerLow: "#F8FAFC",
-  surfaceContainer: "#F1F5F9",
-  surfaceContainerHigh: "#E2E8F0",
-  surfaceContainerHighest: "#CBD5E1",
+  surfaceContainerLow: "#F7F2FA",
+  surfaceContainer: "#F3EDF7",
+  surfaceContainerHigh: "#ECE6F0",
+  surfaceContainerHighest: "#E6E0E9",
 
   // ─── Inverse Surfaces ───
-  inverseSurface: "#0F172A",
-  inverseOnSurface: "#F8FAFC",
+  inverseSurface: "#322F35",
+  inverseOnSurface: "#F5EFF7",
 
   // ─── System ───
   shadow: "#000000",
@@ -83,74 +87,77 @@ export const lightColors = {
   onInfoContainer: "#0C4A6E",
 
   // ─── Role Colors ───
-  roleSuperAdmin: "#DC2626",
-  roleAdmin: "#4F46E5",
-  roleStaff: "#0F766E",
-  roleClassTeacher: "#6D28D9",
+  roleSuperAdmin: "#B3261E",
+  roleAdmin: "#6750A4",
+  roleStaff: "#625B71",
+  roleClassTeacher: "#7D5260",
   roleStudent: "#0284C7",
 
-  // ─── Semantic Aliases ───
+  // ─── Semantic Aliases & Compatibility ───
   white: "#FFFFFF",
-  textPrimary: "#0F172A",
-  textSecondary: "#475569",
-  textMuted: "#94A3B8",
-  border: "#CBD5E1",
-  borderLight: "#E2E8F0",
-  divider: "#E2E8F0",
-  cardBackground: "#FFFFFF",
+  textPrimary: "#1D1B20",
+  textSecondary: "#49454F",
+  textMuted: "#79747E",
+  border: "#CAC4D0",
+  borderLight: "#E6E0E9",
+  divider: "#CAC4D0",
+  cardBackground: "#F3EDF7",
 };
 
-// ── DARK THEME ──────────────────────────────────────────────────────────────
+// ── DARK THEME (Google Material 3 Baseline) ──────────────────────────────────
 export const darkColors = {
-  // ─── Primary (Accessible Tinted Indigo) ───
-  primary: "#A5B4FC",
-  onPrimary: "#1E1B4B",
-  primaryContainer: "#312E81",
-  onPrimaryContainer: "#E0E7FF",
-  inversePrimary: "#4F46E5",
+  // ─── Primary ───
+  primary: "#D0BCFF",
+  onPrimary: "#381E72",
+  primaryContainer: "#4F378B",
+  onPrimaryContainer: "#EADDFF",
+  inversePrimary: "#6750A4",
 
-  // ─── Secondary (Accessible Tinted Teal) ───
-  secondary: "#5EEAD4",
-  onSecondary: "#134E4A",
-  secondaryContainer: "#134E4A",
-  onSecondaryContainer: "#CCFBF1",
+  // ─── Secondary ───
+  secondary: "#CCC2DC",
+  onSecondary: "#332D41",
+  secondaryContainer: "#4A4458",
+  onSecondaryContainer: "#E8DEF8",
 
-  // ─── Tertiary (Accessible Tinted Violet) ───
-  tertiary: "#C4B5FD",
-  onTertiary: "#2E1065",
-  tertiaryContainer: "#3B0764",
-  onTertiaryContainer: "#EDE9FE",
+  // ─── Tertiary ───
+  tertiary: "#EFB8C8",
+  onTertiary: "#492532",
+  tertiaryContainer: "#633B48",
+  onTertiaryContainer: "#FFD8E4",
 
-  // ─── Error (Accessible Light Red) ───
-  error: "#F87171",
-  onError: "#450A0A",
-  errorContainer: "#7F1D1D",
-  onErrorContainer: "#FEE2E2",
+  // ─── Error (M3 Standard) ───
+  error: "#F2B8B5",
+  onError: "#601410",
+  errorContainer: "#8C1D18",
+  onErrorContainer: "#F9DEDC",
 
-  // ─── Surfaces & Canvas (Dark Navy) ───
-  background: "#0B1220",
-  onBackground: "#F1F5F9",
+  // ─── Surfaces & Canvas (M3 Baseline Dark) ───
+  background: "#141218",
+  onBackground: "#E6E0E9",
 
-  surface: "#111827",
-  onSurface: "#F1F5F9",
+  surface: "#141218",
+  onSurface: "#E6E0E9",
 
-  surfaceVariant: "#1E293B",
-  onSurfaceVariant: "#CBD5E1",
+  surfaceDim: "#141218",
+  surfaceBright: "#3B383E",
+
+  surfaceVariant: "#49454F",
+  onSurfaceVariant: "#CAC4D0",
 
   // ─── Outline & Borders ───
-  outline: "#64748B",
-  outlineVariant: "#334155",
+  outline: "#938F99",
+  outlineVariant: "#49454F",
 
-  // ─── Surface Elevation Ladder ───
-  surfaceContainerLowest: "#070D18",
-  surfaceContainerLow: "#0B1220",
-  surfaceContainer: "#1E293B",
-  surfaceContainerHigh: "#334155",
-  surfaceContainerHighest: "#475569",
+  // ─── M3 5-Tier Surface Container Elevation Ladder ───
+  surfaceContainerLowest: "#0F0D13",
+  surfaceContainerLow: "#1D1B20",
+  surfaceContainer: "#211F26",
+  surfaceContainerHigh: "#2B2930",
+  surfaceContainerHighest: "#36343B",
 
   // ─── Inverse Surfaces ───
-  inverseSurface: "#F1F5F9",
-  inverseOnSurface: "#0F172A",
+  inverseSurface: "#E6E0E9",
+  inverseOnSurface: "#322F35",
 
   // ─── System ───
   shadow: "#000000",
@@ -173,21 +180,22 @@ export const darkColors = {
   onInfoContainer: "#E0F2FE",
 
   // ─── Role Colors ───
-  roleSuperAdmin: "#F87171",
-  roleAdmin: "#A5B4FC",
-  roleStaff: "#5EEAD4",
-  roleClassTeacher: "#C4B5FD",
+  roleSuperAdmin: "#F2B8B5",
+  roleAdmin: "#D0BCFF",
+  roleStaff: "#CCC2DC",
+  roleClassTeacher: "#EFB8C8",
   roleStudent: "#38BDF8",
 
-  // ─── Semantic Aliases ───
+  // ─── Semantic Aliases & Compatibility ───
   white: "#FFFFFF",
-  textPrimary: "#F1F5F9",
-  textSecondary: "#CBD5E1",
-  textMuted: "#64748B",
-  border: "#334155",
-  borderLight: "#1E293B",
-  divider: "#1E293B",
-  cardBackground: "#111827",
+  textPrimary: "#E6E0E9",
+  textSecondary: "#CAC4D0",
+  textMuted: "#938F99",
+  border: "#49454F",
+  borderLight: "#2B2930",
+  divider: "#49454F",
+  cardBackground: "#211F26",
 };
 
 export default { lightColors, darkColors };
+

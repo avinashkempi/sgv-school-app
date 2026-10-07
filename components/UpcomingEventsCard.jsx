@@ -284,6 +284,7 @@ const styles = StyleSheet.create({
   eventDateSubtext: {
     fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.medium,
+    fontStyle: "italic",
   },
 });
 

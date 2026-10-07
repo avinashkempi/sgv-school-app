@@ -24,6 +24,7 @@ const AppText = ({
   size,
   weight,
   color,
+  italic = false,
   align,
   transform,
   numberOfLines,
@@ -48,6 +49,14 @@ const AppText = ({
     baseStyle = TYPOGRAPHY.displayLarge;
   } else if (variant === "headline") {
     baseStyle = TYPOGRAPHY.headlineSmall;
+  } else if (variant === "quote") {
+    baseStyle = TYPOGRAPHY.quote;
+  } else if (variant === "remark") {
+    baseStyle = TYPOGRAPHY.remark;
+  } else if (variant === "tagline") {
+    baseStyle = TYPOGRAPHY.tagline;
+  } else if (variant === "disclaimer") {
+    baseStyle = TYPOGRAPHY.disclaimer;
   }
 
   // Resolve custom size override
@@ -73,6 +82,7 @@ const AppText = ({
     customLineHeight ? { lineHeight: customLineHeight } : null,
     customLetterSpacing !== undefined ? { letterSpacing: customLetterSpacing } : null,
     customFontFamily ? { fontFamily: customFontFamily } : null,
+    italic ? { fontStyle: "italic" } : null,
     textColor ? { color: textColor } : null,
     align ? { textAlign: align } : null,
     transform ? { textTransform: transform } : null,

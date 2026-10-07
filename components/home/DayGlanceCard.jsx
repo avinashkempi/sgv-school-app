@@ -192,7 +192,10 @@ const DayGlanceCard = memo(({ role, data = {}, onAction: _onAction }) => {
             <Text
               style={[
                 styles.footerItemValue,
-                { color: colors.textPrimary || colors.onSurface },
+                {
+                  color: colors.textPrimary || colors.onSurface,
+                  fontStyle: nextExamName === "No upcoming exam" ? "italic" : "normal",
+                },
               ]}
               numberOfLines={1}
             >
@@ -211,8 +214,8 @@ const DayGlanceCard = memo(({ role, data = {}, onAction: _onAction }) => {
     const classesToday = data?.overview?.totalClassesToday ?? data?.overview?.assignedClasses ?? 0;
     const pendingAttendance = data?.missingDays?.length || 0;
 
-    const cardBg = isDark ? "rgba(79, 70, 229, 0.11)" : "rgba(79, 70, 229, 0.05)";
-    const cardBorder = isDark ? "rgba(79, 70, 229, 0.35)" : "rgba(79, 70, 229, 0.2)";
+    const cardBg = isDark ? "rgba(98, 91, 113, 0.14)" : "rgba(98, 91, 113, 0.07)";
+    const cardBorder = isDark ? "rgba(204, 194, 220, 0.35)" : "rgba(98, 91, 113, 0.2)";
 
     return (
       <View
@@ -222,7 +225,7 @@ const DayGlanceCard = memo(({ role, data = {}, onAction: _onAction }) => {
             backgroundColor: cardBg,
             borderWidth: 1.5,
             borderColor: cardBorder,
-            borderRadius: RADIUS.xl || 20,
+            borderRadius: RADIUS.large || 16,
             padding: 16,
           },
         ]}

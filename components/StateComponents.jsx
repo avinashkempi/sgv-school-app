@@ -83,12 +83,13 @@ const EmptyState = memo(({
         <Text
           style={{
             fontSize: FONT_SIZES.sm || 13,
-            color: colors.textSecondary || colors.onSurfaceVariant,
+            color: colors.onSurfaceVariant,
             textAlign: "center",
             lineHeight: 19,
             maxWidth: 280,
             marginBottom: actionLabel && onAction ? 20 : 0,
             fontFamily: FONTS.regular,
+            fontStyle: "italic",
           }}
         >
           {displayMessage}

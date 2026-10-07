@@ -1948,6 +1948,7 @@ const styles = StyleSheet.create({
   remarksText: {
     fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
+    fontStyle: "italic",
     flex: 1,
   },
   noRecordText: {

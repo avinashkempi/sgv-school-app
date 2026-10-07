@@ -606,6 +606,7 @@ const styles = StyleSheet.create({
   emptySubtitle: {
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.regular,
+    fontStyle: "italic",
   },
 });
 

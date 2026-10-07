@@ -43,8 +43,8 @@ const Badge = memo(({
           return { bg: colors.primary, text: colors.onPrimary, border: "transparent" };
         }
         return {
-          bg: colors.primaryContainer || "#EEF2FF",
-          text: colors.primary || "#4F46E5",
+          bg: colors.primaryContainer || "#EADDFF",
+          text: colors.onPrimaryContainer || colors.primary,
           border: "transparent",
         };
       case "secondary":
@@ -52,8 +52,8 @@ const Badge = memo(({
           return { bg: colors.secondary, text: colors.onSecondary, border: "transparent" };
         }
         return {
-          bg: colors.secondaryContainer || "#CCFBF1",
-          text: colors.secondary || "#0F766E",
+          bg: colors.secondaryContainer || "#E8DEF8",
+          text: colors.onSecondaryContainer || colors.secondary,
           border: "transparent",
         };
       case "tertiary":
@@ -61,8 +61,8 @@ const Badge = memo(({
           return { bg: colors.tertiary, text: colors.onTertiary || "#FFFFFF", border: "transparent" };
         }
         return {
-          bg: colors.tertiaryContainer || "#EDE9FE",
-          text: colors.tertiary || "#6D28D9",
+          bg: colors.tertiaryContainer || "#FFD8E4",
+          text: colors.onTertiaryContainer || colors.tertiary,
           border: "transparent",
         };
       case "info":
@@ -71,25 +71,25 @@ const Badge = memo(({
         }
         return {
           bg: colors.infoContainer || "#E0F2FE",
-          text: colors.info || "#0284C7",
+          text: colors.onInfoContainer || colors.info,
           border: "transparent",
         };
       case "success":
         if (type === "filled") {
-          return { bg: colors.success, text: colors.onPrimary || "#FFFFFF", border: "transparent" };
+          return { bg: colors.success, text: colors.onSuccess || "#FFFFFF", border: "transparent" };
         }
         return {
-          bg: colors.successContainer || "#ECFDF5",
-          text: colors.success || "#16A34A",
+          bg: colors.successContainer || "#DCFCE7",
+          text: colors.onSuccessContainer || colors.success,
           border: "transparent",
         };
       case "warning":
         if (type === "filled") {
-          return { bg: colors.warning, text: "#FFFFFF", border: "transparent" };
+          return { bg: colors.warning, text: colors.onWarning || "#FFFFFF", border: "transparent" };
         }
         return {
-          bg: colors.warningContainer || "#FFFBEB",
-          text: colors.warning || "#D97706",
+          bg: colors.warningContainer || "#FEF3C7",
+          text: colors.onWarningContainer || colors.warning,
           border: "transparent",
         };
       case "error":
@@ -98,8 +98,8 @@ const Badge = memo(({
           return { bg: colors.error, text: colors.onError || "#FFFFFF", border: "transparent" };
         }
         return {
-          bg: colors.errorContainer || "#FEF2F2",
-          text: colors.error || "#DC2626",
+          bg: colors.errorContainer || "#F9DEDC",
+          text: colors.onErrorContainer || colors.error,
           border: "transparent",
         };
       case "outline":

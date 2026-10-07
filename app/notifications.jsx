@@ -1391,6 +1391,7 @@ const styles = StyleSheet.create({
   timeText: {
     fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
+    fontStyle: "italic",
   },
   actionRow: {
     flexDirection: "row",

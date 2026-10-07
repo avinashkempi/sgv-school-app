@@ -512,6 +512,7 @@ const styles = StyleSheet.create({
   brandSecondary: {
     fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.medium,
+    fontStyle: "italic",
     marginTop: -1,
   },
   welcomeGreetingRow: {

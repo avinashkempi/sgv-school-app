@@ -470,7 +470,7 @@ export default function StudentFeesScreen() {
                   size={48}
                   color={colors.textSecondary}
                 />
-                <Text style={{ color: colors.textSecondary, marginTop: 12 }}>
+                <Text style={{ color: colors.onSurfaceVariant, marginTop: 12, fontStyle: "italic" }}>
                   {t("student.noPaymentsYet", "No payments recorded yet")}
                 </Text>
               </View>
@@ -524,8 +524,9 @@ export default function StudentFeesScreen() {
                     <Text
                       style={{
                         color: colors.onSurfaceVariant,
-                        fontSize: FONT_SIZES.sm,
+                        fontSize: FONT_SIZES.xs,
                         marginTop: 2,
+                        fontStyle: "italic",
                       }}
                     >
                       {payment.receiptNumber
@@ -540,9 +541,10 @@ export default function StudentFeesScreen() {
                     {(payment.bookNumber || payment.manualReceiptNumber) && (
                       <Text
                         style={{
-                          fontSize: FONT_SIZES.sm,
+                          fontSize: FONT_SIZES.xs,
                           color: colors.onSurfaceVariant,
                           marginTop: 2,
+                          fontStyle: "italic",
                         }}
                       >
                         {payment.bookNumber
@@ -564,15 +566,15 @@ export default function StudentFeesScreen() {
                   <View style={{ alignItems: "flex-end" }}>
                     <View
                       style={{
-                        backgroundColor: colors.success + "20",
+                        backgroundColor: colors.successContainer,
                         paddingHorizontal: 8,
                         paddingVertical: 4,
-                        borderRadius: 4,
+                        borderRadius: 8,
                       }}
                     >
                       <Text
                         style={{
-                          color: colors.success,
+                          color: colors.onSuccessContainer,
                           fontSize: FONT_SIZES.micro,
                           fontFamily: FONTS.bold,
                           textTransform: "uppercase",

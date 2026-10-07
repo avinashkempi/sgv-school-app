@@ -278,25 +278,23 @@ function BottomNavigation() {
         {
           backgroundColor:
             Platform.OS === "android"
-              ? mode === "dark"
-                ? colors.surface || "#14161A"
-                : colors.surface || "#FFFFFF"
+              ? colors.surfaceContainer
               : mode === "dark"
-              ? "rgba(14, 16, 20, 0.88)"
-              : "rgba(255, 255, 255, 0.90)",
+              ? "rgba(33, 31, 38, 0.95)"
+              : "rgba(243, 237, 247, 0.95)",
           paddingBottom: Math.max(insets.bottom, 6),
-          borderTopColor: colors.outlineVariant || colors.border || "rgba(0,0,0,0.06)",
+          borderTopColor: colors.outlineVariant || "rgba(0,0,0,0.06)",
           borderTopWidth: StyleSheet.hairlineWidth,
           elevation: 0,
           ...Platform.select({
             web: {
-              boxShadow: "0 -4px 16px rgba(0, 0, 0, 0.04)",
+              boxShadow: "0 -2px 10px rgba(0, 0, 0, 0.04)",
             },
             default: {
               shadowColor: colors.shadow || "#000",
-              shadowOpacity: mode === "dark" ? 0.3 : 0.06,
-              shadowRadius: 10,
-              shadowOffset: { width: 0, height: -3 },
+              shadowOpacity: mode === "dark" ? 0.3 : 0.05,
+              shadowRadius: 8,
+              shadowOffset: { width: 0, height: -2 },
             },
           }),
         },
@@ -364,9 +362,10 @@ const TabItem = memo(({ item, isActive, onPress, colors }) => {
     ],
   }));
 
-  const activeColor = colors.primary || "#4F46E5";
-  const inactiveColor = colors.textSecondary || colors.onSurfaceVariant || "#6B7280";
-  const activeBg = colors.primaryContainer || "#EEF2FF";
+  const activeColor = colors.onSecondaryContainer || colors.primary;
+  const inactiveColor = colors.onSurfaceVariant;
+  const activeBg = colors.secondaryContainer || colors.primaryContainer;
+  const activeLabelColor = colors.onSurface;
 
   return (
     <Pressable
@@ -381,7 +380,7 @@ const TabItem = memo(({ item, isActive, onPress, colors }) => {
     >
       <Animated.View style={[{ alignItems: "center" }, containerStyle]}>
         <View style={styles.iconContainer}>
-          {/* Active SGV Brand Pill */}
+          {/* M3 Active Navigation Pill */}
           <Animated.View
             style={[
               StyleSheet.absoluteFill,
@@ -402,7 +401,7 @@ const TabItem = memo(({ item, isActive, onPress, colors }) => {
           style={[
             styles.label,
             {
-              color: isActive ? activeColor : inactiveColor,
+              color: isActive ? activeLabelColor : inactiveColor,
               fontFamily: isActive ? FONTS.bold : FONTS.medium,
             },
           ]}

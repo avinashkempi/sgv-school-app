@@ -36,12 +36,12 @@ const Card = ({
   const getBackgroundColor = () => {
     switch (variant) {
       case "elevated":
-        return colors.surface || "#FFFFFF";
+        return colors.surfaceContainerLow || colors.surface || "#FFFFFF";
       case "outlined":
         return colors.surface || "#FFFFFF";
       case "filled":
       default:
-        return colors.surfaceContainer || "#F0F1F5";
+        return colors.surfaceContainerHighest || colors.surfaceContainer || "#F0F1F5";
     }
   };
 
@@ -62,14 +62,14 @@ const Card = ({
       }
       return Platform.select({
         web: {
-          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
+          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.08)",
         },
         default: {
-          elevation: 2,
+          elevation: 1,
           shadowColor: colors.shadow,
-          shadowOffset: { width: 0, height: 2 },
+          shadowOffset: { width: 0, height: 1 },
           shadowOpacity: 0.06,
-          shadowRadius: 8,
+          shadowRadius: 3,
         },
       });
     }
@@ -79,7 +79,7 @@ const Card = ({
   const cardContainerStyle = [
     {
       backgroundColor: getBackgroundColor(),
-      borderRadius: compact ? (RADIUS.sm || 8) : (RADIUS.md || 12),
+      borderRadius: compact ? (RADIUS.medium || 12) : (RADIUS.large || 16),
       overflow: "hidden",
       marginBottom: noMargin ? 0 : (SPACING.cardGap || SPACING.lg || 16),
     },

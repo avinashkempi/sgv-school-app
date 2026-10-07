@@ -77,6 +77,14 @@ export default function MenuFooter({ user, onLogoutPress, onLoginPress }) {
           Mangasuli • Karnataka, 591316
         </Text>
 
+        {/* M3 Editorial School Motto in Italic */}
+        <Text
+          style={[localStyles.schoolMotto, { color: colors.primary }]}
+          numberOfLines={1}
+        >
+          “Nurturing minds, fostering integrity, inspiring excellence”
+        </Text>
+
         <View
           style={[
             localStyles.versionBadge,
@@ -153,6 +161,15 @@ const localStyles = StyleSheet.create({
     marginTop: 4,
     textAlign: "center",
   },
+  schoolMotto: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.medium,
+    fontStyle: "italic",
+    lineHeight: LINE_HEIGHTS.xs,
+    marginTop: 6,
+    textAlign: "center",
+    letterSpacing: 0.1,
+  },
   versionBadge: {
     marginTop: 10,
     paddingHorizontal: 10,
@@ -167,6 +184,7 @@ const localStyles = StyleSheet.create({
   copyrightText: {
     fontSize: FONT_SIZES.micro,
     fontFamily: FONTS.regular,
+    fontStyle: "italic",
     lineHeight: LINE_HEIGHTS.micro,
     marginTop: 8,
     textAlign: "center",

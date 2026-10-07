@@ -367,6 +367,56 @@ export const TYPOGRAPHY = StyleSheet.create({
     letterSpacing: 0,
     flexShrink: 1,
   },
+
+  // ── M3 Editorial Italic Accents (Purposeful Contextual Styling) ──
+  quote: {
+    fontFamily: FONT_FAMILIES.medium,
+    fontSize: FONT_SIZES.md,
+    lineHeight: LINE_HEIGHTS.md,
+    letterSpacing: LETTER_SPACINGS.md,
+    fontStyle: "italic",
+    flexShrink: 1,
+  },
+  tagline: {
+    fontFamily: FONT_FAMILIES.medium,
+    fontSize: FONT_SIZES.sm,
+    lineHeight: LINE_HEIGHTS.sm,
+    letterSpacing: LETTER_SPACINGS.sm,
+    fontStyle: "italic",
+    flexShrink: 1,
+  },
+  remark: {
+    fontFamily: FONT_FAMILIES.regular,
+    fontSize: FONT_SIZES.sm,
+    lineHeight: LINE_HEIGHTS.sm,
+    letterSpacing: LETTER_SPACINGS.sm,
+    fontStyle: "italic",
+    flexShrink: 1,
+  },
+  footnoteItalic: {
+    fontFamily: FONT_FAMILIES.regular,
+    fontSize: FONT_SIZES.xs,
+    lineHeight: LINE_HEIGHTS.xs,
+    letterSpacing: LETTER_SPACINGS.xs,
+    fontStyle: "italic",
+    flexShrink: 1,
+  },
+  disclaimer: {
+    fontFamily: FONT_FAMILIES.regular,
+    fontSize: FONT_SIZES.micro,
+    lineHeight: LINE_HEIGHTS.micro,
+    letterSpacing: LETTER_SPACINGS.micro,
+    fontStyle: "italic",
+    flexShrink: 1,
+  },
+  honorDistinction: {
+    fontFamily: FONT_FAMILIES.semiBold,
+    fontSize: FONT_SIZES.xs,
+    lineHeight: LINE_HEIGHTS.xs,
+    letterSpacing: 0.5,
+    fontStyle: "italic",
+    flexShrink: 1,
+  },
 });
 
 // ── 6. 12 CANONICAL DESIGN TOKENS ──────────────────────────────────────────

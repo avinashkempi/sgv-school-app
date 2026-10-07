@@ -369,12 +369,12 @@ export default function StudentLeaves() {
 
         {/* Decision details */}
         {item.status === "rejected" && (
-          <View style={[styles.decisionBox, { backgroundColor: "#FFEBEE", borderColor: "#FFCDD2" }]}>
-            <Text style={{ fontSize: FONT_SIZES.xs, fontFamily: FONTS.bold, color: "#D32F2F" }}>
+          <View style={[styles.decisionBox, { backgroundColor: colors.errorContainer, borderColor: colors.error + "40" }]}>
+            <Text style={{ fontSize: FONT_SIZES.xs, fontFamily: FONTS.bold, color: colors.onErrorContainer }}>
               Rejection: {item.rejectionReason}
             </Text>
             {Boolean(item.rejectionComments) && (
-              <Text style={{ fontSize: FONT_SIZES.xs, color: colors.onSurfaceVariant, fontFamily: FONTS.regular, marginTop: 1, lineHeight: 18 }}>
+              <Text style={{ fontSize: FONT_SIZES.xs, color: colors.onErrorContainer, fontFamily: FONTS.regular, marginTop: 1, lineHeight: 18, fontStyle: "italic" }}>
                 Teacher Note: {item.rejectionComments}
               </Text>
             )}
@@ -382,8 +382,8 @@ export default function StudentLeaves() {
         )}
 
         {item.status === "approved" && Boolean(item.actionReason) && (
-          <View style={[styles.decisionBox, { backgroundColor: "#E8F5E9", borderColor: "#C8E6C9" }]}>
-            <Text style={{ fontSize: FONT_SIZES.xs, fontFamily: FONTS.bold, color: "#2E7D32" }}>
+          <View style={[styles.decisionBox, { backgroundColor: colors.successContainer, borderColor: colors.success + "40" }]}>
+            <Text style={{ fontSize: FONT_SIZES.xs, fontFamily: FONTS.bold, color: colors.onSuccessContainer, fontStyle: "italic" }}>
               Teacher Note: {item.actionReason}
             </Text>
           </View>

@@ -1069,7 +1069,7 @@ export default function StudentReportCardScreen() {
               <Text
                 style={[
                   styles.consistencyDesc,
-                  { color: colors.onSurfaceVariant },
+                  { color: colors.onSurfaceVariant, fontStyle: "italic" },
                 ]}
               >
                 Measures performance stability across terms. High consistency indicates steady study habits and minimal mark fluctuations between exams.
@@ -1079,17 +1079,17 @@ export default function StudentReportCardScreen() {
               {(consistency.mostConsistentSubject || consistency.mostVolatileSubject) && (
                 <View style={styles.stabilityBreakdownRow}>
                   {consistency.mostConsistentSubject && (
-                    <View style={[styles.stabilityChip, { backgroundColor: isDark ? "rgba(16, 185, 129, 0.12)" : "rgba(16, 185, 129, 0.08)" }]}>
-                      <MaterialIcons name="check-circle" size={14} color="#10B981" />
-                      <Text style={[styles.stabilityChipText, { color: isDark ? "#6EE7B7" : "#065F46" }]}>
+                    <View style={[styles.stabilityChip, { backgroundColor: colors.successContainer }]}>
+                      <MaterialIcons name="check-circle" size={14} color={colors.success} />
+                      <Text style={[styles.stabilityChipText, { color: colors.onSuccessContainer }]}>
                         Most Stable: {consistency.mostConsistentSubject.subject} (±{consistency.mostConsistentSubject.stdDev}%)
                       </Text>
                     </View>
                   )}
                   {consistency.mostVolatileSubject && (
-                    <View style={[styles.stabilityChip, { backgroundColor: isDark ? "rgba(245, 158, 11, 0.12)" : "rgba(245, 158, 11, 0.08)" }]}>
-                      <MaterialIcons name="sync-problem" size={14} color="#D97706" />
-                      <Text style={[styles.stabilityChipText, { color: isDark ? "#FDE68A" : "#92400E" }]}>
+                    <View style={[styles.stabilityChip, { backgroundColor: colors.warningContainer }]}>
+                      <MaterialIcons name="sync-problem" size={14} color={colors.warning} />
+                      <Text style={[styles.stabilityChipText, { color: colors.onWarningContainer }]}>
                         Score Swings: {consistency.mostVolatileSubject.subject} (±{consistency.mostVolatileSubject.stdDev}%)
                       </Text>
                     </View>
@@ -1104,8 +1104,8 @@ export default function StudentReportCardScreen() {
         {attendance && (
           <Card variant="filled" style={styles.insightCard}>
             <View style={styles.cardHeaderWithIcon}>
-              <View style={[styles.insightIconCircle, { backgroundColor: "rgba(5, 150, 105, 0.15)" }]}>
-                <MaterialIcons name="event-available" size={20} color="#059669" />
+              <View style={[styles.insightIconCircle, { backgroundColor: colors.successContainer }]}>
+                <MaterialIcons name="event-available" size={20} color={colors.onSuccessContainer} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.cardTitle, { color: colors.onSurface }]}>
@@ -1117,24 +1117,24 @@ export default function StudentReportCardScreen() {
               </View>
               <View style={[styles.attendancePill, {
                 backgroundColor: attendance.rate >= 90
-                  ? "rgba(5, 150, 105, 0.15)"
+                  ? colors.successContainer
                   : attendance.rate >= 75
-                  ? "rgba(2, 132, 199, 0.15)"
-                  : "rgba(220, 38, 38, 0.15)"
+                  ? colors.infoContainer
+                  : colors.errorContainer
               }]}>
                 <Text style={[styles.attendancePillText, {
                   color: attendance.rate >= 90
-                    ? "#059669"
+                    ? colors.onSuccessContainer
                     : attendance.rate >= 75
-                    ? "#0284C7"
-                    : "#DC2626"
+                    ? colors.onInfoContainer
+                    : colors.onErrorContainer
                 }]}>
                   {attendance.rate}% • {attendance.status}
                 </Text>
               </View>
             </View>
 
-            <Text style={[styles.attendanceImpactText, { color: colors.onSurface }]}>
+            <Text style={[styles.attendanceImpactText, { color: colors.onSurface, fontStyle: "italic" }]}>
               {attendance.impact}
             </Text>
           </Card>
@@ -1144,17 +1144,17 @@ export default function StudentReportCardScreen() {
         {recommendations.length > 0 && (
           <Card variant="filled" style={styles.insightCard}>
             <View style={styles.cardHeaderWithIcon}>
-              <View style={[styles.insightIconCircle, { backgroundColor: isDark ? "rgba(139, 92, 246, 0.2)" : "rgba(139, 92, 246, 0.12)" }]}>
-                <MaterialIcons name="auto-awesome" size={20} color="#8B5CF6" />
+              <View style={[styles.insightIconCircle, { backgroundColor: colors.tertiaryContainer }]}>
+                <MaterialIcons name="auto-awesome" size={20} color={colors.onTertiaryContainer} />
               </View>
               <View style={{ flex: 1 }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                   <Text style={[styles.cardTitle, { color: colors.onSurface }]}>
                     AI-Driven Study Playbook
                   </Text>
-                  <View style={[styles.aiPill, { backgroundColor: isDark ? "rgba(139, 92, 246, 0.25)" : "rgba(139, 92, 246, 0.15)" }]}>
-                    <MaterialIcons name="auto-awesome" size={10} color="#8B5CF6" />
-                    <Text style={[styles.aiPillText, { color: isDark ? "#C4B5FD" : "#6D28D9" }]}>
+                  <View style={[styles.aiPill, { backgroundColor: colors.tertiaryContainer }]}>
+                    <MaterialIcons name="auto-awesome" size={10} color={colors.onTertiaryContainer} />
+                    <Text style={[styles.aiPillText, { color: colors.onTertiaryContainer }]}>
                       AI Powered
                     </Text>
                   </View>

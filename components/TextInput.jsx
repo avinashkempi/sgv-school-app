@@ -246,11 +246,12 @@ const TextInput = ({
           style={[
             styles?.caption,
             {
-              color: colors.textSecondary || colors.onSurfaceVariant,
+              color: colors.onSurfaceVariant,
               marginTop: SPACING.xs || 4,
               marginLeft: 2,
               fontFamily: FONTS.regular,
               fontSize: FONT_SIZES.xs || 12,
+              fontStyle: "italic",
             },
           ]}
         >
