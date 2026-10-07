@@ -83,6 +83,7 @@ const endpoints = {
     adminReview: (id) => `/vibes/admin/${id}/review`,
     adminPin: (id) => `/vibes/admin/${id}/pin`,
     adminSpotlight: (id) => `/vibes/admin/${id}/spotlight`,
+    adminDemoVisibility: (id) => `/vibes/admin/${id}/demo-visibility`,
   },
 };
 

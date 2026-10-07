@@ -111,13 +111,11 @@ export default function Login() {
       DEMO_STUDENT_USER,
       DEMO_TEACHER_USER,
       DEMO_ADMIN_USER,
-      DEMO_SUPER_ADMIN_USER,
     } = require("../constants/demoData");
 
     let targetUser = DEMO_STUDENT_USER;
     if (roleKey === "teacher") targetUser = DEMO_TEACHER_USER;
     if (roleKey === "admin") targetUser = DEMO_ADMIN_USER;
-    if (roleKey === "super-admin") targetUser = DEMO_SUPER_ADMIN_USER;
 
     setShowDemoRoleModal(false);
     await authLogin("demo-token", targetUser);
@@ -370,12 +368,6 @@ export default function Login() {
                   title: "School Admin",
                   subtitle: "Mr. Rajesh Biradar • Vice Principal",
                   icon: "admin-panel-settings",
-                },
-                {
-                  id: "super-admin",
-                  title: "Super Admin",
-                  subtitle: "Dr. Sangamesh Patil • Management",
-                  icon: "shield",
                 },
               ].map((role) => (
                 <TouchableOpacity

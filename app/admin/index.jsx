@@ -31,12 +31,14 @@ import UserCard from "../../components/UserCard";
 import UserFormModal from "../../components/UserFormModal";
 import useTabScrollToTop from "../../hooks/useTabScrollToTop";
 import AppRefreshControl from "../../components/ui/AppRefreshControl";
+import { useAuth } from "../../context/AuthContext";
 
 export default function AdminScreen() {
   const router = useRouter();
   const { styles, colors } = useTheme();
   const { t } = useLabel();
   const { showToast } = useToast();
+  const { user: authUser } = useAuth();
   const queryClient = useQueryClient();
   const scrollRef = useRef(null);
 
@@ -68,7 +70,7 @@ export default function AdminScreen() {
     isLoading: userLoading,
     error: userError,
   } = useApiQuery(["currentUser"], `${apiConfig.baseUrl}/auth/me`);
-  const user = userData?.user;
+  const user = userData?.user || authUser;
   const isAdmin = user?.role === "admin" || user?.role === "super admin";
 
   // Fetch Users
@@ -100,7 +102,8 @@ export default function AdminScreen() {
     }
   );
 
-  const users = usersData?.pages.flatMap((page) => page.data) || [];
+  const users =
+    usersData?.pages?.flatMap((page) => page?.data || []).filter(Boolean) || [];
 
   // Mutations
   const createUserMutation = useApiMutation({
@@ -230,12 +233,14 @@ export default function AdminScreen() {
   };
 
   const getRoleDisplay = (user) => {
-    if (user.role !== "student" && user.designation) {
+    if (!user) return "";
+    const role = user.role || "student";
+    if (role !== "student" && user.designation) {
       return user.designation;
     }
-    return user.role === "support_staff"
+    return role === "support_staff"
       ? t("common.supportStaff", "Support Staff")
-      : user.role;
+      : role;
   };
 
   const saving = createUserMutation.isPending || updateUserMutation.isPending;
@@ -423,32 +428,35 @@ export default function AdminScreen() {
     );
   };
 
-  const renderUserItem = ({ item: userItem }) => (
-    <View style={{ marginBottom: 12 }}>
-      <UserCard
-        userItem={userItem}
-        colors={colors}
-        getRoleColor={getRoleColor}
-        getRoleDisplay={getRoleDisplay}
-        onEdit={() => {
-          setModalMode("edit");
-          setEditingUser(userItem);
-          setShowUserModal(true);
-        }}
-        onDelete={() => deleteUser(userItem._id, userItem.name)}
-        onPress={() => {
-          setSelectedDetailUser(userItem);
-          setShowDetailModal(true);
-        }}
-      />
-    </View>
-  );
+  const renderUserItem = ({ item: userItem }) => {
+    if (!userItem) return null;
+    return (
+      <View style={{ marginBottom: 12 }}>
+        <UserCard
+          userItem={userItem}
+          colors={colors}
+          getRoleColor={getRoleColor}
+          getRoleDisplay={getRoleDisplay}
+          onEdit={() => {
+            setModalMode("edit");
+            setEditingUser(userItem);
+            setShowUserModal(true);
+          }}
+          onDelete={() => deleteUser(userItem._id, userItem.name)}
+          onPress={() => {
+            setSelectedDetailUser(userItem);
+            setShowDetailModal(true);
+          }}
+        />
+      </View>
+    );
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <FlatList
         data={users}
-        keyExtractor={(item) => item._id}
+        keyExtractor={(item, index) => item?._id || `user-${index}`}
         renderItem={renderUserItem}
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 32 }}
         ListHeaderComponent={

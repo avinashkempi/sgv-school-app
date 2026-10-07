@@ -248,6 +248,38 @@ export default function VibeApprovalsScreen() {
     },
   });
 
+  const demoVisibilityMutation = useApiMutation({
+    mutationFn: async ({ vibeId }) => {
+      return createApiMutationFn(
+        `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.adminDemoVisibility(
+          vibeId
+        )}`,
+        "POST"
+      )({});
+    },
+    onSuccess: (res) => {
+      showToast(res.message || "Updated demo visibility", "success");
+      invalidateAllCaches();
+    },
+    onError: (err) => {
+      showToast(err.message || "Failed to update demo visibility", "error");
+    },
+  });
+
+  const handleToggleDemoVisibility = useCallback(
+    (item) => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      setProcessingId(item._id);
+      demoVisibilityMutation.mutate(
+        { vibeId: item._id },
+        {
+          onSettled: () => setProcessingId(null),
+        }
+      );
+    },
+    [demoVisibilityMutation]
+  );
+
   const toggleSelect = useCallback((id) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     setSelectedIds((prev) => {
@@ -523,21 +555,40 @@ export default function VibeApprovalsScreen() {
                 {item.author?.phone ? ` • ${item.author.phone}` : ""}
               </Text>
             </View>
-            <View
-              style={[
-                styles.categoryBadge,
-                { backgroundColor: colors.surfaceContainerHighest, flexShrink: 0 },
-              ]}
-            >
-              <Text
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 0 }}>
+              {item.isVisibleToDemo && (
+                <View
+                  style={[
+                    styles.statusBadge,
+                    {
+                      backgroundColor: isDark
+                        ? "rgba(16, 185, 129, 0.2)"
+                        : "#D1FAE5",
+                    },
+                  ]}
+                >
+                  <MaterialIcons name="public" size={12} color="#059669" />
+                  <Text style={[styles.statusBadgeText, { color: "#059669" }]}>
+                    Demo
+                  </Text>
+                </View>
+              )}
+              <View
                 style={[
-                  styles.categoryBadgeText,
-                  { color: colors.onSurfaceVariant },
+                  styles.categoryBadge,
+                  { backgroundColor: colors.surfaceContainerHighest },
                 ]}
-                numberOfLines={1}
               >
-                {item.category}
-              </Text>
+                <Text
+                  style={[
+                    styles.categoryBadgeText,
+                    { color: colors.onSurfaceVariant },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {item.category}
+                </Text>
+              </View>
             </View>
           </View>
 
@@ -636,6 +687,7 @@ export default function VibeApprovalsScreen() {
     },
     [
       colors,
+      isDark,
       processingId,
       selectedIds,
       toggleSelect,
@@ -990,20 +1042,39 @@ export default function VibeApprovalsScreen() {
 
             {/* Status & Category Badges */}
             <View style={{ alignItems: "flex-end", gap: 4 }}>
-              <View
-                style={[
-                  styles.statusBadge,
-                  {
-                    backgroundColor: isDark
-                      ? "rgba(5, 150, 105, 0.2)"
-                      : "#D1FAE5",
-                  },
-                ]}
-              >
-                <MaterialIcons name="check-circle" size={12} color="#059669" />
-                <Text style={[styles.statusBadgeText, { color: "#059669" }]}>
-                  Live
-                </Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                {item.isVisibleToDemo && (
+                  <View
+                    style={[
+                      styles.statusBadge,
+                      {
+                        backgroundColor: isDark
+                          ? "rgba(16, 185, 129, 0.2)"
+                          : "#D1FAE5",
+                      },
+                    ]}
+                  >
+                    <MaterialIcons name="public" size={12} color="#059669" />
+                    <Text style={[styles.statusBadgeText, { color: "#059669" }]}>
+                      Demo
+                    </Text>
+                  </View>
+                )}
+                <View
+                  style={[
+                    styles.statusBadge,
+                    {
+                      backgroundColor: isDark
+                        ? "rgba(5, 150, 105, 0.2)"
+                        : "#D1FAE5",
+                    },
+                  ]}
+                >
+                  <MaterialIcons name="check-circle" size={12} color="#059669" />
+                  <Text style={[styles.statusBadgeText, { color: "#059669" }]}>
+                    Live
+                  </Text>
+                </View>
               </View>
               <View
                 style={[
@@ -1091,8 +1162,37 @@ export default function VibeApprovalsScreen() {
               )}
             </Pressable>
 
-            {/* Secondary Actions Row: Restore to Queue / Delete */}
+            {/* Secondary Actions Row: Demo Visibility / Restore to Queue / Delete */}
             <View style={styles.rejectedSecondaryRow}>
+              {/* Toggle Demo Visibility */}
+              <Pressable
+                onPress={() => handleToggleDemoVisibility(item)}
+                disabled={isProcessing}
+                style={[
+                  styles.rejectedSecondaryBtn,
+                  {
+                    borderColor: item.isVisibleToDemo ? "#059669" : colors.outlineVariant,
+                    backgroundColor: item.isVisibleToDemo
+                      ? (isDark ? "rgba(5, 150, 105, 0.15)" : "#ECFDF5")
+                      : "transparent",
+                  },
+                ]}
+              >
+                <MaterialIcons
+                  name={item.isVisibleToDemo ? "public" : "public-off"}
+                  size={15}
+                  color={item.isVisibleToDemo ? "#059669" : colors.onSurfaceVariant}
+                />
+                <Text
+                  style={[
+                    styles.rejectedSecondaryText,
+                    { color: item.isVisibleToDemo ? "#059669" : colors.onSurfaceVariant },
+                  ]}
+                >
+                  {item.isVisibleToDemo ? "Demo: On" : "Demo: Off"}
+                </Text>
+              </Pressable>
+
               {/* Restore to Queue */}
               <Pressable
                 onPress={() => handleRestoreToPending(item)}
@@ -1145,6 +1245,7 @@ export default function VibeApprovalsScreen() {
       toggleSelect,
       visibleItemIds,
       formatDateTime,
+      handleToggleDemoVisibility,
       handleRestoreToPending,
       handleDelete,
     ]
@@ -1517,7 +1618,7 @@ export default function VibeApprovalsScreen() {
           <FlatList
             data={filteredVibes}
             renderItem={renderItem}
-            keyExtractor={(item) => item._id}
+            keyExtractor={(item, index) => item?._id || `vibe-${index}`}
             contentContainerStyle={[
               themeStyles.contentPaddingBottom,
               styles.listContent,

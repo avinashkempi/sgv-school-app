@@ -300,7 +300,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   /**
-   * Switch between Student, Teacher, Admin, and Super Admin in Demo mode.
+   * Switch between Student, Teacher, and Admin in Demo mode.
    * Clears query cache, updates credentials, and preserves demo-token.
    */
   const switchDemoPersona = useCallback(
@@ -310,7 +310,6 @@ export const AuthProvider = ({ children }) => {
           DEMO_STUDENT_USER,
           DEMO_TEACHER_USER,
           DEMO_ADMIN_USER,
-          DEMO_SUPER_ADMIN_USER,
         } = require("../constants/demoData");
 
         let targetUser = DEMO_STUDENT_USER;
@@ -318,8 +317,6 @@ export const AuthProvider = ({ children }) => {
           targetUser = DEMO_TEACHER_USER;
         } else if (role === "admin") {
           targetUser = DEMO_ADMIN_USER;
-        } else if (role === "super admin" || role === "super-admin") {
-          targetUser = DEMO_SUPER_ADMIN_USER;
         }
 
         await login("demo-token", targetUser);

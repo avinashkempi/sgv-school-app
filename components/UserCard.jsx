@@ -159,7 +159,11 @@ const UserCard = ({
                   letterSpacing: LETTER_SPACINGS.xs,
                 }}
               >
-                {getRoleDisplay(userItem).toUpperCase()}
+                {String(
+                  (getRoleDisplay ? getRoleDisplay(userItem) : userItem?.role) ||
+                    userItem?.role ||
+                    "User"
+                ).toUpperCase()}
               </Text>
             </View>
 
@@ -185,9 +189,11 @@ const UserCard = ({
                       letterSpacing: LETTER_SPACINGS.xs,
                     }}
                   >
-                    {formatClassName(userItem.currentClass, {
-                      compact: true,
-                    }).toUpperCase()}
+                    {String(
+                      formatClassName(userItem.currentClass, {
+                        compact: true,
+                      }) || ""
+                    ).toUpperCase()}
                   </Text>
                 </View>
               )}

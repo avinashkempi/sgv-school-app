@@ -1486,7 +1486,7 @@ export default function ExamAnalyticsScreen() {
                             color: colors.primary,
                           }}
                         >
-                          {subj.subjectName.charAt(0).toUpperCase()}
+                          {(subj.subjectName || "S").charAt(0).toUpperCase()}
                         </Text>
                       </View>
                       <View style={{ flex: 1 }}>

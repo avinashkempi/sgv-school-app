@@ -27,7 +27,7 @@ export default function HomeScreen() {
   const { schoolInfo: SCHOOL, refresh: refreshSchoolInfo } = useSchoolInfo();
   const [refreshing, setRefreshing] = useState(false);
   const { showToast: _showToast } = useToast();
-  const { user: authUser, updateUser, isAuthenticated } = useAuth();
+  const { user: authUser, updateUser, isAuthenticated, isDemo } = useAuth();
   const queryClient = useQueryClient();
   const scrollRef = useRef(null);
 
@@ -41,7 +41,7 @@ export default function HomeScreen() {
     `${apiConfig.baseUrl}/auth/me`,
     {
       ...CACHE_TIERS.STABLE,
-      enabled: isAuthenticated,
+      enabled: isAuthenticated || isDemo,
       retry: false,
       select: (data) => data.user,
     }

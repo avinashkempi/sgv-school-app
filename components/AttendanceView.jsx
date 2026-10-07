@@ -1024,7 +1024,9 @@ export default function AttendanceView({
                       { color: getStatusColor(selectedDayInfo.record.status) },
                     ]}
                   >
-                    {selectedDayInfo.record.status.toUpperCase()}
+                    {String(
+                      selectedDayInfo.record?.status || "PRESENT"
+                    ).toUpperCase()}
                   </Text>
                 </View>
               ) : selectedDayInfo.isFuture ? (

@@ -56,7 +56,8 @@ export default function VibesScreen() {
   const searchParams = useLocalSearchParams();
   const { colors, styles: themeStyles, mode } = useTheme();
   const isDark = mode === "dark";
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isDemo } = useAuth();
+  const canInteract = isAuthenticated || isDemo;
   const { unreadCount } = useNotifications();
   const { showToast } = useToast();
   const { isConnected, isSlow } = useNetworkQuality();
@@ -178,9 +179,17 @@ export default function VibesScreen() {
       Array.isArray(serverCategoriesData?.data) &&
       serverCategoriesData.data.length > 0
     ) {
+      const seen = new Set(["all"]);
+      const sanitized = [];
+      for (const cat of serverCategoriesData.data) {
+        if (cat && cat.key && !seen.has(cat.key)) {
+          seen.add(cat.key);
+          sanitized.push(cat);
+        }
+      }
       return [
         { key: "all", label: "All", icon: "auto-awesome" },
-        ...serverCategoriesData.data,
+        ...sanitized,
       ];
     }
     return DEFAULT_FEED_CATEGORIES;
@@ -258,7 +267,7 @@ export default function VibesScreen() {
       `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.myVibes}?page=${page}&limit=${VIBES_PER_PAGE}`,
     {
       ...CACHE_TIERS.REAL_TIME,
-      enabled: activeTab === "my-vibes" && isAuthenticated,
+      enabled: activeTab === "my-vibes" && canInteract,
       getNextPageParam: (lastPage, allPages) => {
         if (lastPage?.pagination?.hasMore) {
           const pageNum = Number(lastPage?.pagination?.page);
@@ -285,7 +294,7 @@ export default function VibesScreen() {
       `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.saved}?page=${page}&limit=${VIBES_PER_PAGE}`,
     {
       ...CACHE_TIERS.VIBES_FEED,
-      enabled: activeTab === "saved" && isAuthenticated,
+      enabled: activeTab === "saved" && canInteract,
       getNextPageParam: (lastPage, allPages) => {
         if (lastPage?.pagination?.hasMore) {
           const pageNum = Number(lastPage?.pagination?.page);
@@ -487,27 +496,45 @@ export default function VibesScreen() {
     },
   });
 
+  const demoVisibilityMutation = useApiMutation({
+    mutationFn: async (vibeId) => {
+      return createApiMutationFn(
+        `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.adminDemoVisibility(
+          vibeId
+        )}`,
+        "POST"
+      )({});
+    },
+    onSuccess: (res) => {
+      showToast(res.message || "Updated demo visibility", "success");
+      queryClient.invalidateQueries({ queryKey: ["vibes"] });
+      queryClient.invalidateQueries({ queryKey: ["vibeHighlights"] });
+      queryClient.invalidateQueries({ queryKey: ["vibeSpotlight"] });
+      queryClient.invalidateQueries({ queryKey: ["myVibes"] });
+    },
+  });
+
   // Action handlers with instant optimistic invocation
   const handleLike = useCallback(
     (vibeId, nextLiked) => {
-      if (!isAuthenticated) {
+      if (!canInteract) {
         showToast("Please log in to like vibes", "info");
         return;
       }
       likeMutation.mutate({ vibeId, nextLiked });
     },
-    [isAuthenticated, showToast, likeMutation]
+    [canInteract, showToast, likeMutation]
   );
 
   const handleBookmark = useCallback(
     (vibeId, nextBookmarked) => {
-      if (!isAuthenticated) {
+      if (!canInteract) {
         showToast("Please log in to save vibes", "info");
         return;
       }
       bookmarkMutation.mutate({ vibeId, nextBookmarked });
     },
-    [isAuthenticated, showToast, bookmarkMutation]
+    [canInteract, showToast, bookmarkMutation]
   );
 
   const handleDelete = useCallback(
@@ -529,6 +556,13 @@ export default function VibesScreen() {
       spotlightMutation.mutate(vibe._id);
     },
     [spotlightMutation]
+  );
+
+  const handleToggleDemoVisibility = useCallback(
+    (vibe) => {
+      demoVisibilityMutation.mutate(vibe._id);
+    },
+    [demoVisibilityMutation]
   );
 
   const handleEdit = useCallback((vibe) => {
@@ -589,6 +623,7 @@ export default function VibesScreen() {
         onDelete={handleDelete}
         onTogglePin={handleTogglePin}
         onToggleSpotlight={handleToggleSpotlight}
+        onToggleDemoVisibility={handleToggleDemoVisibility}
         onTagPress={handleTagPress}
       />
     ),
@@ -602,6 +637,7 @@ export default function VibesScreen() {
       handleDelete,
       handleTogglePin,
       handleToggleSpotlight,
+      handleToggleDemoVisibility,
       handleTagPress,
     ]
   );
@@ -712,6 +748,7 @@ export default function VibesScreen() {
             onDelete={handleDelete}
             onTogglePin={handleTogglePin}
             onToggleSpotlight={handleToggleSpotlight}
+            onToggleDemoVisibility={handleToggleDemoVisibility}
             onTagPress={handleTagPress}
           />
         </View>
@@ -729,6 +766,7 @@ export default function VibesScreen() {
       handleDelete,
       handleTogglePin,
       handleToggleSpotlight,
+      handleToggleDemoVisibility,
       handleTagPress,
     ]
   );
@@ -856,7 +894,7 @@ export default function VibesScreen() {
         <VibeStoriesTray
           hideHeader={true}
           onOpenCreate={() => {
-            if (!isAuthenticated) {
+            if (!canInteract) {
               showToast("Please log in to post Vibes", "info");
               return;
             }
@@ -962,16 +1000,17 @@ export default function VibesScreen() {
 
         {/* Horizontal Category Filter Pills (Material 3 Minimalist Chips) */}
         <View style={styles.categoriesContainer}>
-          <FlatList
+          <ScrollView
             horizontal
-            data={feedCategories}
-            keyExtractor={(item) => item.key}
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.categoriesScroll}
-            renderItem={({ item }) => {
+          >
+            {feedCategories.map((item, index) => {
               const isSelected = selectedCategory === item.key && !selectedTag;
+              const itemKey = item.key || `cat-${index}`;
               return (
                 <Pressable
+                  key={itemKey}
                   onPress={() => handleCategorySelect(item.key)}
                   style={[
                     styles.categoryChip,
@@ -1013,8 +1052,8 @@ export default function VibesScreen() {
                   </Text>
                 </Pressable>
               );
-            }}
-          />
+            })}
+          </ScrollView>
         </View>
       </View>
     );
@@ -1026,7 +1065,7 @@ export default function VibesScreen() {
     debouncedSearch,
     colors,
     handleCategorySelect,
-    isAuthenticated,
+    canInteract,
     showToast,
     myVibeCounts,
     myVibeStatusFilter,
@@ -1144,7 +1183,7 @@ export default function VibesScreen() {
 
             <Pressable
               onPress={() => {
-                if (!isAuthenticated) {
+                if (!canInteract) {
                   showToast("Please log in to post Vibes", "info");
                   return;
                 }
@@ -1305,7 +1344,7 @@ export default function VibesScreen() {
           </Text>
           <Pressable
             onPress={() => {
-              if (!isAuthenticated) {
+              if (!canInteract) {
                 showToast("Please log in to post Vibes", "info");
                 return;
               }
@@ -1370,7 +1409,7 @@ export default function VibesScreen() {
     isDark,
     myVibeStatusFilter,
     handleResetFilters,
-    isAuthenticated,
+    canInteract,
     showToast,
   ]);
 
@@ -1495,7 +1534,7 @@ export default function VibesScreen() {
           {/* Quick Post Action in Top Bar */}
           <Pressable
             onPress={() => {
-              if (!isAuthenticated) {
+              if (!canInteract) {
                 showToast("Please log in to post Vibes", "info");
                 return;
               }
@@ -1567,8 +1606,8 @@ export default function VibesScreen() {
         </View>
       )}
 
-      {/* ──── Segmented Button: Feed / My Posts / Saved (Shown when authenticated) ──── */}
-      {isAuthenticated && (
+      {/* ──── Segmented Button: Feed / My Posts / Saved (Shown when authenticated or demo) ──── */}
+      {canInteract && (
         <View style={[styles.segmentWrapper, { backgroundColor: colors.surface }]}>
           <View
             style={[
@@ -1775,7 +1814,7 @@ export default function VibesScreen() {
       />
 
       {/* ──── Extended Floating Action Button (FAB) ──── */}
-      {isAuthenticated && (
+      {canInteract && (
         <Pressable
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(

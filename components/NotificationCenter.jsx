@@ -23,7 +23,7 @@ const NotificationCenter = () => {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { colors, styles } = useTheme();
-  const { userId, isAuthenticated, user } = useAuth();
+  const { userId, isAuthenticated, isDemo, user } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [filterRead, setFilterRead] = useState("all"); // 'all', 'read', 'unread'
@@ -53,7 +53,7 @@ const NotificationCenter = () => {
     url,
     {
       ...CACHE_TIERS.REAL_TIME,
-      enabled: isAuthenticated && !!userId,
+      enabled: (isAuthenticated || isDemo) && !!userId,
     }
   );
 

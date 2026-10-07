@@ -406,7 +406,7 @@ export default function ProfileScreen() {
                       color: colors.onPrimaryContainer,
                     }}
                   >
-                    {user.name.trim()[0].toUpperCase()}
+                    {user.name.trim().charAt(0).toUpperCase()}
                   </Text>
                 ) : (
                   <MaterialIcons

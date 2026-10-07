@@ -419,7 +419,7 @@ export default function SendNotificationScreen() {
                         color: colors.onPrimaryContainer,
                       }}
                     >
-                      {type.toUpperCase()}
+                      {String(type || "ANNOUNCEMENT").toUpperCase()}
                     </Text>
                   </View>
                   <Text
@@ -429,7 +429,7 @@ export default function SendNotificationScreen() {
                       fontFamily: FONTS.medium,
                     }}
                   >
-                    Target: {target === "all" ? "All Users" : target.toUpperCase()}
+                    Target: {target === "all" ? "All Users" : String(target || "").toUpperCase()}
                   </Text>
                 </View>
 

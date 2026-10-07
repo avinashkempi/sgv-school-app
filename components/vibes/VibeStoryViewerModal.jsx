@@ -152,7 +152,8 @@ const VibeStoryViewerModal = ({
   initialIndex = 0,
 }) => {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isDemo } = useAuth();
+  const canInteract = isAuthenticated || isDemo;
   const { colors } = useTheme();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
@@ -288,7 +289,7 @@ const VibeStoryViewerModal = ({
     ) {
       viewedIdsRef.current.add(currentVibe._id);
 
-      if (isAuthenticated) {
+      if (canInteract) {
         createApiMutationFn(
           `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.recordView(
             currentVibe._id
@@ -297,7 +298,7 @@ const VibeStoryViewerModal = ({
         )({}).catch(() => {});
       }
     }
-  }, [visible, currentVibe, isAuthenticated]);
+  }, [visible, currentVibe, canInteract]);
 
   // Flush view highlights query on close
   const handleClose = useCallback(() => {
@@ -357,7 +358,7 @@ const VibeStoryViewerModal = ({
   );
 
   const handleToggleLike = useCallback(() => {
-    if (!isAuthenticated) {
+    if (!canInteract) {
       showToast("Please log in to like vibes", "info");
       return;
     }
@@ -376,7 +377,7 @@ const VibeStoryViewerModal = ({
 
     likeMutation.mutate(currentVibe._id);
   }, [
-    isAuthenticated,
+    canInteract,
     currentVibe,
     isLikedLocally,
     showToast,
@@ -386,7 +387,7 @@ const VibeStoryViewerModal = ({
 
   const handleQuickReaction = useCallback(
     (reaction) => {
-      if (!isAuthenticated) {
+      if (!canInteract) {
         showToast("Please log in to react to vibes", "info");
         return;
       }
@@ -400,7 +401,7 @@ const VibeStoryViewerModal = ({
       }
     },
     [
-      isAuthenticated,
+      canInteract,
       showToast,
       triggerFloatingReaction,
       isLikedLocally,
@@ -507,7 +508,7 @@ const VibeStoryViewerModal = ({
     if (!currentVibe) return;
     try {
       const APP_DOWNLOAD_URL =
-        "https://play.google.com/store/apps/details?id=com.sgvschool.app";
+        "https://play.google.com/store/apps/details?id=com.sgvschool.app&pcampaignid=web_share";
       const authorText =
         currentVibe.postAs === "school"
           ? "SGV Official"

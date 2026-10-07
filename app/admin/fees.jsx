@@ -2711,7 +2711,7 @@ export default function AdminFeesScreen() {
                         return 0;
                       })}
                     scrollEnabled={false}
-                    keyExtractor={(item) => item._id}
+                    keyExtractor={(item, index) => item?._id || `fee-student-${index}`}
                     contentContainerStyle={{ paddingBottom: 20 }}
                     renderItem={({ item }) => {
                       const isPending = (item.pendingAmount || 0) > 0;

@@ -103,6 +103,7 @@ const VibeCard = ({
   onDelete,
   onTogglePin,
   onToggleSpotlight,
+  onToggleDemoVisibility,
   onTagPress,
 }) => {
   const { colors } = useTheme();
@@ -198,7 +199,7 @@ const VibeCard = ({
 
     try {
       const APP_DOWNLOAD_URL =
-        "https://play.google.com/store/apps/details?id=com.sgvschool.app";
+        "https://play.google.com/store/apps/details?id=com.sgvschool.app&pcampaignid=web_share";
       const authorName = isSchoolPost
         ? "SGV School"
         : formatUserName(vibe.author?.name, "Community Member");
@@ -521,6 +522,24 @@ const VibeCard = ({
             </View>
           )}
 
+          {isAdmin && vibe.isVisibleToDemo && (
+            <View
+              style={[
+                styles.demoBadge,
+                { backgroundColor: "#ECFDF5" },
+              ]}
+            >
+              <MaterialIcons name="public" size={11} color="#059669" />
+              <Text
+                style={styles.demoBadgeText}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                Demo
+              </Text>
+            </View>
+          )}
+
           <Pressable
             onPress={handleMenuPress}
             hitSlop={12}
@@ -829,6 +848,7 @@ const VibeCard = ({
         onToggleBookmark={handleBookmarkPress}
         onToggleSpotlight={() => onToggleSpotlight?.(vibe)}
         onTogglePin={() => onTogglePin?.(vibe)}
+        onToggleDemoVisibility={() => onToggleDemoVisibility?.(vibe)}
         onOpenViewers={() => onOpenViewers?.(vibe._id)}
         onEdit={() => onEdit?.(vibe)}
         onDelete={() => onDelete?.(vibe)}
@@ -946,6 +966,20 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     justifyContent: "center",
     alignItems: "center",
+  },
+  demoBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 5.5,
+    paddingVertical: 2.5,
+    borderRadius: 6,
+    gap: 2,
+    maxWidth: 70,
+  },
+  demoBadgeText: {
+    fontSize: FONT_SIZES.micro,
+    fontFamily: FONTS.semiBold,
+    color: "#059669",
   },
   menuButton: {
     padding: 3,

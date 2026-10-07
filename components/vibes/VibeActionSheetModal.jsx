@@ -29,6 +29,7 @@ export default function VibeActionSheetModal({
   onToggleBookmark,
   onToggleSpotlight,
   onTogglePin,
+  onToggleDemoVisibility,
   onOpenViewers,
   onEdit,
   onDelete,
@@ -255,7 +256,48 @@ export default function VibeActionSheetModal({
               </Pressable>
             )}
 
-            {/* 5. View Audience / Viewers (Author / Admin) */}
+            {/* 5. Visible to Demo Users (Admin) */}
+            {isAdmin && (
+              <Pressable
+                onPress={() => handleAction(onToggleDemoVisibility)}
+                style={({ pressed }) => [
+                  styles.optionItem,
+                  pressed && { backgroundColor: colors.surfaceContainerHighest },
+                ]}
+                accessibilityRole="button"
+              >
+                <View
+                  style={[
+                    styles.iconWrap,
+                    {
+                      backgroundColor: vibe.isVisibleToDemo
+                        ? "#ECFDF5"
+                        : colors.surfaceContainerHighest,
+                    },
+                  ]}
+                >
+                  <MaterialIcons
+                    name={vibe.isVisibleToDemo ? "public" : "public-off"}
+                    size={20}
+                    color={vibe.isVisibleToDemo ? "#059669" : colors.onSurface}
+                  />
+                </View>
+                <View style={styles.optionContent}>
+                  <Text style={[styles.optionLabel, { color: colors.onSurface }]}>
+                    {vibe.isVisibleToDemo
+                      ? "Hide from Demo Users"
+                      : "Make Visible to Demo Users"}
+                  </Text>
+                  <Text style={[styles.optionSub, { color: colors.onSurfaceVariant }]}>
+                    {vibe.isVisibleToDemo
+                      ? "Visible to non-logged-in demo visitors"
+                      : "Allow non-logged-in demo visitors to view this vibe"}
+                  </Text>
+                </View>
+              </Pressable>
+            )}
+
+            {/* 6. View Audience / Viewers (Author / Admin) */}
             {canModerate && (
               <Pressable
                 onPress={() => handleAction(onOpenViewers)}

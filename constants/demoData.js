@@ -1,9 +1,9 @@
 // Demo Data for Guest/Demo Mode
 
 // Valid MongoDB ObjectIds for demo
-const DEMO_ACADEMIC_YEAR_ID = "650e8400e29b41d4a716446655440000";
-const DEMO_CLASS_ID = "550e8400e29b41d4a716446655440001";
-const DEMO_STUDENT_ID = "660e8400e29b41d4a716446655440002";
+export const DEMO_ACADEMIC_YEAR_ID = "650e8400e29b41d4a716446655440000";
+export const DEMO_CLASS_ID = "550e8400e29b41d4a716446655440001";
+export const DEMO_STUDENT_ID = "660e8400e29b41d4a716446655440002";
 
 // 1. User Profiles for Multi-Role Demo
 export const DEMO_USER = {
@@ -48,17 +48,6 @@ export const DEMO_ADMIN_USER = {
   profileImage:
     "https://api.dicebear.com/7.x/avataaars/png?seed=Rajesh&gender=male",
   designation: "Vice Principal",
-};
-
-export const DEMO_SUPER_ADMIN_USER = {
-  _id: "990e8400e29b41d4a716446655440030",
-  name: "Dr. Sangamesh Patil",
-  email: "superadmin@demo.com",
-  role: "super admin",
-  phone: "9876543213",
-  profileImage:
-    "https://api.dicebear.com/7.x/avataaars/png?seed=Sangamesh&gender=male",
-  designation: "Managing Trustee",
 };
 
 // 1.5. Academic Years
@@ -152,11 +141,224 @@ export const DEMO_CLASS_DETAILS = {
       name: "Harshika Patil",
       email: "harshika@demo.com",
       rollNumber: "001",
-      profileImage:
-        "https://api.dicebear.com/7.x/avataaars/png?seed=Harshika&gender=female",
+      regNo: "SGV-2024-001",
+      gender: "female",
+      bloodGroup: "B+",
+      phone: "9876543210",
+      parentName: "Mallikarjun Patil",
+      profileImage: "https://api.dicebear.com/7.x/avataaars/png?seed=Harshika&gender=female",
+      profilePhoto: "https://api.dicebear.com/7.x/avataaars/png?seed=Harshika&gender=female",
+      currentClass: {
+        _id: DEMO_CLASS_ID,
+        value: "3",
+        label: "3rd Standard",
+        section: "A",
+        name: "3",
+      },
+    },
+    {
+      _id: "660e8400e29b41d4a716446655440003",
+      name: "Aarav Kulkarni",
+      email: "aarav.k@demo.com",
+      rollNumber: "002",
+      regNo: "SGV-2024-002",
+      gender: "male",
+      bloodGroup: "O+",
+      phone: "9876543214",
+      parentName: "Suresh Kulkarni",
+      profileImage: "https://api.dicebear.com/7.x/avataaars/png?seed=Aarav&gender=male",
+      profilePhoto: "https://api.dicebear.com/7.x/avataaars/png?seed=Aarav&gender=male",
+      currentClass: { _id: DEMO_CLASS_ID, value: "3", label: "3rd Standard", section: "A", name: "3" },
+    },
+    {
+      _id: "660e8400e29b41d4a716446655440004",
+      name: "Ananya Deshmukh",
+      email: "ananya.d@demo.com",
+      rollNumber: "003",
+      regNo: "SGV-2024-003",
+      gender: "female",
+      bloodGroup: "A+",
+      phone: "9876543215",
+      parentName: "Vikram Deshmukh",
+      profileImage: "https://api.dicebear.com/7.x/avataaars/png?seed=Ananya&gender=female",
+      profilePhoto: "https://api.dicebear.com/7.x/avataaars/png?seed=Ananya&gender=female",
+      currentClass: { _id: DEMO_CLASS_ID, value: "3", label: "3rd Standard", section: "A", name: "3" },
+    },
+    {
+      _id: "660e8400e29b41d4a716446655440005",
+      name: "Rohan Biradar",
+      email: "rohan.b@demo.com",
+      rollNumber: "004",
+      regNo: "SGV-2024-004",
+      gender: "male",
+      bloodGroup: "B+",
+      phone: "9876543216",
+      parentName: "Shashidhar Biradar",
+      profileImage: "https://api.dicebear.com/7.x/avataaars/png?seed=Rohan&gender=male",
+      profilePhoto: "https://api.dicebear.com/7.x/avataaars/png?seed=Rohan&gender=male",
+      currentClass: { _id: DEMO_CLASS_ID, value: "3", label: "3rd Standard", section: "A", name: "3" },
+    },
+    {
+      _id: "660e8400e29b41d4a716446655440006",
+      name: "Sanvi Hegde",
+      email: "sanvi.h@demo.com",
+      rollNumber: "005",
+      regNo: "SGV-2024-005",
+      gender: "female",
+      bloodGroup: "AB+",
+      phone: "9876543217",
+      parentName: "Ganesh Hegde",
+      profileImage: "https://api.dicebear.com/7.x/avataaars/png?seed=Sanvi&gender=female",
+      profilePhoto: "https://api.dicebear.com/7.x/avataaars/png?seed=Sanvi&gender=female",
+      currentClass: { _id: DEMO_CLASS_ID, value: "3", label: "3rd Standard", section: "A", name: "3" },
+    },
+    {
+      _id: "660e8400e29b41d4a716446655440007",
+      name: "Pranav Goudar",
+      email: "pranav.g@demo.com",
+      rollNumber: "006",
+      regNo: "SGV-2024-006",
+      gender: "male",
+      bloodGroup: "O+",
+      phone: "9876543218",
+      parentName: "Basanagouda Goudar",
+      profileImage: "https://api.dicebear.com/7.x/avataaars/png?seed=Pranav&gender=male",
+      profilePhoto: "https://api.dicebear.com/7.x/avataaars/png?seed=Pranav&gender=male",
+      currentClass: { _id: DEMO_CLASS_ID, value: "3", label: "3rd Standard", section: "A", name: "3" },
+    },
+    {
+      _id: "660e8400e29b41d4a716446655440008",
+      name: "Diya Inamdar",
+      email: "diya.i@demo.com",
+      rollNumber: "007",
+      regNo: "SGV-2024-007",
+      gender: "female",
+      bloodGroup: "A+",
+      phone: "9876543219",
+      parentName: "Rafiq Inamdar",
+      profileImage: "https://api.dicebear.com/7.x/avataaars/png?seed=Diya&gender=female",
+      profilePhoto: "https://api.dicebear.com/7.x/avataaars/png?seed=Diya&gender=female",
+      currentClass: { _id: DEMO_CLASS_ID, value: "3", label: "3rd Standard", section: "A", name: "3" },
+    },
+    {
+      _id: "660e8400e29b41d4a716446655440009",
+      name: "Varun Hiremath",
+      email: "varun.h@demo.com",
+      rollNumber: "008",
+      regNo: "SGV-2024-008",
+      gender: "male",
+      bloodGroup: "B+",
+      phone: "9876543220",
+      parentName: "Gururaj Hiremath",
+      profileImage: "https://api.dicebear.com/7.x/avataaars/png?seed=Varun&gender=male",
+      profilePhoto: "https://api.dicebear.com/7.x/avataaars/png?seed=Varun&gender=male",
+      currentClass: { _id: DEMO_CLASS_ID, value: "3", label: "3rd Standard", section: "A", name: "3" },
+    },
+    {
+      _id: "660e8400e29b41d4a71644665544000a",
+      name: "Tanvi Badiger",
+      email: "tanvi.b@demo.com",
+      rollNumber: "009",
+      regNo: "SGV-2024-009",
+      gender: "female",
+      bloodGroup: "O-",
+      phone: "9876543221",
+      parentName: "Manjunath Badiger",
+      profileImage: "https://api.dicebear.com/7.x/avataaars/png?seed=Tanvi&gender=female",
+      profilePhoto: "https://api.dicebear.com/7.x/avataaars/png?seed=Tanvi&gender=female",
+      currentClass: { _id: DEMO_CLASS_ID, value: "3", label: "3rd Standard", section: "A", name: "3" },
+    },
+    {
+      _id: "660e8400e29b41d4a71644665544000b",
+      name: "Aditya Pujar",
+      email: "aditya.p@demo.com",
+      rollNumber: "010",
+      regNo: "SGV-2024-010",
+      gender: "male",
+      bloodGroup: "A+",
+      phone: "9876543222",
+      parentName: "Somaling Pujar",
+      profileImage: "https://api.dicebear.com/7.x/avataaars/png?seed=Aditya&gender=male",
+      profilePhoto: "https://api.dicebear.com/7.x/avataaars/png?seed=Aditya&gender=male",
+      currentClass: { _id: DEMO_CLASS_ID, value: "3", label: "3rd Standard", section: "A", name: "3" },
+    },
+    {
+      _id: "660e8400e29b41d4a71644665544000c",
+      name: "Sneha Joshi",
+      email: "sneha.j@demo.com",
+      rollNumber: "011",
+      regNo: "SGV-2024-011",
+      gender: "female",
+      bloodGroup: "B+",
+      phone: "9876543223",
+      parentName: "Prahlad Joshi",
+      profileImage: "https://api.dicebear.com/7.x/avataaars/png?seed=Sneha&gender=female",
+      profilePhoto: "https://api.dicebear.com/7.x/avataaars/png?seed=Sneha&gender=female",
+      currentClass: { _id: DEMO_CLASS_ID, value: "3", label: "3rd Standard", section: "A", name: "3" },
+    },
+    {
+      _id: "660e8400e29b41d4a71644665544000d",
+      name: "Manjunath Kamat",
+      email: "manjunath.k@demo.com",
+      rollNumber: "012",
+      regNo: "SGV-2024-012",
+      gender: "male",
+      bloodGroup: "AB+",
+      phone: "9876543224",
+      parentName: "Ramesh Kamat",
+      profileImage: "https://api.dicebear.com/7.x/avataaars/png?seed=Manjunath&gender=male",
+      profilePhoto: "https://api.dicebear.com/7.x/avataaars/png?seed=Manjunath&gender=male",
+      currentClass: { _id: DEMO_CLASS_ID, value: "3", label: "3rd Standard", section: "A", name: "3" },
+    },
+    {
+      _id: "660e8400e29b41d4a71644665544000e",
+      name: "Pooja Nadiger",
+      email: "pooja.n@demo.com",
+      rollNumber: "013",
+      regNo: "SGV-2024-013",
+      gender: "female",
+      bloodGroup: "O+",
+      phone: "9876543225",
+      parentName: "Chandrashekhar Nadiger",
+      profileImage: "https://api.dicebear.com/7.x/avataaars/png?seed=Pooja&gender=female",
+      profilePhoto: "https://api.dicebear.com/7.x/avataaars/png?seed=Pooja&gender=female",
+      currentClass: { _id: DEMO_CLASS_ID, value: "3", label: "3rd Standard", section: "A", name: "3" },
+    },
+    {
+      _id: "660e8400e29b41d4a71644665544000f",
+      name: "Chetan Bellad",
+      email: "chetan.b@demo.com",
+      rollNumber: "014",
+      regNo: "SGV-2024-014",
+      gender: "male",
+      bloodGroup: "A+",
+      phone: "9876543226",
+      parentName: "Arvind Bellad",
+      profileImage: "https://api.dicebear.com/7.x/avataaars/png?seed=Chetan&gender=male",
+      profilePhoto: "https://api.dicebear.com/7.x/avataaars/png?seed=Chetan&gender=male",
+      currentClass: { _id: DEMO_CLASS_ID, value: "3", label: "3rd Standard", section: "A", name: "3" },
+    },
+    {
+      _id: "660e8400e29b41d4a716446655440010",
+      name: "Kavya Angadi",
+      email: "kavya.a@demo.com",
+      rollNumber: "015",
+      regNo: "SGV-2024-015",
+      gender: "female",
+      bloodGroup: "B+",
+      phone: "9876543227",
+      parentName: "Shivakumar Angadi",
+      profileImage: "https://api.dicebear.com/7.x/avataaars/png?seed=Kavya&gender=female",
+      profilePhoto: "https://api.dicebear.com/7.x/avataaars/png?seed=Kavya&gender=female",
+      currentClass: { _id: DEMO_CLASS_ID, value: "3", label: "3rd Standard", section: "A", name: "3" },
     },
   ],
 };
+
+export const DEMO_STUDENTS = DEMO_CLASS_DETAILS.students.map((st) => ({
+  role: "student",
+  ...st,
+}));
 
 // 2.5. Teacher Subjects (for teacher role)
 const DEMO_TEACHER_ID = "770e8400e29b41d4a716446655440010";
@@ -1141,99 +1343,101 @@ export const DEMO_EXAMS = [
     room: "Lab 1",
     instructions: "Practical exam included.",
   },
+  // Past exams for history.jsx viewing
+  {
+    _id: "past_e1",
+    name: "Formative Assessment 1 (FA1)",
+    type: "Written",
+    date: new Date(Date.now() - 45 * 86400000).toISOString(),
+    subject: { name: "Mathematics" },
+    duration: 90,
+    room: "Classroom 3A",
+    instructions: "All questions compulsory.",
+  },
+  {
+    _id: "past_e2",
+    name: "Formative Assessment 1 (FA1)",
+    type: "Written",
+    date: new Date(Date.now() - 43 * 86400000).toISOString(),
+    subject: { name: "Kannada" },
+    duration: 90,
+    room: "Classroom 3A",
+    instructions: "Answer in clean handwriting.",
+  },
 ];
 
-// 11. Events (Dec 2024 - April 2025)
+// Helper to generate dynamic event dates
+const getRelativeDate = (offsetDays, hours = 9, minutes = 0) => {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  d.setHours(hours, minutes, 0, 0);
+  return d.toISOString();
+};
+
+const demoEventItems = [
+  {
+    _id: "ev_dyn1",
+    title: "Annual Sports Meet & Track Finals",
+    description: "All students must assemble on the ground by 8:30 AM in sports uniforms.",
+    date: getRelativeDate(3, 9, 0),
+    isSchoolEvent: true,
+    type: "sports",
+  },
+  {
+    _id: "ev_dyn2",
+    title: "Science & Innovation Fair",
+    description: "Interactive exhibits and working model presentations. Parents and guests are welcome.",
+    date: getRelativeDate(7, 10, 0),
+    isSchoolEvent: true,
+    type: "academic",
+  },
+  {
+    _id: "ev_dyn3",
+    title: "Parents-Teachers Interactive Meet",
+    description: "Review comprehensive student evaluation and holistic development.",
+    date: getRelativeDate(14, 9, 30),
+    isSchoolEvent: true,
+    type: "meeting",
+  },
+  {
+    _id: "ev_dyn4",
+    title: "Cultural Arts & Music Extravaganza",
+    description: "Annual cultural festival featuring folk dances, theatre, and music ensemble.",
+    date: getRelativeDate(25, 17, 0),
+    isSchoolEvent: true,
+    type: "celebration",
+  },
+  {
+    _id: "ev_dyn5",
+    title: "Educational Field Excursion",
+    description: "One-day nature and science exploration field visit.",
+    date: getRelativeDate(38, 7, 30),
+    isSchoolEvent: true,
+    type: "trip",
+  },
+  {
+    _id: "ev_dyn_past1",
+    title: "Inter-School Debate Championship",
+    description: "Congratulations to our middle-school debaters on securing 1st prize!",
+    date: getRelativeDate(-6, 11, 0),
+    isSchoolEvent: true,
+    type: "academic",
+  },
+  {
+    _id: "ev_dyn_past2",
+    title: "Independence Day Cultural Pageant",
+    description: "Grand flag hoisting ceremony, parade, and patriotic speeches.",
+    date: getRelativeDate(-20, 8, 30),
+    isSchoolEvent: true,
+    type: "celebration",
+  },
+];
+
+// 11. Events (Dynamic & backward compatible with both data.event and data.events)
 export const DEMO_EVENTS = {
-  events: [
-    // December 2024
-    {
-      _id: "ev_dec1",
-      title: "Annual Sports Day",
-      description:
-        "All students must assemble in the ground by 8:30 AM. Track suits are mandatory.",
-      date: "2024-12-10T09:00:00.000Z",
-      isSchoolEvent: true,
-      type: "sports",
-    },
-    {
-      _id: "ev_dec2",
-      title: "Christmas Celebration",
-      description: "Cultural programs and cake distribution.",
-      date: "2024-12-24T10:00:00.000Z",
-      isSchoolEvent: true,
-      type: "celebration",
-    },
-    // January 2025
-    {
-      _id: "ev_jan1",
-      title: "Republic Day",
-      description: "Flag hoisting at 8:00 AM. Attendance is compulsory.",
-      date: "2025-01-26T08:00:00.000Z",
-      isSchoolEvent: true,
-      type: "celebration",
-    },
-    {
-      _id: "ev_jan2",
-      title: "Science Exhibition",
-      description: "Projects to be submitted by 28th Jan. Parents are invited.",
-      date: "2025-01-30T10:00:00.000Z",
-      isSchoolEvent: true,
-      type: "academic",
-    },
-    // February 2025
-    {
-      _id: "ev_feb1",
-      title: "Parent Teacher Meeting",
-      description: "Discussion about FA3 and FA4 performance.",
-      date: "2025-02-10T09:30:00.000Z",
-      isSchoolEvent: true,
-      type: "meeting",
-    },
-    {
-      _id: "ev_feb2",
-      title: "School Picnic",
-      description:
-        "One day trip to Water Park. Consent forms to be submitted by 15th.",
-      date: "2025-02-20T07:00:00.000Z",
-      isSchoolEvent: true,
-      type: "trip",
-    },
-    // March 2025
-    {
-      _id: "ev_mar1",
-      title: "Preparatory Exams",
-      description: "Study holidays start from 15th March.",
-      date: "2025-03-10T09:00:00.000Z",
-      isSchoolEvent: false,
-      type: "exam",
-    },
-    {
-      _id: "ev_mar2",
-      title: "Ugadi Celebration",
-      description: "Holiday on account of Ugadi.",
-      date: "2025-03-30T00:00:00.000Z",
-      isSchoolEvent: true,
-      type: "holiday",
-    },
-    // April 2025
-    {
-      _id: "ev_apr1",
-      title: "Annual Day",
-      description: "Cultural extravaganza evening.",
-      date: "2025-04-05T17:00:00.000Z",
-      isSchoolEvent: true,
-      type: "celebration",
-    },
-    {
-      _id: "ev_apr2",
-      title: "Result Declaration",
-      description: "Report cards distribution for Academic Year 2024-25.",
-      date: "2025-04-15T10:00:00.000Z",
-      isSchoolEvent: true,
-      type: "academic",
-    },
-  ],
+  success: true,
+  event: demoEventItems,
+  events: demoEventItems,
 };
 
 // 12. Notifications
@@ -1388,10 +1592,63 @@ export const DEMO_STUDENT_DASHBOARD = {
 export const DEMO_CLASSES = [
   {
     _id: "550e8400e29b41d4a716446655440001",
+    name: "3",
     value: "3",
     label: "3rd Standard",
     section: "A",
     branch: "Main",
+    academicYear: DEMO_ACADEMIC_YEAR_ID,
+    classTeacher: { name: "Mrs. Savita Patil" },
+  },
+  {
+    _id: "550e8400e29b41d4a716446655440002",
+    name: "3",
+    value: "3",
+    label: "3rd Standard",
+    section: "B",
+    branch: "Main",
+    academicYear: DEMO_ACADEMIC_YEAR_ID,
+    classTeacher: { name: "Mr. Basavaraj Kulkarni" },
+  },
+  {
+    _id: "550e8400e29b41d4a716446655440003",
+    name: "1",
+    value: "1",
+    label: "1st Standard",
+    section: "A",
+    branch: "Main",
+    academicYear: DEMO_ACADEMIC_YEAR_ID,
+    classTeacher: { name: "Mrs. Deepa Nayak" },
+  },
+  {
+    _id: "550e8400e29b41d4a716446655440004",
+    name: "2",
+    value: "2",
+    label: "2nd Standard",
+    section: "A",
+    branch: "Main",
+    academicYear: DEMO_ACADEMIC_YEAR_ID,
+    classTeacher: { name: "Mr. Vijay Kammar" },
+  },
+  {
+    _id: "550e8400e29b41d4a716446655440005",
+    name: "4",
+    value: "4",
+    label: "4th Standard",
+    section: "A",
+    branch: "Main",
+    academicYear: DEMO_ACADEMIC_YEAR_ID,
+    classTeacher: { name: "Ms. Mary D'Souza" },
+  },
+  {
+    _id: "550e8400e29b41d4a716446655440006",
+    name: "5",
+    value: "5",
+    label: "5th Standard",
+    section: "A",
+    branch: "Main",
+    academicYear: DEMO_ACADEMIC_YEAR_ID,
+    classTeacher: { name: "Mrs. Renuka Desai" },
   },
 ];
 
@@ -1447,4 +1704,1343 @@ export const DEMO_ADMIN_DASHBOARD = {
     ],
   },
 };
+
+// 12. Student Past Academic History (/reports/history/me)
+export const DEMO_STUDENT_HISTORY = {
+  history: [
+    {
+      _id: "hist_2023_2024",
+      class: {
+        _id: "550e8400e29b41d4a716446655440004",
+        value: "2",
+        name: "2",
+        label: "2nd Standard",
+        section: "A",
+      },
+      academicYear: {
+        _id: "551e8400e29b41d4a716446655440001",
+        name: "2023-2024",
+      },
+      finalStatus: "promoted",
+      totalAttendancePercentage: 96.4,
+      examsAvailable: true,
+      overallPercentage: 91.5,
+      gpa: "9.2",
+      rank: 2,
+      totalStudents: 20,
+      exams: [
+        { name: "SA2 Final", percentage: 92.5, grade: "A+" },
+        { name: "SA1 Midterm", percentage: 90.5, grade: "A+" },
+      ],
+      remarks: "Exceptional academic performance and leadership in Class 2A.",
+    },
+    {
+      _id: "hist_2022_2023",
+      class: {
+        _id: "550e8400e29b41d4a716446655440003",
+        value: "1",
+        name: "1",
+        label: "1st Standard",
+        section: "A",
+      },
+      academicYear: {
+        _id: "551e8400e29b41d4a716446655440002",
+        name: "2022-2023",
+      },
+      finalStatus: "promoted",
+      totalAttendancePercentage: 95.8,
+      examsAvailable: true,
+      overallPercentage: 89.2,
+      gpa: "8.9",
+      rank: 3,
+      totalStudents: 22,
+      exams: [
+        { name: "SA2 Final", percentage: 90.0, grade: "A" },
+        { name: "SA1 Midterm", percentage: 88.4, grade: "A" },
+      ],
+      remarks: "Quick learner with great enthusiasm for Kannada and Art.",
+    },
+  ],
+};
+
+// 13. Admin Staff Attendance (/attendance/staff-list)
+export const DEMO_STAFF_LIST = [
+  {
+    user: {
+      _id: "770e8400e29b41d4a716446655440010",
+      name: "Mrs. Savita Patil",
+      role: "teacher",
+      designation: "Class Teacher - 3A",
+      employeeId: "EMP-0101",
+      phone: "9876543211",
+      profilePhoto: "https://api.dicebear.com/7.x/avataaars/png?seed=Savita&gender=female",
+    },
+    status: "present",
+    remarks: "On Time",
+  },
+  {
+    user: {
+      _id: "770e8400e29b41d4a716446655440011",
+      name: "Mr. Abdul Nadaf",
+      role: "teacher",
+      designation: "Mathematics Teacher",
+      employeeId: "EMP-0102",
+      phone: "9876543228",
+      profilePhoto: "https://api.dicebear.com/7.x/avataaars/png?seed=Abdul&gender=male",
+    },
+    status: "present",
+    remarks: "On Time",
+  },
+  {
+    user: {
+      _id: "770e8400e29b41d4a716446655440012",
+      name: "Ms. Mary D'Souza",
+      role: "teacher",
+      designation: "English Teacher",
+      employeeId: "EMP-0103",
+      phone: "9876543229",
+      profilePhoto: "https://api.dicebear.com/7.x/avataaars/png?seed=Mary&gender=female",
+    },
+    status: "present",
+    remarks: "On Time",
+  },
+  {
+    user: {
+      _id: "770e8400e29b41d4a716446655440013",
+      name: "Mr. Basavaraj Kulkarni",
+      role: "teacher",
+      designation: "Science & EVS Teacher",
+      employeeId: "EMP-0104",
+      phone: "9876543230",
+      profilePhoto: "https://api.dicebear.com/7.x/avataaars/png?seed=Basavaraj&gender=male",
+    },
+    status: "leave",
+    remarks: "Approved Medical Leave",
+  },
+  {
+    user: {
+      _id: "770e8400e29b41d4a716446655440014",
+      name: "Mrs. Ayesha Siddiqui",
+      role: "teacher",
+      designation: "Hindi Teacher",
+      employeeId: "EMP-0105",
+      phone: "9876543231",
+      profilePhoto: "https://api.dicebear.com/7.x/avataaars/png?seed=Ayesha&gender=female",
+    },
+    status: "present",
+    remarks: "On Time",
+  },
+  {
+    user: {
+      _id: "770e8400e29b41d4a716446655440015",
+      name: "Mr. John Peter",
+      role: "teacher",
+      designation: "Computer Teacher",
+      employeeId: "EMP-0106",
+      phone: "9876543232",
+      profilePhoto: "https://api.dicebear.com/7.x/avataaars/png?seed=John&gender=male",
+    },
+    status: "present",
+    remarks: "On Time",
+  },
+  {
+    user: {
+      _id: "770e8400e29b41d4a716446655440016",
+      name: "Mrs. Renuka Desai",
+      role: "teacher",
+      designation: "Art & Craft Teacher",
+      employeeId: "EMP-0107",
+      phone: "9876543233",
+      profilePhoto: "https://api.dicebear.com/7.x/avataaars/png?seed=Renuka&gender=female",
+    },
+    status: "present",
+    remarks: "On Time",
+  },
+  {
+    user: {
+      _id: "770e8400e29b41d4a716446655440017",
+      name: "Mr. Suresh Meti",
+      role: "teacher",
+      designation: "PE Instructor",
+      employeeId: "EMP-0108",
+      phone: "9876543234",
+      profilePhoto: "https://api.dicebear.com/7.x/avataaars/png?seed=Suresh&gender=male",
+    },
+    status: "present",
+    remarks: "On Time",
+  },
+  {
+    user: {
+      _id: "880e8400e29b41d4a716446655440020",
+      name: "Mr. Rajesh Biradar",
+      role: "admin",
+      designation: "Vice Principal",
+      employeeId: "EMP-0002",
+      phone: "9876543212",
+      profilePhoto: "https://api.dicebear.com/7.x/avataaars/png?seed=Rajesh&gender=male",
+    },
+    status: "present",
+    remarks: "On Time",
+  },
+  {
+    user: {
+      _id: "770e8400e29b41d4a716446655440018",
+      name: "Mrs. Sunita Belagavi",
+      role: "staff",
+      designation: "Head Librarian",
+      employeeId: "EMP-0201",
+      phone: "9876543235",
+      profilePhoto: "https://api.dicebear.com/7.x/avataaars/png?seed=Sunita&gender=female",
+    },
+    status: "present",
+    remarks: "On Time",
+  },
+];
+
+// 14. Admin Marked Classes (/attendance/classes-marked)
+export const DEMO_CLASSES_MARKED = [
+  {
+    _id: "mark_3a",
+    class: {
+      _id: "550e8400e29b41d4a716446655440001",
+      name: "3",
+      value: "3",
+      label: "3rd Standard",
+      section: "A",
+    },
+    markedBy: { name: "Mrs. Savita Patil" },
+    totalStudents: 15,
+    presentCount: 14,
+    absentCount: 1,
+    markedAt: "2026-10-06T09:15:00.000Z",
+  },
+  {
+    _id: "mark_1a",
+    class: {
+      _id: "550e8400e29b41d4a716446655440003",
+      name: "1",
+      value: "1",
+      label: "1st Standard",
+      section: "A",
+    },
+    markedBy: { name: "Mrs. Deepa Nayak" },
+    totalStudents: 18,
+    presentCount: 17,
+    absentCount: 1,
+    markedAt: "2026-10-06T09:20:00.000Z",
+  },
+  {
+    _id: "mark_2a",
+    class: {
+      _id: "550e8400e29b41d4a716446655440004",
+      name: "2",
+      value: "2",
+      label: "2nd Standard",
+      section: "A",
+    },
+    markedBy: { name: "Mr. Vijay Kammar" },
+    totalStudents: 19,
+    presentCount: 18,
+    absentCount: 1,
+    markedAt: "2026-10-06T09:18:00.000Z",
+  },
+  {
+    _id: "mark_4a",
+    class: {
+      _id: "550e8400e29b41d4a716446655440005",
+      name: "4",
+      value: "4",
+      label: "4th Standard",
+      section: "A",
+    },
+    markedBy: { name: "Ms. Mary D'Souza" },
+    totalStudents: 20,
+    presentCount: 20,
+    absentCount: 0,
+    markedAt: "2026-10-06T09:25:00.000Z",
+  },
+];
+
+// 15. Admin Missing Attendance Tracker (/attendance/missing-tracker)
+export const DEMO_MISSING_TRACKER = {
+  success: true,
+  missingData: [
+    {
+      date: "2026-10-05",
+      formattedDate: "05 Oct 2026",
+      missingClasses: [
+        {
+          _id: "550e8400e29b41d4a716446655440002",
+          name: "3",
+          value: "3",
+          section: "B",
+          teacher: "Mr. Basavaraj Kulkarni",
+        },
+      ],
+    },
+  ],
+  teacherSummary: [
+    { teacherName: "Mrs. Savita Patil", pendingCount: 0, completedCount: 22 },
+    { teacherName: "Mrs. Deepa Nayak", pendingCount: 0, completedCount: 22 },
+    { teacherName: "Mr. Vijay Kammar", pendingCount: 0, completedCount: 22 },
+    { teacherName: "Ms. Mary D'Souza", pendingCount: 0, completedCount: 22 },
+    { teacherName: "Mr. Basavaraj Kulkarni", pendingCount: 1, completedCount: 21 },
+  ],
+  totalWorkingDays: 22,
+  totalClasses: 6,
+};
+
+// 16. Complaints & Feedback (/complaints, /feedback)
+export const DEMO_COMPLAINTS = [
+  {
+    _id: "comp_001",
+    title: "School Bus Route 4 Timing Delay",
+    description: "The morning bus arrives 20 minutes late at Navanagar stop, causing students to miss morning prayer.",
+    category: "Transport",
+    priority: "Medium",
+    status: "In Progress",
+    raisedBy: DEMO_USER,
+    student: DEMO_USER,
+    createdAt: "2026-10-04T08:30:00.000Z",
+    adminResponse: "Transport supervisor contacted. Bus route driver has been notified to depart 15 mins earlier starting tomorrow.",
+  },
+  {
+    _id: "comp_002",
+    title: "Drinking Water Dispenser Filter on 2nd Floor",
+    description: "Water pressure on the second floor dispenser was low during recess.",
+    category: "Facilities",
+    priority: "High",
+    status: "Resolved",
+    raisedBy: DEMO_USER,
+    student: DEMO_USER,
+    createdAt: "2026-09-28T10:15:00.000Z",
+    adminResponse: "Filter cartridge replaced and flow rate verified by school maintenance on 29 Sep 2026.",
+  },
+  {
+    _id: "comp_003",
+    title: "Maths Olympiad Practice Material Clarification",
+    description: "Requesting supplementary practice sheets for the upcoming State Level Mathematics Olympiad.",
+    category: "Academics",
+    priority: "Low",
+    status: "Resolved",
+    raisedBy: DEMO_USER,
+    student: DEMO_USER,
+    createdAt: "2026-09-20T14:00:00.000Z",
+    adminResponse: "Practice booklets provided to Class 3A Math teacher Mr. Abdul Nadaf for distribution.",
+  },
+];
+
+export const DEMO_FEEDBACK = [
+  {
+    _id: "feed_001",
+    title: "Remarkable Kannada Poetry Recitation",
+    message: "Harshika demonstrated outstanding pronounciation, expression, and rhythm during the Kannada Rajyotsava preparatory recitations.",
+    category: "Academics",
+    type: "appreciation",
+    teacher: {
+      _id: "770e8400e29b41d4a716446655440010",
+      name: "Mrs. Savita Patil",
+    },
+    student: DEMO_USER,
+    class: {
+      _id: "550e8400e29b41d4a716446655440001",
+      name: "3",
+      section: "A",
+    },
+    createdAt: "2026-10-02T11:00:00.000Z",
+  },
+  {
+    _id: "feed_002",
+    title: "Mental Mathematics Speed & Accuracy",
+    message: "Consistently scoring full marks in classroom quick-quizzes. Recommended for inter-school Olympiad training.",
+    category: "Academics",
+    type: "appreciation",
+    teacher: {
+      _id: "770e8400e29b41d4a716446655440011",
+      name: "Mr. Abdul Nadaf",
+    },
+    student: DEMO_USER,
+    class: {
+      _id: "550e8400e29b41d4a716446655440001",
+      name: "3",
+      section: "A",
+    },
+    createdAt: "2026-09-25T14:30:00.000Z",
+  },
+  {
+    _id: "feed_003",
+    title: "Sports Day Relay Captaincy",
+    message: "Displayed inspiring teamwork and sportsmanship while anchoring the 4x50m junior girls relay team.",
+    category: "Sports",
+    type: "appreciation",
+    teacher: {
+      _id: "770e8400e29b41d4a716446655440017",
+      name: "Mr. Suresh Meti",
+    },
+    student: DEMO_USER,
+    class: {
+      _id: "550e8400e29b41d4a716446655440001",
+      name: "3",
+      section: "A",
+    },
+    createdAt: "2026-09-18T16:00:00.000Z",
+  },
+];
+
+// 17. Standardized Exams for Teacher Assessments (/exams/standardized)
+export const DEMO_STANDARDIZED_EXAMS = [
+  {
+    type: "FA1",
+    exists: true,
+    marksEntered: true,
+    marksCount: 15,
+    exam: {
+      _id: "exam_fa1_kan",
+      name: "Formative Assessment 1",
+      type: "FA1",
+      totalMarks: 20,
+      class: "550e8400e29b41d4a716446655440001",
+      subject: "760e8400e29b41d4a716446655440003",
+    },
+  },
+  {
+    type: "FA2",
+    exists: true,
+    marksEntered: true,
+    marksCount: 15,
+    exam: {
+      _id: "exam_fa2_kan",
+      name: "Formative Assessment 2",
+      type: "FA2",
+      totalMarks: 20,
+      class: "550e8400e29b41d4a716446655440001",
+      subject: "760e8400e29b41d4a716446655440003",
+    },
+  },
+  {
+    type: "SA1",
+    exists: true,
+    marksEntered: false,
+    marksCount: 0,
+    exam: {
+      _id: "exam_sa1_kan",
+      name: "Summative Assessment 1",
+      type: "SA1",
+      totalMarks: 80,
+      class: "550e8400e29b41d4a716446655440001",
+      subject: "760e8400e29b41d4a716446655440003",
+    },
+  },
+  {
+    type: "FA3",
+    exists: false,
+    marksEntered: false,
+    marksCount: 0,
+    exam: null,
+  },
+  {
+    type: "FA4",
+    exists: false,
+    marksEntered: false,
+    marksCount: 0,
+    exam: null,
+  },
+  {
+    type: "SA2",
+    exists: false,
+    marksEntered: false,
+    marksCount: 0,
+    exam: null,
+  },
+];
+
+// 18. Teacher Exam Dashboard (/exams/teacher/dashboard)
+export const DEMO_TEACHER_EXAM_DASHBOARD = {
+  academicYear: {
+    _id: DEMO_ACADEMIC_YEAR_ID,
+    name: "2024-2025",
+  },
+  dashboard: [
+    {
+      class: {
+        _id: "550e8400e29b41d4a716446655440001",
+        name: "3",
+        section: "A",
+      },
+      subject: {
+        _id: "760e8400e29b41d4a716446655440003",
+        name: "Kannada",
+        code: "KAN03",
+      },
+      summary: {
+        examsCreated: 3,
+        marksEntered: 2,
+        marksPublished: 2,
+        pending: 1,
+      },
+      exams: [
+        {
+          _id: "exam_fa1_kan",
+          name: "FA 1 - Kannada",
+          type: "FA1",
+          status: "published",
+          totalMarks: 20,
+          marksEntered: true,
+          marksPublished: true,
+          studentsTotal: 15,
+          studentsGraded: 15,
+        },
+        {
+          _id: "exam_fa2_kan",
+          name: "FA 2 - Kannada",
+          type: "FA2",
+          status: "published",
+          totalMarks: 20,
+          marksEntered: true,
+          marksPublished: true,
+          studentsTotal: 15,
+          studentsGraded: 15,
+        },
+        {
+          _id: "exam_sa1_kan",
+          name: "SA 1 - Midterm",
+          type: "SA1",
+          status: "draft",
+          totalMarks: 80,
+          marksEntered: false,
+          marksPublished: false,
+          studentsTotal: 15,
+          studentsGraded: 0,
+        },
+      ],
+    },
+    {
+      class: {
+        _id: "550e8400e29b41d4a716446655440001",
+        name: "3",
+        section: "A",
+      },
+      subject: {
+        _id: "760e8400e29b41d4a716446655440006",
+        name: "Mathematics",
+        code: "MAT03",
+      },
+      summary: {
+        examsCreated: 2,
+        marksEntered: 2,
+        marksPublished: 2,
+        pending: 0,
+      },
+      exams: [
+        {
+          _id: "exam_fa1_mat",
+          name: "FA 1 - Mathematics",
+          type: "FA1",
+          status: "published",
+          totalMarks: 20,
+          marksEntered: true,
+          marksPublished: true,
+          studentsTotal: 15,
+          studentsGraded: 15,
+        },
+        {
+          _id: "exam_fa2_mat",
+          name: "FA 2 - Mathematics",
+          type: "FA2",
+          status: "published",
+          totalMarks: 20,
+          marksEntered: true,
+          marksPublished: true,
+          studentsTotal: 15,
+          studentsGraded: 15,
+        },
+      ],
+    },
+  ],
+};
+
+// 19. Individual Exam Marks (/marks/exam/:examId)
+export const DEMO_EXAM_MARKS = DEMO_STUDENTS.map((st, idx) => {
+  const scores = [19, 18, 20, 17, 19, 16, 18, 17, 19, 16, 18, 17, 19, 16, 18];
+  const marks = scores[idx] || 18;
+  return {
+    _id: `mark_${st._id}`,
+    student: st,
+    marksObtained: marks,
+    totalMarks: 20,
+    percentage: Math.round((marks / 20) * 100),
+    grade: marks >= 18 ? "A+" : marks >= 16 ? "A" : "B+",
+    remarks: marks >= 18 ? "Excellent comprehension" : "Good performance",
+  };
+});
+
+// 20. School-wide Exam Performance (/exams/performance/school)
+export const DEMO_SCHOOL_EXAM_PERFORMANCE = {
+  overallAverage: 81.4,
+  totalStudents: 450,
+  overallPassingRate: 97.2,
+  topPerformingClass: "3rd Standard A",
+  topPerformingSubject: "Kannada",
+  examwisePerformance: [
+    { examType: "FA1", averagePercentage: 83.2, studentCount: 450, passPercentage: 98.4 },
+    { examType: "FA2", averagePercentage: 80.8, studentCount: 450, passPercentage: 96.8 },
+    { examType: "SA1", averagePercentage: 79.5, studentCount: 445, passPercentage: 95.2 },
+  ],
+  classwiseSummary: [
+    { classId: "550e8400e29b41d4a716446655440001", className: "3rd Standard A", averagePercentage: 83.4, studentCount: 15, passPercentage: 100 },
+    { classId: "550e8400e29b41d4a716446655440002", className: "3rd Standard B", averagePercentage: 79.8, studentCount: 18, passPercentage: 94.4 },
+    { classId: "550e8400e29b41d4a716446655440003", className: "1st Standard A", averagePercentage: 84.1, studentCount: 18, passPercentage: 100 },
+    { classId: "550e8400e29b41d4a716446655440004", className: "2nd Standard A", averagePercentage: 82.0, studentCount: 19, passPercentage: 98.0 },
+    { classId: "550e8400e29b41d4a716446655440005", className: "4th Standard A", averagePercentage: 79.2, studentCount: 20, passPercentage: 95.0 },
+    { classId: "550e8400e29b41d4a716446655440006", className: "5th Standard A", averagePercentage: 78.5, studentCount: 22, passPercentage: 94.0 },
+  ],
+  subjectwiseSummary: [
+    { subjectId: "sub_kan", subjectName: "Kannada", averagePercentage: 85.0, passPercentage: 99.0 },
+    { subjectId: "sub_eng", subjectName: "English", averagePercentage: 81.2, passPercentage: 97.0 },
+    { subjectId: "sub_mat", subjectName: "Mathematics", averagePercentage: 79.4, passPercentage: 95.5 },
+    { subjectId: "sub_evs", subjectName: "Science / EVS", averagePercentage: 82.5, passPercentage: 98.0 },
+    { subjectId: "sub_hin", subjectName: "Hindi", averagePercentage: 80.1, passPercentage: 96.0 },
+  ],
+};
+
+// 21. Student Rankings (/marks/analytics/school/students)
+export const DEMO_STUDENT_RANKINGS = DEMO_STUDENTS.map((st, idx) => {
+  const totals = [380, 375, 372, 365, 360, 355, 350, 345, 340, 335, 330, 325, 320, 315, 310];
+  const percentages = [95.0, 93.8, 93.0, 91.3, 90.0, 88.8, 87.5, 86.3, 85.0, 83.8, 82.5, 81.3, 80.0, 78.8, 77.5];
+  return {
+    _id: st._id,
+    student: st,
+    rank: idx + 1,
+    totalMarks: totals[idx] || 350,
+    maxMarks: 400,
+    percentage: percentages[idx] || 85.0,
+    grade: idx < 5 ? "A+" : idx < 10 ? "A" : "B+",
+    class: st.currentClass,
+  };
+});
+
+// 22. Admin Fee Analytics (/fees/analytics, /fees/summary)
+export const DEMO_FEE_ANALYTICS = {
+  totalExpected: 3200000,
+  totalCollected: 2840000,
+  totalPending: 360000,
+  collectionRate: 88.75,
+  totalArrears: 45000,
+  totalConcession: 25000,
+  totalGrossFees: 3200000,
+  classBreakdown: [
+    {
+      classId: "550e8400e29b41d4a716446655440001",
+      className: "3rd Standard A",
+      totalExpected: 450000,
+      totalCollected: 405000,
+      totalPending: 45000,
+      collectionRate: 90.0,
+      studentCount: 15,
+      paidCount: 13,
+      dueCount: 2,
+    },
+    {
+      classId: "550e8400e29b41d4a716446655440002",
+      className: "3rd Standard B",
+      totalExpected: 480000,
+      totalCollected: 420000,
+      totalPending: 60000,
+      collectionRate: 87.5,
+      studentCount: 16,
+      paidCount: 14,
+      dueCount: 2,
+    },
+    {
+      classId: "550e8400e29b41d4a716446655440003",
+      className: "1st Standard A",
+      totalExpected: 540000,
+      totalCollected: 495000,
+      totalPending: 45000,
+      collectionRate: 91.67,
+      studentCount: 18,
+      paidCount: 16,
+      dueCount: 2,
+    },
+    {
+      classId: "550e8400e29b41d4a716446655440004",
+      className: "2nd Standard A",
+      totalExpected: 570000,
+      totalCollected: 510000,
+      totalPending: 60000,
+      collectionRate: 89.47,
+      studentCount: 19,
+      paidCount: 17,
+      dueCount: 2,
+    },
+    {
+      classId: "550e8400e29b41d4a716446655440005",
+      className: "4th Standard A",
+      totalExpected: 580000,
+      totalCollected: 510000,
+      totalPending: 70000,
+      collectionRate: 87.93,
+      studentCount: 20,
+      paidCount: 17,
+      dueCount: 3,
+    },
+    {
+      classId: "550e8400e29b41d4a716446655440006",
+      className: "5th Standard A",
+      totalExpected: 580000,
+      totalCollected: 500000,
+      totalPending: 80000,
+      collectionRate: 86.21,
+      studentCount: 22,
+      paidCount: 18,
+      dueCount: 4,
+    },
+  ],
+  recentTransactions: [
+    {
+      _id: "tx_001",
+      studentName: "Harshika Patil",
+      rollNumber: "001",
+      className: "3rd Standard A",
+      amount: 15000,
+      mode: "UPI",
+      date: "2026-10-02T10:30:00.000Z",
+      status: "completed",
+      receiptNo: "REC-2024-8891",
+    },
+    {
+      _id: "tx_002",
+      studentName: "Aarav Kulkarni",
+      rollNumber: "002",
+      className: "3rd Standard A",
+      amount: 15000,
+      mode: "Net Banking",
+      date: "2026-10-01T15:20:00.000Z",
+      status: "completed",
+      receiptNo: "REC-2024-8890",
+    },
+    {
+      _id: "tx_003",
+      studentName: "Ananya Deshmukh",
+      rollNumber: "003",
+      className: "3rd Standard A",
+      amount: 30000,
+      mode: "Cheque",
+      date: "2026-09-29T11:45:00.000Z",
+      status: "completed",
+      receiptNo: "REC-2024-8889",
+    },
+    {
+      _id: "tx_004",
+      studentName: "Rohan Biradar",
+      rollNumber: "004",
+      className: "3rd Standard A",
+      amount: 15000,
+      mode: "Cash",
+      date: "2026-09-28T14:10:00.000Z",
+      status: "completed",
+      receiptNo: "REC-2024-8888",
+    },
+  ],
+};
+
+// 23. Leave Applications for Admin & Teacher Approval (/leaves/requests, /leaves/daily-stats)
+export const DEMO_LEAVE_REQUESTS = [
+  {
+    _id: "leave_req_001",
+    applicant: {
+      _id: "770e8400e29b41d4a716446655440013",
+      name: "Mr. Basavaraj Kulkarni",
+      role: "teacher",
+      designation: "Science & EVS Teacher",
+    },
+    leaveType: "Medical Leave",
+    startDate: "2026-10-06T00:00:00.000Z",
+    endDate: "2026-10-07T00:00:00.000Z",
+    daysCount: 2,
+    reason: "Severe viral fever and physician recommended rest.",
+    status: "Pending",
+    appliedOn: "2026-10-05T18:00:00.000Z",
+  },
+  {
+    _id: "leave_req_002",
+    applicant: {
+      _id: "660e8400e29b41d4a716446655440003",
+      name: "Aarav Kulkarni",
+      role: "student",
+      class: { name: "3", section: "A" },
+      rollNumber: "002",
+    },
+    leaveType: "Sick Leave",
+    startDate: "2026-10-06T00:00:00.000Z",
+    endDate: "2026-10-07T00:00:00.000Z",
+    daysCount: 2,
+    reason: "Dental procedure follow up.",
+    status: "Pending",
+    appliedOn: "2026-10-05T20:15:00.000Z",
+  },
+  {
+    _id: "leave_req_003",
+    applicant: {
+      _id: "770e8400e29b41d4a716446655440012",
+      name: "Ms. Mary D'Souza",
+      role: "teacher",
+      designation: "English Teacher",
+    },
+    leaveType: "Casual Leave",
+    startDate: "2026-10-01T00:00:00.000Z",
+    endDate: "2026-10-01T00:00:00.000Z",
+    daysCount: 1,
+    reason: "Family event in Belagavi.",
+    status: "Approved",
+    appliedOn: "2026-09-28T09:00:00.000Z",
+    approvedBy: { name: "Mr. Rajesh Biradar" },
+  },
+  {
+    _id: "leave_req_004",
+    applicant: {
+      _id: DEMO_STUDENT_ID,
+      name: "Harshika Patil",
+      role: "student",
+      class: { name: "3", section: "A" },
+      rollNumber: "001",
+    },
+    leaveType: "Family Function",
+    startDate: "2026-09-15T00:00:00.000Z",
+    endDate: "2026-09-16T00:00:00.000Z",
+    daysCount: 2,
+    reason: "Cousin's wedding in Bagalkot.",
+    status: "Approved",
+    appliedOn: "2026-09-10T11:00:00.000Z",
+    approvedBy: { name: "Mrs. Savita Patil" },
+  },
+];
+
+export const DEMO_LEAVE_STATS = {
+  staffOnLeave: 1,
+  studentsOnLeave: 2,
+  pendingRequests: 2,
+  approvedToday: 1,
+};
+
+export const DEMO_LEAVE_BALANCE = {
+  casualLeave: { total: 12, used: 4, remaining: 8 },
+  sickLeave: { total: 10, used: 3, remaining: 7 },
+  earnedLeave: { total: 15, used: 1, remaining: 14 },
+};
+
+// 24. Student Monthly Ratings Data (/student-ratings)
+export const DEMO_TEACHER_RATING_SUBJECTS = {
+  summary: { total: 2, completed: 1, pending: 1 },
+  subjects: [
+    {
+      _id: "760e8400e29b41d4a716446655440003",
+      name: "Kannada",
+      code: "KAN03",
+      class: { _id: "550e8400e29b41d4a716446655440001", name: "3", section: "A" },
+      status: "completed",
+      ratedCount: 15,
+      totalCount: 15,
+    },
+    {
+      _id: "760e8400e29b41d4a716446655440006",
+      name: "Mathematics",
+      code: "MAT03",
+      class: { _id: "550e8400e29b41d4a716446655440001", name: "3", section: "A" },
+      status: "pending",
+      ratedCount: 8,
+      totalCount: 15,
+    },
+  ],
+};
+
+export const DEMO_SUBJECT_RATINGS_DATA = {
+  students: DEMO_STUDENTS.map((st, idx) => ({
+    _id: st._id,
+    name: st.name,
+    rollNumber: st.rollNumber,
+    profilePhoto: st.profilePhoto,
+    rating: {
+      classEngagement: [5, 4, 5, 4, 5, 3, 4, 4, 5, 3, 4, 4, 5, 3, 4][idx] || 4,
+      homeworkClasswork: [5, 5, 5, 4, 4, 4, 4, 4, 5, 4, 4, 3, 4, 4, 4][idx] || 4,
+      behaviourSocial: [5, 5, 5, 5, 5, 4, 5, 4, 5, 4, 5, 4, 5, 4, 4][idx] || 5,
+      englishComm: [4, 4, 5, 4, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4][idx] || 4,
+    },
+  })),
+};
+
+export const DEMO_ADMIN_RATINGS_SUMMARY = {
+  schoolAverage: 4.42,
+  totalStudentsRated: 420,
+  totalStudents: 450,
+  schoolCriteriaAverages: {
+    classEngagement: 4.35,
+    homeworkClasswork: 4.45,
+    behaviourSocial: 4.60,
+    englishComm: 4.28,
+  },
+  classes: [
+    {
+      classId: "550e8400e29b41d4a716446655440001",
+      className: "3rd Standard A",
+      overallAverage: 4.52,
+      ratedCount: 15,
+      totalCount: 15,
+      avgClassEngagement: 4.5,
+      avgHomeworkClasswork: 4.6,
+      avgBehaviourSocial: 4.7,
+      avgEnglishComm: 4.3,
+    },
+    {
+      classId: "550e8400e29b41d4a716446655440002",
+      className: "3rd Standard B",
+      overallAverage: 4.38,
+      ratedCount: 16,
+      totalCount: 16,
+      avgClassEngagement: 4.2,
+      avgHomeworkClasswork: 4.4,
+      avgBehaviourSocial: 4.6,
+      avgEnglishComm: 4.3,
+    },
+    {
+      classId: "550e8400e29b41d4a716446655440003",
+      className: "1st Standard A",
+      overallAverage: 4.48,
+      ratedCount: 18,
+      totalCount: 18,
+      avgClassEngagement: 4.4,
+      avgHomeworkClasswork: 4.5,
+      avgBehaviourSocial: 4.7,
+      avgEnglishComm: 4.3,
+    },
+    {
+      classId: "550e8400e29b41d4a716446655440004",
+      className: "2nd Standard A",
+      overallAverage: 4.40,
+      ratedCount: 19,
+      totalCount: 19,
+      avgClassEngagement: 4.3,
+      avgHomeworkClasswork: 4.4,
+      avgBehaviourSocial: 4.6,
+      avgEnglishComm: 4.3,
+    },
+  ],
+};
+
+export const DEMO_CLASS_RATINGS_SUMMARY = {
+  classId: "550e8400e29b41d4a716446655440001",
+  className: "3rd Standard A",
+  students: DEMO_STUDENTS.map((st, idx) => {
+    const averages = [4.75, 4.5, 5.0, 4.25, 4.5, 3.5, 4.25, 3.75, 4.75, 3.5, 4.25, 3.5, 4.5, 3.5, 4.0];
+    const avg = averages[idx] || 4.25;
+    return {
+      student: st,
+      overallAverage: avg,
+      ratings: {
+        classEngagement: [5, 4, 5, 4, 5, 3, 4, 4, 5, 3, 4, 4, 5, 3, 4][idx] || 4,
+        homeworkClasswork: [5, 5, 5, 4, 4, 4, 4, 4, 5, 4, 4, 3, 4, 4, 4][idx] || 4,
+        behaviourSocial: [5, 5, 5, 5, 5, 4, 5, 4, 5, 4, 5, 4, 5, 4, 4][idx] || 5,
+        englishComm: [4, 4, 5, 4, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4][idx] || 4,
+      },
+    };
+  }),
+};
+
+export const DEMO_MOVERS_DATA = {
+  improving: [
+    {
+      student: DEMO_STUDENTS[0],
+      currentAverage: 4.75,
+      previousAverage: 4.25,
+      delta: "+0.50",
+      strongestArea: "English Communication",
+    },
+    {
+      student: DEMO_STUDENTS[2],
+      currentAverage: 5.0,
+      previousAverage: 4.6,
+      delta: "+0.40",
+      strongestArea: "Class Engagement",
+    },
+    {
+      student: DEMO_STUDENTS[4],
+      currentAverage: 4.5,
+      previousAverage: 4.15,
+      delta: "+0.35",
+      strongestArea: "Homework & Classwork",
+    },
+  ],
+  declining: [
+    {
+      student: DEMO_STUDENTS[5],
+      currentAverage: 3.5,
+      previousAverage: 3.85,
+      delta: "-0.35",
+      focusArea: "English Communication",
+    },
+  ],
+};
+
+export const DEMO_RATINGS_TRACKER = {
+  overall: { total: 12, completed: 11, pending: 1 },
+  teachers: [
+    {
+      teacher: { _id: "770e8400e29b41d4a716446655440010", name: "Mrs. Savita Patil", designation: "Kannada & Math Teacher" },
+      total: 2,
+      completed: 2,
+      pending: 0,
+      status: "completed",
+    },
+    {
+      teacher: { _id: "770e8400e29b41d4a716446655440011", name: "Mr. Abdul Nadaf", designation: "Mathematics Teacher" },
+      total: 2,
+      completed: 2,
+      pending: 0,
+      status: "completed",
+    },
+    {
+      teacher: { _id: "770e8400e29b41d4a716446655440012", name: "Ms. Mary D'Souza", designation: "English Teacher" },
+      total: 2,
+      completed: 2,
+      pending: 0,
+      status: "completed",
+    },
+    {
+      teacher: { _id: "770e8400e29b41d4a716446655440013", name: "Mr. Basavaraj Kulkarni", designation: "Science Teacher" },
+      total: 2,
+      completed: 1,
+      pending: 1,
+      status: "in_progress",
+    },
+  ],
+};
+
+// 25. Teacher Subject Matrix (/teachers/admin/teacher-subject-matrix)
+export const DEMO_TEACHER_SUBJECT_MATRIX = {
+  teachers: [
+    {
+      _id: "770e8400e29b41d4a716446655440010",
+      name: "Mrs. Savita Patil",
+      designation: "Class Teacher - 3A",
+      assignedSubjects: [
+        { _id: "760e8400e29b41d4a716446655440003", name: "Kannada", className: "3rd Standard A" },
+        { _id: "760e8400e29b41d4a716446655440006", name: "Mathematics", className: "3rd Standard A" },
+      ],
+    },
+    {
+      _id: "770e8400e29b41d4a716446655440011",
+      name: "Mr. Abdul Nadaf",
+      designation: "Mathematics Teacher",
+      assignedSubjects: [
+        { _id: "760e8400e29b41d4a716446655440006", name: "Mathematics", className: "4th Standard A" },
+      ],
+    },
+    {
+      _id: "770e8400e29b41d4a716446655440012",
+      name: "Ms. Mary D'Souza",
+      designation: "English Teacher",
+      assignedSubjects: [
+        { _id: "760e8400e29b41d4a716446655440004", name: "English", className: "3rd Standard A" },
+      ],
+    },
+    {
+      _id: "770e8400e29b41d4a716446655440013",
+      name: "Mr. Basavaraj Kulkarni",
+      designation: "Science & EVS Teacher",
+      assignedSubjects: [
+        { _id: "760e8400e29b41d4a716446655440007", name: "EVS", className: "3rd Standard A" },
+      ],
+    },
+  ],
+  subjects: DEMO_CLASS_DETAILS.subjects.map((sub) => ({
+    ...sub,
+    class: { _id: DEMO_CLASS_ID, name: "3", section: "A", label: "3rd Standard A" },
+  })),
+};
+
+// 26. Daily Reminders & Cron Logs (/notifications/cron-logs)
+export const DEMO_CRON_LOGS = {
+  logs: [
+    {
+      _id: "cron_001",
+      jobName: "Morning Attendance Notification",
+      status: "success",
+      triggeredAt: "2026-10-06T09:30:00.000Z",
+      recipientsCount: 420,
+      details: "Sent SMS & Push alerts to parents of present & absent students.",
+    },
+    {
+      _id: "cron_002",
+      jobName: "Pending Fee Reminder",
+      status: "success",
+      triggeredAt: "2026-10-05T10:00:00.000Z",
+      recipientsCount: 38,
+      details: "Sent automated Term 1 fee due reminders via WhatsApp & SMS.",
+    },
+    {
+      _id: "cron_003",
+      jobName: "Student Birthday Greetings",
+      status: "success",
+      triggeredAt: "2026-10-05T08:00:00.000Z",
+      recipientsCount: 2,
+      details: "Dispatched birthday greeting cards on School Vibes feed.",
+    },
+  ],
+};
+
+// 27. Admin Init Fixture (/classes/admin/init)
+export const DEMO_ADMIN_INIT = {
+  classes: DEMO_CLASSES,
+  academicYears: DEMO_ACADEMIC_YEARS,
+};
+
+// 28. Subjects Fixture (/subjects)
+export const DEMO_SUBJECTS = DEMO_CLASS_DETAILS.subjects;
+
+// 29. Admin Vibes Moderation Fixture (/vibes/admin/moderation & /vibes)
+export const DEMO_VIBES_POSTS = [
+  {
+    _id: "vibe_001",
+    author: {
+      _id: "770e8400e29b41d4a716446655440010",
+      name: "Mrs. Savita Patil",
+      role: "teacher",
+      designation: "Head of Arts & Culture",
+      profilePhoto:
+        "https://api.dicebear.com/7.x/avataaars/png?seed=Savita&gender=female",
+      phone: "+91 98765 43210",
+    },
+    title: "State Level Drawing Competition Winners!",
+    caption:
+      "Hearty congratulations to our young artists from Grade 9 & 10 who bagged top honors at the Belagavi Division Art Festival! 🎨✨ Proud moment for Shri Guru Vidyapeeth!",
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1544717305-2782549b5136?w=1080&auto=format&fit=crop&q=80",
+        type: "image",
+        aspectRatio: 1.33,
+        width: 1080,
+        height: 810,
+      },
+      {
+        url: "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=1080&auto=format&fit=crop&q=80",
+        type: "image",
+        aspectRatio: 1.33,
+        width: 1080,
+        height: 810,
+      },
+    ],
+    category: "achievement",
+    status: "approved",
+    location: "Kala Bhavan, Belagavi",
+    tags: ["#ArtCompetition", "#StateWinners", "#ProudMoment"],
+    likesCount: 148,
+    commentsCount: 12,
+    viewsCount: 624,
+    sharesCount: 18,
+    isLiked: false,
+    isBookmarked: false,
+    isPinned: true,
+    isSpotlight: true,
+    isVisibleToDemo: true,
+    createdAt: "2026-10-05T10:00:00.000Z",
+    reviewedBy: { name: "Dr. Arvind Rao", role: "admin" },
+    reviewedAt: "2026-10-05T10:30:00.000Z",
+  },
+  {
+    _id: "vibe_002",
+    author: {
+      _id: "770e8400e29b41d4a716446655440017",
+      name: "Mr. Suresh Meti",
+      role: "teacher",
+      designation: "Physical Education Director",
+      profilePhoto:
+        "https://api.dicebear.com/7.x/avataaars/png?seed=Suresh&gender=male",
+      phone: "+91 98765 43217",
+    },
+    title: "Inter-House Kho-Kho Championship Finals",
+    caption:
+      "Thrilling contest today between Chalukya and Hoysala houses! Hoysala house clinched the trophy in extra time with brilliant defense tactics. 🏆🏃‍♂️",
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1080&auto=format&fit=crop&q=80",
+        type: "image",
+        aspectRatio: 1.33,
+        width: 1080,
+        height: 810,
+      },
+    ],
+    category: "sports",
+    status: "pending",
+    location: "School Sports Complex",
+    tags: ["#KhoKho", "#SportsDay", "#HouseChampionship"],
+    likesCount: 0,
+    commentsCount: 0,
+    viewsCount: 42,
+    sharesCount: 0,
+    isLiked: false,
+    isBookmarked: false,
+    isPinned: false,
+    isSpotlight: false,
+    isVisibleToDemo: true,
+    createdAt: "2026-10-06T14:30:00.000Z",
+  },
+  {
+    _id: "vibe_003",
+    author: {
+      _id: "660e8400e29b41d4a716446655440003",
+      name: "Aarav Kulkarni",
+      role: "student",
+      designation: "Grade 10-A Student",
+      profilePhoto:
+        "https://api.dicebear.com/7.x/avataaars/png?seed=Aarav&gender=male",
+      phone: "+91 98765 43214",
+    },
+    title: "Science Fair Working Model - Smart Irrigation",
+    caption:
+      "Presented our IoT-based automated soil moisture detection system at the annual district science fair! Huge thanks to our Physics faculty for guiding us. 🤖🌱",
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=1080&auto=format&fit=crop&q=80",
+        type: "image",
+        aspectRatio: 1.33,
+        width: 1080,
+        height: 810,
+      },
+    ],
+    category: "academic",
+    status: "approved",
+    location: "Main Auditorium",
+    tags: ["#ScienceFair", "#Innovation", "#IoTProject"],
+    likesCount: 89,
+    commentsCount: 8,
+    viewsCount: 410,
+    sharesCount: 14,
+    isLiked: true,
+    isBookmarked: true,
+    isPinned: false,
+    isSpotlight: false,
+    isVisibleToDemo: true,
+    createdAt: "2026-10-04T11:20:00.000Z",
+    reviewedBy: { name: "Dr. Arvind Rao", role: "admin" },
+    reviewedAt: "2026-10-04T12:00:00.000Z",
+  },
+  {
+    _id: "vibe_004",
+    author: {
+      _id: "660e8400e29b41d4a716446655440004",
+      name: "Pooja Hegde",
+      role: "student",
+      designation: "Grade 10-B Student",
+      profilePhoto:
+        "https://api.dicebear.com/7.x/avataaars/png?seed=Pooja&gender=female",
+      phone: "+91 98765 43215",
+    },
+    title: "Casual campus hallway clip",
+    caption: "Rough draft testing clip during lunch break.",
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1080&auto=format&fit=crop&q=80",
+        type: "image",
+        aspectRatio: 1.33,
+        width: 1080,
+        height: 810,
+      },
+    ],
+    category: "general",
+    status: "rejected",
+    location: "Junior Quad",
+    tags: ["#CampusLife"],
+    likesCount: 0,
+    commentsCount: 0,
+    viewsCount: 5,
+    sharesCount: 0,
+    isLiked: false,
+    isBookmarked: false,
+    isPinned: false,
+    isSpotlight: false,
+    isVisibleToDemo: false,
+    rejectionReason: "Incomplete description / Guidelines",
+    reviewedBy: { name: "Dr. Arvind Rao", role: "admin" },
+    reviewedAt: "2026-10-05T09:15:00.000Z",
+    createdAt: "2026-10-04T16:00:00.000Z",
+  },
+];
+
+export const DEMO_VIBES_COMMENTS = [
+  {
+    _id: "comm_001",
+    vibeId: "vibe_001",
+    user: {
+      _id: "660e8400e29b41d4a716446655440002",
+      name: "Dr. Arvind Rao",
+      role: "admin",
+      profilePhoto:
+        "https://api.dicebear.com/7.x/avataaars/png?seed=Arvind&gender=male",
+    },
+    author: {
+      _id: "660e8400e29b41d4a716446655440002",
+      name: "Dr. Arvind Rao",
+      role: "admin",
+      profilePhoto:
+        "https://api.dicebear.com/7.x/avataaars/png?seed=Arvind&gender=male",
+    },
+    text: "Remarkable achievement! The entire school management is proud of our talented students and the dedication of Mrs. Savita.",
+    content:
+      "Remarkable achievement! The entire school management is proud of our talented students and the dedication of Mrs. Savita.",
+    likesCount: 14,
+    isLiked: false,
+    isSchoolOfficial: true,
+    createdAt: "2026-10-05T11:00:00.000Z",
+  },
+  {
+    _id: "comm_002",
+    vibeId: "vibe_001",
+    user: {
+      _id: "660e8400e29b41d4a716446655440001",
+      name: "Harshika Patil",
+      role: "student",
+      profilePhoto:
+        "https://api.dicebear.com/7.x/avataaars/png?seed=Harshika&gender=female",
+    },
+    author: {
+      _id: "660e8400e29b41d4a716446655440001",
+      name: "Harshika Patil",
+      role: "student",
+      profilePhoto:
+        "https://api.dicebear.com/7.x/avataaars/png?seed=Harshika&gender=female",
+    },
+    text: "Congratulations everyone! Outstanding work on the paintings 👏🎨",
+    content:
+      "Congratulations everyone! Outstanding work on the paintings 👏🎨",
+    likesCount: 5,
+    isLiked: true,
+    isSchoolOfficial: false,
+    createdAt: "2026-10-05T12:30:00.000Z",
+  },
+];
+
+// 30. All Users for Admin User Management (/users)
+export const DEMO_ALL_USERS = [
+  {
+    ...DEMO_ADMIN_USER,
+    profilePhoto: DEMO_ADMIN_USER.profileImage,
+    employeeId: "EMP-0002",
+  },
+  {
+    ...DEMO_TEACHER_USER,
+    profilePhoto: DEMO_TEACHER_USER.profileImage,
+    employeeId: "EMP-0101",
+  },
+  ...DEMO_STAFF_LIST.map((s) => ({
+    ...s.user,
+    email: `${s.user.name.toLowerCase().replace(/[^a-z]/g, "")}@demo.com`,
+  })).filter(
+    (u) =>
+      u._id !== DEMO_TEACHER_USER._id && u._id !== DEMO_ADMIN_USER._id
+  ),
+  ...DEMO_STUDENTS.map((st) => ({
+    role: "student",
+    ...st,
+  })),
+];
 

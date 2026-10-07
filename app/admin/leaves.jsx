@@ -923,7 +923,7 @@ export default function AdminLeaves() {
             {roleFilter !== "all" && (
               <View style={[styles.activeFilterPill, { backgroundColor: colors.secondaryContainer }]}>
                 <Text style={[styles.activeFilterText, { color: colors.onSecondaryContainer }]} numberOfLines={1}>
-                  Role: {roleFilter.toUpperCase()}
+                  Role: {String(roleFilter || "").toUpperCase()}
                 </Text>
                 <TouchableOpacity onPress={() => setRoleFilter("all")}>
                   <Ionicons name="close" size={14} color={colors.onSecondaryContainer} />
@@ -1088,7 +1088,7 @@ export default function AdminLeaves() {
                   </Text>
                 </View>
               )}
-              keyExtractor={(item) => item._id}
+              keyExtractor={(item, index) => item?._id || `req-sec-${index}`}
               contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
               refreshControl={
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
@@ -1108,7 +1108,7 @@ export default function AdminLeaves() {
               data={filteredRequests}
               renderItem={renderRequestCard}
               ListHeaderComponent={renderListHeader}
-              keyExtractor={(item) => item._id}
+              keyExtractor={(item, index) => item?._id || `req-${index}`}
               contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
               refreshControl={
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
@@ -1196,7 +1196,7 @@ export default function AdminLeaves() {
             <FlatList
               data={dailyLeaves}
               renderItem={renderDailyCard}
-              keyExtractor={(item) => item._id}
+              keyExtractor={(item, index) => item?._id || `daily-leave-${index}`}
               contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
               refreshControl={
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
@@ -1262,7 +1262,7 @@ export default function AdminLeaves() {
             <FlatList
               data={myLeaves}
               renderItem={renderMyLeaveCard}
-              keyExtractor={(item) => item._id}
+              keyExtractor={(item, index) => item?._id || `my-leave-${index}`}
               contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
               refreshControl={
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />

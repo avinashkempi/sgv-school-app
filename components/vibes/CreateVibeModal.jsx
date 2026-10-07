@@ -112,6 +112,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
   const [location, setLocation] = useState("");
   const [postAs, setPostAs] = useState(isAdmin ? "school" : "self");
   const [isSpotlight, setIsSpotlight] = useState(false);
+  const [isVisibleToDemo, setIsVisibleToDemo] = useState(false);
   const [images, setImages] = useState([]);
   const [submitting, setSubmitting] = useState(false);
 
@@ -158,6 +159,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
         const initialLocation = editVibe.location || "";
         const initialPostAs = editVibe.postAs || (isAdmin ? "school" : "self");
         const initialSpotlight = Boolean(editVibe.isSpotlight);
+        const initialVisibleToDemo = Boolean(editVibe.isVisibleToDemo);
 
         const initialMedia = (editVibe.images || []).map((img) => {
           const rawUrl = typeof img === "string" ? img : img?.url || "";
@@ -187,6 +189,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
         setLocation(initialLocation);
         setPostAs(initialPostAs);
         setIsSpotlight(initialSpotlight);
+        setIsVisibleToDemo(initialVisibleToDemo);
         setImages(initialMedia);
 
         initialValuesRef.current = {
@@ -195,6 +198,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
           location: initialLocation,
           postAs: initialPostAs,
           isSpotlight: initialSpotlight,
+          isVisibleToDemo: initialVisibleToDemo,
           imagesLength: initialMedia.length,
         };
         isInitializedRef.current = true;
@@ -223,6 +227,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
 
         setPostAs(isAdmin ? "school" : "self");
         setIsSpotlight(false);
+        setIsVisibleToDemo(false);
         setImages([]);
 
         initialValuesRef.current = {
@@ -231,6 +236,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
           location: "",
           postAs: isAdmin ? "school" : "self",
           isSpotlight: false,
+          isVisibleToDemo: false,
           imagesLength: 0,
         };
         isInitializedRef.current = true;
@@ -289,6 +295,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
       images.some((img) => img.localUri || img.uploading);
     const postAsChanged = isAdmin && postAs !== init.postAs;
     const spotlightChanged = isAdmin && isSpotlight !== init.isSpotlight;
+    const demoChanged = isAdmin && isVisibleToDemo !== init.isVisibleToDemo;
 
     return (
       captionChanged ||
@@ -296,7 +303,8 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
       locationChanged ||
       imagesChanged ||
       postAsChanged ||
-      spotlightChanged
+      spotlightChanged ||
+      demoChanged
     );
   }, [
     visible,
@@ -308,6 +316,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
     isAdmin,
     postAs,
     isSpotlight,
+    isVisibleToDemo,
   ]);
 
   const handleClose = useCallback(() => {
@@ -628,7 +637,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
         location: location.trim(),
         postAs: isAdmin ? postAs : "self",
         images: finalImages,
-        ...(isAdmin ? { isSpotlight } : {}),
+        ...(isAdmin ? { isSpotlight, isVisibleToDemo } : {}),
       };
 
       const url = isEditing
@@ -717,6 +726,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
     isAdmin,
     postAs,
     isSpotlight,
+    isVisibleToDemo,
     isEditing,
     editVibe,
     showToast,
@@ -1051,6 +1061,75 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                     name={isSpotlight ? "toggle-on" : "toggle-off"}
                     size={36}
                     color={isSpotlight ? "#D97706" : colors.onSurfaceVariant}
+                  />
+                </Pressable>
+              </View>
+            )}
+
+            {/* Admin Visible to Demo Users Toggle */}
+            {isAdmin && (
+              <View style={styles.section}>
+                <Pressable
+                  onPress={() => {
+                    Haptics.impactAsync(
+                      Haptics.ImpactFeedbackStyle.Light
+                    ).catch(() => {});
+                    setIsVisibleToDemo((prev) => !prev);
+                  }}
+                  style={[
+                    styles.spotlightToggleCard,
+                    {
+                      backgroundColor: isVisibleToDemo
+                        ? "#ECFDF5"
+                        : colors.surfaceContainerHighest,
+                      borderColor: isVisibleToDemo
+                        ? "#10B981"
+                        : colors.outlineVariant || "transparent",
+                    },
+                  ]}
+                  accessibilityRole="switch"
+                  accessibilityState={{ checked: isVisibleToDemo }}
+                >
+                  <View
+                    style={[
+                      styles.spotlightIconWrap,
+                      {
+                        backgroundColor: isVisibleToDemo
+                          ? "#A7F3D0"
+                          : colors.surfaceContainer,
+                      },
+                    ]}
+                  >
+                    <MaterialIcons
+                      name={isVisibleToDemo ? "public" : "public-off"}
+                      size={20}
+                      color={isVisibleToDemo ? "#059669" : colors.onSurfaceVariant}
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={[
+                        styles.spotlightToggleTitle,
+                        {
+                          color: isVisibleToDemo ? "#047857" : colors.onSurface,
+                        },
+                      ]}
+                    >
+                      Visible to Demo Users
+                    </Text>
+                    <Text
+                      style={[
+                        styles.spotlightToggleSub,
+                        { color: colors.onSurfaceVariant },
+                      ]}
+                    >
+                      Allow non-logged-in demo visitors to view this vibe in the feed
+                    </Text>
+                  </View>
+                  <MaterialIcons
+                    name={isVisibleToDemo ? "toggle-on" : "toggle-off"}
+                    size={36}
+                    color={isVisibleToDemo ? "#059669" : colors.onSurfaceVariant}
                   />
                 </Pressable>
               </View>

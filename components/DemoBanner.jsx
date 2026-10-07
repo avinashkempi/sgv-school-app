@@ -10,7 +10,6 @@ const ROLES = [
   { id: "student", label: "Student", desc: "Harshika Patil • Class 3A", icon: "school" },
   { id: "teacher", label: "Teacher", desc: "Mrs. Savita Patil • Kannada & Math", icon: "person" },
   { id: "admin", label: "School Admin", desc: "Mr. Rajesh Biradar • Vice Principal", icon: "admin-panel-settings" },
-  { id: "super admin", label: "Super Admin", desc: "Dr. Sangamesh Patil • Management", icon: "shield" },
 ];
 
 export default function DemoBanner() {
@@ -39,13 +38,9 @@ export default function DemoBanner() {
   };
 
   const userRole = (user?.role || "student").toLowerCase();
-  const roleLabel =
-    userRole === "super admin" || userRole === "super-admin"
-      ? "SUPER ADMIN"
-      : userRole.toUpperCase();
+  const roleLabel = userRole === "admin" ? "ADMIN" : userRole.toUpperCase();
 
   const getRoleIcon = () => {
-    if (userRole.includes("super")) return "shield";
     if (userRole === "admin") return "admin-panel-settings";
     if (userRole === "teacher" || userRole === "staff") return "person";
     return "school";

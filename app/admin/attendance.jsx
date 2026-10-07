@@ -1444,7 +1444,7 @@ export default function AdminAttendance() {
                       <FlatList
                         style={{ flex: 1 }}
                         data={localStudentAttendance}
-                        keyExtractor={(item) => item.student._id}
+                        keyExtractor={(item, index) => item?.student?._id || item?._id || `student-${index}`}
                         renderItem={({ item, index }) => {
                           const statusColor = item.status
                             ? getStatusColor(item.status)
@@ -1864,7 +1864,7 @@ export default function AdminAttendance() {
                     style={{ flex: 1 }}
                     data={localStaffList}
                     renderItem={renderStaffItem}
-                    keyExtractor={(item) => item.user._id}
+                    keyExtractor={(item, index) => item?.user?._id || item?._id || `staff-${index}`}
                     contentContainerStyle={styles.listContent}
                     refreshControl={
                       <AppRefreshControl

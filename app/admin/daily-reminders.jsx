@@ -718,7 +718,7 @@ export default function DailyRemindersScreen() {
                   <View style={styles.logItemHeader}>
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                       <Text style={[styles.logJobName, { color: colors.onSurface }]}>
-                        {log.jobName.replace(/_/g, " ").toUpperCase()}
+                        {String(log.jobName || "JOB").replace(/_/g, " ").toUpperCase()}
                       </Text>
                       <View
                         style={[
@@ -754,7 +754,7 @@ export default function DailyRemindersScreen() {
                       ]}
                     >
                       <Text style={[styles.statusPillText, { color: statusColor }]}>
-                        {log.status.toUpperCase()}
+                        {String(log.status || "SUCCESS").toUpperCase()}
                       </Text>
                     </View>
                   </View>

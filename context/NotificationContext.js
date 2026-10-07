@@ -16,12 +16,11 @@ const NotificationContext = createContext();
 
 export const NotificationProvider = ({ children }) => {
   const queryClient = useQueryClient();
-  // eslint-disable-next-line no-unused-vars
   const { isAuthenticated, isDemo, userId } = useAuth();
 
   // ── Fetch notifications via React Query ──
   // Query key is scoped to userId so different users don't see each other's notifications.
-  // Disabled when not authenticated (prevents 401 on login screen).
+  // Enabled for authenticated users and demo users with active persona.
   const {
     data: notificationData,
     refetch,
@@ -32,8 +31,7 @@ export const NotificationProvider = ({ children }) => {
     `${apiConfig.baseUrl}/notifications`,
     {
       ...CACHE_TIERS.REAL_TIME,
-      // Only fetch when authenticated (not demo, not logged out)
-      enabled: isAuthenticated && !!userId,
+      enabled: (isAuthenticated || isDemo) && !!userId,
     }
   );
 
