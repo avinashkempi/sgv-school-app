@@ -278,9 +278,9 @@ function BottomNavigation() {
         {
           backgroundColor:
             Platform.OS === "android"
-              ? colors.surfaceContainer
+              ? (mode === "dark" ? "#000000" : colors.surfaceContainer)
               : mode === "dark"
-              ? "rgba(33, 31, 38, 0.95)"
+              ? "rgba(0, 0, 0, 0.96)"
               : "rgba(243, 237, 247, 0.95)",
           paddingBottom: Math.max(insets.bottom, 6),
           borderTopColor: colors.outlineVariant || "rgba(0,0,0,0.06)",

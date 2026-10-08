@@ -287,7 +287,9 @@ export default function AcademicYearsScreen() {
                   color: colors.onSurface,
                 }}
               >
-                {new Date(year.startDate).toLocaleDateString()}
+                {year.startDate && !isNaN(new Date(year.startDate).getTime())
+                  ? new Date(year.startDate).toLocaleDateString()
+                  : "N/A"}
               </Text>
             </View>
             <View style={{ flex: 1 }}>
@@ -308,7 +310,9 @@ export default function AcademicYearsScreen() {
                   color: colors.onSurface,
                 }}
               >
-                {new Date(year.endDate).toLocaleDateString()}
+                {year.endDate && !isNaN(new Date(year.endDate).getTime())
+                  ? new Date(year.endDate).toLocaleDateString()
+                  : "N/A"}
               </Text>
             </View>
           </View>

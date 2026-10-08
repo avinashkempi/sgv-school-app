@@ -412,9 +412,13 @@ export default function ClassesScreen() {
 
               <TextInput
                 placeholder="Class Name (e.g. 1st Standard)"
-                placeholderTextColor={colors.textSecondary}
+                placeholderTextColor={
+                  colors.placeholder || colors.textSecondary
+                }
                 style={{
-                  backgroundColor: colors.background,
+                  backgroundColor: colors.fieldBackground || colors.background,
+                  borderWidth: 1.5,
+                  borderColor: colors.fieldBorder || colors.border,
                   padding: 12,
                   borderRadius: 8,
                   color: colors.textPrimary,
@@ -426,9 +430,13 @@ export default function ClassesScreen() {
 
               <TextInput
                 placeholder="Section (Optional, e.g. A)"
-                placeholderTextColor={colors.textSecondary}
+                placeholderTextColor={
+                  colors.placeholder || colors.textSecondary
+                }
                 style={{
-                  backgroundColor: colors.background,
+                  backgroundColor: colors.fieldBackground || colors.background,
+                  borderWidth: 1.5,
+                  borderColor: colors.fieldBorder || colors.border,
                   padding: 12,
                   borderRadius: 8,
                   color: colors.textPrimary,

@@ -710,7 +710,7 @@ const VibeCard = ({
             <Text style={[styles.likesDetailedText, { color: colors.onSurface }]}>
               {likesCount > 0 ? (
                 <Text style={{ fontFamily: FONTS.bold }}>
-                  {likesCount.toLocaleString()}{" "}
+                  {(likesCount ?? 0).toLocaleString()}{" "}
                   {likesCount === 1 ? "person liked" : "people liked"}
                 </Text>
               ) : (

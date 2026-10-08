@@ -34,7 +34,7 @@ import { useAcademicYear } from "../../context/AcademicYearContext";
 export default function StudentLeaves() {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { t } = useLabel();
   const { user, userId: authUserId } = useAuth();
   const userId = user?.id || user?._id || authUserId;
@@ -951,10 +951,19 @@ export default function StudentLeaves() {
                 <TextInput
                   style={[
                     styles.textArea,
-                    { backgroundColor: colors.surfaceContainer, color: colors.onSurface },
+                    {
+                      backgroundColor: isDark
+                        ? (colors.fieldBackground || "#000000")
+                        : colors.surfaceContainer,
+                      color: colors.textPrimary || colors.onSurface,
+                      borderColor: isDark
+                        ? (colors.fieldBorder || "#2C2C32")
+                        : "transparent",
+                      borderWidth: isDark ? 1.5 : 0,
+                    },
                   ]}
                   placeholder="Explain why you are requesting leave..."
-                  placeholderTextColor={colors.onSurfaceVariant + "80"}
+                  placeholderTextColor={colors.placeholder || colors.onSurfaceVariant + "80"}
                   value={reason}
                   onChangeText={setReason}
                   multiline

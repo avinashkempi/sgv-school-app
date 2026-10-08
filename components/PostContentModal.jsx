@@ -564,17 +564,18 @@ export default function PostContentModal({
                     ? "e.g. Chapter 4 Exercises - Pg 45-48"
                     : "e.g. Chapter 4 Practice Sheet & Slides"
                 }
-                placeholderTextColor={colors.onSurfaceVariant + "80"}
+                placeholderTextColor={colors.placeholder || colors.onSurfaceVariant + "80"}
                 style={[
                   localStyles.textInput,
                   {
                     backgroundColor: isDark
-                      ? colors.surfaceContainerLowest
+                      ? (colors.fieldBackground || "#000000")
                       : colors.surfaceContainerLow,
                     borderColor: isDark
-                      ? colors.outlineVariant
+                      ? (colors.fieldBorder || colors.outlineVariant)
                       : "rgba(0,0,0,0.1)",
-                    color: colors.onSurface,
+                    borderWidth: 1.5,
+                    color: colors.textPrimary || colors.onSurface,
                   },
                 ]}
                 value={form.title}
@@ -598,7 +599,7 @@ export default function PostContentModal({
                     ? "Specify submission deadline, instructions, questions to complete..."
                     : "Write notes overview, learning objectives, or important remarks..."
                 }
-                placeholderTextColor={colors.onSurfaceVariant + "80"}
+                placeholderTextColor={colors.placeholder || colors.onSurfaceVariant + "80"}
                 multiline
                 numberOfLines={3}
                 style={[
@@ -606,12 +607,13 @@ export default function PostContentModal({
                   localStyles.textArea,
                   {
                     backgroundColor: isDark
-                      ? colors.surfaceContainerLowest
+                      ? (colors.fieldBackground || "#000000")
                       : colors.surfaceContainerLow,
                     borderColor: isDark
-                      ? colors.outlineVariant
+                      ? (colors.fieldBorder || colors.outlineVariant)
                       : "rgba(0,0,0,0.1)",
-                    color: colors.onSurface,
+                    borderWidth: 1.5,
+                    color: colors.textPrimary || colors.onSurface,
                   },
                 ]}
                 value={form.description}

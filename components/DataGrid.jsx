@@ -269,16 +269,16 @@ export default function DataGrid({
           style={{
             fontSize: FONT_SIZES.sm,
             fontFamily: FONTS.medium,
-            color: hasError ? colors.error : colors.onSurface,
+            color: hasError ? colors.error : colors.textPrimary || colors.onSurface,
             padding: 6,
             borderWidth: isEditing ? 2 : 1,
             borderColor: hasError
               ? colors.error
               : isEditing
               ? colors.primary
-              : colors.outline,
+              : colors.fieldBorder || colors.outline,
             borderRadius: 4,
-            backgroundColor: colors.surface,
+            backgroundColor: colors.fieldBackground || colors.surface,
             outlineStyle: "none", // Web only
           }}
           selectTextOnFocus

@@ -503,11 +503,13 @@ export default function MarksEntryScreen() {
                     style={[
                       localStyles.input,
                       {
-                        color: isOverMax ? colors.error : colors.onSurface,
-                        borderColor: isOverMax ? colors.error : colors.outlineVariant || colors.border,
+                        color: isOverMax ? colors.error : colors.textPrimary || colors.onSurface,
+                        borderColor: isOverMax
+                          ? colors.error
+                          : colors.fieldBorder || colors.outlineVariant || colors.border,
                         backgroundColor: isOverMax
                           ? colors.error + "12"
-                          : colors.surfaceVariant || "#F8FAFC",
+                          : colors.fieldBackground || colors.surfaceVariant || "#F8FAFC",
                         fontSize: FONT_SIZES.md,
                         fontFamily: FONTS.bold,
                       },

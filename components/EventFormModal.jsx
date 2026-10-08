@@ -254,19 +254,18 @@ export default function EventFormModal({
                   styles.textInput,
                   {
                     backgroundColor: isDark
-                      ? colors.surfaceContainerHigh
+                      ? (colors.fieldBackground || "#000000")
                       : "rgba(0,0,0,0.025)",
                     color: colors.textPrimary,
                     borderColor:
                       errors.title && touched.title
                         ? colors.error
-                        : colors.outlineVariant
-                        ? colors.outlineVariant + "40"
-                        : "rgba(0,0,0,0.12)",
+                        : colors.fieldBorder || (isDark ? "#2C2C32" : colors.outlineVariant),
+                    borderWidth: 1.5,
                   },
                 ]}
                 placeholder="e.g. Science Fair, Annual Day, Sports Meet"
-                placeholderTextColor={colors.textSecondary + "80"}
+                placeholderTextColor={colors.placeholder || colors.textSecondary + "80"}
                 value={title}
                 onChangeText={(text) => handleChange("title", text)}
                 onBlur={() => handleBlur("title", title)}
@@ -295,19 +294,18 @@ export default function EventFormModal({
                   styles.textArea,
                   {
                     backgroundColor: isDark
-                      ? colors.surfaceContainerHigh
+                      ? (colors.fieldBackground || "#000000")
                       : "rgba(0,0,0,0.025)",
                     color: colors.textPrimary,
                     borderColor:
                       errors.description && touched.description
                         ? colors.error
-                        : colors.outlineVariant
-                        ? colors.outlineVariant + "40"
-                        : "rgba(0,0,0,0.12)",
+                        : colors.fieldBorder || (isDark ? "#2C2C32" : colors.outlineVariant),
+                    borderWidth: 1.5,
                   },
                 ]}
                 placeholder="Add agenda, dress code, timings, or additional info..."
-                placeholderTextColor={colors.textSecondary + "80"}
+                placeholderTextColor={colors.placeholder || colors.textSecondary + "80"}
                 value={description}
                 onChangeText={(text) => handleChange("description", text)}
                 onBlur={() => handleBlur("description", description)}

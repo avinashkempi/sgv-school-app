@@ -821,12 +821,12 @@ export default function NotificationsScreen() {
                       backgroundColor: isSelected
                         ? colors.primary
                         : isDarkMode
-                        ? "rgba(255,255,255,0.05)"
+                        ? colors.surfaceContainer
                         : colors.surfaceContainerLow,
                       borderColor: isSelected
                         ? colors.primary
                         : isDarkMode
-                        ? "rgba(255,255,255,0.1)"
+                        ? colors.outlineVariant
                         : "rgba(0,0,0,0.08)",
                       transform: [{ scale: pressed ? 0.96 : 1 }],
                     },
@@ -835,14 +835,29 @@ export default function NotificationsScreen() {
                   <MaterialIcons
                     name={cat.icon}
                     size={14}
-                    color={isSelected ? "#FFFFFF" : colors.onSurfaceVariant}
+                    color={
+                      isSelected
+                        ? isDarkMode
+                          ? colors.onPrimary
+                          : "#FFFFFF"
+                        : isDarkMode
+                        ? "#D4D4D8"
+                        : colors.onSurfaceVariant
+                    }
                     style={{ marginRight: 6 }}
                   />
                   <Text
                     style={[
                       styles.filterChipText,
                       {
-                        color: isSelected ? "#FFFFFF" : colors.onSurfaceVariant,
+                        color:
+                          isSelected
+                            ? isDarkMode
+                              ? colors.onPrimary
+                              : "#FFFFFF"
+                            : isDarkMode
+                            ? "#D4D4D8"
+                            : colors.onSurfaceVariant,
                         fontFamily: isSelected
                           ? FONTS.bold
                           : FONTS.medium,

@@ -80,7 +80,8 @@ const uploadWithRetry = async (uploadFn, retries = 2) => {
  * 5. Instant draft persistence and reliable submission.
  */
 export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
-  const { colors } = useTheme();
+  const { colors, mode } = useTheme();
+  const isDark = mode === "dark";
   const { showToast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -1460,7 +1461,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
 
               <TextInput
                 placeholder="Write a caption for your vibe..."
-                placeholderTextColor={colors.onSurfaceVariant}
+                placeholderTextColor={colors.placeholder || colors.onSurfaceVariant}
                 value={caption}
                 onChangeText={setCaption}
                 onFocus={() => setIsCaptionFocused(true)}
@@ -1471,11 +1472,14 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                 style={[
                   styles.captionInput,
                   {
-                    backgroundColor: colors.surfaceContainerHighest,
-                    color: colors.onSurface,
+                    backgroundColor:
+                      colors.fieldBackground ||
+                      (isDark ? "#000000" : colors.surfaceContainerHighest),
+                    color: colors.textPrimary || colors.onSurface,
                     borderColor: isCaptionFocused
                       ? colors.primary
-                      : colors.outlineVariant || "transparent",
+                      : colors.fieldBorder || (isDark ? "#2C2C32" : colors.outlineVariant || "transparent"),
+                    borderWidth: 1.5,
                   },
                 ]}
               />
@@ -1530,22 +1534,25 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                 style={[
                   styles.locationInputWrapper,
                   {
-                    backgroundColor: colors.surfaceContainerHighest,
-                    borderColor: colors.outlineVariant || "transparent",
+                    backgroundColor:
+                      colors.fieldBackground ||
+                      (isDark ? "#000000" : colors.surfaceContainerHighest),
+                    borderColor: colors.fieldBorder || (isDark ? "#2C2C32" : colors.outlineVariant || "transparent"),
+                    borderWidth: 1.5,
                   },
                 ]}
               >
                 <MaterialIcons
                   name="place"
                   size={18}
-                  color={colors.onSurfaceVariant}
+                  color={colors.placeholder || colors.onSurfaceVariant}
                 />
                 <TextInput
                   placeholder="e.g. Main Auditorium, Library, Sports Ground"
-                  placeholderTextColor={colors.onSurfaceVariant}
+                  placeholderTextColor={colors.placeholder || colors.onSurfaceVariant}
                   value={location}
                   onChangeText={setLocation}
-                  style={[styles.locationInput, { color: colors.onSurface }]}
+                  style={[styles.locationInput, { color: colors.textPrimary || colors.onSurface }]}
                   maxLength={60}
                 />
               </View>

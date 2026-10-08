@@ -116,7 +116,7 @@ const SubjectMarkRow = memo(function SubjectMarkRow({
             ? colors.textSecondary + "20"
             : marks && marks !== defaultMarks
             ? colors.primary
-            : colors.textSecondary + "40",
+            : colors.fieldBorder || colors.textSecondary + "40",
           borderRadius: 8,
           paddingVertical: 5,
           textAlign: "center",
@@ -125,7 +125,7 @@ const SubjectMarkRow = memo(function SubjectMarkRow({
           fontFamily: FONTS.semiBold,
           backgroundColor: isExcluded
             ? colors.textSecondary + "08"
-            : colors.cardBackground,
+            : colors.fieldBackground || colors.cardBackground,
         }}
       />
     </View>
@@ -815,10 +815,15 @@ export default function AdminExamScheduleScreen() {
                   value={newRoom}
                   onChangeText={setNewRoom}
                   placeholder="e.g. Room 101"
-                  placeholderTextColor={colors.textSecondary + "80"}
+                  placeholderTextColor={
+                    colors.placeholder || colors.textSecondary + "80"
+                  }
                   style={{
-                    borderWidth: 1,
-                    borderColor: colors.textSecondary + "40",
+                    borderWidth: 1.5,
+                    borderColor:
+                      colors.fieldBorder || colors.textSecondary + "40",
+                    backgroundColor:
+                      colors.fieldBackground || colors.cardBackground,
                     borderRadius: 8,
                     padding: 10,
                     color: colors.textPrimary,
@@ -1164,16 +1169,20 @@ export default function AdminExamScheduleScreen() {
                   }}
                   keyboardType="numeric"
                   placeholder="100"
-                  placeholderTextColor={colors.textSecondary + "80"}
+                  placeholderTextColor={
+                    colors.placeholder || colors.textSecondary + "80"
+                  }
                   style={{
-                    backgroundColor: colors.cardBackground,
+                    backgroundColor:
+                      colors.fieldBackground || colors.cardBackground,
                     padding: 10,
                     borderRadius: 10,
                     color: colors.textPrimary,
                     fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.regular,
-                    borderWidth: 1,
-                    borderColor: colors.textSecondary + "20",
+                    borderWidth: 1.5,
+                    borderColor:
+                      colors.fieldBorder || colors.textSecondary + "20",
                   }}
                 />
               </View>
@@ -1343,16 +1352,20 @@ export default function AdminExamScheduleScreen() {
                   onChangeText={setInitDuration}
                   keyboardType="numeric"
                   placeholder="90"
-                  placeholderTextColor={colors.textSecondary + "80"}
+                  placeholderTextColor={
+                    colors.placeholder || colors.textSecondary + "80"
+                  }
                   style={{
-                    backgroundColor: colors.cardBackground,
+                    backgroundColor:
+                      colors.fieldBackground || colors.cardBackground,
                     padding: 10,
                     borderRadius: 10,
                     color: colors.textPrimary,
                     fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.regular,
-                    borderWidth: 1,
-                    borderColor: colors.textSecondary + "20",
+                    borderWidth: 1.5,
+                    borderColor:
+                      colors.fieldBorder || colors.textSecondary + "20",
                   }}
                 />
               </View>
@@ -1375,17 +1388,21 @@ export default function AdminExamScheduleScreen() {
                   multiline
                   numberOfLines={3}
                   placeholder="Enter instructions..."
-                  placeholderTextColor={colors.textSecondary + "80"}
+                  placeholderTextColor={
+                    colors.placeholder || colors.textSecondary + "80"
+                  }
                   textAlignVertical="top"
                   style={{
-                    backgroundColor: colors.cardBackground,
+                    backgroundColor:
+                      colors.fieldBackground || colors.cardBackground,
                     padding: 10,
                     borderRadius: 10,
                     color: colors.textPrimary,
                     fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.regular,
-                    borderWidth: 1,
-                    borderColor: colors.textSecondary + "20",
+                    borderWidth: 1.5,
+                    borderColor:
+                      colors.fieldBorder || colors.textSecondary + "20",
                     minHeight: 70,
                   }}
                 />

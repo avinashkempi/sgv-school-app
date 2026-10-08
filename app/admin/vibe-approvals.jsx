@@ -1971,7 +1971,9 @@ export default function VibeApprovalsScreen() {
                   {/* Custom Note TextInput */}
                   <TextInput
                     placeholder="Type custom feedback reason for the author..."
-                    placeholderTextColor={colors.onSurfaceVariant}
+                    placeholderTextColor={
+                      colors.placeholder || colors.onSurfaceVariant
+                    }
                     value={customReason}
                     onChangeText={setCustomReason}
                     multiline
@@ -1980,11 +1982,13 @@ export default function VibeApprovalsScreen() {
                     style={[
                       styles.customReasonInput,
                       {
-                        backgroundColor: colors.surfaceContainerHighest,
+                        backgroundColor:
+                          colors.fieldBackground || colors.surfaceContainerHighest,
                         color: colors.onSurface,
+                        borderWidth: 1.5,
                         borderColor: customReason.trim()
                           ? colors.primary
-                          : colors.outlineVariant,
+                          : colors.fieldBorder || colors.outlineVariant,
                       },
                     ]}
                   />

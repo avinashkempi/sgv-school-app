@@ -135,13 +135,13 @@ export default function ManageSubjectsScreen() {
           style={{
             flexDirection: "row",
             alignItems: "center",
-            backgroundColor: colors.cardBackground,
+            backgroundColor: colors.fieldBackground || colors.cardBackground,
             borderRadius: 12,
             paddingHorizontal: 16,
             height: 50,
             marginTop: 16,
-            borderWidth: 1,
-            borderColor: colors.border,
+            borderWidth: 1.5,
+            borderColor: colors.fieldBorder || colors.border,
           }}
         >
           <MaterialIcons name="search" size={22} color={colors.textSecondary} />
@@ -154,7 +154,7 @@ export default function ManageSubjectsScreen() {
               color: colors.textPrimary,
             }}
             placeholder="Search subjects..."
-            placeholderTextColor={colors.textSecondary}
+            placeholderTextColor={colors.placeholder || colors.textSecondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -374,16 +374,18 @@ export default function ManageSubjectsScreen() {
             </Text>
             <TextInput
               style={{
-                backgroundColor: colors.background,
+                backgroundColor: colors.fieldBackground || colors.background,
                 borderRadius: 12,
                 padding: 12,
                 fontSize: FONT_SIZES.sm,
                 fontFamily: FONTS.regular,
                 color: colors.textPrimary,
                 marginBottom: 16,
+                borderWidth: 1.5,
+                borderColor: colors.fieldBorder || colors.border,
               }}
               placeholder="e.g. Mathematics"
-              placeholderTextColor={colors.textSecondary}
+              placeholderTextColor={colors.placeholder || colors.textSecondary}
               value={form.name}
               onChangeText={(t) => setForm({ ...form, name: t })}
             />
@@ -400,16 +402,18 @@ export default function ManageSubjectsScreen() {
             </Text>
             <TextInput
               style={{
-                backgroundColor: colors.background,
+                backgroundColor: colors.fieldBackground || colors.background,
                 borderRadius: 12,
                 padding: 12,
                 fontSize: FONT_SIZES.sm,
                 fontFamily: FONTS.regular,
                 color: colors.textPrimary,
                 marginBottom: 16,
+                borderWidth: 1.5,
+                borderColor: colors.fieldBorder || colors.border,
               }}
               placeholder="e.g. MATH101"
-              placeholderTextColor={colors.textSecondary}
+              placeholderTextColor={colors.placeholder || colors.textSecondary}
               value={form.code}
               onChangeText={(t) => setForm({ ...form, code: t })}
               autoCapitalize="characters"

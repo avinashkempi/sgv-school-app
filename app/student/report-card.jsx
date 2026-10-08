@@ -185,11 +185,13 @@ export default function StudentReportCardScreen() {
                 selectedExamFilter === "ALL"
                   ? colors.primary
                   : isDark
-                  ? "rgba(255,255,255,0.06)"
+                  ? colors.surfaceContainer
                   : colors.surfaceContainerHigh,
               borderColor:
                 selectedExamFilter === "ALL"
                   ? colors.primary
+                  : isDark
+                  ? colors.outlineVariant
                   : "transparent",
             },
           ]}
@@ -201,7 +203,11 @@ export default function StudentReportCardScreen() {
               styles.filterChipText,
               {
                 color:
-                  selectedExamFilter === "ALL" ? "#FFFFFF" : colors.onSurface,
+                  selectedExamFilter === "ALL"
+                    ? isDark
+                      ? colors.onPrimary
+                      : "#FFFFFF"
+                    : colors.onSurface,
                 fontFamily:
                   selectedExamFilter === "ALL" ? FONTS.bold : FONTS.medium,
               },
@@ -222,10 +228,12 @@ export default function StudentReportCardScreen() {
                   backgroundColor: isSelected
                     ? colors.primary
                     : isDark
-                    ? "rgba(255,255,255,0.06)"
+                    ? colors.surfaceContainer
                     : colors.surfaceContainerHigh,
                   borderColor: isSelected
                     ? colors.primary
+                    : isDark
+                    ? colors.outlineVariant
                     : "transparent",
                 },
               ]}
@@ -238,6 +246,8 @@ export default function StudentReportCardScreen() {
                   {
                     backgroundColor: exam.isCompleted
                       ? colors.success
+                      : isDark
+                      ? "#71717A"
                       : colors.outline,
                   },
                 ]}
@@ -246,7 +256,11 @@ export default function StudentReportCardScreen() {
                 style={[
                   styles.filterChipText,
                   {
-                    color: isSelected ? "#FFFFFF" : colors.onSurface,
+                    color: isSelected
+                      ? isDark
+                        ? colors.onPrimary
+                        : "#FFFFFF"
+                      : colors.onSurface,
                     fontFamily: isSelected ? FONTS.bold : FONTS.medium,
                   },
                 ]}
@@ -1443,7 +1457,11 @@ export default function StudentReportCardScreen() {
         <View
           style={[
             styles.tabsContainer,
-            { backgroundColor: colors.surfaceContainerHigh },
+            {
+              backgroundColor: isDark ? "#141417" : colors.surfaceContainerHigh,
+              borderWidth: isDark ? 1 : 0,
+              borderColor: isDark ? colors.outlineVariant : "transparent",
+            },
           ]}
         >
           <TouchableOpacity
@@ -1464,14 +1482,28 @@ export default function StudentReportCardScreen() {
             <MaterialIcons
               name="fact-check"
               size={17}
-              color={activeTab === "exams" ? "#FFFFFF" : colors.onSurfaceVariant}
+              color={
+                activeTab === "exams"
+                  ? isDark
+                    ? colors.onPrimary
+                    : "#FFFFFF"
+                  : isDark
+                  ? "#D4D4D8"
+                  : colors.onSurfaceVariant
+              }
             />
             <Text
               style={[
                 styles.tabText,
                 {
                   color:
-                    activeTab === "exams" ? "#FFFFFF" : colors.onSurfaceVariant,
+                    activeTab === "exams"
+                      ? isDark
+                        ? colors.onPrimary
+                        : "#FFFFFF"
+                      : isDark
+                      ? "#D4D4D8"
+                      : colors.onSurfaceVariant,
                   fontFamily: activeTab === "exams" ? FONTS.bold : FONTS.medium,
                 },
               ]}
@@ -1499,7 +1531,13 @@ export default function StudentReportCardScreen() {
               name="analytics"
               size={17}
               color={
-                activeTab === "analytics" ? "#FFFFFF" : colors.onSurfaceVariant
+                activeTab === "analytics"
+                  ? isDark
+                    ? colors.onPrimary
+                    : "#FFFFFF"
+                  : isDark
+                  ? "#D4D4D8"
+                  : colors.onSurfaceVariant
               }
             />
             <Text
@@ -1508,7 +1546,11 @@ export default function StudentReportCardScreen() {
                 {
                   color:
                     activeTab === "analytics"
-                      ? "#FFFFFF"
+                      ? isDark
+                        ? colors.onPrimary
+                        : "#FFFFFF"
+                      : isDark
+                      ? "#D4D4D8"
                       : colors.onSurfaceVariant,
                   fontFamily:
                     activeTab === "analytics" ? FONTS.bold : FONTS.medium,
@@ -1538,7 +1580,13 @@ export default function StudentReportCardScreen() {
               name="psychology"
               size={17}
               color={
-                activeTab === "insights" ? "#FFFFFF" : colors.onSurfaceVariant
+                activeTab === "insights"
+                  ? isDark
+                    ? colors.onPrimary
+                    : "#FFFFFF"
+                  : isDark
+                  ? "#D4D4D8"
+                  : colors.onSurfaceVariant
               }
             />
             <Text
@@ -1547,7 +1595,11 @@ export default function StudentReportCardScreen() {
                 {
                   color:
                     activeTab === "insights"
-                      ? "#FFFFFF"
+                      ? isDark
+                        ? colors.onPrimary
+                        : "#FFFFFF"
+                      : isDark
+                      ? "#D4D4D8"
                       : colors.onSurfaceVariant,
                   fontFamily:
                     activeTab === "insights" ? FONTS.bold : FONTS.medium,

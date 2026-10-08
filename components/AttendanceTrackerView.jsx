@@ -291,7 +291,11 @@ export default function AttendanceTrackerView({
                   style={[
                     styles.rangePillTextCompact,
                     {
-                      color: isSelected ? "#FFFFFF" : colors.textPrimary,
+                      color: isSelected
+                        ? isDark
+                          ? colors.onPrimary
+                          : "#FFFFFF"
+                        : colors.textPrimary,
                       fontFamily: isSelected ? FONTS.bold : FONTS.medium,
                     },
                   ]}

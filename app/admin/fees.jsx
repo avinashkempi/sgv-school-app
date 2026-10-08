@@ -533,7 +533,7 @@ export default function AdminFeesScreen() {
                   letterSpacing: -0.5,
                 }}
               >
-                ₹{analytics.totalCollected.toLocaleString()}
+                ₹{(analytics?.totalCollected ?? 0).toLocaleString()}
               </Text>
 
               {/* Progress bar inside hero card */}
@@ -553,7 +553,7 @@ export default function AdminFeesScreen() {
                       fontFamily: FONTS.medium,
                     }}
                   >
-                    Target: ₹{analytics.totalExpectedFees.toLocaleString()}
+                    Target: ₹{(analytics?.totalExpectedFees ?? 0).toLocaleString()}
                   </Text>
                   <Text
                     style={{
@@ -562,9 +562,9 @@ export default function AdminFeesScreen() {
                       fontFamily: FONTS.bold,
                     }}
                   >
-                    {analytics.totalExpectedFees > 0
+                    {analytics?.totalExpectedFees > 0
                       ? Math.round(
-                          (analytics.totalCollected / analytics.totalExpectedFees) * 100
+                          ((analytics?.totalCollected || 0) / analytics.totalExpectedFees) * 100
                         )
                       : 0}
                     %
@@ -647,7 +647,7 @@ export default function AdminFeesScreen() {
                     marginTop: 3,
                   }}
                 >
-                  ₹{analytics.collectedToday.toLocaleString()}
+                  ₹{(analytics?.collectedToday ?? 0).toLocaleString()}
                 </Text>
               </View>
 
@@ -701,7 +701,7 @@ export default function AdminFeesScreen() {
                     marginTop: 3,
                   }}
                 >
-                  ₹{analytics.collectedThisMonth.toLocaleString()}
+                  ₹{(analytics?.collectedThisMonth ?? 0).toLocaleString()}
                 </Text>
               </View>
             </View>
@@ -753,7 +753,7 @@ export default function AdminFeesScreen() {
                     marginTop: 3,
                   }}
                 >
-                  ₹{analytics.totalPending.toLocaleString()}
+                  ₹{(analytics?.totalPending ?? 0).toLocaleString()}
                 </Text>
               </View>
 
@@ -807,7 +807,7 @@ export default function AdminFeesScreen() {
                     marginTop: 3,
                   }}
                 >
-                  ₹{analytics.totalExpectedFees.toLocaleString()}
+                  ₹{(analytics?.totalExpectedFees ?? 0).toLocaleString()}
                 </Text>
               </View>
             </View>
@@ -898,7 +898,7 @@ export default function AdminFeesScreen() {
                           fontFamily: FONTS.bold,
                         }}
                       >
-                        ₹{analytics.totalArrears.toLocaleString()}
+                        ₹{(analytics?.totalArrears ?? 0).toLocaleString()}
                       </Text>
                     </View>
                   </View>
@@ -965,12 +965,14 @@ export default function AdminFeesScreen() {
                       style={{
                         flexDirection: "row",
                         alignItems: "center",
-                        backgroundColor: colors.cardBackground,
+                        backgroundColor:
+                          colors.fieldBackground || colors.cardBackground,
                         borderRadius: 14,
                         paddingHorizontal: 12,
                         paddingVertical: Platform.OS === "ios" ? 10 : 6,
-                        borderWidth: 1,
-                        borderColor: colors.textSecondary + "15",
+                        borderWidth: 1.5,
+                        borderColor:
+                          colors.fieldBorder || colors.textSecondary + "15",
                       }}
                     >
                       <MaterialIcons
@@ -983,7 +985,9 @@ export default function AdminFeesScreen() {
                         value={classSearchQuery}
                         onChangeText={setClassSearchQuery}
                         placeholder="Search class or section..."
-                        placeholderTextColor={colors.textSecondary}
+                        placeholderTextColor={
+                          colors.placeholder || colors.textSecondary
+                        }
                         style={{
                           flex: 1,
                           color: colors.textPrimary,
@@ -1233,7 +1237,7 @@ export default function AdminFeesScreen() {
                                   marginTop: 3,
                                 }}
                               >
-                                ₹{totalCollectible.toLocaleString()}
+                                ₹{(totalCollectible ?? 0).toLocaleString()}
                               </Text>
                             </View>
 
@@ -1341,11 +1345,11 @@ export default function AdminFeesScreen() {
                                       fontFamily: FONTS.bold,
                                     }}
                                   >
-                                    ₹{item.totalConcession.toLocaleString()} Concession
+                                    ₹{(item?.totalConcession ?? 0).toLocaleString()} Concession
                                   </Text>
                                 </View>
                               )}
-                              {item.totalArrears > 0 && (
+                              {Number(item?.totalArrears) > 0 && (
                                 <View
                                   style={{
                                     backgroundColor:
@@ -1362,7 +1366,7 @@ export default function AdminFeesScreen() {
                                       fontFamily: FONTS.bold,
                                     }}
                                   >
-                                    ₹{item.totalArrears.toLocaleString()} Arrears
+                                    ₹{(item?.totalArrears ?? 0).toLocaleString()} Arrears
                                   </Text>
                                 </View>
                               )}
@@ -1547,10 +1551,16 @@ export default function AdminFeesScreen() {
                         value={studentSearchQuery}
                         onChangeText={setStudentSearchQuery}
                         placeholder="Search student..."
-                        placeholderTextColor={colors.textSecondary}
+                        placeholderTextColor={
+                          colors.placeholder || colors.textSecondary
+                        }
                         style={{
                           flex: 1,
-                          backgroundColor: colors.cardBackground,
+                          backgroundColor:
+                            colors.fieldBackground || colors.cardBackground,
+                          borderWidth: 1.5,
+                          borderColor:
+                            colors.fieldBorder || colors.textSecondary + "20",
                           padding: 12,
                           borderRadius: 12,
                           color: colors.textPrimary,
@@ -1853,10 +1863,16 @@ export default function AdminFeesScreen() {
                         setNewComponent({ ...newComponent, name: t })
                       }
                       placeholder="Name (e.g. Tuition)"
-                      placeholderTextColor={colors.textSecondary}
+                      placeholderTextColor={
+                        colors.placeholder || colors.textSecondary
+                      }
                       style={{
                         flex: 2,
-                        backgroundColor: colors.cardBackground,
+                        backgroundColor:
+                          colors.fieldBackground || colors.cardBackground,
+                        borderWidth: 1.5,
+                        borderColor:
+                          colors.fieldBorder || colors.textSecondary + "20",
                         padding: 16,
                         borderRadius: 12,
                         color: colors.textPrimary,
@@ -1870,10 +1886,16 @@ export default function AdminFeesScreen() {
                       }
                       placeholder="Amount"
                       keyboardType="numeric"
-                      placeholderTextColor={colors.textSecondary}
+                      placeholderTextColor={
+                        colors.placeholder || colors.textSecondary
+                      }
                       style={{
                         flex: 1,
-                        backgroundColor: colors.cardBackground,
+                        backgroundColor:
+                          colors.fieldBackground || colors.cardBackground,
+                        borderWidth: 1.5,
+                        borderColor:
+                          colors.fieldBorder || colors.textSecondary + "20",
                         padding: 16,
                         borderRadius: 12,
                         color: colors.textPrimary,
@@ -2114,11 +2136,11 @@ export default function AdminFeesScreen() {
                             fontSize: FONT_SIZES.md,
                           }}
                         >
-                          ₹{feeDetails.concession.toLocaleString()}
+                          ₹{(feeDetails?.concession ?? 0).toLocaleString()}
                         </Text>
                       </View>
                     )}
-                    {feeDetails?.arrears > 0 && (
+                    {Number(feeDetails?.arrears) > 0 && (
                       <View
                         style={{
                           flex: 1,
@@ -2145,7 +2167,7 @@ export default function AdminFeesScreen() {
                             fontSize: FONT_SIZES.md,
                           }}
                         >
-                          ₹{feeDetails.arrears.toLocaleString()}
+                          ₹{(feeDetails?.arrears ?? 0).toLocaleString()}
                         </Text>
                       </View>
                     )}
@@ -2290,7 +2312,7 @@ export default function AdminFeesScreen() {
                                     marginTop: 2,
                                   }}
                                 >
-                                  Target: ₹{inst.amount.toLocaleString()} •{" "}
+                                  Target: ₹{(inst?.amount ?? 0).toLocaleString()} •{" "}
                                   {inst.dueDate
                                     ? `Due ${new Date(
                                         inst.dueDate
@@ -2447,12 +2469,14 @@ export default function AdminFeesScreen() {
                       flex: 1,
                       flexDirection: "row",
                       alignItems: "center",
-                      backgroundColor: colors.cardBackground,
+                      backgroundColor:
+                        colors.fieldBackground || colors.cardBackground,
                       borderRadius: 14,
                       paddingHorizontal: 12,
                       paddingVertical: Platform.OS === "ios" ? 10 : 6,
-                      borderWidth: 1,
-                      borderColor: colors.textSecondary + "15",
+                      borderWidth: 1.5,
+                      borderColor:
+                        colors.fieldBorder || colors.textSecondary + "15",
                     }}
                   >
                     <MaterialIcons
@@ -2465,7 +2489,9 @@ export default function AdminFeesScreen() {
                       value={studentSearchQuery}
                       onChangeText={setStudentSearchQuery}
                       placeholder="Search student name, reg no, class..."
-                      placeholderTextColor={colors.textSecondary}
+                      placeholderTextColor={
+                        colors.placeholder || colors.textSecondary
+                      }
                       style={{
                         flex: 1,
                         color: colors.textPrimary,
@@ -2835,8 +2861,8 @@ export default function AdminFeesScreen() {
                                     fontFamily: FONTS.medium,
                                   }}
                                 >
-                                  {item.arrears > 0
-                                    ? `Incl. ₹${item.arrears.toLocaleString()} Last Year`
+                                  {Number(item?.arrears) > 0
+                                    ? `Incl. ₹${(item?.arrears ?? 0).toLocaleString()} Last Year`
                                     : "Pending Due"}
                                 </Text>
                               )}

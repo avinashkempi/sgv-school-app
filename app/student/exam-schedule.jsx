@@ -579,10 +579,14 @@ export default function StudentExamScheduleScreen() {
                       borderWidth: 1,
                       borderColor: isSelected
                         ? stat.color
+                        : isDark
+                        ? colors.outlineVariant
                         : colors.outlineVariant + "25",
                       backgroundColor: isSelected
                         ? stat.bg
-                        : colors.surfaceContainerLow || colors.surfaceContainer,
+                        : isDark
+                        ? colors.surfaceContainer
+                        : colors.surfaceContainerLow,
                     }}
                     contentStyle={{
                       padding: 10,
@@ -605,6 +609,8 @@ export default function StudentExamScheduleScreen() {
                         fontFamily: isSelected ? FONTS.bold : FONTS.medium,
                         color: isSelected
                           ? colors.onSurface
+                          : isDark
+                          ? "#D4D4D8"
                           : colors.onSurfaceVariant,
                         marginTop: 2,
                       }}

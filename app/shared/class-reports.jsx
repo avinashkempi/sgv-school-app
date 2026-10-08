@@ -28,7 +28,7 @@ export default function ClassReportsDashboard() {
   // eslint-disable-next-line no-unused-vars
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { t } = useLabel();
 
   const [refreshing, setRefreshing] = useState(false);
@@ -610,17 +610,27 @@ export default function ClassReportsDashboard() {
                       ? colors.primary
                       : pressed
                       ? colors.surfaceContainerHigh
+                      : isDark
+                      ? colors.surfaceContainer
                       : colors.surfaceContainerHighest,
                     paddingHorizontal: 16,
                     paddingVertical: 8,
                     borderRadius: 20,
+                    borderWidth: isDark ? 1 : 0,
+                    borderColor: !selectedExamType
+                      ? colors.primary
+                      : colors.outlineVariant,
                   })}
                 >
                   <Text
                     style={{
                       fontSize: FONT_SIZES.sm,
                       fontFamily: FONTS.bold,
-                      color: !selectedExamType ? "#FFFFFF" : colors.onSurface,
+                      color: !selectedExamType
+                        ? isDark
+                          ? colors.onPrimary
+                          : "#FFFFFF"
+                        : colors.onSurface,
                     }}
                   >
                     {t("reports.allExams", "All Exams")}
@@ -637,10 +647,17 @@ export default function ClassReportsDashboard() {
                           ? colors.primary
                           : pressed
                           ? colors.surfaceContainerHigh
+                          : isDark
+                          ? colors.surfaceContainer
                           : colors.surfaceContainerHighest,
                       paddingHorizontal: 16,
                       paddingVertical: 8,
                       borderRadius: 20,
+                      borderWidth: isDark ? 1 : 0,
+                      borderColor:
+                        selectedExamType === type
+                          ? colors.primary
+                          : colors.outlineVariant,
                     })}
                   >
                     <Text
@@ -649,7 +666,9 @@ export default function ClassReportsDashboard() {
                         fontFamily: FONTS.bold,
                         color:
                           selectedExamType === type
-                            ? "#FFFFFF"
+                            ? isDark
+                              ? colors.onPrimary
+                              : "#FFFFFF"
                             : colors.onSurface,
                       }}
                     >

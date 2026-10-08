@@ -913,17 +913,19 @@ export default function TransitionWizardScreen() {
             value={confirmationText}
             onChangeText={setConfirmationText}
             placeholder="CONFIRM TRANSITION"
-            placeholderTextColor={colors.onSurfaceVariant}
+            placeholderTextColor={colors.placeholder || colors.onSurfaceVariant}
             style={{
-              backgroundColor: colors.surface,
-              borderWidth: 2,
-              borderColor: isConfirmed ? colors.success : colors.outline,
+              backgroundColor: colors.fieldBackground || colors.surface,
+              borderWidth: 1.5,
+              borderColor: isConfirmed
+                ? colors.success
+                : colors.fieldBorder || colors.outline,
               borderRadius: 8,
               paddingHorizontal: 16,
               paddingVertical: 12,
               fontSize: FONT_SIZES.md,
               fontFamily: FONTS.bold,
-              color: colors.onSurface,
+              color: colors.textPrimary || colors.onSurface,
             }}
           />
         </View>

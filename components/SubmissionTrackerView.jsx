@@ -49,7 +49,7 @@ export default function SubmissionTrackerView({
   onNavigateToSubject,
   emptyMessage,
 }) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { t } = useLabel();
 
   const periodLabel = useMemo(() => {
@@ -307,7 +307,13 @@ export default function SubmissionTrackerView({
               <MaterialIcons
                 name={tab.icon}
                 size={16}
-                color={isActive ? colors.onPrimary : colors.onSurfaceVariant}
+                color={
+                  isActive
+                    ? colors.onPrimary
+                    : isDark
+                    ? "#D4D4D8"
+                    : colors.onSurfaceVariant
+                }
                 style={{ marginRight: 6 }}
               />
               <Text
@@ -316,6 +322,8 @@ export default function SubmissionTrackerView({
                   {
                     color: isActive
                       ? colors.onPrimary
+                      : isDark
+                      ? "#D4D4D8"
                       : colors.onSurfaceVariant,
                     fontFamily: isActive ? FONTS.bold : FONTS.medium,
                   },
@@ -377,6 +385,8 @@ export default function SubmissionTrackerView({
                   {
                     color: isActive
                       ? colors.primary
+                      : isDark
+                      ? "#D4D4D8"
                       : colors.onSurfaceVariant,
                     fontFamily: isActive ? FONTS.bold : FONTS.medium,
                   },

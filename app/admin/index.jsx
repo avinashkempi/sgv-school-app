@@ -762,9 +762,9 @@ const AdminHeader = React.memo(function AdminHeader({
               [
                 styles.bodyLarge,
                 {
-                  borderWidth: 1,
-                  borderColor: colors.outline,
-                  backgroundColor: "transparent",
+                  borderWidth: 1.5,
+                  borderColor: colors.fieldBorder || colors.outline,
+                  backgroundColor: colors.fieldBackground || colors.surface,
                 },
               ],
               {
@@ -791,7 +791,7 @@ const AdminHeader = React.memo(function AdminHeader({
                 paddingVertical: 0,
               }}
               placeholder={t("admin.searchUsersPlaceholder", "Search users...")}
-              placeholderTextColor={colors.textSecondary}
+              placeholderTextColor={colors.placeholder || colors.textSecondary}
               value={searchQuery}
               onChangeText={(text) => {
                 setSearchQuery(text);

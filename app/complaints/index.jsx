@@ -38,7 +38,7 @@ import { formatDate } from "../../utils/date";
 
 export default function ComplaintsScreen() {
   const router = useRouter();
-  const { styles, colors } = useTheme();
+  const { styles, colors, isDark } = useTheme();
   const { t } = useLabel();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
@@ -818,7 +818,14 @@ export default function ComplaintsScreen() {
       <Text
         style={{
           fontFamily: FONTS.bold,
-          color: activeTab === id ? "#fff" : colors.textSecondary,
+          color:
+            activeTab === id
+              ? isDark
+                ? colors.onPrimary
+                : "#fff"
+              : isDark
+              ? "#D4D4D8"
+              : colors.textSecondary,
           fontSize: FONT_SIZES.sm,
         }}
         numberOfLines={1}
@@ -846,9 +853,11 @@ export default function ComplaintsScreen() {
         <View
           style={{
             flexDirection: "row",
-            backgroundColor: colors.cardBackground,
+            backgroundColor: isDark ? "#141417" : colors.cardBackground,
             borderRadius: 12,
             padding: 4,
+            borderWidth: isDark ? 1 : 0,
+            borderColor: colors.outlineVariant,
           }}
         >
           {(userRole === "student" ||
@@ -1293,8 +1302,12 @@ export default function ComplaintsScreen() {
                 onChangeText={setEditMessage}
                 multiline
                 numberOfLines={4}
+                placeholderTextColor={
+                  colors.placeholder || colors.textSecondary
+                }
                 style={{
-                  backgroundColor: colors.background,
+                  backgroundColor:
+                    colors.fieldBackground || colors.background,
                   borderRadius: 16,
                   padding: 16,
                   color: colors.textPrimary,
@@ -1303,8 +1316,8 @@ export default function ComplaintsScreen() {
                   minHeight: 120,
                   textAlignVertical: "top",
                   marginBottom: 24,
-                  borderWidth: 1,
-                  borderColor: colors.border,
+                  borderWidth: 1.5,
+                  borderColor: colors.fieldBorder || colors.border,
                 }}
               />
 
@@ -1497,7 +1510,12 @@ export default function ComplaintsScreen() {
                     >
                       <Text
                         style={{
-                          color: status === s ? "#fff" : colors.textPrimary,
+                          color:
+                            status === s
+                              ? isDark
+                                ? colors.onPrimary
+                                : "#fff"
+                              : colors.textPrimary,
                           fontSize: FONT_SIZES.sm,
                           fontFamily: FONTS.bold,
                         }}
@@ -1524,11 +1542,14 @@ export default function ComplaintsScreen() {
                     "complaints.writeResponsePlaceholder",
                     "Write a response to the user..."
                   )}
-                  placeholderTextColor={colors.textSecondary}
+                  placeholderTextColor={
+                    colors.placeholder || colors.textSecondary
+                  }
                   multiline
                   numberOfLines={4}
                   style={{
-                    backgroundColor: colors.background,
+                    backgroundColor:
+                      colors.fieldBackground || colors.background,
                     borderRadius: 16,
                     padding: 16,
                     color: colors.textPrimary,
@@ -1536,8 +1557,8 @@ export default function ComplaintsScreen() {
                     minHeight: 100,
                     textAlignVertical: "top",
                     marginBottom: 24,
-                    borderWidth: 1,
-                    borderColor: colors.border,
+                    borderWidth: 1.5,
+                    borderColor: colors.fieldBorder || colors.border,
                   }}
                 />
 

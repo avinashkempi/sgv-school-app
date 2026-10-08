@@ -189,7 +189,9 @@ export default function TeacherSubjectsScreen() {
             style={{
               flexDirection: "row",
               alignItems: "center",
-              backgroundColor: colors.cardBackground,
+              backgroundColor: colors.fieldBackground || colors.cardBackground,
+              borderWidth: 1.5,
+              borderColor: colors.fieldBorder || colors.border,
               borderRadius: 12,
               paddingHorizontal: 16,
               height: 50,
@@ -216,7 +218,7 @@ export default function TeacherSubjectsScreen() {
                 height: "100%",
               }}
               placeholder="Search teachers..."
-              placeholderTextColor={colors.textSecondary}
+              placeholderTextColor={colors.placeholder || colors.textSecondary}
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
@@ -562,13 +564,13 @@ export default function TeacherSubjectsScreen() {
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                backgroundColor: colors.background,
+                backgroundColor: colors.fieldBackground || colors.background,
                 borderRadius: 10,
                 paddingHorizontal: 12,
                 height: 44,
                 marginBottom: 12,
-                borderWidth: 1,
-                borderColor: colors.border,
+                borderWidth: 1.5,
+                borderColor: colors.fieldBorder || colors.border,
               }}
             >
               <MaterialIcons
@@ -585,7 +587,7 @@ export default function TeacherSubjectsScreen() {
                   height: "100%",
                 }}
                 placeholder="Search subjects..."
-                placeholderTextColor={colors.textSecondary}
+                placeholderTextColor={colors.placeholder || colors.textSecondary}
                 value={modalSearchQuery}
                 onChangeText={setModalSearchQuery}
               />

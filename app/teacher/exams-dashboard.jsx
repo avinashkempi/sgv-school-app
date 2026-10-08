@@ -24,7 +24,7 @@ import { formatClassName } from "../../utils/formatClassName";
  */
 export default function TeacherExamDashboard() {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { showToast } = useToast();
   const { t } = useLabel();
   const [refreshing, setRefreshing] = useState(false);
@@ -640,7 +640,13 @@ export default function TeacherExamDashboard() {
                   name={tab.icon}
                   size={18}
                   color={
-                    selectedTab === tab.id ? "#FFFFFF" : colors.onSurfaceVariant
+                    selectedTab === tab.id
+                      ? isDark
+                        ? colors.onPrimary
+                        : "#FFFFFF"
+                      : isDark
+                      ? "#D4D4D8"
+                      : colors.onSurfaceVariant
                   }
                 />
                 <Text
@@ -649,7 +655,11 @@ export default function TeacherExamDashboard() {
                     fontFamily: FONTS.bold,
                     color:
                       selectedTab === tab.id
-                        ? "#FFFFFF"
+                        ? isDark
+                          ? colors.onPrimary
+                          : "#FFFFFF"
+                        : isDark
+                        ? "#D4D4D8"
                         : colors.onSurfaceVariant,
                   }}
                 >

@@ -1017,10 +1017,14 @@ export default function VibesScreen() {
                     {
                       backgroundColor: isSelected
                         ? colors.primaryContainer
+                        : isDark
+                        ? colors.surfaceContainer
                         : colors.surfaceContainerLow,
                       borderColor: isSelected
                         ? colors.primary
-                        : colors.outlineVariant || "transparent",
+                        : isDark
+                        ? colors.outlineVariant
+                        : "transparent",
                     },
                   ]}
                   accessibilityRole="button"
@@ -1032,6 +1036,8 @@ export default function VibesScreen() {
                     color={
                       isSelected
                         ? colors.onPrimaryContainer
+                        : isDark
+                        ? "#D4D4D8"
                         : colors.onSurfaceVariant
                     }
                   />
@@ -1041,6 +1047,8 @@ export default function VibesScreen() {
                       {
                         color: isSelected
                           ? colors.onPrimaryContainer
+                          : isDark
+                          ? "#D4D4D8"
                           : colors.onSurfaceVariant,
                         fontFamily: isSelected
                           ? FONTS.bold
@@ -1064,6 +1072,7 @@ export default function VibesScreen() {
     selectedTag,
     debouncedSearch,
     colors,
+    isDark,
     handleCategorySelect,
     canInteract,
     showToast,
@@ -1571,8 +1580,11 @@ export default function VibesScreen() {
           style={[
             styles.searchBarWrapper,
             {
-              backgroundColor: colors.surfaceContainerHighest,
-              borderColor: colors.outlineVariant || "transparent",
+              backgroundColor:
+                colors.fieldBackground || colors.surfaceContainerHighest,
+              borderColor:
+                colors.fieldBorder || colors.outlineVariant || "transparent",
+              borderWidth: 1.5,
             },
           ]}
         >
@@ -1584,7 +1596,9 @@ export default function VibesScreen() {
           <TextInput
             style={[styles.searchInput, { color: colors.onSurface }]}
             placeholder="Search captions, tags..."
-            placeholderTextColor={colors.onSurfaceVariant}
+            placeholderTextColor={
+              colors.placeholder || colors.onSurfaceVariant
+            }
             value={searchQuery}
             onChangeText={setSearchQuery}
             autoFocus
@@ -1612,7 +1626,11 @@ export default function VibesScreen() {
           <View
             style={[
               styles.segmentContainer,
-              { backgroundColor: colors.surfaceContainerHigh },
+              {
+                backgroundColor: isDark ? "#141417" : colors.surfaceContainerHigh,
+                borderWidth: isDark ? 1 : 0,
+                borderColor: colors.outlineVariant,
+              },
             ]}
           >
             <Pressable
@@ -1628,7 +1646,9 @@ export default function VibesScreen() {
                 activeTab === "feed" && [
                   styles.segmentItemActive,
                   {
-                    backgroundColor: colors.surface,
+                    backgroundColor: isDark ? "#28282E" : colors.surface,
+                    borderWidth: isDark ? 1 : 0,
+                    borderColor: colors.outlineVariant,
                     shadowColor: colors.shadow || "#000",
                   },
                 ],
@@ -1638,7 +1658,11 @@ export default function VibesScreen() {
                 name="dynamic-feed"
                 size={15}
                 color={
-                  activeTab === "feed" ? colors.primary : colors.onSurfaceVariant
+                  activeTab === "feed"
+                    ? colors.primary
+                    : isDark
+                    ? "#D4D4D8"
+                    : colors.onSurfaceVariant
                 }
               />
               <Text
@@ -1648,6 +1672,8 @@ export default function VibesScreen() {
                     color:
                       activeTab === "feed"
                         ? colors.primary
+                        : isDark
+                        ? "#D4D4D8"
                         : colors.onSurfaceVariant,
                     fontFamily:
                       activeTab === "feed" ? FONTS.bold : FONTS.medium,
@@ -1670,7 +1696,9 @@ export default function VibesScreen() {
                 activeTab === "my-vibes" && [
                   styles.segmentItemActive,
                   {
-                    backgroundColor: colors.surface,
+                    backgroundColor: isDark ? "#28282E" : colors.surface,
+                    borderWidth: isDark ? 1 : 0,
+                    borderColor: colors.outlineVariant,
                     shadowColor: colors.shadow || "#000",
                   },
                 ],
@@ -1682,6 +1710,8 @@ export default function VibesScreen() {
                 color={
                   activeTab === "my-vibes"
                     ? colors.primary
+                    : isDark
+                    ? "#D4D4D8"
                     : colors.onSurfaceVariant
                 }
               />
@@ -1692,6 +1722,8 @@ export default function VibesScreen() {
                     color:
                       activeTab === "my-vibes"
                         ? colors.primary
+                        : isDark
+                        ? "#D4D4D8"
                         : colors.onSurfaceVariant,
                     fontFamily:
                       activeTab === "my-vibes"
@@ -1716,7 +1748,9 @@ export default function VibesScreen() {
                 activeTab === "saved" && [
                   styles.segmentItemActive,
                   {
-                    backgroundColor: colors.surface,
+                    backgroundColor: isDark ? "#28282E" : colors.surface,
+                    borderWidth: isDark ? 1 : 0,
+                    borderColor: colors.outlineVariant,
                     shadowColor: colors.shadow || "#000",
                   },
                 ],
@@ -1728,6 +1762,8 @@ export default function VibesScreen() {
                 color={
                   activeTab === "saved"
                     ? colors.primary
+                    : isDark
+                    ? "#D4D4D8"
                     : colors.onSurfaceVariant
                 }
               />
@@ -1738,6 +1774,8 @@ export default function VibesScreen() {
                     color:
                       activeTab === "saved"
                         ? colors.primary
+                        : isDark
+                        ? "#D4D4D8"
                         : colors.onSurfaceVariant,
                     fontFamily:
                       activeTab === "saved" ? FONTS.bold : FONTS.medium,

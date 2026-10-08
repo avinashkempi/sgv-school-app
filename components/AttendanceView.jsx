@@ -1275,13 +1275,28 @@ export default function AttendanceView({
                 <MaterialIcons
                   name={chip.icon}
                   size={13}
-                  color={isActive ? "#FFFFFF" : colors.onSurfaceVariant}
+                  color={
+                    isActive
+                      ? isDark
+                        ? colors.onPrimary
+                        : "#FFFFFF"
+                      : isDark
+                      ? "#D4D4D8"
+                      : colors.onSurfaceVariant
+                  }
                 />
                 <Text
                   style={[
                     styles.filterChipText,
                     {
-                      color: isActive ? "#FFFFFF" : colors.onSurfaceVariant,
+                      color:
+                        isActive
+                          ? isDark
+                            ? colors.onPrimary
+                            : "#FFFFFF"
+                          : isDark
+                          ? "#D4D4D8"
+                          : colors.onSurfaceVariant,
                       fontFamily: isActive ? FONTS.bold : FONTS.medium,
                     },
                   ]}

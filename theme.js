@@ -342,12 +342,12 @@ function createGlobalStyles(COLORS, mode) {
 
     // Fast Frosted Surface (1px outline + high opacity background to prevent GPU overdraw)
     glassSurface: {
-      backgroundColor: mode === 'dark' ? 'rgba(33, 31, 38, 0.90)' : 'rgba(254, 247, 255, 0.92)',
+      backgroundColor: mode === 'dark' ? 'rgba(18, 18, 20, 0.94)' : 'rgba(254, 247, 255, 0.92)',
       borderWidth: 1,
       borderColor: COLORS.outlineVariant,
     },
     glass: {
-      backgroundColor: mode === 'dark' ? 'rgba(33, 31, 38, 0.82)' : 'rgba(254, 247, 255, 0.82)',
+      backgroundColor: mode === 'dark' ? 'rgba(18, 18, 20, 0.85)' : 'rgba(254, 247, 255, 0.82)',
     },
 
     // Layout Helpers
@@ -485,4 +485,5 @@ export function useTheme() {
   return ctx;
 }
 
+export { ThemeContext };
 export default ThemeContext;

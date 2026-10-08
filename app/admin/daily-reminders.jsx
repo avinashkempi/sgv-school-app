@@ -693,16 +693,15 @@ export default function DailyRemindersScreen() {
                 ? "rgba(239, 68, 68, 0.15)"
                 : "#FEE2E2";
 
-              const formattedTime = new Date(log.createdAt).toLocaleString(
-                "en-IN",
-                {
-                  day: "2-digit",
-                  month: "short",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: true,
-                }
-              );
+              const formattedTime = log?.createdAt && !isNaN(new Date(log.createdAt).getTime())
+                ? new Date(log.createdAt).toLocaleString("en-IN", {
+                    day: "2-digit",
+                    month: "short",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                  })
+                : "N/A";
 
               return (
                 <View

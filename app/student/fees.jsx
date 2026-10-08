@@ -110,11 +110,11 @@ export default function StudentFeesScreen() {
                   color: colors.onSurface,
                 }}
               >
-                ₹{feeData?.totalFees?.toLocaleString() || 0}
+                ₹{(feeData?.totalFees ?? 0).toLocaleString()}
               </Text>
             </Card>
             {/* Concession Card - Only if > 0 */}
-            {feeData?.concession > 0 && (
+            {Number(feeData?.concession) > 0 && (
               <Card
                 style={{ flex: 1, minWidth: "45%" }}
                 contentStyle={{ alignItems: "center", padding: 16 }}
@@ -135,12 +135,12 @@ export default function StudentFeesScreen() {
                     color: colors.warning || "#D97706",
                   }}
                 >
-                  ₹{feeData.concession.toLocaleString()}
+                  ₹{(feeData?.concession ?? 0).toLocaleString()}
                 </Text>
               </Card>
             )}
             {/* Last Year Dues Card - Only if > 0 */}
-            {feeData?.arrears > 0 && (
+            {Number(feeData?.arrears) > 0 && (
               <Card
                 style={{ flex: 1, minWidth: "45%" }}
                 contentStyle={{ alignItems: "center", padding: 16 }}
@@ -161,7 +161,7 @@ export default function StudentFeesScreen() {
                     color: colors.tertiary,
                   }}
                 >
-                  ₹{feeData.arrears.toLocaleString()}
+                  ₹{(feeData?.arrears ?? 0).toLocaleString()}
                 </Text>
               </Card>
             )}
@@ -185,7 +185,7 @@ export default function StudentFeesScreen() {
                   color: colors.success,
                 }}
               >
-                ₹{feeData?.paidAmount?.toLocaleString() || 0}
+                ₹{(feeData?.paidAmount ?? 0).toLocaleString()}
               </Text>
             </Card>
             <Card
@@ -208,7 +208,7 @@ export default function StudentFeesScreen() {
                   color: colors.error,
                 }}
               >
-                ₹{feeData?.pendingAmount?.toLocaleString() || 0}
+                ₹{(feeData?.pendingAmount ?? 0).toLocaleString()}
               </Text>
             </Card>
           </View>
@@ -299,7 +299,7 @@ export default function StudentFeesScreen() {
                     {t("student.lastYearDues", "Add: Last Year Dues")}
                   </Text>
                   <Text style={{ color: colors.tertiary, fontFamily: FONTS.bold }}>
-                    +₹{feeData.arrears.toLocaleString()}
+                    +₹{(feeData?.arrears ?? 0).toLocaleString()}
                   </Text>
                 </View>
               )}
@@ -418,7 +418,7 @@ export default function StudentFeesScreen() {
                             }}
                           >
                             {t("student.target", "Target")}: ₹
-                            {inst.amount.toLocaleString()} •{" "}
+                            {(inst?.amount ?? 0).toLocaleString()} •{" "}
                             {inst.dueDate
                               ? `${t("student.due", "Due")} ${new Date(
                                   inst.dueDate
@@ -495,7 +495,7 @@ export default function StudentFeesScreen() {
                         fontSize: FONT_SIZES.md,
                       }}
                     >
-                      ₹{payment.amount.toLocaleString()}
+                      ₹{(payment?.amount ?? 0).toLocaleString()}
                     </Text>
                     <Text
                       style={{

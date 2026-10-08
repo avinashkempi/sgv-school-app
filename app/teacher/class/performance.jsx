@@ -46,7 +46,7 @@ const GRADE_COLORS = {
 export default function ClassPerformanceScreen() {
   const _router = useRouter();
   const params = useLocalSearchParams();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { t } = useLabel();
   const { classId } = params;
 
@@ -1653,7 +1653,13 @@ export default function ClassPerformanceScreen() {
                               borderRadius: 20,
                               backgroundColor: isActive
                                 ? colors.primary
+                                : isDark
+                                ? colors.surfaceContainer
                                 : colors.surfaceContainerHigh,
+                              borderWidth: isDark ? 1 : 0,
+                              borderColor: isActive
+                                ? "transparent"
+                                : colors.outlineVariant,
                             }}
                           >
                             <Text
@@ -1664,6 +1670,8 @@ export default function ClassPerformanceScreen() {
                                   : FONTS.medium,
                                 color: isActive
                                   ? colors.onPrimary
+                                  : isDark
+                                  ? "#D4D4D8"
                                   : colors.onSurfaceVariant,
                               }}
                             >
@@ -1691,7 +1699,7 @@ export default function ClassPerformanceScreen() {
                       <Text
                         style={{
                           fontSize: FONT_SIZES.sm,
-                          color: colors.onSurfaceVariant,
+                          color: isDark ? "#CAC4D0" : colors.onSurfaceVariant,
                           fontFamily: FONTS.medium,
                           marginRight: 4,
                         }}
@@ -1710,6 +1718,8 @@ export default function ClassPerformanceScreen() {
                               borderRadius: 14,
                               backgroundColor: isActive
                                 ? EXAM_COLORS[type] || colors.primary
+                                : isDark
+                                ? colors.surfaceContainer
                                 : colors.surfaceContainerLow,
                               borderWidth: 1,
                               borderColor: isActive
@@ -1724,7 +1734,11 @@ export default function ClassPerformanceScreen() {
                                   ? FONTS.bold
                                   : FONTS.medium,
                                 color: isActive
-                                  ? "#FFFFFF"
+                                  ? isDark && (!EXAM_COLORS[type] || EXAM_COLORS[type] === colors.primary)
+                                    ? colors.onPrimary
+                                    : "#FFFFFF"
+                                  : isDark
+                                  ? "#D4D4D8"
                                   : colors.onSurfaceVariant,
                               }}
                             >

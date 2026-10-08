@@ -44,7 +44,8 @@ const REJECTION_PRESETS = [
 export default function TeacherLeaves() {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
-  const { colors } = useTheme();
+  const { colors, mode } = useTheme();
+  const isDark = mode === "dark";
   const { user, userId: authUserId } = useAuth();
   const userId = user?.id || user?._id || authUserId;
   const isStaff = user?.role === "staff" || user?.role === "support_staff";
@@ -873,11 +874,11 @@ export default function TeacherLeaves() {
       {/* 2. Sleek Segmented Tab Switcher (Height 36px) */}
       {!isStaff && (
         <View style={styles.tabContainer}>
-          <View style={[styles.tabBar, { backgroundColor: colors.surfaceContainer }]}>
+          <View style={[styles.tabBar, { backgroundColor: isDark ? "#141417" : colors.surfaceContainer, borderWidth: isDark ? 1 : 0, borderColor: colors.outlineVariant }]}>
             <TouchableOpacity
               style={[
                 styles.tabBtn,
-                activeTab === "requests" && [styles.tabBtnActive, { backgroundColor: colors.surface }],
+                activeTab === "requests" && [styles.tabBtnActive, { backgroundColor: isDark ? "#28282E" : colors.surface, borderWidth: isDark ? 1 : 0, borderColor: colors.outlineVariant }],
               ]}
               onPress={() => setActiveTab("requests")}
               activeOpacity={0.8}
@@ -885,7 +886,7 @@ export default function TeacherLeaves() {
               <Text
                 style={[
                   styles.tabBtnText,
-                  { color: activeTab === "requests" ? colors.primary : colors.onSurfaceVariant },
+                  { color: activeTab === "requests" ? colors.primary : (isDark ? "#D4D4D8" : colors.onSurfaceVariant) },
                   activeTab === "requests" && { fontFamily: FONTS.bold },
                 ]}
                 numberOfLines={1}
@@ -894,7 +895,7 @@ export default function TeacherLeaves() {
               </Text>
               {summaryMetrics.pending > 0 && (
                 <View style={[styles.tabBadge, { backgroundColor: colors.primary || "#4F46E5" }]}>
-                  <Text style={styles.tabBadgeText}>{summaryMetrics.pending}</Text>
+                  <Text style={[styles.tabBadgeText, { color: isDark ? colors.onPrimary : "#FFFFFF" }]}>{summaryMetrics.pending}</Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -902,7 +903,7 @@ export default function TeacherLeaves() {
             <TouchableOpacity
               style={[
                 styles.tabBtn,
-                activeTab === "my_leaves" && [styles.tabBtnActive, { backgroundColor: colors.surface }],
+                activeTab === "my_leaves" && [styles.tabBtnActive, { backgroundColor: isDark ? "#28282E" : colors.surface, borderWidth: isDark ? 1 : 0, borderColor: colors.outlineVariant }],
               ]}
               onPress={() => setActiveTab("my_leaves")}
               activeOpacity={0.8}
@@ -910,7 +911,7 @@ export default function TeacherLeaves() {
               <Text
                 style={[
                   styles.tabBtnText,
-                  { color: activeTab === "my_leaves" ? colors.primary : colors.onSurfaceVariant },
+                  { color: activeTab === "my_leaves" ? colors.primary : (isDark ? "#D4D4D8" : colors.onSurfaceVariant) },
                   activeTab === "my_leaves" && { fontFamily: FONTS.bold },
                 ]}
                 numberOfLines={1}
@@ -1625,9 +1626,21 @@ export default function TeacherLeaves() {
               <View style={{ marginBottom: 18 }}>
                 <Text style={[styles.fieldLabel, { color: colors.onSurfaceVariant }]}>REASON FOR LEAVE *</Text>
                 <TextInput
-                  style={[styles.textArea, { backgroundColor: colors.surfaceContainer, color: colors.onSurface }]}
+                  style={[
+                    styles.textArea,
+                    {
+                      backgroundColor: isDark
+                        ? (colors.fieldBackground || "#000000")
+                        : colors.surfaceContainer,
+                      color: colors.textPrimary || colors.onSurface,
+                      borderColor: isDark
+                        ? (colors.fieldBorder || "#2C2C32")
+                        : "transparent",
+                      borderWidth: isDark ? 1.5 : 0,
+                    },
+                  ]}
                   placeholder="Explain reason for leave..."
-                  placeholderTextColor={colors.onSurfaceVariant + "80"}
+                  placeholderTextColor={colors.placeholder || colors.onSurfaceVariant + "80"}
                   value={reason}
                   onChangeText={setReason}
                   multiline

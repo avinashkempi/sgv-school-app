@@ -21,7 +21,8 @@ import Header from "../../components/Header";
  */
 export default function CreateYearScreen() {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, mode } = useTheme();
+  const isDark = mode === "dark";
   const { showToast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -127,17 +128,21 @@ export default function CreateYearScreen() {
         value={formData[field]}
         onChangeText={(value) => updateField(field, value)}
         placeholder={options.placeholder}
-        placeholderTextColor={colors.onSurfaceVariant}
+        placeholderTextColor={colors.placeholder || colors.onSurfaceVariant}
         style={{
-          backgroundColor: colors.surfaceContainerLow,
-          borderWidth: 2,
-          borderColor: errors[field] ? colors.error : colors.outlineVariant,
+          backgroundColor:
+            colors.fieldBackground ||
+            (isDark ? "#000000" : colors.surfaceContainerLow),
+          borderWidth: 1.5,
+          borderColor: errors[field]
+            ? colors.error
+            : colors.fieldBorder || colors.outlineVariant,
           borderRadius: 12,
           paddingHorizontal: 16,
           paddingVertical: 12,
           fontSize: FONT_SIZES.md,
           fontFamily: FONTS.medium,
-          color: colors.onSurface,
+          color: colors.textPrimary || colors.onSurface,
         }}
         {...options}
       />

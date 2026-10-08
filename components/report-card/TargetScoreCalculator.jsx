@@ -127,9 +127,13 @@ export default function TargetScoreCalculator({ exams = [] }) {
                 {
                   backgroundColor: isSelected
                     ? colors.primary
+                    : isDark
+                    ? colors.surfaceContainer
                     : colors.surfaceContainerHigh,
                   borderColor: isSelected
                     ? colors.primary
+                    : isDark
+                    ? colors.outlineVariant
                     : "transparent",
                 },
               ]}
@@ -140,7 +144,11 @@ export default function TargetScoreCalculator({ exams = [] }) {
                 style={[
                   styles.presetText,
                   {
-                    color: isSelected ? "#FFFFFF" : colors.onSurface,
+                    color: isSelected
+                      ? isDark
+                        ? colors.onPrimary
+                        : "#FFFFFF"
+                      : colors.onSurface,
                     fontFamily: isSelected ? FONTS.bold : FONTS.medium,
                   },
                 ]}

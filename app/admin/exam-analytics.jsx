@@ -30,7 +30,7 @@ const EXAM_TYPES = ["FA1", "FA2", "SA1", "FA3", "FA4", "SA2"];
  * School-wide exam performance dashboard with exact marks scored vs initialized max marks
  */
 export default function ExamAnalyticsScreen() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
   const [activeView, setActiveView] = useState("overview"); // 'overview' | 'classes' | 'subjects' | 'students' | 'setup'
@@ -1043,7 +1043,10 @@ export default function ExamAnalyticsScreen() {
         style={{
           flexDirection: "row",
           alignItems: "center",
-          backgroundColor: colors.surfaceContainerHigh,
+          backgroundColor:
+            colors.fieldBackground || colors.surfaceContainerHigh,
+          borderColor: colors.fieldBorder || colors.outlineVariant || "transparent",
+          borderWidth: 1.5,
           borderRadius: 12,
           paddingHorizontal: 12,
           paddingVertical: 8,
@@ -1058,7 +1061,9 @@ export default function ExamAnalyticsScreen() {
         />
         <TextInput
           placeholder="Search class or teacher..."
-          placeholderTextColor={colors.onSurfaceVariant + "80"}
+          placeholderTextColor={
+            colors.placeholder || colors.onSurfaceVariant + "80"
+          }
           value={classSearchQuery}
           onChangeText={setClassSearchQuery}
           style={{
@@ -1388,7 +1393,10 @@ export default function ExamAnalyticsScreen() {
         style={{
           flexDirection: "row",
           alignItems: "center",
-          backgroundColor: colors.surfaceContainerHigh,
+          backgroundColor:
+            colors.fieldBackground || colors.surfaceContainerHigh,
+          borderColor: colors.fieldBorder || colors.outlineVariant || "transparent",
+          borderWidth: 1.5,
           borderRadius: 12,
           paddingHorizontal: 12,
           paddingVertical: 8,
@@ -1403,7 +1411,9 @@ export default function ExamAnalyticsScreen() {
         />
         <TextInput
           placeholder="Search subject..."
-          placeholderTextColor={colors.onSurfaceVariant + "80"}
+          placeholderTextColor={
+            colors.placeholder || colors.onSurfaceVariant + "80"
+          }
           value={subjectSearchQuery}
           onChangeText={setSubjectSearchQuery}
           style={{
@@ -1706,7 +1716,10 @@ export default function ExamAnalyticsScreen() {
         style={{
           flexDirection: "row",
           alignItems: "center",
-          backgroundColor: colors.surfaceContainerHigh,
+          backgroundColor:
+            colors.fieldBackground || colors.surfaceContainerHigh,
+          borderColor: colors.fieldBorder || colors.outlineVariant || "transparent",
+          borderWidth: 1.5,
           borderRadius: 12,
           paddingHorizontal: 12,
           paddingVertical: 8,
@@ -1721,7 +1734,9 @@ export default function ExamAnalyticsScreen() {
         />
         <TextInput
           placeholder="Search student by name or email..."
-          placeholderTextColor={colors.onSurfaceVariant + "80"}
+          placeholderTextColor={
+            colors.placeholder || colors.onSurfaceVariant + "80"
+          }
           value={searchStudentQuery}
           onChangeText={setSearchStudentQuery}
           style={{
@@ -1760,50 +1775,69 @@ export default function ExamAnalyticsScreen() {
             style={{
               backgroundColor: !studentClassFilter
                 ? colors.primary
+                : isDark
+                ? colors.surfaceContainer
                 : colors.surfaceContainerHigh,
               paddingHorizontal: 14,
               paddingVertical: 6,
               borderRadius: 20,
+              borderWidth: isDark ? 1 : 0,
+              borderColor: !studentClassFilter
+                ? "transparent"
+                : colors.outlineVariant,
             }}
           >
             <Text
               style={{
                 fontSize: FONT_SIZES.sm,
                 fontFamily: FONTS.bold,
-                color: !studentClassFilter ? "#FFFFFF" : colors.onSurface,
+                color: !studentClassFilter
+                  ? isDark
+                    ? colors.onPrimary
+                    : "#FFFFFF"
+                  : colors.onSurface,
               }}
             >
               All Classes
             </Text>
           </Pressable>
-          {classPerf.map((c) => (
-            <Pressable
-              key={c.classId}
-              onPress={() => setStudentClassFilter(c.classId)}
-              style={{
-                backgroundColor:
-                  studentClassFilter === c.classId
-                    ? colors.primary
-                    : colors.surfaceContainerHigh,
-                paddingHorizontal: 14,
-                paddingVertical: 6,
-                borderRadius: 20,
-              }}
-            >
-              <Text
+          {classPerf.map((c) => {
+            const isSelected = studentClassFilter === c.classId;
+            return (
+              <Pressable
+                key={c.classId}
+                onPress={() => setStudentClassFilter(c.classId)}
                 style={{
-                  fontSize: FONT_SIZES.sm,
-                  fontFamily: FONTS.bold,
-                  color:
-                    studentClassFilter === c.classId
-                      ? "#FFFFFF"
-                      : colors.onSurface,
+                  backgroundColor: isSelected
+                    ? colors.primary
+                    : isDark
+                    ? colors.surfaceContainer
+                    : colors.surfaceContainerHigh,
+                  paddingHorizontal: 14,
+                  paddingVertical: 6,
+                  borderRadius: 20,
+                  borderWidth: isDark ? 1 : 0,
+                  borderColor: isSelected
+                    ? "transparent"
+                    : colors.outlineVariant,
                 }}
               >
-                {formatClassName(c.className)}
-              </Text>
-            </Pressable>
-          ))}
+                <Text
+                  style={{
+                    fontSize: FONT_SIZES.sm,
+                    fontFamily: FONTS.bold,
+                    color: isSelected
+                      ? isDark
+                        ? colors.onPrimary
+                        : "#FFFFFF"
+                      : colors.onSurface,
+                  }}
+                >
+                  {formatClassName(c.className)}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
       </ScrollView>
 
@@ -2951,34 +2985,43 @@ export default function ExamAnalyticsScreen() {
                 >
                   YEAR:
                 </Text>
-                {academicYears.map((year) => (
-                  <Pressable
-                    key={year._id}
-                    onPress={() => setSelectedYearId(year._id)}
-                    style={{
-                      backgroundColor:
-                        selectedYearId === year._id
-                          ? colors.primary
-                          : colors.surfaceContainerHigh,
-                      paddingHorizontal: 12,
-                      paddingVertical: 6,
-                      borderRadius: 16,
-                    }}
-                  >
-                    <Text
+                {academicYears.map((year) => {
+                  const isSelected = selectedYearId === year._id;
+                  return (
+                    <Pressable
+                      key={year._id}
+                      onPress={() => setSelectedYearId(year._id)}
                       style={{
-                        fontSize: FONT_SIZES.sm,
-                        fontFamily: FONTS.bold,
-                        color:
-                          selectedYearId === year._id
-                            ? "#FFFFFF"
-                            : colors.onSurface,
+                        backgroundColor: isSelected
+                          ? colors.primary
+                          : isDark
+                          ? colors.surfaceContainer
+                          : colors.surfaceContainerHigh,
+                        paddingHorizontal: 12,
+                        paddingVertical: 6,
+                        borderRadius: 16,
+                        borderWidth: isDark ? 1 : 0,
+                        borderColor: isSelected
+                          ? "transparent"
+                          : colors.outlineVariant,
                       }}
                     >
-                      {year.name} {year.isActive ? "(Active)" : ""}
-                    </Text>
-                  </Pressable>
-                ))}
+                      <Text
+                        style={{
+                          fontSize: FONT_SIZES.sm,
+                          fontFamily: FONTS.bold,
+                          color: isSelected
+                            ? isDark
+                              ? colors.onPrimary
+                              : "#FFFFFF"
+                            : colors.onSurface,
+                        }}
+                      >
+                        {year.name} {year.isActive ? "(Active)" : ""}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
               </View>
             </ScrollView>
           )}
@@ -2994,13 +3037,21 @@ export default function ExamAnalyticsScreen() {
                   backgroundColor:
                     selectedExamType === "ALL"
                       ? colors.primary
+                      : isDark
+                      ? colors.surfaceContainer
                       : colors.surfaceContainerHigh,
                   paddingHorizontal: 14,
                   paddingVertical: 6,
                   borderRadius: 20,
-                  borderWidth: selectedExamType === "ALL" ? 1.5 : 0,
+                  borderWidth: isDark ? 1 : (selectedExamType === "ALL" ? 1.5 : 0),
                   borderColor:
-                    selectedExamType === "ALL" ? "#FFFFFF40" : "transparent",
+                    selectedExamType === "ALL"
+                      ? isDark
+                        ? "transparent"
+                        : "#FFFFFF40"
+                      : isDark
+                      ? colors.outlineVariant
+                      : "transparent",
                 }}
               >
                 <Text
@@ -3008,7 +3059,11 @@ export default function ExamAnalyticsScreen() {
                     fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.bold,
                     color:
-                      selectedExamType === "ALL" ? "#FFFFFF" : colors.onSurface,
+                      selectedExamType === "ALL"
+                        ? isDark
+                          ? colors.onPrimary
+                          : "#FFFFFF"
+                        : colors.onSurface,
                   }}
                 >
                   All Exams
@@ -3025,19 +3080,31 @@ export default function ExamAnalyticsScreen() {
                     style={{
                       backgroundColor: isSelected
                         ? typeColor
+                        : isDark
+                        ? colors.surfaceContainer
                         : colors.surfaceContainerHigh,
                       paddingHorizontal: 12,
                       paddingVertical: 6,
                       borderRadius: 20,
-                      borderWidth: isSelected ? 1.5 : 0,
-                      borderColor: isSelected ? "#FFFFFF40" : "transparent",
+                      borderWidth: isDark ? 1 : (isSelected ? 1.5 : 0),
+                      borderColor: isSelected
+                        ? isDark
+                          ? "transparent"
+                          : "#FFFFFF40"
+                        : isDark
+                        ? colors.outlineVariant
+                        : "transparent",
                     }}
                   >
                     <Text
                       style={{
                         fontSize: FONT_SIZES.sm,
                         fontFamily: FONTS.bold,
-                        color: isSelected ? "#FFFFFF" : colors.onSurface,
+                        color: isSelected
+                          ? isDark && type === "FA1"
+                            ? colors.onPrimary
+                            : "#FFFFFF"
+                          : colors.onSurface,
                       }}
                     >
                       {type}
@@ -3054,9 +3121,11 @@ export default function ExamAnalyticsScreen() {
           style={{
             flexDirection: "row",
             marginTop: 18,
-            backgroundColor: colors.surfaceContainerHigh,
+            backgroundColor: isDark ? "#141417" : colors.surfaceContainerHigh,
             borderRadius: 100,
             padding: 3,
+            borderWidth: isDark ? 1 : 0,
+            borderColor: colors.outlineVariant,
           }}
         >
           {[
@@ -3084,7 +3153,13 @@ export default function ExamAnalyticsScreen() {
                   name={tab.icon}
                   size={15}
                   color={
-                    activeView === tab.key ? "#fff" : colors.onSurfaceVariant
+                    activeView === tab.key
+                      ? isDark
+                        ? colors.onPrimary
+                        : "#fff"
+                      : isDark
+                      ? "#D4D4D8"
+                      : colors.onSurfaceVariant
                   }
                 />
                 <Text
@@ -3092,7 +3167,13 @@ export default function ExamAnalyticsScreen() {
                     fontSize: FONT_SIZES.xs,
                     fontFamily: FONTS.bold,
                     color:
-                      activeView === tab.key ? "#fff" : colors.onSurfaceVariant,
+                      activeView === tab.key
+                        ? isDark
+                          ? colors.onPrimary
+                          : "#fff"
+                        : isDark
+                        ? "#D4D4D8"
+                        : colors.onSurfaceVariant,
                   }}
                 >
                   {tab.label}

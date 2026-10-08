@@ -101,25 +101,30 @@ export const lightColors = {
   border: "#CAC4D0",
   borderLight: "#E6E0E9",
   divider: "#CAC4D0",
-  cardBackground: "#F3EDF7",
+  // ─── Field Tokens (Light Mode) ───
+  fieldBackground: "#FFFFFF",
+  fieldBorder: "#CAC4D0",
+  fieldBorderFocused: "#6750A4",
+  inputBackground: "#F3EDF7",
+  placeholder: "#79747E",
 };
 
-// ── DARK THEME (Google Material 3 Baseline) ──────────────────────────────────
+// ── DARK THEME (Material 3 Baseline + Uber Pitch Black Style) ────────────────
 export const darkColors = {
-  // ─── Primary ───
+  // ─── Primary (Material 3 Baseline Key 80) ───
   primary: "#D0BCFF",
-  onPrimary: "#381E72",
+  onPrimary: "#21005D",
   primaryContainer: "#4F378B",
   onPrimaryContainer: "#EADDFF",
   inversePrimary: "#6750A4",
 
-  // ─── Secondary ───
+  // ─── Secondary (M3 Secondary Key 80) ───
   secondary: "#CCC2DC",
   onSecondary: "#332D41",
   secondaryContainer: "#4A4458",
   onSecondaryContainer: "#E8DEF8",
 
-  // ─── Tertiary ───
+  // ─── Tertiary (M3 Tertiary Key 80) ───
   tertiary: "#EFB8C8",
   onTertiary: "#492532",
   tertiaryContainer: "#633B48",
@@ -131,39 +136,39 @@ export const darkColors = {
   errorContainer: "#8C1D18",
   onErrorContainer: "#F9DEDC",
 
-  // ─── Surfaces & Canvas (M3 Baseline Dark) ───
-  background: "#141218",
-  onBackground: "#E6E0E9",
+  // ─── Surfaces & Canvas (Uber OLED Complete Pitch Black Style) ───
+  background: "#000000",
+  onBackground: "#FFFFFF",
 
-  surface: "#141218",
-  onSurface: "#E6E0E9",
+  surface: "#000000",
+  onSurface: "#FFFFFF",
 
-  surfaceDim: "#141218",
-  surfaceBright: "#3B383E",
+  surfaceDim: "#000000",
+  surfaceBright: "#26262B",
 
-  surfaceVariant: "#49454F",
+  surfaceVariant: "#1C1C20",
   onSurfaceVariant: "#CAC4D0",
 
-  // ─── Outline & Borders ───
-  outline: "#938F99",
-  outlineVariant: "#49454F",
+  // ─── Outline & Borders (Crisp definition on pure black) ───
+  outline: "#49454F",
+  outlineVariant: "#2E2E35",
 
-  // ─── M3 5-Tier Surface Container Elevation Ladder ───
-  surfaceContainerLowest: "#0F0D13",
-  surfaceContainerLow: "#1D1B20",
-  surfaceContainer: "#211F26",
-  surfaceContainerHigh: "#2B2930",
-  surfaceContainerHighest: "#36343B",
+  // ─── M3 5-Tier Surface Container Elevation Ladder (Tonal Elevation over #000000) ───
+  surfaceContainerLowest: "#000000",
+  surfaceContainerLow: "#0E0E11",
+  surfaceContainer: "#161619",
+  surfaceContainerHigh: "#1E1E23",
+  surfaceContainerHighest: "#28282E",
 
   // ─── Inverse Surfaces ───
   inverseSurface: "#E6E0E9",
-  inverseOnSurface: "#322F35",
+  inverseOnSurface: "#121214",
 
   // ─── System ───
   shadow: "#000000",
   scrim: "#000000",
 
-  // ─── Semantic Status ───
+  // ─── Semantic Status (High Contrast against Dark Backgrounds) ───
   success: "#4ADE80",
   onSuccess: "#052E16",
   successContainer: "#14532D",
@@ -188,13 +193,20 @@ export const darkColors = {
 
   // ─── Semantic Aliases & Compatibility ───
   white: "#FFFFFF",
-  textPrimary: "#E6E0E9",
-  textSecondary: "#CAC4D0",
-  textMuted: "#938F99",
-  border: "#49454F",
-  borderLight: "#2B2930",
-  divider: "#49454F",
-  cardBackground: "#211F26",
+  textPrimary: "#FFFFFF",
+  textSecondary: "#CBD5E1",
+  textMuted: "#94A3B8",
+  border: "#242429",
+  borderLight: "#18181C",
+  divider: "#242429",
+  cardBackground: "#161619",
+
+  // ─── Uber Black Field Appearance Tokens ───
+  fieldBackground: "#000000",
+  fieldBorder: "#2C2C32",
+  fieldBorderFocused: "#D0BCFF",
+  inputBackground: "#000000",
+  placeholder: "#9CA3AF",
 };
 
 export default { lightColors, darkColors };

@@ -680,28 +680,31 @@ export default function StudentClassScreen() {
                         localStyles.searchBarWrap,
                         {
                           backgroundColor: isDark
-                            ? colors.surfaceContainer
+                            ? (colors.fieldBackground || "#000000")
                             : "#FFFFFF",
-                          borderColor: colors.outlineVariant,
+                          borderColor: isDark
+                            ? (colors.fieldBorder || "#2C2C32")
+                            : colors.outlineVariant,
+                          borderWidth: 1.5,
                         },
                       ]}
                     >
                       <MaterialIcons
                         name="search"
                         size={22}
-                        color={colors.onSurfaceVariant}
+                        color={colors.placeholder || colors.onSurfaceVariant}
                       />
                       <TextInput
                         placeholder={t(
                           "student.searchSubjectsPlaceholder",
                           "Search subjects or teachers..."
                         )}
-                        placeholderTextColor={colors.onSurfaceVariant + "80"}
+                        placeholderTextColor={colors.placeholder || colors.onSurfaceVariant + "80"}
                         value={subjectSearch}
                         onChangeText={setSubjectSearch}
                         style={[
                           localStyles.searchInput,
-                          { color: colors.onSurface },
+                          { color: colors.textPrimary || colors.onSurface },
                         ]}
                       />
                       {subjectSearch.length > 0 && (
@@ -888,28 +891,31 @@ export default function StudentClassScreen() {
                       localStyles.searchBarWrap,
                       {
                         backgroundColor: isDark
-                          ? colors.surfaceContainer
+                          ? (colors.fieldBackground || "#000000")
                           : "#FFFFFF",
-                        borderColor: colors.outlineVariant,
+                        borderColor: isDark
+                          ? (colors.fieldBorder || "#2C2C32")
+                          : colors.outlineVariant,
+                        borderWidth: 1.5,
                       },
                     ]}
                   >
                     <MaterialIcons
                       name="search"
                       size={22}
-                      color={colors.onSurfaceVariant}
+                      color={colors.placeholder || colors.onSurfaceVariant}
                     />
                     <TextInput
                       placeholder={t(
                         "student.searchNotesPlaceholder",
                         "Search notes, homework, topics..."
                       )}
-                      placeholderTextColor={colors.onSurfaceVariant + "80"}
+                      placeholderTextColor={colors.placeholder || colors.onSurfaceVariant + "80"}
                       value={feedSearch}
                       onChangeText={setFeedSearch}
                       style={[
                         localStyles.searchInput,
-                        { color: colors.onSurface },
+                        { color: colors.textPrimary || colors.onSurface },
                       ]}
                     />
                     {feedSearch.length > 0 && (
@@ -998,6 +1004,11 @@ export default function StudentClassScreen() {
                                 : isDark
                                 ? colors.surfaceContainerHighest
                                 : colors.surfaceContainerHigh,
+                            borderWidth: isDark ? 1 : 0,
+                            borderColor:
+                              feedSubjectFilter === "all"
+                                ? colors.primary
+                                : colors.outlineVariant,
                           },
                         ]}
                       >
@@ -1007,7 +1018,11 @@ export default function StudentClassScreen() {
                             {
                               color:
                                 feedSubjectFilter === "all"
-                                  ? "#FFFFFF"
+                                  ? isDark
+                                    ? colors.onPrimary
+                                    : "#FFFFFF"
+                                  : isDark
+                                  ? "#D4D4D8"
                                   : colors.onSurfaceVariant,
                             },
                           ]}
@@ -1027,6 +1042,11 @@ export default function StudentClassScreen() {
                                 : isDark
                                 ? colors.surfaceContainerHighest
                                 : colors.surfaceContainerHigh,
+                            borderWidth: isDark ? 1 : 0,
+                            borderColor:
+                              feedSubjectFilter === "general"
+                                ? colors.primary
+                                : colors.outlineVariant,
                           },
                         ]}
                       >
@@ -1036,7 +1056,11 @@ export default function StudentClassScreen() {
                             {
                               color:
                                 feedSubjectFilter === "general"
-                                  ? "#FFFFFF"
+                                  ? isDark
+                                    ? colors.onPrimary
+                                    : "#FFFFFF"
+                                  : isDark
+                                  ? "#D4D4D8"
                                   : colors.onSurfaceVariant,
                             },
                           ]}
@@ -1059,6 +1083,10 @@ export default function StudentClassScreen() {
                                   : isDark
                                   ? colors.surfaceContainerHighest
                                   : colors.surfaceContainerHigh,
+                                borderWidth: isDark ? 1 : 0,
+                                borderColor: isSelected
+                                  ? colors.primary
+                                  : colors.outlineVariant,
                               },
                             ]}
                           >
@@ -1067,7 +1095,11 @@ export default function StudentClassScreen() {
                                 localStyles.subjectFilterPillText,
                                 {
                                   color: isSelected
-                                    ? "#FFFFFF"
+                                    ? isDark
+                                      ? colors.onPrimary
+                                      : "#FFFFFF"
+                                    : isDark
+                                    ? "#D4D4D8"
                                     : colors.onSurfaceVariant,
                                 },
                               ]}
@@ -1276,9 +1308,12 @@ export default function StudentClassScreen() {
                       localStyles.searchBarWrap,
                       {
                         backgroundColor: isDark
-                          ? colors.surfaceContainer
+                          ? (colors.fieldBackground || "#000000")
                           : "#FFFFFF",
-                        borderColor: colors.outlineVariant,
+                        borderColor: isDark
+                          ? (colors.fieldBorder || "#2C2C32")
+                          : colors.outlineVariant,
+                        borderWidth: 1.5,
                       },
                     ]}
                   >
@@ -1292,7 +1327,9 @@ export default function StudentClassScreen() {
                         "student.searchClassmatesPlaceholder",
                         "Search classmates by name or ID..."
                       )}
-                      placeholderTextColor={colors.onSurfaceVariant + "80"}
+                      placeholderTextColor={
+                        colors.placeholder || colors.onSurfaceVariant + "80"
+                      }
                       value={classmateSearch}
                       onChangeText={setClassmateSearch}
                       style={[

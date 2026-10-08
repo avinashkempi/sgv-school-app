@@ -114,18 +114,20 @@ const ExamTypeCard = memo(function ExamTypeCard({
             </Text>
             <TextInput
               placeholder="YYYY-MM-DD"
-              placeholderTextColor={colors.onSurfaceVariant + "60"}
+              placeholderTextColor={
+                colors.placeholder || colors.onSurfaceVariant + "60"
+              }
               value={examConfig.date}
               onChangeText={onChangeDate}
               style={{
-                backgroundColor: colors.surface,
+                backgroundColor: colors.fieldBackground || colors.surface,
                 padding: 10,
                 borderRadius: 8,
                 fontSize: FONT_SIZES.sm,
                 fontFamily: FONTS.medium,
                 color: colors.onSurface,
                 borderWidth: 1,
-                borderColor: colors.outline,
+                borderColor: colors.fieldBorder || colors.outline,
               }}
             />
           </View>
@@ -143,12 +145,14 @@ const ExamTypeCard = memo(function ExamTypeCard({
             </Text>
             <TextInput
               placeholder={defaultMarks || "100"}
-              placeholderTextColor={colors.onSurfaceVariant + "80"}
+              placeholderTextColor={
+                colors.placeholder || colors.onSurfaceVariant + "80"
+              }
               value={examConfig.totalMarks}
               onChangeText={onChangeMark}
               keyboardType="numeric"
               style={{
-                backgroundColor: colors.surface,
+                backgroundColor: colors.fieldBackground || colors.surface,
                 padding: 10,
                 borderRadius: 8,
                 fontSize: FONT_SIZES.sm,
@@ -159,7 +163,7 @@ const ExamTypeCard = memo(function ExamTypeCard({
                   examConfig.totalMarks &&
                   examConfig.totalMarks !== defaultMarks
                     ? accentColor
-                    : colors.outline,
+                    : colors.fieldBorder || colors.outline,
               }}
             />
           </View>
@@ -177,7 +181,7 @@ const ExamTypeCard = memo(function ExamTypeCard({
 export default function QuickExamWizard() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
 
@@ -523,14 +527,14 @@ export default function QuickExamWizard() {
                 onChangeText={applyDefaultMarks}
                 keyboardType="numeric"
                 style={{
-                  backgroundColor: colors.surface,
+                  backgroundColor: colors.fieldBackground || colors.surface,
                   padding: 12,
                   borderRadius: 8,
                   fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.medium,
                   color: colors.onSurface,
                   borderWidth: 1,
-                  borderColor: colors.outline,
+                  borderColor: colors.fieldBorder || colors.outline,
                 }}
               />
             </View>
@@ -553,14 +557,14 @@ export default function QuickExamWizard() {
                 }
                 keyboardType="numeric"
                 style={{
-                  backgroundColor: colors.surface,
+                  backgroundColor: colors.fieldBackground || colors.surface,
                   padding: 12,
                   borderRadius: 8,
                   fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.medium,
                   color: colors.onSurface,
                   borderWidth: 1,
-                  borderColor: colors.outline,
+                  borderColor: colors.fieldBorder || colors.outline,
                 }}
               />
             </View>
@@ -819,20 +823,34 @@ export default function QuickExamWizard() {
               backgroundColor:
                 currentStep >= step
                   ? colors.primary
+                  : isDark
+                  ? colors.surfaceContainer
                   : colors.surfaceContainerHigh,
               alignItems: "center",
               justifyContent: "center",
+              borderWidth: isDark && currentStep < step ? 1 : 0,
+              borderColor: colors.outlineVariant,
             }}
           >
             {currentStep > step ? (
-              <MaterialIcons name="check" size={18} color="#FFFFFF" />
+              <MaterialIcons
+                name="check"
+                size={18}
+                color={isDark ? colors.onPrimary : "#FFFFFF"}
+              />
             ) : (
               <Text
                 style={{
                   fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.bold,
                   color:
-                    currentStep >= step ? "#FFFFFF" : colors.onSurfaceVariant,
+                    currentStep >= step
+                      ? isDark
+                        ? colors.onPrimary
+                        : "#FFFFFF"
+                      : isDark
+                      ? "#D4D4D8"
+                      : colors.onSurfaceVariant,
                 }}
               >
                 {step}

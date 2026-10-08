@@ -34,7 +34,7 @@ const GlobalSearch = ({ visible, onClose }) => {
   const { t } = useLabel();
   const { user: authUser } = useAuth();
   // eslint-disable-next-line no-unused-vars
-  const { colors, styles } = useTheme();
+  const { colors, styles, mode } = useTheme();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -200,19 +200,17 @@ const GlobalSearch = ({ visible, onClose }) => {
         break;
       case "exams":
         title = item.name;
-        subtitle = `${item.subject?.name} • ${new Date(
-          item.examDate
-        ).toLocaleDateString()}`;
+        subtitle = `${item.subject?.name || "Exam"} • ${item.examDate && !isNaN(new Date(item.examDate).getTime()) ? new Date(item.examDate).toLocaleDateString() : "TBD"}`;
         icon = "event";
         break;
       case "complaints":
         title = item.title;
-        subtitle = `by ${item.student?.name ? formatUserName(item.student.name) : "Student"} • ${item.status}`;
+        subtitle = `by ${item.student?.name ? formatUserName(item.student.name) : "Student"} • ${item.status || "Open"}`;
         icon = "feedback";
         break;
       case "events":
         title = item.title;
-        subtitle = new Date(item.date).toLocaleDateString();
+        subtitle = item.date && !isNaN(new Date(item.date).getTime()) ? new Date(item.date).toLocaleDateString() : "";
         icon = "event-available";
         break;
     }
@@ -336,8 +334,12 @@ const GlobalSearch = ({ visible, onClose }) => {
             style={{
               flexDirection: "row",
               alignItems: "center",
-              backgroundColor: colors.surfaceContainerHighest,
+              backgroundColor:
+                colors.fieldBackground ||
+                (mode === "dark" ? "#000000" : colors.surfaceContainerHighest),
               borderRadius: 28,
+              borderWidth: 1.5,
+              borderColor: colors.fieldBorder || colors.outlineVariant,
               paddingHorizontal: 16,
               height: 52,
             }}
@@ -345,14 +347,14 @@ const GlobalSearch = ({ visible, onClose }) => {
             <MaterialIcons
               name="search"
               size={24}
-              color={colors.onSurfaceVariant}
+              color={colors.placeholder || colors.onSurfaceVariant}
             />
             <TextInput
               style={{
                 flex: 1,
                 fontSize: FONT_SIZES.md,
                 fontFamily: FONTS.regular,
-                color: colors.onSurface,
+                color: colors.textPrimary || colors.onSurface,
                 marginLeft: 12,
                 marginRight: 8,
               }}
@@ -360,7 +362,7 @@ const GlobalSearch = ({ visible, onClose }) => {
                 "search.placeholder",
                 "Search students, exams, complaints..."
               )}
-              placeholderTextColor={colors.onSurfaceVariant}
+              placeholderTextColor={colors.placeholder || colors.onSurfaceVariant}
               value={query}
               onChangeText={setQuery}
               autoFocus

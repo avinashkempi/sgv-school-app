@@ -32,7 +32,8 @@ import { formatUserName } from "../../utils/userFormatters";
 const QUICK_EMOJIS = ["❤️", "🔥", "👏", "🎓", "🎉", "🌟", "🙌"];
 
 export default function VibeCommentsModal({ visible, onClose, vibe }) {
-  const { colors } = useTheme();
+  const { colors, mode } = useTheme();
+  const isDark = mode === "dark";
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const isAdmin = user?.role === "admin" || user?.role === "super admin";
@@ -698,8 +699,12 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
               style={[
                 styles.textInput,
                 {
-                  backgroundColor: colors.surfaceContainerHighest,
-                  color: colors.onSurface,
+                  backgroundColor:
+                    colors.fieldBackground ||
+                    (isDark ? "#000000" : colors.surfaceContainerHighest),
+                  color: colors.textPrimary || colors.onSurface,
+                  borderColor: colors.fieldBorder || (isDark ? "#2C2C32" : colors.outlineVariant),
+                  borderWidth: 1.5,
                 },
               ]}
               placeholder={
@@ -707,7 +712,7 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
                   ? `Reply to @${replyingTo.name}...`
                   : "Add a comment for SGV..."
               }
-              placeholderTextColor={colors.onSurfaceVariant}
+              placeholderTextColor={colors.placeholder || colors.onSurfaceVariant}
               value={commentText}
               onChangeText={setCommentText}
               multiline

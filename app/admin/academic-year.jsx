@@ -1519,16 +1519,19 @@ export default function AcademicYearScreen() {
 
               <TextInput
                 placeholder="Name (e.g. 2025-2026)"
-                placeholderTextColor={colors.onSurfaceVariant}
+                placeholderTextColor={
+                  colors.placeholder || colors.onSurfaceVariant
+                }
                 style={{
-                  backgroundColor: colors.surfaceContainerHighest,
+                  backgroundColor:
+                    colors.fieldBackground || colors.surfaceContainerHighest,
                   padding: 14,
                   borderRadius: 12,
                   color: colors.onSurface,
                   fontFamily: FONTS.medium,
                   marginBottom: 12,
-                  borderWidth: 1,
-                  borderColor: colors.outlineVariant,
+                  borderWidth: 1.5,
+                  borderColor: colors.fieldBorder || colors.outlineVariant,
                 }}
                 value={form.name}
                 onChangeText={(t) => setForm({ ...form, name: t })}
@@ -1536,16 +1539,19 @@ export default function AcademicYearScreen() {
 
               <TextInput
                 placeholder="Start Date (DD-MM-YYYY)"
-                placeholderTextColor={colors.onSurfaceVariant}
+                placeholderTextColor={
+                  colors.placeholder || colors.onSurfaceVariant
+                }
                 style={{
-                  backgroundColor: colors.surfaceContainerHighest,
+                  backgroundColor:
+                    colors.fieldBackground || colors.surfaceContainerHighest,
                   padding: 14,
                   borderRadius: 12,
                   color: colors.onSurface,
                   fontFamily: FONTS.medium,
                   marginBottom: 12,
-                  borderWidth: 1,
-                  borderColor: colors.outlineVariant,
+                  borderWidth: 1.5,
+                  borderColor: colors.fieldBorder || colors.outlineVariant,
                 }}
                 value={form.startDate}
                 onChangeText={(t) => setForm({ ...form, startDate: t })}
@@ -1553,16 +1559,19 @@ export default function AcademicYearScreen() {
 
               <TextInput
                 placeholder="End Date (DD-MM-YYYY)"
-                placeholderTextColor={colors.onSurfaceVariant}
+                placeholderTextColor={
+                  colors.placeholder || colors.onSurfaceVariant
+                }
                 style={{
-                  backgroundColor: colors.surfaceContainerHighest,
+                  backgroundColor:
+                    colors.fieldBackground || colors.surfaceContainerHighest,
                   padding: 14,
                   borderRadius: 12,
                   color: colors.onSurface,
                   fontFamily: FONTS.medium,
                   marginBottom: 24,
-                  borderWidth: 1,
-                  borderColor: colors.outlineVariant,
+                  borderWidth: 1.5,
+                  borderColor: colors.fieldBorder || colors.outlineVariant,
                 }}
                 value={form.endDate}
                 onChangeText={(t) => setForm({ ...form, endDate: t })}

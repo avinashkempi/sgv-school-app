@@ -38,7 +38,8 @@ const MAX_DESC_LENGTH = 2000;
  * @param {Object|null} editPost - If provided, opens in edit mode
  */
 export default function CreatePostModal({ visible, onClose, editPost = null }) {
-  const { colors, isDark } = useTheme();
+  const { colors, mode } = useTheme();
+  const isDark = mode === "dark";
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   const isEditing = !!editPost;
@@ -408,16 +409,19 @@ export default function CreatePostModal({ visible, onClose, editPost = null }) {
               </Text>
               <TextInput
                 placeholder="What's this about?"
-                placeholderTextColor={colors.onSurfaceVariant}
+                placeholderTextColor={colors.placeholder || colors.onSurfaceVariant}
                 value={title}
                 onChangeText={setTitle}
                 maxLength={MAX_TITLE_LENGTH}
                 style={[
                   styles.titleInput,
                   {
-                    backgroundColor: colors.surfaceContainerHighest,
-                    color: colors.onSurface,
-                    borderColor: colors.outlineVariant,
+                    backgroundColor:
+                      colors.fieldBackground ||
+                      (isDark ? "#000000" : colors.surfaceContainerHighest),
+                    color: colors.textPrimary || colors.onSurface,
+                    borderColor: colors.fieldBorder || colors.outlineVariant,
+                    borderWidth: 1.5,
                   },
                 ]}
               />
@@ -440,7 +444,7 @@ export default function CreatePostModal({ visible, onClose, editPost = null }) {
               </Text>
               <TextInput
                 placeholder="Add more details (optional)"
-                placeholderTextColor={colors.onSurfaceVariant}
+                placeholderTextColor={colors.placeholder || colors.onSurfaceVariant}
                 value={description}
                 onChangeText={setDescription}
                 maxLength={MAX_DESC_LENGTH}
@@ -449,9 +453,12 @@ export default function CreatePostModal({ visible, onClose, editPost = null }) {
                 style={[
                   styles.descInput,
                   {
-                    backgroundColor: colors.surfaceContainerHighest,
-                    color: colors.onSurface,
-                    borderColor: colors.outlineVariant,
+                    backgroundColor:
+                      colors.fieldBackground ||
+                      (isDark ? "#000000" : colors.surfaceContainerHighest),
+                    color: colors.textPrimary || colors.onSurface,
+                    borderColor: colors.fieldBorder || colors.outlineVariant,
+                    borderWidth: 1.5,
                   },
                 ]}
               />

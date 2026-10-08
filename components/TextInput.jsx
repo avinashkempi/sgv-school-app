@@ -52,8 +52,9 @@ const TextInput = ({
   onBlur,
   ...props
 }) => {
-  const { colors, styles } = useTheme();
+  const { colors, styles, mode } = useTheme();
   const [isFocused, setIsFocused] = useState(false);
+  const isDark = mode === "dark";
 
   const handleFocus = useCallback((e) => {
     setIsFocused(true);
@@ -76,37 +77,52 @@ const TextInput = ({
     }
   }, [onRightIconPress]);
 
-  // Determine Container Styles
+  // Determine Container Styles (Uber black appearance with Material 3 precision)
   const getContainerStyles = () => {
+    const defaultBorderColor =
+      colors.fieldBorder ||
+      (isDark ? "#2C2C32" : colors.outlineVariant || colors.border || "#E5E7EB");
+
     const borderColor = error
       ? colors.error
       : isFocused
-      ? colors.primary
-      : colors.outlineVariant || colors.border || "#E5E7EB";
+      ? colors.fieldBorderFocused || colors.primary
+      : defaultBorderColor;
 
     // Only apply focus box-shadow on Web to avoid native layout shifts/blurs on iOS/Android
     const focusGlow =
       isFocused && !error && Platform.OS === "web"
         ? {
-            boxShadow: `0 0 0 3px ${colors.primaryContainer || "rgba(79, 70, 229, 0.15)"}`,
+            boxShadow: `0 0 0 3px ${
+              isDark
+                ? "rgba(208, 188, 255, 0.22)"
+                : colors.primaryContainer || "rgba(79, 70, 229, 0.15)"
+            }`,
           }
         : {};
 
+    const fieldBg =
+      colors.fieldBackground ||
+      (isDark ? "#000000" : colors.surface || "#FFFFFF");
+
     if (variant === "filled") {
       return {
-        backgroundColor: colors.surfaceContainerHighest || "#E8EAEE",
+        backgroundColor: isDark ? fieldBg : (colors.surfaceContainerHighest || "#E8EAEE"),
+        borderWidth: isDark ? 1.5 : 0,
+        borderColor: borderColor,
         borderBottomWidth: 2,
         borderBottomColor: borderColor,
         borderTopLeftRadius: RADIUS.md || 12,
         borderTopRightRadius: RADIUS.md || 12,
+        borderRadius: isDark ? (RADIUS.md || 12) : 0,
         paddingHorizontal: SPACING.lg || 16,
         ...focusGlow,
       };
     }
 
-    // Outlined - keep borderWidth constant at 1.5 to prevent layout recalculation and focus drops
+    // Outlined - Uber black appearance: deep solid black surface with clean 1.5px border
     return {
-      backgroundColor: colors.surface || "#FFFFFF",
+      backgroundColor: fieldBg,
       borderWidth: 1.5,
       borderColor: borderColor,
       borderRadius: RADIUS.md || 12,
@@ -173,7 +189,7 @@ const TextInput = ({
               flex: 1,
               fontSize: FONT_SIZES.sm || 14,
               fontFamily: FONTS.regular,
-              color: colors.onSurface,
+              color: colors.textPrimary || colors.onSurface || (isDark ? "#FFFFFF" : "#1D1B20"),
               height: "100%",
             },
             inputStyle,
@@ -181,7 +197,11 @@ const TextInput = ({
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor={colors.textMuted || colors.onSurfaceVariant + "80"}
+          placeholderTextColor={
+            colors.placeholder ||
+            colors.textMuted ||
+            (isDark ? "#71717A" : colors.onSurfaceVariant + "80")
+          }
           secureTextEntry={secureTextEntry}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}

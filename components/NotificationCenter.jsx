@@ -160,7 +160,7 @@ const NotificationCenter = () => {
   };
 
   const renderNotification = (notification) => {
-    const timeAgo = getTimeAgo(new Date(notification.createdAt));
+    const timeAgo = getTimeAgo(notification?.createdAt);
 
     return (
       <Card
@@ -305,7 +305,10 @@ const NotificationCenter = () => {
     );
   };
 
-  const getTimeAgo = (date) => {
+  const getTimeAgo = (rawDate) => {
+    if (!rawDate) return "Just now";
+    const date = rawDate instanceof Date ? rawDate : new Date(rawDate);
+    if (isNaN(date.getTime())) return "Just now";
     const seconds = Math.floor((new Date() - date) / 1000);
     if (seconds < 60) return "Just now";
     const minutes = Math.floor(seconds / 60);
@@ -314,7 +317,7 @@ const NotificationCenter = () => {
     if (hours < 24) return `${hours}h ago`;
     const days = Math.floor(hours / 24);
     if (days < 7) return `${days}d ago`;
-    return date.toLocaleDateString();
+    return date.toLocaleDateString ? date.toLocaleDateString() : "";
   };
 
   if (loading) {

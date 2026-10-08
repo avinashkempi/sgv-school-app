@@ -18,16 +18,18 @@ import {
  * @param {object} style - Optional container style override
  */
 const SegmentedControl = ({ tabs, activeTab, onTabChange, style }) => {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
 
   return (
     <View
       style={[
         styles.container,
         {
-          backgroundColor: colors.surfaceContainerHigh,
+          backgroundColor: isDark ? "#141417" : colors.surfaceContainerHigh,
           borderRadius: RADIUS.md || 12,
           padding: 4,
+          borderWidth: isDark ? 1 : 0,
+          borderColor: isDark ? colors.outlineVariant : "transparent",
         },
         style,
       ]}
@@ -44,17 +46,23 @@ const SegmentedControl = ({ tabs, activeTab, onTabChange, style }) => {
               {
                 borderRadius: RADIUS.sm || 8,
                 backgroundColor: isActive
-                  ? colors.surface
+                  ? isDark
+                    ? "#28282E"
+                    : colors.surface
                   : pressed
                   ? colors.surfaceContainerHighest
                   : "transparent",
-                ...(isActive ? {
-                  shadowColor: colors.shadow,
-                  shadowOffset: { width: 0, height: 1 },
-                  shadowOpacity: 0.06,
-                  shadowRadius: 3,
-                  elevation: 1,
-                } : {}),
+                borderWidth: isActive && isDark ? 1 : 0,
+                borderColor: isActive && isDark ? "#3F3F46" : "transparent",
+                ...(isActive
+                  ? {
+                      shadowColor: colors.shadow,
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowOpacity: 0.06,
+                      shadowRadius: 3,
+                      elevation: 1,
+                    }
+                  : {}),
               },
             ]}
             accessibilityRole="tab"
@@ -68,6 +76,8 @@ const SegmentedControl = ({ tabs, activeTab, onTabChange, style }) => {
                   {
                     color: isActive
                       ? colors.onSurface
+                      : isDark
+                      ? "#D4D4D8"
                       : colors.onSurfaceVariant,
                     fontFamily: isActive ? FONTS.bold : FONTS.medium,
                   },
@@ -83,6 +93,8 @@ const SegmentedControl = ({ tabs, activeTab, onTabChange, style }) => {
                     {
                       color: isActive
                         ? colors.onSurface
+                        : isDark
+                        ? "#D4D4D8"
                         : colors.onSurfaceVariant,
                       fontFamily: isActive ? FONTS.bold : FONTS.regular,
                       opacity: isActive ? 1 : 0.8,

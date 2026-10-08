@@ -978,13 +978,14 @@ export default function AdminTimetableScreen() {
                   }
                   keyboardType="numeric"
                   style={{
-                    backgroundColor: colors.background,
+                    backgroundColor:
+                      colors.fieldBackground || colors.background,
                     padding: 16,
                     borderRadius: 12,
                     color: colors.textPrimary,
                     marginBottom: 20,
-                    borderWidth: 1,
-                    borderColor: colors.outlineVariant,
+                    borderWidth: 1.5,
+                    borderColor: colors.fieldBorder || colors.outlineVariant,
                     fontFamily: FONTS.regular,
                   }}
                 />

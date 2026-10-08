@@ -26,7 +26,7 @@ export default function YearDetailsScreen() {
   // eslint-disable-next-line no-unused-vars
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { showToast } = useToast();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedTab, setSelectedTab] = useState("overview"); // overview, students, exams, reports
@@ -168,7 +168,9 @@ export default function YearDetailsScreen() {
               }}
             >
               Snapshot captured on{" "}
-              {new Date(snapshot.capturedAt).toLocaleString()}
+              {snapshot?.capturedAt && !isNaN(new Date(snapshot.capturedAt).getTime())
+                ? new Date(snapshot.capturedAt).toLocaleString()
+                : "N/A"}
             </Text>
           </View>
         )}
@@ -214,7 +216,13 @@ export default function YearDetailsScreen() {
               fontSize: FONT_SIZES.sm,
               fontFamily: FONTS.bold,
               color:
-                selectedTab === tab.id ? "#FFFFFF" : colors.onSurfaceVariant,
+                selectedTab === tab.id
+                  ? isDark
+                    ? colors.onPrimary
+                    : "#FFFFFF"
+                  : isDark
+                  ? "#D4D4D8"
+                  : colors.onSurfaceVariant,
             }}
           >
             {tab.label}

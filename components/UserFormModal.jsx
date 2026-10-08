@@ -34,8 +34,23 @@ export default function UserFormModal({
   saving,
   onSubmit,
 }) {
-  const { styles, colors } = useTheme();
+  const { styles, colors, mode } = useTheme();
+  const isDark = mode === "dark";
   const [showPassword, setShowPassword] = useState(false);
+
+  const getFieldStyle = (hasError = false, isEditable = true) => ({
+    borderWidth: hasError ? 1.5 : 1,
+    borderColor: hasError
+      ? colors.error
+      : colors.fieldBorder || (isDark ? "#2C2C32" : colors.outline),
+    borderRadius: 8,
+    padding: 14,
+    backgroundColor: isEditable
+      ? (colors.fieldBackground || (isDark ? "#000000" : "#FFFFFF"))
+      : (isDark ? "#121214" : colors.surfaceVariant),
+    color: colors.textPrimary || colors.onSurface || (isDark ? "#FFFFFF" : "#1D1B20"),
+    opacity: isEditable ? 1 : 0.7,
+  });
 
   const {
     control,
@@ -226,18 +241,9 @@ export default function UserFormModal({
                 rules={{ required: "Name is required" }}
                 render={({ field: { onChange, onBlur, value } }) => (
                   <TextInput
-                    style={[
-                      styles.bodyLarge,
-                      {
-                        borderWidth: errors.name ? 1.5 : 1,
-                        borderColor: errors.name ? colors.error : colors.outline,
-                        borderRadius: 8,
-                        padding: 14,
-                        backgroundColor: "transparent",
-                      },
-                    ]}
+                    style={getFieldStyle(!!errors.name)}
                     placeholder="Enter name"
-                    placeholderTextColor={colors.textSecondary}
+                    placeholderTextColor={colors.placeholder || colors.textSecondary}
                     value={value}
                     onChangeText={onChange}
                     onBlur={onBlur}
@@ -265,22 +271,9 @@ export default function UserFormModal({
                 render={({ field: { onChange, onBlur, value } }) => (
                   <View pointerEvents={modalMode === "edit" ? "none" : "auto"}>
                     <TextInput
-                      style={[
-                        styles.bodyLarge,
-                        {
-                          borderWidth: 1.5,
-                          borderColor: errors.phone ? colors.error : colors.outline,
-                          borderRadius: 8,
-                          padding: 14,
-                          backgroundColor: "transparent",
-                        },
-                        modalMode === "edit" && {
-                          backgroundColor: colors.surfaceVariant,
-                          opacity: 0.7,
-                        },
-                      ]}
+                      style={getFieldStyle(!!errors.phone, modalMode === "add")}
                       placeholder="Enter phone number"
-                      placeholderTextColor={colors.textSecondary}
+                      placeholderTextColor={colors.placeholder || colors.textSecondary}
                       value={value}
                       onChangeText={(text) => {
                         onChange(text);
@@ -324,18 +317,9 @@ export default function UserFormModal({
                 name="email"
                 render={({ field: { onChange, onBlur, value } }) => (
                   <TextInput
-                    style={[
-                      styles.bodyLarge,
-                      {
-                        borderWidth: 1,
-                        borderColor: colors.outline,
-                        borderRadius: 4,
-                        padding: 14,
-                        backgroundColor: "transparent",
-                      },
-                    ]}
+                    style={getFieldStyle(false)}
                     placeholder="Enter email (optional)"
-                    placeholderTextColor={colors.textSecondary}
+                    placeholderTextColor={colors.placeholder || colors.textSecondary}
                     value={value}
                     onChangeText={onChange}
                     onBlur={onBlur}
@@ -352,16 +336,7 @@ export default function UserFormModal({
               </Text>
               <View
                 style={[
-                  [
-                    styles.bodyLarge,
-                    {
-                      borderWidth: 1,
-                      borderColor: colors.outline,
-                      borderRadius: 4,
-                      padding: 14,
-                      backgroundColor: "transparent",
-                    },
-                  ],
+                  getFieldStyle(!!errors.password),
                   {
                     flexDirection: "row",
                     alignItems: "center",
@@ -527,18 +502,9 @@ export default function UserFormModal({
                   name="bloodGroup"
                   render={({ field: { onChange, onBlur, value } }) => (
                     <TextInput
-                      style={[
-                        styles.bodyLarge,
-                        {
-                          borderWidth: 1,
-                          borderColor: colors.outline,
-                          borderRadius: 4,
-                          padding: 14,
-                          backgroundColor: "transparent",
-                        },
-                      ]}
+                      style={getFieldStyle(false)}
                       placeholder="e.g. O+"
-                      placeholderTextColor={colors.textSecondary}
+                      placeholderTextColor={colors.placeholder || colors.textSecondary}
                       value={value}
                       onChangeText={onChange}
                       onBlur={onBlur}
@@ -557,18 +523,9 @@ export default function UserFormModal({
                 name="dateOfBirth"
                 render={({ field: { onChange, onBlur, value } }) => (
                   <TextInput
-                    style={[
-                      styles.bodyLarge,
-                      {
-                        borderWidth: 1,
-                        borderColor: colors.outline,
-                        borderRadius: 4,
-                        padding: 14,
-                        backgroundColor: "transparent",
-                      },
-                    ]}
+                    style={getFieldStyle(false)}
                     placeholder="YYYY-MM-DD"
-                    placeholderTextColor={colors.textSecondary}
+                    placeholderTextColor={colors.placeholder || colors.textSecondary}
                     value={value}
                     onChangeText={onChange}
                     onBlur={onBlur}
@@ -587,20 +544,11 @@ export default function UserFormModal({
                 render={({ field: { onChange, onBlur, value } }) => (
                   <TextInput
                     style={[
-                      [
-                        styles.bodyLarge,
-                        {
-                          borderWidth: 1,
-                          borderColor: colors.outline,
-                          borderRadius: 4,
-                          padding: 14,
-                          backgroundColor: "transparent",
-                        },
-                      ],
+                      getFieldStyle(false),
                       { height: 80, textAlignVertical: "top", paddingTop: 12 },
                     ]}
                     placeholder="Full address"
-                    placeholderTextColor={colors.textSecondary}
+                    placeholderTextColor={colors.placeholder || colors.textSecondary}
                     value={value}
                     onChangeText={onChange}
                     onBlur={onBlur}
@@ -690,18 +638,9 @@ export default function UserFormModal({
                     name="guardianName"
                     render={({ field: { onChange, onBlur, value } }) => (
                       <TextInput
-                        style={[
-                          styles.bodyLarge,
-                          {
-                            borderWidth: 1,
-                            borderColor: colors.outline,
-                            borderRadius: 4,
-                            padding: 14,
-                            backgroundColor: "transparent",
-                          },
-                        ]}
+                        style={getFieldStyle(false)}
                         placeholder="Enter guardian name"
-                        placeholderTextColor={colors.textSecondary}
+                        placeholderTextColor={colors.placeholder || colors.textSecondary}
                         value={value}
                         onChangeText={onChange}
                         onBlur={onBlur}
@@ -718,18 +657,9 @@ export default function UserFormModal({
                     name="guardianPhone"
                     render={({ field: { onChange, onBlur, value } }) => (
                       <TextInput
-                        style={[
-                          styles.bodyLarge,
-                          {
-                            borderWidth: 1,
-                            borderColor: colors.outline,
-                            borderRadius: 4,
-                            padding: 14,
-                            backgroundColor: "transparent",
-                          },
-                        ]}
+                        style={getFieldStyle(false)}
                         placeholder="Enter guardian phone"
-                        placeholderTextColor={colors.textSecondary}
+                        placeholderTextColor={colors.placeholder || colors.textSecondary}
                         value={value}
                         onChangeText={onChange}
                         onBlur={onBlur}
@@ -748,18 +678,9 @@ export default function UserFormModal({
                     name="phone2"
                     render={({ field: { onChange, onBlur, value } }) => (
                       <TextInput
-                        style={[
-                          styles.bodyLarge,
-                          {
-                            borderWidth: 1,
-                            borderColor: colors.outline,
-                            borderRadius: 4,
-                            padding: 14,
-                            backgroundColor: "transparent",
-                          },
-                        ]}
+                        style={getFieldStyle(false)}
                         placeholder="Alt phone (optional)"
-                        placeholderTextColor={colors.textSecondary}
+                        placeholderTextColor={colors.placeholder || colors.textSecondary}
                         value={value}
                         onChangeText={onChange}
                         onBlur={onBlur}
@@ -791,19 +712,11 @@ export default function UserFormModal({
                       name="regNo"
                       render={({ field: { onChange, onBlur, value } }) => (
                         <TextInput
-                          style={[
-                            styles.bodyLarge,
-                            {
-                              borderWidth: 1,
-                              borderColor: colors.outline,
-                              borderRadius: 4,
-                              padding: 14,
-                              backgroundColor: "transparent",
-                            },
-                          ]}
+                          style={getFieldStyle(false)}
                           value={value}
                           onChangeText={onChange}
                           onBlur={onBlur}
+                          placeholderTextColor={colors.placeholder || colors.textSecondary}
                         />
                       )}
                     />
@@ -817,19 +730,11 @@ export default function UserFormModal({
                       name="satsNumber"
                       render={({ field: { onChange, onBlur, value } }) => (
                         <TextInput
-                          style={[
-                            styles.bodyLarge,
-                            {
-                              borderWidth: 1,
-                              borderColor: colors.outline,
-                              borderRadius: 4,
-                              padding: 14,
-                              backgroundColor: "transparent",
-                            },
-                          ]}
+                          style={getFieldStyle(false)}
                           value={value}
                           onChangeText={onChange}
                           onBlur={onBlur}
+                          placeholderTextColor={colors.placeholder || colors.textSecondary}
                         />
                       )}
                     />
@@ -848,19 +753,11 @@ export default function UserFormModal({
                       name="penNumber"
                       render={({ field: { onChange, onBlur, value } }) => (
                         <TextInput
-                          style={[
-                            styles.bodyLarge,
-                            {
-                              borderWidth: 1,
-                              borderColor: colors.outline,
-                              borderRadius: 4,
-                              padding: 14,
-                              backgroundColor: "transparent",
-                            },
-                          ]}
+                          style={getFieldStyle(false)}
                           value={value}
                           onChangeText={onChange}
                           onBlur={onBlur}
+                          placeholderTextColor={colors.placeholder || colors.textSecondary}
                         />
                       )}
                     />
@@ -874,19 +771,11 @@ export default function UserFormModal({
                       name="apaarId"
                       render={({ field: { onChange, onBlur, value } }) => (
                         <TextInput
-                          style={[
-                            styles.bodyLarge,
-                            {
-                              borderWidth: 1,
-                              borderColor: colors.outline,
-                              borderRadius: 4,
-                              padding: 14,
-                              backgroundColor: "transparent",
-                            },
-                          ]}
+                          style={getFieldStyle(false)}
                           value={value}
                           onChangeText={onChange}
                           onBlur={onBlur}
+                          placeholderTextColor={colors.placeholder || colors.textSecondary}
                         />
                       )}
                     />
@@ -902,18 +791,9 @@ export default function UserFormModal({
                     name="admissionDate"
                     render={({ field: { onChange, onBlur, value } }) => (
                       <TextInput
-                        style={[
-                          styles.bodyLarge,
-                          {
-                            borderWidth: 1,
-                            borderColor: colors.outline,
-                            borderRadius: 4,
-                            padding: 14,
-                            backgroundColor: "transparent",
-                          },
-                        ]}
+                        style={getFieldStyle(false)}
                         placeholder="YYYY-MM-DD"
-                        placeholderTextColor={colors.textSecondary}
+                        placeholderTextColor={colors.placeholder || colors.textSecondary}
                         value={value}
                         onChangeText={onChange}
                         onBlur={onBlur}
@@ -944,18 +824,9 @@ export default function UserFormModal({
                     name="designation"
                     render={({ field: { onChange, onBlur, value } }) => (
                       <TextInput
-                        style={[
-                          styles.bodyLarge,
-                          {
-                            borderWidth: 1,
-                            borderColor: colors.outline,
-                            borderRadius: 4,
-                            padding: 14,
-                            backgroundColor: "transparent",
-                          },
-                        ]}
+                        style={getFieldStyle(false)}
                         placeholder="e.g. Physical Instructor, Science Teacher"
-                        placeholderTextColor={colors.textSecondary}
+                        placeholderTextColor={colors.placeholder || colors.textSecondary}
                         value={value}
                         onChangeText={onChange}
                         onBlur={onBlur}
@@ -973,18 +844,9 @@ export default function UserFormModal({
                     name="joiningDate"
                     render={({ field: { onChange, onBlur, value } }) => (
                       <TextInput
-                        style={[
-                          styles.bodyLarge,
-                          {
-                            borderWidth: 1,
-                            borderColor: colors.outline,
-                            borderRadius: 4,
-                            padding: 14,
-                            backgroundColor: "transparent",
-                          },
-                        ]}
+                        style={getFieldStyle(false)}
                         placeholder="YYYY-MM-DD"
-                        placeholderTextColor={colors.textSecondary}
+                        placeholderTextColor={colors.placeholder || colors.textSecondary}
                         value={value}
                         onChangeText={onChange}
                         onBlur={onBlur}
@@ -1003,23 +865,14 @@ export default function UserFormModal({
                     render={({ field: { onChange, onBlur, value } }) => (
                       <TextInput
                         style={[
-                          [
-                            styles.bodyLarge,
-                            {
-                              borderWidth: 1,
-                              borderColor: colors.outline,
-                              borderRadius: 4,
-                              padding: 14,
-                              backgroundColor: "transparent",
-                            },
-                          ],
+                          getFieldStyle(false),
                           {
                             height: 80,
                             textAlignVertical: "top",
                             paddingTop: 12,
                           },
                         ]}
-                        placeholderTextColor={colors.textSecondary}
+                        placeholderTextColor={colors.placeholder || colors.textSecondary}
                         value={value}
                         onChangeText={onChange}
                         onBlur={onBlur}

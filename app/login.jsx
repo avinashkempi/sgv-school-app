@@ -41,7 +41,8 @@ export default function Login() {
   const [phoneError, setPhoneError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const { colors } = useTheme();
+  const { colors, mode } = useTheme();
+  const isDark = mode === "dark";
   const router = useRouter();
   const { showToast } = useToast();
   const { login: authLogin } = useAuth();
@@ -324,7 +325,7 @@ export default function Login() {
             style={[
               styles.modalCard,
               {
-                backgroundColor: colors.surface,
+                backgroundColor: isDark ? colors.surfaceContainer : colors.surface,
                 borderColor: colors.outlineVariant,
               },
             ]}
@@ -376,9 +377,8 @@ export default function Login() {
                     styles.roleCard,
                     {
                       backgroundColor:
-                        colors.surfaceContainerLowest ||
-                        (colors.mode === "dark" ? colors.surfaceContainer : "#F8FAFC"),
-                      borderColor: colors.outlineVariant,
+                        isDark ? (colors.fieldBackground || "#000000") : colors.surfaceContainerLowest || "#F8FAFC",
+                      borderColor: isDark ? colors.fieldBorder || colors.outlineVariant : colors.outlineVariant,
                     },
                   ]}
                   onPress={() => handleSelectDemoRole(role.id)}
