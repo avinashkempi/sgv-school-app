@@ -1584,7 +1584,7 @@ export default function AdminFeesScreen() {
                           alignItems: "center",
                         }}
                       >
-                        <MaterialIcons name="search" size={24} color="#fff" />
+                        <MaterialIcons name="search" size={24} color={colors.onPrimary} />
                       </Pressable>
                     </View>
 
@@ -1935,11 +1935,11 @@ export default function AdminFeesScreen() {
                   }}
                 >
                   {saveStructureMutation.isPending ? (
-                    <ActivityIndicator color="#fff" />
+                    <ActivityIndicator color={colors.onPrimary} />
                   ) : (
                     <Text
                       style={{
-                        color: "#fff",
+                        color: colors.onPrimary,
                         fontFamily: FONTS.bold,
                         fontSize: FONT_SIZES.lg,
                       }}

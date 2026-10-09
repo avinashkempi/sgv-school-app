@@ -750,7 +750,7 @@ const VibeCard = ({
         {vibe.caption ? (
           <View style={styles.captionContainer}>
             <Text
-              style={styles.captionWrapper}
+              style={[styles.captionWrapper, { color: colors.onSurface }]}
               numberOfLines={expanded ? undefined : 3}
             >
               <Text style={[styles.captionAuthor, { color: colors.onSurface }]}>

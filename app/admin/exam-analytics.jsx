@@ -1888,7 +1888,7 @@ export default function ExamAnalyticsScreen() {
               style={{
                 fontSize: FONT_SIZES.sm,
                 fontFamily: FONTS.bold,
-                color: "#FFFFFF",
+                color: colors.onPrimary,
               }}
             >
               Retry
@@ -2615,12 +2615,12 @@ export default function ExamAnalyticsScreen() {
                     opacity: pressed ? 0.9 : 1,
                   })}
                 >
-                  <MaterialIcons name="assessment" size={20} color="#FFFFFF" />
+                  <MaterialIcons name="assessment" size={20} color={colors.onPrimary} />
                   <Text
                     style={{
                       fontSize: FONT_SIZES.md,
                       fontFamily: FONTS.bold,
-                      color: "#FFFFFF",
+                      color: colors.onPrimary,
                     }}
                   >
                     View Full Class Report & Rankings

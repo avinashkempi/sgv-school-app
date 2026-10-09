@@ -934,14 +934,14 @@ export default function UserFormModal({
             >
               {saving ? (
                 <View style={{ height: 24, justifyContent: "center" }}>
-                  <ActivityIndicator color="#fff" size="small" />
+                  <ActivityIndicator color={colors.onPrimary} size="small" />
                 </View>
               ) : (
                 <Text
                   style={{
                     fontSize: FONT_SIZES.md,
                     fontFamily: FONTS.bold,
-                    color: "#fff",
+                    color: colors.onPrimary,
                   }}
                 >
                   {modalMode === "add" ? "Create User" : "Save Changes"}

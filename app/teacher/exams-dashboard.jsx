@@ -641,9 +641,7 @@ export default function TeacherExamDashboard() {
                   size={18}
                   color={
                     selectedTab === tab.id
-                      ? isDark
-                        ? colors.onPrimary
-                        : "#FFFFFF"
+                      ? colors.onPrimary
                       : isDark
                       ? "#D4D4D8"
                       : colors.onSurfaceVariant
@@ -655,9 +653,7 @@ export default function TeacherExamDashboard() {
                     fontFamily: FONTS.bold,
                     color:
                       selectedTab === tab.id
-                        ? isDark
-                          ? colors.onPrimary
-                          : "#FFFFFF"
+                        ? colors.onPrimary
                         : isDark
                         ? "#D4D4D8"
                         : colors.onSurfaceVariant,

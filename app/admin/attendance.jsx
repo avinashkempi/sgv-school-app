@@ -801,7 +801,7 @@ export default function AdminAttendance() {
         >
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.titleLarge}>Attendance Management</Text>
+        <Text style={styles.headerTitle}>Attendance Management</Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -1387,7 +1387,7 @@ export default function AdminAttendance() {
                               size={16}
                               color={
                                 selectedClass?._id === cls._id
-                                  ? "#fff"
+                                  ? colors.onPrimary
                                   : colors.success
                               }
                               style={{ marginRight: 6 }}
@@ -1788,19 +1788,19 @@ export default function AdminAttendance() {
                             }}
                           >
                             {saveStudentAttendanceMutation.isPending ? (
-                              <ActivityIndicator size="small" color="#fff" />
+                              <ActivityIndicator size="small" color={colors.onPrimary} />
                             ) : (
                               <>
                                 <MaterialIcons
                                   name="save"
                                   size={20}
-                                  color="#fff"
+                                  color={colors.onPrimary}
                                 />
                                 <Text
                                   style={{
                                     fontSize: FONT_SIZES.sm,
                                     fontFamily: FONTS.bold,
-                                    color: "#fff",
+                                    color: colors.onPrimary,
                                   }}
                                 >
                                   Save
@@ -1883,7 +1883,7 @@ export default function AdminAttendance() {
                       disabled={saveStaffAttendanceMutation.isPending}
                     >
                       {saveStaffAttendanceMutation.isPending ? (
-                        <ActivityIndicator color="#fff" />
+                        <ActivityIndicator color={colors.onPrimary} />
                       ) : (
                         <Text style={styles.saveButtonText}>
                           Save Attendance
@@ -1949,6 +1949,17 @@ const createStyles = (colors) =>
       fontSize: FONT_SIZES.lg,
       fontWeight: "bold",
       color: colors.textPrimary,
+    },
+    titleLarge: {
+      fontSize: FONT_SIZES.lg,
+      fontWeight: "bold",
+      color: colors.textPrimary,
+    },
+    titleMedium: {
+      fontSize: FONT_SIZES.md,
+      fontFamily: FONTS.bold,
+      color: colors.textPrimary,
+      marginBottom: 12,
     },
     backButton: { padding: 4 },
     tabContainer: {
@@ -2021,7 +2032,7 @@ const createStyles = (colors) =>
       borderTopColor: colors.border,
     },
     saveButton: { padding: 16, borderRadius: 12, alignItems: "center" },
-    saveButtonText: { color: "#fff", fontWeight: "bold", fontSize: FONT_SIZES.md },
+    saveButtonText: { color: colors.onPrimary, fontWeight: "bold", fontSize: FONT_SIZES.md },
     summaryCard: {
       flexDirection: "row",
       justifyContent: "space-around",
@@ -2082,7 +2093,7 @@ const createStyles = (colors) =>
       borderColor: colors.border,
     },
     classChipText: { color: colors.textSecondary, fontFamily: FONTS.medium, fontSize: FONT_SIZES.sm },
-    activeClassChipText: { color: "#fff", fontFamily: FONTS.bold, fontSize: FONT_SIZES.sm },
+    activeClassChipText: { color: colors.onPrimary, fontFamily: FONTS.bold, fontSize: FONT_SIZES.sm },
     studentRow: {
       flexDirection: "row",
       justifyContent: "space-between",

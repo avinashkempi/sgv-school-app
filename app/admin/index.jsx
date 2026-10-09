@@ -400,7 +400,7 @@ export default function AdminScreen() {
               borderRadius: 8,
             }}
           >
-            <Text style={{ color: "#fff", fontFamily: FONTS.bold }}>
+            <Text style={{ color: colors.onPrimary, fontFamily: FONTS.bold }}>
               {t("common.retry", "Retry")}
             </Text>
           </Pressable>

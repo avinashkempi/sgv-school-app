@@ -156,7 +156,7 @@ export default function SubjectPerformanceScreen() {
                 <Text
                   style={{
                     fontSize: FONT_SIZES.md,
-                    color: "#fff",
+                    color: colors.onPrimary,
                     opacity: 0.9,
                     fontFamily: FONTS.medium,
                     textAlign: "center",
@@ -168,7 +168,7 @@ export default function SubjectPerformanceScreen() {
                   style={{
                     fontSize: FONT_SIZES.jumbo,
                     fontFamily: FONTS.bold,
-                    color: "#fff",
+                    color: colors.onPrimary,
                     marginTop: 8,
                     textAlign: "center",
                   }}
@@ -179,7 +179,7 @@ export default function SubjectPerformanceScreen() {
                   style={{
                     fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.regular,
-                    color: "#fff",
+                    color: colors.onPrimary,
                     marginTop: 4,
                     textAlign: "center",
                     opacity: 0.8,

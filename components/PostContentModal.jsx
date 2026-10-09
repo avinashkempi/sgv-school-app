@@ -926,11 +926,11 @@ export default function PostContentModal({
                 ]}
               >
                 {isLoading ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <ActivityIndicator size="small" color={colors.onPrimary} />
                 ) : (
                   <>
-                    <MaterialIcons name="send" size={16} color="#FFFFFF" />
-                    <Text style={localStyles.submitBtnText}>
+                    <MaterialIcons name="send" size={16} color={colors.onPrimary} />
+                    <Text style={[localStyles.submitBtnText, { color: colors.onPrimary }]}>
                       {form.type === "homework"
                         ? "Post Homework"
                         : "Post to Class"}

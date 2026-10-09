@@ -866,11 +866,11 @@ export default function AdminExamScheduleScreen() {
                   }}
                 >
                   {updateExamMutation.isPending ? (
-                    <ActivityIndicator color="#fff" size="small" />
+                    <ActivityIndicator color={colors.onPrimary} size="small" />
                   ) : (
                     <Text
                       style={{
-                        color: "#fff",
+                        color: colors.onPrimary,
                         fontFamily: FONTS.bold,
                         fontSize: FONT_SIZES.sm,
                       }}
@@ -1424,19 +1424,19 @@ export default function AdminExamScheduleScreen() {
                 })}
               >
                 {initMutation.isPending ? (
-                  <ActivityIndicator size="small" color="#fff" />
+                  <ActivityIndicator size="small" color={colors.onPrimary} />
                 ) : (
                   <>
                     <MaterialIcons
                       name="playlist-add-check"
                       size={20}
-                      color="#fff"
+                      color={colors.onPrimary}
                     />
                     <Text
                       style={{
                         fontSize: FONT_SIZES.sm,
                         fontFamily: FONTS.bold,
-                        color: "#fff",
+                        color: colors.onPrimary,
                       }}
                     >
                       Initialize Exams

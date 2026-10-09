@@ -285,9 +285,9 @@ export default function TransitionWizardScreen() {
               gap: 8,
             })}
           >
-            <MaterialIcons name="play-arrow" size={20} color="#FFF" />
+            <MaterialIcons name="play-arrow" size={20} color={colors.onPrimary} />
             <Text
-              style={{ fontSize: FONT_SIZES.md, fontFamily: FONTS.bold, color: "#FFF" }}
+              style={{ fontSize: FONT_SIZES.md, fontFamily: FONTS.bold, color: colors.onPrimary }}
             >
               Start Preview
             </Text>
@@ -681,7 +681,7 @@ export default function TransitionWizardScreen() {
             })}
           >
             <Text
-              style={{ fontSize: FONT_SIZES.md, fontFamily: FONTS.bold, color: "#FFF" }}
+              style={{ fontSize: FONT_SIZES.md, fontFamily: FONTS.bold, color: colors.onPrimary }}
             >
               Next: Confirm →
             </Text>

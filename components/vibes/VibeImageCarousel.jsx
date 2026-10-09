@@ -503,8 +503,8 @@ const CarouselImage = React.memo(
               onPress={handleRetry}
               style={[styles.retryBtn, { backgroundColor: colors.primary }]}
             >
-              <MaterialIcons name="refresh" size={14} color="#fff" />
-              <Text style={styles.retryBtnText}>Tap to Retry</Text>
+              <MaterialIcons name="refresh" size={14} color={colors.onPrimary} />
+              <Text style={[styles.retryBtnText, { color: colors.onPrimary }]}>Tap to Retry</Text>
             </Pressable>
           </View>
         ) : (

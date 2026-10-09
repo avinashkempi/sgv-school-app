@@ -366,7 +366,7 @@ export default function ClassesScreen() {
             elevation: 6,
           }}
         >
-          <MaterialIcons name="add" size={28} color="#fff" />
+          <MaterialIcons name="add" size={28} color={colors.onPrimary} />
         </Pressable>
       )}
 

@@ -820,9 +820,7 @@ export default function ComplaintsScreen() {
           fontFamily: FONTS.bold,
           color:
             activeTab === id
-              ? isDark
-                ? colors.onPrimary
-                : "#fff"
+              ? colors.onPrimary
               : isDark
               ? "#D4D4D8"
               : colors.textSecondary,
@@ -1362,9 +1360,9 @@ export default function ComplaintsScreen() {
                   disabled={updateFeedbackMutation.isPending}
                 >
                   {updateFeedbackMutation.isPending ? (
-                    <ActivityIndicator size="small" color="#fff" />
+                    <ActivityIndicator size="small" color={colors.onPrimary} />
                   ) : (
-                    <Text style={{ color: "#fff", fontFamily: FONTS.bold }}>
+                    <Text style={{ color: colors.onPrimary, fontFamily: FONTS.bold }}>
                       Update
                     </Text>
                   )}
@@ -1579,11 +1577,11 @@ export default function ComplaintsScreen() {
                   }}
                 >
                   {updateStatusMutation.isPending ? (
-                    <ActivityIndicator size="small" color="#fff" />
+                    <ActivityIndicator size="small" color={colors.onPrimary} />
                   ) : (
                     <Text
                       style={{
-                        color: "#fff",
+                        color: colors.onPrimary,
                         fontFamily: FONTS.bold,
                         fontSize: FONT_SIZES.md,
                       }}

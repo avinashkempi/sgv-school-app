@@ -201,7 +201,7 @@ export default function CreateYearScreen() {
           marginTop: 2,
         }}
       >
-        {checked && <MaterialIcons name="check" size={16} color="#FFF" />}
+        {checked && <MaterialIcons name="check" size={16} color={colors.onPrimary} />}
       </View>
       <View style={{ flex: 1 }}>
         <Text

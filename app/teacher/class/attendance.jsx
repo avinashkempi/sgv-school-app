@@ -555,15 +555,15 @@ export default function MarkAttendanceScreen() {
                 })}
               >
                 {saving ? (
-                  <ActivityIndicator size="small" color="#fff" />
+                  <ActivityIndicator size="small" color={colors.onPrimary} />
                 ) : (
                   <>
-                    <MaterialIcons name="save" size={18} color="#fff" />
+                    <MaterialIcons name="save" size={18} color={colors.onPrimary} />
                     <Text
                       style={{
                         fontSize: FONT_SIZES.sm,
                         fontFamily: FONTS.bold,
-                        color: "#fff",
+                        color: colors.onPrimary,
                       }}
                     >
                       {t("teacher.saveAttendance", "Save Attendance")}
@@ -1144,15 +1144,15 @@ export default function MarkAttendanceScreen() {
                     })}
                   >
                     {saving ? (
-                      <ActivityIndicator size="small" color="#fff" />
+                      <ActivityIndicator size="small" color={colors.onPrimary} />
                     ) : (
                       <>
-                        <MaterialIcons name="save" size={18} color="#fff" />
+                        <MaterialIcons name="save" size={18} color={colors.onPrimary} />
                         <Text
                           style={{
                             fontSize: FONT_SIZES.sm,
                             fontFamily: FONTS.bold,
-                            color: "#fff",
+                            color: colors.onPrimary,
                           }}
                         >
                           {t("teacher.saveAttendance", "Save Attendance")}
@@ -1403,7 +1403,7 @@ export default function MarkAttendanceScreen() {
                   style={{
                     fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.bold,
-                    color: "#FFFFFF",
+                    color: colors.onPrimary,
                   }}
                 >
                   Confirm & Submit

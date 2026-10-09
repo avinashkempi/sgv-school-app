@@ -1396,13 +1396,13 @@ export default function AcademicYearScreen() {
                   name="date-range"
                   size={16}
                   color={
-                    activeTab === "years" ? "#fff" : colors.onSurfaceVariant
+                    activeTab === "years" ? colors.onPrimary : colors.onSurfaceVariant
                   }
                 />
                 <Text
                   style={{
                     color:
-                      activeTab === "years" ? "#fff" : colors.onSurfaceVariant,
+                      activeTab === "years" ? colors.onPrimary : colors.onSurfaceVariant,
                     fontFamily: FONTS.bold,
                     fontSize: FONT_SIZES.sm,
                   }}
@@ -1430,14 +1430,14 @@ export default function AcademicYearScreen() {
                   name="assessment"
                   size={16}
                   color={
-                    activeTab === "reports" ? "#fff" : colors.onSurfaceVariant
+                    activeTab === "reports" ? colors.onPrimary : colors.onSurfaceVariant
                   }
                 />
                 <Text
                   style={{
                     color:
                       activeTab === "reports"
-                        ? "#fff"
+                        ? colors.onPrimary
                         : colors.onSurfaceVariant,
                     fontFamily: FONTS.bold,
                     fontSize: FONT_SIZES.sm,
@@ -1473,7 +1473,7 @@ export default function AcademicYearScreen() {
             shadowRadius: 4,
           })}
         >
-          <MaterialIcons name="add" size={28} color="#fff" />
+          <MaterialIcons name="add" size={28} color={colors.onPrimary} />
         </Pressable>
       )}
 

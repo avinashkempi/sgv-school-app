@@ -5,7 +5,7 @@ import React, {
   useState,
   useEffect,
 } from "react";
-import { StyleSheet, Appearance } from "react-native";
+import { StyleSheet, Appearance, Platform } from "react-native";
 import storage from "./utils/storage";
 
 import {
@@ -428,6 +428,24 @@ export function ThemeProvider({ children }) {
   const styles = useMemo(() => createGlobalStyles(colors, mode), [colors, mode]);
   const elevations = useMemo(() => createElevations(colors.shadow), [colors]);
 
+  useEffect(() => {
+    if (Platform.OS === "web" && typeof document !== "undefined") {
+      try {
+        const isDarkMode = (mode || "light") === "dark";
+        document.documentElement.style.colorScheme = isDarkMode ? "dark" : "light";
+        document.body.style.backgroundColor = colors.background;
+        document.body.style.color = colors.textPrimary || colors.onBackground;
+        const root = document.getElementById("root");
+        if (root) {
+          root.style.backgroundColor = colors.background;
+          root.style.color = colors.textPrimary || colors.onBackground;
+        }
+      } catch (e) {
+        // Ignore web styling sync errors
+      }
+    }
+  }, [colors, mode]);
+
   const gradients = useMemo(() => ({
     primary: mode === 'dark'
       ? [colors.primary, colors.primaryContainer]
@@ -462,6 +480,7 @@ export function ThemeProvider({ children }) {
     <ThemeContext.Provider
       value={{
         mode: mode || "light",
+        isDark: (mode || "light") === "dark",
         toggle,
         toggleTheme: toggle,
         toggleeTheme: toggle,

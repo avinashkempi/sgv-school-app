@@ -1206,8 +1206,8 @@ export default function VibesScreen() {
               accessibilityRole="button"
               accessibilityLabel="Create Vibe Post"
             >
-              <MaterialIcons name="add" size={18} color="#FFFFFF" />
-              <Text style={styles.emptyPrimaryBtnText}>Create Vibe</Text>
+              <MaterialIcons name="add" size={18} color={colors.onPrimary} />
+              <Text style={[styles.emptyPrimaryBtnText, { color: colors.onPrimary }]}>Create Vibe</Text>
             </Pressable>
           </View>
         </View>
@@ -1250,8 +1250,8 @@ export default function VibesScreen() {
                 { backgroundColor: colors.primary, marginTop: 12 },
               ]}
             >
-              <MaterialIcons name="view-list" size={18} color="#FFFFFF" />
-              <Text style={styles.emptyPrimaryBtnText}>View All Posts</Text>
+              <MaterialIcons name="view-list" size={18} color={colors.onPrimary} />
+              <Text style={[styles.emptyPrimaryBtnText, { color: colors.onPrimary }]}>View All Posts</Text>
             </Pressable>
           </View>
         );
@@ -1286,8 +1286,8 @@ export default function VibesScreen() {
                 { backgroundColor: colors.primary, marginTop: 12 },
               ]}
             >
-              <MaterialIcons name="view-list" size={18} color="#FFFFFF" />
-              <Text style={styles.emptyPrimaryBtnText}>View All Posts</Text>
+              <MaterialIcons name="view-list" size={18} color={colors.onPrimary} />
+              <Text style={[styles.emptyPrimaryBtnText, { color: colors.onPrimary }]}>View All Posts</Text>
             </Pressable>
           </View>
         );
@@ -1322,8 +1322,8 @@ export default function VibesScreen() {
                 { backgroundColor: colors.primary, marginTop: 12 },
               ]}
             >
-              <MaterialIcons name="view-list" size={18} color="#FFFFFF" />
-              <Text style={styles.emptyPrimaryBtnText}>View All Posts</Text>
+              <MaterialIcons name="view-list" size={18} color={colors.onPrimary} />
+              <Text style={[styles.emptyPrimaryBtnText, { color: colors.onPrimary }]}>View All Posts</Text>
             </Pressable>
           </View>
         );
@@ -1365,8 +1365,8 @@ export default function VibesScreen() {
               { backgroundColor: colors.primary, marginTop: 12 },
             ]}
           >
-            <MaterialIcons name="add" size={18} color="#FFFFFF" />
-            <Text style={styles.emptyPrimaryBtnText}>Post a Vibe</Text>
+            <MaterialIcons name="add" size={18} color={colors.onPrimary} />
+            <Text style={[styles.emptyPrimaryBtnText, { color: colors.onPrimary }]}>Post a Vibe</Text>
           </Pressable>
         </View>
       );
@@ -1402,8 +1402,8 @@ export default function VibesScreen() {
             { backgroundColor: colors.primary, marginTop: 12 },
           ]}
         >
-          <MaterialIcons name="dynamic-feed" size={18} color="#FFFFFF" />
-          <Text style={styles.emptyPrimaryBtnText}>Explore Feed</Text>
+          <MaterialIcons name="dynamic-feed" size={18} color={colors.onPrimary} />
+          <Text style={[styles.emptyPrimaryBtnText, { color: colors.onPrimary }]}>Explore Feed</Text>
         </Pressable>
       </View>
     );

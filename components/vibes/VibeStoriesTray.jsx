@@ -147,7 +147,7 @@ const StoryBubble = memo(
                     <MaterialIcons
                       name={icon || "school"}
                       size={24}
-                      color="#fff"
+                      color={ringColor ? "#fff" : colors.onPrimary}
                     />
                   </View>
                 )}

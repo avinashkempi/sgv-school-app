@@ -895,7 +895,7 @@ export default function TeacherLeaves() {
               </Text>
               {summaryMetrics.pending > 0 && (
                 <View style={[styles.tabBadge, { backgroundColor: colors.primary || "#4F46E5" }]}>
-                  <Text style={[styles.tabBadgeText, { color: isDark ? colors.onPrimary : "#FFFFFF" }]}>{summaryMetrics.pending}</Text>
+                  <Text style={[styles.tabBadgeText, { color: colors.onPrimary }]}>{summaryMetrics.pending}</Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -961,7 +961,7 @@ export default function TeacherLeaves() {
             />
             {activeFiltersCount > 0 && (
               <View style={[styles.filterBadge, { backgroundColor: colors.primary }]}>
-                <Text style={styles.filterBadgeText}>{activeFiltersCount}</Text>
+                <Text style={[styles.filterBadgeText, { color: colors.onPrimary }]}>{activeFiltersCount}</Text>
               </View>
             )}
           </TouchableOpacity>

@@ -229,12 +229,12 @@ export default function SubjectDetailScreen() {
                 elevation: 2,
               })}
             >
-              <MaterialIcons name="leaderboard" size={20} color="#fff" />
+              <MaterialIcons name="leaderboard" size={20} color={colors.onPrimary} />
               <Text
                 style={{
                   fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.bold,
-                  color: "#fff",
+                  color: colors.onPrimary,
                 }}
               >
                 {t("teacher.performance", "Performance")}
@@ -494,7 +494,7 @@ export default function SubjectDetailScreen() {
           opacity: pressed ? 0.9 : 1,
         })}
       >
-        <MaterialIcons name="add" size={28} color="#fff" />
+        <MaterialIcons name="add" size={28} color={colors.onPrimary} />
       </Pressable>
 
       <PostContentModal

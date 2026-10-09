@@ -489,7 +489,7 @@ export default function StudentReportCardScreen() {
                               ]}
                             >
                               {sub.obtainedMarks !== null ? sub.obtainedMarks : "-"}
-                              <Text style={styles.maxText}>
+                              <Text style={[styles.maxText, { color: colors.onSurfaceVariant }]}>
                                 /{sub.maxMarks}
                               </Text>
                             </Text>

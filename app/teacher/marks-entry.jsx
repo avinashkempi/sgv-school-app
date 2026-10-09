@@ -776,7 +776,7 @@ export default function MarksEntryScreen() {
                   style={{
                     fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.bold,
-                    color: "#FFFFFF",
+                    color: colors.onPrimary,
                   }}
                 >
                   Confirm & Submit

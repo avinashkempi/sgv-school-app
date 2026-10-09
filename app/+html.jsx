@@ -29,6 +29,23 @@ export default function Root({ children }) {
         */}
         <ScrollViewStyleReset />
 
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+              html, body {
+                background-color: #141218;
+                color: #E6E1E5;
+              }
+              @media (prefers-color-scheme: light) {
+                html, body {
+                  background-color: #FEF7FF;
+                  color: #1D1B20;
+                }
+              }
+            `,
+          }}
+        />
+
         {headNodes}
       </head>
       <body {...bodyAttributes}>

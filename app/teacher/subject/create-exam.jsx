@@ -836,7 +836,7 @@ export default function QuickExamWizard() {
               <MaterialIcons
                 name="check"
                 size={18}
-                color={isDark ? colors.onPrimary : "#FFFFFF"}
+                color={colors.onPrimary}
               />
             ) : (
               <Text
@@ -845,9 +845,7 @@ export default function QuickExamWizard() {
                   fontFamily: FONTS.bold,
                   color:
                     currentStep >= step
-                      ? isDark
-                        ? colors.onPrimary
-                        : "#FFFFFF"
+                      ? colors.onPrimary
                       : isDark
                       ? "#D4D4D8"
                       : colors.onSurfaceVariant,
@@ -964,14 +962,14 @@ export default function QuickExamWizard() {
           })}
         >
           {quickInitMutation.isPending ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
+            <ActivityIndicator size="small" color={colors.onPrimary} />
           ) : (
             <>
               <Text
                 style={{
                   fontFamily: FONTS.bold,
                   fontSize: FONT_SIZES.md,
-                  color: "#FFFFFF",
+                  color: colors.onPrimary,
                 }}
               >
                 {currentStep === 3 ? "Create All Exams" : "Next"}
@@ -979,7 +977,7 @@ export default function QuickExamWizard() {
               <MaterialIcons
                 name={currentStep === 3 ? "check" : "arrow-forward"}
                 size={20}
-                color="#FFFFFF"
+                color={colors.onPrimary}
               />
             </>
           )}

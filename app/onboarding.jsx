@@ -248,7 +248,7 @@ export default function OnboardingScreen() {
                 <MaterialIcons
                   name={isLastSlide ? "check" : "arrow-forward"}
                   size={18}
-                  color="#FFFFFF"
+                  color={isLastSlide ? colors.onPrimary : "#FFFFFF"}
                 />
               }
             >

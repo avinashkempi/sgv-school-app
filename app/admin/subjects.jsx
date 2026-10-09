@@ -310,7 +310,7 @@ export default function ManageSubjectsScreen() {
           shadowRadius: 8,
         }}
       >
-        <MaterialIcons name="add" size={28} color="#fff" />
+        <MaterialIcons name="add" size={28} color={colors.onPrimary} />
       </Pressable>
 
       {/* Create/Edit Modal */}
@@ -469,10 +469,10 @@ export default function ManageSubjectsScreen() {
               }}
             >
               {saveSubjectMutation.isPending ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={colors.onPrimary} />
               ) : (
                 <Text
-                  style={{ color: "#fff", fontSize: FONT_SIZES.sm, fontFamily: FONTS.bold }}
+                  style={{ color: colors.onPrimary, fontSize: FONT_SIZES.sm, fontFamily: FONTS.bold }}
                 >
                   {modalMode === "add" ? "Create Subject" : "Save Changes"}
                 </Text>

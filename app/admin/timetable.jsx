@@ -847,13 +847,13 @@ export default function AdminTimetableScreen() {
                 })}
               >
                 {saveTimetableMutation.isPending ? (
-                  <ActivityIndicator color="#fff" />
+                  <ActivityIndicator color={colors.onPrimary} />
                 ) : (
                   <>
-                    <MaterialIcons name="save" size={20} color="#fff" />
+                    <MaterialIcons name="save" size={20} color={colors.onPrimary} />
                     <Text
                       style={{
-                        color: "#fff",
+                        color: colors.onPrimary,
                         fontFamily: FONTS.bold,
                         fontSize: FONT_SIZES.md,
                       }}
@@ -1244,7 +1244,7 @@ export default function AdminTimetableScreen() {
                 >
                   <Text
                     style={{
-                      color: "#fff",
+                      color: colors.onPrimary,
                       fontFamily: FONTS.bold,
                       fontSize: FONT_SIZES.md,
                     }}

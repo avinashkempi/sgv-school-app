@@ -350,7 +350,7 @@ export default function TeacherSubjectsScreen() {
                         >
                           <Text
                             style={{
-                              color: "#fff",
+                              color: colors.onPrimary,
                               fontSize: FONT_SIZES.sm,
                               fontFamily: FONTS.bold,
                             }}

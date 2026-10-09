@@ -695,10 +695,10 @@ export default function ClassDetailsScreen() {
                   marginBottom: 4,
                 })}
               >
-                <MaterialIcons name="add-circle-outline" size={20} color="#FFFFFF" />
+                <MaterialIcons name="add-circle-outline" size={20} color={colors.onPrimary} />
                 <Text
                   style={{
-                    color: "#FFFFFF",
+                    color: colors.onPrimary,
                     fontSize: FONT_SIZES.sm,
                     fontFamily: FONTS.bold,
                   }}
