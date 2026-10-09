@@ -33,6 +33,7 @@ import {
   uploadVideoToCloudinary,
   CLOUDINARY_FOLDERS,
   getBlurPlaceholderUrl,
+  getOptimizedCloudinaryUrl,
 } from "../../utils/cloudinaryUpload";
 
 const MAX_IMAGES = 5;
@@ -1170,7 +1171,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                   <View key={img.id || index} style={styles.imageThumbWrapper}>
                     <Image
                       source={{
-                        uri: img.thumbnailUrl || img.localUri || img.url,
+                        uri: img.thumbnailUrl || img.localUri || getOptimizedCloudinaryUrl(img.url, { width: 300 }),
                       }}
                       placeholder={
                         img.url
@@ -1180,6 +1181,7 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                       style={styles.imageThumb}
                       contentFit="cover"
                       transition={150}
+                      cachePolicy="memory-disk"
                     />
                     {/* Video Duration Badge */}
                     {img.type === "video" && (

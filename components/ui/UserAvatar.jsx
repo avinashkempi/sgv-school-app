@@ -176,6 +176,7 @@ const UserAvatar = ({
           style={{ width: "100%", height: "100%", borderRadius }}
           contentFit="cover"
           transition={150}
+          cachePolicy="memory-disk"
           onError={() => setImageError(true)}
         />
       ) : isSchoolIdentity ? (

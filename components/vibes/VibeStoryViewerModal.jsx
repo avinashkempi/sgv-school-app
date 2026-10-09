@@ -43,6 +43,7 @@ import {
   getFeedImageUrl,
   getStoryThumbnailUrl,
   getBlurPlaceholderUrl,
+  getOptimizedCloudinaryUrl,
 } from "../../utils/cloudinaryUpload";
 import useNetworkQuality from "../../hooks/useNetworkQuality";
 import { FONTS, FONT_SIZES, LINE_HEIGHTS, LETTER_SPACINGS, useTheme } from "../../theme";
@@ -726,7 +727,7 @@ const VibeStoryViewerModal = ({
                 <>
                   {currentMedia?.thumbnailUrl && (
                     <Image
-                      source={{ uri: currentMedia.thumbnailUrl }}
+                      source={{ uri: getOptimizedCloudinaryUrl(currentMedia.thumbnailUrl, { width: 400 }) }}
                       style={StyleSheet.absoluteFillObject}
                       contentFit="cover"
                       blurRadius={Platform.OS === "ios" ? 30 : 15}

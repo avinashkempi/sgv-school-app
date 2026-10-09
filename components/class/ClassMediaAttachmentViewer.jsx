@@ -14,7 +14,7 @@ import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
 import * as Haptics from "expo-haptics";
 import { useTheme, FONTS, FONT_SIZES } from "../../theme";
-import { getDocumentMeta } from "../../utils/cloudinaryUpload";
+import { getDocumentMeta, getOptimizedCloudinaryUrl } from "../../utils/cloudinaryUpload";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -119,10 +119,11 @@ export function ClassMediaAttachmentViewer({ attachments = [] }) {
               accessibilityLabel="View photo attachment in full screen"
             >
               <Image
-                source={{ uri: item.url }}
+                source={{ uri: getOptimizedCloudinaryUrl(item.url, { width: 400 }) }}
                 style={styles.image}
                 contentFit="cover"
                 transition={200}
+                cachePolicy="memory-disk"
               />
               <View style={styles.imageZoomBadge}>
                 <MaterialIcons name="zoom-out-map" size={14} color="#FFFFFF" />
@@ -248,9 +249,10 @@ export function ClassMediaAttachmentViewer({ attachments = [] }) {
             </Pressable>
 
             <Image
-              source={{ uri: selectedImage }}
+              source={{ uri: getOptimizedCloudinaryUrl(selectedImage, { width: 1200 }) }}
               style={styles.lightboxImage}
               contentFit="contain"
+              cachePolicy="memory-disk"
             />
           </View>
         </Modal>

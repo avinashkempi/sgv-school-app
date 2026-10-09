@@ -118,6 +118,7 @@ const StoryBubble = memo(
                     style={styles.avatarImage}
                     contentFit="cover"
                     transition={200}
+                    cachePolicy="memory-disk"
                   />
                 ) : isOfficial ? (
                   <View
@@ -177,6 +178,7 @@ const StoryBubble = memo(
                     style={[styles.avatarImage, { opacity: 0.85 }]}
                     contentFit="cover"
                     transition={200}
+                    cachePolicy="memory-disk"
                   />
                 ) : isOfficial ? (
                   <View

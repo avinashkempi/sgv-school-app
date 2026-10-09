@@ -387,6 +387,7 @@ export default function ProfileScreen() {
                 style={{ width: "100%", height: "100%" }}
                 contentFit="cover"
                 transition={200}
+                cachePolicy="memory-disk"
               />
             ) : (
               <View

@@ -415,6 +415,7 @@ const UserVibesSection = ({ userId }) => {
                   style={{ width: "100%", height: "100%" }}
                   contentFit="cover"
                   transition={200}
+                  cachePolicy="memory-disk"
                 />
               ) : (
                 <View

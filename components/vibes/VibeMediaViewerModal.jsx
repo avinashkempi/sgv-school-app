@@ -29,6 +29,7 @@ import {
   getBlurPlaceholderUrl,
   getVideoPosterUrl,
   isVideoUrl,
+  getOptimizedCloudinaryUrl,
 } from "../../utils/cloudinaryUpload";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -156,7 +157,7 @@ const ZoomableImageItem = React.memo(
         <GestureDetector gesture={composedGestures}>
           <Animated.View style={[styles.zoomableWrapper, animatedStyle]}>
             <Image
-              source={{ uri: imageUrl }}
+              source={{ uri: getOptimizedCloudinaryUrl(imageUrl, { width: 1440 }) }}
               placeholder={
                 imageUrl ? { uri: getBlurPlaceholderUrl(imageUrl) } : undefined
               }

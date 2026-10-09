@@ -903,6 +903,68 @@ export const uploadVideoToCloudinary = async (
 };
 
 /**
+ * Helper to check if a Cloudinary URL already contains transformation segments.
+ * Correctly distinguishes transformation flags (w_, q_, f_, c_, etc.) from
+ * version prefixes (e.g. v1712345678) and folder path segments.
+ */
+export const hasCloudinaryTransform = (url) => {
+  if (!url || typeof url !== "string") return false;
+  const uploadIndex = url.indexOf("/upload/");
+  if (uploadIndex === -1) return false;
+  const remainder = url.slice(uploadIndex + "/upload/".length);
+  const firstSegment = remainder.split("/")[0] || "";
+  // Version segment e.g. v1712345678 or v1 is NOT a transformation
+  if (/^v\d+$/i.test(firstSegment)) return false;
+  // A transformation segment contains known Cloudinary parameter prefixes
+  return /(?:^|,)(?:w_|h_|c_|q_|f_|e_|g_|so_|b_|r_|dpr_|fl_|co_|bo_|a_|t_|pg_|vc_)/.test(firstSegment);
+};
+
+/**
+ * Injects or updates Cloudinary transformation parameters into an upload URL,
+ * guaranteeing that f_auto and q_auto are ALWAYS present for maximum bandwidth savings (30–50%).
+ *
+ * @param {string} url - Original Cloudinary URL
+ * @param {string} defaultTransform - Transformation parameters to inject if none present
+ * @returns {string} Fully optimized delivery URL
+ */
+export const injectCloudinaryTransform = (url, defaultTransform = "q_auto,f_auto") => {
+  if (!url || typeof url !== "string" || !url.includes("cloudinary.com")) return url || "";
+
+  const uploadIndex = url.indexOf("/upload/");
+  if (uploadIndex === -1) return url;
+
+  const prefix = url.slice(0, uploadIndex + "/upload/".length);
+  const remainder = url.slice(uploadIndex + "/upload/".length);
+  const segments = remainder.split("/");
+  const firstSegment = segments[0] || "";
+
+  const isTransform =
+    !/^v\d+$/i.test(firstSegment) &&
+    /(?:^|,)(?:w_|h_|c_|q_|f_|e_|g_|so_|b_|r_|dpr_|fl_|co_|bo_|a_|t_|pg_|vc_)/.test(firstSegment);
+
+  if (isTransform) {
+    let parts = firstSegment.split(",");
+    const hasFormat = parts.some((p) => p.startsWith("f_"));
+    const hasQuality = parts.some((p) => p.startsWith("q_"));
+
+    if (!hasFormat) parts.push("f_auto");
+    if (!hasQuality) parts.push("q_auto");
+
+    segments[0] = parts.join(",");
+    return prefix + segments.join("/");
+  } else {
+    let transformStr = defaultTransform;
+    if (!transformStr.includes("f_auto") && !transformStr.includes("f_")) {
+      transformStr += ",f_auto";
+    }
+    if (!transformStr.includes("q_auto") && !transformStr.includes("q_")) {
+      transformStr += ",q_auto";
+    }
+    return prefix + transformStr + "/" + remainder;
+  }
+};
+
+/**
  * Get dynamic Cloudinary video stream URL optimized for mobile playback.
  * Automatically transcodes and caps at 720p HD (or 480p on slow connections) with auto-codec.
  *
@@ -949,9 +1011,9 @@ export const getBlurPlaceholderUrl = (url) => {
   if (!url || typeof url !== "string") return "";
   if (!url.includes("cloudinary.com")) return url;
 
-  return url.replace(
-    "/upload/",
-    "/upload/w_32,e_blur:600,q_10,f_auto,c_limit/"
+  return injectCloudinaryTransform(
+    url,
+    "w_32,e_blur:600,q_10,f_auto,c_limit"
   );
 };
 
@@ -979,7 +1041,7 @@ export const getVideoPosterUrl = (
   optionsOrThumbnail = {}
 ) => {
   if (typeof optionsOrThumbnail === "string" && optionsOrThumbnail.trim()) {
-    return optionsOrThumbnail.trim();
+    return injectCloudinaryTransform(optionsOrThumbnail.trim(), "q_auto,f_auto");
   }
 
   const options =
@@ -1000,33 +1062,12 @@ export const getVideoPosterUrl = (
   const crop = height ? (mode === "fill" ? "c_fill,g_auto" : "c_limit") : "c_limit";
   const transform = `${timeOffset},w_${width}${height ? `,h_${height}` : ""},${crop},q_auto,f_auto`;
 
-  if (hasCloudinaryTransform(posterUrl)) {
-    return posterUrl;
-  }
-
-  return posterUrl.replace("/upload/", `/upload/${transform}/`);
-};
-
-/**
- * Helper to check if a Cloudinary URL already contains transformation segments.
- */
-export const hasCloudinaryTransform = (url) => {
-  if (!url || typeof url !== "string") return false;
-  return (
-    /\/upload\/([a-z0-9_]+:[a-z0-9_]+|[a-z0-9_]+_[a-z0-9_]+|\w+\/)/i.test(
-      url
-    ) ||
-    url.includes("/upload/w_") ||
-    url.includes("/upload/c_") ||
-    url.includes("/upload/q_") ||
-    url.includes("/upload/e_blur") ||
-    url.includes("/upload/so_")
-  );
+  return injectCloudinaryTransform(posterUrl, transform);
 };
 
 /**
  * Get a Cloudinary optimized URL for display.
- * Appends transformation parameters for responsive loading.
+ * Appends transformation parameters for responsive loading with f_auto,q_auto.
  *
  * @param {string} url - Original Cloudinary URL
  * @param {Object} [options]
@@ -1042,22 +1083,15 @@ export const getOptimizedCloudinaryUrl = (
   if (!url || typeof url !== "string") return url || "";
   if (!url.includes("cloudinary.com")) return url;
 
-  // If already transformed, don't duplicate
-  if (hasCloudinaryTransform(url)) {
-    return url;
-  }
-
   const effectiveWidth = isSlow ? Math.min(width, 720) : width;
   const effectiveQuality = isSlow ? "eco" : quality;
+  const transform = `w_${effectiveWidth},q_${effectiveQuality},f_auto,c_limit`;
 
-  return url.replace(
-    "/upload/",
-    `/upload/w_${effectiveWidth},q_${effectiveQuality},f_auto,c_limit/`
-  );
+  return injectCloudinaryTransform(url, transform);
 };
 
 /**
- * Optimized circular avatar image (face-detection smart crop)
+ * Optimized circular avatar image (face-detection smart crop with f_auto,q_auto)
  *
  * @param {string} url - Cloudinary image URL
  * @param {number} [size=200] - Desired width and height
@@ -1066,17 +1100,14 @@ export const getOptimizedCloudinaryUrl = (
 export const getAvatarUrl = (url, size = 200) => {
   if (!url || typeof url !== "string") return url || "";
   if (!url.includes("cloudinary.com")) return url;
-  if (hasCloudinaryTransform(url)) return url;
 
-  return url.replace(
-    "/upload/",
-    `/upload/w_${size},h_${size},c_fill,g_face,q_auto,f_auto/`
-  );
+  const transform = `w_${size},h_${size},c_fill,g_face,q_auto,f_auto`;
+  return injectCloudinaryTransform(url, transform);
 };
 export const getProfilePhotoUrl = getAvatarUrl;
 
 /**
- * Optimized circular story preview thumbnail (200x200 smart face/auto crop)
+ * Optimized circular story preview thumbnail (200x200 smart face/auto crop with f_auto,q_auto)
  */
 export const getStoryThumbnailUrl = (url) => {
   if (!url || typeof url !== "string") return url || "";
@@ -1084,16 +1115,15 @@ export const getStoryThumbnailUrl = (url) => {
     return getVideoPosterUrl(url, { width: 200, height: 200, mode: "fill" });
   }
   if (!url.includes("cloudinary.com")) return url;
-  if (hasCloudinaryTransform(url)) return url;
 
-  return url.replace(
-    "/upload/",
-    "/upload/w_200,h_200,c_fill,g_auto,q_auto,f_auto/"
+  return injectCloudinaryTransform(
+    url,
+    "w_200,h_200,c_fill,g_auto,q_auto,f_auto"
   );
 };
 
 /**
- * Optimized 1080x600 Hero Spotlight banner (supports images & video posters)
+ * Optimized 1080x600 Hero Spotlight banner (supports images & video posters with f_auto,q_auto)
  */
 export const getHeroBannerUrl = (url) => {
   if (!url || typeof url !== "string") return url || "";
@@ -1101,16 +1131,15 @@ export const getHeroBannerUrl = (url) => {
     return getVideoPosterUrl(url, { width: 1080, height: 600, mode: "fill" });
   }
   if (!url.includes("cloudinary.com")) return url;
-  if (hasCloudinaryTransform(url)) return url;
 
-  return url.replace(
-    "/upload/",
-    "/upload/w_1080,h_600,c_fill,g_auto,q_auto,f_auto/"
+  return injectCloudinaryTransform(
+    url,
+    "w_1080,h_600,c_fill,g_auto,q_auto,f_auto"
   );
 };
 
 /**
- * Optimized 360x360 Square Grid thumbnail (for Profile / Gallery)
+ * Optimized 360x360 Square Grid thumbnail (for Profile / Gallery with f_auto,q_auto)
  */
 export const getGridThumbnailUrl = (url) => {
   if (!url || typeof url !== "string") return url || "";
@@ -1118,16 +1147,15 @@ export const getGridThumbnailUrl = (url) => {
     return getVideoPosterUrl(url, { width: 360, height: 360, mode: "fill" });
   }
   if (!url.includes("cloudinary.com")) return url;
-  if (hasCloudinaryTransform(url)) return url;
 
-  return url.replace(
-    "/upload/",
-    "/upload/w_360,h_360,c_fill,g_auto,q_auto,f_auto/"
+  return injectCloudinaryTransform(
+    url,
+    "w_360,h_360,c_fill,g_auto,q_auto,f_auto"
   );
 };
 
 /**
- * Optimized Feed Image URL (max 1080px wide with auto quality and format)
+ * Optimized Feed Image URL (max 1080px wide with auto quality and format: f_auto,q_auto)
  */
 export const getFeedImageUrl = (url, { isSlow = false } = {}) => {
   if (!url || typeof url !== "string") return url || "";
@@ -1138,15 +1166,12 @@ export const getFeedImageUrl = (url, { isSlow = false } = {}) => {
     });
   }
   if (!url.includes("cloudinary.com")) return url;
-  if (hasCloudinaryTransform(url)) return url;
 
   const targetWidth = isSlow ? 720 : 1080;
   const targetQuality = isSlow ? "eco" : "auto";
+  const transform = `w_${targetWidth},q_${targetQuality},f_auto,c_limit`;
 
-  return url.replace(
-    "/upload/",
-    `/upload/w_${targetWidth},q_${targetQuality},f_auto,c_limit/`
-  );
+  return injectCloudinaryTransform(url, transform);
 };
 
 /**

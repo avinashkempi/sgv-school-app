@@ -24,6 +24,7 @@ import {
   compressImage,
   uploadToCloudinary,
   CLOUDINARY_FOLDERS,
+  getOptimizedCloudinaryUrl,
 } from "../utils/cloudinaryUpload";
 
 const MAX_IMAGES = 5;
@@ -339,13 +340,14 @@ export default function CreatePostModal({ visible, onClose, editPost = null }) {
                 {images.map((img, index) => (
                   <View key={img.id || index} style={styles.imageThumbWrapper}>
                     <Image
-                      source={{ uri: img.localUri || img.url }}
+                      source={{ uri: img.localUri || getOptimizedCloudinaryUrl(img.url, { width: 300 }) }}
                       style={[
                         styles.imageThumb,
                         { backgroundColor: colors.surfaceContainerHighest },
                       ]}
                       contentFit="cover"
                       transition={150}
+                      cachePolicy="memory-disk"
                     />
                     {img.uploading && (
                       <View style={styles.uploadOverlay}>
