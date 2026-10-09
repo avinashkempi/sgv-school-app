@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   Platform,
+  Image as RNImage,
 } from "react-native";
 import { Image } from "expo-image";
 import { useVideoPlayer, VideoView } from "expo-video";
@@ -61,6 +62,7 @@ const VibeVideoPlayer = React.memo(
     onDurationDetected,
     onDimensionsDetected,
     onReady,
+    contentFit = "contain",
   }) => {
     const { isSlow } = useNetworkQuality();
     const [isMuted, setIsMuted] = useState(globalIsMuted);
@@ -70,11 +72,11 @@ const VibeVideoPlayer = React.memo(
     const [hasError, setHasError] = useState(false);
     const [useOptimizedSource, setUseOptimizedSource] = useState(true);
     const [naturalRatio, setNaturalRatio] = useState(
-      aspectRatio && aspectRatio > 0 ? aspectRatio : null
+      aspectRatio && aspectRatio > 0 && aspectRatio !== 1 ? aspectRatio : null
     );
 
     useEffect(() => {
-      if (aspectRatio && aspectRatio > 0) {
+      if (aspectRatio && aspectRatio > 0 && aspectRatio !== 1) {
         setNaturalRatio((prev) =>
           !prev || Math.abs(aspectRatio - prev) > 0.05 ? aspectRatio : prev
         );
@@ -102,29 +104,45 @@ const VibeVideoPlayer = React.memo(
       [posterUrl]
     );
 
+    // Pre-detect real video dimensions via poster image URL
+    useEffect(() => {
+      if (posterUrl) {
+        RNImage.getSize(
+          posterUrl,
+          (w, h) => {
+            if (w > 0 && h > 0) {
+              const r = Number((w / h).toFixed(3));
+              if (r > 0 && isFinite(r)) {
+                setNaturalRatio((prev) =>
+                  !prev || Math.abs(r - prev) > 0.05 ? r : prev
+                );
+                onDimensionsDetected?.(w, h);
+              }
+            }
+          },
+          () => {}
+        );
+      }
+    }, [posterUrl, onDimensionsDetected]);
+
     // Compute exact video render dimensions within container { width, height }
     const effectiveRatio =
       naturalRatio ||
-      aspectRatio ||
-      (width && height ? width / height : 0.562);
+      (aspectRatio && aspectRatio > 0 && aspectRatio !== 1 ? aspectRatio : null) ||
+      (width && height && width !== height ? width / height : null) ||
+      1.778;
 
     const { renderWidth, renderHeight } = useMemo(() => {
-      if (!width || !height || !effectiveRatio || effectiveRatio <= 0) {
-        return { renderWidth: width || "100%", renderHeight: height || 320 };
+      const targetW = width || 390;
+      if (!effectiveRatio || effectiveRatio <= 0) {
+        return { renderWidth: targetW, renderHeight: height || 220 };
       }
-      const containerRatio = width / height;
-      if (effectiveRatio > containerRatio) {
-        // Video is wider than container: fits container width, height adjusted to aspect ratio
-        const w = width;
-        const h = Math.min(height, Math.round(width / effectiveRatio));
-        return { renderWidth: w, renderHeight: h };
-      } else {
-        // Video is taller than container: fits container height, width adjusted to aspect ratio
-        const h = height;
-        const w = Math.min(width, Math.round(height * effectiveRatio));
-        return { renderWidth: w, renderHeight: h };
-      }
-    }, [width, height, effectiveRatio]);
+      const targetH = Math.round(targetW / effectiveRatio);
+      return { renderWidth: targetW, renderHeight: targetH };
+    }, [width, effectiveRatio, height]);
+
+    const playerWidth = contentFit === "cover" ? width : (renderWidth || width);
+    const playerHeight = contentFit === "cover" ? height : (renderHeight || height);
 
     // Native expo-video player instance
     const player = useVideoPlayer(videoSource, (p) => {
@@ -175,10 +193,26 @@ const VibeVideoPlayer = React.memo(
     useEffect(() => {
       if (!player) return;
 
+      const checkCurrentVideoSize = () => {
+        const trackSize =
+          player.videoTrack?.size ||
+          player.availableVideoTracks?.[0]?.size;
+        if (trackSize?.width && trackSize?.height) {
+          const r = Number((trackSize.width / trackSize.height).toFixed(3));
+          if (r > 0 && isFinite(r)) {
+            setNaturalRatio((prev) =>
+              !prev || Math.abs(r - prev) > 0.05 ? r : prev
+            );
+            onDimensionsDetected?.(trackSize.width, trackSize.height);
+          }
+        }
+      };
+
       // Check current status immediately
       if (player.status === "readyToPlay" || player.playing) {
         setIsReady(true);
         setHasError(false);
+        checkCurrentVideoSize();
         if (player.duration && player.duration > 0) {
           onDurationDetected?.(player.duration * 1000);
         }
@@ -189,6 +223,7 @@ const VibeVideoPlayer = React.memo(
         if (status.status === "readyToPlay") {
           setIsReady(true);
           setHasError(false);
+          checkCurrentVideoSize();
           if (player.duration && player.duration > 0) {
             onDurationDetected?.(player.duration * 1000);
           }
@@ -360,9 +395,14 @@ const VibeVideoPlayer = React.memo(
     }));
 
     return (
-      <View style={[styles.container, { width, height }]}>
-        {/* Ambient blurred backdrop fills the card container behind pillarboxed/letterboxed video */}
-        {posterUrl ? (
+      <View
+        style={[
+          styles.container,
+          { width: playerWidth, height: playerHeight },
+        ]}
+      >
+        {/* Ambient blurred backdrop only when covering a larger container */}
+        {contentFit === "cover" && posterUrl ? (
           <Image
             source={{ uri: posterUrl }}
             style={StyleSheet.absoluteFillObject}
@@ -371,18 +411,22 @@ const VibeVideoPlayer = React.memo(
             cachePolicy="memory-disk"
           />
         ) : null}
-        <View
-          style={[
-            StyleSheet.absoluteFillObject,
-            { backgroundColor: "rgba(0, 0, 0, 0.55)" },
-          ]}
-        />
+        {contentFit === "cover" ? (
+          <View
+            style={[
+              StyleSheet.absoluteFillObject,
+              { backgroundColor: "rgba(0, 0, 0, 0.55)" },
+            ]}
+          />
+        ) : null}
 
-        {/* Video Stage: Centered with aspect ratio preservation */}
+        {/* Video Stage: Exactly matches player dimensions */}
         <View
           style={[
             styles.videoStage,
-            { width: renderWidth, height: renderHeight },
+            contentFit === "cover"
+              ? StyleSheet.absoluteFillObject
+              : { width: playerWidth, height: playerHeight },
           ]}
         >
           {/* Native expo-video View */}
@@ -390,7 +434,7 @@ const VibeVideoPlayer = React.memo(
             <VideoView
               player={player}
               style={styles.video}
-              contentFit="contain"
+              contentFit={contentFit}
               nativeControls={false}
               playsInline={true}
               allowsPictureInPicture={false}
@@ -403,13 +447,13 @@ const VibeVideoPlayer = React.memo(
             <Image
               source={{ uri: posterUrl }}
               placeholder={posterBlurUrl ? { uri: posterBlurUrl } : undefined}
-              placeholderContentFit="contain"
+              placeholderContentFit={contentFit}
               style={[StyleSheet.absoluteFill, styles.posterImage]}
-              contentFit="contain"
+              contentFit={contentFit}
               cachePolicy="memory-disk"
               transition={150}
               onLoad={(e) => {
-                if (!aspectRatio && e?.source?.width && e?.source?.height) {
+                if (e?.source?.width && e?.source?.height) {
                   const r = Number((e.source.width / e.source.height).toFixed(3));
                   if (r > 0 && isFinite(r)) {
                     if (!naturalRatio || Math.abs(r - naturalRatio) > 0.05) {
@@ -421,47 +465,47 @@ const VibeVideoPlayer = React.memo(
               }}
             />
           )}
-        </View>
 
-        {/* Full-width touch overlay to handle single-tap and double-tap gestures */}
-        {!disableTapControls ? (
-          <Pressable
-            onPress={handlePress}
-            onLongPress={togglePlayPause}
-            delayLongPress={250}
-            style={StyleSheet.absoluteFillObject}
-          />
-        ) : null}
+          {/* Full-width touch overlay to handle single-tap and double-tap gestures */}
+          {!disableTapControls ? (
+            <Pressable
+              onPress={handlePress}
+              onLongPress={togglePlayPause}
+              delayLongPress={250}
+              style={StyleSheet.absoluteFillObject}
+            />
+          ) : null}
 
-        {/* Play / Pause Centered Overlay Animation */}
-        {showPlayOverlay && (
+          {/* Play / Pause Centered Overlay Animation — perfectly centered inside video surface */}
+          {showPlayOverlay && (
+            <Animated.View
+              pointerEvents="none"
+              style={[styles.centerOverlay, playOverlayStyle]}
+            >
+              <View style={styles.iconCircle}>
+                <MaterialIcons
+                  name={isPlaying ? "play-arrow" : "pause"}
+                  size={34}
+                  color="#fff"
+                />
+              </View>
+            </Animated.View>
+          )}
+
+          {/* Center Sound Toggle Toast (Instagram Style) — perfectly centered inside video surface */}
           <Animated.View
             pointerEvents="none"
-            style={[styles.centerOverlay, playOverlayStyle]}
+            style={[styles.centerOverlay, muteBadgeStyle]}
           >
             <View style={styles.iconCircle}>
               <MaterialIcons
-                name={isPlaying ? "play-arrow" : "pause"}
-                size={36}
+                name={isMuted ? "volume-off" : "volume-up"}
+                size={30}
                 color="#fff"
               />
             </View>
           </Animated.View>
-        )}
-
-        {/* Center Sound Toggle Toast (Instagram Style) */}
-        <Animated.View
-          pointerEvents="none"
-          style={[styles.centerOverlay, muteBadgeStyle]}
-        >
-          <View style={styles.iconCircle}>
-            <MaterialIcons
-              name={isMuted ? "volume-off" : "volume-up"}
-              size={32}
-              color="#fff"
-            />
-          </View>
-        </Animated.View>
+        </View>
 
         {/* Bottom-Right Audio Button */}
         <Pressable onPress={toggleMute} hitSlop={12} style={styles.muteButton}>
@@ -506,17 +550,17 @@ VibeVideoPlayer.displayName = "VibeVideoPlayer";
 const styles = StyleSheet.create({
   container: {
     position: "relative",
-    backgroundColor: "#000",
-    overflow: "hidden",
+    backgroundColor: "transparent",
     justifyContent: "center",
     alignItems: "center",
+    alignSelf: "center",
   },
   videoStage: {
     position: "relative",
     backgroundColor: "transparent",
-    overflow: "hidden",
     justifyContent: "center",
     alignItems: "center",
+    alignSelf: "center",
   },
   posterImage: {
     width: "100%",
@@ -532,32 +576,38 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 15,
+    zIndex: 30,
+    overflow: "visible",
   },
   iconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: "rgba(0, 0, 0, 0.65)",
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "rgba(0, 0, 0, 0.72)",
     justifyContent: "center",
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
+    elevation: 6,
   },
   muteButton: {
     position: "absolute",
-    bottom: 14,
-    right: 14,
+    bottom: 12,
+    right: 12,
     width: 34,
     height: 34,
     borderRadius: 17,
     backgroundColor: "rgba(0, 0, 0, 0.65)",
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 10,
+    zIndex: 25,
   },
   videoBadge: {
     position: "absolute",
-    top: 14,
-    left: 14,
+    top: 12,
+    left: 12,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.65)",
@@ -565,7 +615,7 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 10,
     gap: 4,
-    zIndex: 10,
+    zIndex: 25,
   },
   videoBadgeText: {
     color: "#fff",

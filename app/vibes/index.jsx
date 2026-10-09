@@ -2087,9 +2087,12 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
   },
   listContent: {
-    paddingTop: 4,
+    paddingTop: 0,
     paddingBottom: 85,
     flexGrow: 1,
+    width: "100%",
+    maxWidth: 640,
+    alignSelf: "center",
   },
   skeletonContainer: {
     paddingTop: 8,
@@ -2254,7 +2257,7 @@ const styles = StyleSheet.create({
   },
   extendedFab: {
     position: "absolute",
-    bottom: 24,
+    bottom: Platform.OS === "web" ? 84 : 24,
     right: 18,
     flexDirection: "row",
     alignItems: "center",

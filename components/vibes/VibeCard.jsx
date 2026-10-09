@@ -119,7 +119,7 @@ const VibeCard = ({
   );
   const [isBookmarked, setIsBookmarked] = useState(!!vibe.isBookmarked);
   const [showActionSheet, setShowActionSheet] = useState(false);
-  const [mediaWidth, setMediaWidth] = useState(SCREEN_WIDTH - 8);
+  const [mediaWidth, setMediaWidth] = useState(Math.min(SCREEN_WIDTH - 8, 620));
 
   const handleMediaLayout = useCallback(
     (e) => {
@@ -859,9 +859,12 @@ const VibeCard = ({
 
 const styles = StyleSheet.create({
   card: {
-    marginHorizontal: 4,
-    marginBottom: 16,
-    borderRadius: 20,
+    width: "100%",
+    maxWidth: 620,
+    alignSelf: "center",
+    marginHorizontal: 0,
+    marginBottom: 8,
+    borderRadius: 18,
     overflow: "hidden",
     borderWidth: StyleSheet.hairlineWidth,
     elevation: 0,
@@ -875,7 +878,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingTop: 10,
+    paddingBottom: 6,
   },
   authorRow: {
     flexDirection: "row",
@@ -987,18 +991,18 @@ const styles = StyleSheet.create({
   },
   mediaContainer: {
     width: "100%",
-    borderRadius: 16,
+    borderRadius: 0,
     overflow: "hidden",
     alignSelf: "center",
-    backgroundColor: "#000",
+    backgroundColor: "transparent",
   },
   actionBar: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 14,
-    paddingTop: 12,
-    paddingBottom: 6,
+    paddingTop: 6,
+    paddingBottom: 4,
   },
   actionLeft: {
     flexDirection: "row",
@@ -1028,8 +1032,8 @@ const styles = StyleSheet.create({
   },
   contentSection: {
     paddingHorizontal: 14,
-    paddingBottom: 14,
-    paddingTop: 4,
+    paddingBottom: 10,
+    paddingTop: 2,
   },
   socialSummaryRow: {
     flexDirection: "row",

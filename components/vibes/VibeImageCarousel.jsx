@@ -7,6 +7,7 @@ import {
   Dimensions,
   FlatList,
   ActivityIndicator,
+  Image as RNImage,
 } from "react-native";
 import { Image } from "expo-image";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -35,23 +36,71 @@ import PinchableLightboxModal from "../ui/PinchableLightboxModal";
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
-const MAX_IMAGE_HEIGHT = Math.min(SCREEN_HEIGHT * 0.65, 520);
-const MIN_IMAGE_HEIGHT = 200;
-
 /**
- * Calculates adaptive height based on the image's aspect ratio,
- * clamping between MIN_IMAGE_HEIGHT and MAX_IMAGE_HEIGHT so images fit cleanly
- * without filling the whole phone screen or creating awkward whitespace.
+ * Calculates display dimensions retaining original dimensions (up to a maximum size)
+ * without expanding to fill the container and without imposing any minimum height.
+ * - If media is smaller than maximum bounds: retains original width & height.
+ * - If media exceeds maximum bounds: scales down proportionally (never cropped).
+ * - Imposes NO minimum height.
  */
+export const calculateMediaDisplaySize = ({
+  naturalWidth,
+  naturalHeight,
+  aspectRatio,
+  containerWidth = SCREEN_WIDTH,
+}) => {
+  const maxWidth = Math.min(containerWidth || SCREEN_WIDTH, 620);
+  const maxHeight = Math.min(Math.round(SCREEN_HEIGHT * 0.72), 540);
+
+  // If natural width and height are known (> 0)
+  if (naturalWidth && naturalHeight && naturalWidth > 0 && naturalHeight > 0) {
+    if (naturalWidth <= maxWidth && naturalHeight <= maxHeight) {
+      // Retain original dimensions without expanding to fill container
+      return {
+        width: Math.round(naturalWidth),
+        height: Math.round(naturalHeight),
+      };
+    }
+    // Proportional scale down to fit within maximum size (never crop)
+    const scale = Math.min(maxWidth / naturalWidth, maxHeight / naturalHeight);
+    return {
+      width: Math.max(1, Math.round(naturalWidth * scale)),
+      height: Math.max(1, Math.round(naturalHeight * scale)),
+    };
+  }
+
+  // If only aspectRatio is known
+  if (aspectRatio && aspectRatio > 0) {
+    let targetW = maxWidth;
+    let targetH = Math.round(maxWidth / aspectRatio);
+    if (targetH > maxHeight) {
+      targetH = maxHeight;
+      targetW = Math.round(maxHeight * aspectRatio);
+    }
+    return {
+      width: Math.min(targetW, maxWidth),
+      height: targetH,
+    };
+  }
+
+  // Neutral fallback before dimensions load
+  const fallbackW = Math.min(maxWidth, 400);
+  return {
+    width: fallbackW,
+    height: Math.round(fallbackW * 0.75),
+  };
+};
+
 export const calculateAdaptiveHeight = (
   aspectRatio,
-  containerWidth = SCREEN_WIDTH
+  containerWidth = SCREEN_WIDTH,
+  isVideo = false
 ) => {
-  if (!aspectRatio || isNaN(aspectRatio) || aspectRatio <= 0) {
-    return Math.min(containerWidth, MAX_IMAGE_HEIGHT); // Default 1:1 square
-  }
-  const naturalHeight = containerWidth / aspectRatio;
-  return Math.min(Math.max(naturalHeight, MIN_IMAGE_HEIGHT), MAX_IMAGE_HEIGHT);
+  const size = calculateMediaDisplaySize({
+    aspectRatio: aspectRatio || (isVideo ? 1.778 : 1.33),
+    containerWidth,
+  });
+  return size.height;
 };
 
 /**
@@ -72,7 +121,7 @@ const VibeImageCarousel = React.memo(
     const [activeSlideIndex, setActiveSlideIndex] = useState(0);
     const [lightboxVisible, setLightboxVisible] = useState(false);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-    const [detectedRatio, setDetectedRatio] = useState(null);
+    const [detectedDimensions, setDetectedDimensions] = useState({});
 
     // Heart burst animation values
     const heartScale = useSharedValue(0);
@@ -88,9 +137,9 @@ const VibeImageCarousel = React.memo(
             url: img,
             thumbnailUrl: isVid ? getVideoPosterUrl(img) : "",
             duration: 0,
-            aspectRatio: isVid ? 0.562 : 1,
-            width: isVid ? 720 : 1080,
-            height: isVid ? 1280 : 1080,
+            aspectRatio: isVid ? 1.778 : undefined,
+            width: undefined,
+            height: undefined,
           };
         }
 
@@ -101,13 +150,24 @@ const VibeImageCarousel = React.memo(
           (typeof img.thumbnailUrl === "string" && isVideoUrl(img.thumbnailUrl));
 
         let computedRatio = img.aspectRatio;
-        if (!computedRatio || computedRatio <= 0) {
-          if (img.width && img.height && img.width !== img.height) {
-            computedRatio = Number((img.width / img.height).toFixed(3));
-          } else if (isVid) {
-            computedRatio = 0.562; // Standard 9:16 vertical video default
-          } else {
-            computedRatio = 1;
+        let itemWidth = img.width;
+        let itemHeight = img.height;
+
+        if (isVid) {
+          const isDummySchemaDefault =
+            !computedRatio ||
+            computedRatio <= 0 ||
+            computedRatio === 1 ||
+            (itemWidth === 1080 && itemHeight === 1080);
+
+          if (isDummySchemaDefault) {
+            computedRatio = 1.778;
+            itemWidth = undefined;
+            itemHeight = undefined;
+          }
+        } else if (!computedRatio || computedRatio <= 0) {
+          if (itemWidth && itemHeight) {
+            computedRatio = Number((itemWidth / itemHeight).toFixed(3));
           }
         }
 
@@ -118,34 +178,75 @@ const VibeImageCarousel = React.memo(
             img.thumbnailUrl || (isVid ? getVideoPosterUrl(img.url) : ""),
           duration: img.duration || 0,
           aspectRatio: computedRatio,
-          width: img.width || (isVid ? 720 : 1080),
-          height: img.height || (isVid ? 1280 : 1080),
+          width: itemWidth || undefined,
+          height: itemHeight || undefined,
         };
       });
     }, [images]);
 
-    // Derive dynamic height from the first item's aspect ratio or real detected ratio
-    const primaryAspectRatio =
-      detectedRatio || formattedImages[0]?.aspectRatio || 1;
-    const carouselHeight = useMemo(() => {
-      return calculateAdaptiveHeight(primaryAspectRatio, width);
-    }, [primaryAspectRatio, width]);
+    // Calculate display dimensions for each media slide
+    const slideDimensions = useMemo(() => {
+      return formattedImages.map((item, index) => {
+        const detected = detectedDimensions[index];
+        const isVid = item.type === "video";
+        const naturalW = detected?.width || (isVid ? undefined : item.width);
+        const naturalH = detected?.height || (isVid ? undefined : item.height);
+        return calculateMediaDisplaySize({
+          naturalWidth: naturalW,
+          naturalHeight: naturalH,
+          aspectRatio: item.aspectRatio || (isVid ? 1.778 : 1.33),
+          containerWidth: width,
+        });
+      });
+    }, [formattedImages, detectedDimensions, width]);
 
-    // Handle real image dimension detection to refine adaptive height smoothly
+    const activeSlideSize =
+      slideDimensions[activeSlideIndex] ||
+      slideDimensions[0] || {
+        width: Math.min(width, 400),
+        height: 220,
+      };
+    const carouselHeight = activeSlideSize.height;
+
+    // Handle real media dimension detection to refine adaptive size smoothly
     const handleDimensionsDetected = useCallback(
-      (naturalWidth, naturalHeight) => {
+      (index, naturalWidth, naturalHeight) => {
         if (naturalWidth > 0 && naturalHeight > 0) {
-          const ratio = Number((naturalWidth / naturalHeight).toFixed(3));
-          if (ratio > 0 && isFinite(ratio)) {
-            // Only update if significantly different from initial estimate
-            if (Math.abs(ratio - primaryAspectRatio) > 0.05) {
-              setDetectedRatio(ratio);
+          setDetectedDimensions((prev) => {
+            const existing = prev[index];
+            if (
+              existing &&
+              existing.width === naturalWidth &&
+              existing.height === naturalHeight
+            ) {
+              return prev;
             }
-          }
+            return {
+              ...prev,
+              [index]: { width: naturalWidth, height: naturalHeight },
+            };
+          });
         }
       },
-      [primaryAspectRatio]
+      []
     );
+
+    // Pre-detect real video dimensions from poster image thumbnail
+    useEffect(() => {
+      formattedImages.forEach((item, index) => {
+        if (item.type === "video" && item.thumbnailUrl) {
+          RNImage.getSize(
+            item.thumbnailUrl,
+            (w, h) => {
+              if (w > 0 && h > 0) {
+                handleDimensionsDetected(index, w, h);
+              }
+            },
+            () => {}
+          );
+        }
+      });
+    }, [formattedImages, handleDimensionsDetected]);
 
     // Preload adjacent carousel slides (2 slides ahead) for instantaneous swipe experience
     useEffect(() => {
@@ -254,20 +355,39 @@ const VibeImageCarousel = React.memo(
     // Direct render for single image/video — eliminates nested FlatList touch conflicts and half-scrolled offset bugs
     if (formattedImages.length === 1) {
       const singleItem = formattedImages[0];
+      const singleSize = slideDimensions[0] || activeSlideSize;
+
       return (
-        <View style={[styles.container, { width, height: carouselHeight }]}>
+        <View
+          style={[
+            styles.container,
+            {
+              width: "100%",
+              height: singleSize.height,
+              alignItems: "center",
+              justifyContent: "center",
+            },
+          ]}
+        >
           {singleItem.type === "video" ? (
-            <View style={{ width, height: carouselHeight }}>
+            <View
+              style={{
+                width: singleSize.width,
+                height: singleSize.height,
+                alignSelf: "center",
+              }}
+            >
               <VibeVideoPlayer
                 url={singleItem.url}
                 thumbnailUrl={singleItem.thumbnailUrl}
-                width={width}
-                height={carouselHeight}
-                aspectRatio={singleItem.aspectRatio || primaryAspectRatio}
+                width={singleSize.width}
+                height={singleSize.height}
+                aspectRatio={singleItem.aspectRatio}
                 isVisible={isVisible}
                 isActiveSlide={true}
                 onDoubleTapLike={onDoubleTapLike}
-                onDimensionsDetected={handleDimensionsDetected}
+                onDimensionsDetected={(w, h) => handleDimensionsDetected(0, w, h)}
+                contentFit="contain"
               />
               <Pressable
                 onPress={() => openFullscreen(0)}
@@ -284,17 +404,21 @@ const VibeImageCarousel = React.memo(
               onPress={getPressHandler(0)}
               onLongPress={() => openFullscreen(0)}
               delayLongPress={350}
-              style={{ width, height: carouselHeight }}
+              style={{
+                width: singleSize.width,
+                height: singleSize.height,
+                alignSelf: "center",
+              }}
               accessibilityRole="button"
               accessibilityLabel="View photo full screen"
             >
               <CarouselImage
                 url={singleItem.url}
-                width={width}
-                height={carouselHeight}
+                width={singleSize.width}
+                height={singleSize.height}
                 colors={colors}
                 isSlow={isSlow}
-                onDimensionsDetected={handleDimensionsDetected}
+                onDimensionsDetected={(w, h) => handleDimensionsDetected(0, w, h)}
               />
             </Pressable>
           )}
@@ -320,60 +444,97 @@ const VibeImageCarousel = React.memo(
     }
 
     return (
-      <View style={[styles.container, { width, height: carouselHeight }]}>
+      <View
+        style={[
+          styles.container,
+          {
+            width: "100%",
+            height: carouselHeight,
+            alignItems: "center",
+            justifyContent: "center",
+          },
+        ]}
+      >
         {/* Horizontal Carousel with clean interval snapping and no paging conflicts */}
         <AnimatedFlatList
           data={formattedImages}
           renderItem={({ item, index }) => {
+            const itemSize = slideDimensions[index] || activeSlideSize;
+            const slideHeight = Math.min(itemSize.height, carouselHeight);
+            const slideWidth = itemSize.width;
+
             if (item.type === "video") {
               return (
-                <View style={{ width, height: carouselHeight }}>
-                  <VibeVideoPlayer
-                    url={item.url}
-                    thumbnailUrl={item.thumbnailUrl}
-                    width={width}
-                    height={carouselHeight}
-                    aspectRatio={item.aspectRatio || primaryAspectRatio}
-                    isVisible={isVisible}
-                    isActiveSlide={activeSlideIndex === index}
-                    onDoubleTapLike={onDoubleTapLike}
-                    onDimensionsDetected={
-                      index === 0 ? handleDimensionsDetected : undefined
-                    }
-                  />
-                  <Pressable
-                    onPress={() => openFullscreen(index)}
-                    style={styles.videoExpandButton}
-                    hitSlop={8}
-                    accessibilityLabel="Open video full screen"
-                    accessibilityRole="button"
-                  >
-                    <MaterialIcons name="fullscreen" size={20} color="#ffffff" />
-                  </Pressable>
+                <View
+                  style={{
+                    width,
+                    height: carouselHeight,
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <View style={{ width: slideWidth, height: slideHeight }}>
+                    <VibeVideoPlayer
+                      url={item.url}
+                      thumbnailUrl={item.thumbnailUrl}
+                      width={slideWidth}
+                      height={slideHeight}
+                      aspectRatio={item.aspectRatio}
+                      isVisible={isVisible}
+                      isActiveSlide={activeSlideIndex === index}
+                      onDoubleTapLike={onDoubleTapLike}
+                      onDimensionsDetected={(w, h) =>
+                        handleDimensionsDetected(index, w, h)
+                      }
+                      contentFit="contain"
+                    />
+                    <Pressable
+                      onPress={() => openFullscreen(index)}
+                      style={styles.videoExpandButton}
+                      hitSlop={8}
+                      accessibilityLabel="Open video full screen"
+                      accessibilityRole="button"
+                    >
+                      <MaterialIcons name="fullscreen" size={20} color="#ffffff" />
+                    </Pressable>
+                  </View>
                 </View>
               );
             }
 
             return (
-              <Pressable
-                onPress={getPressHandler(index)}
-                onLongPress={() => openFullscreen(index)}
-                delayLongPress={350}
-                style={{ width, height: carouselHeight }}
-                accessibilityRole="button"
-                accessibilityLabel="View photo full screen"
+              <View
+                style={{
+                  width,
+                  height: carouselHeight,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
               >
-                <CarouselImage
-                  url={item.url}
-                  width={width}
-                  height={carouselHeight}
-                  colors={colors}
-                  isSlow={isSlow}
-                  onDimensionsDetected={
-                    index === 0 ? handleDimensionsDetected : undefined
-                  }
-                />
-              </Pressable>
+                <Pressable
+                  onPress={getPressHandler(index)}
+                  onLongPress={() => openFullscreen(index)}
+                  delayLongPress={350}
+                  style={{
+                    width: slideWidth,
+                    height: slideHeight,
+                    alignSelf: "center",
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel="View photo full screen"
+                >
+                  <CarouselImage
+                    url={item.url}
+                    width={slideWidth}
+                    height={slideHeight}
+                    colors={colors}
+                    isSlow={isSlow}
+                    onDimensionsDetected={(w, h) =>
+                      handleDimensionsDetected(index, w, h)
+                    }
+                  />
+                </Pressable>
+              </View>
             );
           }}
           keyExtractor={(_, index) => `vibe-img-${index}`}

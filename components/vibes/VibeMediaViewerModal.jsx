@@ -274,6 +274,7 @@ export default function VibeMediaViewerModal({
               isActiveSlide={isCurrent}
               onDoubleTapLike={onDoubleTapLike}
               disableTapControls={false}
+              contentFit="contain"
             />
           </View>
         );

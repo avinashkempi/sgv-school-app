@@ -423,6 +423,12 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                         publicId: result.publicId,
                         thumbnailUrl: result.thumbnailUrl,
                         duration: result.duration || item.duration,
+                        width: result.width || item.width || 1280,
+                        height: result.height || item.height || 720,
+                        aspectRatio:
+                          result.width && result.height
+                            ? Number((result.width / result.height).toFixed(3))
+                            : item.aspectRatio || 1.778,
                         uploading: false,
                         progress: 100,
                       }
@@ -566,6 +572,12 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
                       publicId: result.publicId,
                       thumbnailUrl: result.thumbnailUrl,
                       duration: result.duration || item.duration,
+                      width: result.width || item.width || 1280,
+                      height: result.height || item.height || 720,
+                      aspectRatio:
+                        result.width && result.height
+                          ? Number((result.width / result.height).toFixed(3))
+                          : item.aspectRatio || 1.778,
                       uploading: false,
                       progress: 100,
                     }
@@ -614,16 +626,26 @@ export default function CreateVibeModal({ visible, onClose, editVibe = null }) {
 
     const finalImages = images
       .filter((img) => img.url)
-      .map((img) => ({
-        type: img.type || "image",
-        url: img.url,
-        thumbnailUrl: img.thumbnailUrl || "",
-        duration: img.duration || 0,
-        publicId: img.publicId || "",
-        width: img.width || 1080,
-        height: img.height || 1080,
-        aspectRatio: img.aspectRatio || 1,
-      }));
+      .map((img) => {
+        const isVid = img.type === "video";
+        return {
+          type: isVid ? "video" : "image",
+          url: img.url,
+          thumbnailUrl: img.thumbnailUrl || "",
+          duration: img.duration || 0,
+          publicId: img.publicId || "",
+          width: img.width || (isVid ? 1280 : 1080),
+          height: img.height || (isVid ? 720 : 1080),
+          aspectRatio:
+            img.aspectRatio && img.aspectRatio > 0 && img.aspectRatio !== 1
+              ? img.aspectRatio
+              : isVid
+              ? 1.778
+              : img.width && img.height
+              ? Number((img.width / img.height).toFixed(3))
+              : 1,
+        };
+      });
 
     if (finalImages.length === 0) {
       showToast("Please upload at least one photo or video", "warning");
