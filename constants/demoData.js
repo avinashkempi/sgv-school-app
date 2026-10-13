@@ -2996,6 +2996,32 @@ export const DEMO_RATINGS_TRACKER = {
         },
       ],
     },
+    {
+      teacher: {
+        _id: "880e8400e29b41d4a716446655440020",
+        name: "Mr. Rajesh Biradar",
+        designation: "Vice Principal (Admin)",
+      },
+      total: 1,
+      completed: 1,
+      pending: 0,
+      status: "completed",
+      subjects: [
+        {
+          _id: "760e8400e29b41d4a716446655440025",
+          name: "Moral Science & Values",
+          class: {
+            _id: "550e8400e29b41d4a716446655440001",
+            name: "3",
+            section: "A",
+            label: "3rd Standard A",
+          },
+          status: "submitted",
+          ratedCount: 15,
+          totalCount: 15,
+        },
+      ],
+    },
   ],
 };
 

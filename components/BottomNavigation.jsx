@@ -91,7 +91,9 @@ function resolveActiveTab(pathname, userRole, searchParams = {}) {
       pathname === "/student/history" ||
       pathname.startsWith("/student/history/") ||
       pathname === "/history" ||
-      pathname.startsWith("/history/")
+      pathname.startsWith("/history/") ||
+      pathname === "/student/ratings" ||
+      pathname.startsWith("/student/ratings/")
     ) {
       return ROUTES.STUDENT_CLASS;
     }
@@ -127,7 +129,11 @@ function resolveActiveTab(pathname, userRole, searchParams = {}) {
       pathname === "/teacher/assessments" ||
       pathname.startsWith("/teacher/assessments/") ||
       pathname === "/shared/class-reports" ||
-      pathname.startsWith("/shared/class-reports/")
+      pathname.startsWith("/shared/class-reports/") ||
+      pathname === "/teacher/monthly-ratings" ||
+      pathname.startsWith("/teacher/monthly-ratings/") ||
+      pathname === "/teacher/rate-students" ||
+      pathname.startsWith("/teacher/rate-students/")
     ) {
       return ROUTES.TEACHER_CLASSES;
     }
@@ -145,7 +151,10 @@ function resolveActiveTab(pathname, userRole, searchParams = {}) {
     if (
       pathname === "/admin" ||
       pathname.startsWith("/admin/") ||
-      pathname.startsWith("/super-admin")
+      pathname.startsWith("/super-admin") ||
+      pathname.startsWith("/teacher/") ||
+      pathname === "/shared/class-reports" ||
+      pathname.startsWith("/shared/class-reports/")
     ) {
       return ROUTES.ADMIN;
     }

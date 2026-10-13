@@ -105,6 +105,20 @@ export default function MenuScreen() {
           route: "/teacher/monthly-ratings",
         });
       }
+
+      if (user.role === "admin" || user.role === "super admin") {
+        items.push({
+          id: "admin-ratings",
+          title: t("menu.adminRatings", "Student Ratings & Tracker"),
+          subtitle: t(
+            "menu.adminRatingsSubtitle",
+            "School-wide evaluations, movers & submission tracker"
+          ),
+          icon: "stars",
+          color: colors.primary || "#6366F1",
+          route: "/admin/student-ratings",
+        });
+      }
     }
 
     return items;

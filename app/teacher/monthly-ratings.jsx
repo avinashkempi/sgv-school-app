@@ -50,10 +50,12 @@ export default function MonthlyRatingsScreen() {
   const { t } = useLabel();
 
   const { user } = useAuth();
+  const isAdmin = user?.role === "admin" || user?.role === "super admin";
   const now = useMemo(() => new Date(), []);
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
   const [screenMode, setScreenMode] = useState("subjects"); // 'subjects' | 'tracker'
+  const [adminScope, setAdminScope] = useState("all"); // 'all' | 'my'
   const [activeFilter, setActiveFilter] = useState("all"); // 'all' | 'pending' | 'submitted'
   const [refreshing, setRefreshing] = useState(false);
 
@@ -105,7 +107,7 @@ export default function MonthlyRatingsScreen() {
     }
   );
 
-  // Query teacher's submission tracker status
+  // Query teacher's own submission tracker status
   const {
     data: myStatusData,
     isLoading: loadingTracker,
@@ -115,6 +117,20 @@ export default function MonthlyRatingsScreen() {
     `${apiConfig.baseUrl}/student-ratings/tracker/my-status?month=${selectedMonth}&year=${selectedYear}`,
     {
       enabled: screenMode === "tracker",
+      ...CACHE_TIERS.MODERATE,
+    }
+  );
+
+  // Query school-wide submission tracker for admins
+  const {
+    data: schoolTrackerData,
+    isLoading: loadingSchoolTracker,
+    refetch: refetchSchoolTracker,
+  } = useApiQuery(
+    ["ratingsSubmissionTracker", selectedMonth, selectedYear],
+    `${apiConfig.baseUrl}/student-ratings/tracker?month=${selectedMonth}&year=${selectedYear}`,
+    {
+      enabled: screenMode === "tracker" && isAdmin,
       ...CACHE_TIERS.MODERATE,
     }
   );
@@ -144,18 +160,35 @@ export default function MonthlyRatingsScreen() {
     };
   }, [myStatusData, user]);
 
+  const activeTrackerData = useMemo(() => {
+    if (isAdmin && adminScope === "all" && schoolTrackerData) {
+      return schoolTrackerData;
+    }
+    return formattedTrackerData;
+  }, [isAdmin, adminScope, schoolTrackerData, formattedTrackerData]);
+
   const onRefresh = async () => {
     setRefreshing(true);
     try {
       await Promise.all([
         refetch(),
-        screenMode === "tracker" ? refetchTracker() : Promise.resolve(),
+        screenMode === "tracker"
+          ? Promise.all([
+              refetchTracker(),
+              isAdmin ? refetchSchoolTracker() : Promise.resolve(),
+            ])
+          : Promise.resolve(),
         queryClient.invalidateQueries({
           queryKey: ["teacherRatingsSubjects", selectedMonth, selectedYear],
         }),
         queryClient.invalidateQueries({
           queryKey: ["teacherRatingTrackerMyStatus", selectedMonth, selectedYear],
         }),
+        isAdmin
+          ? queryClient.invalidateQueries({
+              queryKey: ["ratingsSubmissionTracker", selectedMonth, selectedYear],
+            })
+          : Promise.resolve(),
       ]);
     } catch (err) {
       console.error("Error refreshing ratings subjects:", err);
@@ -414,31 +447,177 @@ export default function MonthlyRatingsScreen() {
         </View>
 
         {screenMode === "tracker" ? (
-          <SubmissionTrackerView
-            trackerData={formattedTrackerData}
-            isLoading={loadingTracker}
-            month={selectedMonth}
-            year={selectedYear}
-            onNavigateToSubject={(subj) => {
-              setScreenMode("subjects");
-              const classLabel = formatClassName(
-                subj.class?.name || subj.class?.label || subj.class?.value,
-                subj.class?.section
-              );
-              router.push({
-                pathname: "/teacher/rate-students",
-                params: {
-                  subjectId: subj.subject?._id || subj.subject,
-                  subjectName: subj.subject?.name,
-                  className: classLabel,
-                  month: selectedMonth,
-                  year: selectedYear,
-                  totalStudents: String(subj.totalStudents),
-                  ratedCount: String(subj.ratedCount),
-                },
-              });
-            }}
-          />
+          <View>
+            {isAdmin && (
+              <View
+                style={[
+                  styles.adminScopeBanner,
+                  {
+                    backgroundColor: colors.surfaceContainer,
+                    borderColor: colors.outlineVariant,
+                  },
+                ]}
+              >
+                <View style={styles.adminScopeInfoRow}>
+                  <View style={styles.adminScopeBadge}>
+                    <MaterialIcons
+                      name="admin-panel-settings"
+                      size={18}
+                      color={colors.primary}
+                    />
+                    <Text
+                      style={[
+                        styles.adminScopeBadgeText,
+                        { color: colors.onSurface },
+                      ]}
+                    >
+                      Admin Mode • School-Wide Access
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => router.push("/admin/student-ratings")}
+                    style={styles.adminDashboardLink}
+                  >
+                    <Text
+                      style={[
+                        styles.adminDashboardLinkText,
+                        { color: colors.primary },
+                      ]}
+                    >
+                      Admin Dashboard →
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.adminScopeToggleRow}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      Haptics.selectionAsync().catch(() => {});
+                      setAdminScope("all");
+                    }}
+                    style={[
+                      styles.adminScopeBtn,
+                      {
+                        backgroundColor:
+                          adminScope === "all"
+                            ? colors.primary
+                            : colors.surface,
+                        borderColor:
+                          adminScope === "all"
+                            ? colors.primary
+                            : colors.outlineVariant,
+                      },
+                    ]}
+                  >
+                    <MaterialIcons
+                      name="groups"
+                      size={16}
+                      color={
+                        adminScope === "all"
+                          ? colors.onPrimary
+                          : colors.onSurfaceVariant
+                      }
+                      style={{ marginRight: 6 }}
+                    />
+                    <Text
+                      style={[
+                        styles.adminScopeBtnText,
+                        {
+                          color:
+                            adminScope === "all"
+                              ? colors.onPrimary
+                              : colors.onSurfaceVariant,
+                          fontFamily:
+                            adminScope === "all" ? FONTS.bold : FONTS.medium,
+                        },
+                      ]}
+                    >
+                      All Teachers ({schoolTrackerData?.teachers?.length || "All"})
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => {
+                      Haptics.selectionAsync().catch(() => {});
+                      setAdminScope("my");
+                    }}
+                    style={[
+                      styles.adminScopeBtn,
+                      {
+                        backgroundColor:
+                          adminScope === "my"
+                            ? colors.primary
+                            : colors.surface,
+                        borderColor:
+                          adminScope === "my"
+                            ? colors.primary
+                            : colors.outlineVariant,
+                      },
+                    ]}
+                  >
+                    <MaterialIcons
+                      name="person"
+                      size={16}
+                      color={
+                        adminScope === "my"
+                          ? colors.onPrimary
+                          : colors.onSurfaceVariant
+                      }
+                      style={{ marginRight: 6 }}
+                    />
+                    <Text
+                      style={[
+                        styles.adminScopeBtnText,
+                        {
+                          color:
+                            adminScope === "my"
+                              ? colors.onPrimary
+                              : colors.onSurfaceVariant,
+                          fontFamily:
+                            adminScope === "my" ? FONTS.bold : FONTS.medium,
+                        },
+                      ]}
+                    >
+                      My Assigned Subjects
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+
+            <SubmissionTrackerView
+              trackerData={activeTrackerData}
+              isLoading={
+                isAdmin && adminScope === "all"
+                  ? loadingSchoolTracker
+                  : loadingTracker
+              }
+              month={selectedMonth}
+              year={selectedYear}
+              hideTeacherTab={!isAdmin || adminScope === "my"}
+              onNavigateToSubject={(subj) => {
+                setScreenMode("subjects");
+                const classLabel = formatClassName(
+                  subj.class?.name || subj.class?.label || subj.class?.value,
+                  subj.class?.section
+                );
+                router.push({
+                  pathname: "/teacher/rate-students",
+                  params: {
+                    subjectId: subj.subject?._id || subj._id || subj.subject,
+                    subjectName: subj.subject?.name || subj.name,
+                    className: classLabel,
+                    month: selectedMonth,
+                    year: selectedYear,
+                    totalStudents: String(
+                      subj.totalStudents || subj.totalCount || 0
+                    ),
+                    ratedCount: String(subj.ratedCount || 0),
+                  },
+                });
+              }}
+            />
+          </View>
         ) : isLoading ? (
           <View style={{ marginTop: 40 }}>
             <LoadingState
@@ -1097,6 +1276,51 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   screenModeTabText: {
+    fontSize: FONT_SIZES.xs,
+  },
+  adminScopeBanner: {
+    padding: 12,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    marginBottom: 14,
+  },
+  adminScopeInfoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  adminScopeBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  adminScopeBadgeText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.semiBold,
+  },
+  adminDashboardLink: {
+    paddingVertical: 2,
+    paddingHorizontal: 4,
+  },
+  adminDashboardLinkText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+  },
+  adminScopeToggleRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  adminScopeBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 8,
+    borderRadius: RADIUS.sm,
+    borderWidth: 1,
+  },
+  adminScopeBtnText: {
     fontSize: FONT_SIZES.xs,
   },
 });

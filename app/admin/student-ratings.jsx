@@ -1806,6 +1806,7 @@ export default function AdminStudentRatingsScreen() {
                 isLoading={loadingTracker}
                 month={selectedMonth}
                 year={selectedYear}
+                hideTeacherTab={false}
                 onNavigateToSubject={(subj) => {
                   setSelectedClassId(subj.class?._id);
                   setActiveTab("classes");

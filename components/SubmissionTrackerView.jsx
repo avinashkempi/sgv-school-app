@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -48,6 +48,7 @@ export default function SubmissionTrackerView({
   year,
   onNavigateToSubject,
   emptyMessage,
+  hideTeacherTab = false,
 }) {
   const { colors, isDark } = useTheme();
   const { t } = useLabel();
@@ -59,7 +60,15 @@ export default function SubmissionTrackerView({
     return "";
   }, [month, year]);
 
-  const [activeTab, setActiveTab] = useState("teachers"); // 'teachers' | 'classes'
+  const [activeTab, setActiveTab] = useState(
+    hideTeacherTab ? "classes" : "teachers"
+  ); // 'teachers' | 'classes'
+
+  useEffect(() => {
+    if (hideTeacherTab && activeTab !== "classes") {
+      setActiveTab("classes");
+    }
+  }, [hideTeacherTab, activeTab]);
   const [filterMode, setFilterMode] = useState("all"); // 'all' | 'pending' | 'completed'
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedTeachers, setExpandedTeachers] = useState(() => new Set());
@@ -119,7 +128,9 @@ export default function SubmissionTrackerView({
         }
 
         classMap[clsId].totalSubjects += 1;
-        if (s.status === "submitted") {
+        const isComplete =
+          s.status === "submitted" || s.status === "completed";
+        if (isComplete) {
           classMap[clsId].completedSubjects += 1;
         } else if (s.status === "missed") {
           classMap[clsId].missedSubjects += 1;
@@ -177,7 +188,12 @@ export default function SubmissionTrackerView({
       list = list.filter((c) => {
         const name = (c.class?.name || c.class?.label || "").toLowerCase();
         const sec = (c.class?.section || "").toLowerCase();
-        return name.includes(q) || sec.includes(q);
+        const matchesSubject = (c.subjects || []).some((s) => {
+          const sName = (s.name || s.subject?.name || "").toLowerCase();
+          const tName = (s.teacherName || "").toLowerCase();
+          return sName.includes(q) || tName.includes(q);
+        });
+        return name.includes(q) || sec.includes(q) || matchesSubject;
       });
     }
 
@@ -377,67 +393,69 @@ export default function SubmissionTrackerView({
         </View>
       </Card>
 
-      {/* Sub-Tabs: By Teacher vs By Class */}
-      <View style={styles.trackerTabsRow}>
-        {[
-          { key: "teachers", label: `By Teacher (${teachers.length})`, icon: "person" },
-          { key: "classes", label: `By Class (${classBreakdown.length})`, icon: "class" },
-        ].map((tab) => {
-          const isActive = activeTab === tab.key;
-          return (
-            <TouchableOpacity
-              key={tab.key}
-              onPress={() => {
-                Haptics.selectionAsync().catch(() => {});
-                setActiveTab(tab.key);
-              }}
-              style={[
-                styles.trackerTabBtn,
-                {
-                  backgroundColor: isActive
-                    ? colors.primary
-                    : colors.surfaceContainer,
-                  borderColor: isActive
-                    ? colors.primary
-                    : colors.outlineVariant,
-                },
-              ]}
-            >
-              <MaterialIcons
-                name={tab.icon}
-                size={16}
-                color={
-                  isActive
-                    ? colors.onPrimary
-                    : colors.onSurfaceVariant
-                }
-                style={{ marginRight: 6 }}
-              />
-              <Text
+      {/* Sub-Tabs: By Teacher vs By Class (Hidden when hideTeacherTab is true) */}
+      {!hideTeacherTab && (
+        <View style={styles.trackerTabsRow}>
+          {[
+            { key: "teachers", label: `By Teacher (${teachers.length})`, icon: "person" },
+            { key: "classes", label: `By Class (${classBreakdown.length})`, icon: "class" },
+          ].map((tab) => {
+            const isActive = activeTab === tab.key;
+            return (
+              <TouchableOpacity
+                key={tab.key}
+                onPress={() => {
+                  Haptics.selectionAsync().catch(() => {});
+                  setActiveTab(tab.key);
+                }}
                 style={[
-                  styles.trackerTabBtnText,
+                  styles.trackerTabBtn,
                   {
-                    color: isActive
-                      ? colors.onPrimary
-                      : colors.onSurfaceVariant,
-                    fontFamily: isActive ? FONTS.bold : FONTS.medium,
+                    backgroundColor: isActive
+                      ? colors.primary
+                      : colors.surfaceContainer,
+                    borderColor: isActive
+                      ? colors.primary
+                      : colors.outlineVariant,
                   },
                 ]}
               >
-                {tab.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+                <MaterialIcons
+                  name={tab.icon}
+                  size={16}
+                  color={
+                    isActive
+                      ? colors.onPrimary
+                      : colors.onSurfaceVariant
+                  }
+                  style={{ marginRight: 6 }}
+                />
+                <Text
+                  style={[
+                    styles.trackerTabBtnText,
+                    {
+                      color: isActive
+                        ? colors.onPrimary
+                        : colors.onSurfaceVariant,
+                      fontFamily: isActive ? FONTS.bold : FONTS.medium,
+                    },
+                  ]}
+                >
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      )}
 
       {/* Search & Filter Bar */}
       <View style={{ marginBottom: 10 }}>
         <TextInput
           placeholder={
-            activeTab === "teachers"
+            !hideTeacherTab && activeTab === "teachers"
               ? "Search teacher by name..."
-              : "Search class..."
+              : "Search class or subject..."
           }
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -780,7 +798,14 @@ export default function SubmissionTrackerView({
                       ]}
                     >
                       {cItem.subjects?.map((subj, sIdx) => {
-                        const isSubjComplete = subj.status === "submitted";
+                        const isSubjComplete =
+                          subj.status === "submitted" || subj.status === "completed";
+                        const isSubjMissed = subj.status === "missed";
+                        const subjName = subj.subject?.name || subj.name || "Subject";
+                        const totalStudents =
+                          subj.totalStudents || subj.totalCount || 0;
+                        const ratedCount = subj.ratedCount || 0;
+
                         return (
                           <View
                             key={sIdx}
@@ -800,7 +825,7 @@ export default function SubmissionTrackerView({
                                 ]}
                                 numberOfLines={1}
                               >
-                                {subj.subject?.name}
+                                {subjName}
                               </Text>
                               <Text
                                 style={[
@@ -808,16 +833,57 @@ export default function SubmissionTrackerView({
                                   { color: colors.onSurfaceVariant },
                                 ]}
                               >
-                                Teacher: {subj.teacherName} • {subj.ratedCount} /{" "}
-                                {subj.totalStudents} Rated
+                                {!hideTeacherTab && subj.teacherName
+                                  ? `Teacher: ${subj.teacherName} • `
+                                  : ""}
+                                {ratedCount} / {totalStudents} Rated
                               </Text>
                             </View>
 
                             <Badge
-                              variant={isSubjComplete ? "success" : subj.status === "missed" ? "warning" : "neutral"}
-                              label={isSubjComplete ? "Submitted" : subj.status === "missed" ? "Missed" : "Pending"}
+                              variant={
+                                isSubjComplete
+                                  ? "success"
+                                  : isSubjMissed
+                                  ? "warning"
+                                  : "neutral"
+                              }
+                              label={
+                                isSubjComplete
+                                  ? "Submitted"
+                                  : isSubjMissed
+                                  ? "Missed"
+                                  : "Pending"
+                              }
                               size="sm"
                             />
+
+                            {onNavigateToSubject && !isSubjComplete && (
+                              <TouchableOpacity
+                                onPress={() => onNavigateToSubject(subj)}
+                                style={[
+                                  styles.quickRateBtn,
+                                  {
+                                    backgroundColor:
+                                      colors.primaryContainer || "#EADDFF",
+                                    marginLeft: 8,
+                                  },
+                                ]}
+                              >
+                                <Text
+                                  style={[
+                                    styles.quickRateBtnText,
+                                    {
+                                      color:
+                                        colors.onPrimaryContainer ||
+                                        colors.primary,
+                                    },
+                                  ]}
+                                >
+                                  Evaluate
+                                </Text>
+                              </TouchableOpacity>
+                            )}
                           </View>
                         );
                       })}
