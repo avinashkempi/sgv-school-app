@@ -1,6 +1,6 @@
 {
   "name": "sgv-mobile-app",
-  "main": "expo-router/entry",
+  "main": "index.js",
   "version": "1.0.1",
   "android": {
     "versionCode": 2

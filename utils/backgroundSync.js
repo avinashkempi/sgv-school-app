@@ -112,20 +112,21 @@ export async function registerBackgroundSync() {
       return false;
     }
 
-    // Check if already registered
+    // Unregister any previous registration so new lifecycle flags (stopOnTerminate: true) apply
     const isRegistered = await TaskManager.isTaskRegisteredAsync(
       BACKGROUND_SYNC_TASK
     );
-    if (isRegistered) {
-      console.log("[BackgroundSync] Task already registered");
-      return true;
+    if (isRegistered && BackgroundFetch?.unregisterTaskAsync) {
+      try {
+        await BackgroundFetch.unregisterTaskAsync(BACKGROUND_SYNC_TASK);
+      } catch (_) {}
     }
 
-    // Register with minimum interval (iOS enforces 15min minimum)
+    // Register with safe lifecycle options
     await BackgroundFetch.registerTaskAsync(BACKGROUND_SYNC_TASK, {
       minimumInterval: 15 * 60, // 15 minutes in seconds
-      stopOnTerminate: false, // Android: keep running after app is killed
-      startOnBoot: true, // Android: start on device boot
+      stopOnTerminate: true, // Android: STOP when app is killed! Prevents headless TaskBroadcastReceiver NPE crashes
+      startOnBoot: false, // Do NOT trigger on device boot when app is not running
     });
 
     console.log("[BackgroundSync] Task registered successfully");
@@ -171,4 +172,18 @@ export async function getBackgroundNotificationCount() {
   } catch {
     return null;
   }
+}
+
+// Auto-heal: Ensure any legacy persistent background tasks on Android are migrated to stopOnTerminate: true
+if (Platform.OS === "android") {
+  setTimeout(async () => {
+    try {
+      if (TaskManager?.isTaskRegisteredAsync && BackgroundFetch?.unregisterTaskAsync) {
+        const isRegistered = await TaskManager.isTaskRegisteredAsync(BACKGROUND_SYNC_TASK);
+        if (isRegistered) {
+          await registerBackgroundSync();
+        }
+      }
+    } catch (_) {}
+  }, 2000);
 }
