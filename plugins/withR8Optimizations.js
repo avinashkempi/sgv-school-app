@@ -10,8 +10,8 @@ const withR8Optimizations = (config) => {
   // 1. Configure Gradle Properties for R8 & Resource Optimization
   config = withGradleProperties(config, (config) => {
     const propertiesToSet = [
-      // Enable R8 full mode optimization (aggressive inlining, devirtualization, class merging)
-      { key: 'android.enableR8.fullMode', value: 'true' },
+      // Run R8 in compatibility mode to prevent strict missing-class build failures with third-party libraries
+      { key: 'android.enableR8.fullMode', value: 'false' },
       // Enable AGP precise / optimized resource shrinking
       { key: 'android.r8.optimizedResourceShrinking', value: 'true' },
       // Enable resource optimizations
