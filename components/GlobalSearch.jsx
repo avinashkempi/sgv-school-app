@@ -369,6 +369,8 @@ const GlobalSearch = ({ visible, onClose }) => {
             />
             {query.length > 0 && (
               <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Clear search text"
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
                   setQuery("");
@@ -383,6 +385,8 @@ const GlobalSearch = ({ visible, onClose }) => {
               </Pressable>
             )}
             <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Cancel search and close"
               onPress={onClose}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               style={{ marginLeft: 12 }}
@@ -501,6 +505,8 @@ const GlobalSearch = ({ visible, onClose }) => {
                   {t("search.recentSearches", "Recent Searches")}
                 </Text>
                 <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Clear all recent searches"
                   onPress={handleClearRecent}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
