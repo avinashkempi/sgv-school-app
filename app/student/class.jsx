@@ -588,6 +588,12 @@ export default function StudentClassScreen() {
                     route: "/student/report-card",
                   },
                   {
+                    title: t("student.ratings", "Ratings"),
+                    icon: "stars",
+                    color: "#8B5CF6",
+                    route: "/student/ratings",
+                  },
+                  {
                     title: t("student.fees", "Fees"),
                     icon: "account-balance-wallet",
                     color: "#10B981",

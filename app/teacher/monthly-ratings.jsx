@@ -179,6 +179,9 @@ export default function MonthlyRatingsScreen() {
     if (activeFilter === "pending") {
       return subjects.filter((s) => s.status === "pending");
     }
+    if (activeFilter === "missed") {
+      return subjects.filter((s) => s.status === "missed");
+    }
     if (activeFilter === "submitted") {
       return subjects.filter((s) => s.status === "submitted");
     }
@@ -577,6 +580,35 @@ export default function MonthlyRatingsScreen() {
                     {summary.pending}
                   </Text>
                 </View>
+
+                {summary.missed > 0 && (
+                  <View
+                    style={[
+                      styles.statPill,
+                      {
+                        backgroundColor:
+                          colors.surfaceContainerHigh || "#FEE2E2",
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.statPillLabel,
+                        { color: colors.error || "#DC2626" },
+                      ]}
+                    >
+                      Missed
+                    </Text>
+                    <Text
+                      style={[
+                        styles.statPillValue,
+                        { color: colors.error || "#DC2626" },
+                      ]}
+                    >
+                      {summary.missed}
+                    </Text>
+                  </View>
+                )}
               </View>
             </Card>
 
@@ -585,6 +617,7 @@ export default function MonthlyRatingsScreen() {
               {[
                 { key: "all", label: `All (${summary.total})` },
                 { key: "pending", label: `Pending (${summary.pending})` },
+                ...(summary.missed > 0 ? [{ key: "missed", label: `Missed (${summary.missed})` }] : []),
                 { key: "submitted", label: `Submitted (${summary.completed})` },
               ].map((tab) => {
                 const isActive = activeFilter === tab.key;
@@ -658,6 +691,8 @@ export default function MonthlyRatingsScreen() {
                     ? Math.round((ratedCount / totalStudents) * 100)
                     : 0;
 
+                const isMissed = subj.status === "missed";
+
                 return (
                   <Card
                     key={subj._id}
@@ -726,6 +761,17 @@ export default function MonthlyRatingsScreen() {
                           label={t("common.submitted", "Submitted")}
                           size="md"
                         />
+                      ) : isMissed ? (
+                        <Badge
+                          variant="warning"
+                          icon="history"
+                          label={
+                            ratedCount > 0
+                              ? `${ratedCount}/${totalStudents} (Missed)`
+                              : t("common.missed", "Missed Month")
+                          }
+                          size="md"
+                        />
                       ) : ratedCount > 0 ? (
                         <Badge
                           variant="warning"
@@ -760,6 +806,8 @@ export default function MonthlyRatingsScreen() {
                             {
                               color: isComplete
                                 ? colors.success
+                                : isMissed
+                                ? colors.warning || "#F59E0B"
                                 : colors.onSurface,
                             },
                           ]}
@@ -770,7 +818,7 @@ export default function MonthlyRatingsScreen() {
                       <ProgressBar
                         progress={subjPercent}
                         max={100}
-                        variant={isComplete ? "success" : "primary"}
+                        variant={isComplete ? "success" : isMissed ? "warning" : "primary"}
                         height={6}
                         borderRadius={3}
                       />
@@ -782,13 +830,17 @@ export default function MonthlyRatingsScreen() {
                         title={
                           isComplete
                             ? t("teacher.editRatings", "Review / Edit Ratings")
+                            : isMissed
+                            ? (ratedCount > 0
+                                ? t("teacher.completeMissed", "Complete Missed Ratings")
+                                : t("teacher.fillMissed", "Fill Missed Ratings"))
                             : ratedCount > 0
                             ? t("teacher.continueRating", "Continue Rating")
                             : t("teacher.startRating", "Rate Students")
                         }
                         variant={isComplete ? "outlined" : "filled"}
                         size="sm"
-                        icon={isComplete ? "edit" : "rate-review"}
+                        icon={isComplete ? "edit" : isMissed ? "history" : "rate-review"}
                         onPress={() => {
                           router.push({
                             pathname: "/teacher/rate-students",

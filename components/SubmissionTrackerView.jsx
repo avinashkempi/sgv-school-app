@@ -96,8 +96,12 @@ export default function SubmissionTrackerView({
     return trackerData?.teachers || [];
   }, [trackerData]);
 
-  // Aggregate class-wise breakdown from teachers and subjects
+  // Use direct classes array from backend if available, or aggregate from teachers
   const classBreakdown = useMemo(() => {
+    if (trackerData?.classes && Array.isArray(trackerData.classes)) {
+      return trackerData.classes;
+    }
+
     const classMap = {};
 
     teachers.forEach((tItem) => {
@@ -109,6 +113,7 @@ export default function SubmissionTrackerView({
             totalSubjects: 0,
             completedSubjects: 0,
             pendingSubjects: 0,
+            missedSubjects: 0,
             subjects: [],
           };
         }
@@ -116,6 +121,8 @@ export default function SubmissionTrackerView({
         classMap[clsId].totalSubjects += 1;
         if (s.status === "submitted") {
           classMap[clsId].completedSubjects += 1;
+        } else if (s.status === "missed") {
+          classMap[clsId].missedSubjects += 1;
         } else {
           classMap[clsId].pendingSubjects += 1;
         }
@@ -128,14 +135,16 @@ export default function SubmissionTrackerView({
     });
 
     return Object.values(classMap).sort((a, b) => {
-      if (a.pendingSubjects !== b.pendingSubjects) {
-        return b.pendingSubjects - a.pendingSubjects;
+      const aIncomplete = (a.pendingSubjects || 0) + (a.missedSubjects || 0);
+      const bIncomplete = (b.pendingSubjects || 0) + (b.missedSubjects || 0);
+      if (aIncomplete !== bIncomplete) {
+        return bIncomplete - aIncomplete;
       }
       const labelA = a.class?.label || "";
       const labelB = b.class?.label || "";
       return labelA.localeCompare(labelB);
     });
-  }, [teachers]);
+  }, [trackerData?.classes, teachers]);
 
   // Filtered teachers list
   const filteredTeachers = useMemo(() => {
@@ -262,19 +271,53 @@ export default function SubmissionTrackerView({
             </Text>
           </View>
 
-          <View
-            style={[
-              styles.kpiStatPill,
-              { backgroundColor: colors.tertiaryContainer || "#FEF3C7" },
-            ]}
-          >
-            <Text style={[styles.kpiStatPillLabel, { color: colors.tertiary || "#D97706" }]}>
-              Pending
-            </Text>
-            <Text style={[styles.kpiStatPillVal, { color: colors.tertiary || "#D97706" }]}>
-              {overall.pending}
-            </Text>
-          </View>
+          {overall.pending > 0 && (
+            <View
+              style={[
+                styles.kpiStatPill,
+                { backgroundColor: colors.tertiaryContainer || "#FEF3C7" },
+              ]}
+            >
+              <Text style={[styles.kpiStatPillLabel, { color: colors.tertiary || "#D97706" }]}>
+                Pending
+              </Text>
+              <Text style={[styles.kpiStatPillVal, { color: colors.tertiary || "#D97706" }]}>
+                {overall.pending}
+              </Text>
+            </View>
+          )}
+
+          {overall.missed > 0 && (
+            <View
+              style={[
+                styles.kpiStatPill,
+                { backgroundColor: colors.surfaceContainerHigh || "#FEE2E2" },
+              ]}
+            >
+              <Text style={[styles.kpiStatPillLabel, { color: colors.error || "#DC2626" }]}>
+                Missed
+              </Text>
+              <Text style={[styles.kpiStatPillVal, { color: colors.error || "#DC2626" }]}>
+                {overall.missed}
+              </Text>
+            </View>
+          )}
+
+          {(!overall.pending && !overall.missed) && (
+            <View
+              style={[
+                styles.kpiStatPill,
+                { backgroundColor: colors.tertiaryContainer || "#FEF3C7" },
+              ]}
+            >
+              <Text style={[styles.kpiStatPillLabel, { color: colors.tertiary || "#D97706" }]}>
+                Pending
+              </Text>
+              <Text style={[styles.kpiStatPillVal, { color: colors.tertiary || "#D97706" }]}>
+                0
+              </Text>
+            </View>
+          )}
         </View>
       </Card>
 
@@ -503,43 +546,44 @@ export default function SubmissionTrackerView({
                           subj.class?.section
                         );
 
-                        return (
-                          <View
-                            key={sIdx}
-                            style={[
-                              styles.subjectItemRow,
-                              {
-                                borderBottomColor:
-                                  colors.outlineVariant || "#E5E7EB",
-                              },
-                            ]}
-                          >
-                            <View style={{ flex: 1, marginRight: 8 }}>
-                              <Text
+                            const isSubjMissed = subj.status === "missed";
+                            return (
+                              <View
+                                key={sIdx}
                                 style={[
-                                  styles.subjectItemName,
-                                  { color: colors.onSurface },
-                                ]}
-                                numberOfLines={1}
-                              >
-                                {subj.subject?.name}
-                              </Text>
-                              <Text
-                                style={[
-                                  styles.subjectItemClass,
-                                  { color: colors.onSurfaceVariant },
+                                  styles.subjectItemRow,
+                                  {
+                                    borderBottomColor:
+                                      colors.outlineVariant || "#E5E7EB",
+                                  },
                                 ]}
                               >
-                                {classLabel} • {subj.ratedCount} /{" "}
-                                {subj.totalStudents} Rated
-                              </Text>
-                            </View>
+                                <View style={{ flex: 1, marginRight: 8 }}>
+                                  <Text
+                                    style={[
+                                      styles.subjectItemName,
+                                      { color: colors.onSurface },
+                                    ]}
+                                    numberOfLines={1}
+                                  >
+                                    {subj.subject?.name}
+                                  </Text>
+                                  <Text
+                                    style={[
+                                      styles.subjectItemClass,
+                                      { color: colors.onSurfaceVariant },
+                                    ]}
+                                  >
+                                    {classLabel} • {subj.ratedCount} /{" "}
+                                    {subj.totalStudents} Rated
+                                  </Text>
+                                </View>
 
-                            <Badge
-                              variant={isSubjComplete ? "success" : "neutral"}
-                              label={isSubjComplete ? "Submitted" : "Pending"}
-                              size="sm"
-                            />
+                                <Badge
+                                  variant={isSubjComplete ? "success" : isSubjMissed ? "warning" : "neutral"}
+                                  label={isSubjComplete ? "Submitted" : isSubjMissed ? "Missed" : "Pending"}
+                                  size="sm"
+                                />
 
                             {onNavigateToSubject && !isSubjComplete && (
                               <TouchableOpacity
@@ -718,8 +762,8 @@ export default function SubmissionTrackerView({
                             </View>
 
                             <Badge
-                              variant={isSubjComplete ? "success" : "neutral"}
-                              label={isSubjComplete ? "Submitted" : "Pending"}
+                              variant={isSubjComplete ? "success" : subj.status === "missed" ? "warning" : "neutral"}
+                              label={isSubjComplete ? "Submitted" : subj.status === "missed" ? "Missed" : "Pending"}
                               size="sm"
                             />
                           </View>

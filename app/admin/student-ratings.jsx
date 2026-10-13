@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Modal,
+  Switch,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
@@ -15,6 +16,8 @@ import { useTheme, FONTS, FONT_SIZES, RADIUS, SPACING } from "../../theme";
 import apiConfig from "../../config/apiConfig";
 import { useApiQuery } from "../../hooks/useApi";
 import { CACHE_TIERS } from "../../utils/cacheConfig";
+import apiFetch from "../../utils/apiFetch";
+import { useToast } from "../../components/ToastProvider";
 import AppHeader from "../../components/Header";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
@@ -87,16 +90,22 @@ export default function AdminStudentRatingsScreen() {
   const queryClient = useQueryClient();
   const { colors } = useTheme();
   const { t } = useLabel();
+  const { showToast } = useToast();
 
   const now = useMemo(() => new Date(), []);
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
-  const [activeTab, setActiveTab] = useState("overview"); // 'overview' | 'classes' | 'movers'
+  const [activeTab, setActiveTab] = useState("overview"); // 'overview' | 'classes' | 'movers' | 'tracker' | 'config'
   const [selectedClassId, setSelectedClassId] = useState("all");
   const [studentSortBy, setStudentSortBy] = useState("highest"); // 'highest' | 'lowest' | 'attention'
   const [searchQuery, setSearchQuery] = useState("");
   const [moversTab, setMoversTab] = useState("improving"); // 'improving' | 'declining'
   const [refreshing, setRefreshing] = useState(false);
+
+  // Subject Configuration Tab state
+  const [configSelectedClassId, setConfigSelectedClassId] = useState("all");
+  const [togglingSubjectId, setTogglingSubjectId] = useState(null);
+  const [isBulkConfiguring, setIsBulkConfiguring] = useState(false);
 
   // Student drilldown modal state
   const [selectedStudentId, setSelectedStudentId] = useState(null);
@@ -212,6 +221,87 @@ export default function AdminStudentRatingsScreen() {
     { ...CACHE_TIERS.MODERATE }
   );
 
+  // 8. Fetch Subjects Config for Ratability Settings
+  const {
+    data: subjectsConfigData,
+    isLoading: loadingSubjectsConfig,
+    refetch: refetchSubjectsConfig,
+  } = useApiQuery(
+    ["adminSubjectsConfig"],
+    `${apiConfig.baseUrl}/student-ratings/admin/subjects-config`,
+    {
+      enabled: activeTab === "config",
+      ...CACHE_TIERS.MODERATE,
+    }
+  );
+
+  const handleToggleSubjectRating = async (subjectId, currentEnabled) => {
+    Haptics.selectionAsync().catch(() => {});
+    const newEnabled = !currentEnabled;
+    setTogglingSubjectId(subjectId);
+    try {
+      const res = await apiFetch(
+        `${apiConfig.baseUrl}/student-ratings/admin/subject/${subjectId}/toggle-rating`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({ ratingEnabled: newEnabled }),
+        }
+      );
+      if (res && res.success) {
+        showToast(
+          newEnabled
+            ? "Rating enabled for subject"
+            : "Subject excluded from monthly ratings",
+          "success"
+        );
+        await Promise.all([
+          refetchSubjectsConfig(),
+          queryClient.invalidateQueries({ queryKey: ["adminSubjectsConfig"] }),
+          queryClient.invalidateQueries({ queryKey: ["ratingsSubmissionTracker"] }),
+          queryClient.invalidateQueries({ queryKey: ["schoolRatingsSummary"] }),
+        ]);
+      }
+    } catch (err) {
+      console.error("Toggle error:", err);
+      showToast(err?.message || "Failed to update subject rating requirement", "error");
+    } finally {
+      setTogglingSubjectId(null);
+    }
+  };
+
+  const handleBulkConfigureClass = async (classId, ratingEnabled) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    setIsBulkConfiguring(true);
+    try {
+      const res = await apiFetch(
+        `${apiConfig.baseUrl}/student-ratings/admin/bulk-configure-ratings`,
+        {
+          method: "POST",
+          body: JSON.stringify({ classId, ratingEnabled }),
+        }
+      );
+      if (res && res.success) {
+        showToast(
+          ratingEnabled
+            ? "All subjects in class enabled for monthly ratings"
+            : "All subjects in class excluded from monthly ratings",
+          "success"
+        );
+        await Promise.all([
+          refetchSubjectsConfig(),
+          queryClient.invalidateQueries({ queryKey: ["adminSubjectsConfig"] }),
+          queryClient.invalidateQueries({ queryKey: ["ratingsSubmissionTracker"] }),
+          queryClient.invalidateQueries({ queryKey: ["schoolRatingsSummary"] }),
+        ]);
+      }
+    } catch (err) {
+      console.error("Bulk config error:", err);
+      showToast(err?.message || "Failed to bulk configure class subjects", "error");
+    } finally {
+      setIsBulkConfiguring(false);
+    }
+  };
+
   const onRefresh = async () => {
     setRefreshing(true);
     try {
@@ -220,8 +310,10 @@ export default function AdminStudentRatingsScreen() {
         refetchMovers(),
         refetchTracker(),
         isClassSpecific ? refetchClassSummary() : Promise.resolve(),
+        activeTab === "config" ? refetchSubjectsConfig() : Promise.resolve(),
         queryClient.invalidateQueries({ queryKey: ["schoolRatingsSummary"] }),
         queryClient.invalidateQueries({ queryKey: ["ratingsSubmissionTracker"] }),
+        queryClient.invalidateQueries({ queryKey: ["adminSubjectsConfig"] }),
       ]);
     } catch (err) {
       console.error("Refresh error:", err);
@@ -944,6 +1036,276 @@ export default function AdminStudentRatingsScreen() {
     </View>
   );
 
+  // ──────────────────────────────────────────────
+  //  TAB 5: SUBJECT CONFIGURATION
+  // ──────────────────────────────────────────────
+  const renderSubjectConfigTab = () => {
+    const classGroups = subjectsConfigData?.classes || [];
+    const displayedGroups =
+      configSelectedClassId === "all"
+        ? classGroups
+        : classGroups.filter(
+            (g) => g.class?._id?.toString() === configSelectedClassId
+          );
+
+    return (
+      <View>
+        {/* Class Filter Bar */}
+        <View style={{ marginBottom: 12 }}>
+          <Text style={[styles.selectorLabel, { color: colors.onSurfaceVariant }]}>
+            Filter by Class
+          </Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.classPillsScroll}
+          >
+            <TouchableOpacity
+              onPress={() => {
+                Haptics.selectionAsync().catch(() => {});
+                setConfigSelectedClassId("all");
+              }}
+              style={[
+                styles.classPill,
+                {
+                  backgroundColor:
+                    configSelectedClassId === "all"
+                      ? colors.primary
+                      : colors.surfaceContainer,
+                  borderColor:
+                    configSelectedClassId === "all"
+                      ? colors.primary
+                      : colors.outlineVariant,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.classPillText,
+                  {
+                    color:
+                      configSelectedClassId === "all"
+                        ? colors.onPrimary
+                        : colors.onSurface,
+                    fontFamily:
+                      configSelectedClassId === "all"
+                        ? FONTS.bold
+                        : FONTS.medium,
+                  },
+                ]}
+              >
+                All Classes ({classGroups.length})
+              </Text>
+            </TouchableOpacity>
+
+            {classGroups.map((g) => {
+              const cId = g.class?._id?.toString();
+              const isSelected = configSelectedClassId === cId;
+              const classLabel = formatClassName(
+                g.class?.name || g.class,
+                g.class?.section
+              );
+
+              return (
+                <TouchableOpacity
+                  key={cId}
+                  onPress={() => {
+                    Haptics.selectionAsync().catch(() => {});
+                    setConfigSelectedClassId(cId);
+                  }}
+                  style={[
+                    styles.classPill,
+                    {
+                      backgroundColor: isSelected
+                        ? colors.primary
+                        : colors.surfaceContainer,
+                      borderColor: isSelected
+                        ? colors.primary
+                        : colors.outlineVariant,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.classPillText,
+                      {
+                        color: isSelected ? colors.onPrimary : colors.onSurface,
+                        fontFamily: isSelected ? FONTS.bold : FONTS.medium,
+                      },
+                    ]}
+                  >
+                    {classLabel} ({g.enabledSubjects}/{g.totalSubjects})
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+
+        {/* Informational Guidance Banner */}
+        <Card
+          variant="outlined"
+          style={{ marginBottom: 14, borderColor: colors.outlineVariant }}
+          contentStyle={{ padding: 12 }}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <MaterialIcons name="tune" size={22} color={colors.primary} />
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: FONT_SIZES.sm, fontFamily: FONTS.bold, color: colors.onSurface }}>
+                Ratable Subjects Control
+              </Text>
+              <Text style={{ fontSize: FONT_SIZES.xs, fontFamily: FONTS.regular, color: colors.onSurfaceVariant, marginTop: 2, lineHeight: 16 }}>
+                Select which subjects teachers are required to evaluate monthly. Excluded subjects (e.g. non-evaluative or optional courses) are hidden from teacher forms and do not affect submission completion.
+              </Text>
+            </View>
+          </View>
+        </Card>
+
+        {loadingSubjectsConfig ? (
+          <View style={{ marginTop: 30 }}>
+            <LoadingState message="Loading subject configuration..." />
+          </View>
+        ) : displayedGroups.length === 0 ? (
+          <EmptyState
+            icon="tune"
+            title="No Subjects Found"
+            message="No subjects have been created for this class."
+          />
+        ) : (
+          displayedGroups.map((group) => {
+            const classLabel = formatClassName(
+              group.class?.name || group.class,
+              group.class?.section
+            );
+
+            return (
+              <Card
+                key={group.class?._id}
+                variant="elevated"
+                style={{ marginBottom: 14 }}
+                contentStyle={{ padding: 14 }}
+              >
+                {/* Group Header */}
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    borderBottomWidth: 1,
+                    borderBottomColor: colors.outlineVariant,
+                    paddingBottom: 10,
+                    marginBottom: 10,
+                  }}
+                >
+                  <View>
+                    <Text style={{ fontSize: FONT_SIZES.md, fontFamily: FONTS.bold, color: colors.onSurface }}>
+                      {classLabel}
+                    </Text>
+                    <Text style={{ fontSize: FONT_SIZES.xs, fontFamily: FONTS.regular, color: colors.onSurfaceVariant, marginTop: 2 }}>
+                      {group.enabledSubjects} of {group.totalSubjects} subjects ratable
+                    </Text>
+                  </View>
+
+                  {/* Bulk Actions */}
+                  <View style={{ flexDirection: "row", gap: 6 }}>
+                    <TouchableOpacity
+                      onPress={() => handleBulkConfigureClass(group.class?._id, true)}
+                      disabled={isBulkConfiguring}
+                      style={{
+                        paddingHorizontal: 8,
+                        paddingVertical: 4,
+                        borderRadius: RADIUS.sm,
+                        backgroundColor: colors.primaryContainer || "#EEF2FF",
+                      }}
+                    >
+                      <Text style={{ fontSize: 11, fontFamily: FONTS.bold, color: colors.primary }}>
+                        Enable All
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      onPress={() => handleBulkConfigureClass(group.class?._id, false)}
+                      disabled={isBulkConfiguring}
+                      style={{
+                        paddingHorizontal: 8,
+                        paddingVertical: 4,
+                        borderRadius: RADIUS.sm,
+                        backgroundColor: colors.surfaceContainer,
+                        borderWidth: 1,
+                        borderColor: colors.outlineVariant,
+                      }}
+                    >
+                      <Text style={{ fontSize: 11, fontFamily: FONTS.medium, color: colors.onSurfaceVariant }}>
+                        Exclude All
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Subjects List */}
+                {group.subjects.map((sub, sIdx) => {
+                  const isEnabled = sub.ratingEnabled !== false;
+                  const isToggling = togglingSubjectId === sub._id;
+                  const teacherNames = (sub.teachers || [])
+                    .map((t) => t.name)
+                    .filter(Boolean)
+                    .join(", ");
+
+                  return (
+                    <View
+                      key={sub._id}
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        paddingVertical: 10,
+                        borderBottomWidth: sIdx === group.subjects.length - 1 ? 0 : 1,
+                        borderBottomColor: colors.outlineVariant + "50",
+                      }}
+                    >
+                      <View style={{ flex: 1, marginRight: 12 }}>
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                          <Text style={{ fontSize: FONT_SIZES.sm, fontFamily: FONTS.bold, color: colors.onSurface }}>
+                            {sub.name}
+                          </Text>
+                          <Badge
+                            variant={isEnabled ? "success" : "neutral"}
+                            label={isEnabled ? "Ratable" : "Excluded"}
+                            size="sm"
+                          />
+                        </View>
+                        {teacherNames ? (
+                          <Text style={{ fontSize: FONT_SIZES.xs, fontFamily: FONTS.regular, color: colors.onSurfaceVariant, marginTop: 2 }}>
+                            Teacher: {teacherNames}
+                          </Text>
+                        ) : (
+                          <Text style={{ fontSize: FONT_SIZES.xs, fontFamily: FONTS.regular, color: colors.onSurfaceVariant, marginTop: 2, fontStyle: "italic" }}>
+                            No teacher assigned
+                          </Text>
+                        )}
+                      </View>
+
+                      <Switch
+                        value={isEnabled}
+                        disabled={isToggling}
+                        onValueChange={() => handleToggleSubjectRating(sub._id, isEnabled)}
+                        trackColor={{
+                          false: colors.surfaceContainerHighest || "#D1D5DB",
+                          true: colors.primary,
+                        }}
+                        thumbColor={isEnabled ? "#FFFFFF" : "#F3F4F6"}
+                      />
+                    </View>
+                  );
+                })}
+              </Card>
+            );
+          })
+        )}
+      </View>
+    );
+  };
+
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       {/* Header */}
@@ -1043,12 +1405,17 @@ export default function AdminStudentRatingsScreen() {
         </View>
 
         {/* Tab Switcher */}
-        <View style={styles.tabSwitcher}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.tabSwitcher}
+        >
           {[
             { key: "overview", label: "Overview", icon: "dashboard" },
             { key: "classes", label: "Classes", icon: "people" },
             { key: "movers", label: "Movers", icon: "trending-up" },
             { key: "tracker", label: "Tracker", icon: "assignment-turned-in" },
+            { key: "config", label: "Subject Config", icon: "tune" },
           ].map((tab) => {
             const isActive = activeTab === tab.key;
             return (
@@ -1074,7 +1441,7 @@ export default function AdminStudentRatingsScreen() {
                   name={tab.icon}
                   size={15}
                   color={isActive ? colors.onPrimary : colors.onSurfaceVariant}
-                  style={{ marginRight: 3 }}
+                  style={{ marginRight: 4 }}
                 />
                 <Text
                   style={[
@@ -1092,7 +1459,7 @@ export default function AdminStudentRatingsScreen() {
               </TouchableOpacity>
             );
           })}
-        </View>
+        </ScrollView>
 
         {/* Tab Content */}
         {loadingSchoolSummary && activeTab === "overview" ? (
@@ -1116,6 +1483,7 @@ export default function AdminStudentRatingsScreen() {
                 }}
               />
             )}
+            {activeTab === "config" && renderSubjectConfigTab()}
           </>
         )}
       </ScrollView>
@@ -1535,11 +1903,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   tabButton: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 9,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
     borderRadius: RADIUS.md,
     borderWidth: 1,
   },

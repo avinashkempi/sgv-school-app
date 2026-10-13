@@ -29,6 +29,7 @@ import ProgressBar from "../../components/ui/ProgressBar";
 import TextInput from "../../components/TextInput";
 import { LoadingState, EmptyState } from "../../components/StateComponents";
 import { useLabel } from "../../context/LabelsContext";
+import storage from "../../utils/storage";
 
 const MONTH_NAMES = [
   "January",
@@ -135,8 +136,13 @@ export default function RateStudentsScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterTab, setFilterTab] = useState("all"); // 'all' | 'unrated' | 'rated'
   const [showGuideModal, setShowGuideModal] = useState(false);
+  const [showBatchModal, setShowBatchModal] = useState(false);
+  const [collapsedRated, setCollapsedRated] = useState(true);
+  const [expandedStudents, setExpandedStudents] = useState({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  const draftKey = `draft_ratings_${subjectId}_${month}_${year}`;
 
   // Fetch subject details and existing ratings
   const {
@@ -156,24 +162,56 @@ export default function RateStudentsScreen() {
     [subjectData?.students]
   );
 
-  // Initialize ratings from fetched data
+  // Initialize ratings from fetched data and restore draft if present
   useEffect(() => {
-    if (students.length > 0) {
-      const initialMap = {};
-      students.forEach((item) => {
-        if (item.rating) {
-          initialMap[item._id] = {
-            classEngagement: item.rating.classEngagement,
-            homeworkClasswork: item.rating.homeworkClasswork,
-            behaviourSocial: item.rating.behaviourSocial,
-            englishComm: item.rating.englishComm,
-          };
+    let isMounted = true;
+    async function loadDataAndDraft() {
+      if (students.length > 0) {
+        const initialMap = {};
+        students.forEach((item) => {
+          if (item.rating) {
+            initialMap[item._id] = {
+              classEngagement: item.rating.classEngagement,
+              homeworkClasswork: item.rating.homeworkClasswork,
+              behaviourSocial: item.rating.behaviourSocial,
+              englishComm: item.rating.englishComm,
+            };
+          }
+        });
+
+        // Try restoring local draft
+        try {
+          const savedDraft = await storage.getItem(draftKey);
+          if (savedDraft && isMounted) {
+            const parsed = JSON.parse(savedDraft);
+            if (parsed && typeof parsed === "object" && Object.keys(parsed).length > 0) {
+              setRatingsMap({ ...initialMap, ...parsed });
+              setHasUnsavedChanges(true);
+              return;
+            }
+          }
+        } catch (e) {
+          console.warn("Could not parse draft:", e);
         }
-      });
-      setRatingsMap(initialMap);
-      setHasUnsavedChanges(false);
+
+        if (isMounted) {
+          setRatingsMap(initialMap);
+          setHasUnsavedChanges(false);
+        }
+      }
     }
-  }, [students]);
+    loadDataAndDraft();
+    return () => {
+      isMounted = false;
+    };
+  }, [students, draftKey]);
+
+  // Persist draft to storage when ratings change
+  useEffect(() => {
+    if (hasUnsavedChanges && Object.keys(ratingsMap).length > 0) {
+      storage.setItem(draftKey, JSON.stringify(ratingsMap)).catch(() => {});
+    }
+  }, [ratingsMap, hasUnsavedChanges, draftKey]);
 
   // Bulk save mutation
   const bulkSaveMutation = useApiMutation({
@@ -261,6 +299,58 @@ export default function RateStudentsScreen() {
     []
   );
 
+  const toggleExpandStudent = useCallback((studentId) => {
+    Haptics.selectionAsync().catch(() => {});
+    setExpandedStudents((prev) => ({
+      ...prev,
+      [studentId]: !prev[studentId],
+    }));
+  }, []);
+
+  const handleBatchFillUnrated = useCallback(
+    (score) => {
+      const unratedList = students.filter((s) => !ratedStudentIds.includes(s._id));
+      if (unratedList.length === 0) {
+        showToast(t("teacher.allRated", "All students in this class are already rated!"), "info");
+        setShowBatchModal(false);
+        return;
+      }
+
+      Alert.alert(
+        t("teacher.confirmBatchFill", "Confirm Batch Auto-Fill"),
+        `Set all 4 criteria to ${score} (${SCALE_LABELS[score]?.shortLabel}) for ${unratedList.length} unrated student(s)? You can adjust individual scores before saving.`,
+        [
+          { text: t("common.cancel", "Cancel"), style: "cancel" },
+          {
+            text: t("common.confirm", "Confirm & Fill"),
+            onPress: () => {
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+              setRatingsMap((prev) => {
+                const next = { ...prev };
+                unratedList.forEach((s) => {
+                  next[s._id] = {
+                    classEngagement: score,
+                    homeworkClasswork: score,
+                    behaviourSocial: score,
+                    englishComm: score,
+                  };
+                });
+                return next;
+              });
+              setHasUnsavedChanges(true);
+              setShowBatchModal(false);
+              showToast(
+                `Filled ${unratedList.length} student(s) with ${SCALE_LABELS[score]?.shortLabel}!`,
+                "success"
+              );
+            },
+          },
+        ]
+      );
+    },
+    [students, ratedStudentIds, showToast, t]
+  );
+
   // Save all completed ratings
   const handleSave = async () => {
     // Only send entries that have all 4 data points filled
@@ -303,6 +393,7 @@ export default function RateStudentsScreen() {
       });
 
       setHasUnsavedChanges(false);
+      await storage.removeItem(draftKey).catch(() => {});
       showToast(
         t(
           "teacher.ratingsSavedSuccess",
@@ -347,7 +438,10 @@ export default function RateStudentsScreen() {
           {
             text: t("common.discard", "Discard & Leave"),
             style: "destructive",
-            onPress: () => router.back(),
+            onPress: () => {
+              storage.removeItem(draftKey).catch(() => {});
+              router.back();
+            },
           },
         ]
       );
@@ -377,6 +471,34 @@ export default function RateStudentsScreen() {
       validScores.length > 0
         ? (validScores.reduce((a, b) => a + b, 0) / validScores.length).toFixed(1)
         : null;
+
+    const shouldCollapse = collapsedRated && isComplete && !expandedStudents[student._id];
+
+    if (shouldCollapse) {
+      return (
+        <Card
+          variant="outlined"
+          style={[styles.studentCard, styles.compactStudentCard, { borderColor: colors.outlineVariant }]}
+          onPress={() => toggleExpandStudent(student._id)}
+        >
+          <View style={styles.compactRow}>
+            <UserAvatar user={student} size={36} />
+            <View style={{ flex: 1, marginLeft: 10, marginRight: 8 }}>
+              <Text style={[styles.studentName, { color: colors.onSurface }]} numberOfLines={1}>
+                {student.name}
+              </Text>
+              <Text style={[styles.studentRoll, { color: colors.onSurfaceVariant }]}>
+                {student.regNo ? `Reg: ${student.regNo}` : "Student"} • ★ {averageScore}
+              </Text>
+            </View>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <Badge variant="success" icon="check-circle" label={`★ ${averageScore}`} size="sm" />
+              <MaterialIcons name="edit" size={18} color={colors.primary} />
+            </View>
+          </View>
+        </Card>
+      );
+    }
 
     return (
       <Card
@@ -413,27 +535,38 @@ export default function RateStudentsScreen() {
           </View>
 
           {/* Right Status Badge & Live Average */}
-          <View style={styles.studentStatusCol}>
-            {isComplete ? (
-              <Badge
-                variant="success"
-                icon="check-circle"
-                label={`★ ${averageScore}`}
-                size="md"
-              />
-            ) : validScores.length > 0 ? (
-              <Badge
-                variant="warning"
-                icon="hourglass-empty"
-                label={`${validScores.length}/4 Rated`}
-                size="sm"
-              />
-            ) : (
-              <Badge
-                variant="neutral"
-                label={t("common.unrated", "Unrated")}
-                size="sm"
-              />
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <View style={styles.studentStatusCol}>
+              {isComplete ? (
+                <Badge
+                  variant="success"
+                  icon="check-circle"
+                  label={`★ ${averageScore}`}
+                  size="md"
+                />
+              ) : validScores.length > 0 ? (
+                <Badge
+                  variant="warning"
+                  icon="hourglass-empty"
+                  label={`${validScores.length}/4 Rated`}
+                  size="sm"
+                />
+              ) : (
+                <Badge
+                  variant="neutral"
+                  label={t("common.unrated", "Unrated")}
+                  size="sm"
+                />
+              )}
+            </View>
+            {isComplete && (
+              <TouchableOpacity
+                onPress={() => toggleExpandStudent(student._id)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                style={{ padding: 4 }}
+              >
+                <MaterialIcons name="expand-less" size={22} color={colors.onSurfaceVariant} />
+              </TouchableOpacity>
             )}
           </View>
         </View>
@@ -633,49 +766,101 @@ export default function RateStudentsScreen() {
           style={{ marginBottom: 10 }}
         />
 
-        {/* Filter Pills + Search */}
+        {/* Filter Pills + Quick Actions */}
         <View style={styles.filterPillsRow}>
-          {[
-            { key: "all", label: `All (${totalCount})` },
-            { key: "unrated", label: `Unrated (${totalCount - ratedCount})` },
-            { key: "rated", label: `Rated (${ratedCount})` },
-          ].map((pill) => {
-            const isActive = filterTab === pill.key;
-            return (
-              <TouchableOpacity
-                key={pill.key}
-                onPress={() => {
-                  Haptics.selectionAsync().catch(() => {});
-                  setFilterTab(pill.key);
-                }}
-                style={[
-                  styles.filterPillBtn,
-                  {
-                    backgroundColor: isActive
-                      ? colors.primary
-                      : colors.surfaceContainer,
-                    borderColor: isActive
-                      ? colors.primary
-                      : colors.outlineVariant,
-                  },
-                ]}
-              >
-                <Text
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 8, alignItems: "center" }}
+          >
+            {[
+              { key: "all", label: `All (${totalCount})` },
+              { key: "unrated", label: `Unrated (${totalCount - ratedCount})` },
+              { key: "rated", label: `Rated (${ratedCount})` },
+            ].map((pill) => {
+              const isActive = filterTab === pill.key;
+              return (
+                <TouchableOpacity
+                  key={pill.key}
+                  onPress={() => {
+                    Haptics.selectionAsync().catch(() => {});
+                    setFilterTab(pill.key);
+                  }}
                   style={[
-                    styles.filterPillText,
+                    styles.filterPillBtn,
                     {
-                      color: isActive
-                        ? colors.onPrimary
-                        : colors.onSurfaceVariant,
-                      fontFamily: isActive ? FONTS.bold : FONTS.medium,
+                      backgroundColor: isActive
+                        ? colors.primary
+                        : colors.surfaceContainer,
+                      borderColor: isActive
+                        ? colors.primary
+                        : colors.outlineVariant,
                     },
                   ]}
                 >
-                  {pill.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+                  <Text
+                    style={[
+                      styles.filterPillText,
+                      {
+                        color: isActive
+                          ? colors.onPrimary
+                          : colors.onSurfaceVariant,
+                        fontFamily: isActive ? FONTS.bold : FONTS.medium,
+                      },
+                    ]}
+                  >
+                    {pill.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+
+            {/* Quick Batch Fill Trigger */}
+            <TouchableOpacity
+              onPress={() => setShowBatchModal(true)}
+              style={[
+                styles.batchActionBtn,
+                {
+                  backgroundColor: colors.primaryContainer || "#EEF2FF",
+                  borderColor: colors.primary,
+                },
+              ]}
+            >
+              <MaterialIcons name="flash-on" size={14} color={colors.primary} />
+              <Text style={[styles.batchActionText, { color: colors.primary }]}>
+                Batch Fill
+              </Text>
+            </TouchableOpacity>
+
+            {/* Collapse/Expand Rated Toggle */}
+            <TouchableOpacity
+              onPress={() => {
+                Haptics.selectionAsync().catch(() => {});
+                setCollapsedRated(!collapsedRated);
+              }}
+              style={[
+                styles.batchActionBtn,
+                {
+                  backgroundColor: colors.surfaceContainer,
+                  borderColor: colors.outlineVariant,
+                },
+              ]}
+            >
+              <MaterialIcons
+                name={collapsedRated ? "unfold-more" : "unfold-less"}
+                size={14}
+                color={colors.onSurfaceVariant}
+              />
+              <Text
+                style={[
+                  styles.batchActionText,
+                  { color: colors.onSurfaceVariant },
+                ]}
+              >
+                {collapsedRated ? "Expand All" : "Compact"}
+              </Text>
+            </TouchableOpacity>
+          </ScrollView>
         </View>
 
         {/* Search input */}
@@ -885,6 +1070,116 @@ export default function RateStudentsScreen() {
               fullWidth={true}
               onPress={() => setShowGuideModal(false)}
               style={{ marginTop: 14 }}
+            />
+          </View>
+        </View>
+      </Modal>
+
+      {/* Batch Auto-Fill Modal */}
+      <Modal
+        visible={showBatchModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowBatchModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View
+            style={[
+              styles.modalContent,
+              { backgroundColor: colors.surface, borderColor: colors.outlineVariant },
+            ]}
+          >
+            <View style={styles.modalHeader}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <MaterialIcons name="flash-on" size={24} color={colors.primary} />
+                <Text style={[styles.modalTitle, { color: colors.onSurface }]}>
+                  Batch Auto-Fill Unrated
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setShowBatchModal(false)}
+                style={styles.modalCloseBtn}
+              >
+                <MaterialIcons name="close" size={24} color={colors.onSurface} />
+              </TouchableOpacity>
+            </View>
+
+            <Text
+              style={[
+                styles.criteriaGuideDesc,
+                { color: colors.onSurfaceVariant, marginBottom: 16 },
+              ]}
+            >
+              Quickly establish a baseline for unrated students, then adjust individual scores before saving.
+            </Text>
+
+            <TouchableOpacity
+              style={[
+                styles.batchModalOption,
+                { backgroundColor: colors.surfaceContainer, borderColor: colors.outlineVariant },
+              ]}
+              onPress={() => handleBatchFillUnrated(3)}
+            >
+              <View style={[styles.batchModalIconBox, { backgroundColor: "#EEF2FF" }]}>
+                <Text style={{ fontSize: 16, fontWeight: "bold", color: "#4F46E5" }}>3</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.batchModalOptionTitle, { color: colors.onSurface }]}>
+                  Fill Unrated with 3 (Average / Meets Expectation)
+                </Text>
+                <Text style={[styles.batchModalOptionSub, { color: colors.onSurfaceVariant }]}>
+                  Recommended baseline for students meeting curriculum benchmarks
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.batchModalOption,
+                { backgroundColor: colors.surfaceContainer, borderColor: colors.outlineVariant, marginTop: 10 },
+              ]}
+              onPress={() => handleBatchFillUnrated(4)}
+            >
+              <View style={[styles.batchModalIconBox, { backgroundColor: "#DCFCE7" }]}>
+                <Text style={{ fontSize: 16, fontWeight: "bold", color: "#16A34A" }}>4</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.batchModalOptionTitle, { color: colors.onSurface }]}>
+                  Fill Unrated with 4 (Good)
+                </Text>
+                <Text style={[styles.batchModalOptionSub, { color: colors.onSurfaceVariant }]}>
+                  Sets all 4 criteria to Good for active classes
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.batchModalOption,
+                { backgroundColor: colors.surfaceContainer, borderColor: colors.outlineVariant, marginTop: 10 },
+              ]}
+              onPress={() => handleBatchFillUnrated(5)}
+            >
+              <View style={[styles.batchModalIconBox, { backgroundColor: "#D1FAE5" }]}>
+                <Text style={{ fontSize: 16, fontWeight: "bold", color: "#059669" }}>5</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.batchModalOptionTitle, { color: colors.onSurface }]}>
+                  Fill Unrated with 5 (Excellent)
+                </Text>
+                <Text style={[styles.batchModalOptionSub, { color: colors.onSurfaceVariant }]}>
+                  Sets all 4 criteria to Excellent
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <Button
+              title="Close"
+              variant="outlined"
+              size="md"
+              fullWidth={true}
+              onPress={() => setShowBatchModal(false)}
+              style={{ marginTop: 16 }}
             />
           </View>
         </View>
@@ -1179,5 +1474,56 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
     flex: 1,
     lineHeight: 16,
+  },
+  compactStudentCard: {
+    marginBottom: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+  },
+  compactRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  expandChevronBtn: {
+    padding: 6,
+    borderRadius: RADIUS.full || 16,
+  },
+  batchActionBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: RADIUS.full || 20,
+    borderWidth: 1,
+  },
+  batchActionText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.semiBold,
+  },
+  batchModalOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    gap: 12,
+  },
+  batchModalIconBox: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  batchModalOptionTitle: {
+    fontSize: FONT_SIZES.sm,
+    fontFamily: FONTS.bold,
+    marginBottom: 2,
+  },
+  batchModalOptionSub: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.regular,
+    lineHeight: 15,
   },
 });

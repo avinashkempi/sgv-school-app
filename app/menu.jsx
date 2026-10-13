@@ -77,10 +77,38 @@ export default function MenuScreen() {
         color: colors.error || "#EF4444",
         route: "/complaints",
       });
+
+      if (user.role === "student") {
+        items.push({
+          id: "student-ratings",
+          title: t("menu.myRatings", "Monthly Ratings"),
+          subtitle: t(
+            "menu.myRatingsSubtitle",
+            "Teacher evaluations, scores & monthly trends"
+          ),
+          icon: "stars",
+          color: colors.primary || "#6366F1",
+          route: "/student/ratings",
+        });
+      }
+
+      if (user.role === "teacher") {
+        items.push({
+          id: "teacher-ratings",
+          title: t("menu.teacherRatings", "Monthly Student Ratings"),
+          subtitle: t(
+            "menu.teacherRatingsSubtitle",
+            "Evaluate monthly classroom engagement & progress"
+          ),
+          icon: "rate-review",
+          color: colors.primary || "#6366F1",
+          route: "/teacher/monthly-ratings",
+        });
+      }
     }
 
     return items;
-  }, [colors.error, colors.tertiary, t, user]);
+  }, [colors.error, colors.tertiary, colors.primary, t, user]);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
