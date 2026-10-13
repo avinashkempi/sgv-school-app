@@ -135,6 +135,12 @@ const AdminDashboard = () => {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ gap: 10, paddingVertical: 2 }}
           >
+            <QuickActionButton
+              title="Student Ratings"
+              icon="stars"
+              color="#8B5CF6"
+              onPress={() => router.push("/admin/student-ratings")}
+            />
             {!isSuperAdmin && (
               <QuickActionButton
                 title="Missing Tracker"

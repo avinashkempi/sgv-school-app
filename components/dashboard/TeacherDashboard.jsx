@@ -590,6 +590,57 @@ const TeacherDashboard = () => {
         )
       )}
 
+      {/* Quick Actions */}
+      <View style={{ marginBottom: 12 }}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: 10, paddingVertical: 2 }}
+        >
+          <Pressable
+            onPress={() => router.push("/teacher/monthly-ratings")}
+            style={({ pressed }) => ({
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: isDark ? "rgba(139, 92, 246, 0.16)" : "rgba(139, 92, 246, 0.08)",
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+              borderRadius: 14,
+              borderWidth: 1,
+              borderColor: isDark ? "rgba(139, 92, 246, 0.40)" : "rgba(139, 92, 246, 0.25)",
+              opacity: pressed ? 0.75 : 1,
+              gap: 8,
+            })}
+            accessibilityRole="button"
+            accessibilityLabel="Rate Students"
+          >
+            <View
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 8,
+                backgroundColor: "rgba(139, 92, 246, 0.20)",
+                alignItems: "center",
+                justifyContent: "center",
+                borderWidth: 1,
+                borderColor: "rgba(139, 92, 246, 0.35)",
+              }}
+            >
+              <MaterialIcons name="stars" size={16} color="#8B5CF6" />
+            </View>
+            <Text
+              style={{
+                fontSize: FONT_SIZES.xs,
+                fontFamily: FONTS.bold,
+                color: isDark ? "#C4B5FD" : "#6D28D9",
+              }}
+            >
+              Rate Students
+            </Text>
+          </Pressable>
+        </ScrollView>
+      </View>
+
       {/* Stat Cards Grid */}
       <View
         style={{ flexDirection: "row", flexWrap: "wrap", marginHorizontal: -4 }}

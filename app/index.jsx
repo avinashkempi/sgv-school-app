@@ -129,13 +129,15 @@ export default function HomeScreen() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         {isAdmin ? (
           <AdminDashboard />
-        ) : (isStudent || isTeacher) ? (
+        ) : isTeacher ? (
+          <TeacherDashboard />
+        ) : isStudent ? (
           <>
             {/* Hero: live today's schedule card (shows actual periods) */}
             <TodayScheduleHero />
 
             {/* Secondary: role-specific stats & modules */}
-            {isTeacher ? <TeacherDashboard /> : <StudentDashboard />}
+            <StudentDashboard />
           </>
         ) : null}
 

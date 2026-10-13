@@ -39,16 +39,22 @@ export const CACHE_TIERS = {
     gcTime: 24 * 60 * 60 * 1000, // 24 hours
   },
 
-  /** Vibes Feed: 2 min freshness with 24 hours cache retention for offline browsing */
+  /** Vibes Feed: 24 hours freshness (once a day), 48 hours cache retention, no background refetch on mount */
   VIBES_FEED: {
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    gcTime: 24 * 60 * 60 * 1000, // 24 hours
+    staleTime: 24 * 60 * 60 * 1000, // 24 hours (refreshed at most once a day on open or on manual pull)
+    gcTime: 48 * 60 * 60 * 1000, // 48 hours cache retention for offline browsing
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   },
 
-  /** Vibes Home Widgets: 1 min freshness with 24 hours cache retention */
+  /** Vibes Home / Stories / Spotlight: 24 hours freshness with 48 hours cache retention */
   VIBES_HOME: {
-    staleTime: 60 * 1000, // 1 minute
-    gcTime: 24 * 60 * 60 * 1000, // 24 hours
+    staleTime: 24 * 60 * 60 * 1000, // 24 hours (once a day)
+    gcTime: 48 * 60 * 60 * 1000, // 48 hours cache retention
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   },
 
   /** Vibes Realtime: 15s freshness with 24 hours cache retention */

@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useTheme, FONTS, FONT_SIZES, RADIUS, SPACING } from "../../theme";
+import { useTheme, FONTS, FONT_SIZES, RADIUS } from "../../theme";
 import PerformanceTrendCard from "./PerformanceTrendCard";
 import { LoadingState, EmptyState } from "../StateComponents";
 import Badge from "../ui/Badge";
@@ -102,12 +102,17 @@ const StudentDashboard = () => {
                   style={[
                     styles.scoreBadgeCircle,
                     {
-                      backgroundColor:
-                        ratingData.variant === "success"
-                          ? "#DCFCE7"
+                      backgroundColor: isDark
+                        ? ratingData.variant === "success"
+                          ? "rgba(74, 222, 128, 0.16)"
                           : ratingData.variant === "warning"
-                          ? "#FEF3C7"
-                          : "#EEF2FF",
+                          ? "rgba(251, 191, 36, 0.16)"
+                          : "rgba(167, 139, 250, 0.16)"
+                        : ratingData.variant === "success"
+                        ? "#DCFCE7"
+                        : ratingData.variant === "warning"
+                        ? "#FEF3C7"
+                        : "#EEF2FF",
                     },
                   ]}
                 >
@@ -115,12 +120,17 @@ const StudentDashboard = () => {
                     style={[
                       styles.scoreNumber,
                       {
-                        color:
-                          ratingData.variant === "success"
-                            ? "#16A34A"
+                        color: isDark
+                          ? ratingData.variant === "success"
+                            ? "#4ADE80"
                             : ratingData.variant === "warning"
-                            ? "#D97706"
-                            : colors.primary,
+                            ? "#FBBF24"
+                            : ratingAccent
+                          : ratingData.variant === "success"
+                          ? "#16A34A"
+                          : ratingData.variant === "warning"
+                          ? "#D97706"
+                          : colors.primary,
                       },
                     ]}
                   >

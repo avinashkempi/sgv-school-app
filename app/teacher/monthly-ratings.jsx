@@ -698,21 +698,26 @@ export default function MonthlyRatingsScreen() {
                     key={subj._id}
                     variant="elevated"
                     style={styles.subjectCard}
-                    onPress={() => {
-                      router.push({
-                        pathname: "/teacher/rate-students",
-                        params: {
-                          subjectId: subj._id,
-                          subjectName: subj.name,
-                          className: classLabel,
-                          month: selectedMonth,
-                          year: selectedYear,
-                          totalStudents: String(totalStudents),
-                          ratedCount: String(ratedCount),
-                        },
-                      });
-                    }}
                   >
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      onPress={() => {
+                        router.push({
+                          pathname: "/teacher/rate-students",
+                          params: {
+                            subjectId: subj._id,
+                            subjectName: subj.name,
+                            className: classLabel,
+                            month: selectedMonth,
+                            year: selectedYear,
+                            totalStudents: String(totalStudents),
+                            ratedCount: String(ratedCount),
+                          },
+                        });
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Rate ${subj.name} for ${classLabel}`}
+                    >
                     <View style={styles.subjectCardHeader}>
                       <View style={{ flex: 1, marginRight: 8 }}>
                         <View style={styles.subjectTitleRow}>
@@ -823,6 +828,7 @@ export default function MonthlyRatingsScreen() {
                         borderRadius={3}
                       />
                     </View>
+                    </TouchableOpacity>
 
                     {/* Action Row */}
                     <View style={styles.subjectActionRow}>
@@ -856,11 +862,31 @@ export default function MonthlyRatingsScreen() {
                           });
                         }}
                       />
-                      <MaterialIcons
-                        name="chevron-right"
-                        size={22}
-                        color={colors.onSurfaceVariant}
-                      />
+                      <TouchableOpacity
+                        onPress={() => {
+                          router.push({
+                            pathname: "/teacher/rate-students",
+                            params: {
+                              subjectId: subj._id,
+                              subjectName: subj.name,
+                              className: classLabel,
+                              month: selectedMonth,
+                              year: selectedYear,
+                              totalStudents: String(totalStudents),
+                              ratedCount: String(ratedCount),
+                            },
+                          });
+                        }}
+                        hitSlop={8}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Go to ratings for ${subj.name}`}
+                      >
+                        <MaterialIcons
+                          name="chevron-right"
+                          size={22}
+                          color={colors.onSurfaceVariant}
+                        />
+                      </TouchableOpacity>
                     </View>
                   </Card>
                 );

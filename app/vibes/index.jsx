@@ -26,6 +26,7 @@ import {
 import { useNotifications } from "../../hooks/useNotifications";
 import apiConfig from "../../config/apiConfig";
 import { CACHE_TIERS } from "../../utils/cacheConfig";
+import storage from "../../utils/storage";
 import useTabScrollToTop from "../../hooks/useTabScrollToTop";
 import useDoubleBackToExit from "../../hooks/useDoubleBackToExit";
 import useNetworkQuality from "../../hooks/useNetworkQuality";
@@ -121,6 +122,7 @@ export default function VibesScreen() {
   const [activeCommentVibe, setActiveCommentVibe] = useState(null);
   const [activeLikesVibeId, setActiveLikesVibeId] = useState(null);
   const [activeViewersVibeId, setActiveViewersVibeId] = useState(null);
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
   // Target Vibe Query (from deep link, spotlight, or notification)
   const { data: targetVibeData } = useApiQuery(
@@ -170,7 +172,7 @@ export default function VibesScreen() {
     `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.categories}`,
     {
       ...CACHE_TIERS.VIBES_FEED,
-      staleTime: 1000 * 60 * 30,
+      staleTime: 24 * 60 * 60 * 1000,
     }
   );
 
@@ -252,6 +254,34 @@ export default function VibesScreen() {
       initialPageParam: 1,
     }
   );
+
+  // ──── Refresh vibes only once a day on first open of the calendar day ────
+  useEffect(() => {
+    let isMounted = true;
+    const checkDailyVibesSync = async () => {
+      try {
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const lastSyncDate = await storage.getItem("@vibes_last_daily_sync");
+
+        if (lastSyncDate !== todayStr) {
+          // First time opening vibes today: execute daily refresh
+          await storage.setItem("@vibes_last_daily_sync", todayStr);
+          if (isMounted) {
+            refetchFeed();
+            queryClient.refetchQueries({ queryKey: ["vibeHighlights"] });
+            queryClient.refetchQueries({ queryKey: ["vibeSpotlight"] });
+          }
+        }
+      } catch (err) {
+        console.warn("[Vibes] Error checking daily sync:", err);
+      }
+    };
+
+    checkDailyVibesSync();
+    return () => {
+      isMounted = false;
+    };
+  }, [refetchFeed, queryClient]);
 
   // ──── My Vibes Infinite Query ────
   const {
@@ -602,10 +632,33 @@ export default function VibesScreen() {
   }, []);
 
   const onRefresh = useCallback(async () => {
-    if (activeTab === "feed") await refetchFeed();
-    else if (activeTab === "my-vibes") await refetchMyVibes();
-    else if (activeTab === "saved") await refetchSaved();
-  }, [activeTab, refetchFeed, refetchMyVibes, refetchSaved]);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    setIsManualRefreshing(true);
+    try {
+      const todayStr = new Date().toISOString().slice(0, 10);
+      await storage.setItem("@vibes_last_daily_sync", todayStr);
+
+      if (activeTab === "feed") {
+        await Promise.all([
+          refetchFeed(),
+          queryClient.refetchQueries({ queryKey: ["vibeHighlights"] }),
+          queryClient.refetchQueries({ queryKey: ["vibeSpotlight"] }),
+          queryClient.refetchQueries({ queryKey: ["vibeCategories"] }),
+        ]);
+        showToast("Vibes feed updated", "success");
+      } else if (activeTab === "my-vibes") {
+        await refetchMyVibes();
+        showToast("My posts updated", "success");
+      } else if (activeTab === "saved") {
+        await refetchSaved();
+        showToast("Saved vibes updated", "success");
+      }
+    } catch (err) {
+      console.warn("Manual refresh error:", err);
+    } finally {
+      setIsManualRefreshing(false);
+    }
+  }, [activeTab, refetchFeed, refetchMyVibes, refetchSaved, queryClient, showToast]);
 
   const renderFeedItem = useCallback(
     ({ item }) => (
@@ -807,11 +860,12 @@ export default function VibesScreen() {
       : isSavedLoading;
 
   const isRefreshing =
-    activeTab === "feed"
+    isManualRefreshing ||
+    (activeTab === "feed"
       ? isFeedRefetching
       : activeTab === "my-vibes"
       ? isMyVibesRefetching
-      : isSavedRefetching;
+      : isSavedRefetching);
 
   // Selected category metadata for empty state & chips
   const currentCategoryObj = useMemo(() => {
@@ -1511,6 +1565,29 @@ export default function VibesScreen() {
               size={19}
               color={showSearchBar ? colors.primary : colors.onSurface}
             />
+          </Pressable>
+
+          {/* Explicit Manual Refresh Action */}
+          <Pressable
+            onPress={onRefresh}
+            disabled={isManualRefreshing || isFeedRefetching}
+            hitSlop={8}
+            style={[
+              styles.actionIconBtn,
+              { backgroundColor: colors.surfaceContainerHighest },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel="Refresh Vibes"
+          >
+            {isManualRefreshing || isFeedRefetching ? (
+              <ActivityIndicator size="small" color={colors.primary} />
+            ) : (
+              <MaterialIcons
+                name="refresh"
+                size={19}
+                color={colors.onSurface}
+              />
+            )}
           </Pressable>
 
           {/* Notification Bell Action */}

@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -79,8 +78,7 @@ const SCALE_MAP = {
 
 export default function StudentRatingsScreen() {
   const router = useRouter();
-  const { colors, mode } = useTheme();
-  const isDark = mode === "dark";
+  const { colors } = useTheme();
   const { t } = useLabel();
 
   const now = new Date();
@@ -130,8 +128,14 @@ export default function StudentRatingsScreen() {
   const classBenchmark = ratingsData?.classBenchmark;
   const yearAvg = ratingsData?.yearAverage;
   const dpAverages = ratingsData?.dataPointAverages || {};
-  const subjects = ratingsData?.subjects || [];
-  const trend = ratingsData?.trend || [];
+  const subjects = useMemo(
+    () => ratingsData?.subjects || [],
+    [ratingsData?.subjects]
+  );
+  const trend = useMemo(
+    () => ratingsData?.trend || [],
+    [ratingsData?.trend]
+  );
 
   const ratedSubjectsCount = useMemo(
     () => subjects.filter((s) => s.isRated).length,

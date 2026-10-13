@@ -88,7 +88,7 @@ const getRatingLabel = (score) => {
 
 export default function AdminStudentRatingsScreen() {
   const queryClient = useQueryClient();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { t } = useLabel();
   const { showToast } = useToast();
 
@@ -102,9 +102,11 @@ export default function AdminStudentRatingsScreen() {
   const [moversTab, setMoversTab] = useState("improving"); // 'improving' | 'declining'
   const [refreshing, setRefreshing] = useState(false);
 
-  // Subject Configuration Tab state
-  const [configSelectedClassId, setConfigSelectedClassId] = useState("all");
-  const [togglingSubjectId, setTogglingSubjectId] = useState(null);
+  // Subject Configuration Tab state (School-Wide Subject-Wise)
+  const [subjectSearchQuery, setSubjectSearchQuery] = useState("");
+  const [subjectFilterStatus, setSubjectFilterStatus] = useState("all"); // 'all' | 'enabled' | 'disabled'
+  const [expandedSubjectClasses, setExpandedSubjectClasses] = useState({});
+  const [togglingSubjectName, setTogglingSubjectName] = useState(null);
   const [isBulkConfiguring, setIsBulkConfiguring] = useState(false);
 
   // Student drilldown modal state
@@ -235,23 +237,25 @@ export default function AdminStudentRatingsScreen() {
     }
   );
 
-  const handleToggleSubjectRating = async (subjectId, currentEnabled) => {
+  const handleToggleSubjectRating = async (subjectName, currentEnabled) => {
     Haptics.selectionAsync().catch(() => {});
     const newEnabled = !currentEnabled;
-    setTogglingSubjectId(subjectId);
+    setTogglingSubjectName(subjectName);
     try {
       const res = await apiFetch(
-        `${apiConfig.baseUrl}/student-ratings/admin/subject/${subjectId}/toggle-rating`,
+        `${apiConfig.baseUrl}/student-ratings/admin/toggle-subject`,
         {
           method: "PATCH",
-          body: JSON.stringify({ ratingEnabled: newEnabled }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ subjectName, ratingEnabled: newEnabled }),
         }
       );
-      if (res && res.success) {
+      const data = res && typeof res.json === "function" ? await res.json() : res;
+      if (res?.ok || data?.success) {
         showToast(
           newEnabled
-            ? "Rating enabled for subject"
-            : "Subject excluded from monthly ratings",
+            ? `Ratings enabled for "${subjectName}" across all classes`
+            : `"${subjectName}" disabled from ratings across all classes`,
           "success"
         );
         await Promise.all([
@@ -260,16 +264,18 @@ export default function AdminStudentRatingsScreen() {
           queryClient.invalidateQueries({ queryKey: ["ratingsSubmissionTracker"] }),
           queryClient.invalidateQueries({ queryKey: ["schoolRatingsSummary"] }),
         ]);
+      } else {
+        throw new Error(data?.message || "Failed to update subject rating requirement");
       }
     } catch (err) {
       console.error("Toggle error:", err);
       showToast(err?.message || "Failed to update subject rating requirement", "error");
     } finally {
-      setTogglingSubjectId(null);
+      setTogglingSubjectName(null);
     }
   };
 
-  const handleBulkConfigureClass = async (classId, ratingEnabled) => {
+  const handleBulkConfigureAll = async (ratingEnabled) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
     setIsBulkConfiguring(true);
     try {
@@ -277,14 +283,16 @@ export default function AdminStudentRatingsScreen() {
         `${apiConfig.baseUrl}/student-ratings/admin/bulk-configure-ratings`,
         {
           method: "POST",
-          body: JSON.stringify({ classId, ratingEnabled }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ all: true, ratingEnabled }),
         }
       );
-      if (res && res.success) {
+      const data = res && typeof res.json === "function" ? await res.json() : res;
+      if (res?.ok || data?.success) {
         showToast(
           ratingEnabled
-            ? "All subjects in class enabled for monthly ratings"
-            : "All subjects in class excluded from monthly ratings",
+            ? "All subjects enabled for monthly ratings across all classes"
+            : "All subjects excluded from monthly ratings across all classes",
           "success"
         );
         await Promise.all([
@@ -293,10 +301,12 @@ export default function AdminStudentRatingsScreen() {
           queryClient.invalidateQueries({ queryKey: ["ratingsSubmissionTracker"] }),
           queryClient.invalidateQueries({ queryKey: ["schoolRatingsSummary"] }),
         ]);
+      } else {
+        throw new Error(data?.message || "Failed to bulk configure subject ratings");
       }
     } catch (err) {
       console.error("Bulk config error:", err);
-      showToast(err?.message || "Failed to bulk configure class subjects", "error");
+      showToast(err?.message || "Failed to bulk configure subject ratings", "error");
     } finally {
       setIsBulkConfiguring(false);
     }
@@ -507,21 +517,37 @@ export default function AdminStudentRatingsScreen() {
           )}
         />
       ) : (
-        schoolClasses.map((clsItem) => {
-          const classLabel = formatClassName(
-            clsItem.class?.name || clsItem.class?.label || clsItem.class?.value,
-            clsItem.class?.section
-          );
-          const avgScore = clsItem.avgOverall || 0;
+        schoolClasses.map((clsItem, cIdx) => {
+          const classId =
+            clsItem.class?._id || clsItem.classId || clsItem._id || `school-cls-${cIdx}`;
+          const rawClassName =
+            clsItem.class?.name ||
+            clsItem.class?.label ||
+            clsItem.className ||
+            clsItem.class?.value ||
+            "Class";
+          const classLabel = formatClassName(rawClassName, clsItem.class?.section);
+          const avgScore =
+            typeof clsItem.avgOverall === "number"
+              ? clsItem.avgOverall
+              : typeof clsItem.overallAverage === "number"
+              ? clsItem.overallAverage
+              : 0;
+          const studentCount =
+            clsItem.studentCount ??
+            clsItem.ratedCount ??
+            clsItem.totalCount ??
+            clsItem.totalStudents ??
+            0;
           const ratingInfo = getRatingLabel(avgScore);
 
           return (
             <Card
-              key={clsItem.class?._id || clsItem.class?.label}
+              key={classId}
               variant="elevated"
               style={styles.classCard}
               onPress={() => {
-                setSelectedClassId(clsItem.class?._id);
+                setSelectedClassId(classId);
                 setActiveTab("classes");
               }}
             >
@@ -531,7 +557,7 @@ export default function AdminStudentRatingsScreen() {
                     {classLabel}
                   </Text>
                   <Text style={[styles.classStudentCount, { color: colors.onSurfaceVariant }]}>
-                    {clsItem.studentCount} Students Evaluated
+                    {studentCount} Students Evaluated
                   </Text>
                 </View>
                 <View style={{ alignItems: "flex-end" }}>
@@ -632,17 +658,19 @@ export default function AdminStudentRatingsScreen() {
       <Text style={[styles.selectorLabel, { color: colors.onSurfaceVariant }]}>
         Select Class:
       </Text>
-      <ScrollView
-        horizontal={true}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.classPillsScroll}
-      >
-        {classesList.map((cls) => {
+      <View style={styles.classPillsContainer}>
+        <ScrollView
+          horizontal={true}
+          showsHorizontalScrollIndicator={false}
+          style={styles.classPillsScrollView}
+          contentContainerStyle={styles.classPillsScroll}
+        >
+        {classesList.map((cls, clsIdx) => {
           const isSelected = selectedClassId === cls._id;
           const label = formatClassName(cls.name || cls.label || cls.value, cls.section);
           return (
             <TouchableOpacity
-              key={cls._id}
+              key={cls._id || cls.id || `cls-pill-${clsIdx}`}
               onPress={() => {
                 Haptics.selectionAsync().catch(() => {});
                 setSelectedClassId(cls._id);
@@ -675,7 +703,8 @@ export default function AdminStudentRatingsScreen() {
             </TouchableOpacity>
           );
         })}
-      </ScrollView>
+        </ScrollView>
+      </View>
 
       {selectedClassId === "all" ? (
         <View style={{ marginTop: 24 }}>
@@ -810,14 +839,14 @@ export default function AdminStudentRatingsScreen() {
                         style={[styles.studentItemSub, { color: colors.onSurfaceVariant }]}
                       >
                         {student?.regNo ? `Reg: ${student.regNo}` : "Student"} •{" "}
-                        {item.subjectCount} Subjects Rated
+                        {item.subjectCount || (item.subjects?.length ?? 4)} Subjects Rated
                       </Text>
                     </View>
                   </View>
 
                   <View style={styles.studentItemRight}>
                     <Text style={[styles.studentItemScore, { color: ratingInfo.color }]}>
-                      ★ {avg.toFixed(2)}
+                      ★ {typeof avg === "number" ? avg.toFixed(2) : (avg || "--")}
                     </Text>
                     <Badge
                       variant={ratingInfo.variant}
@@ -847,7 +876,7 @@ export default function AdminStudentRatingsScreen() {
                         ]}
                         numberOfLines={1}
                       >
-                        {subj.subject?.name}: {subj.averageScore.toFixed(1)}
+                        {subj.subject?.name}: {typeof subj.averageScore === "number" ? subj.averageScore.toFixed(1) : (subj.averageScore || "--")}
                       </Text>
                     </View>
                   ))}
@@ -964,15 +993,51 @@ export default function AdminStudentRatingsScreen() {
       ) : (
         activeMoversList.map((item, index) => {
           const student = item.student;
-          const isGain = item.change > 0;
+          const changeVal =
+            typeof item.change === "number"
+              ? item.change
+              : typeof item.delta === "number"
+              ? item.delta
+              : typeof item.delta === "string"
+              ? parseFloat(item.delta) || 0
+              : typeof (item.currentAvg ?? item.currentAverage) === "number" &&
+                typeof (item.previousAvg ?? item.previousAverage) === "number"
+              ? (item.currentAvg ?? item.currentAverage) -
+                (item.previousAvg ?? item.previousAverage)
+              : 0;
+
+          const isGain = changeVal >= 0;
+          const prevScore =
+            item.previousAvg ?? item.previousAverage ?? item.previousScore;
+          const currScore =
+            item.currentAvg ?? item.currentAverage ?? item.currentScore;
+
           const classLabel = formatClassName(
-            item.class?.label || item.class?.name,
-            item.class?.section
+            item.class?.label ||
+              item.class?.name ||
+              student?.currentClass?.label ||
+              student?.currentClass?.name,
+            item.class?.section || student?.currentClass?.section
           );
+
+          const formattedPrev =
+            typeof prevScore === "number"
+              ? prevScore.toFixed(2)
+              : prevScore || "--";
+          const formattedCurr =
+            typeof currScore === "number"
+              ? currScore.toFixed(2)
+              : currScore || "--";
+          const formattedChange =
+            typeof changeVal === "number"
+              ? (isGain ? `+${changeVal.toFixed(2)}` : changeVal.toFixed(2))
+              : isGain
+              ? `+${changeVal}`
+              : `${changeVal}`;
 
           return (
             <Card
-              key={student?._id || index}
+              key={student?._id || `mover-${index}`}
               variant="elevated"
               style={styles.moverCard}
               onPress={() => setSelectedStudentId(student?._id)}
@@ -995,9 +1060,9 @@ export default function AdminStudentRatingsScreen() {
                     <Text
                       style={[styles.moverScoreCompare, { color: colors.onSurfaceVariant }]}
                     >
-                      Prev: {item.previousScore?.toFixed(2)} → Now:{" "}
+                      Prev: {formattedPrev} → Now:{" "}
                       <Text style={{ fontFamily: FONTS.bold, color: colors.onSurface }}>
-                        {item.currentScore?.toFixed(2)}
+                        {formattedCurr}
                       </Text>
                     </Text>
                   </View>
@@ -1025,7 +1090,7 @@ export default function AdminStudentRatingsScreen() {
                       { color: isGain ? "#16A34A" : "#DC2626" },
                     ]}
                   >
-                    {isGain ? `+${item.change.toFixed(2)}` : item.change.toFixed(2)}
+                    {formattedChange}
                   </Text>
                 </View>
               </View>
@@ -1036,268 +1101,529 @@ export default function AdminStudentRatingsScreen() {
     </View>
   );
 
+  const getSubjectIcon = (name = "") => {
+    const lower = (name || "").toLowerCase();
+    if (lower.includes("math")) return "calculate";
+    if (
+      lower.includes("sci") ||
+      lower.includes("physic") ||
+      lower.includes("chem") ||
+      lower.includes("bio")
+    )
+      return "science";
+    if (
+      lower.includes("sport") ||
+      lower.includes("pe") ||
+      lower.includes("physical") ||
+      lower.includes("gym")
+    )
+      return "sports-soccer";
+    if (
+      lower.includes("art") ||
+      lower.includes("craft") ||
+      lower.includes("draw")
+    )
+      return "palette";
+    if (lower.includes("music") || lower.includes("sing")) return "music-note";
+    if (
+      lower.includes("computer") ||
+      lower.includes("code") ||
+      lower.includes("it")
+    )
+      return "computer";
+    if (
+      lower.includes("social") ||
+      lower.includes("history") ||
+      lower.includes("geog")
+    )
+      return "public";
+    if (
+      lower.includes("lang") ||
+      lower.includes("eng") ||
+      lower.includes("hindi") ||
+      lower.includes("span")
+    )
+      return "translate";
+    return "menu-book";
+  };
+
   // ──────────────────────────────────────────────
-  //  TAB 5: SUBJECT CONFIGURATION
+  //  TAB 5: SUBJECT CONFIGURATION (SCHOOL-WIDE SUBJECT-WISE)
   // ──────────────────────────────────────────────
   const renderSubjectConfigTab = () => {
-    const classGroups = subjectsConfigData?.classes || [];
-    const displayedGroups =
-      configSelectedClassId === "all"
-        ? classGroups
-        : classGroups.filter(
-            (g) => g.class?._id?.toString() === configSelectedClassId
-          );
+    const rawSubjects = subjectsConfigData?.subjects || [];
+    const totalCount = subjectsConfigData?.totalSubjects || rawSubjects.length;
+    const enabledCount =
+      subjectsConfigData?.enabledCount ||
+      rawSubjects.filter((s) => s.ratingEnabled !== false).length;
+    const disabledCount =
+      subjectsConfigData?.disabledCount ?? Math.max(0, totalCount - enabledCount);
+
+    const filteredSubjects = rawSubjects.filter((sub) => {
+      const matchesSearch =
+        !subjectSearchQuery ||
+        sub.name.toLowerCase().includes(subjectSearchQuery.toLowerCase());
+      const isEnabled = sub.ratingEnabled !== false;
+      const matchesStatus =
+        subjectFilterStatus === "all" ||
+        (subjectFilterStatus === "enabled" && isEnabled) ||
+        (subjectFilterStatus === "disabled" && !isEnabled);
+      return matchesSearch && matchesStatus;
+    });
 
     return (
       <View>
-        {/* Class Filter Bar */}
-        <View style={{ marginBottom: 12 }}>
-          <Text style={[styles.selectorLabel, { color: colors.onSurfaceVariant }]}>
-            Filter by Class
-          </Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.classPillsScroll}
-          >
-            <TouchableOpacity
-              onPress={() => {
-                Haptics.selectionAsync().catch(() => {});
-                setConfigSelectedClassId("all");
-              }}
-              style={[
-                styles.classPill,
-                {
-                  backgroundColor:
-                    configSelectedClassId === "all"
-                      ? colors.primary
-                      : colors.surfaceContainer,
-                  borderColor:
-                    configSelectedClassId === "all"
-                      ? colors.primary
-                      : colors.outlineVariant,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.classPillText,
-                  {
-                    color:
-                      configSelectedClassId === "all"
-                        ? colors.onPrimary
-                        : colors.onSurface,
-                    fontFamily:
-                      configSelectedClassId === "all"
-                        ? FONTS.bold
-                        : FONTS.medium,
-                  },
-                ]}
-              >
-                All Classes ({classGroups.length})
-              </Text>
-            </TouchableOpacity>
-
-            {classGroups.map((g) => {
-              const cId = g.class?._id?.toString();
-              const isSelected = configSelectedClassId === cId;
-              const classLabel = formatClassName(
-                g.class?.name || g.class,
-                g.class?.section
-              );
-
-              return (
-                <TouchableOpacity
-                  key={cId}
-                  onPress={() => {
-                    Haptics.selectionAsync().catch(() => {});
-                    setConfigSelectedClassId(cId);
-                  }}
-                  style={[
-                    styles.classPill,
-                    {
-                      backgroundColor: isSelected
-                        ? colors.primary
-                        : colors.surfaceContainer,
-                      borderColor: isSelected
-                        ? colors.primary
-                        : colors.outlineVariant,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.classPillText,
-                      {
-                        color: isSelected ? colors.onPrimary : colors.onSurface,
-                        fontFamily: isSelected ? FONTS.bold : FONTS.medium,
-                      },
-                    ]}
-                  >
-                    {classLabel} ({g.enabledSubjects}/{g.totalSubjects})
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        </View>
-
-        {/* Informational Guidance Banner */}
+        {/* Guidance Banner */}
         <Card
           variant="outlined"
           style={{ marginBottom: 14, borderColor: colors.outlineVariant }}
-          contentStyle={{ padding: 12 }}
+          contentStyle={{ padding: 14 }}
         >
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-            <MaterialIcons name="tune" size={22} color={colors.primary} />
+          <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12 }}>
+            <View
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                backgroundColor: colors.primaryContainer || "#EADDFF",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <MaterialIcons name="tune" size={20} color={colors.onPrimaryContainer || colors.primary} />
+            </View>
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: FONT_SIZES.sm, fontFamily: FONTS.bold, color: colors.onSurface }}>
-                Ratable Subjects Control
+                School-Wide Subject Rating Control
               </Text>
-              <Text style={{ fontSize: FONT_SIZES.xs, fontFamily: FONTS.regular, color: colors.onSurfaceVariant, marginTop: 2, lineHeight: 16 }}>
-                Select which subjects teachers are required to evaluate monthly. Excluded subjects (e.g. non-evaluative or optional courses) are hidden from teacher forms and do not affect submission completion.
+              <Text
+                style={{
+                  fontSize: FONT_SIZES.xs,
+                  fontFamily: FONTS.regular,
+                  color: colors.onSurfaceVariant,
+                  marginTop: 3,
+                  lineHeight: 17,
+                }}
+              >
+                Settings configured here apply to all classes throughout the school. When a subject is disabled, it is automatically excluded from teacher evaluation forms and submission trackers in every class. Subject teachers only see enabled subjects.
               </Text>
             </View>
           </View>
         </Card>
 
+        {/* Stats & Quick Actions Card */}
+        <Card
+          variant="elevated"
+          style={{ marginBottom: 14 }}
+          contentStyle={{ padding: 14 }}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 8,
+            }}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <View
+                style={{
+                  paddingHorizontal: 10,
+                  paddingVertical: 5,
+                  borderRadius: RADIUS.sm,
+                  backgroundColor:
+                    colors.surfaceContainerHigh ||
+                    (isDark ? "#1E1E23" : "#ECE6F0"),
+                }}
+              >
+                <Text style={{ fontSize: 11, fontFamily: FONTS.medium, color: colors.onSurfaceVariant }}>
+                  Total:{" "}
+                  <Text style={{ fontFamily: FONTS.bold, color: colors.onSurface }}>
+                    {totalCount}
+                  </Text>
+                </Text>
+              </View>
+
+              <View
+                style={{
+                  paddingHorizontal: 10,
+                  paddingVertical: 5,
+                  borderRadius: RADIUS.sm,
+                  backgroundColor: isDark
+                    ? "rgba(74, 222, 128, 0.16)"
+                    : (colors.successContainer || "#DCFCE7"),
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontFamily: FONTS.medium,
+                    color: isDark ? "#4ADE80" : (colors.success || "#16A34A"),
+                  }}
+                >
+                  Ratable: <Text style={{ fontFamily: FONTS.bold }}>{enabledCount}</Text>
+                </Text>
+              </View>
+
+              {disabledCount > 0 && (
+                <View
+                  style={{
+                    paddingHorizontal: 10,
+                    paddingVertical: 5,
+                    borderRadius: RADIUS.sm,
+                    backgroundColor: isDark
+                      ? "rgba(248, 113, 113, 0.16)"
+                      : (colors.errorContainer || "#FEE2E2"),
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      fontFamily: FONTS.medium,
+                      color: isDark ? "#F87171" : (colors.error || "#DC2626"),
+                    }}
+                  >
+                    Excluded: <Text style={{ fontFamily: FONTS.bold }}>{disabledCount}</Text>
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            {/* Bulk Actions */}
+            <View style={{ flexDirection: "row", gap: 6 }}>
+              <TouchableOpacity
+                onPress={() => handleBulkConfigureAll(true)}
+                disabled={isBulkConfiguring}
+                style={{
+                  paddingHorizontal: 10,
+                  paddingVertical: 6,
+                  borderRadius: RADIUS.sm,
+                  backgroundColor: colors.primaryContainer || "#EADDFF",
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontFamily: FONTS.bold,
+                    color: colors.onPrimaryContainer || colors.primary,
+                  }}
+                >
+                  Enable All
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => handleBulkConfigureAll(false)}
+                disabled={isBulkConfiguring}
+                style={{
+                  paddingHorizontal: 10,
+                  paddingVertical: 6,
+                  borderRadius: RADIUS.sm,
+                  backgroundColor: colors.surfaceContainer,
+                  borderWidth: 1,
+                  borderColor: colors.outlineVariant,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontFamily: FONTS.medium,
+                    color: colors.onSurfaceVariant,
+                  }}
+                >
+                  Exclude All
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Card>
+
+        {/* Search Bar */}
+        <View style={{ marginBottom: 10 }}>
+          <TextInput
+            placeholder="Search subjects by name (e.g. Science, Art, PE)..."
+            value={subjectSearchQuery}
+            onChangeText={setSubjectSearchQuery}
+            leftIcon="search"
+            clearButton={true}
+            size="sm"
+          />
+        </View>
+
+        {/* Status Filter Pills */}
+        <View style={{ flexDirection: "row", gap: 6, marginBottom: 14 }}>
+          {[
+            { key: "all", label: `All (${totalCount})` },
+            { key: "enabled", label: `Ratable (${enabledCount})` },
+            { key: "disabled", label: `Excluded (${disabledCount})` },
+          ].map((pill) => {
+            const isActive = subjectFilterStatus === pill.key;
+            return (
+              <TouchableOpacity
+                key={pill.key}
+                onPress={() => {
+                  Haptics.selectionAsync().catch(() => {});
+                  setSubjectFilterStatus(pill.key);
+                }}
+                style={{
+                  paddingHorizontal: 12,
+                  paddingVertical: 5,
+                  borderRadius: RADIUS.sm,
+                  backgroundColor: isActive
+                    ? colors.primaryContainer || "#EADDFF"
+                    : colors.surfaceContainer,
+                  borderWidth: 1,
+                  borderColor: isActive ? colors.primary : colors.outlineVariant,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontFamily: isActive ? FONTS.bold : FONTS.medium,
+                    color: isActive
+                      ? colors.onPrimaryContainer || colors.primary
+                      : colors.onSurfaceVariant,
+                  }}
+                >
+                  {pill.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {/* Subjects List */}
         {loadingSubjectsConfig ? (
           <View style={{ marginTop: 30 }}>
             <LoadingState message="Loading subject configuration..." />
           </View>
-        ) : displayedGroups.length === 0 ? (
+        ) : filteredSubjects.length === 0 ? (
           <EmptyState
             icon="tune"
-            title="No Subjects Found"
-            message="No subjects have been created for this class."
+            title="No Subjects Match"
+            message={
+              subjectSearchQuery
+                ? `No subjects matching "${subjectSearchQuery}" found.`
+                : "No subjects configured in the academic year."
+            }
           />
         ) : (
-          displayedGroups.map((group) => {
-            const classLabel = formatClassName(
-              group.class?.name || group.class,
-              group.class?.section
-            );
+          filteredSubjects.map((sub, sIdx) => {
+            const isEnabled = sub.ratingEnabled !== false;
+            const isToggling = togglingSubjectName === sub.name;
+            const iconName = getSubjectIcon(sub.name);
+            const isExpandedClasses = !!expandedSubjectClasses[sub.name];
+            const teacherNames = (sub.teachers || [])
+              .map((t) => t.name)
+              .filter(Boolean)
+              .join(", ");
 
             return (
               <Card
-                key={group.class?._id}
+                key={sub.name || sIdx}
                 variant="elevated"
-                style={{ marginBottom: 14 }}
+                style={{ marginBottom: 12 }}
                 contentStyle={{ padding: 14 }}
               >
-                {/* Group Header */}
                 <View
                   style={{
                     flexDirection: "row",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    borderBottomWidth: 1,
-                    borderBottomColor: colors.outlineVariant,
-                    paddingBottom: 10,
-                    marginBottom: 10,
                   }}
                 >
-                  <View>
-                    <Text style={{ fontSize: FONT_SIZES.md, fontFamily: FONTS.bold, color: colors.onSurface }}>
-                      {classLabel}
-                    </Text>
-                    <Text style={{ fontSize: FONT_SIZES.xs, fontFamily: FONTS.regular, color: colors.onSurfaceVariant, marginTop: 2 }}>
-                      {group.enabledSubjects} of {group.totalSubjects} subjects ratable
-                    </Text>
+                  {/* Left: Icon + Subject Info */}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      flex: 1,
+                      marginRight: 12,
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: 22,
+                        backgroundColor: isEnabled
+                          ? isDark
+                            ? "rgba(167, 139, 250, 0.18)"
+                            : (colors.primaryContainer || "#EADDFF")
+                          : colors.surfaceContainerHigh ||
+                            (isDark ? "#1E1E23" : "#ECE6F0"),
+                        alignItems: "center",
+                        justifyContent: "center",
+                        marginRight: 12,
+                      }}
+                    >
+                      <MaterialIcons
+                        name={iconName}
+                        size={22}
+                        color={
+                          isEnabled
+                            ? colors.primary
+                            : colors.onSurfaceVariant
+                        }
+                      />
+                    </View>
+
+                    <View style={{ flex: 1 }}>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 8,
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: FONT_SIZES.md,
+                            fontFamily: FONTS.bold,
+                            color: colors.onSurface,
+                          }}
+                        >
+                          {sub.name}
+                        </Text>
+                        <Badge
+                          variant={isEnabled ? "success" : "neutral"}
+                          label={
+                            isEnabled
+                              ? "Ratable (All Classes)"
+                              : "Excluded (All Classes)"
+                          }
+                          size="sm"
+                        />
+                      </View>
+
+                      {/* Class Count & Teachers Summary */}
+                      <Text
+                        style={{
+                          fontSize: FONT_SIZES.xs,
+                          fontFamily: FONTS.regular,
+                          color: colors.onSurfaceVariant,
+                          marginTop: 3,
+                        }}
+                      >
+                        Offered in {sub.totalClasses} class{sub.totalClasses !== 1 ? "es" : ""}
+                        {teacherNames
+                          ? ` • Teachers: ${teacherNames}`
+                          : " • No teachers assigned"}
+                      </Text>
+                    </View>
                   </View>
 
-                  {/* Bulk Actions */}
-                  <View style={{ flexDirection: "row", gap: 6 }}>
-                    <TouchableOpacity
-                      onPress={() => handleBulkConfigureClass(group.class?._id, true)}
-                      disabled={isBulkConfiguring}
+                  {/* Right: Toggle Switch */}
+                  <View style={{ alignItems: "center" }}>
+                    <Switch
+                      value={isEnabled}
+                      disabled={isToggling}
+                      onValueChange={() =>
+                        handleToggleSubjectRating(sub.name, isEnabled)
+                      }
+                      trackColor={{
+                        false: isDark ? "#28282E" : "#D1D5DB",
+                        true: colors.primary,
+                      }}
+                      thumbColor={isEnabled ? "#FFFFFF" : "#F3F4F6"}
+                    />
+                    <Text
                       style={{
-                        paddingHorizontal: 8,
-                        paddingVertical: 4,
-                        borderRadius: RADIUS.sm,
-                        backgroundColor: colors.primaryContainer || "#EEF2FF",
+                        fontSize: 10,
+                        fontFamily: FONTS.medium,
+                        color: isEnabled
+                          ? colors.primary
+                          : colors.onSurfaceVariant,
+                        marginTop: 2,
                       }}
                     >
-                      <Text style={{ fontSize: 11, fontFamily: FONTS.bold, color: colors.primary }}>
-                        Enable All
-                      </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      onPress={() => handleBulkConfigureClass(group.class?._id, false)}
-                      disabled={isBulkConfiguring}
-                      style={{
-                        paddingHorizontal: 8,
-                        paddingVertical: 4,
-                        borderRadius: RADIUS.sm,
-                        backgroundColor: colors.surfaceContainer,
-                        borderWidth: 1,
-                        borderColor: colors.outlineVariant,
-                      }}
-                    >
-                      <Text style={{ fontSize: 11, fontFamily: FONTS.medium, color: colors.onSurfaceVariant }}>
-                        Exclude All
-                      </Text>
-                    </TouchableOpacity>
+                      {isEnabled ? "Enabled" : "Disabled"}
+                    </Text>
                   </View>
                 </View>
 
-                {/* Subjects List */}
-                {group.subjects.map((sub, sIdx) => {
-                  const isEnabled = sub.ratingEnabled !== false;
-                  const isToggling = togglingSubjectId === sub._id;
-                  const teacherNames = (sub.teachers || [])
-                    .map((t) => t.name)
-                    .filter(Boolean)
-                    .join(", ");
-
-                  return (
-                    <View
-                      key={sub._id}
+                {/* Collapsible Classes List Button */}
+                {sub.classes && sub.classes.length > 0 && (
+                  <View
+                    style={{
+                      marginTop: 10,
+                      borderTopWidth: 1,
+                      borderTopColor: colors.outlineVariant + "40",
+                      paddingTop: 8,
+                    }}
+                  >
+                    <TouchableOpacity
+                      onPress={() => {
+                        Haptics.selectionAsync().catch(() => {});
+                        setExpandedSubjectClasses((prev) => ({
+                          ...prev,
+                          [sub.name]: !prev[sub.name],
+                        }));
+                      }}
                       style={{
                         flexDirection: "row",
-                        justifyContent: "space-between",
                         alignItems: "center",
-                        paddingVertical: 10,
-                        borderBottomWidth: sIdx === group.subjects.length - 1 ? 0 : 1,
-                        borderBottomColor: colors.outlineVariant + "50",
+                        justifyContent: "space-between",
                       }}
                     >
-                      <View style={{ flex: 1, marginRight: 12 }}>
-                        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                          <Text style={{ fontSize: FONT_SIZES.sm, fontFamily: FONTS.bold, color: colors.onSurface }}>
-                            {sub.name}
-                          </Text>
-                          <Badge
-                            variant={isEnabled ? "success" : "neutral"}
-                            label={isEnabled ? "Ratable" : "Excluded"}
-                            size="sm"
-                          />
-                        </View>
-                        {teacherNames ? (
-                          <Text style={{ fontSize: FONT_SIZES.xs, fontFamily: FONTS.regular, color: colors.onSurfaceVariant, marginTop: 2 }}>
-                            Teacher: {teacherNames}
-                          </Text>
-                        ) : (
-                          <Text style={{ fontSize: FONT_SIZES.xs, fontFamily: FONTS.regular, color: colors.onSurfaceVariant, marginTop: 2, fontStyle: "italic" }}>
-                            No teacher assigned
-                          </Text>
-                        )}
-                      </View>
-
-                      <Switch
-                        value={isEnabled}
-                        disabled={isToggling}
-                        onValueChange={() => handleToggleSubjectRating(sub._id, isEnabled)}
-                        trackColor={{
-                          false: colors.surfaceContainerHighest || "#D1D5DB",
-                          true: colors.primary,
+                      <Text
+                        style={{
+                          fontSize: 11,
+                          fontFamily: FONTS.medium,
+                          color: colors.primary,
                         }}
-                        thumbColor={isEnabled ? "#FFFFFF" : "#F3F4F6"}
+                      >
+                        {isExpandedClasses
+                          ? "Hide classes breakdown"
+                          : `View classes offering ${sub.name} (${sub.classes.length})`}
+                      </Text>
+                      <MaterialIcons
+                        name={isExpandedClasses ? "expand-less" : "expand-more"}
+                        size={18}
+                        color={colors.primary}
                       />
-                    </View>
-                  );
-                })}
+                    </TouchableOpacity>
+
+                    {isExpandedClasses && (
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          flexWrap: "wrap",
+                          gap: 6,
+                          marginTop: 8,
+                        }}
+                      >
+                        {sub.classes.map((cls, cIdx) => (
+                          <View
+                            key={`${cls._id || cls.name || "cls"}-${cIdx}`}
+                            style={{
+                              paddingHorizontal: 8,
+                              paddingVertical: 3,
+                              borderRadius: RADIUS.sm,
+                              backgroundColor:
+                                colors.surfaceContainerLow ||
+                                (isDark ? "#161619" : "#F7F2FA"),
+                              borderWidth: 1,
+                              borderColor: colors.outlineVariant,
+                            }}
+                          >
+                            <Text
+                              style={{
+                                fontSize: 10,
+                                fontFamily: FONTS.medium,
+                                color: colors.onSurface,
+                              }}
+                            >
+                              {cls.label || cls.name}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                )}
               </Card>
             );
           })
@@ -1405,61 +1731,64 @@ export default function AdminStudentRatingsScreen() {
         </View>
 
         {/* Tab Switcher */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.tabSwitcher}
-        >
-          {[
-            { key: "overview", label: "Overview", icon: "dashboard" },
-            { key: "classes", label: "Classes", icon: "people" },
-            { key: "movers", label: "Movers", icon: "trending-up" },
-            { key: "tracker", label: "Tracker", icon: "assignment-turned-in" },
-            { key: "config", label: "Subject Config", icon: "tune" },
-          ].map((tab) => {
-            const isActive = activeTab === tab.key;
-            return (
-              <TouchableOpacity
-                key={tab.key}
-                onPress={() => {
-                  Haptics.selectionAsync().catch(() => {});
-                  setActiveTab(tab.key);
-                }}
-                style={[
-                  styles.tabButton,
-                  {
-                    backgroundColor: isActive
-                      ? colors.primary
-                      : colors.surfaceContainer,
-                    borderColor: isActive
-                      ? colors.primary
-                      : colors.outlineVariant,
-                  },
-                ]}
-              >
-                <MaterialIcons
-                  name={tab.icon}
-                  size={15}
-                  color={isActive ? colors.onPrimary : colors.onSurfaceVariant}
-                  style={{ marginRight: 4 }}
-                />
-                <Text
+        <View style={styles.tabSwitcherContainer}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.tabSwitcherScroll}
+            contentContainerStyle={styles.tabSwitcher}
+          >
+            {[
+              { key: "overview", label: "Overview", icon: "dashboard" },
+              { key: "classes", label: "Classes", icon: "people" },
+              { key: "movers", label: "Movers", icon: "trending-up" },
+              { key: "tracker", label: "Tracker", icon: "assignment-turned-in" },
+              { key: "config", label: "Subject Config", icon: "tune" },
+            ].map((tab) => {
+              const isActive = activeTab === tab.key;
+              return (
+                <TouchableOpacity
+                  key={tab.key}
+                  onPress={() => {
+                    Haptics.selectionAsync().catch(() => {});
+                    setActiveTab(tab.key);
+                  }}
                   style={[
-                    styles.tabButtonText,
+                    styles.tabButton,
                     {
-                      color: isActive
-                        ? colors.onPrimary
-                        : colors.onSurfaceVariant,
-                      fontFamily: isActive ? FONTS.bold : FONTS.medium,
+                      backgroundColor: isActive
+                        ? colors.primary
+                        : colors.surfaceContainer,
+                      borderColor: isActive
+                        ? colors.primary
+                        : colors.outlineVariant,
                     },
                   ]}
                 >
-                  {tab.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+                  <MaterialIcons
+                    name={tab.icon}
+                    size={15}
+                    color={isActive ? colors.onPrimary : colors.onSurfaceVariant}
+                    style={{ marginRight: 4 }}
+                  />
+                  <Text
+                    style={[
+                      styles.tabButtonText,
+                      {
+                        color: isActive
+                          ? colors.onPrimary
+                          : colors.onSurfaceVariant,
+                        fontFamily: isActive ? FONTS.bold : FONTS.medium,
+                      },
+                    ]}
+                  >
+                    {tab.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
 
         {/* Tab Content */}
         {loadingSchoolSummary && activeTab === "overview" ? (
@@ -1656,7 +1985,9 @@ export default function AdminStudentRatingsScreen() {
                               { color: colors.onSurface },
                             ]}
                           >
-                            {tItem.overallAverage.toFixed(1)}
+                            {typeof tItem.overallAverage === "number"
+                              ? tItem.overallAverage.toFixed(1)
+                              : tItem.overallAverage || "--"}
                           </Text>
                           <View
                             style={[
@@ -1792,8 +2123,8 @@ export default function AdminStudentRatingsScreen() {
                         </Text>
                       </View>
                       <Badge
-                        variant={getRatingLabel(sRating.averageScore).variant}
-                        label={`★ ${sRating.averageScore.toFixed(2)}`}
+                        variant={getRatingLabel(typeof sRating.averageScore === "number" ? sRating.averageScore : 0).variant}
+                        label={`★ ${typeof sRating.averageScore === "number" ? sRating.averageScore.toFixed(2) : (sRating.averageScore || "--")}`}
                         size="md"
                       />
                     </View>
@@ -1897,19 +2228,31 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.medium,
   },
+  tabSwitcherContainer: {
+    height: 44,
+    marginBottom: 16,
+    flexShrink: 0,
+  },
+  tabSwitcherScroll: {
+    flexGrow: 0,
+    flexShrink: 0,
+    height: 44,
+  },
   tabSwitcher: {
     flexDirection: "row",
+    alignItems: "center",
     gap: 8,
-    marginBottom: 16,
+    paddingVertical: 2,
   },
   tabButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 8,
+    height: 38,
     paddingHorizontal: 14,
-    borderRadius: RADIUS.md,
+    borderRadius: RADIUS.full || 20,
     borderWidth: 1,
+    alignSelf: "center",
   },
   tabButtonText: {
     fontSize: FONT_SIZES.xs,
@@ -2079,15 +2422,30 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     textTransform: "uppercase",
   },
+  classPillsContainer: {
+    height: 44,
+    marginBottom: 14,
+    flexShrink: 0,
+  },
+  classPillsScrollView: {
+    flexGrow: 0,
+    flexShrink: 0,
+    height: 44,
+  },
   classPillsScroll: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
-    paddingBottom: 14,
+    paddingVertical: 2,
   },
   classPill: {
+    height: 36,
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 16,
-    paddingVertical: 8,
     borderRadius: RADIUS.full || 20,
     borderWidth: 1,
+    alignSelf: "center",
   },
   classPillText: {
     fontSize: FONT_SIZES.xs,

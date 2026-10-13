@@ -222,7 +222,7 @@ export default function SubmissionTrackerView({
                 {
                   color:
                     overall.percentage === 100
-                      ? colors.success || "#16A34A"
+                      ? isDark ? "#4ADE80" : (colors.success || "#16A34A")
                       : colors.primary,
                 },
               ]}
@@ -246,7 +246,7 @@ export default function SubmissionTrackerView({
           <View
             style={[
               styles.kpiStatPill,
-              { backgroundColor: colors.surfaceContainerHigh || "#EDEEF2" },
+              { backgroundColor: colors.surfaceContainerHigh || (isDark ? "#1E1E23" : "#ECE6F0") },
             ]}
           >
             <Text style={[styles.kpiStatPillLabel, { color: colors.onSurfaceVariant }]}>
@@ -260,13 +260,27 @@ export default function SubmissionTrackerView({
           <View
             style={[
               styles.kpiStatPill,
-              { backgroundColor: colors.successContainer || "#DCFCE7" },
+              {
+                backgroundColor: isDark
+                  ? "rgba(74, 222, 128, 0.16)"
+                  : (colors.successContainer || "#DCFCE7"),
+              },
             ]}
           >
-            <Text style={[styles.kpiStatPillLabel, { color: colors.success || "#16A34A" }]}>
+            <Text
+              style={[
+                styles.kpiStatPillLabel,
+                { color: isDark ? "#4ADE80" : (colors.success || "#16A34A") },
+              ]}
+            >
               Submitted
             </Text>
-            <Text style={[styles.kpiStatPillVal, { color: colors.success || "#16A34A" }]}>
+            <Text
+              style={[
+                styles.kpiStatPillVal,
+                { color: isDark ? "#4ADE80" : (colors.success || "#16A34A") },
+              ]}
+            >
               {overall.completed}
             </Text>
           </View>
@@ -275,13 +289,27 @@ export default function SubmissionTrackerView({
             <View
               style={[
                 styles.kpiStatPill,
-                { backgroundColor: colors.tertiaryContainer || "#FEF3C7" },
+                {
+                  backgroundColor: isDark
+                    ? "rgba(251, 191, 36, 0.16)"
+                    : (colors.warningContainer || "#FEF3C7"),
+                },
               ]}
             >
-              <Text style={[styles.kpiStatPillLabel, { color: colors.tertiary || "#D97706" }]}>
+              <Text
+                style={[
+                  styles.kpiStatPillLabel,
+                  { color: isDark ? "#FBBF24" : (colors.warning || "#D97706") },
+                ]}
+              >
                 Pending
               </Text>
-              <Text style={[styles.kpiStatPillVal, { color: colors.tertiary || "#D97706" }]}>
+              <Text
+                style={[
+                  styles.kpiStatPillVal,
+                  { color: isDark ? "#FBBF24" : (colors.warning || "#D97706") },
+                ]}
+              >
                 {overall.pending}
               </Text>
             </View>
@@ -291,13 +319,27 @@ export default function SubmissionTrackerView({
             <View
               style={[
                 styles.kpiStatPill,
-                { backgroundColor: colors.surfaceContainerHigh || "#FEE2E2" },
+                {
+                  backgroundColor: isDark
+                    ? "rgba(248, 113, 113, 0.16)"
+                    : (colors.errorContainer || "#FEE2E2"),
+                },
               ]}
             >
-              <Text style={[styles.kpiStatPillLabel, { color: colors.error || "#DC2626" }]}>
+              <Text
+                style={[
+                  styles.kpiStatPillLabel,
+                  { color: isDark ? "#F87171" : (colors.error || "#DC2626") },
+                ]}
+              >
                 Missed
               </Text>
-              <Text style={[styles.kpiStatPillVal, { color: colors.error || "#DC2626" }]}>
+              <Text
+                style={[
+                  styles.kpiStatPillVal,
+                  { color: isDark ? "#F87171" : (colors.error || "#DC2626") },
+                ]}
+              >
                 {overall.missed}
               </Text>
             </View>
@@ -307,13 +349,27 @@ export default function SubmissionTrackerView({
             <View
               style={[
                 styles.kpiStatPill,
-                { backgroundColor: colors.tertiaryContainer || "#FEF3C7" },
+                {
+                  backgroundColor: isDark
+                    ? "rgba(251, 191, 36, 0.16)"
+                    : (colors.warningContainer || "#FEF3C7"),
+                },
               ]}
             >
-              <Text style={[styles.kpiStatPillLabel, { color: colors.tertiary || "#D97706" }]}>
+              <Text
+                style={[
+                  styles.kpiStatPillLabel,
+                  { color: isDark ? "#FBBF24" : (colors.warning || "#D97706") },
+                ]}
+              >
                 Pending
               </Text>
-              <Text style={[styles.kpiStatPillVal, { color: colors.tertiary || "#D97706" }]}>
+              <Text
+                style={[
+                  styles.kpiStatPillVal,
+                  { color: isDark ? "#FBBF24" : (colors.warning || "#D97706") },
+                ]}
+              >
                 0
               </Text>
             </View>
@@ -353,8 +409,6 @@ export default function SubmissionTrackerView({
                 color={
                   isActive
                     ? colors.onPrimary
-                    : isDark
-                    ? "#D4D4D8"
                     : colors.onSurfaceVariant
                 }
                 style={{ marginRight: 6 }}
@@ -365,8 +419,6 @@ export default function SubmissionTrackerView({
                   {
                     color: isActive
                       ? colors.onPrimary
-                      : isDark
-                      ? "#D4D4D8"
                       : colors.onSurfaceVariant,
                     fontFamily: isActive ? FONTS.bold : FONTS.medium,
                   },
@@ -414,7 +466,7 @@ export default function SubmissionTrackerView({
                 styles.filterPill,
                 {
                   backgroundColor: isActive
-                    ? colors.primaryContainer || "#EEF2FF"
+                    ? colors.primaryContainer || "#EADDFF"
                     : colors.surfaceContainer,
                   borderColor: isActive
                     ? colors.primary
@@ -427,9 +479,7 @@ export default function SubmissionTrackerView({
                   styles.filterPillText,
                   {
                     color: isActive
-                      ? colors.primary
-                      : isDark
-                      ? "#D4D4D8"
+                      ? colors.onPrimaryContainer || colors.primary
                       : colors.onSurfaceVariant,
                     fontFamily: isActive ? FONTS.bold : FONTS.medium,
                   },
@@ -457,8 +507,8 @@ export default function SubmissionTrackerView({
               }
             />
           ) : (
-            filteredTeachers.map((tItem) => {
-              const teacherId = tItem.teacher?._id?.toString();
+            filteredTeachers.map((tItem, tIdx) => {
+              const teacherId = tItem.teacher?._id?.toString() || `teacher-${tIdx}`;
               const isExpanded = expandedTeachers.has(teacherId);
               const isComplete = tItem.pending === 0 && tItem.total > 0;
               const percent =
@@ -533,8 +583,9 @@ export default function SubmissionTrackerView({
                       style={[
                         styles.subjectsExpandedList,
                         {
-                          backgroundColor:
-                            colors.surfaceContainerLow || "#F9FAFB",
+                          backgroundColor: isDark
+                            ? colors.surfaceContainerLow || "#0E0E11"
+                            : colors.surfaceContainerLowest || "#FFFFFF",
                           borderTopColor: colors.outlineVariant,
                         },
                       ]}
@@ -592,14 +643,14 @@ export default function SubmissionTrackerView({
                                   styles.quickRateBtn,
                                   {
                                     backgroundColor:
-                                      colors.primaryContainer || "#EEF2FF",
+                                      colors.primaryContainer || "#EADDFF",
                                   },
                                 ]}
                               >
                                 <Text
                                   style={[
                                     styles.quickRateBtnText,
-                                    { color: colors.primary },
+                                    { color: colors.onPrimaryContainer || colors.primary },
                                   ]}
                                 >
                                   Rate
@@ -657,14 +708,14 @@ export default function SubmissionTrackerView({
                         styles.classIconCircle,
                         {
                           backgroundColor:
-                            colors.primaryContainer || "#EEF2FF",
+                            colors.primaryContainer || "#EADDFF",
                         },
                       ]}
                     >
                       <MaterialIcons
                         name="class"
                         size={22}
-                        color={colors.primary}
+                        color={colors.onPrimaryContainer || colors.primary}
                       />
                     </View>
                     <View style={styles.teacherInfoCol}>
@@ -721,8 +772,9 @@ export default function SubmissionTrackerView({
                       style={[
                         styles.subjectsExpandedList,
                         {
-                          backgroundColor:
-                            colors.surfaceContainerLow || "#F9FAFB",
+                          backgroundColor: isDark
+                            ? colors.surfaceContainerLow || "#0E0E11"
+                            : colors.surfaceContainerLowest || "#FFFFFF",
                           borderTopColor: colors.outlineVariant,
                         },
                       ]}
@@ -783,7 +835,7 @@ export default function SubmissionTrackerView({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    width: "100%",
   },
   kpiCard: {
     marginBottom: 14,

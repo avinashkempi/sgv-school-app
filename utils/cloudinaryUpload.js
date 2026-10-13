@@ -1076,14 +1076,43 @@ export const getVideoPosterUrl = (
  * @param {boolean} [options.isSlow=false] - Whether network is slow
  * @returns {string} Transformed URL
  */
+const QUANTIZED_IMAGE_WIDTHS = [360, 480, 720, 1080];
+
+/**
+ * Snaps requested pixel width to standard breakpoints to avoid generating
+ * ad-hoc transformation derivatives for different phone screen widths.
+ * Saves Cloudinary free-tier transformation credits.
+ */
+export const quantizeImageWidth = (targetWidth) => {
+  if (!targetWidth || typeof targetWidth !== "number" || targetWidth <= 0) return 720;
+  for (const w of QUANTIZED_IMAGE_WIDTHS) {
+    if (targetWidth <= w) return w;
+  }
+  return 1080;
+};
+
+/**
+ * Get a Cloudinary optimized URL for display.
+ * Appends transformation parameters for responsive loading with f_auto,q_auto.
+ *
+ * @param {string} url - Original Cloudinary URL
+ * @param {Object} [options]
+ * @param {number} [options.width=720] - Desired width
+ * @param {string} [options.quality='auto'] - Quality setting ('auto', 'eco', 'low', or number)
+ * @param {boolean} [options.isSlow=false] - Whether network is slow
+ * @returns {string} Transformed URL
+ */
 export const getOptimizedCloudinaryUrl = (
   url,
-  { width = 800, quality = "auto", isSlow = false } = {}
+  { width = 720, quality = "auto", isSlow = false } = {}
 ) => {
   if (!url || typeof url !== "string") return url || "";
   if (!url.includes("cloudinary.com")) return url;
 
-  const effectiveWidth = isSlow ? Math.min(width, 720) : width;
+  // Quantize requested width into fixed breakpoints (360, 480, 720, 1080)
+  // to avoid creating redundant Cloudinary transformation derivatives across different screen resolutions.
+  const quantized = quantizeImageWidth(width);
+  const effectiveWidth = isSlow ? Math.min(quantized, 480) : quantized;
   const effectiveQuality = isSlow ? "eco" : quality;
   const transform = `w_${effectiveWidth},q_${effectiveQuality},f_auto,c_limit`;
 

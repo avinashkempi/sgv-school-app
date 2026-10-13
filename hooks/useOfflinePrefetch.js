@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import apiFetch from "../utils/apiFetch";
 import apiConfig from "../config/apiConfig";
 import { CACHE_TIERS } from "../utils/cacheConfig";
+import storage from "../utils/storage";
 import { useAuth } from "../context/AuthContext";
 
 // Minimum interval between prefetch runs (5 minutes)
@@ -56,17 +57,21 @@ export default function useOfflinePrefetch() {
           CACHE_TIERS.STATIC
         );
 
-        // Prefetch Vibes highlights, spotlight & categories for instantaneous home loading
-        prefetch(
-          ["vibeHighlights"],
-          apiConfig.endpoints.vibes.highlights,
-          CACHE_TIERS.VIBES_HOME
-        );
-        prefetch(
-          ["vibeSpotlight"],
-          apiConfig.endpoints.vibes.spotlight,
-          CACHE_TIERS.VIBES_HOME
-        );
+        // Prefetch Vibes highlights & spotlight only if not yet synced today
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const lastVibesSyncDate = await storage.getItem("@vibes_last_daily_sync");
+        if (lastVibesSyncDate !== todayStr) {
+          prefetch(
+            ["vibeHighlights"],
+            apiConfig.endpoints.vibes.highlights,
+            CACHE_TIERS.VIBES_HOME
+          );
+          prefetch(
+            ["vibeSpotlight"],
+            apiConfig.endpoints.vibes.spotlight,
+            CACHE_TIERS.VIBES_HOME
+          );
+        }
         prefetch(
           ["vibeCategories"],
           apiConfig.endpoints.vibes.categories,

@@ -89,6 +89,39 @@ export default async function apiFetch(input, init = {}) {
         mutationResponse = { success: true, message: "Leave applied successfully (Demo simulated)" };
       } else if (url.includes("/leaves")) {
         mutationResponse = { success: true, message: "Leave status updated (Demo simulated)" };
+      } else if (url.includes("/student-ratings/admin/toggle-subject")) {
+        try {
+          const body = typeof init.body === "string" ? JSON.parse(init.body) : init.body || {};
+          if (demoData.DEMO_ADMIN_SUBJECTS_CONFIG?.subjects) {
+            const found = demoData.DEMO_ADMIN_SUBJECTS_CONFIG.subjects.find(
+              (s) => s.name.toLowerCase() === (body.subjectName || "").toLowerCase()
+            );
+            if (found) {
+              found.ratingEnabled = body.ratingEnabled;
+              demoData.DEMO_ADMIN_SUBJECTS_CONFIG.enabledCount = demoData.DEMO_ADMIN_SUBJECTS_CONFIG.subjects.filter(
+                (s) => s.ratingEnabled !== false
+              ).length;
+              demoData.DEMO_ADMIN_SUBJECTS_CONFIG.disabledCount =
+                demoData.DEMO_ADMIN_SUBJECTS_CONFIG.totalSubjects - demoData.DEMO_ADMIN_SUBJECTS_CONFIG.enabledCount;
+            }
+          }
+        } catch (_) {}
+        mutationResponse = { success: true, message: "Subject rating setting updated (Demo)" };
+      } else if (url.includes("/student-ratings/admin/bulk-configure-ratings")) {
+        try {
+          const body = typeof init.body === "string" ? JSON.parse(init.body) : init.body || {};
+          if (demoData.DEMO_ADMIN_SUBJECTS_CONFIG?.subjects) {
+            demoData.DEMO_ADMIN_SUBJECTS_CONFIG.subjects.forEach((s) => {
+              s.ratingEnabled = body.ratingEnabled;
+            });
+            demoData.DEMO_ADMIN_SUBJECTS_CONFIG.enabledCount = body.ratingEnabled
+              ? demoData.DEMO_ADMIN_SUBJECTS_CONFIG.totalSubjects
+              : 0;
+            demoData.DEMO_ADMIN_SUBJECTS_CONFIG.disabledCount =
+              demoData.DEMO_ADMIN_SUBJECTS_CONFIG.totalSubjects - demoData.DEMO_ADMIN_SUBJECTS_CONFIG.enabledCount;
+          }
+        } catch (_) {}
+        mutationResponse = { success: true, message: "All subjects updated (Demo)" };
       } else if (url.includes("/student-ratings")) {
         mutationResponse = { success: true, message: "Ratings saved successfully (Demo simulated)" };
       } else if (url.includes("/timetable")) {
@@ -345,6 +378,12 @@ export default async function apiFetch(input, init = {}) {
       responseData = demoData.DEMO_REPORT_CARD;
     } else if (url.includes("/reports/insights/")) {
       responseData = demoData.DEMO_INSIGHTS;
+    } else if (url.includes("/timetable/all")) {
+      responseData = (demoData.DEMO_CLASSES || []).map((cls) => ({
+        _id: `tt_${cls._id}`,
+        class: cls,
+        schedule: demoData.DEMO_TIMETABLE?.schedule || [],
+      }));
     } else if (url.includes("/timetable/my-schedule")) {
       const teacherScheduleMap = {};
       (demoData.DEMO_TIMETABLE?.schedule || []).forEach((dayObj) => {
@@ -439,14 +478,25 @@ export default async function apiFetch(input, init = {}) {
       responseData = demoData.DEMO_LEAVE_STATS;
     } else if (url.includes("/leaves/balance")) {
       responseData = demoData.DEMO_LEAVE_BALANCE;
+    } else if (url.includes("/student-ratings/my-ratings")) {
+      const monthMatch = url.match(/[?&]month=(\d+)/);
+      const reqMonth = monthMatch ? parseInt(monthMatch[1]) : 10;
+      const trendPoint = (demoData.DEMO_MY_RATINGS?.trend || []).find((t) => t.month === reqMonth);
+      responseData = {
+        ...demoData.DEMO_MY_RATINGS,
+        month: reqMonth,
+        overallAverage: trendPoint ? trendPoint.averageScore : demoData.DEMO_MY_RATINGS.overallAverage,
+      };
+    } else if (url.includes("/student-ratings/admin/subjects-config")) {
+      responseData = demoData.DEMO_ADMIN_SUBJECTS_CONFIG;
     } else if (url.includes("/student-ratings/my-subjects")) {
       responseData = demoData.DEMO_TEACHER_RATING_SUBJECTS;
     } else if (url.includes("/student-ratings/tracker/my-status")) {
       responseData = {
-        total: 2,
-        completed: 1,
-        pending: 1,
-        subjects: demoData.DEMO_TEACHER_RATING_SUBJECTS.subjects,
+        total: demoData.DEMO_TEACHER_RATING_SUBJECTS?.summary?.total || 4,
+        completed: demoData.DEMO_TEACHER_RATING_SUBJECTS?.summary?.completed || 3,
+        pending: demoData.DEMO_TEACHER_RATING_SUBJECTS?.summary?.pending || 1,
+        subjects: demoData.DEMO_TEACHER_RATING_SUBJECTS?.subjects || [],
       };
     } else if (url.includes("/student-ratings/subject/")) {
       responseData = demoData.DEMO_SUBJECT_RATINGS_DATA;
@@ -628,6 +678,18 @@ export default async function apiFetch(input, init = {}) {
   const headers = {
     ...(fetchInit.headers || {}),
   };
+
+  // Ensure Content-Type is set to application/json when body is present (unless FormData)
+  const hasContentType = Object.keys(headers).some(
+    (k) => k.toLowerCase() === "content-type"
+  );
+  if (!hasContentType && fetchInit.body) {
+    const isFormData =
+      typeof FormData !== "undefined" && fetchInit.body instanceof FormData;
+    if (!isFormData) {
+      headers["Content-Type"] = "application/json";
+    }
+  }
 
   if (token && !headers["Authorization"] && !headers["authorization"]) {
     headers["Authorization"] = `Bearer ${token}`;

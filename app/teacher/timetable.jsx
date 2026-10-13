@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -70,15 +70,39 @@ export default function SchoolTimetableScreen() {
     CACHE_TIERS.STABLE
   );
 
+  // Normalize response into an array
+  const timetableList = useMemo(() => {
+    if (Array.isArray(timetables)) return timetables;
+    if (timetables && typeof timetables === "object") {
+      if (Array.isArray(timetables.timetables)) return timetables.timetables;
+      if (Array.isArray(timetables.data)) return timetables.data;
+      if (timetables.schedule) {
+        return [
+          {
+            _id: timetables._id || "tt_current",
+            class: timetables.class || {
+              _id: "550e8400e29b41d4a716446655440001",
+              name: "3",
+              section: "A",
+              label: "3rd Standard A",
+            },
+            schedule: timetables.schedule,
+          },
+        ];
+      }
+    }
+    return [];
+  }, [timetables]);
+
   // Auto-select first class
   useEffect(() => {
-    if (!selectedClassId && timetables && timetables.length > 0) {
-      const firstValid = timetables.find((t) => t.class);
+    if (!selectedClassId && timetableList.length > 0) {
+      const firstValid = timetableList.find((t) => t.class);
       if (firstValid) {
         setSelectedClassId(firstValid.class?._id || firstValid.class);
       }
     }
-  }, [timetables, selectedClassId]);
+  }, [timetableList, selectedClassId]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -101,8 +125,8 @@ export default function SchoolTimetableScreen() {
 
   // Build schedule for selected class & day
   const getSchedule = () => {
-    if (!timetables || !selectedClassId) return [];
-    const classTimetable = timetables.find((t) => {
+    if (!timetableList.length || !selectedClassId) return [];
+    const classTimetable = timetableList.find((t) => {
       const cid = t.class?._id || t.class;
       return String(cid) === String(selectedClassId);
     });
@@ -117,7 +141,7 @@ export default function SchoolTimetableScreen() {
   };
 
   const dayPeriods = getSchedule();
-  const classes = (timetables || []).map((t) => t.class).filter(Boolean);
+  const classes = timetableList.map((t) => t.class).filter(Boolean);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -262,7 +286,7 @@ export default function SchoolTimetableScreen() {
               )}
             </View>
 
-            {loading && !timetables ? (
+            {loading && !timetableList.length ? (
               <View
                 style={{
                   paddingVertical: 48,
