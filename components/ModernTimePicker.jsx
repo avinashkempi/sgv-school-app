@@ -70,7 +70,7 @@ export default function ModernTimePicker({
           <View
             style={[styles.iosHeader, { borderBottomColor: colors.border }]}
           >
-            <Pressable onPress={onClose} hitSlop={10}>
+            <Pressable onPress={onClose} hitSlop={10} accessibilityRole="button" accessibilityLabel="Cancel">
               <Text
                 style={[styles.iosButtonText, { color: colors.textSecondary }]}
               >
@@ -81,7 +81,7 @@ export default function ModernTimePicker({
               {title}
             </Text>
             <Pressable
-              hitSlop={10}
+              hitSlop={10} accessibilityRole="button" accessibilityLabel="Confirm time"
               onPress={() => {
                 onConfirm(tempDate);
                 onClose();
