@@ -63,6 +63,8 @@ export default function SchoolContactSection({ onOpenAbout }) {
       >
         {/* About SGV School Row */}
         <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t("menu.aboutSchool", "About SGV School")}
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
             if (onOpenAbout) onOpenAbout();
@@ -127,6 +129,8 @@ export default function SchoolContactSection({ onOpenAbout }) {
         <View style={localStyles.connectRow}>
           {/* Call */}
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("menu.contactCall", "Call School")}
             onPress={handleCallPress}
             style={({ pressed }) => [
               localStyles.connectBtn,
@@ -153,6 +157,8 @@ export default function SchoolContactSection({ onOpenAbout }) {
 
           {/* Email */}
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("menu.contactEmail", "Email School")}
             onPress={handleEmailPress}
             style={({ pressed }) => [
               localStyles.connectBtn,
@@ -179,6 +185,8 @@ export default function SchoolContactSection({ onOpenAbout }) {
 
           {/* Map */}
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("menu.contactMap", "School Location")}
             onPress={handleMapPress}
             style={({ pressed }) => [
               localStyles.connectBtn,
@@ -205,6 +213,8 @@ export default function SchoolContactSection({ onOpenAbout }) {
 
           {/* YouTube */}
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("menu.contactYouTube", "SGV YouTube Channel")}
             onPress={() =>
               handleLinkPress(
                 SCHOOL.socials?.youtubeAppUrl,
@@ -236,6 +246,8 @@ export default function SchoolContactSection({ onOpenAbout }) {
 
           {/* Instagram */}
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("menu.contactInstagram", "SGV Instagram")}
             onPress={() =>
               handleLinkPress(
                 SCHOOL.socials?.instagramAppUrl,

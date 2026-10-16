@@ -56,6 +56,8 @@ export default function MenuCategorySection({
           return (
             <React.Fragment key={item.id || item.title || index}>
               <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={item.title}
                 onPress={() => handlePress(item)}
                 style={({ pressed }) => [
                   localStyles.itemRow,
