@@ -1,3 +1,6 @@
 ## 2024-05-18 - Added accessibility labels to icon-only buttons
 **Learning:** Found multiple Pressable elements used as icon-only buttons in `GlobalSearch.jsx` missing `accessibilityRole="button"` and `accessibilityLabel` attributes. These are critical for screen reader users to understand the functionality of the icons.
 **Action:** Always verify that interactive icon-only components have proper accessibility roles and labels for screen readers.
+## 2026-10-16 - Adding Basic Accessibility Traits to TouchableOpacity
+**Learning:** In React Native, custom interactive elements built using `TouchableOpacity` or `Pressable` often lack semantic meaning by default. Screen readers may simply announce them as "button" or worse, announce nothing helpful. State, such as an active or selected item in a list, isn't conveyed to screen readers unless explicitly told via `accessibilityState`.
+**Action:** Always provide an explicit `accessibilityRole="button"` and a clear, descriptive `accessibilityLabel` for custom interactive elements, especially icon-only buttons or chips. For selectable components (like preset pills or tabs), bind the visual selection logic to `accessibilityState={{ selected: isSelected }}`.

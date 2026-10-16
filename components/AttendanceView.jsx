@@ -1194,6 +1194,8 @@ export default function AttendanceView({
           {canShowMoreMonths && (
             <TouchableOpacity
               onPress={() => setMonthlyVisible((v) => v + MONTHLY_PAGE_SIZE)}
+              accessibilityRole="button"
+              accessibilityLabel="Show More Months"
               style={[
                 styles.showMoreBtn,
                 { borderColor: colors.primary + "40" },
