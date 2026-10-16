@@ -67,6 +67,9 @@ export default function MenuPreferences() {
           </View>
 
           <Switch
+            accessibilityLabel={t("menu.darkMode", "Dark Mode")}
+            accessibilityRole="switch"
+            accessibilityState={{ checked: mode === "dark" }}
             value={mode === "dark"}
             onValueChange={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
