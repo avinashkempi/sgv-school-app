@@ -75,6 +75,8 @@ const FilterBottomSheet = forwardRef((props, ref) => {
             }}
             hitSlop={8}
             style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
+            accessibilityRole="button"
+            accessibilityLabel="Reset filters"
           >
             <Text style={[styles.resetText, { color: colors.primary }]}>
               Reset
@@ -101,6 +103,9 @@ const FilterBottomSheet = forwardRef((props, ref) => {
                   opacity: pressed ? 0.8 : 1,
                 },
               ]}
+              accessibilityRole="button"
+              accessibilityLabel={opt.label}
+              accessibilityState={{ selected: active }}
             >
               {opt.icon && (
                 <MaterialIcons
@@ -148,6 +153,8 @@ const FilterBottomSheet = forwardRef((props, ref) => {
             opacity: pressed ? 0.85 : 1,
           },
         ]}
+        accessibilityRole="button"
+        accessibilityLabel="Apply Filters"
       >
         <Text style={[styles.applyButtonText, { color: colors.onPrimary }]}>
           Apply Filters
