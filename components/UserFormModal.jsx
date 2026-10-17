@@ -215,7 +215,12 @@ export default function UserFormModal({
               >
                 {modalMode === "add" ? "New User" : "Edit User"}
               </Text>
-              <Pressable onPress={onClose} style={{ padding: 4 }}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Close modal"
+                onPress={onClose}
+                style={{ padding: 4 }}
+              >
                 <MaterialIcons
                   name="close"
                   size={24}
@@ -375,6 +380,8 @@ export default function UserFormModal({
                   )}
                 />
                 <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={showPassword ? "Hide password" : "Show password"}
                   onPress={() => setShowPassword(!showPassword)}
                   style={{ paddingLeft: 8 }}
                 >
@@ -929,24 +936,24 @@ export default function UserFormModal({
                 backgroundColor: isValid ? colors.primary : colors.border,
                 borderRadius: 12,
                 alignItems: "center",
+                flexDirection: "row",
+                justifyContent: "center",
+                gap: 8,
                 opacity: pressed || !isValid || saving ? 0.7 : 1,
               })}
             >
-              {saving ? (
-                <View style={{ height: 24, justifyContent: "center" }}>
-                  <ActivityIndicator color={colors.onPrimary} size="small" />
-                </View>
-              ) : (
-                <Text
-                  style={{
-                    fontSize: FONT_SIZES.md,
-                    fontFamily: FONTS.bold,
-                    color: colors.onPrimary,
-                  }}
-                >
-                  {modalMode === "add" ? "Create User" : "Save Changes"}
-                </Text>
-              )}
+              {saving && <ActivityIndicator color={colors.onPrimary} size="small" />}
+              <Text
+                style={{
+                  fontSize: FONT_SIZES.md,
+                  fontFamily: FONTS.bold,
+                  color: colors.onPrimary,
+                }}
+              >
+                {saving
+                  ? (modalMode === "add" ? "Creating..." : "Saving...")
+                  : (modalMode === "add" ? "Create User" : "Save Changes")}
+              </Text>
             </Pressable>
           </View>
         </View>
