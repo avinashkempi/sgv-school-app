@@ -289,7 +289,12 @@ export default function ReportCardExportModal({
               </View>
             </View>
 
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+            <TouchableOpacity
+              onPress={onClose}
+              style={styles.closeBtn}
+              accessibilityRole="button"
+              accessibilityLabel="Close"
+            >
               <MaterialIcons name="close" size={24} color={colors.onSurfaceVariant} />
             </TouchableOpacity>
           </View>

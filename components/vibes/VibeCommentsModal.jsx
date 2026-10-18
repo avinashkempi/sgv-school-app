@@ -469,6 +469,8 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
             onPress={() => handleToggleLikeComment(item._id)}
             hitSlop={10}
             style={styles.likeCommentButton}
+            accessibilityRole="button"
+            accessibilityLabel={item.isLiked ? "Unlike comment" : "Like comment"}
           >
             <MaterialIcons
               name={item.isLiked ? "favorite" : "favorite-border"}
@@ -531,7 +533,12 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
               <Text style={[styles.headerTitle, { color: colors.onSurface }]}>
                 Comments ({comments.length})
               </Text>
-              <Pressable onPress={onClose} hitSlop={12}>
+              <Pressable
+                onPress={onClose}
+                hitSlop={12}
+                accessibilityRole="button"
+                accessibilityLabel="Close"
+              >
                 <MaterialIcons
                   name="close"
                   size={22}
@@ -589,7 +596,12 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
               >
                 Replying to <Text style={{ fontFamily: FONTS.bold }}>@{replyingTo.name}</Text>
               </Text>
-              <Pressable onPress={handleCancelReply} hitSlop={8}>
+              <Pressable
+                onPress={handleCancelReply}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="Cancel reply"
+              >
                 <MaterialIcons
                   name="close"
                   size={16}
