@@ -84,16 +84,23 @@ export default function HomeScreen() {
   const isStudent = activeRole === "student";
   const isTeacher = activeRole === "teacher" || activeRole === "staff";
 
-  const localStyles = StyleSheet.create({
-    page: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    scrollContent: {
-      paddingTop: 14,
-      paddingBottom: 28,
-    },
-  });
+  // ⚡ Bolt Optimization: Memoize dynamic styles to prevent unnecessary recreations
+  // Recreating StyleSheet.create inside a render loop causes a new style object
+  // to be allocated every render. By memoizing it, we reduce GC pressure and
+  // avoid potential unnecessary re-renders in child components that consume these styles.
+  // Impact: Reduces memory allocation and speeds up re-renders for the HomeScreen.
+  const localStyles = React.useMemo(() => {
+    return StyleSheet.create({
+      page: {
+        flex: 1,
+        backgroundColor: colors.background,
+      },
+      scrollContent: {
+        paddingTop: 14,
+        paddingBottom: 28,
+      },
+    });
+  }, [colors.background]);
 
   return (
     <View style={localStyles.page}>
