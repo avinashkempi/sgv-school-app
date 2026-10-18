@@ -110,6 +110,8 @@ class ErrorBoundaryClass extends React.Component {
                 style={[styles.button, styles.primaryButton, { backgroundColor: primaryColor }]}
                 onPress={this.handleTryAgain}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Try Again"
               >
                 <MaterialIcons name="refresh" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
                 <Text style={styles.buttonTextPrimary}>Try Again</Text>
@@ -119,6 +121,8 @@ class ErrorBoundaryClass extends React.Component {
                 style={[styles.button, styles.secondaryButton, { borderColor }]}
                 onPress={this.handleGoBack}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Go Back"
               >
                 <MaterialIcons name="arrow-back" size={18} color={textColor} style={{ marginRight: 6 }} />
                 <Text style={[styles.buttonTextSecondary, { color: textColor }]}>Go Back</Text>
@@ -129,6 +133,8 @@ class ErrorBoundaryClass extends React.Component {
               style={styles.homeLink}
               onPress={this.handleGoHome}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Return to Home"
             >
               <MaterialIcons name="home" size={16} color={primaryColor} style={{ marginRight: 4 }} />
               <Text style={[styles.homeLinkText, { color: primaryColor }]}>Return to Home</Text>
