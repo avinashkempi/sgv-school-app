@@ -149,6 +149,9 @@ export default function AssessmentDashboard() {
               return (
                 <TouchableOpacity
                   key={cls._id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Select class ${formatClassName(cls.name, cls.section)}`}
+                  accessibilityState={{ selected: isSelected }}
                   style={[
                     localStyles.chip,
                     {
@@ -203,6 +206,9 @@ export default function AssessmentDashboard() {
                   return (
                     <TouchableOpacity
                       key={sub._id}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Select subject ${sub.name}`}
+                      accessibilityState={{ selected: isSelected }}
                       style={[
                         localStyles.chip,
                         {

@@ -178,6 +178,9 @@ export default function StudentReportCardScreen() {
         contentContainerStyle={styles.filterScroll}
       >
         <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel="Filter by All Exams"
+          accessibilityState={{ selected: selectedExamFilter === "ALL" }}
           style={[
             styles.filterChip,
             {
@@ -222,6 +225,9 @@ export default function StudentReportCardScreen() {
           return (
             <TouchableOpacity
               key={exam.examType}
+              accessibilityRole="button"
+              accessibilityLabel={`Filter by ${exam.examType}`}
+              accessibilityState={{ selected: isSelected }}
               style={[
                 styles.filterChip,
                 {
@@ -294,6 +300,9 @@ export default function StudentReportCardScreen() {
             >
               {/* Card Header (Accordion trigger) */}
               <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel={`${isExpanded ? "Collapse" : "Expand"} ${exam.examType} details`}
+                accessibilityState={{ expanded: isExpanded }}
                 style={styles.examHeader}
                 onPress={() => toggleExamExpand(exam.examType)}
                 activeOpacity={0.8}
@@ -1283,6 +1292,8 @@ export default function StudentReportCardScreen() {
           <View style={styles.topActionsRow}>
             {/* Info / Grading Scale button */}
             <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="View Grading Guide"
               style={[
                 styles.topActionBtn,
                 { backgroundColor: colors.surfaceContainerHigh },
@@ -1298,6 +1309,8 @@ export default function StudentReportCardScreen() {
 
             {/* Export / Share button */}
             <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Export or Share Official Report"
               style={[
                 styles.topActionBtn,
                 { backgroundColor: colors.primaryContainer },
@@ -1465,6 +1478,9 @@ export default function StudentReportCardScreen() {
           ]}
         >
           <TouchableOpacity
+            accessibilityRole="tab"
+            accessibilityLabel="Exams tab"
+            accessibilityState={{ selected: activeTab === "exams" }}
             style={[
               styles.tabBtn,
               activeTab === "exams" && {
@@ -1513,6 +1529,9 @@ export default function StudentReportCardScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
+            accessibilityRole="tab"
+            accessibilityLabel="Analytics tab"
+            accessibilityState={{ selected: activeTab === "analytics" }}
             style={[
               styles.tabBtn,
               activeTab === "analytics" && {
@@ -1562,6 +1581,9 @@ export default function StudentReportCardScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
+            accessibilityRole="tab"
+            accessibilityLabel="Insights tab"
+            accessibilityState={{ selected: activeTab === "insights" }}
             style={[
               styles.tabBtn,
               activeTab === "insights" && {
