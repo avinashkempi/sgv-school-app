@@ -84,7 +84,7 @@ export default function HomeScreen() {
   const isStudent = activeRole === "student";
   const isTeacher = activeRole === "teacher" || activeRole === "staff";
 
-  const localStyles = StyleSheet.create({
+  const localStyles = React.useMemo(() => StyleSheet.create({
     page: {
       flex: 1,
       backgroundColor: colors.background,
@@ -93,7 +93,10 @@ export default function HomeScreen() {
       paddingTop: 14,
       paddingBottom: 28,
     },
-  });
+  }), [colors.background]);
+
+  // ⚡ Bolt: Wrapped StyleSheet.create inside React.useMemo to prevent unnecessary recreation
+  // of the style object on every re-render, optimizing performance and reducing memory overhead.
 
   return (
     <View style={localStyles.page}>
