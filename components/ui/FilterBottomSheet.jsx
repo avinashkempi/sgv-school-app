@@ -67,6 +67,8 @@ const FilterBottomSheet = forwardRef((props, ref) => {
         <Text style={[styles.title, { color: colors.onSurface }]}>{title}</Text>
         {onReset && (
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Reset filters"
             onPress={() => {
               try {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -90,6 +92,8 @@ const FilterBottomSheet = forwardRef((props, ref) => {
           return (
             <Pressable
               key={opt.value}
+              accessibilityRole="button"
+              accessibilityLabel={`Filter option ${opt.label}, ${active ? 'selected' : 'unselected'}`}
               onPress={() => handleSelectOption(opt.value)}
               style={({ pressed }) => [
                 styles.chip,
@@ -140,6 +144,8 @@ const FilterBottomSheet = forwardRef((props, ref) => {
 
       {/* Apply Button */}
       <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Apply filters"
         onPress={handleApply}
         style={({ pressed }) => [
           styles.applyButton,

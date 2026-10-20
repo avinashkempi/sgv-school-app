@@ -213,6 +213,8 @@ const UserAvatar = ({
   if (onPress) {
     return (
       <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={name ? `User avatar for ${name}` : 'User avatar'}
         onPress={onPress}
         style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}
         hitSlop={6}
