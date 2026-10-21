@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { View, Text, Pressable, Dimensions, ScrollView } from "react-native";
 import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import Svg, {
@@ -81,55 +81,87 @@ const TeacherAttendanceTrendCard = ({
 
   const isDark = mode === "dark";
 
-  // Normalize incoming data
-  const normalizedData = (Array.isArray(labels) ? labels : []).map(
-    (label, index) => {
-      const rawVal =
-        Array.isArray(data) && data[index] !== undefined ? data[index] : 0;
-      const percentage = Math.round(Number(rawVal) * 10) / 10;
+  // ⚡ Bolt Optimization: Memoize all expensive data derivations (map, filter, reduce)
+  // to prevent recalculation on every render and preserve referential equality.
+  const {
+    normalizedData,
+    activeAverage,
+    peakDay,
+    trendDelta,
+  } = useMemo(() => {
+    // Normalize incoming data
+    const normalized = (Array.isArray(labels) ? labels : []).map(
+      (label, index) => {
+        const rawVal =
+          Array.isArray(data) && data[index] !== undefined ? data[index] : 0;
+        const percentage = Math.round(Number(rawVal) * 10) / 10;
+        return {
+          label: label || `Day ${index + 1}`,
+          percentage: isNaN(percentage)
+            ? 0
+            : Math.max(0, Math.min(100, percentage)),
+        };
+      }
+    );
+
+    if (normalized.length === 0) {
       return {
-        label: label || `Day ${index + 1}`,
-        percentage: isNaN(percentage)
-          ? 0
-          : Math.max(0, Math.min(100, percentage)),
+        normalizedData: [],
+        markedDays: [],
+        totalPercentage: 0,
+        activeAverage: 0,
+        peakDay: null,
+        firstMarked: null,
+        lastMarked: null,
+        trendDelta: null,
       };
     }
-  );
+
+    // Active attendance days (exclude pure zeros for realistic average calculation if applicable)
+    const marked = normalized.filter((d) => d.percentage > 0);
+    const totalPct = (marked.length > 0 ? marked : normalized).reduce(
+      (acc, curr) => acc + curr.percentage,
+      0
+    );
+    const activeAvg =
+      (marked.length > 0 ? marked : normalized).length > 0
+        ? Math.round(
+            (totalPct / (marked.length > 0 ? marked : normalized).length) * 10
+          ) / 10
+        : 0;
+
+    // Peak attendance day
+    const peak = normalized.reduce(
+      (prev, curr) => (curr.percentage > prev.percentage ? curr : prev),
+      normalized[0]
+    );
+
+    // Trend calculation (latest marked day vs first marked day)
+    const firstM = marked.length > 0 ? marked[0] : normalized[0];
+    const lastM =
+      marked.length > 0
+        ? marked[marked.length - 1]
+        : normalized[normalized.length - 1];
+    const trend =
+      firstM && lastM && firstM !== lastM
+        ? Math.round((lastM.percentage - firstM.percentage) * 10) / 10
+        : null;
+
+    return {
+      normalizedData: normalized,
+      markedDays: marked,
+      totalPercentage: totalPct,
+      activeAverage: activeAvg,
+      peakDay: peak,
+      firstMarked: firstM,
+      lastMarked: lastM,
+      trendDelta: trend,
+    };
+  }, [labels, data]);
 
   if (normalizedData.length === 0) {
     return null;
   }
-
-  // Active attendance days (exclude pure zeros for realistic average calculation if applicable)
-  const markedDays = normalizedData.filter((d) => d.percentage > 0);
-  const totalPercentage = (
-    markedDays.length > 0 ? markedDays : normalizedData
-  ).reduce((acc, curr) => acc + curr.percentage, 0);
-  const activeAverage =
-    (markedDays.length > 0 ? markedDays : normalizedData).length > 0
-      ? Math.round(
-          (totalPercentage /
-            (markedDays.length > 0 ? markedDays : normalizedData).length) *
-            10
-        ) / 10
-      : 0;
-
-  // Peak attendance day
-  const peakDay = normalizedData.reduce(
-    (prev, curr) => (curr.percentage > prev.percentage ? curr : prev),
-    normalizedData[0]
-  );
-
-  // Trend calculation (latest marked day vs first marked day)
-  const firstMarked = markedDays.length > 0 ? markedDays[0] : normalizedData[0];
-  const lastMarked =
-    markedDays.length > 0
-      ? markedDays[markedDays.length - 1]
-      : normalizedData[normalizedData.length - 1];
-  const trendDelta =
-    firstMarked && lastMarked && firstMarked !== lastMarked
-      ? Math.round((lastMarked.percentage - firstMarked.percentage) * 10) / 10
-      : null;
 
   // Active selected day (defaults to last day if none selected)
   const activeIdx =
