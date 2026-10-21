@@ -389,6 +389,8 @@ const NotificationCenter = () => {
               </Pressable>
             )}
             <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Notification Preferences"
               onPress={() => router.push("/notification-preferences")}
               style={({ pressed }) => ({
                 width: 40,

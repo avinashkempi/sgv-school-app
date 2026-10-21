@@ -179,6 +179,8 @@ export default function StudentRatingsScreen() {
         ]}
       >
         <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel="Previous Month"
           onPress={handlePrevMonth}
           style={styles.monthNavBtn}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -205,6 +207,8 @@ export default function StudentRatingsScreen() {
         </View>
 
         <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel="Next Month"
           onPress={handleNextMonth}
           style={styles.monthNavBtn}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
