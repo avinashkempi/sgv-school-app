@@ -78,6 +78,8 @@ export default function SchoolInfoModal({ visible = false, onClose }) {
 
             <Pressable
               onPress={onClose}
+              accessibilityRole="button"
+              accessibilityLabel="Close school info"
               style={({ pressed }) => [
                 localStyles.closeBtn,
                 {

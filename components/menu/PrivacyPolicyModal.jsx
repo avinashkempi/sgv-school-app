@@ -73,6 +73,8 @@ export default function PrivacyPolicyModal({ visible = false, onClose }) {
 
             <Pressable
               onPress={onClose}
+              accessibilityRole="button"
+              accessibilityLabel="Close privacy policy"
               style={({ pressed }) => [
                 localStyles.closeBtn,
                 {

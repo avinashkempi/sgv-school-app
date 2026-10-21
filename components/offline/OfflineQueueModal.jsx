@@ -113,6 +113,8 @@ export default function OfflineQueueModal({ visible, onClose }) {
 
           <Pressable
             onPress={() => handleRemovePress(item.id)}
+            accessibilityRole="button"
+            accessibilityLabel="Remove item from queue"
             hitSlop={8}
             style={styles.deleteButton}
           >
@@ -222,6 +224,8 @@ export default function OfflineQueueModal({ visible, onClose }) {
 
             <Pressable
               onPress={onClose}
+              accessibilityRole="button"
+              accessibilityLabel="Close offline queue"
               hitSlop={12}
               style={styles.closeHeaderButton}
             >

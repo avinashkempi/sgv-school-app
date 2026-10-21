@@ -235,7 +235,7 @@ export default function CreatePostModal({ visible, onClose, editPost = null }) {
               { borderBottomColor: colors.outlineVariant },
             ]}
           >
-            <Pressable onPress={handleClose} disabled={submitting} hitSlop={12}>
+            <Pressable onPress={handleClose} disabled={submitting} hitSlop={12} accessibilityRole="button" accessibilityLabel="Close modal">
               <MaterialIcons name="close" size={24} color={colors.onSurface} />
             </Pressable>
             <Text style={[styles.headerTitle, { color: colors.onSurface }]}>
@@ -362,6 +362,8 @@ export default function CreatePostModal({ visible, onClose, editPost = null }) {
                         onPress={() => handleRemoveImage(index)}
                         style={styles.removeButton}
                         hitSlop={8}
+                        accessibilityRole="button"
+                        accessibilityLabel="Remove image"
                       >
                         <MaterialIcons name="close" size={14} color="#fff" />
                       </Pressable>
