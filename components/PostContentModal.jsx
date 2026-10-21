@@ -348,6 +348,8 @@ export default function PostContentModal({
 
               <Pressable
                 onPress={onClose}
+                accessibilityRole="button"
+                accessibilityLabel="Close post content modal"
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 style={({ pressed }) => [
                   localStyles.closeBtn,
