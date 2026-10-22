@@ -916,6 +916,7 @@ export default function NotificationsScreen() {
             renderItem={renderItem}
             contentContainerStyle={styles.listContent}
             estimatedItemSize={104}
+            drawDistance={250}
             refreshControl={
               <AppRefreshControl
                 refreshing={Boolean(refreshing || localRefreshing)}

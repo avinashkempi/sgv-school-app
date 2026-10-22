@@ -4,6 +4,7 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
+import { InteractionManager } from "react-native";
 import * as Notifications from "expo-notifications";
 import { useQueryClient } from "@tanstack/react-query";
 import apiFetch from "../utils/apiFetch";
@@ -56,8 +57,12 @@ export const NotificationProvider = ({ children }) => {
             "[FCM] Notification received in foreground, invalidating cache..."
           );
         }
-        // Invalidate the query — React Query will refetch automatically
-        queryClient.invalidateQueries({ queryKey: ["notifications", userId] });
+        // Defer invalidation until after the current UI draw pass completes
+        // to prevent ReactViewGroup.drawChild IndexOutOfBoundsException
+        // when FlashList/FlatList data changes mid-render
+        InteractionManager.runAfterInteractions(() => {
+          queryClient.invalidateQueries({ queryKey: ["notifications", userId] });
+        });
       }
     );
 

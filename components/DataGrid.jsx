@@ -426,6 +426,7 @@ export default function DataGrid({
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={{ paddingBottom: keyboardHeight }}
             estimatedItemSize={50}
+            drawDistance={200}
           />
         </View>
       </ScrollView>

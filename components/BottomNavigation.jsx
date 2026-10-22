@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, memo, useEffect } from "react";
+import React, { useMemo, useCallback, memo, useEffect, useRef } from "react";
 import { View, Text, Pressable, StyleSheet, Platform } from "react-native";
 import Animated, {
   useSharedValue,
@@ -7,6 +7,7 @@ import Animated, {
   withSpring,
   interpolate,
   Extrapolation,
+  cancelAnimation,
 } from "react-native-reanimated";
 import { useRouter, usePathname, useLocalSearchParams } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -173,6 +174,7 @@ function BottomNavigation() {
   const { emitScrollToTop } = useNavigationContext() || {};
   const insets = useSafeAreaInsets();
   const { t } = useLabel();
+  const lastNavTime = useRef(0);
 
   const navigationItems = useMemo(
     () => [
@@ -260,6 +262,11 @@ function BottomNavigation() {
 
   const handleTabPress = useCallback(
     (route) => {
+      // Debounce: Ignore taps within 300ms of last navigation to prevent
+      // ViewGroup NPE/ISE crashes from rapid tab switching during animations
+      const now = Date.now();
+      if (now - lastNavTime.current < 300) return;
+
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
       if (pathname === route || (route === ROUTES.HOME && pathname === "/")) {
         // Standard mobile behavior: tapping active tab scrolls feed/screen to top
@@ -269,6 +276,7 @@ function BottomNavigation() {
         return;
       }
 
+      lastNavTime.current = now;
       requestAnimationFrame(() => {
         router.replace(route);
       });
@@ -332,6 +340,15 @@ const TabItem = memo(({ item, isActive, onPress, colors }) => {
   useEffect(() => {
     activeProgress.value = withTiming(isActive ? 1 : 0, { duration: 200 });
   }, [isActive, activeProgress]);
+
+  // Cancel running animations on unmount to prevent Reanimated native
+  // worklet crashes (CppException / TypeError) when the surface is destroyed
+  useEffect(() => {
+    return () => {
+      cancelAnimation(scale);
+      cancelAnimation(activeProgress);
+    };
+  }, [scale, activeProgress]);
 
   const handlePressIn = () => {
     scale.value = withSpring(0.92, { damping: 14, stiffness: 260 });

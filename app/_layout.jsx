@@ -248,14 +248,17 @@ function Inner() {
                 gestureEnabled: true,
                 gestureDirection: "horizontal",
                 fullScreenGestureEnabled: false,
-                // Native-driven fast smooth horizontal transitions for hierarchical drill-downs
-                animation: "slide_from_right",
-                animationDuration: 200,
+                // Fade transitions are safer than slide_from_right on Android —
+                // horizontal slide causes ViewGroup NPE/ISE when native views
+                // are detached mid-draw during rapid navigation
+                animation: "fade",
+                animationDuration: 150,
                 // Freeze off-screen screens to save CPU/GPU cycles
                 freezeOnBlur: true,
                 // Prevent Android view hierarchy synchronization crash during screen transitions
                 detachInactiveScreens: false,
               }}
+
             >
               {/* Auth & Onboarding Screens */}
               <Stack.Screen name="onboarding" options={{ animation: "fade" }} />
