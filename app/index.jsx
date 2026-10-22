@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { View, ScrollView, StyleSheet } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTheme, SPACING } from "../theme";
@@ -84,7 +84,12 @@ export default function HomeScreen() {
   const isStudent = activeRole === "student";
   const isTeacher = activeRole === "teacher" || activeRole === "staff";
 
-  const localStyles = StyleSheet.create({
+  // ⚡ BOLT OPTIMIZATION: Memoize StyleSheet.create
+  // Why: Calling StyleSheet.create directly inside a functional component causes style objects
+  //      to be recreated on every single re-render, breaking referential equality and degrading performance.
+  // Impact: Reduces unnecessary object allocations and prevents unnecessary re-renders of child components that depend on these styles.
+  // Verify: Profile the component with React DevTools. The `localStyles` object should maintain referential equality across re-renders unless `colors.background` changes.
+  const localStyles = useMemo(() => StyleSheet.create({
     page: {
       flex: 1,
       backgroundColor: colors.background,
@@ -93,7 +98,7 @@ export default function HomeScreen() {
       paddingTop: 14,
       paddingBottom: 28,
     },
-  });
+  }), [colors.background]);
 
   return (
     <View style={localStyles.page}>

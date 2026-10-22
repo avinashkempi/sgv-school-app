@@ -1,0 +1,3 @@
+## 2024-10-22 - StyleSheet.create Anti-pattern in Functional Components
+**Learning:** Found a common anti-pattern where `StyleSheet.create` was being called directly inside a functional component (`app/index.jsx`). This creates a new style object on every single re-render, destroying referential equality and forcing unnecessary work during the render cycle.
+**Action:** When defining local styles inside a functional component that depend on dynamic values (like theme `colors`), always wrap the `StyleSheet.create` call in a `useMemo` hook with the appropriate dependencies. E.g., `const localStyles = useMemo(() => StyleSheet.create({...}), [colors.background]);`
