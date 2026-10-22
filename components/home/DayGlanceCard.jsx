@@ -144,6 +144,8 @@ const DayGlanceCard = memo(({ role, data = {}, onAction: _onAction }) => {
         {/* 2-Column Summary Footer */}
         <View style={styles.footerRow}>
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="View Fee Balance"
             onPress={() => handleTilePress("/student/fees")}
             style={styles.footerItem}
           >
@@ -178,6 +180,8 @@ const DayGlanceCard = memo(({ role, data = {}, onAction: _onAction }) => {
           />
 
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="View Next Exam"
             onPress={() => handleTilePress("/student/exam-schedule")}
             style={styles.footerItem}
           >
@@ -286,6 +290,7 @@ const DayGlanceCard = memo(({ role, data = {}, onAction: _onAction }) => {
 
           <Pressable
             accessibilityRole="button"
+            accessibilityLabel="View Schedule"
             onPress={() => handleTilePress("/teacher/timetable")}
             style={({ pressed }) => [
               styles.actionPill,
@@ -315,6 +320,8 @@ const DayGlanceCard = memo(({ role, data = {}, onAction: _onAction }) => {
 
         <View style={styles.footerRow}>
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="View Attendance Status"
             onPress={() => handleTilePress("/requests")}
             style={styles.footerItem}
           >
@@ -349,6 +356,8 @@ const DayGlanceCard = memo(({ role, data = {}, onAction: _onAction }) => {
           />
 
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Manage Marks and Exams"
             onPress={() => handleTilePress("/teacher/classes")}
             style={styles.footerItem}
           >
