@@ -60,7 +60,12 @@ export default function ModernTimePicker({
       onRequestClose={onClose}
     >
       <View style={styles.iosOverlay}>
-        <Pressable style={styles.iosBackdrop} onPress={onClose} />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Dismiss time picker"
+          style={styles.iosBackdrop}
+          onPress={onClose}
+        />
         <View
           style={[
             styles.iosContainer,
@@ -70,7 +75,12 @@ export default function ModernTimePicker({
           <View
             style={[styles.iosHeader, { borderBottomColor: colors.border }]}
           >
-            <Pressable onPress={onClose} hitSlop={10}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Cancel time selection"
+              onPress={onClose}
+              hitSlop={10}
+            >
               <Text
                 style={[styles.iosButtonText, { color: colors.textSecondary }]}
               >
@@ -81,6 +91,8 @@ export default function ModernTimePicker({
               {title}
             </Text>
             <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Confirm time selection"
               hitSlop={10}
               onPress={() => {
                 onConfirm(tempDate);
