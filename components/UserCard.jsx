@@ -96,6 +96,8 @@ const UserCard = ({
                   padding: 4,
                   opacity: pressed ? 0.7 : 1,
                 })}
+                accessibilityRole="button"
+                accessibilityLabel={`Edit user ${userItem.name}`}
               >
                 <MaterialIcons name="edit" size={20} color={colors.primary} />
               </Pressable>
@@ -121,6 +123,8 @@ const UserCard = ({
                   padding: 4,
                   opacity: pressed ? 0.7 : 1,
                 })}
+                accessibilityRole="button"
+                accessibilityLabel={`Delete user ${userItem.name}`}
               >
                 <MaterialIcons
                   name="delete-outline"
