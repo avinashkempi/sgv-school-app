@@ -270,6 +270,8 @@ const NotificationCenter = () => {
                     padding: 8,
                     opacity: pressed ? 0.7 : 1,
                   })}
+                  accessibilityRole="button"
+                  accessibilityLabel={notification.isRead ? "Mark as unread" : "Mark as read"}
                 >
                   <MaterialIcons
                     name={
@@ -290,6 +292,8 @@ const NotificationCenter = () => {
                     padding: 8,
                     opacity: pressed ? 0.7 : 1,
                   })}
+                  accessibilityRole="button"
+                  accessibilityLabel="Archive notification"
                 >
                   <MaterialIcons
                     name="archive"
@@ -399,6 +403,8 @@ const NotificationCenter = () => {
                 justifyContent: "center",
                 opacity: pressed ? 0.7 : 1,
               })}
+              accessibilityRole="button"
+              accessibilityLabel="Notification settings"
             >
               <MaterialIcons
                 name="settings"
