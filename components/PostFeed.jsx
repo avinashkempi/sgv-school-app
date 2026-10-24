@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -63,8 +63,12 @@ const PostFeed = ({ category, onEditPost }) => {
     }
   );
 
-  // Flatten pages into a single posts array
-  const posts = data?.pages?.flatMap((page) => page?.data || []) || [];
+  // ⚡ Bolt: Flatten pages into a single posts array memoized to prevent recalculation on every render
+  // This preserves referential equality for FlatList data prop and prevents unnecessary re-renders
+  const posts = useMemo(
+    () => data?.pages?.flatMap((page) => page?.data || []) || [],
+    [data?.pages]
+  );
 
   // Delete mutation
   const deleteMutation = useApiMutation({
