@@ -262,6 +262,8 @@ const NotificationCenter = () => {
               {/* Actions */}
               <View style={{ flexDirection: "row", gap: 8 }}>
                 <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={notification.isRead ? "Mark as unread" : "Mark as read"}
                   onPress={(e) => {
                     e.stopPropagation();
                     markAsRead(notification._id, notification.isRead);
@@ -282,6 +284,8 @@ const NotificationCenter = () => {
                   />
                 </Pressable>
                 <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Archive notification"
                   onPress={(e) => {
                     e.stopPropagation();
                     archiveNotification(notification._id);
@@ -389,6 +393,8 @@ const NotificationCenter = () => {
               </Pressable>
             )}
             <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Notification settings"
               onPress={() => router.push("/notification-preferences")}
               style={({ pressed }) => ({
                 width: 40,
