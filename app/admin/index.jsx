@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import {
   View,
   Text,
@@ -102,8 +102,12 @@ export default function AdminScreen() {
     }
   );
 
-  const users =
-    usersData?.pages?.flatMap((page) => page?.data || []).filter(Boolean) || [];
+  // ⚡ Bolt: Flatten and filter pages into a single users array memoized to prevent recalculation on every render
+  // This preserves referential equality for FlatList data prop and prevents unnecessary re-renders
+  const users = useMemo(
+    () => usersData?.pages?.flatMap((page) => page?.data || []).filter(Boolean) || [],
+    [usersData?.pages]
+  );
 
   // Mutations
   const createUserMutation = useApiMutation({
