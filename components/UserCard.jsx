@@ -34,6 +34,9 @@ const UserCard = ({
 
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`View profile of ${displayName}`}
+      accessibilityHint="Navigates to the user's detailed profile"
       onPress={onPress}
       style={({ pressed }) => ({
         backgroundColor: colors.surface || colors.cardBackground,
@@ -87,6 +90,8 @@ const UserCard = ({
             {/* Actions */}
             <View style={{ flexDirection: "row", gap: 8 }}>
               <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Edit ${displayName}`}
                 onPress={(e) => {
                   e.stopPropagation();
                   onEdit();
@@ -101,6 +106,8 @@ const UserCard = ({
               </Pressable>
 
               <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Delete ${displayName}`}
                 onPress={(e) => {
                   e.stopPropagation();
                   Alert.alert(

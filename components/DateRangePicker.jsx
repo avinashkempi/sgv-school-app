@@ -80,7 +80,12 @@ const DateRangePicker = ({
             <Text style={[styles.titleLarge, { color: colors.onSurface }]}>
               Select Date Range
             </Text>
-            <Pressable onPress={onClose} style={{ padding: 4 }}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Close modal"
+              onPress={onClose}
+              style={{ padding: 4 }}
+            >
               <MaterialIcons
                 name="close"
                 size={24}
@@ -97,6 +102,9 @@ const DateRangePicker = ({
             <View style={{ gap: 12 }}>
               {presets.map((preset) => (
                 <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={preset.label}
+                  accessibilityState={{ selected: activePreset === preset.id }}
                   key={preset.id}
                   onPress={() => handleSelect(preset.id)}
                   style={({ pressed }) => ({
