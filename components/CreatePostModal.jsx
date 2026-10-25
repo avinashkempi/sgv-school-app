@@ -235,7 +235,13 @@ export default function CreatePostModal({ visible, onClose, editPost = null }) {
               { borderBottomColor: colors.outlineVariant },
             ]}
           >
-            <Pressable onPress={handleClose} disabled={submitting} hitSlop={12}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Close modal"
+              onPress={handleClose}
+              disabled={submitting}
+              hitSlop={12}
+            >
               <MaterialIcons name="close" size={24} color={colors.onSurface} />
             </Pressable>
             <Text style={[styles.headerTitle, { color: colors.onSurface }]}>

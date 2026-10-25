@@ -103,7 +103,13 @@ export default function VibeLikesModal({ visible, onClose, vibeId }) {
                   Likes {users.length > 0 ? `(${users.length})` : ""}
                 </Text>
               </View>
-              <Pressable onPress={onClose} hitSlop={12} style={styles.closeBtn}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Close modal"
+                onPress={onClose}
+                hitSlop={12}
+                style={styles.closeBtn}
+              >
                 <MaterialIcons name="close" size={20} color={colors.onSurface} />
               </Pressable>
             </View>

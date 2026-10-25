@@ -531,7 +531,12 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
               <Text style={[styles.headerTitle, { color: colors.onSurface }]}>
                 Comments ({comments.length})
               </Text>
-              <Pressable onPress={onClose} hitSlop={12}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Close modal"
+                onPress={onClose}
+                hitSlop={12}
+              >
                 <MaterialIcons
                   name="close"
                   size={22}

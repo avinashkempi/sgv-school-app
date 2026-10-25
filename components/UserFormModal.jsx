@@ -215,7 +215,12 @@ export default function UserFormModal({
               >
                 {modalMode === "add" ? "New User" : "Edit User"}
               </Text>
-              <Pressable onPress={onClose} style={{ padding: 4 }}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Close modal"
+                onPress={onClose}
+                style={{ padding: 4 }}
+              >
                 <MaterialIcons
                   name="close"
                   size={24}
@@ -375,6 +380,8 @@ export default function UserFormModal({
                   )}
                 />
                 <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={showPassword ? "Hide password" : "Show password"}
                   onPress={() => setShowPassword(!showPassword)}
                   style={{ paddingLeft: 8 }}
                 >
