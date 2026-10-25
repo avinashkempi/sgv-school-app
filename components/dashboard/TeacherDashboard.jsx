@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -71,6 +71,35 @@ const TeacherDashboard = () => {
     missingData?.success && missingData.className
       ? missingData.className
       : null;
+
+  /*
+   * ⚡ BOLT OPTIMIZATION: Memoized Missing Dates Calculation
+   * Why: Prevents recalculating date objects and relative date strings (Today, Yesterday)
+   *      on every render, which is expensive inside a map loop.
+   * Impact: Reduces CPU cycles during re-renders, especially when interacting with
+   *         other UI elements like class selectors.
+   * Measurement: Component render time should be consistently faster when state changes.
+   */
+  const formattedMissingDays = useMemo(() => {
+    return missingDays.slice(0, 7).map((day) => {
+      const d = new Date(day + "T00:00:00");
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const yesterday = new Date(today);
+      yesterday.setDate(today.getDate() - 1);
+
+      let label;
+      if (d.getTime() === today.getTime()) label = "Today";
+      else if (d.getTime() === yesterday.getTime()) label = "Yesterday";
+      else {
+        label = d.toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short",
+        });
+      }
+      return { day, label };
+    });
+  }, [missingDays]);
 
   const handleDateRangeChange = (range) => {
     setDateRange(range);
@@ -276,20 +305,7 @@ const TeacherDashboard = () => {
 
           {/* Missed dates list */}
           <View style={localStyles.missedChipsRow}>
-            {missingDays.slice(0, 7).map((day) => {
-              const d = new Date(day + "T00:00:00");
-              const today = new Date();
-              today.setHours(0, 0, 0, 0);
-              const yesterday = new Date(today);
-              yesterday.setDate(today.getDate() - 1);
-              let label;
-              if (d.getTime() === today.getTime()) label = "Today";
-              else if (d.getTime() === yesterday.getTime()) label = "Yesterday";
-              else
-                label = d.toLocaleDateString("en-GB", {
-                  day: "2-digit",
-                  month: "short",
-                });
+            {formattedMissingDays.map(({ day, label }) => {
               return (
                 <Pressable
                   key={day}
