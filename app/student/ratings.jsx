@@ -182,6 +182,8 @@ export default function StudentRatingsScreen() {
           onPress={handlePrevMonth}
           style={styles.monthNavBtn}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          accessibilityRole="button"
+          accessibilityLabel="Previous Month"
         >
           <MaterialIcons
             name="chevron-left"
@@ -208,6 +210,8 @@ export default function StudentRatingsScreen() {
           onPress={handleNextMonth}
           style={styles.monthNavBtn}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          accessibilityRole="button"
+          accessibilityLabel="Next Month"
         >
           <MaterialIcons
             name="chevron-right"
@@ -232,6 +236,8 @@ export default function StudentRatingsScreen() {
             Haptics.selectionAsync().catch(() => {});
             setActiveTab("overview");
           }}
+          accessibilityRole="tab"
+          accessibilityLabel="Overview and Trend"
           style={[
             styles.tabItem,
             activeTab === "overview" && {
@@ -263,6 +269,8 @@ export default function StudentRatingsScreen() {
             Haptics.selectionAsync().catch(() => {});
             setActiveTab("subjects");
           }}
+          accessibilityRole="tab"
+          accessibilityLabel="Subjects"
           style={[
             styles.tabItem,
             activeTab === "subjects" && {
@@ -524,6 +532,8 @@ export default function StudentRatingsScreen() {
                       return (
                         <TouchableOpacity
                           key={`${tItem.year}-${tItem.month}`}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Select ${tMonthShort}`}
                           onPress={() => {
                             Haptics.selectionAsync().catch(() => {});
                             setSelectedMonth(tItem.month);

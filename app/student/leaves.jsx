@@ -399,6 +399,8 @@ export default function StudentLeaves() {
               ]}
               onPress={() => openEditModal(item)}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Edit Leave"
             >
               <Ionicons name="pencil-outline" size={13} color={colors.primary} />
               <Text style={[styles.cardActionBtnText, { color: colors.primary }]}>Edit</Text>
@@ -411,6 +413,8 @@ export default function StudentLeaves() {
               ]}
               onPress={() => promptCancelLeave(item)}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Cancel Leave"
             >
               <Ionicons name="trash-outline" size={13} color={colors.error} />
               <Text style={[styles.cardActionBtnText, { color: colors.error }]}>Cancel</Text>
@@ -539,7 +543,11 @@ export default function StudentLeaves() {
               <Text style={[styles.activeFilterText, { color: colors.onSecondaryContainer }]} numberOfLines={1}>
                 Year: {academicYears.find((y) => y._id === selectedAcademicYearId)?.name || "Selected"}
               </Text>
-              <TouchableOpacity onPress={() => setSelectedAcademicYearId("all")}>
+              <TouchableOpacity
+                onPress={() => setSelectedAcademicYearId("all")}
+                accessibilityRole="button"
+                accessibilityLabel="Remove filter"
+              >
                 <Ionicons name="close" size={14} color={colors.onSecondaryContainer} />
               </TouchableOpacity>
             </View>
