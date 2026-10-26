@@ -186,7 +186,11 @@ export default function CSVImportModal({
             >
               Import Marks from CSV
             </Text>
-            <Pressable onPress={handleClose}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Close modal"
+              onPress={handleClose}
+            >
               <MaterialIcons name="close" size={24} color={colors.onSurface} />
             </Pressable>
           </View>
