@@ -39,6 +39,7 @@ export default function ClassesScreen() {
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState("create"); // "create" or "edit"
   const [editingClassId, setEditingClassId] = useState(null);
+  const [editingClassObj, setEditingClassObj] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
 
   const [form, setForm] = useState({
@@ -81,6 +82,7 @@ export default function ClassesScreen() {
       setForm({ name: "", section: "", branch: "Main", classTeacher: "" });
       setModalMode("create");
       setEditingClassId(null);
+      setEditingClassObj(null);
     },
     onError: (error) => showToast(error.message || "Failed to create", "error"),
   });
@@ -98,6 +100,7 @@ export default function ClassesScreen() {
       setForm({ name: "", section: "", branch: "Main", classTeacher: "" });
       setModalMode("create");
       setEditingClassId(null);
+      setEditingClassObj(null);
     },
     onError: (error) => showToast(error.message || "Failed to update", "error"),
   });
@@ -113,19 +116,52 @@ export default function ClassesScreen() {
   });
 
   const handleSubmit = () => {
-    if (!form.name) {
-      showToast("Name is required", "error");
+    const trimmedName = form.name.trim();
+    if (!trimmedName) {
+      showToast("Class name is required", "error");
       return;
     }
 
     if (modalMode === "create") {
-      createClassMutation.mutate(form);
+      createClassMutation.mutate({ ...form, name: trimmedName });
     } else {
-      updateClassMutation.mutate({ ...form, _id: editingClassId });
+      const isNameChanging = editingClassObj && trimmedName !== editingClassObj.name;
+      const isBranchChanging = editingClassObj && form.branch !== editingClassObj.branch;
+      const studentCount = editingClassObj?.studentCount || 0;
+
+      if ((isNameChanging || isBranchChanging) && studentCount > 0) {
+        Alert.alert(
+          "⚠️ Confirm Class Modification",
+          `Class "${editingClassObj.name}" currently has ${studentCount} enrolled student(s). Renaming it or changing its branch will affect attendance, fee ledgers, and exams.\n\nAre you sure you want to proceed?`,
+          [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Yes, Modify Class",
+              style: "destructive",
+              onPress: () => {
+                updateClassMutation.mutate({
+                  ...form,
+                  name: trimmedName,
+                  confirmRename: true,
+                  _id: editingClassId,
+                });
+              },
+            },
+          ]
+        );
+        return;
+      }
+
+      updateClassMutation.mutate({
+        ...form,
+        name: trimmedName,
+        _id: editingClassId,
+      });
     }
   };
 
   const handleEdit = (cls) => {
+    setEditingClassObj(cls);
     setForm({
       name: cls.name,
       section: cls.section || "",
@@ -409,6 +445,38 @@ export default function ClassesScreen() {
               >
                 {modalMode === "create" ? "New Class" : "Edit Class"}
               </Text>
+
+              {modalMode === "edit" && (editingClassObj?.studentCount || 0) > 0 && (
+                <View
+                  style={{
+                    backgroundColor: colors.warning + "20",
+                    borderWidth: 1,
+                    borderColor: colors.warning + "40",
+                    padding: 10,
+                    borderRadius: 8,
+                    marginBottom: 14,
+                    flexDirection: "row",
+                    alignItems: "center",
+                  }}
+                >
+                  <MaterialIcons
+                    name="warning"
+                    size={18}
+                    color={colors.warning}
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text
+                    style={{
+                      color: colors.warning,
+                      fontSize: FONT_SIZES.xs,
+                      flex: 1,
+                      fontFamily: FONTS.medium,
+                    }}
+                  >
+                    {editingClassObj.studentCount} student(s) enrolled. Modifying name or branch requires confirmation.
+                  </Text>
+                </View>
+              )}
 
               <TextInput
                 placeholder="Class Name (e.g. 1st Standard)"
