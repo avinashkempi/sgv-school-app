@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, ScrollView } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS } from "../theme";
@@ -13,10 +13,37 @@ import Card from "./Card";
 export default function PerformanceInsights({ reportData }) {
   const { colors } = useTheme();
 
-  if (!reportData || !reportData.exams) return null;
-
   // Calculate insights
-  const calculateInsights = () => {
+  const insights = useMemo(() => {
+    if (!reportData || !reportData.exams) return null;
+
+    const calculateTrends = () => {
+      if (!reportData.exams || reportData.exams.length < 2) return null;
+
+      const completedExams = reportData.exams.filter((e) => e.isCompleted);
+      if (completedExams.length < 2) return null;
+
+      const latest = completedExams[completedExams.length - 1];
+      const previous = completedExams[completedExams.length - 2];
+
+      const change = latest.percentage - previous.percentage;
+
+      return {
+        direction: change > 0 ? "improving" : change < 0 ? "declining" : "stable",
+        change: Math.abs(change).toFixed(1),
+        latest: latest.examType,
+        previous: previous.examType,
+      };
+    };
+
+    const getMostCommonGrade = (grades) => {
+      const counts = {};
+      grades.forEach((g) => (counts[g] = (counts[g] || 0) + 1));
+      return Object.keys(counts).reduce((a, b) =>
+        counts[a] > counts[b] ? a : b
+      );
+    };
+
     const subjectPerformance = {};
 
     // Aggregate performance across all exams
@@ -62,34 +89,9 @@ export default function PerformanceInsights({ reportData }) {
     const trends = calculateTrends();
 
     return { strengths, weaknesses, trends };
-  };
+  }, [reportData]);
 
-  const calculateTrends = () => {
-    if (!reportData.exams || reportData.exams.length < 2) return null;
-
-    const completedExams = reportData.exams.filter((e) => e.isCompleted);
-    if (completedExams.length < 2) return null;
-
-    const latest = completedExams[completedExams.length - 1];
-    const previous = completedExams[completedExams.length - 2];
-
-    const change = latest.percentage - previous.percentage;
-
-    return {
-      direction: change > 0 ? "improving" : change < 0 ? "declining" : "stable",
-      change: Math.abs(change).toFixed(1),
-      latest: latest.examType,
-      previous: previous.examType,
-    };
-  };
-
-  const getMostCommonGrade = (grades) => {
-    const counts = {};
-    grades.forEach((g) => (counts[g] = (counts[g] || 0) + 1));
-    return Object.keys(counts).reduce((a, b) =>
-      counts[a] > counts[b] ? a : b
-    );
-  };
+  if (!insights) return null;
 
   const getGradeColor = (percentage) => {
     if (percentage >= 90) return colors.success || "#16A34A";
@@ -98,8 +100,6 @@ export default function PerformanceInsights({ reportData }) {
     if (percentage >= 30) return "#EA580C";
     return colors.error || "#DC2626";
   };
-
-  const insights = calculateInsights();
 
   return (
     <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
