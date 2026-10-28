@@ -92,6 +92,8 @@ const StudentDashboard = () => {
           <TouchableOpacity
             activeOpacity={0.85}
             onPress={() => router.push("/student/ratings")}
+            accessibilityRole="button"
+            accessibilityLabel="View monthly teacher ratings trend and subject breakdown"
             style={[
               styles.ratingCardContent,
               {
@@ -237,6 +239,8 @@ const StudentDashboard = () => {
           <TouchableOpacity
             activeOpacity={0.85}
             onPress={() => router.push("/student/ratings")}
+            accessibilityRole="button"
+            accessibilityLabel="Ratings in progress. Tap to view past records."
             style={[
               styles.ratingCardContent,
               {
