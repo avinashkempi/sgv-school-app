@@ -397,13 +397,13 @@ export default function VibesScreen() {
           : Math.max((Number(vibe.likesCount) || 1) - 1, 0),
       });
 
-      queryClient.setQueryData(feedQueryKey, (old) =>
+      queryClient.setQueriesData({ queryKey: ["vibes"] }, (old) =>
         updateVibeInPages(old, vibeId, updater)
       );
-      queryClient.setQueryData(["myVibes"], (old) =>
+      queryClient.setQueriesData({ queryKey: ["myVibes"] }, (old) =>
         updateVibeInPages(old, vibeId, updater)
       );
-      queryClient.setQueryData(["savedVibes"], (old) =>
+      queryClient.setQueriesData({ queryKey: ["savedVibes"] }, (old) =>
         updateVibeInPages(old, vibeId, updater)
       );
 
@@ -419,13 +419,13 @@ export default function VibesScreen() {
           isLiked: Boolean(serverIsLiked),
           likesCount: Math.max(0, Number(serverLikesCount) || 0),
         });
-        queryClient.setQueryData(feedQueryKey, (old) =>
+        queryClient.setQueriesData({ queryKey: ["vibes"] }, (old) =>
           updateVibeInPages(old, vibeId, serverUpdater)
         );
-        queryClient.setQueryData(["myVibes"], (old) =>
+        queryClient.setQueriesData({ queryKey: ["myVibes"] }, (old) =>
           updateVibeInPages(old, vibeId, serverUpdater)
         );
-        queryClient.setQueryData(["savedVibes"], (old) =>
+        queryClient.setQueriesData({ queryKey: ["savedVibes"] }, (old) =>
           updateVibeInPages(old, vibeId, serverUpdater)
         );
         // Also update targetVibe if it matches
@@ -480,13 +480,13 @@ export default function VibesScreen() {
         isBookmarked: nextBookmarked,
       });
 
-      queryClient.setQueryData(feedQueryKey, (old) =>
+      queryClient.setQueriesData({ queryKey: ["vibes"] }, (old) =>
         updateVibeInPages(old, vibeId, updater)
       );
-      queryClient.setQueryData(["myVibes"], (old) =>
+      queryClient.setQueriesData({ queryKey: ["myVibes"] }, (old) =>
         updateVibeInPages(old, vibeId, updater)
       );
-      queryClient.setQueryData(["savedVibes"], (old) =>
+      queryClient.setQueriesData({ queryKey: ["savedVibes"] }, (old) =>
         updateVibeInPages(old, vibeId, updater)
       );
 

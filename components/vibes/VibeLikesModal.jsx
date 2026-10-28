@@ -29,6 +29,8 @@ export default function VibeLikesModal({ visible, onClose, vibeId }) {
       : null,
     {
       ...CACHE_TIERS.REAL_TIME,
+      staleTime: 0,
+      refetchOnMount: "always",
       enabled: !!vibeId && visible,
     }
   );

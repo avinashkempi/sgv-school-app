@@ -317,8 +317,11 @@ const VibeStoryViewerModal = ({
         "POST"
       )({});
     },
-    onSuccess: () => {
+    onSuccess: (_res, vibeId) => {
       queryClient.invalidateQueries({ queryKey: ["vibes"] });
+      queryClient.invalidateQueries({ queryKey: ["vibeLikes", vibeId] });
+      queryClient.invalidateQueries({ queryKey: ["vibeHighlights"] });
+      queryClient.invalidateQueries({ queryKey: ["vibeSpotlight"] });
     },
   });
 
