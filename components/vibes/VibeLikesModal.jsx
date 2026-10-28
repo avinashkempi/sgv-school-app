@@ -28,12 +28,14 @@ export default function VibeLikesModal({ visible, onClose, vibeId }) {
       ? `${apiConfig.baseUrl}${apiConfig.endpoints.vibes.getLikes(vibeId)}`
       : null,
     {
-      ...CACHE_TIERS.VIBES_REALTIME,
+      ...CACHE_TIERS.REAL_TIME,
       enabled: !!vibeId && visible,
     }
   );
 
   const users = data?.data || [];
+  // Use the server-side total for accurate count, not the local page slice
+  const totalLikes = data?.pagination?.total ?? users.length;
 
   const renderUserItem = useCallback(
     ({ item }) => {
@@ -100,7 +102,7 @@ export default function VibeLikesModal({ visible, onClose, vibeId }) {
                   <MaterialIcons name="favorite" size={13} color="#FF2D55" />
                 </View>
                 <Text style={[styles.headerTitle, { color: colors.onSurface }]}>
-                  Likes {users.length > 0 ? `(${users.length})` : ""}
+                  Likes {totalLikes > 0 ? `(${totalLikes.toLocaleString()})` : ""}
                 </Text>
               </View>
               <Pressable onPress={onClose} hitSlop={12} style={styles.closeBtn}>

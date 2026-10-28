@@ -409,6 +409,41 @@ export default function VibesScreen() {
 
       return { prevFeed, prevMy, prevSaved };
     },
+    onSuccess: (res, { vibeId }) => {
+      // Reconcile cache with authoritative server values to prevent count drift
+      const serverIsLiked = res?.data?.isLiked;
+      const serverLikesCount = res?.data?.likesCount;
+      if (res?.data && serverLikesCount !== undefined) {
+        const serverUpdater = (vibe) => ({
+          ...vibe,
+          isLiked: Boolean(serverIsLiked),
+          likesCount: Math.max(0, Number(serverLikesCount) || 0),
+        });
+        queryClient.setQueryData(feedQueryKey, (old) =>
+          updateVibeInPages(old, vibeId, serverUpdater)
+        );
+        queryClient.setQueryData(["myVibes"], (old) =>
+          updateVibeInPages(old, vibeId, serverUpdater)
+        );
+        queryClient.setQueryData(["savedVibes"], (old) =>
+          updateVibeInPages(old, vibeId, serverUpdater)
+        );
+        // Also update targetVibe if it matches
+        queryClient.setQueryData(["targetVibe", String(vibeId)], (old) => {
+          if (!old?.data) return old;
+          return {
+            ...old,
+            data: {
+              ...old.data,
+              isLiked: Boolean(serverIsLiked),
+              likesCount: Math.max(0, Number(serverLikesCount) || 0),
+            },
+          };
+        });
+      }
+      // Invalidate the likes list so "View all" shows the correct count
+      queryClient.invalidateQueries({ queryKey: ["vibeLikes", vibeId] });
+    },
     onError: (_err, _vars, context) => {
       if (context?.prevFeed)
         queryClient.setQueryData(feedQueryKey, context.prevFeed);
