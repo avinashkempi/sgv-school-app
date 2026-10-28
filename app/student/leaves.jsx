@@ -539,7 +539,12 @@ export default function StudentLeaves() {
               <Text style={[styles.activeFilterText, { color: colors.onSecondaryContainer }]} numberOfLines={1}>
                 Year: {academicYears.find((y) => y._id === selectedAcademicYearId)?.name || "Selected"}
               </Text>
-              <TouchableOpacity onPress={() => setSelectedAcademicYearId("all")}>
+              <TouchableOpacity
+                onPress={() => setSelectedAcademicYearId("all")}
+                accessibilityRole="button"
+                accessibilityLabel="Clear year filter"
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              >
                 <Ionicons name="close" size={14} color={colors.onSecondaryContainer} />
               </TouchableOpacity>
             </View>
@@ -639,7 +644,12 @@ export default function StudentLeaves() {
               <Text style={[styles.modalHeading, { color: colors.onSurface }]}>
                 Select Academic Year
               </Text>
-              <TouchableOpacity onPress={() => setFilterModalVisible(false)}>
+              <TouchableOpacity
+                onPress={() => setFilterModalVisible(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Close filter modal"
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              >
                 <Ionicons name="close" size={22} color={colors.onSurfaceVariant} />
               </TouchableOpacity>
             </View>
@@ -766,7 +776,12 @@ export default function StudentLeaves() {
               <Text style={[styles.modalHeading, { color: colors.onSurface }]}>
                 {editingLeave ? "Edit Leave Request" : "Apply for Leave"}
               </Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
+              <TouchableOpacity
+                onPress={() => setModalVisible(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Close apply leave modal"
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              >
                 <Ionicons name="close" size={22} color={colors.onSurfaceVariant} />
               </TouchableOpacity>
             </View>
