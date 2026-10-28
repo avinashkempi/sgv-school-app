@@ -779,6 +779,8 @@ export default function ComplaintsScreen() {
           {canEdit && (
             <View style={{ flexDirection: "row", gap: 16 }}>
               <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Edit Feedback"
                 onPress={(e) => {
                   e.stopPropagation();
                   handleEdit(item);
@@ -787,6 +789,8 @@ export default function ComplaintsScreen() {
                 <MaterialIcons name="edit" size={18} color={colors.primary} />
               </Pressable>
               <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Delete Feedback"
                 onPress={(e) => {
                   e.stopPropagation();
                   handleDelete(item);
@@ -1046,6 +1050,8 @@ export default function ComplaintsScreen() {
       {/* Student: Single FAB for raising complaint */}
       {userRole === "student" && (
         <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Raise Complaint"
           onPress={() => router.push("/complaints/raise")}
           style={({ pressed }) => [
             fabStyle(colors),
@@ -1165,6 +1171,8 @@ export default function ComplaintsScreen() {
             </View>
           )}
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={showFabOptions ? "Close options" : "Show options"}
             onPress={() => setShowFabOptions(!showFabOptions)}
             style={({ pressed }) => [
               fabStyle(colors),
@@ -1236,6 +1244,8 @@ export default function ComplaintsScreen() {
             </View>
           )}
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={showFabOptions ? "Close options" : "Show options"}
             onPress={() => setShowFabOptions(!showFabOptions)}
             style={({ pressed }) => [
               fabStyle(colors),

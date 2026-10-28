@@ -354,7 +354,9 @@ export default function RaiseComplaintScreen() {
               onPress={handleSubmit}
               loading={raiseComplaintMutation.isPending}
             >
-              {t("complaints.submitComplaint", "Submit Complaint")}
+              {raiseComplaintMutation.isPending
+                ? t("complaints.submitting", "Submitting...")
+                : t("complaints.submitComplaint", "Submit Complaint")}
             </Button>
           </ScrollView>
         </View>
