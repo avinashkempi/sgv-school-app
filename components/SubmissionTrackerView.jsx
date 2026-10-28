@@ -408,6 +408,9 @@ export default function SubmissionTrackerView({
                   Haptics.selectionAsync().catch(() => {});
                   setActiveTab(tab.key);
                 }}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: isActive }}
+                accessibilityLabel={tab.label}
                 style={[
                   styles.trackerTabBtn,
                   {
