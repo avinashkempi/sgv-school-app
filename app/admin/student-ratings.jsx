@@ -70,8 +70,8 @@ const DATA_POINTS = [
   },
   {
     key: "englishComm",
-    label: "English Communication",
-    desc: "Speaks in English, expresses ideas clearly, communicates confidently",
+    label: "English/Subject Communication",
+    desc: "Speaks in English or subject language, expresses ideas clearly, communicates confidently",
     icon: "chat",
     color: "#D97706",
   },
@@ -80,9 +80,9 @@ const DATA_POINTS = [
 const getRatingLabel = (score) => {
   if (!score || score <= 0) return { label: "Unrated", color: "#6B7280", variant: "neutral" };
   if (score < 2.0) return { label: "Needs Significant Imp.", color: "#DC2626", variant: "error" };
-  if (score < 3.0) return { label: "Needs Improvement", color: "#EA580C", variant: "warning" };
-  if (score < 4.0) return { label: "Meets Expectation", color: "#4F46E5", variant: "primary" };
-  if (score < 4.8) return { label: "Good", color: "#16A34A", variant: "success" };
+  if (score < 2.5) return { label: "Needs Improvement", color: "#EA580C", variant: "warning" };
+  if (score < 3.5) return { label: "Meets Expectation", color: "#4F46E5", variant: "primary" };
+  if (score < 4.5) return { label: "Good", color: "#16A34A", variant: "success" };
   return { label: "Excellent", color: "#059669", variant: "success" };
 };
 
@@ -2123,40 +2123,66 @@ export default function AdminStudentRatingsScreen() {
                           Teacher: {sRating.teacher?.name || "Subject Teacher"}
                         </Text>
                       </View>
-                      <Badge
-                        variant={getRatingLabel(typeof sRating.averageScore === "number" ? sRating.averageScore : 0).variant}
-                        label={`★ ${typeof sRating.averageScore === "number" ? sRating.averageScore.toFixed(2) : (sRating.averageScore || "--")}`}
-                        size="md"
-                      />
+                      {sRating.isExempt ? (
+                        <Badge
+                          variant="neutral"
+                          icon="pause-circle-filled"
+                          label="Exempt"
+                          size="md"
+                        />
+                      ) : (
+                        <Badge
+                          variant={getRatingLabel(typeof sRating.averageScore === "number" ? sRating.averageScore : 0).variant}
+                          label={`★ ${typeof sRating.averageScore === "number" ? sRating.averageScore.toFixed(2) : (sRating.averageScore || "--")}`}
+                          size="md"
+                        />
+                      )}
                     </View>
 
-                    {/* 4 Points in this Subject */}
-                    <View style={styles.subjectPointsRow}>
-                      <View style={styles.pointChip}>
-                        <Text style={styles.pointChipLabel}>Engagement</Text>
-                        <Text style={styles.pointChipVal}>
-                          {sRating.classEngagement} / 5
+                    {/* 4 Points in this Subject or Exemption Notice */}
+                    {sRating.isExempt ? (
+                      <View style={{ marginTop: 8, padding: 8, borderRadius: RADIUS.sm, backgroundColor: colors.surfaceContainerLow }}>
+                        <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, fontFamily: FONTS.regular }}>
+                          Student was excused/exempt from ratings this month{sRating.exemptionReason ? ` (${sRating.exemptionReason})` : ""}.
                         </Text>
                       </View>
-                      <View style={styles.pointChip}>
-                        <Text style={styles.pointChipLabel}>Homework</Text>
-                        <Text style={styles.pointChipVal}>
-                          {sRating.homeworkClasswork} / 5
+                    ) : (
+                      <View style={styles.subjectPointsRow}>
+                        <View style={styles.pointChip}>
+                          <Text style={styles.pointChipLabel}>Engagement</Text>
+                          <Text style={styles.pointChipVal}>
+                            {sRating.classEngagement ?? "--"} / 5
+                          </Text>
+                        </View>
+                        <View style={styles.pointChip}>
+                          <Text style={styles.pointChipLabel}>Homework</Text>
+                          <Text style={styles.pointChipVal}>
+                            {sRating.homeworkClasswork ?? "--"} / 5
+                          </Text>
+                        </View>
+                        <View style={styles.pointChip}>
+                          <Text style={styles.pointChipLabel}>Behaviour</Text>
+                          <Text style={styles.pointChipVal}>
+                            {sRating.behaviourSocial ?? "--"} / 5
+                          </Text>
+                        </View>
+                        <View style={styles.pointChip}>
+                          <Text style={styles.pointChipLabel}>English</Text>
+                          <Text style={styles.pointChipVal}>
+                            {sRating.englishComm ?? "--"} / 5
+                          </Text>
+                        </View>
+                      </View>
+                    )}
+
+                    {/* Optional Teacher Remarks */}
+                    {!!sRating.remarks && (
+                      <View style={{ marginTop: 8, paddingHorizontal: 4 }}>
+                        <Text style={{ fontSize: 11, color: colors.onSurfaceVariant, fontStyle: "italic" }}>
+                          &ldquo;{sRating.remarks}&rdquo;
                         </Text>
                       </View>
-                      <View style={styles.pointChip}>
-                        <Text style={styles.pointChipLabel}>Behaviour</Text>
-                        <Text style={styles.pointChipVal}>
-                          {sRating.behaviourSocial} / 5
-                        </Text>
-                      </View>
-                      <View style={styles.pointChip}>
-                        <Text style={styles.pointChipLabel}>English</Text>
-                        <Text style={styles.pointChipVal}>
-                          {sRating.englishComm} / 5
-                        </Text>
-                      </View>
-                    </View>
+                    )}
                   </View>
                 ))}
               </ScrollView>

@@ -62,6 +62,11 @@ const StudentDashboard = () => {
   const ratingMonthName =
     ratingData?.month ? MONTH_NAMES[ratingData.month - 1] : "";
 
+  const hasRating = Boolean(ratingData && (ratingData.average != null || ratingData.averageScore != null));
+  const displayAvg = ratingData?.average ?? ratingData?.averageScore;
+  const displayCount = ratingData?.ratedCount ?? ratingData?.ratedSubjectCount ?? 0;
+  const criteriaData = ratingData?.criteriaAverages || (ratingData?.classEngagement != null ? ratingData : null);
+
   return (
     <View>
       {/* ═════════════════════════════════════════════════════════════ */}
@@ -83,7 +88,7 @@ const StudentDashboard = () => {
         lightBorder="rgba(99, 102, 241, 0.14)"
         darkBorder="rgba(167, 139, 250, 0.18)"
       >
-        {ratingData && ratingData.average ? (
+        {hasRating ? (
           <TouchableOpacity
             activeOpacity={0.85}
             onPress={() => router.push("/student/ratings")}
@@ -134,7 +139,7 @@ const StudentDashboard = () => {
                       },
                     ]}
                   >
-                    ★ {ratingData.average}
+                    ★ {displayAvg}
                   </Text>
                 </View>
                 <View style={styles.scoreMeta}>
@@ -151,8 +156,8 @@ const StudentDashboard = () => {
                       { color: colors.onSurfaceVariant },
                     ]}
                   >
-                    {ratingMonthName} {ratingData.year} • {ratingData.ratedCount}{" "}
-                    subject{ratingData.ratedCount !== 1 ? "s" : ""} evaluated
+                    {ratingMonthName} {ratingData.year} • {displayCount}{" "}
+                    subject{displayCount !== 1 ? "s" : ""} evaluated
                   </Text>
                 </View>
               </View>
@@ -165,28 +170,28 @@ const StudentDashboard = () => {
             </View>
 
             {/* Criteria Mini Pills Grid */}
-            {ratingData.criteriaAverages && (
+            {criteriaData && (
               <View style={styles.criteriaGrid}>
                 {[
                   {
                     key: "classEngagement",
                     label: "Engagement",
-                    val: ratingData.criteriaAverages.classEngagement,
+                    val: criteriaData.classEngagement,
                   },
                   {
                     key: "homeworkClasswork",
                     label: "Homework",
-                    val: ratingData.criteriaAverages.homeworkClasswork,
+                    val: criteriaData.homeworkClasswork,
                   },
                   {
                     key: "behaviourSocial",
                     label: "Behaviour",
-                    val: ratingData.criteriaAverages.behaviourSocial,
+                    val: criteriaData.behaviourSocial,
                   },
                   {
                     key: "englishComm",
                     label: "Communication",
-                    val: ratingData.criteriaAverages.englishComm,
+                    val: criteriaData.englishComm,
                   },
                 ].map((crit) => (
                   <View

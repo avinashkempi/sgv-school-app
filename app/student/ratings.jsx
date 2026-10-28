@@ -61,8 +61,8 @@ const CRITERIA_DEFINITIONS = [
   },
   {
     key: "englishComm",
-    label: "English Communication",
-    desc: "Expressing ideas clearly and confidently in English",
+    label: "English/Subject Communication",
+    desc: "Expressing ideas clearly and confidently in English or subject language",
     icon: "chat",
     accent: "#D97706",
   },
@@ -148,15 +148,18 @@ export default function StudentRatingsScreen() {
     return subjects.filter((s) => (s.subjectName || "").toLowerCase().includes(q));
   }, [subjects, searchQuery]);
 
-  // Overall rating label and status
+  // Overall rating label and status (standardized across student, admin, and backend)
   const ratingStatus = useMemo(() => {
+    if (ratingsData?.evaluation && ratingsData.evaluation.label !== "Unrated") {
+      return ratingsData.evaluation;
+    }
     if (!overallAvg) return { label: "Not Rated", variant: "neutral" };
     if (overallAvg >= 4.5) return { label: "Excellent", variant: "success" };
     if (overallAvg >= 3.5) return { label: "Good", variant: "success" };
     if (overallAvg >= 2.5) return { label: "Meets Expectation", variant: "primary" };
     if (overallAvg >= 2.0) return { label: "Needs Improvement", variant: "warning" };
-    return { label: "Needs Attention", variant: "danger" };
-  }, [overallAvg]);
+    return { label: "Needs Significant Imp.", variant: "danger" };
+  }, [overallAvg, ratingsData?.evaluation]);
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -641,13 +644,29 @@ export default function StudentRatingsScreen() {
                             { color: colors.onSurfaceVariant },
                           ]}
                         >
-                          {sub.isRated
+                          {sub.isExempt
+                            ? "Exempt / On Leave"
+                            : sub.isRated
                             ? `${monthName} Evaluation Complete`
                             : "Not evaluated this month"}
                         </Text>
                       </View>
 
-                      {sub.isRated ? (
+                      {sub.isExempt ? (
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                          <Badge
+                            variant="neutral"
+                            icon="pause-circle-filled"
+                            label="Exempt"
+                            size="md"
+                          />
+                          <MaterialIcons
+                            name={isExpanded ? "expand-less" : "expand-more"}
+                            size={22}
+                            color={colors.onSurfaceVariant}
+                          />
+                        </View>
+                      ) : sub.isRated ? (
                         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                           <Badge
                             variant="success"
@@ -701,7 +720,7 @@ export default function StudentRatingsScreen() {
                             icon: "groups",
                           },
                           {
-                            label: "English Communication",
+                            label: "English/Subject Communication",
                             val: sub.englishComm,
                             icon: "chat",
                           },

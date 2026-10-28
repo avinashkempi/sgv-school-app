@@ -2822,7 +2822,7 @@ export const DEMO_MOVERS_DATA = {
       previousAvg: 4.25,
       change: 0.5,
       delta: "+0.50",
-      strongestArea: "English Communication",
+      strongestArea: "English/Subject Communication",
     },
     {
       student: DEMO_STUDENTS[2],
@@ -2872,7 +2872,7 @@ export const DEMO_MOVERS_DATA = {
       previousAvg: 3.85,
       change: -0.35,
       delta: "-0.35",
-      focusArea: "English Communication",
+      focusArea: "English/Subject Communication",
     },
   ],
 };

@@ -40,7 +40,7 @@ if (
   TaskManager?.isTaskDefined &&
   !TaskManager.isTaskDefined(BACKGROUND_SYNC_TASK)
 ) {
-  TaskManager.defineTask(BACKGROUND_SYNC_TASK, async ({ data, error }) => {
+  TaskManager.defineTask(BACKGROUND_SYNC_TASK, async ({ error }) => {
     // Guard: If the headless JS environment reports an error or isn't fully
     // initialized, bail out immediately to prevent native NPE crashes on
     // Android when the OS fires the task after the app process was killed.

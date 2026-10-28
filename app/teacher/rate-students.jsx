@@ -67,8 +67,8 @@ const DATA_POINTS = [
   },
   {
     key: "englishComm",
-    label: "English Communication",
-    desc: "Speaks in English, expresses ideas clearly, communicates confidently",
+    label: "English/Subject Communication",
+    desc: "Speaks in English or subject language, expresses ideas clearly, communicates confidently",
     icon: "chat",
   },
 ];
@@ -175,6 +175,9 @@ export default function RateStudentsScreen() {
               homeworkClasswork: item.rating.homeworkClasswork,
               behaviourSocial: item.rating.behaviourSocial,
               englishComm: item.rating.englishComm,
+              isExempt: Boolean(item.rating.isExempt),
+              exemptionReason: item.rating.exemptionReason || "",
+              remarks: item.rating.remarks || "",
             };
           }
         });
@@ -225,8 +228,9 @@ export default function RateStudentsScreen() {
   const ratedStudentIds = useMemo(() => {
     return Object.keys(ratingsMap).filter((id) => {
       const r = ratingsMap[id];
+      if (!r) return false;
+      if (r.isExempt) return true;
       return (
-        r &&
         r.classEngagement >= 1 &&
         r.homeworkClasswork >= 1 &&
         r.behaviourSocial >= 1 &&
@@ -272,6 +276,8 @@ export default function RateStudentsScreen() {
           ...prev,
           [studentId]: {
             ...studentRatings,
+            isExempt: false,
+            exemptionReason: "",
             [criteriaKey]: score,
           },
         };
@@ -288,6 +294,9 @@ export default function RateStudentsScreen() {
       setRatingsMap((prev) => ({
         ...prev,
         [studentId]: {
+          ...(prev[studentId] || {}),
+          isExempt: false,
+          exemptionReason: "",
           classEngagement: score,
           homeworkClasswork: score,
           behaviourSocial: score,
@@ -305,6 +314,23 @@ export default function RateStudentsScreen() {
       ...prev,
       [studentId]: !prev[studentId],
     }));
+  }, []);
+
+  const handleToggleExempt = useCallback((studentId) => {
+    Haptics.selectionAsync().catch(() => {});
+    setRatingsMap((prev) => {
+      const studentRating = prev[studentId] || {};
+      const nextExempt = !studentRating.isExempt;
+      return {
+        ...prev,
+        [studentId]: {
+          ...studentRating,
+          isExempt: nextExempt,
+          exemptionReason: nextExempt ? "Excused / Absent" : "",
+        },
+      };
+    });
+    setHasUnsavedChanges(true);
   }, []);
 
   const handleBatchFillUnrated = useCallback(
@@ -329,6 +355,9 @@ export default function RateStudentsScreen() {
                 const next = { ...prev };
                 unratedList.forEach((s) => {
                   next[s._id] = {
+                    ...(prev[s._id] || {}),
+                    isExempt: false,
+                    exemptionReason: "",
                     classEngagement: score,
                     homeworkClasswork: score,
                     behaviourSocial: score,
@@ -353,11 +382,12 @@ export default function RateStudentsScreen() {
 
   // Save all completed ratings
   const handleSave = async () => {
-    // Only send entries that have all 4 data points filled
+    // Only send entries that have all 4 data points filled or are marked exempt
     const validEntries = Object.entries(ratingsMap)
       .filter(([_, r]) => {
+        if (!r) return false;
+        if (r.isExempt) return true;
         return (
-          r &&
           r.classEngagement >= 1 &&
           r.homeworkClasswork >= 1 &&
           r.behaviourSocial >= 1 &&
@@ -366,17 +396,20 @@ export default function RateStudentsScreen() {
       })
       .map(([studentId, r]) => ({
         studentId,
-        classEngagement: r.classEngagement,
-        homeworkClasswork: r.homeworkClasswork,
-        behaviourSocial: r.behaviourSocial,
-        englishComm: r.englishComm,
+        isExempt: Boolean(r.isExempt),
+        exemptionReason: r.exemptionReason || "",
+        remarks: r.remarks || "",
+        classEngagement: r.isExempt ? null : r.classEngagement,
+        homeworkClasswork: r.isExempt ? null : r.homeworkClasswork,
+        behaviourSocial: r.isExempt ? null : r.behaviourSocial,
+        englishComm: r.isExempt ? null : r.englishComm,
       }));
 
     if (validEntries.length === 0) {
       showToast(
         t(
           "teacher.noCompleteRatingsToSave",
-          "Please rate at least one student on all 4 criteria to save."
+          "Please rate or exempt at least one student to save."
         ),
         "warning"
       );
@@ -453,11 +486,13 @@ export default function RateStudentsScreen() {
   // Render individual student card
   const renderStudentItem = ({ item: student }) => {
     const studentRating = ratingsMap[student._id] || {};
+    const isExempt = Boolean(studentRating.isExempt);
     const isComplete =
-      studentRating.classEngagement >= 1 &&
+      isExempt ||
+      (studentRating.classEngagement >= 1 &&
       studentRating.homeworkClasswork >= 1 &&
       studentRating.behaviourSocial >= 1 &&
-      studentRating.englishComm >= 1;
+      studentRating.englishComm >= 1);
 
     // Calculate student average score if partially or fully rated
     const validScores = [
@@ -468,7 +503,7 @@ export default function RateStudentsScreen() {
     ].filter((s) => s >= 1);
 
     const averageScore =
-      validScores.length > 0
+      !isExempt && validScores.length > 0
         ? (validScores.reduce((a, b) => a + b, 0) / validScores.length).toFixed(1)
         : null;
 
@@ -488,11 +523,15 @@ export default function RateStudentsScreen() {
                 {student.name}
               </Text>
               <Text style={[styles.studentRoll, { color: colors.onSurfaceVariant }]}>
-                {student.regNo ? `Reg: ${student.regNo}` : "Student"} • ★ {averageScore}
+                {student.regNo ? `Reg: ${student.regNo}` : "Student"} • {isExempt ? "Exempt / On Leave" : `★ ${averageScore}`}
               </Text>
             </View>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <Badge variant="success" icon="check-circle" label={`★ ${averageScore}`} size="sm" />
+              {isExempt ? (
+                <Badge variant="neutral" icon="pause-circle-filled" label="Exempt" size="sm" />
+              ) : (
+                <Badge variant="success" icon="check-circle" label={`★ ${averageScore}`} size="sm" />
+              )}
               <MaterialIcons name="edit" size={18} color={colors.primary} />
             </View>
           </View>
@@ -537,7 +576,14 @@ export default function RateStudentsScreen() {
           {/* Right Status Badge & Live Average */}
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
             <View style={styles.studentStatusCol}>
-              {isComplete ? (
+              {isExempt ? (
+                <Badge
+                  variant="neutral"
+                  icon="pause-circle-filled"
+                  label="Exempt / On Leave"
+                  size="md"
+                />
+              ) : isComplete ? (
                 <Badge
                   variant="success"
                   icon="check-circle"
@@ -571,30 +617,74 @@ export default function RateStudentsScreen() {
           </View>
         </View>
 
-        {/* Quick Fill Row */}
-        <View
-          style={[
-            styles.quickFillRow,
-            {
-              backgroundColor: colors.surfaceContainer || "#F3F4F6",
-              borderColor: colors.outlineVariant,
-            },
-          ]}
-        >
-          <Text
-            style={[styles.quickFillLabel, { color: colors.onSurfaceVariant }]}
+        {/* Quick Fill Row or Exemption Notice */}
+        {isExempt ? (
+          <View
+            style={[
+              styles.quickFillRow,
+              {
+                backgroundColor: colors.surfaceContainer || "#F3F4F6",
+                borderColor: colors.outlineVariant,
+                justifyContent: "space-between",
+              },
+            ]}
           >
-            Quick Rate:
-          </Text>
-          <View style={styles.quickFillButtons}>
-            {[
-              { val: 3, label: "All 3s (Average)" },
-              { val: 4, label: "All 4s (Good)" },
-              { val: 5, label: "All 5s (Top)" },
-            ].map((preset) => (
+            <Text style={{ fontSize: 13, color: colors.onSurfaceVariant, flex: 1, marginRight: 8 }}>
+              Student is excused/exempt from ratings this month.
+            </Text>
+            <TouchableOpacity
+              onPress={() => handleToggleExempt(student._id)}
+              style={[styles.quickFillPill, { borderColor: colors.outlineVariant }]}
+            >
+              <Text style={{ fontSize: 12, color: colors.primary, fontFamily: FONTS.bold }}>
+                Remove Exemption
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View
+            style={[
+              styles.quickFillRow,
+              {
+                backgroundColor: colors.surfaceContainer || "#F3F4F6",
+                borderColor: colors.outlineVariant,
+              },
+            ]}
+          >
+            <Text
+              style={[styles.quickFillLabel, { color: colors.onSurfaceVariant }]}
+            >
+              Quick Rate:
+            </Text>
+            <View style={styles.quickFillButtons}>
+              {[
+                { val: 3, label: "All 3s (Average)" },
+                { val: 4, label: "All 4s (Good)" },
+                { val: 5, label: "All 5s (Top)" },
+              ].map((preset) => (
+                <TouchableOpacity
+                  key={preset.val}
+                  onPress={() => handleQuickFill(student._id, preset.val)}
+                  style={[
+                    styles.quickFillPill,
+                    {
+                      backgroundColor: colors.surfaceContainerLowest || colors.surface,
+                      borderColor: colors.outlineVariant,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.quickFillPillText,
+                      { color: colors.primary },
+                    ]}
+                  >
+                    {preset.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
               <TouchableOpacity
-                key={preset.val}
-                onPress={() => handleQuickFill(student._id, preset.val)}
+                onPress={() => handleToggleExempt(student._id)}
                 style={[
                   styles.quickFillPill,
                   {
@@ -606,15 +696,15 @@ export default function RateStudentsScreen() {
                 <Text
                   style={[
                     styles.quickFillPillText,
-                    { color: colors.primary },
+                    { color: colors.onSurfaceVariant },
                   ]}
                 >
-                  {preset.label}
+                  Mark Exempt
                 </Text>
               </TouchableOpacity>
-            ))}
+            </View>
           </View>
-        </View>
+        )}
 
         {/* The 4 Criteria Rating Rows */}
         <View style={styles.criteriaContainer}>
@@ -725,6 +815,28 @@ export default function RateStudentsScreen() {
           }
         />
       </View>
+
+      {/* Co-teacher submission transparency banner */}
+      {subjectData?.lastSubmissionInfo && (
+        <View
+          style={[
+            styles.coTeacherBanner,
+            {
+              backgroundColor: colors.surfaceContainerLow || "#EEF2FF",
+              borderColor: colors.outlineVariant,
+            },
+          ]}
+        >
+          <MaterialIcons name="info-outline" size={16} color={colors.primary} />
+          <Text style={[styles.coTeacherBannerText, { color: colors.onSurface }]}>
+            Ratings previously submitted by{" "}
+            <Text style={{ fontFamily: FONTS.bold }}>
+              {subjectData.lastSubmissionInfo.teacherName}
+            </Text>
+            . Any edits will update these records.
+          </Text>
+        </View>
+      )}
 
       {/* Progress & Search Top Panel */}
       <View
@@ -1525,5 +1637,22 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
     lineHeight: 15,
+  },
+  coTeacherBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginHorizontal: 16,
+    marginTop: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+  },
+  coTeacherBannerText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.regular,
+    flex: 1,
+    lineHeight: 16,
   },
 });
