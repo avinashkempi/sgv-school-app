@@ -245,7 +245,7 @@ export default function AdminStudentRatingsScreen() {
       const res = await apiFetch(
         `${apiConfig.baseUrl}/student-ratings/admin/toggle-subject`,
         {
-          method: "PATCH",
+          method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ subjectName, ratingEnabled: newEnabled }),
         }

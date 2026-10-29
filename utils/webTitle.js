@@ -1,6 +1,6 @@
 import React from "react";
 import { Platform } from "react-native";
-import { Helmet } from "expo-router/vendor/react-helmet-async/lib";
+import Head from "expo-router/head";
 
 /**
  * Route-to-title mapping for web browser tab titles.
@@ -135,7 +135,7 @@ export function updateWebDocumentTitle(segments = []) {
 export function WebHeadTitle({ title }) {
   if (Platform.OS !== "web") return null;
   return React.createElement(
-    Helmet,
+    Head,
     null,
     React.createElement("title", null, title || "SGV School")
   );

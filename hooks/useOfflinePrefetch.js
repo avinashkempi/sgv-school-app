@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import { InteractionManager } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import apiFetch from "../utils/apiFetch";
 import apiConfig from "../config/apiConfig";
@@ -199,17 +198,32 @@ export default function useOfflinePrefetch() {
       }
     };
 
-    // Wait for all navigation and animations to finish before prefetching
-    // to avoid frame drops on Android
-    const interactionTask = InteractionManager.runAfterInteractions(() => {
-      if (isMounted) {
-        prefetchAll();
-      }
-    });
+    // Wait for idle time after navigation/mount to avoid frame drops
+    let idleHandle;
+    let timerId;
+
+    if (typeof requestIdleCallback === "function") {
+      idleHandle = requestIdleCallback(() => {
+        if (isMounted) {
+          prefetchAll();
+        }
+      });
+    } else {
+      timerId = setTimeout(() => {
+        if (isMounted) {
+          prefetchAll();
+        }
+      }, 1000);
+    }
 
     return () => {
       isMounted = false;
-      interactionTask.cancel();
+      if (idleHandle && typeof cancelIdleCallback === "function") {
+        cancelIdleCallback(idleHandle);
+      }
+      if (timerId) {
+        clearTimeout(timerId);
+      }
     };
   }, [queryClient, isAuthenticated, isDemo, userId]);
 }

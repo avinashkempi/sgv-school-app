@@ -1,5 +1,4 @@
 import { ScrollViewStyleReset, useServerDocumentContext } from "expo-router/html";
-import { Helmet } from "expo-router/vendor/react-helmet-async/lib";
 
 // This file is web-only and used to configure the root HTML for every
 // web page during static rendering (e.g. `npx expo export --platform web`).
@@ -16,9 +15,7 @@ export default function Root({ children }) {
           name="viewport"
           content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover"
         />
-        <Helmet>
-          <title>SGV School</title>
-        </Helmet>
+        <title>SGV School</title>
         <meta
           name="description"
           content="SGV School Portal - Comprehensive Academic Management System"
