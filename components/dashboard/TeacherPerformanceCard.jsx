@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { View, Text, Pressable, Dimensions } from "react-native";
 import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import Svg, {
@@ -119,36 +119,39 @@ const TeacherPerformanceCard = ({
   const isDark = mode === "dark";
 
   // Normalize and clean incoming data - aggregate duplicate subject names
-  const rawLabels = Array.isArray(labels) ? labels : [];
-  const rawData = Array.isArray(data) ? data : [];
+  // Memoized to prevent expensive array mapping/reduction on every render
+  const normalizedData = useMemo(() => {
+    const rawLabels = Array.isArray(labels) ? labels : [];
+    const rawData = Array.isArray(data) ? data : [];
 
-  const aggregatedMap = new Map();
-  rawLabels.forEach((lbl, idx) => {
-    const val = rawData[idx] !== undefined ? rawData[idx] : 0;
-    const marks = Number(val) || 0;
-    const cleanName = formatSubjectName(lbl, idx);
-    if (!aggregatedMap.has(cleanName)) {
-      aggregatedMap.set(cleanName, {
-        name: cleanName,
-        originalLabel: lbl,
-        total: marks,
-        count: 1,
-      });
-    } else {
-      const item = aggregatedMap.get(cleanName);
-      item.total += marks;
-      item.count += 1;
-    }
-  });
+    const aggregatedMap = new Map();
+    rawLabels.forEach((lbl, idx) => {
+      const val = rawData[idx] !== undefined ? rawData[idx] : 0;
+      const marks = Number(val) || 0;
+      const cleanName = formatSubjectName(lbl, idx);
+      if (!aggregatedMap.has(cleanName)) {
+        aggregatedMap.set(cleanName, {
+          name: cleanName,
+          originalLabel: lbl,
+          total: marks,
+          count: 1,
+        });
+      } else {
+        const item = aggregatedMap.get(cleanName);
+        item.total += marks;
+        item.count += 1;
+      }
+    });
 
-  const normalizedData = Array.from(aggregatedMap.values()).map(
-    (item, idx) => ({
-      name: item.name,
-      originalLabel: item.originalLabel,
-      marks: Math.round((item.total / item.count) * 10) / 10,
-      rawIndex: idx,
-    })
-  );
+    return Array.from(aggregatedMap.values()).map(
+      (item, idx) => ({
+        name: item.name,
+        originalLabel: item.originalLabel,
+        marks: Math.round((item.total / item.count) * 10) / 10,
+        rawIndex: idx,
+      })
+    );
+  }, [labels, data]);
 
   if (normalizedData.length === 0) {
     return null;
