@@ -139,6 +139,9 @@ export default function TargetScoreCalculator({ exams = [] }) {
               ]}
               onPress={() => setSelectedTarget(preset.target)}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={`Target ${preset.label}`}
+              accessibilityState={{ selected: isSelected }}
             >
               <Text
                 style={[

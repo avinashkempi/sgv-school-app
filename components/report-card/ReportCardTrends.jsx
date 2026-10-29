@@ -341,6 +341,8 @@ export default function ReportCardTrends({
                   style={styles.touchArea}
                   onPress={() => setSelectedExamIndex(idx)}
                   activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={`View details for ${p.exam}`}
                 />
               ))}
             </View>
