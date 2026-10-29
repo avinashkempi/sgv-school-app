@@ -347,6 +347,9 @@ export default function ExamCard({
             )}
             {onEdit && (
               <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Edit exam"
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 onPress={onEdit}
                 style={({ pressed }) => ({
                   backgroundColor: pressed
@@ -362,6 +365,9 @@ export default function ExamCard({
             )}
             {onDelete && (
               <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Delete exam"
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 onPress={onDelete}
                 style={({ pressed }) => ({
                   backgroundColor: pressed
