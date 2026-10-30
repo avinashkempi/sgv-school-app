@@ -267,8 +267,9 @@ const NotificationItem = memo(
       destination.type === "navigate" || destination.type === "external_link";
 
     const handlePress = useCallback(() => {
-      if (!notif.isRead) {
-        markAsRead(notif._id);
+      const notifId = notif._id || notif.id;
+      if (!notif.isRead && notifId) {
+        markAsRead(notifId);
       }
       if (hasAction) {
         handleNotificationNavigation(notif, router, userRole, {
@@ -297,10 +298,12 @@ const NotificationItem = memo(
       ? `${config.color}40`
       : `${config.color}30`;
 
+    const notifId = notif._id || notif.id;
+
     return (
       <SwipeableRow
-        onDelete={isAdmin ? () => handleDelete(notif._id) : undefined}
-        enabled={isAdmin}
+        onDelete={isAdmin && notifId ? () => handleDelete(notifId) : undefined}
+        enabled={Boolean(isAdmin && notifId)}
         deleteColor={colors.error || "#EF4444"}
       >
         <Pressable
@@ -384,7 +387,7 @@ const NotificationItem = memo(
                     <Pressable
                       onPress={(e) => {
                         e.stopPropagation?.();
-                        handleDelete(notif._id);
+                        handleDelete(notifId);
                       }}
                       hitSlop={8}
                       style={({ pressed }) => [
@@ -912,7 +915,7 @@ export default function NotificationsScreen() {
         ) : (
           <FlashList
             data={filteredNotifications}
-            keyExtractor={(item) => item._id}
+            keyExtractor={(item) => item._id || item.id || String(Math.random())}
             renderItem={renderItem}
             contentContainerStyle={styles.listContent}
             estimatedItemSize={104}

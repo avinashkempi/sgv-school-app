@@ -62,13 +62,15 @@ export function resolveNotificationRoute(
   const isStudentRole = role === "student";
 
   // 1. External link action
-  if (actionType === "external_link" && typeof actionData === "string") {
-    if (actionData.startsWith("http://") || actionData.startsWith("https://")) {
-      return { type: "external_link", url: actionData };
-    }
+  if (actionType === "external_link" && typeof actionData === "string" && actionData.trim()) {
+    const rawUrl = actionData.trim();
+    const url = rawUrl.startsWith("http://") || rawUrl.startsWith("https://") ? rawUrl : `https://${rawUrl}`;
+    return { type: "external_link", url };
   }
-  if (typeof data.url === "string" && (data.url.startsWith("http://") || data.url.startsWith("https://"))) {
-    return { type: "external_link", url: data.url };
+  if (typeof data.url === "string" && data.url.trim()) {
+    const rawUrl = data.url.trim();
+    const url = rawUrl.startsWith("http://") || rawUrl.startsWith("https://") ? rawUrl : `https://${rawUrl}`;
+    return { type: "external_link", url };
   }
 
   // 2. Explicit internal navigation action
@@ -240,12 +242,19 @@ export async function handleNotificationNavigation(
     });
 
     if (destination.type === "external_link" && destination.url) {
-      const supported = await Linking.canOpenURL(destination.url);
-      if (supported) {
-        await Linking.openURL(destination.url);
-        return true;
+      try {
+        const supported = await Linking.canOpenURL(destination.url);
+        if (supported) {
+          await Linking.openURL(destination.url);
+          return true;
+        } else {
+          await Linking.openURL(destination.url);
+          return true;
+        }
+      } catch (linkErr) {
+        console.warn("[NotificationRouter] Open URL error:", linkErr);
+        return false;
       }
-      return false;
     }
 
     if (destination.type === "navigate" && destination.route) {

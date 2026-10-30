@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Modal,
   Switch,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
@@ -78,11 +80,20 @@ const DATA_POINTS = [
 ];
 
 const getRatingLabel = (score) => {
-  if (!score || score <= 0) return { label: "Unrated", color: "#6B7280", variant: "neutral" };
-  if (score < 2.0) return { label: "Needs Significant Imp.", color: "#DC2626", variant: "error" };
-  if (score < 2.5) return { label: "Needs Improvement", color: "#EA580C", variant: "warning" };
-  if (score < 3.5) return { label: "Meets Expectation", color: "#4F46E5", variant: "primary" };
-  if (score < 4.5) return { label: "Good", color: "#16A34A", variant: "success" };
+  if (!score || score <= 0)
+    return { label: "Unrated", color: "#6B7280", variant: "neutral" };
+  if (score < 2.0)
+    return {
+      label: "Needs Significant Imp.",
+      color: "#DC2626",
+      variant: "error",
+    };
+  if (score < 2.5)
+    return { label: "Needs Improvement", color: "#EA580C", variant: "warning" };
+  if (score < 3.5)
+    return { label: "Meets Expectation", color: "#4F46E5", variant: "primary" };
+  if (score < 4.5)
+    return { label: "Good", color: "#16A34A", variant: "success" };
   return { label: "Excellent", color: "#059669", variant: "success" };
 };
 
@@ -106,7 +117,8 @@ export default function AdminStudentRatingsScreen() {
   const [subjectSearchQuery, setSubjectSearchQuery] = useState("");
   const [subjectFilterStatus, setSubjectFilterStatus] = useState("all"); // 'all' | 'enabled' | 'disabled'
   const [expandedSubjectClasses, setExpandedSubjectClasses] = useState({});
-  const [togglingSubjectName, setTogglingSubjectName] = useState(null);
+  const [togglingSubjects, setTogglingSubjects] = useState({});
+  const [subjectRatingOverrides, setSubjectRatingOverrides] = useState({});
   const [isBulkConfiguring, setIsBulkConfiguring] = useState(false);
 
   // Student drilldown modal state
@@ -191,7 +203,9 @@ export default function AdminStudentRatingsScreen() {
     refetch: refetchMovers,
   } = useApiQuery(
     ["schoolRatingsMovers", selectedMonth, selectedYear, selectedClassId],
-    `${apiConfig.baseUrl}/student-ratings/school/movers?month=${selectedMonth}&year=${selectedYear}${
+    `${
+      apiConfig.baseUrl
+    }/student-ratings/school/movers?month=${selectedMonth}&year=${selectedYear}${
       isClassSpecific ? `&classId=${selectedClassId}` : ""
     }`,
     { ...CACHE_TIERS.MODERATE }
@@ -206,11 +220,12 @@ export default function AdminStudentRatingsScreen() {
     );
 
   // 6. Fetch Student Monthly Trend
-  const { data: studentTrendData, isLoading: loadingStudentTrend } = useApiQuery(
-    ["studentRatingTrend", selectedStudentId],
-    `${apiConfig.baseUrl}/student-ratings/student/${selectedStudentId}/trend?months=6`,
-    { enabled: !!selectedStudentId }
-  );
+  const { data: studentTrendData, isLoading: loadingStudentTrend } =
+    useApiQuery(
+      ["studentRatingTrend", selectedStudentId],
+      `${apiConfig.baseUrl}/student-ratings/student/${selectedStudentId}/trend?months=6`,
+      { enabled: !!selectedStudentId }
+    );
 
   // 7. Fetch Submission Tracker Data
   const {
@@ -237,10 +252,34 @@ export default function AdminStudentRatingsScreen() {
     }
   );
 
-  const handleToggleSubjectRating = async (subjectName, currentEnabled) => {
+  const getEffectiveRatingEnabled = useCallback(
+    (sub) => {
+      if (!sub) return true;
+      if (sub.name in subjectRatingOverrides) {
+        return subjectRatingOverrides[sub.name];
+      }
+      return sub.ratingEnabled !== false;
+    },
+    [subjectRatingOverrides]
+  );
+
+  const handleToggleSubjectRating = async (
+    subjectName,
+    currentEffectiveEnabled
+  ) => {
     Haptics.selectionAsync().catch(() => {});
-    const newEnabled = !currentEnabled;
-    setTogglingSubjectName(subjectName);
+    const newEnabled = !currentEffectiveEnabled;
+
+    // 1. Instant Optimistic State update (frame 0)
+    setSubjectRatingOverrides((prev) => ({
+      ...prev,
+      [subjectName]: newEnabled,
+    }));
+    setTogglingSubjects((prev) => ({
+      ...prev,
+      [subjectName]: true,
+    }));
+
     try {
       const res = await apiFetch(
         `${apiConfig.baseUrl}/student-ratings/admin/toggle-subject`,
@@ -250,7 +289,8 @@ export default function AdminStudentRatingsScreen() {
           body: JSON.stringify({ subjectName, ratingEnabled: newEnabled }),
         }
       );
-      const data = res && typeof res.json === "function" ? await res.json() : res;
+      const data =
+        res && typeof res.json === "function" ? await res.json() : res;
       if (res?.ok || data?.success) {
         showToast(
           newEnabled
@@ -258,26 +298,101 @@ export default function AdminStudentRatingsScreen() {
             : `"${subjectName}" disabled from ratings across all classes`,
           "success"
         );
-        await Promise.all([
-          refetchSubjectsConfig(),
+
+        // Directly update React Query cache for instant synchronization across tabs
+        queryClient.setQueryData(["adminSubjectsConfig"], (oldData) => {
+          if (!oldData || !Array.isArray(oldData.subjects)) return oldData;
+          const updatedSubjects = oldData.subjects.map((s) =>
+            s.name.toLowerCase() === subjectName.toLowerCase()
+              ? { ...s, ratingEnabled: newEnabled }
+              : s
+          );
+          const totalSubjects = oldData.totalSubjects || updatedSubjects.length;
+          const enabledCount = updatedSubjects.filter(
+            (s) => s.ratingEnabled !== false
+          ).length;
+          return {
+            ...oldData,
+            subjects: updatedSubjects,
+            enabledCount,
+            disabledCount: Math.max(0, totalSubjects - enabledCount),
+          };
+        });
+
+        // Clear local override once query cache reflects the new state
+        setSubjectRatingOverrides((prev) => {
+          const next = { ...prev };
+          delete next[subjectName];
+          return next;
+        });
+
+        // Invalidate dependent queries in background
+        Promise.all([
           queryClient.invalidateQueries({ queryKey: ["adminSubjectsConfig"] }),
-          queryClient.invalidateQueries({ queryKey: ["ratingsSubmissionTracker"] }),
+          queryClient.invalidateQueries({
+            queryKey: ["ratingsSubmissionTracker"],
+          }),
           queryClient.invalidateQueries({ queryKey: ["schoolRatingsSummary"] }),
-        ]);
+        ]).catch(() => {});
       } else {
-        throw new Error(data?.message || "Failed to update subject rating requirement");
+        throw new Error(
+          data?.message || "Failed to update subject rating requirement"
+        );
       }
     } catch (err) {
       console.error("Toggle error:", err);
-      showToast(err?.message || "Failed to update subject rating requirement", "error");
+      // Revert optimistic override on failure
+      setSubjectRatingOverrides((prev) => {
+        const next = { ...prev };
+        delete next[subjectName];
+        return next;
+      });
+      showToast(
+        err?.message || "Failed to update subject rating requirement",
+        "error"
+      );
     } finally {
-      setTogglingSubjectName(null);
+      setTogglingSubjects((prev) => {
+        const next = { ...prev };
+        delete next[subjectName];
+        return next;
+      });
     }
   };
 
-  const handleBulkConfigureAll = async (ratingEnabled) => {
+  const handleBulkConfigureAll = (ratingEnabled) => {
+    const rawSubjects = subjectsConfigData?.subjects || [];
+    if (rawSubjects.length === 0) return;
+
+    const title = ratingEnabled
+      ? "Enable All Subjects for Ratings?"
+      : "Exclude All Subjects from Ratings?";
+    const message = ratingEnabled
+      ? "This will enable monthly ratings for all subjects across all classes in the school."
+      : "This will exclude all subjects from monthly ratings across all classes. Teachers will not see these subjects in their rating forms.";
+    const actionText = ratingEnabled ? "Enable All" : "Exclude All";
+
+    Alert.alert(title, message, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: actionText,
+        style: ratingEnabled ? "default" : "destructive",
+        onPress: () => performBulkConfigureAll(ratingEnabled),
+      },
+    ]);
+  };
+
+  const performBulkConfigureAll = async (ratingEnabled) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
     setIsBulkConfiguring(true);
+
+    const rawSubjects = subjectsConfigData?.subjects || [];
+    const bulkOverrides = {};
+    rawSubjects.forEach((s) => {
+      bulkOverrides[s.name] = ratingEnabled;
+    });
+    setSubjectRatingOverrides(bulkOverrides);
+
     try {
       const res = await apiFetch(
         `${apiConfig.baseUrl}/student-ratings/admin/bulk-configure-ratings`,
@@ -287,7 +402,8 @@ export default function AdminStudentRatingsScreen() {
           body: JSON.stringify({ all: true, ratingEnabled }),
         }
       );
-      const data = res && typeof res.json === "function" ? await res.json() : res;
+      const data =
+        res && typeof res.json === "function" ? await res.json() : res;
       if (res?.ok || data?.success) {
         showToast(
           ratingEnabled
@@ -295,18 +411,43 @@ export default function AdminStudentRatingsScreen() {
             : "All subjects excluded from monthly ratings across all classes",
           "success"
         );
-        await Promise.all([
-          refetchSubjectsConfig(),
+
+        queryClient.setQueryData(["adminSubjectsConfig"], (oldData) => {
+          if (!oldData || !Array.isArray(oldData.subjects)) return oldData;
+          const updatedSubjects = oldData.subjects.map((s) => ({
+            ...s,
+            ratingEnabled,
+          }));
+          const total = oldData.totalSubjects || updatedSubjects.length;
+          return {
+            ...oldData,
+            subjects: updatedSubjects,
+            enabledCount: ratingEnabled ? total : 0,
+            disabledCount: ratingEnabled ? 0 : total,
+          };
+        });
+
+        setSubjectRatingOverrides({});
+
+        Promise.all([
           queryClient.invalidateQueries({ queryKey: ["adminSubjectsConfig"] }),
-          queryClient.invalidateQueries({ queryKey: ["ratingsSubmissionTracker"] }),
+          queryClient.invalidateQueries({
+            queryKey: ["ratingsSubmissionTracker"],
+          }),
           queryClient.invalidateQueries({ queryKey: ["schoolRatingsSummary"] }),
-        ]);
+        ]).catch(() => {});
       } else {
-        throw new Error(data?.message || "Failed to bulk configure subject ratings");
+        throw new Error(
+          data?.message || "Failed to bulk configure subject ratings"
+        );
       }
     } catch (err) {
       console.error("Bulk config error:", err);
-      showToast(err?.message || "Failed to bulk configure subject ratings", "error");
+      setSubjectRatingOverrides({});
+      showToast(
+        err?.message || "Failed to bulk configure subject ratings",
+        "error"
+      );
     } finally {
       setIsBulkConfiguring(false);
     }
@@ -322,7 +463,9 @@ export default function AdminStudentRatingsScreen() {
         isClassSpecific ? refetchClassSummary() : Promise.resolve(),
         activeTab === "config" ? refetchSubjectsConfig() : Promise.resolve(),
         queryClient.invalidateQueries({ queryKey: ["schoolRatingsSummary"] }),
-        queryClient.invalidateQueries({ queryKey: ["ratingsSubmissionTracker"] }),
+        queryClient.invalidateQueries({
+          queryKey: ["ratingsSubmissionTracker"],
+        }),
         queryClient.invalidateQueries({ queryKey: ["adminSubjectsConfig"] }),
       ]);
     } catch (err) {
@@ -342,18 +485,26 @@ export default function AdminStudentRatingsScreen() {
   // Compute school-wide criteria averages
   const schoolCriteriaAverages = useMemo(() => {
     if (schoolClasses.length === 0) {
-      return { classEngagement: 0, homeworkClasswork: 0, behaviourSocial: 0, englishComm: 0 };
+      return {
+        classEngagement: 0,
+        homeworkClasswork: 0,
+        behaviourSocial: 0,
+        englishComm: 0,
+      };
     }
     const total = schoolClasses.length;
     return {
       classEngagement: (
-        schoolClasses.reduce((s, c) => s + (c.avgClassEngagement || 0), 0) / total
+        schoolClasses.reduce((s, c) => s + (c.avgClassEngagement || 0), 0) /
+        total
       ).toFixed(2),
       homeworkClasswork: (
-        schoolClasses.reduce((s, c) => s + (c.avgHomeworkClasswork || 0), 0) / total
+        schoolClasses.reduce((s, c) => s + (c.avgHomeworkClasswork || 0), 0) /
+        total
       ).toFixed(2),
       behaviourSocial: (
-        schoolClasses.reduce((s, c) => s + (c.avgBehaviourSocial || 0), 0) / total
+        schoolClasses.reduce((s, c) => s + (c.avgBehaviourSocial || 0), 0) /
+        total
       ).toFixed(2),
       englishComm: (
         schoolClasses.reduce((s, c) => s + (c.avgEnglishComm || 0), 0) / total
@@ -389,7 +540,8 @@ export default function AdminStudentRatingsScreen() {
   // Movers list
   const improvingMovers = moversData?.improving || [];
   const decliningMovers = moversData?.declining || [];
-  const activeMoversList = moversTab === "improving" ? improvingMovers : decliningMovers;
+  const activeMoversList =
+    moversTab === "improving" ? improvingMovers : decliningMovers;
 
   // ──────────────────────────────────────────────
   //  TAB 1: OVERVIEW
@@ -403,14 +555,18 @@ export default function AdminStudentRatingsScreen() {
         contentStyle={styles.heroCardContent}
       >
         <View style={styles.heroLeftCol}>
-          <Text style={[styles.heroSubtitle, { color: colors.onSurfaceVariant }]}>
+          <Text
+            style={[styles.heroSubtitle, { color: colors.onSurfaceVariant }]}
+          >
             {t("admin.schoolAverageRating", "School-wide Average Rating")}
           </Text>
           <View style={styles.heroScoreRow}>
             <Text style={[styles.heroScoreText, { color: colors.primary }]}>
               {schoolAverage ? schoolAverage.toFixed(2) : "--"}
             </Text>
-            <Text style={[styles.heroScoreMax, { color: colors.onSurfaceVariant }]}>
+            <Text
+              style={[styles.heroScoreMax, { color: colors.onSurfaceVariant }]}
+            >
               / 5.0
             </Text>
           </View>
@@ -434,9 +590,18 @@ export default function AdminStudentRatingsScreen() {
               { backgroundColor: colors.primaryContainer || "#EEF2FF" },
             ]}
           >
-            <MaterialIcons name="auto-awesome" size={32} color={colors.primary} />
+            <MaterialIcons
+              name="auto-awesome"
+              size={32}
+              color={colors.primary}
+            />
           </View>
-          <Text style={[styles.heroClassesCount, { color: colors.onSurfaceVariant }]}>
+          <Text
+            style={[
+              styles.heroClassesCount,
+              { color: colors.onSurfaceVariant },
+            ]}
+          >
             {schoolClasses.length} Classes Rated
           </Text>
         </View>
@@ -478,7 +643,10 @@ export default function AdminStudentRatingsScreen() {
                 {dp.label}
               </Text>
               <Text
-                style={[styles.criterionDesc, { color: colors.onSurfaceVariant }]}
+                style={[
+                  styles.criterionDesc,
+                  { color: colors.onSurfaceVariant },
+                ]}
                 numberOfLines={2}
               >
                 {dp.desc}
@@ -499,10 +667,17 @@ export default function AdminStudentRatingsScreen() {
 
       {/* Class Comparison List */}
       <View style={styles.classComparisonHeaderRow}>
-        <Text style={[styles.sectionTitle, { color: colors.onSurface, marginBottom: 0 }]}>
+        <Text
+          style={[
+            styles.sectionTitle,
+            { color: colors.onSurface, marginBottom: 0 },
+          ]}
+        >
           {t("admin.classComparison", "Class Benchmarks")}
         </Text>
-        <Text style={[styles.sectionSubtitle, { color: colors.onSurfaceVariant }]}>
+        <Text
+          style={[styles.sectionSubtitle, { color: colors.onSurfaceVariant }]}
+        >
           {schoolClasses.length} Classes
         </Text>
       </View>
@@ -519,14 +694,20 @@ export default function AdminStudentRatingsScreen() {
       ) : (
         schoolClasses.map((clsItem, cIdx) => {
           const classId =
-            clsItem.class?._id || clsItem.classId || clsItem._id || `school-cls-${cIdx}`;
+            clsItem.class?._id ||
+            clsItem.classId ||
+            clsItem._id ||
+            `school-cls-${cIdx}`;
           const rawClassName =
             clsItem.class?.name ||
             clsItem.class?.label ||
             clsItem.className ||
             clsItem.class?.value ||
             "Class";
-          const classLabel = formatClassName(rawClassName, clsItem.class?.section);
+          const classLabel = formatClassName(
+            rawClassName,
+            clsItem.class?.section
+          );
           const avgScore =
             typeof clsItem.avgOverall === "number"
               ? clsItem.avgOverall
@@ -553,16 +734,28 @@ export default function AdminStudentRatingsScreen() {
             >
               <View style={styles.classCardHeader}>
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.classNameText, { color: colors.onSurface }]}>
+                  <Text
+                    style={[styles.classNameText, { color: colors.onSurface }]}
+                  >
                     {classLabel}
                   </Text>
-                  <Text style={[styles.classStudentCount, { color: colors.onSurfaceVariant }]}>
+                  <Text
+                    style={[
+                      styles.classStudentCount,
+                      { color: colors.onSurfaceVariant },
+                    ]}
+                  >
                     {studentCount} Students Evaluated
                   </Text>
                 </View>
                 <View style={{ alignItems: "flex-end" }}>
                   <View style={styles.scoreRow}>
-                    <Text style={[styles.classScoreText, { color: ratingInfo.color }]}>
+                    <Text
+                      style={[
+                        styles.classScoreText,
+                        { color: ratingInfo.color },
+                      ]}
+                    >
                       ★ {avgScore.toFixed(2)}
                     </Text>
                   </View>
@@ -577,7 +770,12 @@ export default function AdminStudentRatingsScreen() {
               {/* 4 Criteria Mini-bars */}
               <View style={styles.miniBarsContainer}>
                 <View style={styles.miniBarItem}>
-                  <Text style={[styles.miniBarLabel, { color: colors.onSurfaceVariant }]}>
+                  <Text
+                    style={[
+                      styles.miniBarLabel,
+                      { color: colors.onSurfaceVariant },
+                    ]}
+                  >
                     Engagement
                   </Text>
                   <ProgressBar
@@ -586,13 +784,20 @@ export default function AdminStudentRatingsScreen() {
                     height={4}
                     variant="primary"
                   />
-                  <Text style={[styles.miniBarVal, { color: colors.onSurface }]}>
+                  <Text
+                    style={[styles.miniBarVal, { color: colors.onSurface }]}
+                  >
                     {clsItem.avgClassEngagement}
                   </Text>
                 </View>
 
                 <View style={styles.miniBarItem}>
-                  <Text style={[styles.miniBarLabel, { color: colors.onSurfaceVariant }]}>
+                  <Text
+                    style={[
+                      styles.miniBarLabel,
+                      { color: colors.onSurfaceVariant },
+                    ]}
+                  >
                     Homework
                   </Text>
                   <ProgressBar
@@ -601,13 +806,20 @@ export default function AdminStudentRatingsScreen() {
                     height={4}
                     variant="success"
                   />
-                  <Text style={[styles.miniBarVal, { color: colors.onSurface }]}>
+                  <Text
+                    style={[styles.miniBarVal, { color: colors.onSurface }]}
+                  >
                     {clsItem.avgHomeworkClasswork}
                   </Text>
                 </View>
 
                 <View style={styles.miniBarItem}>
-                  <Text style={[styles.miniBarLabel, { color: colors.onSurfaceVariant }]}>
+                  <Text
+                    style={[
+                      styles.miniBarLabel,
+                      { color: colors.onSurfaceVariant },
+                    ]}
+                  >
                     Behaviour
                   </Text>
                   <ProgressBar
@@ -616,13 +828,20 @@ export default function AdminStudentRatingsScreen() {
                     height={4}
                     progressColor="#8B5CF6"
                   />
-                  <Text style={[styles.miniBarVal, { color: colors.onSurface }]}>
+                  <Text
+                    style={[styles.miniBarVal, { color: colors.onSurface }]}
+                  >
                     {clsItem.avgBehaviourSocial}
                   </Text>
                 </View>
 
                 <View style={styles.miniBarItem}>
-                  <Text style={[styles.miniBarLabel, { color: colors.onSurfaceVariant }]}>
+                  <Text
+                    style={[
+                      styles.miniBarLabel,
+                      { color: colors.onSurfaceVariant },
+                    ]}
+                  >
                     English
                   </Text>
                   <ProgressBar
@@ -631,14 +850,18 @@ export default function AdminStudentRatingsScreen() {
                     height={4}
                     progressColor="#D97706"
                   />
-                  <Text style={[styles.miniBarVal, { color: colors.onSurface }]}>
+                  <Text
+                    style={[styles.miniBarVal, { color: colors.onSurface }]}
+                  >
                     {clsItem.avgEnglishComm}
                   </Text>
                 </View>
               </View>
 
               <View style={styles.classCardFooter}>
-                <Text style={[styles.viewDetailsLink, { color: colors.primary }]}>
+                <Text
+                  style={[styles.viewDetailsLink, { color: colors.primary }]}
+                >
                   View Class Students & Rankings →
                 </Text>
               </View>
@@ -665,44 +888,45 @@ export default function AdminStudentRatingsScreen() {
           style={styles.classPillsScrollView}
           contentContainerStyle={styles.classPillsScroll}
         >
-        {classesList.map((cls, clsIdx) => {
-          const isSelected = selectedClassId === cls._id;
-          const label = formatClassName(cls.name || cls.label || cls.value, cls.section);
-          return (
-            <TouchableOpacity
-              key={cls._id || cls.id || `cls-pill-${clsIdx}`}
-              onPress={() => {
-                Haptics.selectionAsync().catch(() => {});
-                setSelectedClassId(cls._id);
-              }}
-              style={[
-                styles.classPill,
-                {
-                  backgroundColor: isSelected
-                    ? colors.primary
-                    : colors.surfaceContainer,
-                  borderColor: isSelected
-                    ? colors.primary
-                    : colors.outlineVariant,
-                },
-              ]}
-            >
-              <Text
+          {classesList.map((cls, clsIdx) => {
+            const isSelected = selectedClassId === cls._id;
+            const label = formatClassName(
+              cls.name || cls.label || cls.value,
+              cls.section
+            );
+            return (
+              <TouchableOpacity
+                key={cls._id || cls.id || `cls-pill-${clsIdx}`}
+                onPress={() => {
+                  Haptics.selectionAsync().catch(() => {});
+                  setSelectedClassId(cls._id);
+                }}
                 style={[
-                  styles.classPillText,
+                  styles.classPill,
                   {
-                    color: isSelected
-                      ? colors.onPrimary
-                      : colors.onSurface,
-                    fontFamily: isSelected ? FONTS.bold : FONTS.medium,
+                    backgroundColor: isSelected
+                      ? colors.primary
+                      : colors.surfaceContainer,
+                    borderColor: isSelected
+                      ? colors.primary
+                      : colors.outlineVariant,
                   },
                 ]}
               >
-                {label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
+                <Text
+                  style={[
+                    styles.classPillText,
+                    {
+                      color: isSelected ? colors.onPrimary : colors.onSurface,
+                      fontFamily: isSelected ? FONTS.bold : FONTS.medium,
+                    },
+                  ]}
+                >
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
       </View>
 
@@ -735,16 +959,29 @@ export default function AdminStudentRatingsScreen() {
             contentStyle={styles.classBannerContent}
           >
             <View style={styles.classBannerLeft}>
-              <Text style={[styles.classBannerTitle, { color: colors.onSurface }]}>
+              <Text
+                style={[styles.classBannerTitle, { color: colors.onSurface }]}
+              >
                 Class Average
               </Text>
-              <Text style={[styles.classBannerSub, { color: colors.onSurfaceVariant }]}>
-                {classSummaryData?.totalStudents || 0} students rated across subjects
+              <Text
+                style={[
+                  styles.classBannerSub,
+                  { color: colors.onSurfaceVariant },
+                ]}
+              >
+                {classSummaryData?.totalStudents || 0} students rated across
+                subjects
               </Text>
             </View>
             <View style={styles.classBannerRight}>
-              <Text style={[styles.classBannerScore, { color: colors.primary }]}>
-                ★ {classSummaryData?.classAverage ? classSummaryData.classAverage.toFixed(2) : "--"}
+              <Text
+                style={[styles.classBannerScore, { color: colors.primary }]}
+              >
+                ★{" "}
+                {classSummaryData?.classAverage
+                  ? classSummaryData.classAverage.toFixed(2)
+                  : "--"}
               </Text>
             </View>
           </Card>
@@ -809,7 +1046,12 @@ export default function AdminStudentRatingsScreen() {
           </View>
 
           {/* Students List */}
-          <Text style={[styles.studentsCountLabel, { color: colors.onSurfaceVariant }]}>
+          <Text
+            style={[
+              styles.studentsCountLabel,
+              { color: colors.onSurfaceVariant },
+            ]}
+          >
             Showing {classStudents.length} Students (tap for full drilldown)
           </Text>
 
@@ -830,23 +1072,35 @@ export default function AdminStudentRatingsScreen() {
                     <UserAvatar user={student} size={40} />
                     <View style={styles.studentItemDetails}>
                       <Text
-                        style={[styles.studentItemName, { color: colors.onSurface }]}
+                        style={[
+                          styles.studentItemName,
+                          { color: colors.onSurface },
+                        ]}
                         numberOfLines={1}
                       >
                         {student?.name || "Student"}
                       </Text>
                       <Text
-                        style={[styles.studentItemSub, { color: colors.onSurfaceVariant }]}
+                        style={[
+                          styles.studentItemSub,
+                          { color: colors.onSurfaceVariant },
+                        ]}
                       >
                         {student?.regNo ? `Reg: ${student.regNo}` : "Student"} •{" "}
-                        {item.subjectCount || (item.subjects?.length ?? 4)} Subjects Rated
+                        {item.subjectCount || (item.subjects?.length ?? 4)}{" "}
+                        Subjects Rated
                       </Text>
                     </View>
                   </View>
 
                   <View style={styles.studentItemRight}>
-                    <Text style={[styles.studentItemScore, { color: ratingInfo.color }]}>
-                      ★ {typeof avg === "number" ? avg.toFixed(2) : (avg || "--")}
+                    <Text
+                      style={[
+                        styles.studentItemScore,
+                        { color: ratingInfo.color },
+                      ]}
+                    >
+                      ★ {typeof avg === "number" ? avg.toFixed(2) : avg || "--"}
                     </Text>
                     <Badge
                       variant={ratingInfo.variant}
@@ -876,7 +1130,10 @@ export default function AdminStudentRatingsScreen() {
                         ]}
                         numberOfLines={1}
                       >
-                        {subj.subject?.name}: {typeof subj.averageScore === "number" ? subj.averageScore.toFixed(1) : (subj.averageScore || "--")}
+                        {subj.subject?.name}:{" "}
+                        {typeof subj.averageScore === "number"
+                          ? subj.averageScore.toFixed(1)
+                          : subj.averageScore || "--"}
                       </Text>
                     </View>
                   ))}
@@ -932,7 +1189,9 @@ export default function AdminStudentRatingsScreen() {
           <Text style={[styles.moversLabelText, { color: colors.onSurface }]}>
             Improving Students
           </Text>
-          <Text style={[styles.moversSubText, { color: colors.onSurfaceVariant }]}>
+          <Text
+            style={[styles.moversSubText, { color: colors.onSurfaceVariant }]}
+          >
             Highest monthly gains
           </Text>
         </TouchableOpacity>
@@ -963,14 +1222,21 @@ export default function AdminStudentRatingsScreen() {
           <Text style={[styles.moversLabelText, { color: colors.onSurface }]}>
             Needs Attention
           </Text>
-          <Text style={[styles.moversSubText, { color: colors.onSurfaceVariant }]}>
+          <Text
+            style={[styles.moversSubText, { color: colors.onSurfaceVariant }]}
+          >
             Monthly score drops
           </Text>
         </TouchableOpacity>
       </View>
 
       {/* Movers List */}
-      <Text style={[styles.sectionTitle, { color: colors.onSurface, marginTop: 16 }]}>
+      <Text
+        style={[
+          styles.sectionTitle,
+          { color: colors.onSurface, marginTop: 16 },
+        ]}
+      >
         {moversTab === "improving"
           ? "🚀 Students Showing Significant Growth"
           : "⚠️ Students Who Dropped Since Last Month"}
@@ -1030,7 +1296,9 @@ export default function AdminStudentRatingsScreen() {
               : currScore || "--";
           const formattedChange =
             typeof changeVal === "number"
-              ? (isGain ? `+${changeVal.toFixed(2)}` : changeVal.toFixed(2))
+              ? isGain
+                ? `+${changeVal.toFixed(2)}`
+                : changeVal.toFixed(2)
               : isGain
               ? `+${changeVal}`
               : `${changeVal}`;
@@ -1046,22 +1314,36 @@ export default function AdminStudentRatingsScreen() {
                 <UserAvatar user={student} size={42} />
                 <View style={styles.moverCardTextCol}>
                   <Text
-                    style={[styles.moverStudentName, { color: colors.onSurface }]}
+                    style={[
+                      styles.moverStudentName,
+                      { color: colors.onSurface },
+                    ]}
                     numberOfLines={1}
                   >
                     {student?.name || "Student"}
                   </Text>
                   <Text
-                    style={[styles.moverClassLabel, { color: colors.onSurfaceVariant }]}
+                    style={[
+                      styles.moverClassLabel,
+                      { color: colors.onSurfaceVariant },
+                    ]}
                   >
                     {classLabel} • Reg: {student?.regNo || "--"}
                   </Text>
                   <View style={styles.moverScoresRow}>
                     <Text
-                      style={[styles.moverScoreCompare, { color: colors.onSurfaceVariant }]}
+                      style={[
+                        styles.moverScoreCompare,
+                        { color: colors.onSurfaceVariant },
+                      ]}
                     >
                       Prev: {formattedPrev} → Now:{" "}
-                      <Text style={{ fontFamily: FONTS.bold, color: colors.onSurface }}>
+                      <Text
+                        style={{
+                          fontFamily: FONTS.bold,
+                          color: colors.onSurface,
+                        }}
+                      >
                         {formattedCurr}
                       </Text>
                     </Text>
@@ -1073,9 +1355,7 @@ export default function AdminStudentRatingsScreen() {
                   style={[
                     styles.changePill,
                     {
-                      backgroundColor: isGain
-                        ? "#DCFCE7"
-                        : "#FEE2E2",
+                      backgroundColor: isGain ? "#DCFCE7" : "#FEE2E2",
                     },
                   ]}
                 >
@@ -1153,19 +1433,21 @@ export default function AdminStudentRatingsScreen() {
   const renderSubjectConfigTab = () => {
     const rawSubjects = subjectsConfigData?.subjects || [];
     const totalCount = subjectsConfigData?.totalSubjects || rawSubjects.length;
-    const enabledCount =
-      subjectsConfigData?.enabledCount ||
-      rawSubjects.filter((s) => s.ratingEnabled !== false).length;
-    const disabledCount =
-      subjectsConfigData?.disabledCount ?? Math.max(0, totalCount - enabledCount);
+    const enabledCount = rawSubjects.filter((s) =>
+      getEffectiveRatingEnabled(s)
+    ).length;
+    const disabledCount = Math.max(0, totalCount - enabledCount);
 
     const filteredSubjects = rawSubjects.filter((sub) => {
       const matchesSearch =
         !subjectSearchQuery ||
         sub.name.toLowerCase().includes(subjectSearchQuery.toLowerCase());
-      const isEnabled = sub.ratingEnabled !== false;
+      const isEnabled = getEffectiveRatingEnabled(sub);
+      const isToggling = !!togglingSubjects[sub.name];
+      // Keep item visible during active toggling to prevent disorienting jumps
       const matchesStatus =
         subjectFilterStatus === "all" ||
+        isToggling ||
         (subjectFilterStatus === "enabled" && isEnabled) ||
         (subjectFilterStatus === "disabled" && !isEnabled);
       return matchesSearch && matchesStatus;
@@ -1179,7 +1461,9 @@ export default function AdminStudentRatingsScreen() {
           style={{ marginBottom: 14, borderColor: colors.outlineVariant }}
           contentStyle={{ padding: 14 }}
         >
-          <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12 }}>
+          <View
+            style={{ flexDirection: "row", alignItems: "flex-start", gap: 12 }}
+          >
             <View
               style={{
                 width: 36,
@@ -1190,10 +1474,20 @@ export default function AdminStudentRatingsScreen() {
                 justifyContent: "center",
               }}
             >
-              <MaterialIcons name="tune" size={20} color={colors.onPrimaryContainer || colors.primary} />
+              <MaterialIcons
+                name="tune"
+                size={20}
+                color={colors.onPrimaryContainer || colors.primary}
+              />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: FONT_SIZES.sm, fontFamily: FONTS.bold, color: colors.onSurface }}>
+              <Text
+                style={{
+                  fontSize: FONT_SIZES.sm,
+                  fontFamily: FONTS.bold,
+                  color: colors.onSurface,
+                }}
+              >
                 School-Wide Subject Rating Control
               </Text>
               <Text
@@ -1205,7 +1499,10 @@ export default function AdminStudentRatingsScreen() {
                   lineHeight: 17,
                 }}
               >
-                Settings configured here apply to all classes throughout the school. When a subject is disabled, it is automatically excluded from teacher evaluation forms and submission trackers in every class. Subject teachers only see enabled subjects.
+                Settings configured here apply to all classes throughout the
+                school. When a subject is disabled, it is automatically excluded
+                from teacher evaluation forms and submission trackers in every
+                class. Subject teachers only see enabled subjects.
               </Text>
             </View>
           </View>
@@ -1226,7 +1523,9 @@ export default function AdminStudentRatingsScreen() {
               gap: 8,
             }}
           >
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+            >
               <View
                 style={{
                   paddingHorizontal: 10,
@@ -1237,9 +1536,17 @@ export default function AdminStudentRatingsScreen() {
                     (isDark ? "#1E1E23" : "#ECE6F0"),
                 }}
               >
-                <Text style={{ fontSize: 11, fontFamily: FONTS.medium, color: colors.onSurfaceVariant }}>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontFamily: FONTS.medium,
+                    color: colors.onSurfaceVariant,
+                  }}
+                >
                   Total:{" "}
-                  <Text style={{ fontFamily: FONTS.bold, color: colors.onSurface }}>
+                  <Text
+                    style={{ fontFamily: FONTS.bold, color: colors.onSurface }}
+                  >
                     {totalCount}
                   </Text>
                 </Text>
@@ -1252,17 +1559,18 @@ export default function AdminStudentRatingsScreen() {
                   borderRadius: RADIUS.sm,
                   backgroundColor: isDark
                     ? "rgba(74, 222, 128, 0.16)"
-                    : (colors.successContainer || "#DCFCE7"),
+                    : colors.successContainer || "#DCFCE7",
                 }}
               >
                 <Text
                   style={{
                     fontSize: 11,
                     fontFamily: FONTS.medium,
-                    color: isDark ? "#4ADE80" : (colors.success || "#16A34A"),
+                    color: isDark ? "#4ADE80" : colors.success || "#16A34A",
                   }}
                 >
-                  Ratable: <Text style={{ fontFamily: FONTS.bold }}>{enabledCount}</Text>
+                  Ratable:{" "}
+                  <Text style={{ fontFamily: FONTS.bold }}>{enabledCount}</Text>
                 </Text>
               </View>
 
@@ -1274,17 +1582,20 @@ export default function AdminStudentRatingsScreen() {
                     borderRadius: RADIUS.sm,
                     backgroundColor: isDark
                       ? "rgba(248, 113, 113, 0.16)"
-                      : (colors.errorContainer || "#FEE2E2"),
+                      : colors.errorContainer || "#FEE2E2",
                   }}
                 >
                   <Text
                     style={{
                       fontSize: 11,
                       fontFamily: FONTS.medium,
-                      color: isDark ? "#F87171" : (colors.error || "#DC2626"),
+                      color: isDark ? "#F87171" : colors.error || "#DC2626",
                     }}
                   >
-                    Excluded: <Text style={{ fontFamily: FONTS.bold }}>{disabledCount}</Text>
+                    Excluded:{" "}
+                    <Text style={{ fontFamily: FONTS.bold }}>
+                      {disabledCount}
+                    </Text>
                   </Text>
                 </View>
               )}
@@ -1296,12 +1607,29 @@ export default function AdminStudentRatingsScreen() {
                 onPress={() => handleBulkConfigureAll(true)}
                 disabled={isBulkConfiguring}
                 style={{
-                  paddingHorizontal: 10,
-                  paddingVertical: 6,
+                  paddingHorizontal: 12,
+                  paddingVertical: 7,
                   borderRadius: RADIUS.sm,
                   backgroundColor: colors.primaryContainer || "#EADDFF",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 4,
+                  opacity: isBulkConfiguring ? 0.6 : 1,
                 }}
               >
+                {isBulkConfiguring ? (
+                  <ActivityIndicator
+                    size="small"
+                    color={colors.onPrimaryContainer || colors.primary}
+                    style={{ transform: [{ scale: 0.65 }] }}
+                  />
+                ) : (
+                  <MaterialIcons
+                    name="done-all"
+                    size={14}
+                    color={colors.onPrimaryContainer || colors.primary}
+                  />
+                )}
                 <Text
                   style={{
                     fontSize: 11,
@@ -1317,14 +1645,31 @@ export default function AdminStudentRatingsScreen() {
                 onPress={() => handleBulkConfigureAll(false)}
                 disabled={isBulkConfiguring}
                 style={{
-                  paddingHorizontal: 10,
-                  paddingVertical: 6,
+                  paddingHorizontal: 12,
+                  paddingVertical: 7,
                   borderRadius: RADIUS.sm,
                   backgroundColor: colors.surfaceContainer,
                   borderWidth: 1,
                   borderColor: colors.outlineVariant,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 4,
+                  opacity: isBulkConfiguring ? 0.6 : 1,
                 }}
               >
+                {isBulkConfiguring ? (
+                  <ActivityIndicator
+                    size="small"
+                    color={colors.onSurfaceVariant}
+                    style={{ transform: [{ scale: 0.65 }] }}
+                  />
+                ) : (
+                  <MaterialIcons
+                    name="remove-circle-outline"
+                    size={14}
+                    color={colors.onSurfaceVariant}
+                  />
+                )}
                 <Text
                   style={{
                     fontSize: 11,
@@ -1374,7 +1719,9 @@ export default function AdminStudentRatingsScreen() {
                     ? colors.primaryContainer || "#EADDFF"
                     : colors.surfaceContainer,
                   borderWidth: 1,
-                  borderColor: isActive ? colors.primary : colors.outlineVariant,
+                  borderColor: isActive
+                    ? colors.primary
+                    : colors.outlineVariant,
                 }}
               >
                 <Text
@@ -1410,8 +1757,8 @@ export default function AdminStudentRatingsScreen() {
           />
         ) : (
           filteredSubjects.map((sub, sIdx) => {
-            const isEnabled = sub.ratingEnabled !== false;
-            const isToggling = togglingSubjectName === sub.name;
+            const isEnabled = getEffectiveRatingEnabled(sub);
+            const isToggling = !!togglingSubjects[sub.name];
             const iconName = getSubjectIcon(sub.name);
             const isExpandedClasses = !!expandedSubjectClasses[sub.name];
             const teacherNames = (sub.teachers || [])
@@ -1422,8 +1769,23 @@ export default function AdminStudentRatingsScreen() {
             return (
               <Card
                 key={sub.name || sIdx}
-                variant="elevated"
-                style={{ marginBottom: 12 }}
+                variant={isEnabled ? "elevated" : "outlined"}
+                style={{
+                  marginBottom: 12,
+                  borderLeftWidth: 4,
+                  borderLeftColor: isEnabled
+                    ? colors.primary
+                    : colors.outlineVariant || "#9CA3AF",
+                  backgroundColor: isEnabled
+                    ? colors.surface
+                    : isDark
+                    ? "rgba(255, 255, 255, 0.02)"
+                    : "#F9FAFB",
+                  opacity: isToggling ? 0.85 : isEnabled ? 1 : 0.92,
+                  borderColor: isEnabled
+                    ? "transparent"
+                    : colors.outlineVariant + "60",
+                }}
                 contentStyle={{ padding: 14 }}
               >
                 <View
@@ -1437,36 +1799,62 @@ export default function AdminStudentRatingsScreen() {
                   <View
                     style={{
                       flexDirection: "row",
-                      alignItems: "center",
+                      alignItems: "flex-start",
                       flex: 1,
                       marginRight: 12,
                     }}
                   >
-                    <View
-                      style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: 22,
-                        backgroundColor: isEnabled
-                          ? isDark
-                            ? "rgba(167, 139, 250, 0.18)"
-                            : (colors.primaryContainer || "#EADDFF")
-                          : colors.surfaceContainerHigh ||
-                            (isDark ? "#1E1E23" : "#ECE6F0"),
-                        alignItems: "center",
-                        justifyContent: "center",
-                        marginRight: 12,
-                      }}
-                    >
-                      <MaterialIcons
-                        name={iconName}
-                        size={22}
-                        color={
-                          isEnabled
-                            ? colors.primary
-                            : colors.onSurfaceVariant
-                        }
-                      />
+                    {/* Subject Avatar with Micro Status Indicator */}
+                    <View style={{ position: "relative", marginRight: 12 }}>
+                      <View
+                        style={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: 22,
+                          backgroundColor: isEnabled
+                            ? isDark
+                              ? "rgba(167, 139, 250, 0.18)"
+                              : colors.primaryContainer || "#EADDFF"
+                            : colors.surfaceContainerHigh ||
+                              (isDark ? "#1E1E23" : "#ECE6F0"),
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <MaterialIcons
+                          name={iconName}
+                          size={22}
+                          color={
+                            isEnabled ? colors.primary : colors.onSurfaceVariant
+                          }
+                        />
+                      </View>
+                      {/* Micro Status Indicator Badge */}
+                      <View
+                        style={{
+                          position: "absolute",
+                          bottom: -2,
+                          right: -2,
+                          width: 16,
+                          height: 16,
+                          borderRadius: 8,
+                          backgroundColor: isEnabled
+                            ? colors.success || "#16A34A"
+                            : colors.onSurfaceVariant || "#6B7280",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          borderWidth: 1.5,
+                          borderColor: isEnabled
+                            ? colors.surface
+                            : colors.surfaceContainerHigh,
+                        }}
+                      >
+                        <MaterialIcons
+                          name={isEnabled ? "check" : "block"}
+                          size={9}
+                          color="#FFFFFF"
+                        />
+                      </View>
                     </View>
 
                     <View style={{ flex: 1 }}>
@@ -1481,14 +1869,19 @@ export default function AdminStudentRatingsScreen() {
                         <Text
                           style={{
                             fontSize: FONT_SIZES.md,
-                            fontFamily: FONTS.bold,
-                            color: colors.onSurface,
+                            fontFamily: isEnabled ? FONTS.bold : FONTS.semiBold,
+                            color: isEnabled
+                              ? colors.onSurface
+                              : colors.onSurfaceVariant,
                           }}
                         >
                           {sub.name}
                         </Text>
                         <Badge
                           variant={isEnabled ? "success" : "neutral"}
+                          icon={
+                            isEnabled ? "check-circle" : "remove-circle-outline"
+                          }
                           label={
                             isEnabled
                               ? "Ratable (All Classes)"
@@ -1507,19 +1900,67 @@ export default function AdminStudentRatingsScreen() {
                           marginTop: 3,
                         }}
                       >
-                        Offered in {sub.totalClasses} class{sub.totalClasses !== 1 ? "es" : ""}
+                        Offered in {sub.totalClasses} class
+                        {sub.totalClasses !== 1 ? "es" : ""}
                         {teacherNames
                           ? ` • Teachers: ${teacherNames}`
                           : " • No teachers assigned"}
                       </Text>
+
+                      {/* Dynamic Status Helper Explanation */}
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 4,
+                          marginTop: 5,
+                        }}
+                      >
+                        <MaterialIcons
+                          name={isEnabled ? "check" : "block"}
+                          size={12}
+                          color={
+                            isEnabled
+                              ? colors.success || "#16A34A"
+                              : colors.onSurfaceVariant
+                          }
+                        />
+                        <Text
+                          style={{
+                            fontSize: 10.5,
+                            fontFamily: isEnabled
+                              ? FONTS.medium
+                              : FONTS.regular,
+                            color: isEnabled
+                              ? colors.success || "#16A34A"
+                              : colors.onSurfaceVariant,
+                            fontStyle: isEnabled ? "normal" : "italic",
+                          }}
+                        >
+                          {isEnabled
+                            ? "Active in monthly teacher evaluation forms & reports"
+                            : "Excluded from teacher evaluation forms & class averages"}
+                        </Text>
+                      </View>
                     </View>
                   </View>
 
-                  {/* Right: Toggle Switch */}
-                  <View style={{ alignItems: "center" }}>
+                  {/* Right: Toggle Switch & Status */}
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    disabled={isToggling || isBulkConfiguring}
+                    onPress={() =>
+                      handleToggleSubjectRating(sub.name, isEnabled)
+                    }
+                    style={{
+                      alignItems: "center",
+                      paddingHorizontal: 4,
+                      paddingVertical: 2,
+                    }}
+                  >
                     <Switch
                       value={isEnabled}
-                      disabled={isToggling}
+                      disabled={isToggling || isBulkConfiguring}
                       onValueChange={() =>
                         handleToggleSubjectRating(sub.name, isEnabled)
                       }
@@ -1529,19 +1970,45 @@ export default function AdminStudentRatingsScreen() {
                       }}
                       thumbColor={isEnabled ? "#FFFFFF" : "#F3F4F6"}
                     />
-                    <Text
-                      style={{
-                        fontSize: 10,
-                        fontFamily: FONTS.medium,
-                        color: isEnabled
-                          ? colors.primary
-                          : colors.onSurfaceVariant,
-                        marginTop: 2,
-                      }}
-                    >
-                      {isEnabled ? "Enabled" : "Disabled"}
-                    </Text>
-                  </View>
+                    {isToggling ? (
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 3,
+                          marginTop: 3,
+                        }}
+                      >
+                        <ActivityIndicator
+                          size="small"
+                          color={colors.primary}
+                          style={{ transform: [{ scale: 0.6 }] }}
+                        />
+                        <Text
+                          style={{
+                            fontSize: 10,
+                            fontFamily: FONTS.medium,
+                            color: colors.primary,
+                          }}
+                        >
+                          Saving...
+                        </Text>
+                      </View>
+                    ) : (
+                      <Text
+                        style={{
+                          fontSize: 10,
+                          fontFamily: FONTS.bold,
+                          color: isEnabled
+                            ? colors.primary
+                            : colors.onSurfaceVariant,
+                          marginTop: 3,
+                        }}
+                      >
+                        {isEnabled ? "Enabled" : "Disabled"}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
                 </View>
 
                 {/* Collapsible Classes List Button */}
@@ -1572,7 +2039,9 @@ export default function AdminStudentRatingsScreen() {
                         style={{
                           fontSize: 11,
                           fontFamily: FONTS.medium,
-                          color: colors.primary,
+                          color: isEnabled
+                            ? colors.primary
+                            : colors.onSurfaceVariant,
                         }}
                       >
                         {isExpandedClasses
@@ -1582,7 +2051,9 @@ export default function AdminStudentRatingsScreen() {
                       <MaterialIcons
                         name={isExpandedClasses ? "expand-less" : "expand-more"}
                         size={18}
-                        color={colors.primary}
+                        color={
+                          isEnabled ? colors.primary : colors.onSurfaceVariant
+                        }
                       />
                     </TouchableOpacity>
 
@@ -1742,7 +2213,11 @@ export default function AdminStudentRatingsScreen() {
               { key: "overview", label: "Overview", icon: "dashboard" },
               { key: "classes", label: "Classes", icon: "people" },
               { key: "movers", label: "Movers", icon: "trending-up" },
-              { key: "tracker", label: "Tracker", icon: "assignment-turned-in" },
+              {
+                key: "tracker",
+                label: "Tracker",
+                icon: "assignment-turned-in",
+              },
               { key: "config", label: "Subject Config", icon: "tune" },
             ].map((tab) => {
               const isActive = activeTab === tab.key;
@@ -1768,7 +2243,9 @@ export default function AdminStudentRatingsScreen() {
                   <MaterialIcons
                     name={tab.icon}
                     size={15}
-                    color={isActive ? colors.onPrimary : colors.onSurfaceVariant}
+                    color={
+                      isActive ? colors.onPrimary : colors.onSurfaceVariant
+                    }
                     style={{ marginRight: 4 }}
                   />
                   <Text
@@ -1831,16 +2308,29 @@ export default function AdminStudentRatingsScreen() {
           <View
             style={[
               styles.drilldownSheet,
-              { backgroundColor: colors.surface, borderColor: colors.outlineVariant },
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.outlineVariant,
+              },
             ]}
           >
             {/* Modal Header */}
             <View style={styles.drilldownHeader}>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.drilldownSheetTitle, { color: colors.onSurface }]}>
+                <Text
+                  style={[
+                    styles.drilldownSheetTitle,
+                    { color: colors.onSurface },
+                  ]}
+                >
                   Student Evaluation Detail
                 </Text>
-                <Text style={[styles.drilldownSheetSub, { color: colors.onSurfaceVariant }]}>
+                <Text
+                  style={[
+                    styles.drilldownSheetSub,
+                    { color: colors.onSurfaceVariant },
+                  ]}
+                >
                   {monthName} {selectedYear}
                 </Text>
               </View>
@@ -1848,7 +2338,11 @@ export default function AdminStudentRatingsScreen() {
                 onPress={() => setSelectedStudentId(null)}
                 style={styles.drilldownCloseBtn}
               >
-                <MaterialIcons name="close" size={24} color={colors.onSurface} />
+                <MaterialIcons
+                  name="close"
+                  size={24}
+                  color={colors.onSurface}
+                />
               </TouchableOpacity>
             </View>
 
@@ -1857,21 +2351,20 @@ export default function AdminStudentRatingsScreen() {
                 <LoadingState message="Loading student breakdown & trend..." />
               </View>
             ) : (
-              <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: "88%" }}>
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                style={{ maxHeight: "88%" }}
+              >
                 {/* Student Hero Header */}
                 <View
                   style={[
                     styles.studentDrilldownHero,
                     {
-                      backgroundColor:
-                        colors.surfaceContainer || "#F3F4F6",
+                      backgroundColor: colors.surfaceContainer || "#F3F4F6",
                     },
                   ]}
                 >
-                  <UserAvatar
-                    user={studentDetailsData?.student}
-                    size={52}
-                  />
+                  <UserAvatar user={studentDetailsData?.student} size={52} />
                   <View style={{ flex: 1, marginLeft: 12 }}>
                     <Text
                       style={[
@@ -1890,7 +2383,14 @@ export default function AdminStudentRatingsScreen() {
                       Reg: {studentDetailsData?.student?.regNo || "--"} •{" "}
                       {studentDetailsData?.student?.gender || "Student"}
                     </Text>
-                    <View style={{ marginTop: 6, flexDirection: "row", alignItems: "center", gap: 6 }}>
+                    <View
+                      style={{
+                        marginTop: 6,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 6,
+                      }}
+                    >
                       <Text
                         style={[
                           styles.drilldownOverallAvg,
@@ -1901,7 +2401,10 @@ export default function AdminStudentRatingsScreen() {
                           },
                         ]}
                       >
-                        ★ {studentDetailsData?.overallAverage ? studentDetailsData.overallAverage.toFixed(2) : "--"}
+                        ★{" "}
+                        {studentDetailsData?.overallAverage
+                          ? studentDetailsData.overallAverage.toFixed(2)
+                          : "--"}
                       </Text>
                       <Badge
                         variant={
@@ -2098,8 +2601,7 @@ export default function AdminStudentRatingsScreen() {
                     style={[
                       styles.subjectDetailCard,
                       {
-                        backgroundColor:
-                          colors.surfaceContainer || "#F3F4F6",
+                        backgroundColor: colors.surfaceContainer || "#F3F4F6",
                         borderColor: colors.outlineVariant,
                       },
                     ]}
@@ -2132,8 +2634,18 @@ export default function AdminStudentRatingsScreen() {
                         />
                       ) : (
                         <Badge
-                          variant={getRatingLabel(typeof sRating.averageScore === "number" ? sRating.averageScore : 0).variant}
-                          label={`★ ${typeof sRating.averageScore === "number" ? sRating.averageScore.toFixed(2) : (sRating.averageScore || "--")}`}
+                          variant={
+                            getRatingLabel(
+                              typeof sRating.averageScore === "number"
+                                ? sRating.averageScore
+                                : 0
+                            ).variant
+                          }
+                          label={`★ ${
+                            typeof sRating.averageScore === "number"
+                              ? sRating.averageScore.toFixed(2)
+                              : sRating.averageScore || "--"
+                          }`}
                           size="md"
                         />
                       )}
@@ -2141,9 +2653,26 @@ export default function AdminStudentRatingsScreen() {
 
                     {/* 4 Points in this Subject or Exemption Notice */}
                     {sRating.isExempt ? (
-                      <View style={{ marginTop: 8, padding: 8, borderRadius: RADIUS.sm, backgroundColor: colors.surfaceContainerLow }}>
-                        <Text style={{ fontSize: 12, color: colors.onSurfaceVariant, fontFamily: FONTS.regular }}>
-                          Student was excused/exempt from ratings this month{sRating.exemptionReason ? ` (${sRating.exemptionReason})` : ""}.
+                      <View
+                        style={{
+                          marginTop: 8,
+                          padding: 8,
+                          borderRadius: RADIUS.sm,
+                          backgroundColor: colors.surfaceContainerLow,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 12,
+                            color: colors.onSurfaceVariant,
+                            fontFamily: FONTS.regular,
+                          }}
+                        >
+                          Student was excused/exempt from ratings this month
+                          {sRating.exemptionReason
+                            ? ` (${sRating.exemptionReason})`
+                            : ""}
+                          .
                         </Text>
                       </View>
                     ) : (
@@ -2178,7 +2707,13 @@ export default function AdminStudentRatingsScreen() {
                     {/* Optional Teacher Remarks */}
                     {!!sRating.remarks && (
                       <View style={{ marginTop: 8, paddingHorizontal: 4 }}>
-                        <Text style={{ fontSize: 11, color: colors.onSurfaceVariant, fontStyle: "italic" }}>
+                        <Text
+                          style={{
+                            fontSize: 11,
+                            color: colors.onSurfaceVariant,
+                            fontStyle: "italic",
+                          }}
+                        >
                           &ldquo;{sRating.remarks}&rdquo;
                         </Text>
                       </View>

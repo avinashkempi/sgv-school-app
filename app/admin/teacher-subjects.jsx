@@ -34,18 +34,18 @@ import {
 import { formatClassName } from "../../utils/formatClassName";
 import { useToast } from "../../components/ToastProvider";
 
+// Enable LayoutAnimation for Android
+if (
+  Platform.OS === "android" &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 export default function TeacherSubjectsScreen() {
   const _router = useRouter();
   const { _styles, colors } = useTheme();
   const { showToast } = useToast();
-
-  // Enable LayoutAnimation for Android
-  if (
-    Platform.OS === "android" &&
-    UIManager.setLayoutAnimationEnabledExperimental
-  ) {
-    UIManager.setLayoutAnimationEnabledExperimental(true);
-  }
 
   const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);

@@ -84,7 +84,7 @@ export const NotificationProvider = ({ children }) => {
           return {
             ...old,
             notifications: (old.notifications || []).map((n) =>
-              n._id === id ? { ...n, isRead: true } : n
+              n._id === id || n.id === id ? { ...n, isRead: true } : n
             ),
             unreadCount: Math.max(0, (old.unreadCount || 0) - 1),
           };
@@ -124,13 +124,13 @@ export const NotificationProvider = ({ children }) => {
         queryClient.setQueryData(["notifications", userId], (old) => {
           if (!old) return old;
           const deletedNotif = (old.notifications || []).find(
-            (n) => n._id === id
+            (n) => n._id === id || n.id === id
           );
           const wasUnread = deletedNotif && !deletedNotif.isRead;
           return {
             ...old,
             notifications: (old.notifications || []).filter(
-              (n) => n._id !== id
+              (n) => n._id !== id && n.id !== id
             ),
             unreadCount: wasUnread
               ? Math.max(0, (old.unreadCount || 0) - 1)

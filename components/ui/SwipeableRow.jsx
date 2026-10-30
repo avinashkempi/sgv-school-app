@@ -1,14 +1,66 @@
 import React, { useRef, useCallback } from "react";
-import { View, StyleSheet, Animated, Pressable } from "react-native";
-import { Swipeable } from "react-native-gesture-handler";
+import { View, StyleSheet, Pressable, Platform } from "react-native";
+import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+import Animated, {
+  useAnimatedStyle,
+  interpolate,
+  Extrapolation,
+} from "react-native-reanimated";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+
+/**
+ * Animated delete action item for SwipeableRow
+ */
+const RightActionItem = ({ drag, onDelete, deleteIcon, deleteColor }) => {
+  const animatedStyle = useAnimatedStyle(() => {
+    const dragVal = typeof drag?.value === "number" ? drag.value : 0;
+    const trans = interpolate(
+      dragVal,
+      [-80, 0],
+      [0, 80],
+      Extrapolation.CLAMP
+    );
+    const opacity = interpolate(
+      dragVal,
+      [-80, -20, 0],
+      [1, 0.5, 0],
+      Extrapolation.CLAMP
+    );
+    return {
+      transform: [{ translateX: trans }],
+      opacity,
+    };
+  });
+
+  return (
+    <View style={styles.rightActionsContainer}>
+      <Animated.View
+        style={[
+          styles.actionButtonContainer,
+          { backgroundColor: deleteColor },
+          animatedStyle,
+        ]}
+      >
+        <Pressable
+          onPress={onDelete}
+          style={styles.actionPressable}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          accessibilityLabel="Delete item"
+          accessibilityRole="button"
+        >
+          <MaterialIcons name={deleteIcon} size={24} color="#ffffff" />
+        </Pressable>
+      </Animated.View>
+    </View>
+  );
+};
 
 /**
  * Standard iOS/Android Swipeable Row Component
  *
  * @param {Function} onDelete - Callback when delete action is pressed or triggered
- * @param {string} deleteIcon - Material icon name (default: "delete")
+ * @param {string} deleteIcon - Material icon name (default: "delete-outline")
  * @param {string} deleteColor - Background color for delete action (default: "#EF4444")
  * @param {boolean} enabled - Whether swipe action is enabled (default: true)
  * @param {React.ReactNode} children - Row content
@@ -34,51 +86,24 @@ export default function SwipeableRow({
     }
   }, [onDelete, close]);
 
-  const renderRightActions = (progress, dragX) => {
-    const trans = dragX.interpolate({
-      inputRange: [-80, 0],
-      outputRange: [0, 80],
-      extrapolate: "clamp",
-    });
+  const renderRightActions = useCallback(
+    (progress, dragX) => (
+      <RightActionItem
+        drag={dragX}
+        onDelete={handleDelete}
+        deleteIcon={deleteIcon}
+        deleteColor={deleteColor}
+      />
+    ),
+    [handleDelete, deleteIcon, deleteColor]
+  );
 
-    const opacity = dragX.interpolate({
-      inputRange: [-80, -20, 0],
-      outputRange: [1, 0.5, 0],
-      extrapolate: "clamp",
-    });
-
-    return (
-      <View style={styles.rightActionsContainer}>
-        <Animated.View
-          style={[
-            styles.actionButtonContainer,
-            {
-              backgroundColor: deleteColor,
-              transform: [{ translateX: trans }],
-              opacity,
-            },
-          ]}
-        >
-          <Pressable
-            onPress={handleDelete}
-            style={styles.actionPressable}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            accessibilityLabel="Delete item"
-            accessibilityRole="button"
-          >
-            <MaterialIcons name={deleteIcon} size={24} color="#ffffff" />
-          </Pressable>
-        </Animated.View>
-      </View>
-    );
-  };
-
-  if (!enabled || !onDelete) {
+  if (Platform.OS === "web" || !enabled || !onDelete || !ReanimatedSwipeable) {
     return children;
   }
 
   return (
-    <Swipeable
+    <ReanimatedSwipeable
       ref={swipeableRowRef}
       friction={2}
       enableTrackpadTwoFingerGesture
@@ -90,7 +115,7 @@ export default function SwipeableRow({
       containerStyle={styles.swipeContainer}
     >
       {children}
-    </Swipeable>
+    </ReanimatedSwipeable>
   );
 }
 

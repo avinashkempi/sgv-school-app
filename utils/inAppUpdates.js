@@ -1,5 +1,5 @@
 import { Platform } from "react-native";
-import Constants from "expo-constants";
+import Constants, { ExecutionEnvironment } from "expo-constants";
 
 export const checkAppUpdate = async () => {
   // Skip on web before importing the native-only update package. Static imports
@@ -9,7 +9,11 @@ export const checkAppUpdate = async () => {
   }
 
   // Skip in Expo Go during development to prevent native module crash.
-  if (Constants.appOwnership === "expo") {
+  const isExpoGo =
+    Constants.executionEnvironment === ExecutionEnvironment.StoreClient ||
+    Constants.appOwnership === "expo";
+
+  if (isExpoGo) {
     if (__DEV__) {
       console.log(
         "[InAppUpdates] Skipping check because we are running in Expo Go."

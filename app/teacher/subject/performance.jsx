@@ -15,7 +15,6 @@ import AppHeader from "../../../components/Header";
 import Card from "../../../components/Card";
 import apiConfig from "../../../config/apiConfig";
 import formatClassName from "../../../utils/formatClassName";
-import {} from "react-native-chart-kit";
 
 const { _width } = Dimensions.get("window");
 

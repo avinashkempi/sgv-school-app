@@ -327,17 +327,20 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (fontsLoaded) {
-      Text.defaultProps = {
-        ...(Text.defaultProps || {}),
-        style: {
-          flexShrink: 1,
-          fontFamily: FONTS.regular,
-          ...(Text.defaultProps?.style || {}),
-        },
-      };
+      try {
+        if (Text.defaultProps) {
+          Text.defaultProps.style = {
+            flexShrink: 1,
+            fontFamily: FONTS.regular,
+            ...(Text.defaultProps.style || {}),
+          };
+        }
+      } catch {
+        // Ignored on React 19 where defaultProps is deprecated on function components
+      }
     }
 
-    // Global web text-wrapping and overflow prevention
+    // Global web text-wrapping, typography, and overflow prevention
     if (Platform.OS === "web" && typeof document !== "undefined") {
       const styleId = "sgv-global-text-overflow-styles";
       if (!document.getElementById(styleId)) {
@@ -350,6 +353,7 @@ export default function RootLayout() {
           body, #root, [data-testid="root"], div[dir="auto"], span[dir="auto"], [dir="auto"] {
             overflow-wrap: anywhere;
             word-break: break-word;
+            font-family: 'DMSans-Regular', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
           }
         `;
         document.head.appendChild(style);

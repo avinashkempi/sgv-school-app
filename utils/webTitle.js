@@ -22,6 +22,8 @@ const ROUTE_TITLES = {
   "complaints/raise": "Raise Complaint | SGV School",
   "complaints/give-feedback": "Give Feedback | SGV School",
 
+  onboarding: "Welcome | SGV School",
+
   // Student portal routes
   student: "Student Portal | SGV School",
   "student/class": "My Class | SGV School",
@@ -32,6 +34,7 @@ const ROUTE_TITLES = {
   "student/report-card": "Report Card | SGV School",
   "student/exam-schedule": "Exam Schedule | SGV School",
   "student/history": "Academic History | SGV School",
+  "student/ratings": "Student Ratings | SGV School",
 
   // Teacher portal routes
   teacher: "Teacher Portal | SGV School",
@@ -49,6 +52,8 @@ const ROUTE_TITLES = {
   "teacher/exam/enter-marks": "Enter Marks | SGV School",
   "teacher/subject/create-exam": "Create Exam | SGV School",
   "teacher/subject/performance": "Subject Performance | SGV School",
+  "teacher/monthly-ratings": "Monthly Ratings | SGV School",
+  "teacher/rate-students": "Rate Students | SGV School",
 
   // Admin portal routes
   admin: "Admin Portal | SGV School",
@@ -66,6 +71,8 @@ const ROUTE_TITLES = {
   "admin/teacher-subjects": "Teacher Subjects | SGV School",
   "admin/send-notification": "Send Notification | SGV School",
   "admin/import-data": "Import Data | SGV School",
+  "admin/student-ratings": "Student Ratings | SGV School",
+  "admin/daily-reminders": "Daily Reminders | SGV School",
 
   // Super Admin routes
   "super-admin": "Super Admin | SGV School",
@@ -81,7 +88,10 @@ const ROUTE_TITLES = {
 
 function formatSegment(seg) {
   if (!seg) return "";
-  const cleaned = seg.replace(/^\[.*\]$/, "").replace(/[-_]+/g, " ").trim();
+  const cleaned = seg
+    .replace(/^\[.*\]$/, "")
+    .replace(/[-_]+/g, " ")
+    .trim();
   if (!cleaned) return "";
   return cleaned
     .split(" ")
