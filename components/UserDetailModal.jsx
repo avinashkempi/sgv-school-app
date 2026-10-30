@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, ScrollView, Pressable, Modal } from "react-native";
+import { View, Text, ScrollView, Pressable, Modal, Platform, StyleSheet } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useTheme, FONTS, FONT_SIZES, LETTER_SPACINGS } from "../theme";
@@ -50,17 +50,32 @@ export default function UserDetailModal({ visible, onClose, user }) {
       <View
         style={{
           flex: 1,
-          backgroundColor: "rgba(0,0,0,0.5)",
-          justifyContent: "flex-end",
+          backgroundColor: "rgba(0,0,0,0.55)",
+          justifyContent: Platform.OS === "web" ? "center" : "flex-end",
+          alignItems: "center",
+          padding: Platform.OS === "web" ? 16 : 0,
         }}
       >
+        <Pressable
+          style={StyleSheet.absoluteFillObject}
+          onPress={onClose}
+        />
         <View
           style={{
             backgroundColor: colors.background,
+            width: "100%",
+            maxWidth: 560,
             borderTopLeftRadius: 24,
             borderTopRightRadius: 24,
-            height: "90%",
-            paddingBottom: 40,
+            borderBottomLeftRadius: Platform.OS === "web" ? 24 : 0,
+            borderBottomRightRadius: Platform.OS === "web" ? 24 : 0,
+            height: Platform.OS === "web" ? "85%" : "90%",
+            paddingBottom: Platform.OS === "ios" ? 40 : 24,
+            elevation: 16,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 6 },
+            shadowOpacity: 0.2,
+            shadowRadius: 16,
           }}
         >
           <View
@@ -312,7 +327,7 @@ const DetailSection = ({ title, children }) => {
       </Text>
       <View
         style={{
-          backgroundColor: colors.cardBackground,
+          backgroundColor: colors.cardBackground || colors.surfaceContainerLow || "#FFFFFF",
           padding: 16,
           borderRadius: 16,
           gap: 12,

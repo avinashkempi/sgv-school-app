@@ -10,6 +10,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  StyleSheet,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -898,31 +899,43 @@ export default function AdminTimetableScreen() {
       <Modal
         visible={modalVisible}
         transparent={true}
-        animationType="slide"
+        animationType={Platform.OS === "web" ? "fade" : "slide"}
         onRequestClose={() => setModalVisible(false)}
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           style={{
             flex: 1,
-            backgroundColor: "rgba(0,0,0,0.5)",
-            justifyContent: "flex-end",
+            backgroundColor: "rgba(0,0,0,0.55)",
+            justifyContent: Platform.OS === "web" ? "center" : "flex-end",
+            alignItems: "center",
+            padding: Platform.OS === "web" ? 16 : 0,
           }}
         >
           <Pressable
-            style={{ flex: 1, justifyContent: "flex-end" }}
+            style={StyleSheet.absoluteFillObject}
             onPress={() => setModalVisible(false)}
+          />
+          <Pressable
+            style={{
+              backgroundColor: colors.cardBackground || colors.surface || "#FFFFFF",
+              width: "100%",
+              maxWidth: 520,
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              borderBottomLeftRadius: Platform.OS === "web" ? 24 : 0,
+              borderBottomRightRadius: Platform.OS === "web" ? 24 : 0,
+              padding: 24,
+              paddingBottom: Platform.OS === "ios" ? 36 : 24,
+              maxHeight: "85%",
+              elevation: 16,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.2,
+              shadowRadius: 16,
+            }}
+            onPress={(e) => e.stopPropagation()}
           >
-            <Pressable
-              style={{
-                backgroundColor: colors.cardBackground,
-                borderTopLeftRadius: 24,
-                borderTopRightRadius: 24,
-                padding: 24,
-                maxHeight: "85%",
-              }}
-              onPress={(e) => e.stopPropagation()}
-            >
               <View
                 style={{
                   flexDirection: "row",
@@ -1254,7 +1267,6 @@ export default function AdminTimetableScreen() {
                 </Pressable>
               </ScrollView>
             </Pressable>
-          </Pressable>
         </KeyboardAvoidingView>
       </Modal>
 
@@ -1262,24 +1274,39 @@ export default function AdminTimetableScreen() {
       <Modal
         visible={cloneModalVisible}
         transparent={true}
-        animationType="slide"
+        animationType={Platform.OS === "web" ? "fade" : "slide"}
         onRequestClose={() => setCloneModalVisible(false)}
       >
-        <Pressable
+        <View
           style={{
             flex: 1,
-            backgroundColor: "rgba(0,0,0,0.5)",
-            justifyContent: "flex-end",
+            backgroundColor: "rgba(0,0,0,0.55)",
+            justifyContent: Platform.OS === "web" ? "center" : "flex-end",
+            alignItems: "center",
+            padding: Platform.OS === "web" ? 16 : 0,
           }}
-          onPress={() => setCloneModalVisible(false)}
         >
           <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={() => setCloneModalVisible(false)}
+          />
+          <Pressable
             style={{
-              backgroundColor: colors.cardBackground,
+              backgroundColor: colors.cardBackground || colors.surface || "#FFFFFF",
+              width: "100%",
+              maxWidth: 520,
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
+              borderBottomLeftRadius: Platform.OS === "web" ? 24 : 0,
+              borderBottomRightRadius: Platform.OS === "web" ? 24 : 0,
               padding: 24,
+              paddingBottom: Platform.OS === "ios" ? 36 : 24,
               maxHeight: "85%",
+              elevation: 16,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.2,
+              shadowRadius: 16,
             }}
             onPress={(e) => e.stopPropagation()}
           >
@@ -1495,7 +1522,7 @@ export default function AdminTimetableScreen() {
               </Pressable>
             </ScrollView>
           </Pressable>
-        </Pressable>
+        </View>
       </Modal>
 
       <ModernTimePicker

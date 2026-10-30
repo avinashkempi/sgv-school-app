@@ -2354,20 +2354,33 @@ export default function ExamAnalyticsScreen() {
         <Pressable
           style={{
             flex: 1,
-            backgroundColor: "rgba(0,0,0,0.5)",
-            justifyContent: "flex-end",
+            backgroundColor: "rgba(0,0,0,0.55)",
+            justifyContent: Platform.OS === "web" ? "center" : "flex-end",
+            alignItems: "center",
+            padding: Platform.OS === "web" ? 16 : 0,
           }}
           onPress={() => setSelectedItem(null)}
         >
-          <Pressable onPress={(e) => e.stopPropagation()}>
+          <Pressable
+            style={{ width: "100%", maxWidth: 560 }}
+            onPress={(e) => e.stopPropagation()}
+          >
             <View
               style={{
                 backgroundColor: colors.background,
+                width: "100%",
                 borderTopLeftRadius: 24,
                 borderTopRightRadius: 24,
+                borderBottomLeftRadius: Platform.OS === "web" ? 24 : 0,
+                borderBottomRightRadius: Platform.OS === "web" ? 24 : 0,
                 padding: 24,
-                paddingBottom: 40,
+                paddingBottom: Platform.OS === "ios" ? 40 : 24,
                 maxHeight: "85%",
+                elevation: 16,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 6 },
+                shadowOpacity: 0.2,
+                shadowRadius: 16,
               }}
             >
               {/* Handle */}
@@ -2652,20 +2665,33 @@ export default function ExamAnalyticsScreen() {
         <Pressable
           style={{
             flex: 1,
-            backgroundColor: "rgba(0,0,0,0.5)",
-            justifyContent: "flex-end",
+            backgroundColor: "rgba(0,0,0,0.55)",
+            justifyContent: Platform.OS === "web" ? "center" : "flex-end",
+            alignItems: "center",
+            padding: Platform.OS === "web" ? 16 : 0,
           }}
           onPress={() => setSelectedStudent(null)}
         >
-          <Pressable onPress={(e) => e.stopPropagation()}>
+          <Pressable
+            style={{ width: "100%", maxWidth: 560 }}
+            onPress={(e) => e.stopPropagation()}
+          >
             <View
               style={{
                 backgroundColor: colors.background,
+                width: "100%",
                 borderTopLeftRadius: 24,
                 borderTopRightRadius: 24,
+                borderBottomLeftRadius: Platform.OS === "web" ? 24 : 0,
+                borderBottomRightRadius: Platform.OS === "web" ? 24 : 0,
                 padding: 24,
-                paddingBottom: 40,
+                paddingBottom: Platform.OS === "ios" ? 40 : 24,
                 maxHeight: "85%",
+                elevation: 16,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 6 },
+                shadowOpacity: 0.2,
+                shadowRadius: 16,
               }}
             >
               {/* Handle */}

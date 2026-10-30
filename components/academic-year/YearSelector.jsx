@@ -532,13 +532,20 @@ const styles = StyleSheet.create({
   modalBackdrop: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.55)",
-    justifyContent: "flex-end",
+    justifyContent: Platform.OS === "web" ? "center" : "flex-end",
+    alignItems: "center",
+    padding: Platform.OS === "web" ? 16 : 0,
   },
   modalSheet: {
+    width: "100%",
+    maxWidth: 500,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
+    borderBottomLeftRadius: Platform.OS === "web" ? 28 : 0,
+    borderBottomRightRadius: Platform.OS === "web" ? 28 : 0,
     borderTopWidth: 1,
     paddingTop: 8,
+    paddingBottom: Platform.OS === "ios" ? 36 : 16,
     maxHeight: "82%",
     ...Platform.select({
       ios: {
@@ -549,6 +556,13 @@ const styles = StyleSheet.create({
       },
       android: {
         elevation: 16,
+      },
+      web: {
+        elevation: 16,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.2,
+        shadowRadius: 16,
       },
     }),
   },

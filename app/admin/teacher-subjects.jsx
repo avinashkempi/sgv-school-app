@@ -507,12 +507,17 @@ export default function TeacherSubjectsScreen() {
         >
           <View
             style={{
-              backgroundColor: colors.cardBackground,
+              backgroundColor: colors.cardBackground || colors.surface || "#FFFFFF",
               borderRadius: 20,
               padding: 24,
               width: "90%",
               maxWidth: 500,
               maxHeight: "80%",
+              elevation: 16,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.2,
+              shadowRadius: 16,
             }}
           >
             <View

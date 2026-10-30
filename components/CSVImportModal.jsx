@@ -7,6 +7,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Platform,
+  StyleSheet,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
@@ -153,19 +154,34 @@ export default function CSVImportModal({
       <View
         style={{
           flex: 1,
-          backgroundColor: "rgba(0,0,0,0.5)",
-          justifyContent: "flex-end",
+          backgroundColor: "rgba(0,0,0,0.55)",
+          justifyContent: Platform.OS === "web" ? "center" : "flex-end",
+          alignItems: "center",
+          padding: Platform.OS === "web" ? 16 : 0,
         }}
       >
+        <Pressable
+          style={StyleSheet.absoluteFillObject}
+          onPress={handleClose}
+        />
         <View
           style={{
             backgroundColor: colors.surface,
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
+            width: "100%",
+            maxWidth: 520,
+            borderTopLeftRadius: 24,
+            borderTopRightRadius: 24,
+            borderBottomLeftRadius: Platform.OS === "web" ? 24 : 0,
+            borderBottomRightRadius: Platform.OS === "web" ? 24 : 0,
             paddingTop: 20,
             paddingHorizontal: 20,
-            paddingBottom: 40,
-            maxHeight: "80%",
+            paddingBottom: Platform.OS === "ios" ? 40 : 24,
+            maxHeight: "85%",
+            elevation: 16,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 6 },
+            shadowOpacity: 0.2,
+            shadowRadius: 16,
           }}
         >
           {/* Header */}

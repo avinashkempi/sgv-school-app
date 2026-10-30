@@ -1642,8 +1642,9 @@ export default function AcademicYearScreen() {
         <Pressable
           style={{
             flex: 1,
-            backgroundColor: "rgba(0,0,0,0.5)",
+            backgroundColor: "rgba(0,0,0,0.55)",
             justifyContent: "center",
+            alignItems: "center",
             padding: 24,
           }}
           onPress={() => setShowYearPickerModal(false)}
@@ -1651,6 +1652,8 @@ export default function AcademicYearScreen() {
           <Pressable
             style={{
               backgroundColor: colors.surface,
+              width: "100%",
+              maxWidth: 440,
               borderRadius: 20,
               padding: 20,
               maxHeight: "70%",

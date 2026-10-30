@@ -899,7 +899,7 @@ export default function UserFormModal({
               padding: 24,
               borderTopWidth: 1,
               borderTopColor: colors.border,
-              backgroundColor: colors.cardBackground,
+              backgroundColor: colors.cardBackground || colors.surfaceContainer || "#FFFFFF",
               flexDirection: "row",
               gap: 12,
             }}

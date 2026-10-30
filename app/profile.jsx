@@ -1505,8 +1505,10 @@ export default function ProfileScreen() {
         <Pressable
           style={{
             flex: 1,
-            backgroundColor: "rgba(0,0,0,0.5)",
-            justifyContent: "flex-end",
+            backgroundColor: "rgba(0,0,0,0.55)",
+            justifyContent: Platform.OS === "web" ? "center" : "flex-end",
+            alignItems: "center",
+            padding: Platform.OS === "web" ? 16 : 0,
           }}
           onPress={() => setShowPhotoOptionsModal(false)}
         >
@@ -1516,10 +1518,19 @@ export default function ProfileScreen() {
                 colors.surfaceContainerLowest ||
                 colors.cardBackground ||
                 "#fff",
+              width: "100%",
+              maxWidth: 420,
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
+              borderBottomLeftRadius: Platform.OS === "web" ? 24 : 0,
+              borderBottomRightRadius: Platform.OS === "web" ? 24 : 0,
               padding: 24,
               paddingBottom: Platform.OS === "ios" ? 40 : 24,
+              elevation: 16,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.2,
+              shadowRadius: 16,
             }}
             onPress={(e) => e.stopPropagation()}
           >

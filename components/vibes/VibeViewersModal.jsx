@@ -197,12 +197,19 @@ export default function VibeViewersModal({ visible, onClose, vibeId }) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.45)",
-    justifyContent: "flex-end",
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: Platform.OS === "web" ? "center" : "flex-end",
+    alignItems: "center",
+    padding: Platform.OS === "web" ? 16 : 0,
   },
   container: {
+    width: "100%",
+    maxWidth: 520,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
+    borderBottomLeftRadius: Platform.OS === "web" ? 28 : 0,
+    borderBottomRightRadius: Platform.OS === "web" ? 28 : 0,
+    paddingBottom: Platform.OS === "ios" ? 36 : 16,
     maxHeight: "75%",
     minHeight: "42%",
   },

@@ -101,6 +101,7 @@ export const lightColors = {
   border: "#CAC4D0",
   borderLight: "#E6E0E9",
   divider: "#CAC4D0",
+  cardBackground: "#FFFFFF",
   // ─── Field Tokens (Light Mode) ───
   fieldBackground: "#FFFFFF",
   fieldBorder: "#CAC4D0",

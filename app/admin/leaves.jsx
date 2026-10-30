@@ -1729,7 +1729,13 @@ export default function AdminLeaves() {
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
-          style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: Platform.OS === "web" ? "center" : "flex-end",
+            alignItems: "center",
+            padding: Platform.OS === "web" ? 16 : 0,
+          }}
         >
           <View style={[styles.applySheetCard, { backgroundColor: colors.surface }]}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
@@ -2402,13 +2408,19 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "flex-end",
+    justifyContent: Platform.OS === "web" ? "center" : "flex-end",
+    alignItems: "center",
+    padding: Platform.OS === "web" ? 16 : 0,
   },
   filterSheetCard: {
+    width: "100%",
+    maxWidth: 500,
     borderTopLeftRadius: 22,
     borderTopRightRadius: 22,
+    borderBottomLeftRadius: Platform.OS === "web" ? 22 : 0,
+    borderBottomRightRadius: Platform.OS === "web" ? 22 : 0,
     padding: 18,
-    paddingBottom: 28,
+    paddingBottom: Platform.OS === "ios" ? 36 : 28,
   },
   filterSheetHeader: {
     flexDirection: "row",
@@ -2465,9 +2477,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.55)",
     justifyContent: "center",
+    alignItems: "center",
     padding: 18,
   },
   actionModalCard: {
+    width: "100%",
+    maxWidth: 460,
     borderRadius: 18,
     padding: 16,
     borderWidth: 1,
@@ -2535,9 +2550,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   applySheetCard: {
+    width: "100%",
+    maxWidth: 540,
     borderTopLeftRadius: 22,
     borderTopRightRadius: 22,
+    borderBottomLeftRadius: Platform.OS === "web" ? 22 : 0,
+    borderBottomRightRadius: Platform.OS === "web" ? 22 : 0,
     padding: 20,
+    paddingBottom: Platform.OS === "ios" ? 36 : 24,
     maxHeight: "90%",
   },
   segmentBox: {

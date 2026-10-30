@@ -408,14 +408,21 @@ const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.6)",
-    justifyContent: "flex-end",
+    justifyContent: Platform.OS === "web" ? "center" : "flex-end",
+    alignItems: "center",
+    padding: Platform.OS === "web" ? 16 : 0,
   },
   modalContainer: {
+    width: "100%",
+    maxWidth: 540,
     maxHeight: "85%",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
+    borderBottomLeftRadius: Platform.OS === "web" ? 24 : 0,
+    borderBottomRightRadius: Platform.OS === "web" ? 24 : 0,
     borderTopWidth: 1,
     paddingTop: 16,
+    paddingBottom: Platform.OS === "ios" ? 36 : 16,
   },
   modalHeader: {
     flexDirection: "row",

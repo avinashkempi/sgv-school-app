@@ -11,6 +11,7 @@ import {
   Modal,
   KeyboardAvoidingView,
   Platform,
+  StyleSheet,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -316,168 +317,191 @@ export default function ManageSubjectsScreen() {
       {/* Create/Edit Modal */}
       <Modal
         visible={showModal}
-        animationType="slide"
+        animationType={Platform.OS === "web" ? "fade" : "slide"}
         transparent
         onRequestClose={() => setShowModal(false)}
       >
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
           style={{
             flex: 1,
-            justifyContent: "flex-end",
-            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: Platform.OS === "web" ? "center" : "flex-end",
+            alignItems: "center",
+            backgroundColor: "rgba(0,0,0,0.55)",
+            padding: Platform.OS === "web" ? 16 : 0,
           }}
         >
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={() => setShowModal(false)}
+          />
           <View
             style={{
-              backgroundColor: colors.cardBackground,
+              backgroundColor: colors.cardBackground || colors.surface || "#FFFFFF",
+              width: "100%",
+              maxWidth: 500,
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
+              borderBottomLeftRadius: Platform.OS === "web" ? 24 : 0,
+              borderBottomRightRadius: Platform.OS === "web" ? 24 : 0,
               padding: 24,
+              paddingBottom: Platform.OS === "ios" ? 36 : 24,
+              elevation: 16,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.2,
+              shadowRadius: 16,
+              maxHeight: "90%",
             }}
           >
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 24,
-              }}
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+              bounces={false}
             >
-              <Text
+              <View
                 style={{
-                  fontSize: FONT_SIZES.xl,
-                  fontFamily: FONTS.bold,
-                  color: colors.textPrimary,
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 24,
                 }}
               >
-                {modalMode === "add" ? "New Subject" : "Edit Subject"}
-              </Text>
-              <Pressable onPress={() => setShowModal(false)}>
-                <MaterialIcons
-                  name="close"
-                  size={24}
-                  color={colors.textSecondary}
-                />
-              </Pressable>
-            </View>
-
-            <Text
-              style={{
-                fontSize: FONT_SIZES.sm,
-                fontFamily: FONTS.bold,
-                color: colors.textSecondary,
-                marginBottom: 8,
-              }}
-            >
-              NAME
-            </Text>
-            <TextInput
-              style={{
-                backgroundColor: colors.fieldBackground || colors.background,
-                borderRadius: 12,
-                padding: 12,
-                fontSize: FONT_SIZES.sm,
-                fontFamily: FONTS.regular,
-                color: colors.textPrimary,
-                marginBottom: 16,
-                borderWidth: 1.5,
-                borderColor: colors.fieldBorder || colors.border,
-              }}
-              placeholder="e.g. Mathematics"
-              placeholderTextColor={colors.placeholder || colors.textSecondary}
-              value={form.name}
-              onChangeText={(t) => setForm({ ...form, name: t })}
-            />
-
-            <Text
-              style={{
-                fontSize: FONT_SIZES.sm,
-                fontFamily: FONTS.bold,
-                color: colors.textSecondary,
-                marginBottom: 8,
-              }}
-            >
-              CODE (Optional)
-            </Text>
-            <TextInput
-              style={{
-                backgroundColor: colors.fieldBackground || colors.background,
-                borderRadius: 12,
-                padding: 12,
-                fontSize: FONT_SIZES.sm,
-                fontFamily: FONTS.regular,
-                color: colors.textPrimary,
-                marginBottom: 16,
-                borderWidth: 1.5,
-                borderColor: colors.fieldBorder || colors.border,
-              }}
-              placeholder="e.g. MATH101"
-              placeholderTextColor={colors.placeholder || colors.textSecondary}
-              value={form.code}
-              onChangeText={(t) => setForm({ ...form, code: t })}
-              autoCapitalize="characters"
-            />
-
-            <Text
-              style={{
-                fontSize: FONT_SIZES.sm,
-                fontFamily: FONTS.bold,
-                color: colors.textSecondary,
-                marginBottom: 8,
-              }}
-            >
-              TYPE
-            </Text>
-            <View style={{ flexDirection: "row", gap: 8, marginBottom: 24 }}>
-              {["Theory", "Practical", "Other"].map((type) => (
-                <Pressable
-                  key={type}
-                  onPress={() => setForm({ ...form, type })}
+                <Text
                   style={{
-                    paddingHorizontal: 16,
-                    paddingVertical: 8,
-                    backgroundColor:
-                      form.type === type ? colors.primary : colors.background,
-                    borderRadius: 20,
-                    borderWidth: 1,
-                    borderColor:
-                      form.type === type ? colors.primary : colors.border,
+                    fontSize: FONT_SIZES.xl,
+                    fontFamily: FONTS.bold,
+                    color: colors.textPrimary,
                   }}
                 >
-                  <Text
+                  {modalMode === "add" ? "New Subject" : "Edit Subject"}
+                </Text>
+                <Pressable onPress={() => setShowModal(false)} hitSlop={10}>
+                  <MaterialIcons
+                    name="close"
+                    size={24}
+                    color={colors.textSecondary}
+                  />
+                </Pressable>
+              </View>
+
+              <Text
+                style={{
+                  fontSize: FONT_SIZES.sm,
+                  fontFamily: FONTS.bold,
+                  color: colors.textSecondary,
+                  marginBottom: 8,
+                }}
+              >
+                NAME
+              </Text>
+              <TextInput
+                style={{
+                  backgroundColor: colors.fieldBackground || colors.background,
+                  borderRadius: 12,
+                  padding: 12,
+                  fontSize: FONT_SIZES.sm,
+                  fontFamily: FONTS.regular,
+                  color: colors.textPrimary,
+                  marginBottom: 16,
+                  borderWidth: 1.5,
+                  borderColor: colors.fieldBorder || colors.border,
+                }}
+                placeholder="e.g. Mathematics"
+                placeholderTextColor={colors.placeholder || colors.textSecondary}
+                value={form.name}
+                onChangeText={(t) => setForm({ ...form, name: t })}
+              />
+
+              <Text
+                style={{
+                  fontSize: FONT_SIZES.sm,
+                  fontFamily: FONTS.bold,
+                  color: colors.textSecondary,
+                  marginBottom: 8,
+                }}
+              >
+                CODE (Optional)
+              </Text>
+              <TextInput
+                style={{
+                  backgroundColor: colors.fieldBackground || colors.background,
+                  borderRadius: 12,
+                  padding: 12,
+                  fontSize: FONT_SIZES.sm,
+                  fontFamily: FONTS.regular,
+                  color: colors.textPrimary,
+                  marginBottom: 16,
+                  borderWidth: 1.5,
+                  borderColor: colors.fieldBorder || colors.border,
+                }}
+                placeholder="e.g. MATH101"
+                placeholderTextColor={colors.placeholder || colors.textSecondary}
+                value={form.code}
+                onChangeText={(t) => setForm({ ...form, code: t })}
+                autoCapitalize="characters"
+              />
+
+              <Text
+                style={{
+                  fontSize: FONT_SIZES.sm,
+                  fontFamily: FONTS.bold,
+                  color: colors.textSecondary,
+                  marginBottom: 8,
+                }}
+              >
+                TYPE
+              </Text>
+              <View style={{ flexDirection: "row", gap: 8, marginBottom: 24 }}>
+                {["Theory", "Practical", "Other"].map((type) => (
+                  <Pressable
+                    key={type}
+                    onPress={() => setForm({ ...form, type })}
                     style={{
-                      color: form.type === type ? "#fff" : colors.textSecondary,
-                      fontWeight: "600",
+                      paddingHorizontal: 16,
+                      paddingVertical: 8,
+                      backgroundColor:
+                        form.type === type ? colors.primary : colors.background,
+                      borderRadius: 20,
+                      borderWidth: 1,
+                      borderColor:
+                        form.type === type ? colors.primary : colors.border,
                     }}
                   >
-                    {type}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
+                    <Text
+                      style={{
+                        color: form.type === type ? "#fff" : colors.textSecondary,
+                        fontWeight: "600",
+                      }}
+                    >
+                      {type}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
 
-            <Pressable
-              onPress={handleSave}
-              disabled={saveSubjectMutation.isPending}
-              style={{
-                backgroundColor: colors.primary,
-                padding: 16,
-                borderRadius: 16,
-                alignItems: "center",
-                opacity: saveSubjectMutation.isPending ? 0.7 : 1,
-              }}
-            >
-              {saveSubjectMutation.isPending ? (
-                <ActivityIndicator color={colors.onPrimary} />
-              ) : (
-                <Text
-                  style={{ color: colors.onPrimary, fontSize: FONT_SIZES.sm, fontFamily: FONTS.bold }}
-                >
-                  {modalMode === "add" ? "Create Subject" : "Save Changes"}
-                </Text>
-              )}
-            </Pressable>
+              <Pressable
+                onPress={handleSave}
+                disabled={saveSubjectMutation.isPending}
+                style={{
+                  backgroundColor: colors.primary,
+                  padding: 16,
+                  borderRadius: 16,
+                  alignItems: "center",
+                  opacity: saveSubjectMutation.isPending ? 0.7 : 1,
+                }}
+              >
+                {saveSubjectMutation.isPending ? (
+                  <ActivityIndicator color={colors.onPrimary} />
+                ) : (
+                  <Text
+                    style={{ color: colors.onPrimary, fontSize: FONT_SIZES.sm, fontFamily: FONTS.bold }}
+                  >
+                    {modalMode === "add" ? "Create Subject" : "Save Changes"}
+                  </Text>
+                )}
+              </Pressable>
+            </ScrollView>
           </View>
         </KeyboardAvoidingView>
       </Modal>
@@ -485,24 +509,40 @@ export default function ManageSubjectsScreen() {
       {/* Details Modal */}
       <Modal
         visible={showDetailsModal}
-        animationType="slide"
+        animationType={Platform.OS === "web" ? "fade" : "slide"}
         transparent
         onRequestClose={() => setShowDetailsModal(false)}
       >
         <View
           style={{
             flex: 1,
-            justifyContent: "flex-end",
-            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: Platform.OS === "web" ? "center" : "flex-end",
+            alignItems: "center",
+            backgroundColor: "rgba(0,0,0,0.55)",
+            padding: Platform.OS === "web" ? 16 : 0,
           }}
         >
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={() => setShowDetailsModal(false)}
+          />
           <View
             style={{
-              backgroundColor: colors.cardBackground,
+              backgroundColor: colors.cardBackground || colors.surface || "#FFFFFF",
+              width: "100%",
+              maxWidth: 520,
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
+              borderBottomLeftRadius: Platform.OS === "web" ? 24 : 0,
+              borderBottomRightRadius: Platform.OS === "web" ? 24 : 0,
               padding: 24,
-              maxHeight: "80%",
+              paddingBottom: Platform.OS === "ios" ? 36 : 24,
+              maxHeight: "85%",
+              elevation: 16,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.2,
+              shadowRadius: 16,
             }}
           >
             <View
@@ -601,7 +641,7 @@ export default function ManageSubjectsScreen() {
                           <View
                             key={t._id}
                             style={{
-                              backgroundColor: colors.cardBackground,
+                              backgroundColor: colors.cardBackground || colors.surface || "#FFFFFF",
                               paddingHorizontal: 8,
                               paddingVertical: 4,
                               borderRadius: 6,

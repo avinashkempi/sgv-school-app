@@ -863,14 +863,20 @@ export default function VibeCommentsModal({ visible, onClose, vibe }) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    justifyContent: "flex-end",
+    justifyContent: Platform.OS === "web" ? "center" : "flex-end",
+    alignItems: "center",
     backgroundColor: "rgba(0,0,0,0.5)",
+    padding: Platform.OS === "web" ? 16 : 0,
   },
   container: {
+    width: "100%",
+    maxWidth: 520,
     maxHeight: "85%",
     minHeight: "50%",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
+    borderBottomLeftRadius: Platform.OS === "web" ? 24 : 0,
+    borderBottomRightRadius: Platform.OS === "web" ? 24 : 0,
     overflow: "hidden",
   },
   header: {

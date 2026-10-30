@@ -64,7 +64,7 @@ export default function ModernTimePicker({
         <View
           style={[
             styles.iosContainer,
-            { backgroundColor: colors.cardBackground },
+            { backgroundColor: colors.cardBackground || colors.surface || "#FFFFFF" },
           ]}
         >
           <View
@@ -115,16 +115,22 @@ export default function ModernTimePicker({
 const styles = StyleSheet.create({
   iosOverlay: {
     flex: 1,
-    justifyContent: "flex-end",
+    justifyContent: Platform.OS === "web" ? "center" : "flex-end",
+    alignItems: "center",
+    padding: Platform.OS === "web" ? 16 : 0,
   },
   iosBackdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0,0,0,0.55)",
   },
   iosContainer: {
+    width: "100%",
+    maxWidth: 420,
     paddingBottom: 30, // Safe area padding
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+    borderBottomLeftRadius: Platform.OS === "web" ? 20 : 0,
+    borderBottomRightRadius: Platform.OS === "web" ? 20 : 0,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,

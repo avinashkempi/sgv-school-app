@@ -8,6 +8,8 @@ import {
   ActivityIndicator,
   Platform,
   Modal,
+  StyleSheet,
+  Pressable,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -682,17 +684,31 @@ export default function ImportDataScreen() {
               <View
                 style={{
                   flex: 1,
-                  backgroundColor: "rgba(0,0,0,0.5)",
+                  backgroundColor: "rgba(0,0,0,0.55)",
                   justifyContent: "center",
+                  alignItems: "center",
                   padding: 20,
                 }}
               >
+                <Pressable
+                  style={StyleSheet.absoluteFillObject}
+                  onPress={() =>
+                    setResult({ ...result, showUpdatedModal: false })
+                  }
+                />
                 <View
                   style={{
                     backgroundColor: colors.background,
-                    borderRadius: 12,
+                    borderRadius: 20,
+                    width: "100%",
+                    maxWidth: 520,
                     maxHeight: "80%",
                     padding: 20,
+                    elevation: 16,
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 6 },
+                    shadowOpacity: 0.2,
+                    shadowRadius: 16,
                   }}
                 >
                   <View
@@ -789,17 +805,31 @@ export default function ImportDataScreen() {
               <View
                 style={{
                   flex: 1,
-                  backgroundColor: "rgba(0,0,0,0.5)",
+                  backgroundColor: "rgba(0,0,0,0.55)",
                   justifyContent: "center",
+                  alignItems: "center",
                   padding: 20,
                 }}
               >
+                <Pressable
+                  style={StyleSheet.absoluteFillObject}
+                  onPress={() =>
+                    setResult({ ...result, showCreatedStaffModal: false })
+                  }
+                />
                 <View
                   style={{
                     backgroundColor: colors.background,
-                    borderRadius: 12,
+                    borderRadius: 20,
+                    width: "100%",
+                    maxWidth: 520,
                     maxHeight: "80%",
                     padding: 20,
+                    elevation: 16,
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 6 },
+                    shadowOpacity: 0.2,
+                    shadowRadius: 16,
                   }}
                 >
                   <View
@@ -895,17 +925,31 @@ export default function ImportDataScreen() {
               <View
                 style={{
                   flex: 1,
-                  backgroundColor: "rgba(0,0,0,0.5)",
+                  backgroundColor: "rgba(0,0,0,0.55)",
                   justifyContent: "center",
+                  alignItems: "center",
                   padding: 20,
                 }}
               >
+                <Pressable
+                  style={StyleSheet.absoluteFillObject}
+                  onPress={() =>
+                    setResult({ ...result, showUpdatedStaffModal: false })
+                  }
+                />
                 <View
                   style={{
                     backgroundColor: colors.background,
-                    borderRadius: 12,
+                    borderRadius: 20,
+                    width: "100%",
+                    maxWidth: 520,
                     maxHeight: "80%",
                     padding: 20,
+                    elevation: 16,
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 6 },
+                    shadowOpacity: 0.2,
+                    shadowRadius: 16,
                   }}
                 >
                   <View

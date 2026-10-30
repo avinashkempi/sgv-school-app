@@ -432,14 +432,21 @@ export default function VibeActionSheetModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "flex-end",
+    backgroundColor: "rgba(0, 0, 0, 0.55)",
+    justifyContent: Platform.OS === "web" ? "center" : "flex-end",
+    alignItems: "center",
+    padding: Platform.OS === "web" ? 16 : 0,
   },
   sheetContainer: {
+    width: "100%",
+    maxWidth: 500,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
+    borderBottomLeftRadius: Platform.OS === "web" ? 28 : 0,
+    borderBottomRightRadius: Platform.OS === "web" ? 28 : 0,
     paddingHorizontal: 20,
     paddingTop: 12,
+    paddingBottom: Platform.OS === "ios" ? 36 : 16,
     maxHeight: "85%",
   },
   handleBarWrapper: {

@@ -768,7 +768,9 @@ export default function StudentLeaves() {
           style={{
             flex: 1,
             backgroundColor: "rgba(0,0,0,0.5)",
-            justifyContent: "flex-end",
+            justifyContent: Platform.OS === "web" ? "center" : "flex-end",
+            alignItems: "center",
+            padding: Platform.OS === "web" ? 16 : 0,
           }}
         >
           <View style={[styles.applySheetCard, { backgroundColor: colors.surface }]}>
@@ -1261,7 +1263,9 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "flex-end",
+    justifyContent: Platform.OS === "web" ? "center" : "flex-end",
+    alignItems: "center",
+    padding: Platform.OS === "web" ? 16 : 0,
   },
   modalOverlayCenter: {
     flex: 1,
@@ -1271,10 +1275,14 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   filterSheetCard: {
+    width: "100%",
+    maxWidth: 500,
     borderTopLeftRadius: 22,
     borderTopRightRadius: 22,
+    borderBottomLeftRadius: Platform.OS === "web" ? 22 : 0,
+    borderBottomRightRadius: Platform.OS === "web" ? 22 : 0,
     padding: 18,
-    paddingBottom: 28,
+    paddingBottom: Platform.OS === "ios" ? 36 : 28,
   },
   filterSheetHeader: {
     flexDirection: "row",
@@ -1300,9 +1308,14 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.medium,
   },
   applySheetCard: {
+    width: "100%",
+    maxWidth: 540,
     borderTopLeftRadius: 22,
     borderTopRightRadius: 22,
+    borderBottomLeftRadius: Platform.OS === "web" ? 22 : 0,
+    borderBottomRightRadius: Platform.OS === "web" ? 22 : 0,
     padding: 20,
+    paddingBottom: Platform.OS === "ios" ? 36 : 24,
     maxHeight: "90%",
   },
   modalHeading: {

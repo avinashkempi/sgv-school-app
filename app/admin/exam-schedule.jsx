@@ -11,6 +11,7 @@ import {
   Alert,
   RefreshControl,
   KeyboardAvoidingView,
+  StyleSheet,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -711,17 +712,28 @@ export default function AdminExamScheduleScreen() {
           <View
             style={{
               flex: 1,
-              backgroundColor: "rgba(0,0,0,0.5)",
+              backgroundColor: "rgba(0,0,0,0.55)",
               justifyContent: "center",
               alignItems: "center",
+              padding: 20,
             }}
           >
+            <Pressable
+              style={StyleSheet.absoluteFillObject}
+              onPress={() => setEditingExam(null)}
+            />
             <View
               style={{
-                backgroundColor: colors.cardBackground,
-                width: "85%",
-                borderRadius: 16,
-                padding: 20,
+                backgroundColor: colors.cardBackground || colors.surface || "#FFFFFF",
+                width: "100%",
+                maxWidth: 420,
+                borderRadius: 20,
+                padding: 24,
+                elevation: 16,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 6 },
+                shadowOpacity: 0.2,
+                shadowRadius: 16,
               }}
             >
               <Text
@@ -896,17 +908,33 @@ export default function AdminExamScheduleScreen() {
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           style={{
             flex: 1,
-            backgroundColor: "rgba(0,0,0,0.5)",
-            justifyContent: "flex-end",
+            backgroundColor: "rgba(0,0,0,0.55)",
+            justifyContent: Platform.OS === "web" ? "center" : "flex-end",
+            alignItems: "center",
+            padding: Platform.OS === "web" ? 16 : 0,
           }}
         >
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={() => setShowInitModal(false)}
+          />
           <View
             style={{
-              backgroundColor: colors.background,
-              borderTopLeftRadius: 20,
-              borderTopRightRadius: 20,
-              padding: 20,
+              backgroundColor: colors.cardBackground || colors.surface || "#FFFFFF",
+              width: "100%",
+              maxWidth: 540,
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              borderBottomLeftRadius: Platform.OS === "web" ? 24 : 0,
+              borderBottomRightRadius: Platform.OS === "web" ? 24 : 0,
+              padding: 24,
+              paddingBottom: Platform.OS === "ios" ? 36 : 24,
               maxHeight: "90%",
+              elevation: 16,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.2,
+              shadowRadius: 16,
             }}
           >
             <ScrollView
