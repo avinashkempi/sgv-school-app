@@ -1,1 +1,5 @@
 ## 2024-10-18 - Avoid StyleSheet.create inside functional components\n**Learning:** In React Native, defining `StyleSheet.create` inside a functional component will cause the style object to be recreated and re-evaluated on every render. This creates unnecessary allocations and can hurt performance.\n**Action:** Use `useMemo` to memoize dynamic styles created via `StyleSheet.create`, or move static styles outside of the component. If the styles depend on theme/context variables, `useMemo` is the best choice.
+
+## 2024-11-20 - Avoid unmemoized flatMap/filter inside render function
+**Learning:** In React, performing expensive array computations (like `flatMap` or chained `filter`) directly in the render function without memoization causes the computation to be re-evaluated on every render. Furthermore, it creates a new array reference on every render, which will trigger unnecessary re-renders in downstream components (like `FlatList`) if passed as props.
+**Action:** Always wrap these expensive derivations in a `useMemo` hook to preserve referential equality and prevent performance degradation from unnecessary recalculations during re-renders.

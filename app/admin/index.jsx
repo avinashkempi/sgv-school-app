@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import {
   View,
   Text,
@@ -102,8 +102,13 @@ export default function AdminScreen() {
     }
   );
 
-  const users =
-    usersData?.pages?.flatMap((page) => page?.data || []).filter(Boolean) || [];
+  // ⚡ Bolt Performance: Memoized array computation (flatMap/filter) to prevent
+  // unnecessary recalculations on every render and preserve referential equality.
+  // Reduces re-renders for any downstream components mapping over users.
+  const users = useMemo(
+    () => usersData?.pages?.flatMap((page) => page?.data || []).filter(Boolean) || [],
+    [usersData?.pages]
+  );
 
   // Mutations
   const createUserMutation = useApiMutation({
