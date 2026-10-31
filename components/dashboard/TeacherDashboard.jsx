@@ -300,6 +300,8 @@ const TeacherDashboard = () => {
                       params: { classId: missingClassId, date: day },
                     })
                   }
+                  accessibilityRole="button"
+                  accessibilityLabel={`Mark attendance for ${label}`}
                   style={({ pressed }) => [
                     localStyles.dateChip,
                     {
@@ -359,6 +361,8 @@ const TeacherDashboard = () => {
                 params: { classId: missingClassId },
               })
             }
+            accessibilityRole="button"
+            accessibilityLabel="Mark Attendance Now"
             style={({ pressed }) => [
               localStyles.markNowBtn,
               {
