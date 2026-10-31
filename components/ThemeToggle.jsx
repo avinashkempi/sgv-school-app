@@ -47,8 +47,9 @@ export default function ThemeToggle({ size = 20 }) {
     <View style={styles.container} pointerEvents="box-none">
       <Pressable
         onPress={toggle}
+        accessibilityRole="button"
         accessibilityLabel="Toggle theme"
-        hitSlop={8}
+        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         style={({ pressed }) => [
           styles.button,
           {
