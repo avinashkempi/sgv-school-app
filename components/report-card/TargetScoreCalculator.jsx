@@ -122,6 +122,9 @@ export default function TargetScoreCalculator({ exams = [] }) {
           return (
             <TouchableOpacity
               key={preset.target}
+              accessibilityRole="button"
+              accessibilityLabel={`Select target ${preset.label}`}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               style={[
                 styles.presetChip,
                 {
