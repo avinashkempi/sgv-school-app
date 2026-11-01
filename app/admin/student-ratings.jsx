@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Switch,
   ActivityIndicator,
   Alert,
+  Platform,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
@@ -16,7 +17,7 @@ import * as Haptics from "expo-haptics";
 
 import { useTheme, FONTS, FONT_SIZES, RADIUS, SPACING } from "../../theme";
 import apiConfig from "../../config/apiConfig";
-import { useApiQuery } from "../../hooks/useApi";
+import { useApiQuery, keepPreviousData } from "../../hooks/useApi";
 import { CACHE_TIERS } from "../../utils/cacheConfig";
 import apiFetch from "../../utils/apiFetch";
 import { useToast } from "../../components/ToastProvider";
@@ -160,55 +161,76 @@ export default function AdminStudentRatingsScreen() {
   }, [now]);
 
   // 1. Fetch School Summary
-  const {
-    data: schoolSummaryData,
-    isLoading: loadingSchoolSummary,
-    refetch: refetchSchoolSummary,
-  } = useApiQuery(
-    ["schoolRatingsSummary", selectedMonth, selectedYear],
-    `${apiConfig.baseUrl}/student-ratings/school/summary?month=${selectedMonth}&year=${selectedYear}`,
-    { ...CACHE_TIERS.MODERATE }
-  );
+  const { data: schoolSummaryData, isLoading: loadingSchoolSummary } =
+    useApiQuery(
+      ["schoolRatingsSummary", selectedMonth, selectedYear],
+      `${apiConfig.baseUrl}/student-ratings/school/summary?month=${selectedMonth}&year=${selectedYear}`,
+      {
+        placeholderData: keepPreviousData,
+        ...CACHE_TIERS.MODERATE,
+      }
+    );
 
   // 2. Fetch All Classes for filtering
   const { data: allClassesData } = useApiQuery(
     ["allClasses"],
     `${apiConfig.baseUrl}/classes`,
-    { ...CACHE_TIERS.LONG }
+    { ...CACHE_TIERS.STABLE }
   );
 
   const classesList = useMemo(() => {
     return allClassesData?.classes || allClassesData || [];
   }, [allClassesData]);
 
+  // Auto-select Grade 1 (or first available class) by default in Classes tab
+  useEffect(() => {
+    if (classesList.length > 0 && selectedClassId === "all") {
+      const grade1 =
+        classesList.find((c) => {
+          const val = String(c?.value || "").trim();
+          const nm = String(c?.name || "").trim().toLowerCase();
+          const lbl = String(c?.label || "").trim().toLowerCase();
+          return (
+            val === "1" ||
+            nm === "1" ||
+            nm.startsWith("1st") ||
+            nm.startsWith("grade 1") ||
+            nm.startsWith("grade - 1") ||
+            lbl.startsWith("grade - 1") ||
+            lbl.startsWith("1st")
+          );
+        }) || classesList[0];
+      if (grade1?._id) {
+        setSelectedClassId(grade1._id);
+      }
+    }
+  }, [classesList, selectedClassId]);
+
   // 3. Fetch Selected Class Summary (when in 'classes' tab and specific class selected)
   const isClassSpecific = selectedClassId !== "all" && !!selectedClassId;
-  const {
-    data: classSummaryData,
-    isLoading: loadingClassSummary,
-    refetch: refetchClassSummary,
-  } = useApiQuery(
-    ["classRatingsSummary", selectedClassId, selectedMonth, selectedYear],
-    `${apiConfig.baseUrl}/student-ratings/class/${selectedClassId}/summary?month=${selectedMonth}&year=${selectedYear}`,
-    {
-      enabled: isClassSpecific,
-      ...CACHE_TIERS.MODERATE,
-    }
-  );
+  const { data: classSummaryData, isLoading: loadingClassSummary } =
+    useApiQuery(
+      ["classRatingsSummary", selectedClassId, selectedMonth, selectedYear],
+      `${apiConfig.baseUrl}/student-ratings/class/${selectedClassId}/summary?month=${selectedMonth}&year=${selectedYear}`,
+      {
+        enabled: isClassSpecific,
+        placeholderData: keepPreviousData,
+        ...CACHE_TIERS.MODERATE,
+      }
+    );
 
   // 4. Fetch Movers (improving / declining)
-  const {
-    data: moversData,
-    isLoading: loadingMovers,
-    refetch: refetchMovers,
-  } = useApiQuery(
+  const { data: moversData, isLoading: loadingMovers } = useApiQuery(
     ["schoolRatingsMovers", selectedMonth, selectedYear, selectedClassId],
     `${
       apiConfig.baseUrl
     }/student-ratings/school/movers?month=${selectedMonth}&year=${selectedYear}${
       isClassSpecific ? `&classId=${selectedClassId}` : ""
     }`,
-    { ...CACHE_TIERS.MODERATE }
+    {
+      placeholderData: keepPreviousData,
+      ...CACHE_TIERS.MODERATE,
+    }
   );
 
   // 5. Fetch Student Drilldown Details
@@ -216,7 +238,11 @@ export default function AdminStudentRatingsScreen() {
     useApiQuery(
       ["studentRatingDetails", selectedStudentId, selectedMonth, selectedYear],
       `${apiConfig.baseUrl}/student-ratings/student/${selectedStudentId}/details?month=${selectedMonth}&year=${selectedYear}`,
-      { enabled: !!selectedStudentId }
+      {
+        enabled: !!selectedStudentId,
+        placeholderData: keepPreviousData,
+        ...CACHE_TIERS.MODERATE,
+      }
     );
 
   // 6. Fetch Student Monthly Trend
@@ -224,33 +250,34 @@ export default function AdminStudentRatingsScreen() {
     useApiQuery(
       ["studentRatingTrend", selectedStudentId],
       `${apiConfig.baseUrl}/student-ratings/student/${selectedStudentId}/trend?months=6`,
-      { enabled: !!selectedStudentId }
+      {
+        enabled: !!selectedStudentId,
+        placeholderData: keepPreviousData,
+        ...CACHE_TIERS.STABLE,
+      }
     );
 
   // 7. Fetch Submission Tracker Data
-  const {
-    data: trackerData,
-    isLoading: loadingTracker,
-    refetch: refetchTracker,
-  } = useApiQuery(
+  const { data: trackerData, isLoading: loadingTracker } = useApiQuery(
     ["ratingsSubmissionTracker", selectedMonth, selectedYear],
     `${apiConfig.baseUrl}/student-ratings/tracker?month=${selectedMonth}&year=${selectedYear}`,
-    { ...CACHE_TIERS.MODERATE }
-  );
-
-  // 8. Fetch Subjects Config for Ratability Settings
-  const {
-    data: subjectsConfigData,
-    isLoading: loadingSubjectsConfig,
-    refetch: refetchSubjectsConfig,
-  } = useApiQuery(
-    ["adminSubjectsConfig"],
-    `${apiConfig.baseUrl}/student-ratings/admin/subjects-config`,
     {
-      enabled: activeTab === "config",
+      placeholderData: keepPreviousData,
       ...CACHE_TIERS.MODERATE,
     }
   );
+
+  // 8. Fetch Subjects Config for Ratability Settings
+  const { data: subjectsConfigData, isLoading: loadingSubjectsConfig } =
+    useApiQuery(
+      ["adminSubjectsConfig"],
+      `${apiConfig.baseUrl}/student-ratings/admin/subjects-config`,
+      {
+        enabled: activeTab === "config",
+        placeholderData: keepPreviousData,
+        ...CACHE_TIERS.MODERATE,
+      }
+    );
 
   const getEffectiveRatingEnabled = useCallback(
     (sub) => {
@@ -457,16 +484,20 @@ export default function AdminStudentRatingsScreen() {
     setRefreshing(true);
     try {
       await Promise.all([
-        refetchSchoolSummary(),
-        refetchMovers(),
-        refetchTracker(),
-        isClassSpecific ? refetchClassSummary() : Promise.resolve(),
-        activeTab === "config" ? refetchSubjectsConfig() : Promise.resolve(),
         queryClient.invalidateQueries({ queryKey: ["schoolRatingsSummary"] }),
+        queryClient.invalidateQueries({ queryKey: ["schoolRatingsMovers"] }),
         queryClient.invalidateQueries({
           queryKey: ["ratingsSubmissionTracker"],
         }),
-        queryClient.invalidateQueries({ queryKey: ["adminSubjectsConfig"] }),
+        isClassSpecific
+          ? queryClient.invalidateQueries({
+              queryKey: ["classRatingsSummary", selectedClassId],
+            })
+          : Promise.resolve(),
+        activeTab === "config"
+          ? queryClient.invalidateQueries({ queryKey: ["adminSubjectsConfig"] })
+          : Promise.resolve(),
+        queryClient.invalidateQueries({ queryKey: ["allClasses"] }),
       ]);
     } catch (err) {
       console.error("Refresh error:", err);

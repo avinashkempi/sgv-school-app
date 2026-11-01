@@ -146,6 +146,13 @@ export default function useOfflinePrefetch() {
             "/exams/schedule/student",
             CACHE_TIERS.STABLE
           );
+          const currentMonth = new Date().getMonth() + 1;
+          const currentYear = new Date().getFullYear();
+          prefetch(
+            ["myStudentRatings", currentMonth, currentYear],
+            `/student-ratings/my-ratings?month=${currentMonth}&year=${currentYear}`,
+            CACHE_TIERS.MODERATE
+          );
         } else if (role === "teacher") {
           // Home screen TeacherDashboard uses dateRange ("today")
           prefetch(
@@ -175,6 +182,13 @@ export default function useOfflinePrefetch() {
             CACHE_TIERS.MODERATE
           );
           prefetch(["schoolTimetable"], "/timetable/all", CACHE_TIERS.STABLE);
+          const teacherMonth = new Date().getMonth() + 1;
+          const teacherYear = new Date().getFullYear();
+          prefetch(
+            ["teacherRatingsSubjects", teacherMonth, teacherYear],
+            `/student-ratings/my-subjects?month=${teacherMonth}&year=${teacherYear}`,
+            CACHE_TIERS.MODERATE
+          );
         } else if (role === "admin" || role === "super admin") {
           // Home screen AdminDashboard uses dateRange ("thisMonth")
           prefetch(
@@ -190,6 +204,23 @@ export default function useOfflinePrefetch() {
           prefetch(
             ["adminClassesInit"],
             "/classes/admin/init",
+            CACHE_TIERS.STABLE
+          );
+          const adminMonth = new Date().getMonth() + 1;
+          const adminYear = new Date().getFullYear();
+          prefetch(
+            ["schoolRatingsSummary", adminMonth, adminYear],
+            `/student-ratings/school/summary?month=${adminMonth}&year=${adminYear}`,
+            CACHE_TIERS.MODERATE
+          );
+          prefetch(
+            ["ratingsSubmissionTracker", adminMonth, adminYear],
+            `/student-ratings/tracker?month=${adminMonth}&year=${adminYear}`,
+            CACHE_TIERS.MODERATE
+          );
+          prefetch(
+            ["allClasses"],
+            "/classes",
             CACHE_TIERS.STABLE
           );
         }

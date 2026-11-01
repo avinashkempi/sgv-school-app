@@ -12,7 +12,8 @@ import * as Haptics from "expo-haptics";
 
 import { useTheme, FONTS, FONT_SIZES, RADIUS, SPACING } from "../../theme";
 import apiConfig from "../../config/apiConfig";
-import { useApiQuery } from "../../hooks/useApi";
+import { useApiQuery, keepPreviousData } from "../../hooks/useApi";
+import { CACHE_TIERS } from "../../utils/cacheConfig";
 import AppHeader from "../../components/Header";
 import Card from "../../components/Card";
 import Badge from "../../components/ui/Badge";
@@ -98,7 +99,8 @@ export default function StudentRatingsScreen() {
     ["myStudentRatings", selectedMonth, selectedYear],
     `${apiConfig.baseUrl}/student-ratings/my-ratings?month=${selectedMonth}&year=${selectedYear}`,
     {
-      keepPreviousData: true,
+      placeholderData: keepPreviousData,
+      ...CACHE_TIERS.MODERATE,
     }
   );
 

@@ -14,7 +14,7 @@ import * as Haptics from "expo-haptics";
 
 import { useTheme, FONTS, FONT_SIZES, RADIUS, SPACING } from "../../theme";
 import apiConfig from "../../config/apiConfig";
-import { useApiQuery } from "../../hooks/useApi";
+import { useApiQuery, keepPreviousData } from "../../hooks/useApi";
 import { CACHE_TIERS } from "../../utils/cacheConfig";
 import AppHeader from "../../components/Header";
 import Card from "../../components/Card";
@@ -95,45 +95,37 @@ export default function MonthlyRatingsScreen() {
   }, [now]);
 
   // Query teacher's subjects and their rating statuses for selected month/year
-  const {
-    data: ratingsData,
-    isLoading,
-    refetch,
-  } = useApiQuery(
+  const { data: ratingsData, isLoading } = useApiQuery(
     ["teacherRatingsSubjects", selectedMonth, selectedYear],
     `${apiConfig.baseUrl}/student-ratings/my-subjects?month=${selectedMonth}&year=${selectedYear}`,
     {
+      placeholderData: keepPreviousData,
       ...CACHE_TIERS.MODERATE,
     }
   );
 
   // Query teacher's own submission tracker status
-  const {
-    data: myStatusData,
-    isLoading: loadingTracker,
-    refetch: refetchTracker,
-  } = useApiQuery(
+  const { data: myStatusData, isLoading: loadingTracker } = useApiQuery(
     ["teacherRatingTrackerMyStatus", selectedMonth, selectedYear],
     `${apiConfig.baseUrl}/student-ratings/tracker/my-status?month=${selectedMonth}&year=${selectedYear}`,
     {
       enabled: screenMode === "tracker",
+      placeholderData: keepPreviousData,
       ...CACHE_TIERS.MODERATE,
     }
   );
 
   // Query school-wide submission tracker for admins
-  const {
-    data: schoolTrackerData,
-    isLoading: loadingSchoolTracker,
-    refetch: refetchSchoolTracker,
-  } = useApiQuery(
-    ["ratingsSubmissionTracker", selectedMonth, selectedYear],
-    `${apiConfig.baseUrl}/student-ratings/tracker?month=${selectedMonth}&year=${selectedYear}`,
-    {
-      enabled: screenMode === "tracker" && isAdmin,
-      ...CACHE_TIERS.MODERATE,
-    }
-  );
+  const { data: schoolTrackerData, isLoading: loadingSchoolTracker } =
+    useApiQuery(
+      ["ratingsSubmissionTracker", selectedMonth, selectedYear],
+      `${apiConfig.baseUrl}/student-ratings/tracker?month=${selectedMonth}&year=${selectedYear}`,
+      {
+        enabled: screenMode === "tracker" && isAdmin,
+        placeholderData: keepPreviousData,
+        ...CACHE_TIERS.MODERATE,
+      }
+    );
 
   const formattedTrackerData = useMemo(() => {
     if (!myStatusData) return null;
@@ -171,13 +163,6 @@ export default function MonthlyRatingsScreen() {
     setRefreshing(true);
     try {
       await Promise.all([
-        refetch(),
-        screenMode === "tracker"
-          ? Promise.all([
-              refetchTracker(),
-              isAdmin ? refetchSchoolTracker() : Promise.resolve(),
-            ])
-          : Promise.resolve(),
         queryClient.invalidateQueries({
           queryKey: ["teacherRatingsSubjects", selectedMonth, selectedYear],
         }),

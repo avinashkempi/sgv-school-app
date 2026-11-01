@@ -18,7 +18,8 @@ import * as Haptics from "expo-haptics";
 
 import { useTheme, FONTS, FONT_SIZES, RADIUS, SPACING } from "../../theme";
 import apiConfig from "../../config/apiConfig";
-import { useApiQuery, useApiMutation, createApiMutationFn } from "../../hooks/useApi";
+import { useApiQuery, useApiMutation, createApiMutationFn, keepPreviousData } from "../../hooks/useApi";
+import { CACHE_TIERS } from "../../utils/cacheConfig";
 import { useToast } from "../../components/ToastProvider";
 import AppHeader from "../../components/Header";
 import Card from "../../components/Card";
@@ -154,6 +155,8 @@ export default function RateStudentsScreen() {
     `${apiConfig.baseUrl}/student-ratings/subject/${subjectId}?month=${month}&year=${year}`,
     {
       enabled: !!subjectId,
+      placeholderData: keepPreviousData,
+      ...CACHE_TIERS.MODERATE,
     }
   );
 
@@ -435,15 +438,38 @@ export default function RateStudentsScreen() {
         "success"
       );
 
-      // Invalidate relevant queries
+      // Invalidate relevant queries across teacher, admin, and student views
       await Promise.all([
         queryClient.invalidateQueries({
-          queryKey: ["teacherRatingsSubjects", month, year],
+          queryKey: ["teacherRatingsSubjects"],
         }),
         queryClient.invalidateQueries({
           queryKey: ["subjectRatings", subjectId, month, year],
         }),
-        queryClient.invalidateQueries({ queryKey: ["submissionTracker"] }),
+        queryClient.invalidateQueries({
+          queryKey: ["ratingsSubmissionTracker"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["teacherRatingTrackerMyStatus"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["schoolRatingsSummary"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["classRatingsSummary"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["schoolRatingsMovers"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["myStudentRatings"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["studentRatingDetails"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["studentRatingTrend"],
+        }),
       ]);
       refetch();
     } catch (err) {
