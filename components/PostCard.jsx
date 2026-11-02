@@ -383,7 +383,12 @@ const PostCard = ({ post, isAdmin, onEdit, onDelete, onTogglePin }) => {
                 {post.description}
               </Text>
               {descriptionNeedsExpand && (
-                <Pressable onPress={() => setExpanded(!expanded)}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={expanded ? "Show less description" : "Read full description"}
+                  onPress={() => setExpanded(!expanded)}
+                  hitSlop={12}
+                >
                   <Text style={[styles.readMore, { color: colors.primary }]}>
                     {expanded ? "Show less" : "Read more"}
                   </Text>
