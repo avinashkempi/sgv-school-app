@@ -705,15 +705,14 @@ export default function EventsScreen() {
     }
 
     if (viewMode === "upcoming") {
-      const todayDate = new Date();
-      todayDate.setHours(0, 0, 0, 0);
+      const todayStr = getISTToday();
 
       return allEvents
         .filter((event) => {
           if (!event || !event.date) return false;
           try {
-            const eDate = new Date(event.date);
-            if (eDate < todayDate) return false;
+            const eStr = getISTDateString(event.date);
+            if (!eStr || eStr < todayStr) return false;
 
             if (categoryFilter === "school") return event.isSchoolEvent;
             if (categoryFilter === "holidays") return event.isHoliday;
@@ -722,13 +721,13 @@ export default function EventsScreen() {
             return false;
           }
         })
-        .sort((a, b) => new Date(a.date) - new Date(b.date));
+        .sort((a, b) => (getISTDateString(a.date) || "").localeCompare(getISTDateString(b.date) || ""));
     }
 
     if (viewMode === "holidays") {
       return allEvents
         .filter((event) => !!event?.isHoliday)
-        .sort((a, b) => new Date(a.date) - new Date(b.date));
+        .sort((a, b) => (getISTDateString(a.date) || "").localeCompare(getISTDateString(b.date) || ""));
     }
 
     return [];
@@ -736,9 +735,11 @@ export default function EventsScreen() {
 
   // Total counts for badges
   const upcomingCount = useMemo(() => {
-    const todayDate = new Date();
-    todayDate.setHours(0, 0, 0, 0);
-    return allEvents.filter((e) => e?.date && new Date(e.date) >= todayDate).length;
+    const todayStr = getISTToday();
+    return allEvents.filter((e) => {
+      const eStr = getISTDateString(e?.date);
+      return Boolean(eStr && eStr >= todayStr);
+    }).length;
   }, [allEvents]);
 
   const holidaysCount = useMemo(() => {

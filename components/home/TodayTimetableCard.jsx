@@ -11,6 +11,7 @@ import * as Haptics from "expo-haptics";
 import { useTheme, FONTS, FONT_SIZES } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 import { useLabel } from "../../context/LabelsContext";
+import { formatISTDisplayDate, getISTToday } from "../../utils/date";
 
 const TodayTimetableCard = ({ style }) => {
   const { colors, mode } = useTheme();
@@ -40,9 +41,9 @@ const TodayTimetableCard = ({ style }) => {
     ? colors.primaryContainer || "rgba(165, 180, 252, 0.15)"
     : colors.primaryContainer || "#EEF2FF";
 
-  const now = new Date();
-  const todayDayName = now.toLocaleDateString("en-US", { weekday: "short" });
-  const formattedDate = now.toLocaleDateString("en-US", {
+  const todayStr = getISTToday();
+  const todayDayName = formatISTDisplayDate(todayStr, { weekday: "short" });
+  const formattedDate = formatISTDisplayDate(todayStr, {
     month: "short",
     day: "numeric",
   });

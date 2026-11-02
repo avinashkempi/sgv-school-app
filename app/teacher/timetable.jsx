@@ -20,6 +20,7 @@ import formatClassName from "../../utils/formatClassName";
 import { useLabel } from "../../context/LabelsContext";
 import Badge from "../../components/ui/Badge";
 import { EmptyState } from "../../components/StateComponents";
+import { getISTDayOfWeek } from "../../utils/date";
 
 const DAYS = [
   "Monday",
@@ -40,16 +41,7 @@ export default function SchoolTimetableScreen() {
   const [currentDay, setCurrentDay] = useState("");
 
   useEffect(() => {
-    const days = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-    ];
-    const today = days[new Date().getDay()];
+    const today = getISTDayOfWeek();
     if (DAYS.includes(today)) {
       setSelectedDay(today);
       setCurrentDay(today);

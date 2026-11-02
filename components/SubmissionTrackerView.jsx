@@ -112,10 +112,14 @@ export default function SubmissionTrackerView({
     }
 
     const classMap = {};
+    const seenClassSubjectKeys = new Set();
 
     teachers.forEach((tItem) => {
       (tItem.subjects || []).forEach((s) => {
         const clsId = s.class?._id?.toString() || s.class?.label || "other";
+        const sId = s.subject?._id?.toString() || s._id?.toString() || s.subject?.name || s.name;
+        const dedupeKey = `${clsId}_${sId}`;
+
         if (!classMap[clsId]) {
           classMap[clsId] = {
             class: s.class,
@@ -126,6 +130,11 @@ export default function SubmissionTrackerView({
             subjects: [],
           };
         }
+
+        if (sId && seenClassSubjectKeys.has(dedupeKey)) {
+          return;
+        }
+        if (sId) seenClassSubjectKeys.add(dedupeKey);
 
         classMap[clsId].totalSubjects += 1;
         const isComplete =

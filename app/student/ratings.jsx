@@ -22,6 +22,7 @@ import TextInput from "../../components/TextInput";
 import AppRefreshControl from "../../components/ui/AppRefreshControl";
 import { LoadingState, EmptyState } from "../../components/StateComponents";
 import { useLabel } from "../../context/LabelsContext";
+import { getISTMonthYear } from "../../utils/date";
 
 const MONTHS = [
   "January",
@@ -82,9 +83,9 @@ export default function StudentRatingsScreen() {
   const { colors } = useTheme();
   const { t } = useLabel();
 
-  const now = new Date();
-  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
-  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  const currentMY = useMemo(() => getISTMonthYear(), []);
+  const [selectedMonth, setSelectedMonth] = useState(currentMY.month);
+  const [selectedYear, setSelectedYear] = useState(currentMY.year);
   const [activeTab, setActiveTab] = useState("overview"); // 'overview' | 'subjects'
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedSubjectId, setExpandedSubjectId] = useState(null);

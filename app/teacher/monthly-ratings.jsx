@@ -27,6 +27,7 @@ import { formatClassName } from "../../utils/formatClassName";
 import { useLabel } from "../../context/LabelsContext";
 import { useAuth } from "../../context/AuthContext";
 import SubmissionTrackerView from "../../components/SubmissionTrackerView";
+import { getISTMonthYear } from "../../utils/date";
 
 const MONTH_NAMES = [
   "January",
@@ -51,9 +52,9 @@ export default function MonthlyRatingsScreen() {
 
   const { user } = useAuth();
   const isAdmin = user?.role === "admin" || user?.role === "super admin";
-  const now = useMemo(() => new Date(), []);
-  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
-  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  const currentMY = useMemo(() => getISTMonthYear(), []);
+  const [selectedMonth, setSelectedMonth] = useState(currentMY.month);
+  const [selectedYear, setSelectedYear] = useState(currentMY.year);
   const [screenMode, setScreenMode] = useState("subjects"); // 'subjects' | 'tracker'
   const [adminScope, setAdminScope] = useState("all"); // 'all' | 'my'
   const [activeFilter, setActiveFilter] = useState("all"); // 'all' | 'pending' | 'submitted'
@@ -61,11 +62,11 @@ export default function MonthlyRatingsScreen() {
 
   // Month navigation logic
   const isCurrentMonth =
-    selectedMonth === now.getMonth() + 1 && selectedYear === now.getFullYear();
+    selectedMonth === currentMY.month && selectedYear === currentMY.year;
 
   const canGoNext =
-    selectedYear < now.getFullYear() ||
-    (selectedYear === now.getFullYear() && selectedMonth < now.getMonth() + 1);
+    selectedYear < currentMY.year ||
+    (selectedYear === currentMY.year && selectedMonth < currentMY.month);
 
   const handlePrevMonth = useCallback(() => {
     Haptics.selectionAsync().catch(() => {});
@@ -90,9 +91,9 @@ export default function MonthlyRatingsScreen() {
 
   const handleJumpToCurrent = useCallback(() => {
     Haptics.selectionAsync().catch(() => {});
-    setSelectedMonth(now.getMonth() + 1);
-    setSelectedYear(now.getFullYear());
-  }, [now]);
+    setSelectedMonth(currentMY.month);
+    setSelectedYear(currentMY.year);
+  }, [currentMY]);
 
   // Query teacher's subjects and their rating statuses for selected month/year
   const { data: ratingsData, isLoading } = useApiQuery(
@@ -649,10 +650,27 @@ export default function MonthlyRatingsScreen() {
                   </Text>
                 </View>
                 <Badge
-                  variant={completionPercent === 100 ? "success" : "warning"}
+                  variant={
+                    completionPercent === 100
+                      ? "success"
+                      : ratingsData?.isPastMonth
+                      ? (completionPercent === 0 ? "error" : "warning")
+                      : "warning"
+                  }
+                  icon={
+                    completionPercent === 100
+                      ? "check-circle"
+                      : ratingsData?.isPastMonth
+                      ? (completionPercent === 0 ? "error-outline" : "hourglass-top")
+                      : "hourglass-top"
+                  }
                   label={
                     completionPercent === 100
                       ? t("common.completed", "Completed")
+                      : ratingsData?.isPastMonth
+                      ? (completionPercent === 0
+                          ? t("common.missed", "Missed")
+                          : t("common.incomplete", "Incomplete"))
                       : t("common.pending", "Pending")
                   }
                   size="md"
@@ -663,7 +681,13 @@ export default function MonthlyRatingsScreen() {
                 <ProgressBar
                   progress={completionPercent}
                   max={100}
-                  variant={completionPercent === 100 ? "success" : "primary"}
+                  variant={
+                    completionPercent === 100
+                      ? "success"
+                      : ratingsData?.isPastMonth && completionPercent === 0
+                      ? "error"
+                      : "primary"
+                  }
                   height={8}
                   borderRadius={4}
                 />

@@ -5,6 +5,7 @@ import apiConfig from "../config/apiConfig";
 import { CACHE_TIERS } from "../utils/cacheConfig";
 import storage from "../utils/storage";
 import { useAuth } from "../context/AuthContext";
+import { getISTToday, getISTMonthYear } from "../utils/date";
 
 // Minimum interval between prefetch runs (5 minutes)
 const PREFETCH_COOLDOWN_MS = 5 * 60 * 1000;
@@ -57,7 +58,7 @@ export default function useOfflinePrefetch() {
         );
 
         // Prefetch Vibes highlights & spotlight only if not yet synced today
-        const todayStr = new Date().toISOString().slice(0, 10);
+        const todayStr = getISTToday();
         const lastVibesSyncDate = await storage.getItem("@vibes_last_daily_sync");
         if (lastVibesSyncDate !== todayStr) {
           prefetch(
@@ -146,8 +147,7 @@ export default function useOfflinePrefetch() {
             "/exams/schedule/student",
             CACHE_TIERS.STABLE
           );
-          const currentMonth = new Date().getMonth() + 1;
-          const currentYear = new Date().getFullYear();
+          const { month: currentMonth, year: currentYear } = getISTMonthYear();
           prefetch(
             ["myStudentRatings", currentMonth, currentYear],
             `/student-ratings/my-ratings?month=${currentMonth}&year=${currentYear}`,
@@ -182,8 +182,7 @@ export default function useOfflinePrefetch() {
             CACHE_TIERS.MODERATE
           );
           prefetch(["schoolTimetable"], "/timetable/all", CACHE_TIERS.STABLE);
-          const teacherMonth = new Date().getMonth() + 1;
-          const teacherYear = new Date().getFullYear();
+          const { month: teacherMonth, year: teacherYear } = getISTMonthYear();
           prefetch(
             ["teacherRatingsSubjects", teacherMonth, teacherYear],
             `/student-ratings/my-subjects?month=${teacherMonth}&year=${teacherYear}`,
@@ -206,8 +205,7 @@ export default function useOfflinePrefetch() {
             "/classes/admin/init",
             CACHE_TIERS.STABLE
           );
-          const adminMonth = new Date().getMonth() + 1;
-          const adminYear = new Date().getFullYear();
+          const { month: adminMonth, year: adminYear } = getISTMonthYear();
           prefetch(
             ["schoolRatingsSummary", adminMonth, adminYear],
             `/student-ratings/school/summary?month=${adminMonth}&year=${adminYear}`,

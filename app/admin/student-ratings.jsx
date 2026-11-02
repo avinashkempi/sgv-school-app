@@ -33,6 +33,7 @@ import { LoadingState, EmptyState } from "../../components/StateComponents";
 import { formatClassName } from "../../utils/formatClassName";
 import { useLabel } from "../../context/LabelsContext";
 import SubmissionTrackerView from "../../components/SubmissionTrackerView";
+import { getISTMonthYear } from "../../utils/date";
 
 const MONTH_NAMES = [
   "January",
@@ -104,9 +105,9 @@ export default function AdminStudentRatingsScreen() {
   const { t } = useLabel();
   const { showToast } = useToast();
 
-  const now = useMemo(() => new Date(), []);
-  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
-  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  const currentMY = useMemo(() => getISTMonthYear(), []);
+  const [selectedMonth, setSelectedMonth] = useState(currentMY.month);
+  const [selectedYear, setSelectedYear] = useState(currentMY.year);
   const [activeTab, setActiveTab] = useState("overview"); // 'overview' | 'classes' | 'movers' | 'tracker' | 'config'
   const [selectedClassId, setSelectedClassId] = useState("all");
   const [studentSortBy, setStudentSortBy] = useState("highest"); // 'highest' | 'lowest' | 'attention'
@@ -127,11 +128,11 @@ export default function AdminStudentRatingsScreen() {
 
   // Month navigation logic
   const isCurrentMonth =
-    selectedMonth === now.getMonth() + 1 && selectedYear === now.getFullYear();
+    selectedMonth === currentMY.month && selectedYear === currentMY.year;
 
   const canGoNext =
-    selectedYear < now.getFullYear() ||
-    (selectedYear === now.getFullYear() && selectedMonth < now.getMonth() + 1);
+    selectedYear < currentMY.year ||
+    (selectedYear === currentMY.year && selectedMonth < currentMY.month);
 
   const handlePrevMonth = useCallback(() => {
     Haptics.selectionAsync().catch(() => {});
@@ -156,9 +157,9 @@ export default function AdminStudentRatingsScreen() {
 
   const handleJumpToCurrent = useCallback(() => {
     Haptics.selectionAsync().catch(() => {});
-    setSelectedMonth(now.getMonth() + 1);
-    setSelectedYear(now.getFullYear());
-  }, [now]);
+    setSelectedMonth(currentMY.month);
+    setSelectedYear(currentMY.year);
+  }, [currentMY]);
 
   // 1. Fetch School Summary
   const { data: schoolSummaryData, isLoading: loadingSchoolSummary } =

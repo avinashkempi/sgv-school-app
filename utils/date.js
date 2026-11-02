@@ -34,6 +34,35 @@ export const getISTToday = () => {
 };
 
 /**
+ * Extracts year and 1-based month in Asia/Kolkata.
+ * @param {Date|string|number} [dateInput]
+ * @returns {{ year: number, month: number }}
+ */
+export const getISTMonthYear = (dateInput = new Date()) => {
+  const dateStr = getISTDateString(dateInput) || getISTToday();
+  const [year, month] = dateStr.split("-").map(Number);
+  return { year, month };
+};
+
+/**
+ * Returns weekday name (e.g. "Monday", "Tuesday") in Asia/Kolkata.
+ * @param {Date|string|number} [dateInput]
+ * @returns {string}
+ */
+export const getISTDayOfWeek = (dateInput = new Date()) => {
+  const d = typeof dateInput === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dateInput.trim())
+    ? new Date(`${dateInput.trim()}T12:00:00+05:30`)
+    : dateInput instanceof Date ? dateInput : new Date(dateInput);
+
+  if (isNaN(d.getTime())) return "Monday";
+
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: TIMEZONE,
+    weekday: "long",
+  }).format(d);
+};
+
+/**
  * Checks if a date falls on a Sunday in Asia/Kolkata (IST).
  * @param {Date|string|number} dateInput
  * @returns {boolean}
@@ -133,4 +162,55 @@ export const formatISTDisplayDate = (
   } catch {
     return String(dateInput);
   }
+};
+
+/**
+ * Accurately calculates leave days between two dates in IST without fractional roundings.
+ * @param {string | Date} startDate
+ * @param {string | Date} endDate
+ * @param {string} [leaveType]
+ * @returns {string} e.g. "1 Day" or "3 Days" or "0.5 Day"
+ */
+export const calculateLeaveDays = (startDate, endDate, leaveType) => {
+  if (leaveType === "half") return "0.5 Day";
+  const startStr = getISTDateString(startDate);
+  const endStr = getISTDateString(endDate);
+  if (!startStr || !endStr) return "1 Day";
+
+  const [sy, sm, sd] = startStr.split("-").map(Number);
+  const [ey, em, ed] = endStr.split("-").map(Number);
+
+  const sUtc = Date.UTC(sy, sm - 1, sd);
+  const eUtc = Date.UTC(ey, em - 1, ed);
+
+  const diffDays = Math.round(Math.abs(eUtc - sUtc) / (1000 * 60 * 60 * 24)) + 1;
+  return diffDays === 1 ? "1 Day" : `${diffDays} Days`;
+};
+
+/**
+ * Computes human-friendly relative label ("Today", "Tomorrow", "Yesterday", or "In X days") in IST.
+ * @param {string | Date} dateInput
+ * @returns {string}
+ */
+export const getISTRelativeDateLabel = (dateInput) => {
+  const dateStr = getISTDateString(dateInput);
+  const todayStr = getISTToday();
+  if (!dateStr || !todayStr) return "";
+
+  if (dateStr === todayStr) return "Today";
+
+  const [tY, tM, tD] = todayStr.split("-").map(Number);
+  const [eY, eM, eD] = dateStr.split("-").map(Number);
+
+  const tUtc = Date.UTC(tY, tM - 1, tD);
+  const eUtc = Date.UTC(eY, eM - 1, eD);
+
+  const diffDays = Math.round((eUtc - tUtc) / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 1) return "Tomorrow";
+  if (diffDays === -1) return "Yesterday";
+  if (diffDays > 1 && diffDays <= 7) return `In ${diffDays} days`;
+  if (diffDays < -1) return `${Math.abs(diffDays)}d ago`;
+
+  return formatISTDisplayDate(dateStr);
 };

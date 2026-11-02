@@ -8,29 +8,18 @@ import { useApiQuery } from "../hooks/useApi";
 import apiConfig from "../config/apiConfig";
 import { CACHE_TIERS } from "../utils/cacheConfig";
 import HomeModuleContainer from "./home/HomeModuleContainer";
+import { getISTDateString, getISTToday, getISTRelativeDateLabel } from "../utils/date";
 
 const parseEventDate = (dateStr) => {
   if (!dateStr) return { month: "CAL", day: "--", relative: "" };
-  const d = new Date(dateStr);
+  const d = typeof dateStr === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dateStr.trim())
+    ? new Date(`${dateStr.trim()}T12:00:00+05:30`)
+    : new Date(dateStr);
   if (isNaN(d.getTime())) return { month: "CAL", day: "--", relative: "" };
 
-  const month = d.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
-  const day = d.getDate();
-  const weekday = d.toLocaleDateString("en-US", { weekday: "short" });
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const eventDay = new Date(d);
-  eventDay.setHours(0, 0, 0, 0);
-
-  const diffMs = eventDay.getTime() - today.getTime();
-  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-
-  let relative = "";
-  if (diffDays === 0) relative = "Today";
-  else if (diffDays === 1) relative = "Tomorrow";
-  else if (diffDays > 1 && diffDays <= 7) relative = `In ${diffDays} days`;
-  else if (diffDays > 7) relative = `${weekday}`;
+  const month = d.toLocaleDateString("en-US", { month: "short", timeZone: "Asia/Kolkata" }).toUpperCase();
+  const day = new Intl.DateTimeFormat("en-US", { day: "numeric", timeZone: "Asia/Kolkata" }).format(d);
+  const relative = getISTRelativeDateLabel(dateStr);
 
   return { month, day, relative };
 };
@@ -47,12 +36,14 @@ const UpcomingEventsCard = () => {
       ...CACHE_TIERS.MODERATE,
       select: (data) => {
         const rawEvents = data.event || [];
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const todayStr = getISTToday();
 
         return rawEvents
-          .filter((e) => e?.date && new Date(e.date) >= today)
-          .sort((a, b) => new Date(a.date) - new Date(b.date))
+          .filter((e) => {
+            const eStr = getISTDateString(e?.date);
+            return Boolean(eStr && eStr >= todayStr);
+          })
+          .sort((a, b) => (getISTDateString(a.date) || "").localeCompare(getISTDateString(b.date) || ""))
           .slice(0, 3);
       },
     }

@@ -28,7 +28,7 @@ import { useToast } from "../../components/ToastProvider";
 import { useTheme, FONTS, FONT_SIZES, LINE_HEIGHTS } from "../../theme";
 import Header from "../../components/Header";
 import formatClassName from "../../utils/formatClassName";
-import { getISTDateString } from "../../utils/date";
+import { getISTDateString, formatDate, calculateLeaveDays } from "../../utils/date";
 import UserAvatar from "../../components/ui/UserAvatar";
 import { useAcademicYear } from "../../context/AcademicYearContext";
 import {
@@ -484,22 +484,7 @@ export default function AdminLeaves() {
     }
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    return new Date(dateString).toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  };
-
-  const calculateDays = (start, end, leaveType) => {
-    if (leaveType === "half") return "0.5 Day";
-    const s = new Date(start);
-    const e = new Date(end);
-    const diff = Math.ceil(Math.abs(e - s) / (1000 * 60 * 60 * 24)) + 1;
-    return diff === 1 ? "1 Day" : `${diff} Days`;
-  };
+  const calculateDays = calculateLeaveDays;
 
   const getRoleBadgeStyle = (role, designation) => {
     if (designation && String(designation).trim()) {

@@ -17,7 +17,7 @@ import { LoadingState, EmptyState } from "../StateComponents";
 import apiConfig from "../../config/apiConfig";
 import { useApiQuery } from "../../hooks/useApi";
 import { formatClassName } from "../../utils/formatClassName";
-import { getISTDateString, getISTToday } from "../../utils/date";
+import { getISTDateString, getISTToday, getISTRelativeDateLabel } from "../../utils/date";
 import HomeModuleContainer from "../home/HomeModuleContainer";
 import DayGlanceCard from "../home/DayGlanceCard";
 
@@ -277,19 +277,7 @@ const TeacherDashboard = () => {
           {/* Missed dates list */}
           <View style={localStyles.missedChipsRow}>
             {missingDays.slice(0, 7).map((day) => {
-              const d = new Date(day + "T00:00:00");
-              const today = new Date();
-              today.setHours(0, 0, 0, 0);
-              const yesterday = new Date(today);
-              yesterday.setDate(today.getDate() - 1);
-              let label;
-              if (d.getTime() === today.getTime()) label = "Today";
-              else if (d.getTime() === yesterday.getTime()) label = "Yesterday";
-              else
-                label = d.toLocaleDateString("en-GB", {
-                  day: "2-digit",
-                  month: "short",
-                });
+              const label = getISTRelativeDateLabel(day);
               return (
                 <Pressable
                   key={day}

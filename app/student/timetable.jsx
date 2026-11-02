@@ -22,6 +22,7 @@ import { useToast } from "../../components/ToastProvider";
 import { useAuth } from "../../context/AuthContext";
 import { EmptyState, LoadingState } from "../../components/StateComponents";
 import Badge from "../../components/ui/Badge";
+import { getISTDayOfWeek } from "../../utils/date";
 
 const DAYS = [
   "Monday",
@@ -44,17 +45,7 @@ export default function StudentTimetableScreen() {
   const [currentDay, setCurrentDay] = useState("");
 
   useEffect(() => {
-    // Set current day
-    const days = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-    ];
-    const today = days[new Date().getDay()];
+    const today = getISTDayOfWeek();
     if (DAYS.includes(today)) {
       setSelectedDay(today);
       setCurrentDay(today);

@@ -3,18 +3,21 @@ import { View, Text, Pressable } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme, FONTS, FONT_SIZES, LETTER_SPACINGS } from "../theme";
 import Card from "./Card";
+import { getISTDateString, getISTToday } from "../utils/date";
 
 /**
  * Parses date into standard App Date Tile representation (Month, Day, Weekday)
  */
 const parseDateTile = (dateStr) => {
   if (!dateStr) return { month: "EXAM", day: "--", weekday: "" };
-  const d = new Date(dateStr);
+  const d = typeof dateStr === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dateStr.trim())
+    ? new Date(`${dateStr.trim()}T12:00:00+05:30`)
+    : new Date(dateStr);
   if (isNaN(d.getTime())) return { month: "EXAM", day: "--", weekday: "" };
 
-  const month = d.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
-  const day = d.getDate();
-  const weekday = d.toLocaleDateString("en-US", { weekday: "short" });
+  const month = d.toLocaleDateString("en-US", { month: "short", timeZone: "Asia/Kolkata" }).toUpperCase();
+  const day = new Intl.DateTimeFormat("en-US", { day: "numeric", timeZone: "Asia/Kolkata" }).format(d);
+  const weekday = d.toLocaleDateString("en-US", { weekday: "short", timeZone: "Asia/Kolkata" });
 
   return { month, day, weekday };
 };
@@ -472,26 +475,21 @@ export default function ExamTimeline({ exams = [], onExamPress }) {
   const isDark = mode === "dark";
 
   const isToday = (date) => {
-    const today = new Date();
-    const examDate = new Date(date);
-    return today.toDateString() === examDate.toDateString();
+    return getISTDateString(date) === getISTToday();
   };
 
   const isPast = (date) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const examDate = new Date(date);
-    examDate.setHours(0, 0, 0, 0);
-    return examDate < today;
+    const examStr = getISTDateString(date);
+    return Boolean(examStr && examStr < getISTToday());
   };
 
   const getDaysUntil = (date) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const examDate = new Date(date);
-    examDate.setHours(0, 0, 0, 0);
-    const diffTime = examDate - today;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const examStr = getISTDateString(date);
+    const todayStr = getISTToday();
+    if (!examStr || !todayStr) return "";
+    const [tY, tM, tD] = todayStr.split("-").map(Number);
+    const [eY, eM, eD] = examStr.split("-").map(Number);
+    const diffDays = Math.round((Date.UTC(eY, eM - 1, eD) - Date.UTC(tY, tM - 1, tD)) / (1000 * 60 * 60 * 24));
 
     if (diffDays === 0) return "Today";
     if (diffDays === 1) return "Tomorrow";
