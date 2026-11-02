@@ -355,6 +355,8 @@ export default function RootLayout() {
           body, #root, [data-testid="root"], div[dir="auto"], span[dir="auto"], [dir="auto"] {
             overflow-wrap: anywhere;
             word-break: break-word;
+          }
+          body, #root, [data-testid="root"] {
             font-family: 'DMSans-Regular', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
           }
         `;
