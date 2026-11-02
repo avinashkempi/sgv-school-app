@@ -130,10 +130,12 @@ export default function MonthlyRatingsScreen() {
   const formattedTrackerData = useMemo(() => {
     if (!myStatusData) return null;
     return {
+      isPastMonth: myStatusData.isPastMonth,
       overall: {
         total: myStatusData.total,
         completed: myStatusData.completed,
         pending: myStatusData.pending,
+        missed: myStatusData.missed || 0,
         percentage: myStatusData.percentage,
       },
       teachers: [
@@ -146,6 +148,7 @@ export default function MonthlyRatingsScreen() {
           total: myStatusData.total,
           completed: myStatusData.completed,
           pending: myStatusData.pending,
+          missed: myStatusData.missed || 0,
           subjects: myStatusData.subjects,
         },
       ],

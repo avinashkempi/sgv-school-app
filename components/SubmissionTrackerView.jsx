@@ -171,9 +171,12 @@ export default function SubmissionTrackerView({
     }
 
     if (filterMode === "pending") {
-      list = list.filter((tItem) => tItem.pending > 0);
+      list = list.filter((tItem) => {
+        const isComplete = tItem.total > 0 && tItem.completed >= tItem.total;
+        return !isComplete;
+      });
     } else if (filterMode === "completed") {
-      list = list.filter((tItem) => tItem.pending === 0 && tItem.total > 0);
+      list = list.filter((tItem) => tItem.total > 0 && tItem.completed >= tItem.total);
     }
 
     return list;
@@ -198,9 +201,12 @@ export default function SubmissionTrackerView({
     }
 
     if (filterMode === "pending") {
-      list = list.filter((c) => c.pendingSubjects > 0);
+      list = list.filter((c) => {
+        const isComplete = c.totalSubjects > 0 && c.completedSubjects >= c.totalSubjects;
+        return !isComplete;
+      });
     } else if (filterMode === "completed") {
-      list = list.filter((c) => c.pendingSubjects === 0 && c.totalSubjects > 0);
+      list = list.filter((c) => c.totalSubjects > 0 && c.completedSubjects >= c.totalSubjects);
     }
 
     return list;
@@ -469,7 +475,10 @@ export default function SubmissionTrackerView({
       <View style={styles.filterPillsRow}>
         {[
           { key: "all", label: "All" },
-          { key: "pending", label: "⚠️ Has Pending" },
+          {
+            key: "pending",
+            label: trackerData?.isPastMonth ? "⚠️ Incomplete" : "⚠️ Has Pending",
+          },
           { key: "completed", label: "✅ 100% Done" },
         ].map((pill) => {
           const isActive = filterMode === pill.key;
@@ -528,7 +537,8 @@ export default function SubmissionTrackerView({
             filteredTeachers.map((tItem, tIdx) => {
               const teacherId = tItem.teacher?._id?.toString() || `teacher-${tIdx}`;
               const isExpanded = expandedTeachers.has(teacherId);
-              const isComplete = tItem.pending === 0 && tItem.total > 0;
+              const isComplete = tItem.total > 0 && tItem.completed >= tItem.total;
+              const hasMissed = (tItem.missed || 0) > 0;
               const percent =
                 tItem.total > 0
                   ? Math.round((tItem.completed / tItem.total) * 100)
@@ -566,8 +576,20 @@ export default function SubmissionTrackerView({
 
                     <View style={styles.teacherBadgeCol}>
                       <Badge
-                        variant={isComplete ? "success" : "warning"}
-                        icon={isComplete ? "check-circle" : "hourglass-top"}
+                        variant={
+                          isComplete
+                            ? "success"
+                            : hasMissed && tItem.completed === 0
+                            ? "error"
+                            : "warning"
+                        }
+                        icon={
+                          isComplete
+                            ? "check-circle"
+                            : hasMissed && tItem.completed === 0
+                            ? "error-outline"
+                            : "hourglass-top"
+                        }
                         label={
                           isComplete
                             ? "Complete"
@@ -589,7 +611,13 @@ export default function SubmissionTrackerView({
                     <ProgressBar
                       progress={percent}
                       max={100}
-                      variant={isComplete ? "success" : "primary"}
+                      variant={
+                        isComplete
+                          ? "success"
+                          : hasMissed && tItem.completed === 0
+                          ? "error"
+                          : "primary"
+                      }
                       height={4}
                       borderRadius={2}
                     />
@@ -649,7 +677,7 @@ export default function SubmissionTrackerView({
                                 </View>
 
                                 <Badge
-                                  variant={isSubjComplete ? "success" : isSubjMissed ? "warning" : "neutral"}
+                                  variant={isSubjComplete ? "success" : isSubjMissed ? "error" : "warning"}
                                   label={isSubjComplete ? "Submitted" : isSubjMissed ? "Missed" : "Pending"}
                                   size="sm"
                                 />
@@ -702,7 +730,10 @@ export default function SubmissionTrackerView({
             filteredClasses.map((cItem, cIdx) => {
               const clsId = cItem.class?._id?.toString() || cIdx;
               const isExpanded = expandedClasses.has(clsId);
-              const isComplete = cItem.pendingSubjects === 0 && cItem.totalSubjects > 0;
+              const isComplete =
+                cItem.totalSubjects > 0 &&
+                cItem.completedSubjects >= cItem.totalSubjects;
+              const hasMissed = (cItem.missedSubjects || 0) > 0;
               const classLabel = formatClassName(
                 cItem.class?.name || cItem.class?.label || cItem.class?.value,
                 cItem.class?.section
@@ -756,8 +787,20 @@ export default function SubmissionTrackerView({
 
                     <View style={styles.teacherBadgeCol}>
                       <Badge
-                        variant={isComplete ? "success" : "warning"}
-                        icon={isComplete ? "check-circle" : "hourglass-top"}
+                        variant={
+                          isComplete
+                            ? "success"
+                            : hasMissed && cItem.completedSubjects === 0
+                            ? "error"
+                            : "warning"
+                        }
+                        icon={
+                          isComplete
+                            ? "check-circle"
+                            : hasMissed && cItem.completedSubjects === 0
+                            ? "error-outline"
+                            : "hourglass-top"
+                        }
                         label={
                           isComplete
                             ? "Complete"
@@ -778,7 +821,13 @@ export default function SubmissionTrackerView({
                     <ProgressBar
                       progress={percent}
                       max={100}
-                      variant={isComplete ? "success" : "primary"}
+                      variant={
+                        isComplete
+                          ? "success"
+                          : hasMissed && cItem.completedSubjects === 0
+                          ? "error"
+                          : "primary"
+                      }
                       height={4}
                       borderRadius={2}
                     />
@@ -845,8 +894,8 @@ export default function SubmissionTrackerView({
                                 isSubjComplete
                                   ? "success"
                                   : isSubjMissed
-                                  ? "warning"
-                                  : "neutral"
+                                  ? "error"
+                                  : "warning"
                               }
                               label={
                                 isSubjComplete
