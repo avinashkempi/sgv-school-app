@@ -47,15 +47,17 @@ LogBox.ignoreLogs([
   "Failed to load available subtitle tracks",
 ]);
 
-// Configure how notifications are displayed when app is in foreground
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
+// Configure how notifications are displayed when app is in foreground (native only)
+if (Platform.OS !== "web") {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+    }),
+  });
+}
 
 // separate component so we can use useTheme inside ThemeProvider
 function Inner() {

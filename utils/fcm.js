@@ -8,6 +8,8 @@ import { Platform } from "react-native";
  * @throws {Error} If the token cannot be retrieved
  */
 export async function getFCMToken() {
+  if (Platform.OS === "web") return null;
+
   try {
     // Request permissions first
     const { status: existingStatus } =

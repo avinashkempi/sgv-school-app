@@ -4,7 +4,7 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
-import { InteractionManager } from "react-native";
+import { InteractionManager, Platform } from "react-native";
 import * as Notifications from "expo-notifications";
 import { useQueryClient } from "@tanstack/react-query";
 import apiFetch from "../utils/apiFetch";
@@ -46,7 +46,7 @@ export const NotificationProvider = ({ children }) => {
 
   // ── Listen for push notifications to invalidate cache ──
   useEffect(() => {
-    if (!isAuthenticated || !userId) return;
+    if (Platform.OS === "web" || !isAuthenticated || !userId) return;
 
     let notificationListener = null;
 
