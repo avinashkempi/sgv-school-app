@@ -33,6 +33,7 @@ import { LoadingState, EmptyState } from "../../components/StateComponents";
 import { formatClassName } from "../../utils/formatClassName";
 import { useLabel } from "../../context/LabelsContext";
 import SubmissionTrackerView from "../../components/SubmissionTrackerView";
+import RatingsCorrectionModal from "../../components/RatingsCorrectionModal";
 import { getISTMonthYear } from "../../utils/date";
 
 const MONTH_NAMES = [
@@ -125,6 +126,22 @@ export default function AdminStudentRatingsScreen() {
 
   // Student drilldown modal state
   const [selectedStudentId, setSelectedStudentId] = useState(null);
+
+  // Mistaken rating correction/deletion modal state
+  const [correctionTarget, setCorrectionTarget] = useState(null);
+
+  const handleCorrectionSuccess = useCallback(async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["ratingsSubmissionTracker"] }),
+      queryClient.invalidateQueries({ queryKey: ["subjectRatings"] }),
+      queryClient.invalidateQueries({ queryKey: ["schoolRatingsSummary"] }),
+      queryClient.invalidateQueries({ queryKey: ["classRatingsSummary"] }),
+      queryClient.invalidateQueries({ queryKey: ["schoolRatingsMovers"] }),
+      queryClient.invalidateQueries({ queryKey: ["studentRatingDetails"] }),
+      queryClient.invalidateQueries({ queryKey: ["studentRatingTrend"] }),
+      queryClient.invalidateQueries({ queryKey: ["teacherRatingsSubjects"] }),
+    ]);
+  }, [queryClient]);
 
   // Month navigation logic
   const isCurrentMonth =
@@ -2320,6 +2337,9 @@ export default function AdminStudentRatingsScreen() {
                   setSelectedClassId(subj.class?._id);
                   setActiveTab("classes");
                 }}
+                onManageSubjectSubmission={(subjItem) => {
+                  setCorrectionTarget(subjItem);
+                }}
               />
             )}
             {activeTab === "config" && renderSubjectConfigTab()}
@@ -2766,6 +2786,16 @@ export default function AdminStudentRatingsScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* ────────────────────────────────────────────── */}
+      {/*  RATINGS CORRECTION / BULK DELETION MODAL      */}
+      {/* ────────────────────────────────────────────── */}
+      <RatingsCorrectionModal
+        visible={!!correctionTarget}
+        onClose={() => setCorrectionTarget(null)}
+        subjectItem={correctionTarget}
+        onSuccess={handleCorrectionSuccess}
+      />
     </View>
   );
 }

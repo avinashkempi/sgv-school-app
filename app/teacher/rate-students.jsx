@@ -30,6 +30,8 @@ import ProgressBar from "../../components/ui/ProgressBar";
 import TextInput from "../../components/TextInput";
 import { LoadingState, EmptyState } from "../../components/StateComponents";
 import { useLabel } from "../../context/LabelsContext";
+import { useAuth } from "../../context/AuthContext";
+import RatingsCorrectionModal from "../../components/RatingsCorrectionModal";
 import storage from "../../utils/storage";
 
 const MONTH_NAMES = [
@@ -127,6 +129,8 @@ export default function RateStudentsScreen() {
   const { colors } = useTheme();
   const { showToast } = useToast();
   const { t } = useLabel();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin" || user?.role === "super admin";
 
   const month = parseInt(monthParam, 10) || new Date().getMonth() + 1;
   const year = parseInt(yearParam, 10) || new Date().getFullYear();
@@ -138,6 +142,7 @@ export default function RateStudentsScreen() {
   const [filterTab, setFilterTab] = useState("all"); // 'all' | 'unrated' | 'rated'
   const [showGuideModal, setShowGuideModal] = useState(false);
   const [showBatchModal, setShowBatchModal] = useState(false);
+  const [showCorrectionModal, setShowCorrectionModal] = useState(false);
   const [collapsedRated, setCollapsedRated] = useState(true);
   const [expandedStudents, setExpandedStudents] = useState({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -509,6 +514,20 @@ export default function RateStudentsScreen() {
     }
   };
 
+  const handleCorrectionSuccess = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["teacherRatingsSubjects"] }),
+      queryClient.invalidateQueries({ queryKey: ["subjectRatings", subjectId, month, year] }),
+      queryClient.invalidateQueries({ queryKey: ["ratingsSubmissionTracker"] }),
+      queryClient.invalidateQueries({ queryKey: ["schoolRatingsSummary"] }),
+      queryClient.invalidateQueries({ queryKey: ["classRatingsSummary"] }),
+      queryClient.invalidateQueries({ queryKey: ["studentRatingDetails"] }),
+      queryClient.invalidateQueries({ queryKey: ["studentRatingTrend"] }),
+    ]);
+    refetch();
+    router.back();
+  };
+
   // Render individual student card
   const renderStudentItem = ({ item: student }) => {
     const studentRating = ratingsMap[student._id] || {};
@@ -824,20 +843,40 @@ export default function RateStudentsScreen() {
           showBack={true}
           onBack={handleBack}
           rightAction={
-            <TouchableOpacity
-              onPress={() => setShowGuideModal(true)}
-              style={[
-                styles.guideHeaderBtn,
-                { backgroundColor: colors.primaryContainer || "#EEF2FF" },
-              ]}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <MaterialIcons
-                name="help-outline"
-                size={20}
-                color={colors.primary}
-              />
-            </TouchableOpacity>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              {isAdmin && ratedStudentIds.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => setShowCorrectionModal(true)}
+                  style={[
+                    styles.guideHeaderBtn,
+                    { backgroundColor: colors.surfaceContainerHigh || "#2A2A30" },
+                  ]}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  accessibilityLabel="Manage or reset ratings"
+                  accessibilityRole="button"
+                >
+                  <MaterialIcons
+                    name="edit-calendar"
+                    size={20}
+                    color={colors.primary}
+                  />
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                onPress={() => setShowGuideModal(true)}
+                style={[
+                  styles.guideHeaderBtn,
+                  { backgroundColor: colors.primaryContainer || "#EEF2FF" },
+                ]}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <MaterialIcons
+                  name="help-outline"
+                  size={20}
+                  color={colors.primary}
+                />
+              </TouchableOpacity>
+            </View>
           }
         />
       </View>
@@ -1322,6 +1361,26 @@ export default function RateStudentsScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Admin Correction & Bulk Deletion Modal */}
+      {isAdmin && (
+        <RatingsCorrectionModal
+          visible={showCorrectionModal}
+          onClose={() => setShowCorrectionModal(false)}
+          subjectItem={{
+            subjectId,
+            subjectName,
+            classId: subjectData?.class?._id || subjectData?.subject?.class,
+            className,
+            teacherName: subjectData?.lastSubmissionInfo?.teacherName,
+            currentMonth: month,
+            currentYear: year,
+            ratedCount: ratedStudentIds.length,
+            totalStudents: students.length,
+          }}
+          onSuccess={handleCorrectionSuccess}
+        />
+      )}
     </KeyboardAvoidingView>
   );
 }

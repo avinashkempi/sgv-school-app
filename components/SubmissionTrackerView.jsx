@@ -49,6 +49,7 @@ export default function SubmissionTrackerView({
   onNavigateToSubject,
   emptyMessage,
   hideTeacherTab = false,
+  onManageSubjectSubmission,
 }) {
   const { colors, isDark } = useTheme();
   const { t } = useLabel();
@@ -691,6 +692,36 @@ export default function SubmissionTrackerView({
                                   size="sm"
                                 />
 
+                                {onManageSubjectSubmission && isSubjComplete && (
+                                  <TouchableOpacity
+                                    onPress={() =>
+                                      onManageSubjectSubmission({
+                                        subjectId: subj.subject?._id || subj._id,
+                                        subjectName: subj.subject?.name || subj.name,
+                                        classId: subj.class?._id,
+                                        className: classLabel,
+                                        teacherName: tItem.name,
+                                        currentMonth: month,
+                                        currentYear: year,
+                                        ratedCount: subj.ratedCount,
+                                        totalStudents: subj.totalStudents,
+                                      })
+                                    }
+                                    style={[
+                                      styles.manageBtn,
+                                      {
+                                        backgroundColor: isDark
+                                          ? colors.surfaceContainerHigh || "#2A2A30"
+                                          : colors.surfaceVariant || "#E5E7EB",
+                                      },
+                                    ]}
+                                    accessibilityLabel="Manage or correct submission"
+                                    accessibilityRole="button"
+                                  >
+                                    <MaterialIcons name="edit" size={15} color={colors.primary} />
+                                  </TouchableOpacity>
+                                )}
+
                             {onNavigateToSubject && !isSubjComplete && (
                               <TouchableOpacity
                                 onPress={() => onNavigateToSubject(subj)}
@@ -916,6 +947,36 @@ export default function SubmissionTrackerView({
                               size="sm"
                             />
 
+                            {onManageSubjectSubmission && isSubjComplete && (
+                              <TouchableOpacity
+                                onPress={() =>
+                                  onManageSubjectSubmission({
+                                    subjectId: subj.subject?._id || subj._id,
+                                    subjectName: subjName,
+                                    classId: cItem.class?._id || cItem._id,
+                                    className: classLabel,
+                                    teacherName: subj.teacherName,
+                                    currentMonth: month,
+                                    currentYear: year,
+                                    ratedCount,
+                                    totalStudents,
+                                  })
+                                }
+                                style={[
+                                  styles.manageBtn,
+                                  {
+                                    backgroundColor: isDark
+                                      ? colors.surfaceContainerHigh || "#2A2A30"
+                                      : colors.surfaceVariant || "#E5E7EB",
+                                  },
+                                ]}
+                                accessibilityLabel="Manage or correct submission"
+                                accessibilityRole="button"
+                              >
+                                <MaterialIcons name="edit" size={15} color={colors.primary} />
+                              </TouchableOpacity>
+                            )}
+
                             {onNavigateToSubject && !isSubjComplete && (
                               <TouchableOpacity
                                 onPress={() => onNavigateToSubject(subj)}
@@ -1101,5 +1162,13 @@ const styles = StyleSheet.create({
   quickRateBtnText: {
     fontSize: 11,
     fontFamily: FONTS.bold,
+  },
+  manageBtn: {
+    marginLeft: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+    borderRadius: RADIUS.sm,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
