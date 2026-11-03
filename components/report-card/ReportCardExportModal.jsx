@@ -294,6 +294,7 @@ export default function ReportCardExportModal({
               style={styles.closeBtn}
               accessibilityRole="button"
               accessibilityLabel="Close"
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >
               <MaterialIcons name="close" size={24} color={colors.onSurfaceVariant} />
             </TouchableOpacity>
