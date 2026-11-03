@@ -11,13 +11,23 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "test": "jest --watchAll",
+    "test": "jest",
+    "test:watch": "jest --watchAll",
     "lint": "eslint . --ext .js,.jsx",
     "lint:fix": "npx eslint --ext .js,.jsx app/ --fix",
     "postinstall": "patch-package"
   },
   "jest": {
-    "preset": "jest-expo"
+    "preset": "jest-expo",
+    "setupFilesAfterEnv": [
+      "<rootDir>/jest.setup.js"
+    ],
+    "moduleNameMapper": {
+      "^react-native/asset-registry$": "<rootDir>/node_modules/react-native/src/asset-registry.js",
+      "^react-native/react-private-interface$": "<rootDir>/node_modules/react-native/src/react-private-interface.js",
+      "^react-native/setup-env$": "<rootDir>/__mocks__/empty.js",
+      "^react-native/unstable-internals-do-not-use$": "<rootDir>/node_modules/react-native/src/unstable-internals-do-not-use.js"
+    }
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
@@ -73,6 +83,7 @@
   "devDependencies": {
     "@babel/core": "^7.29.0",
     "@react-native/jest-preset": "^0.86.3",
+    "@testing-library/react-native": "^14.1.0",
     "@types/jest": "30.0.0",
     "@types/react": "~19.3.0",
     "@types/react-test-renderer": "^18.3.0",

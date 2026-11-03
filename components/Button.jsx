@@ -245,6 +245,7 @@ const Button = ({
 
   return (
     <Pressable
+      disabled={Boolean(disabled || loading)}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled: Boolean(disabled), busy: Boolean(loading) }}
@@ -253,7 +254,6 @@ const Button = ({
         sizeConfig.hitSlop ||
         (variant === "text" ? { top: 8, bottom: 8, left: 8, right: 8 } : undefined)
       }
-      onPress={!disabled && !loading ? handlePress : null}
       style={({ pressed }) => [
         containerStyle,
         pressed &&
@@ -268,6 +268,7 @@ const Button = ({
         borderless: false,
       }}
       {...props}
+      onPress={!disabled && !loading ? handlePress : null}
     >
       {loading ? (
         <ActivityIndicator
