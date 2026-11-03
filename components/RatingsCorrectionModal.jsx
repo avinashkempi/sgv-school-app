@@ -362,6 +362,7 @@ export default function RatingsCorrectionModal({
               style={[styles.closeBtn, { backgroundColor: colors.surfaceContainerHigh || "#2E2E34" }]}
               accessibilityLabel="Close modal"
               accessibilityRole="button"
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >
               <MaterialIcons name="close" size={20} color={colors.onSurface} />
             </TouchableOpacity>
