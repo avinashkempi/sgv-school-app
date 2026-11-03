@@ -9,7 +9,6 @@ import {
   StyleSheet,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 
@@ -33,7 +32,6 @@ import { useToast } from "../../components/ToastProvider";
 import AppRefreshControl from "../../components/ui/AppRefreshControl";
 
 export default function DailyRemindersScreen() {
-  const router = useRouter();
   const queryClient = useQueryClient();
   const { colors, mode } = useTheme();
   const isDark = mode === "dark";
@@ -185,7 +183,6 @@ export default function DailyRemindersScreen() {
       <Header
         title="Daily Reminders Hub"
         showBack
-        onBack={() => router.back()}
         rightComponent={
           <Pressable
             onPress={handleRefresh}

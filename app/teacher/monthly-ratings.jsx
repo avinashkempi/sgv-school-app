@@ -223,6 +223,35 @@ export default function MonthlyRatingsScreen() {
             "Monthly behavioral & academic evaluations"
           )}
           showBack={true}
+          rightAction={
+            <TouchableOpacity
+              onPress={() => router.push("/shared/student-ratings-dashboard")}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 4,
+                backgroundColor: colors.surfaceContainer,
+                borderColor: colors.outlineVariant,
+                borderWidth: 1,
+                paddingHorizontal: 10,
+                paddingVertical: 6,
+                borderRadius: RADIUS.sm || 8,
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Open School Leaderboard"
+            >
+              <MaterialIcons name="leaderboard" size={16} color={colors.primary} />
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontFamily: FONTS.bold,
+                  color: colors.primary,
+                }}
+              >
+                Leaderboard
+              </Text>
+            </TouchableOpacity>
+          }
         />
       </View>
 
@@ -618,11 +647,32 @@ export default function MonthlyRatingsScreen() {
             <EmptyState
               icon="school"
               title={t("teacher.noAssignedSubjects", "No Subjects Assigned")}
-              message={t(
-                "teacher.noAssignedSubjectsDesc",
-                "You do not have any subjects assigned in this academic year to rate."
-              )}
+              message={
+                isAdmin
+                  ? "You are logged in as an administrator. To rate your subjects as a teacher, assign yourself to your subjects in Subject Assignments, or rate students directly from the Admin screen."
+                  : t(
+                      "teacher.noAssignedSubjectsDesc",
+                      "You do not have any subjects assigned in this academic year to rate."
+                    )
+              }
             />
+            {isAdmin && (
+              <View style={{ flexDirection: "row", justifyContent: "center", gap: 10, marginTop: 14 }}>
+                <Button
+                  title="Assign Subjects"
+                  icon="assignment-ind"
+                  size="sm"
+                  onPress={() => router.push("/admin/teacher-subjects")}
+                />
+                <Button
+                  title="Admin Ratings"
+                  icon="stars"
+                  variant="outlined"
+                  size="sm"
+                  onPress={() => router.push("/admin/student-ratings")}
+                />
+              </View>
+            )}
           </View>
         ) : (
           <>

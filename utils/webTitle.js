@@ -84,6 +84,7 @@ const ROUTE_TITLES = {
 
   // Shared
   "shared/class-reports": "Class Reports | SGV School",
+  "shared/student-ratings-dashboard": "School Ratings Leaderboard | SGV School",
 };
 
 function formatSegment(seg) {

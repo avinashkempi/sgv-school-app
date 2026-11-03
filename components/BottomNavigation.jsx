@@ -131,6 +131,8 @@ function resolveActiveTab(pathname, userRole, searchParams = {}) {
       pathname.startsWith("/teacher/assessments/") ||
       pathname === "/shared/class-reports" ||
       pathname.startsWith("/shared/class-reports/") ||
+      pathname === "/shared/student-ratings-dashboard" ||
+      pathname.startsWith("/shared/student-ratings-dashboard/") ||
       pathname === "/teacher/monthly-ratings" ||
       pathname.startsWith("/teacher/monthly-ratings/") ||
       pathname === "/teacher/rate-students" ||
@@ -155,7 +157,9 @@ function resolveActiveTab(pathname, userRole, searchParams = {}) {
       pathname.startsWith("/super-admin") ||
       pathname.startsWith("/teacher/") ||
       pathname === "/shared/class-reports" ||
-      pathname.startsWith("/shared/class-reports/")
+      pathname.startsWith("/shared/class-reports/") ||
+      pathname === "/shared/student-ratings-dashboard" ||
+      pathname.startsWith("/shared/student-ratings-dashboard/")
     ) {
       return ROUTES.ADMIN;
     }

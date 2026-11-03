@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,14 +6,13 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  ActivityIndicator,
   Alert,
   Platform,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
-import { useTheme, FONTS, FONT_SIZES, RADIUS, SPACING } from "../theme";
+import { useTheme, FONTS, FONT_SIZES, RADIUS } from "../theme";
 import Card from "./Card";
 import Button from "./Button";
 import Badge from "./ui/Badge";
@@ -21,7 +20,6 @@ import TextInput from "./TextInput";
 import apiConfig from "../config/apiConfig";
 import apiFetch from "../utils/apiFetch";
 import { useToast } from "./ToastProvider";
-import { useLabel } from "../context/LabelsContext";
 import { getISTMonthYear } from "../utils/date";
 
 const MONTH_NAMES = [
@@ -47,7 +45,6 @@ export default function RatingsCorrectionModal({
 }) {
   const { colors, isDark } = useTheme();
   const { showToast } = useToast();
-  const { t } = useLabel();
 
   const [activeTab, setActiveTab] = useState("move"); // 'move' | 'delete'
   const [targetMonth, setTargetMonth] = useState(1);
@@ -89,7 +86,6 @@ export default function RatingsCorrectionModal({
     currentMonth,
     currentYear,
     ratedCount = 0,
-    totalStudents = 0,
   } = subjectItem;
 
   const sourceMonthName = MONTH_NAMES[currentMonth - 1] || `Month ${currentMonth}`;
@@ -115,7 +111,9 @@ export default function RatingsCorrectionModal({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            subjectId,
+            subjectId: subjectId || undefined,
+            classId: subjectItem?.classId && !subjectId ? subjectItem.classId : undefined,
+            allInMonth: subjectItem?.allInMonth ? true : undefined,
             sourceMonth: currentMonth,
             sourceYear: currentYear,
             targetMonth,
@@ -129,60 +127,67 @@ export default function RatingsCorrectionModal({
       const data = res && typeof res.json === "function" ? await res.json() : res;
 
       if (data?.hasConflict && !overwriteTarget) {
-        Alert.alert(
-          "Ratings Already Exist",
-          `${targetMonthName} ${targetYear} already contains ${data.targetCount} rating(s). Would you like to overwrite them with the ratings from ${sourceMonthName}?`,
-          [
-            { text: "Cancel", style: "cancel" },
-            {
-              text: "Overwrite",
-              style: "destructive",
-              onPress: async () => {
-                setOverwriteTarget(true);
-                // Call again with overwriteTarget = true
-                try {
-                  setIsSubmitting(true);
-                  const overwriteRes = await apiFetch(
-                    `${apiConfig.baseUrl}/student-ratings/admin/shift-month`,
-                    {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        subjectId,
-                        sourceMonth: currentMonth,
-                        sourceYear: currentYear,
-                        targetMonth,
-                        targetYear,
-                        overwriteTarget: true,
-                        reason: `Admin correction: overwritten & moved from ${sourceMonthName} to ${targetMonthName}`,
-                      }),
-                    }
-                  );
-                  const overwriteData =
-                    overwriteRes && typeof overwriteRes.json === "function"
-                      ? await overwriteRes.json()
-                      : overwriteRes;
+        const doOverwrite = async () => {
+          setOverwriteTarget(true);
+          try {
+            setIsSubmitting(true);
+            const overwriteRes = await apiFetch(
+              `${apiConfig.baseUrl}/student-ratings/admin/shift-month`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  subjectId: subjectId || undefined,
+                  classId: subjectItem?.classId && !subjectId ? subjectItem.classId : undefined,
+                  allInMonth: subjectItem?.allInMonth ? true : undefined,
+                  sourceMonth: currentMonth,
+                  sourceYear: currentYear,
+                  targetMonth,
+                  targetYear,
+                  overwriteTarget: true,
+                  reason: `Admin correction: overwritten & moved from ${sourceMonthName} to ${targetMonthName}`,
+                }),
+              }
+            );
+            const overwriteData =
+              overwriteRes && typeof overwriteRes.json === "function"
+                ? await overwriteRes.json()
+                : overwriteRes;
 
-                  if (overwriteRes?.ok || overwriteData?.success) {
-                    showToast(
-                      overwriteData.message ||
-                        `Successfully moved ratings to ${targetMonthName} ${targetYear}`,
-                      "success"
-                    );
-                    onSuccess?.(overwriteData);
-                    onClose();
-                  } else {
-                    Alert.alert("Failed", overwriteData?.message || "Failed to move ratings.");
-                  }
-                } catch (e) {
-                  Alert.alert("Error", e?.message || "Error moving ratings.");
-                } finally {
-                  setIsSubmitting(false);
-                }
-              },
-            },
-          ]
-        );
+            if (overwriteRes?.ok || overwriteData?.success) {
+              showToast(
+                overwriteData.message ||
+                  `Successfully moved ratings to ${targetMonthName} ${targetYear}`,
+                "success"
+              );
+              onSuccess?.(overwriteData);
+              onClose();
+            } else {
+              Alert.alert("Failed", overwriteData?.message || "Failed to move ratings.");
+            }
+          } catch (e) {
+            Alert.alert("Error", e?.message || "Error moving ratings.");
+          } finally {
+            setIsSubmitting(false);
+          }
+        };
+
+        const conflictMsg = `${targetMonthName} ${targetYear} already contains ${data.targetCount} rating(s). Would you like to overwrite them with the ratings from ${sourceMonthName}?`;
+        if (Platform.OS === "web") {
+          // On Web, Alert.alert ignores callbacks; use window.confirm
+          if (typeof window !== "undefined" && window.confirm(conflictMsg)) {
+            await doOverwrite();
+          }
+        } else {
+          Alert.alert(
+            "Ratings Already Exist",
+            conflictMsg,
+            [
+              { text: "Cancel", style: "cancel" },
+              { text: "Overwrite", style: "destructive", onPress: doOverwrite },
+            ]
+          );
+        }
         return;
       }
 
@@ -212,56 +217,100 @@ export default function RatingsCorrectionModal({
       return;
     }
 
-    Alert.alert(
-      "Confirm Permanent Deletion",
-      `Are you absolutely sure you want to delete all ${ratedCount} student ratings for ${subjectName} in ${sourceMonthName} ${currentYear}? This action cannot be undone.`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Yes, Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              setIsSubmitting(true);
-              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
+    const doDelete = async () => {
+      try {
+        setIsSubmitting(true);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
 
-              const res = await apiFetch(
-                `${apiConfig.baseUrl}/student-ratings/admin/bulk`,
-                {
-                  method: "DELETE",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    subjectId,
-                    month: currentMonth,
-                    year: currentYear,
-                    reason: deleteReason.trim() || "Admin bulk deletion of mistaken ratings",
-                  }),
-                }
-              );
+        const payload = {
+          subjectId: subjectId || undefined,
+          classId: subjectItem?.classId && !subjectId ? subjectItem.classId : undefined,
+          allInMonth: subjectItem?.allInMonth ? true : undefined,
+          month: currentMonth,
+          year: currentYear,
+          reason: deleteReason.trim() || "Admin bulk deletion of mistaken ratings",
+        };
 
-              const data = res && typeof res.json === "function" ? await res.json() : res;
+        const queryParams = new URLSearchParams();
+        if (payload.subjectId) queryParams.append("subjectId", payload.subjectId);
+        if (payload.classId) queryParams.append("classId", payload.classId);
+        if (payload.allInMonth) queryParams.append("allInMonth", "true");
+        if (payload.month) queryParams.append("month", String(payload.month));
+        if (payload.year) queryParams.append("year", String(payload.year));
+        if (payload.reason) queryParams.append("reason", payload.reason);
 
-              if (res?.ok || data?.success) {
-                showToast(
-                  data?.message ||
-                    `Deleted ${data?.data?.deletedCount || ratedCount} ratings successfully.`,
-                  "success"
-                );
-                onSuccess?.(data);
-                onClose();
-              } else {
-                Alert.alert("Failed", data?.message || "Could not delete ratings.");
+        // Attempt 1: Standard DELETE with body & query params
+        let res = await apiFetch(
+          `${apiConfig.baseUrl}/student-ratings/admin/bulk?${queryParams.toString()}`,
+          {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          }
+        );
+
+        let data = res && typeof res.json === "function" ? await res.json() : res;
+
+        // Attempt 2: If DELETE returned error (or body was stripped by proxy), try POST fallback
+        if (!res?.ok && !data?.success) {
+          try {
+            const fallbackRes = await apiFetch(
+              `${apiConfig.baseUrl}/student-ratings/admin/bulk-delete`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
               }
-            } catch (err) {
-              console.error("Error deleting ratings:", err);
-              Alert.alert("Error", err?.message || "An unexpected error occurred.");
-            } finally {
-              setIsSubmitting(false);
+            );
+            const fallbackData =
+              fallbackRes && typeof fallbackRes.json === "function"
+                ? await fallbackRes.json()
+                : fallbackRes;
+
+            if (fallbackRes?.ok || fallbackData?.success) {
+              res = fallbackRes;
+              data = fallbackData;
             }
+          } catch (_) {}
+        }
+
+        if (res?.ok || data?.success) {
+          showToast(
+            data?.message ||
+              `Deleted ${data?.data?.deletedCount || ratedCount} ratings successfully.`,
+            "success"
+          );
+          onSuccess?.(data);
+          onClose();
+        } else {
+          Alert.alert("Failed", data?.message || "Could not delete ratings.");
+        }
+      } catch (err) {
+        console.error("Error deleting ratings:", err);
+        Alert.alert("Error", err?.message || "An unexpected error occurred.");
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
+
+    // On Web, typing "DELETE" is already explicit confirmation.
+    // Alert.alert in react-native-web ignores buttons and never calls onPress, which blocks deletion.
+    if (Platform.OS === "web") {
+      await doDelete();
+    } else {
+      Alert.alert(
+        "Confirm Permanent Deletion",
+        `Are you absolutely sure you want to delete all ${ratedCount} student ratings for ${subjectName} in ${sourceMonthName} ${currentYear}? This action cannot be undone.`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Yes, Delete",
+            style: "destructive",
+            onPress: doDelete,
           },
-        },
-      ]
-    );
+        ]
+      );
+    }
   };
 
   return (

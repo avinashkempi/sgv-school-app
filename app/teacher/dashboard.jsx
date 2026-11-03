@@ -476,6 +476,50 @@ export default function TeacherDashboard() {
             </Pressable>
 
             <Pressable
+              onPress={() => router.push("/shared/student-ratings-dashboard")}
+              style={({ pressed }) => ({
+                flex: 1,
+                minWidth: "28%",
+                backgroundColor: colors.surfaceContainer,
+                padding: 16,
+                borderRadius: 24,
+                alignItems: "center",
+                shadowColor: colors.shadow,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.05,
+                shadowRadius: 12,
+                elevation: 3,
+                borderWidth: 1,
+                borderColor: colors.outlineVariant,
+                opacity: pressed ? 0.9 : 1,
+              })}
+            >
+              <View
+                style={{
+                  backgroundColor: (colors.tertiary || "#8B5CF6") + "20",
+                  padding: 14,
+                  borderRadius: 20,
+                  marginBottom: 10,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <MaterialIcons name="leaderboard" size={26} color={colors.tertiary || "#8B5CF6"} />
+              </View>
+              <Text
+                style={{
+                  fontSize: FONT_SIZES.xs,
+                  fontFamily: FONTS.bold,
+                  color: colors.onSurface,
+                  textAlign: "center",
+                }}
+                numberOfLines={2}
+              >
+                {t("teacher.ratingsLeaderboard", "Ratings Leaderboard")}
+              </Text>
+            </Pressable>
+
+            <Pressable
               onPress={() => router.push("/teacher/timetable")}
               style={({ pressed }) => ({
                 flex: 1,

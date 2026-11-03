@@ -18,6 +18,7 @@ import * as Haptics from "expo-haptics";
 
 import { useTheme, FONTS, FONT_SIZES, RADIUS, SPACING } from "../../theme";
 import apiConfig from "../../config/apiConfig";
+import apiFetch from "../../utils/apiFetch";
 import { useApiQuery, useApiMutation, createApiMutationFn, keepPreviousData } from "../../hooks/useApi";
 import { CACHE_TIERS } from "../../utils/cacheConfig";
 import { useToast } from "../../components/ToastProvider";
@@ -126,7 +127,7 @@ export default function RateStudentsScreen() {
   } = params;
 
   const queryClient = useQueryClient();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { showToast } = useToast();
   const { t } = useLabel();
   const { user } = useAuth();
@@ -341,6 +342,97 @@ export default function RateStudentsScreen() {
     setHasUnsavedChanges(true);
   }, []);
 
+  const handleClearStudentRating = useCallback(
+    async (studentId) => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      const studentObj = students.find((s) => s._id === studentId);
+      const studentName = studentObj?.name || "Student";
+
+      const doClear = async () => {
+        // If rating was persisted in the database, delete from server
+        if (studentObj?.rating) {
+          try {
+            const queryParams = new URLSearchParams({
+              subjectId,
+              month: String(month),
+              year: String(year),
+            });
+            const res = await apiFetch(
+              `${apiConfig.baseUrl}/student-ratings/student/${studentId}?${queryParams.toString()}`,
+              {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ subjectId, month: Number(month), year: Number(year) }),
+              }
+            );
+            const data = res && typeof res.json === "function" ? await res.json() : res;
+            if (!res?.ok && !data?.success) {
+              // Try POST fallback
+              await apiFetch(
+                `${apiConfig.baseUrl}/student-ratings/student/${studentId}/delete`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ subjectId, month: Number(month), year: Number(year) }),
+                }
+              );
+            }
+            if (studentObj) {
+              studentObj.rating = null;
+            }
+            queryClient.invalidateQueries({ queryKey: ["subjectRatings", subjectId, month, year] });
+            queryClient.invalidateQueries({ queryKey: ["ratingsSubmissionTracker"] });
+            queryClient.invalidateQueries({ queryKey: ["schoolRatingsSummary"] });
+          } catch (err) {
+            console.error("Error deleting student rating from server:", err);
+          }
+        }
+
+        // Remove from local memory ratingsMap
+        setRatingsMap((prev) => {
+          const next = { ...prev };
+          delete next[studentId];
+          return next;
+        });
+        setHasUnsavedChanges(true);
+
+        // Update draft in storage
+        try {
+          const savedDraft = await storage.getItem(draftKey);
+          if (savedDraft) {
+            const parsed = JSON.parse(savedDraft);
+            if (parsed && parsed[studentId]) {
+              delete parsed[studentId];
+              await storage.setItem(draftKey, JSON.stringify(parsed));
+            }
+          }
+        } catch (_) {}
+
+        showToast(`Cleared rating for ${studentName}`, "info");
+      };
+
+      if (studentObj?.rating) {
+        if (Platform.OS === "web") {
+          if (typeof window !== "undefined" && window.confirm(`Delete the saved rating for ${studentName}?`)) {
+            await doClear();
+          }
+        } else {
+          Alert.alert(
+            "Clear Rating",
+            `Remove the rating for ${studentName}?`,
+            [
+              { text: "Cancel", style: "cancel" },
+              { text: "Delete", style: "destructive", onPress: doClear },
+            ]
+          );
+        }
+      } else {
+        await doClear();
+      }
+    },
+    [students, subjectId, month, year, draftKey, showToast, queryClient]
+  );
+
   const handleBatchFillUnrated = useCallback(
     (score) => {
       const unratedList = students.filter((s) => !ratedStudentIds.includes(s._id));
@@ -504,17 +596,28 @@ export default function RateStudentsScreen() {
             style: "destructive",
             onPress: () => {
               storage.removeItem(draftKey).catch(() => {});
-              router.back();
+              if (router.canGoBack()) {
+                router.back();
+              } else {
+                router.replace("/teacher/monthly-ratings");
+              }
             },
           },
         ]
       );
     } else {
-      router.back();
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace("/teacher/monthly-ratings");
+      }
     }
   };
 
   const handleCorrectionSuccess = async () => {
+    setRatingsMap({});
+    setHasUnsavedChanges(false);
+    await storage.removeItem(draftKey).catch(() => {});
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["teacherRatingsSubjects"] }),
       queryClient.invalidateQueries({ queryKey: ["subjectRatings", subjectId, month, year] }),
@@ -525,7 +628,11 @@ export default function RateStudentsScreen() {
       queryClient.invalidateQueries({ queryKey: ["studentRatingTrend"] }),
     ]);
     refetch();
-    router.back();
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/teacher/monthly-ratings");
+    }
   };
 
   // Render individual student card
@@ -747,6 +854,28 @@ export default function RateStudentsScreen() {
                   Mark Exempt
                 </Text>
               </TouchableOpacity>
+              {(isComplete || validScores.length > 0 || isExempt) && (
+                <TouchableOpacity
+                  onPress={() => handleClearStudentRating(student._id)}
+                  style={[
+                    styles.quickFillPill,
+                    {
+                      backgroundColor: isDark ? "rgba(239, 68, 68, 0.15)" : "#FEE2E2",
+                      borderColor: isDark ? "#991B1B" : "#FCA5A5",
+                    },
+                  ]}
+                >
+                  <MaterialIcons name="delete-outline" size={13} color="#DC2626" style={{ marginRight: 2 }} />
+                  <Text
+                    style={[
+                      styles.quickFillPillText,
+                      { color: "#DC2626", fontFamily: FONTS.bold },
+                    ]}
+                  >
+                    Clear
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         )}
@@ -844,7 +973,7 @@ export default function RateStudentsScreen() {
           onBack={handleBack}
           rightAction={
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-              {isAdmin && ratedStudentIds.length > 0 && (
+              {(isAdmin || ratedStudentIds.length > 0) && (
                 <TouchableOpacity
                   onPress={() => setShowCorrectionModal(true)}
                   style={[
@@ -1362,25 +1491,23 @@ export default function RateStudentsScreen() {
         </View>
       </Modal>
 
-      {/* Admin Correction & Bulk Deletion Modal */}
-      {isAdmin && (
-        <RatingsCorrectionModal
-          visible={showCorrectionModal}
-          onClose={() => setShowCorrectionModal(false)}
-          subjectItem={{
-            subjectId,
-            subjectName,
-            classId: subjectData?.class?._id || subjectData?.subject?.class,
-            className,
-            teacherName: subjectData?.lastSubmissionInfo?.teacherName,
-            currentMonth: month,
-            currentYear: year,
-            ratedCount: ratedStudentIds.length,
-            totalStudents: students.length,
-          }}
-          onSuccess={handleCorrectionSuccess}
-        />
-      )}
+      {/* Rating Correction & Bulk Deletion Modal */}
+      <RatingsCorrectionModal
+        visible={showCorrectionModal}
+        onClose={() => setShowCorrectionModal(false)}
+        subjectItem={{
+          subjectId,
+          subjectName,
+          classId: subjectData?.class?._id || subjectData?.subject?.class,
+          className,
+          teacherName: subjectData?.lastSubmissionInfo?.teacherName,
+          currentMonth: month,
+          currentYear: year,
+          ratedCount: ratedStudentIds.length,
+          totalStudents: students.length,
+        }}
+        onSuccess={handleCorrectionSuccess}
+      />
     </KeyboardAvoidingView>
   );
 }

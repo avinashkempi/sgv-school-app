@@ -2877,6 +2877,112 @@ export const DEMO_MOVERS_DATA = {
   ],
 };
 
+export const DEMO_ALL_STUDENTS_DASHBOARD = {
+  success: true,
+  schoolAverage: 4.38,
+  schoolMarksAverage: 78.4,
+  schoolCompositeAverage: 82.8,
+  totalEnrolledStudents: 45,
+  totalEvaluatedStudents: 42,
+  evaluationCoveragePercent: 93,
+  schoolCriteriaAverages: {
+    classEngagement: 4.32,
+    homeworkClasswork: 4.41,
+    behaviourSocial: 4.58,
+    englishComm: 4.22,
+  },
+  tierCounts: {
+    excellent: 18,
+    good: 15,
+    meets: 6,
+    needs_improvement: 2,
+    needs_significant_improvement: 1,
+    unrated: 3,
+  },
+  quadrantCounts: {
+    all_rounders: 8,
+    academic_stars: 3,
+    diligent_strivers: 3,
+    needs_support: 1,
+  },
+  totalStudentsCount: 15,
+  classes: [
+    { _id: "550e8400e29b41d4a716446655440001", label: "3rd Standard A", name: "3", section: "A", value: "3" },
+    { _id: "550e8400e29b41d4a716446655440002", label: "3rd Standard B", name: "3", section: "B", value: "3" },
+    { _id: "550e8400e29b41d4a716446655440003", label: "1st Standard A", name: "1", section: "A", value: "1" },
+    { _id: "550e8400e29b41d4a716446655440004", label: "2nd Standard A", name: "2", section: "A", value: "2" },
+  ],
+  students: DEMO_STUDENTS.map((st, idx) => {
+    const scores = [5.0, 4.92, 4.85, 4.75, 4.65, 4.5, 4.42, 4.35, 4.25, 4.12, 3.88, 3.75, 3.42, 2.85, 2.35];
+    const avg = scores[idx] !== undefined ? scores[idx] : 4.2;
+    const rank = idx + 1;
+    const medal = rank === 1 ? "gold" : rank === 2 ? "silver" : rank === 3 ? "bronze" : null;
+    let evalCategory;
+    if (avg >= 4.5) evalCategory = { label: "Excellent", variant: "success", color: "#059669" };
+    else if (avg >= 3.5) evalCategory = { label: "Good", variant: "success", color: "#16A34A" };
+    else if (avg >= 2.5) evalCategory = { label: "Meets Expectation", variant: "primary", color: "#4F46E5" };
+    else if (avg >= 2.0) evalCategory = { label: "Needs Improvement", variant: "warning", color: "#EA580C" };
+    else evalCategory = { label: "Needs Significant Imp.", variant: "error", color: "#DC2626" };
+
+    const classOptions = [
+      { _id: "550e8400e29b41d4a716446655440001", label: "3rd Standard A", name: "3", section: "A" },
+      { _id: "550e8400e29b41d4a716446655440002", label: "3rd Standard B", name: "3", section: "B" },
+      { _id: "550e8400e29b41d4a716446655440003", label: "1st Standard A", name: "1", section: "A" },
+      { _id: "550e8400e29b41d4a716446655440004", label: "2nd Standard A", name: "2", section: "A" },
+    ];
+
+    const demoMarksList = [93.5, 91.0, 87.5, 89.0, 83.5, 85.0, 79.5, 81.0, 76.0, 73.5, 71.0, 67.5, 59.0, 54.0, 49.5];
+    const marksScore = demoMarksList[idx] !== undefined ? demoMarksList[idx] : 75.0;
+    const ratingsScore = parseFloat(((avg / 5.0) * 100).toFixed(1));
+    const compositeScore = parseFloat((((50 * marksScore) + (50 * ratingsScore)) / 100).toFixed(1));
+
+    const isHighMarks = marksScore >= 75;
+    const isHighRatings = avg >= 3.5;
+    let quadrant = "needs_support";
+    if (isHighMarks && isHighRatings) quadrant = "all_rounder";
+    else if (isHighMarks && !isHighRatings) quadrant = "academic_star";
+    else if (!isHighMarks && isHighRatings) quadrant = "diligent_striver";
+
+    const examBreakdown = [
+      { type: "FA1", weight: 20, totalObtained: Math.round(marksScore * 0.96), totalMax: 100, percentage: parseFloat((marksScore * 0.96).toFixed(1)) },
+      { type: "FA2", weight: 20, totalObtained: Math.min(100, Math.round(marksScore * 1.02)), totalMax: 100, percentage: Math.min(100, parseFloat((marksScore * 1.02).toFixed(1))) },
+      { type: "SA1", weight: 30, totalObtained: Math.round(marksScore * 0.99), totalMax: 100, percentage: parseFloat((marksScore * 0.99).toFixed(1)) },
+      { type: "FA3", weight: 10, totalObtained: null, totalMax: null, percentage: null },
+      { type: "FA4", weight: 10, totalObtained: null, totalMax: null, percentage: null },
+      { type: "SA2", weight: 10, totalObtained: null, totalMax: null, percentage: null },
+    ];
+
+    return {
+      student: {
+        _id: st._id,
+        name: st.name,
+        gender: st.gender,
+        regNo: st.regNo || (st.rollNumber ? `SGV-${st.rollNumber}` : "STU-001"),
+        profilePhoto: st.profilePhoto || st.profileImage,
+      },
+      class: classOptions[idx % classOptions.length],
+      rank,
+      medal,
+      compositeScore,
+      marksScore,
+      ratingsScore,
+      quadrant,
+      completedExamsCount: 3,
+      examBreakdown,
+      overallAverage: avg,
+      evaluation: evalCategory,
+      avgClassEngagement: Math.min(5, parseFloat((avg + (idx % 2 === 0 ? 0.1 : -0.1)).toFixed(2))),
+      avgHomeworkClasswork: Math.min(5, parseFloat((avg + (idx % 3 === 0 ? 0.15 : -0.05)).toFixed(2))),
+      avgBehaviourSocial: Math.min(5, parseFloat((avg + 0.1).toFixed(2))),
+      avgEnglishComm: Math.min(5, parseFloat((avg - (idx % 2 === 0 ? 0.05 : 0.15)).toFixed(2))),
+      totalRatings: 18 + idx * 2,
+      monthsCount: 5,
+      trendDirection: idx % 3 === 0 ? "improving" : idx % 5 === 0 ? "declining" : "stable",
+      trendChange: idx % 3 === 0 ? 0.35 : idx % 5 === 0 ? -0.3 : 0.05,
+    };
+  }),
+};
+
 export const DEMO_RATINGS_TRACKER = {
   overall: { total: 10, completed: 8, pending: 2, percentage: 80 },
   teachers: [

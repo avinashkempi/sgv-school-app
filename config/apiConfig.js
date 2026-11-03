@@ -56,6 +56,7 @@ const endpoints = {
   },
   vibes: {
     list: "/vibes",
+    sync: "/vibes/sync",
     categories: "/vibes/categories",
     getById: (id) => `/vibes/${id}`,
     create: "/vibes",

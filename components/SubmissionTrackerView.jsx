@@ -222,6 +222,18 @@ export default function SubmissionTrackerView({
     return list;
   }, [classBreakdown, searchQuery, filterMode]);
 
+  const partialSubjectsCount = useMemo(() => {
+    let count = 0;
+    classBreakdown.forEach((c) => {
+      (c.subjects || []).forEach((s) => {
+        if (s.ratedCount > 0 && s.ratedCount < s.totalStudents) {
+          count++;
+        }
+      });
+    });
+    return count;
+  }, [classBreakdown]);
+
   if (isLoading) {
     return (
       <View style={{ paddingVertical: 40 }}>
@@ -244,7 +256,8 @@ export default function SubmissionTrackerView({
               {t("tracker.overallSubmission", "Submission Progress")}{periodLabel}
             </Text>
             <Text style={[styles.kpiSubtitle, { color: colors.onSurfaceVariant }]}>
-              {overall.completed} of {overall.total} subjects evaluated
+              {overall.completed} of {overall.total} subjects fully evaluated
+              {partialSubjectsCount > 0 ? ` • ${partialSubjectsCount} in progress` : ""}
             </Text>
           </View>
           <View style={styles.kpiPercentBadge}>
@@ -343,6 +356,36 @@ export default function SubmissionTrackerView({
                 ]}
               >
                 {overall.pending}
+              </Text>
+            </View>
+          )}
+
+          {partialSubjectsCount > 0 && (
+            <View
+              style={[
+                styles.kpiStatPill,
+                {
+                  backgroundColor: isDark
+                    ? "rgba(59, 130, 246, 0.16)"
+                    : (colors.infoContainer || "#DBEAFE"),
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.kpiStatPillLabel,
+                  { color: isDark ? "#60A5FA" : (colors.info || "#2563EB") },
+                ]}
+              >
+                In Progress
+              </Text>
+              <Text
+                style={[
+                  styles.kpiStatPillVal,
+                  { color: isDark ? "#60A5FA" : (colors.info || "#2563EB") },
+                ]}
+              >
+                {partialSubjectsCount}
               </Text>
             </View>
           )}
@@ -687,12 +730,28 @@ export default function SubmissionTrackerView({
                                 </View>
 
                                 <Badge
-                                  variant={isSubjComplete ? "success" : isSubjMissed ? "error" : "warning"}
-                                  label={isSubjComplete ? "Submitted" : isSubjMissed ? "Missed" : "Pending"}
+                                  variant={
+                                    isSubjComplete
+                                      ? "success"
+                                      : isSubjMissed
+                                      ? "error"
+                                      : subj.ratedCount > 0
+                                      ? "info"
+                                      : "warning"
+                                  }
+                                  label={
+                                    isSubjComplete
+                                      ? "Submitted"
+                                      : isSubjMissed
+                                      ? "Missed"
+                                      : subj.ratedCount > 0
+                                      ? "In Progress"
+                                      : "Pending"
+                                  }
                                   size="sm"
                                 />
 
-                                {onManageSubjectSubmission && isSubjComplete && (
+                                {onManageSubjectSubmission && subj.ratedCount > 0 && (
                                   <TouchableOpacity
                                     onPress={() =>
                                       onManageSubjectSubmission({
@@ -935,6 +994,8 @@ export default function SubmissionTrackerView({
                                   ? "success"
                                   : isSubjMissed
                                   ? "error"
+                                  : ratedCount > 0
+                                  ? "info"
                                   : "warning"
                               }
                               label={
@@ -942,12 +1003,14 @@ export default function SubmissionTrackerView({
                                   ? "Submitted"
                                   : isSubjMissed
                                   ? "Missed"
+                                  : ratedCount > 0
+                                  ? "In Progress"
                                   : "Pending"
                               }
                               size="sm"
                             />
 
-                            {onManageSubjectSubmission && isSubjComplete && (
+                            {onManageSubjectSubmission && ratedCount > 0 && (
                               <TouchableOpacity
                                 onPress={() =>
                                   onManageSubjectSubmission({

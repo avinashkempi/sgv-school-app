@@ -136,6 +136,12 @@ const AdminDashboard = () => {
             contentContainerStyle={{ gap: 10, paddingVertical: 2 }}
           >
             <QuickActionButton
+              title="Ratings Leaderboard"
+              icon="leaderboard"
+              color="#059669"
+              onPress={() => router.push("/shared/student-ratings-dashboard")}
+            />
+            <QuickActionButton
               title="Student Ratings"
               icon="stars"
               color="#8B5CF6"

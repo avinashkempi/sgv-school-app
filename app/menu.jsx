@@ -92,6 +92,24 @@ export default function MenuScreen() {
         });
       }
 
+      if (
+        user.role === "teacher" ||
+        user.role === "staff" ||
+        user.role === "support_staff"
+      ) {
+        items.push({
+          id: "school-ratings-dashboard",
+          title: t("menu.schoolRatingsLeaderboard", "School Ratings Leaderboard"),
+          subtitle: t(
+            "menu.schoolRatingsLeaderboardSubtitle",
+            "School-wide student ratings, cumulative averages & rankings"
+          ),
+          icon: "leaderboard",
+          color: colors.tertiary || "#8B5CF6",
+          route: "/shared/student-ratings-dashboard",
+        });
+      }
+
       if (user.role === "teacher") {
         items.push({
           id: "teacher-ratings",
@@ -108,21 +126,45 @@ export default function MenuScreen() {
 
       if (user.role === "admin" || user.role === "super admin") {
         items.push({
+          id: "admin-school-ratings",
+          title: t("menu.schoolRatingsLeaderboard", "School Ratings Leaderboard"),
+          subtitle: t(
+            "menu.schoolRatingsLeaderboardSubtitle",
+            "Cumulative ratings & rankings across all students"
+          ),
+          icon: "leaderboard",
+          color: colors.tertiary || "#8B5CF6",
+          route: "/shared/student-ratings-dashboard",
+        });
+
+        items.push({
           id: "admin-ratings",
           title: t("menu.adminRatings", "Student Ratings & Tracker"),
           subtitle: t(
             "menu.adminRatingsSubtitle",
-            "School-wide evaluations, movers & submission tracker"
+            "Monthly evaluations, movers & submission tracker"
           ),
           icon: "stars",
           color: colors.primary || "#6366F1",
           route: "/admin/student-ratings",
         });
+
+        items.push({
+          id: "admin-teaching-ratings",
+          title: t("menu.rateTeachingSubjects", "Rate My Subjects"),
+          subtitle: t(
+            "menu.rateTeachingSubjectsSubtitle",
+            "Evaluate students for subjects you teach"
+          ),
+          icon: "rate-review",
+          color: colors.secondary || "#10B981",
+          route: "/teacher/monthly-ratings",
+        });
       }
     }
 
     return items;
-  }, [colors.error, colors.tertiary, colors.primary, t, user]);
+  }, [colors.error, colors.tertiary, colors.secondary, colors.primary, t, user]);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -22,7 +22,9 @@ import {
   useApiMutation,
   createApiMutationFn,
   useApiInfiniteQuery,
+  keepPreviousData,
 } from "../../hooks/useApi";
+import { CACHE_TIERS } from "../../utils/cacheConfig";
 import { useQueryClient } from "@tanstack/react-query";
 import Header from "../../components/Header";
 import { useLabel } from "../../context/LabelsContext";
@@ -45,9 +47,17 @@ export default function AdminScreen() {
   // Mobile standard gestures
   useTabScrollToTop(scrollRef, "/admin");
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [roleFilter, setRoleFilter] = useState("all");
   const pageSize = 20;
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery.trim());
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
   const [showUserModal, setShowUserModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [modalMode, setModalMode] = useState("add"); // "add" or "edit"
@@ -83,12 +93,14 @@ export default function AdminScreen() {
     hasNextPage,
     isFetchingNextPage,
   } = useApiInfiniteQuery(
-    ["users", searchQuery, roleFilter],
+    ["users", debouncedSearchQuery, roleFilter],
     (pageParam) =>
-      `${apiConfig.baseUrl}/users?page=${pageParam}&limit=${pageSize}&search=${searchQuery}&role=${roleFilter}`,
+      `${apiConfig.baseUrl}/users?page=${pageParam}&limit=${pageSize}&search=${encodeURIComponent(debouncedSearchQuery)}&role=${roleFilter}`,
     {
       enabled: !!isAdmin, // Only fetch if admin check passes
       initialPageParam: 1,
+      placeholderData: keepPreviousData,
+      ...CACHE_TIERS.SHORT,
       // eslint-disable-next-line no-unused-vars
       getNextPageParam: (lastPage, pages) => {
         if (
@@ -664,6 +676,12 @@ const AdminHeader = React.memo(function AdminHeader({
               icon="star-rate"
               color="#16A34A"
               onPress={() => router.push("/admin/student-ratings")}
+            />
+            <MenuCard
+              title={t("admin.ratingsLeaderboard", "Ratings Leaderboard")}
+              icon="leaderboard"
+              color="#8B5CF6"
+              onPress={() => router.push("/shared/student-ratings-dashboard")}
             />
           </View>
         </View>

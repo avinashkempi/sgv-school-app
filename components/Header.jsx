@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { useRouter } from "expo-router";
+import { useRouter, useNavigation } from "expo-router";
 import * as Haptics from "expo-haptics";
 import {
   useTheme,
@@ -75,6 +75,7 @@ const Header = ({
   showLogo = false,
 }) => {
   const router = useRouter();
+  const navigation = useNavigation();
   const { colors } = useTheme();
   const { unreadCount } = useNotifications();
   const { selectedYear } = useAcademicYear();
@@ -135,11 +136,37 @@ const Header = ({
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     if (onBack) {
       onBack();
-    } else if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace("/");
+      return;
     }
+
+    const fallbackNavigate = () => {
+      if (isSuperAdmin) {
+        router.replace("/admin");
+      } else {
+        router.replace("/");
+      }
+    };
+
+    try {
+      const state = navigation?.getState?.();
+      if (state && typeof state.index === "number" && state.index > 0) {
+        router.back();
+        return;
+      }
+      const parent = navigation?.getParent?.();
+      if (parent && parent.canGoBack && parent.canGoBack()) {
+        router.back();
+        return;
+      }
+      if (router.canGoBack()) {
+        router.back();
+        return;
+      }
+    } catch (_e) {
+      // Fall through to fallbackNavigate
+    }
+
+    fallbackNavigate();
   };
 
   const handleNotificationPress = () => {

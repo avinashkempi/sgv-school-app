@@ -122,6 +122,26 @@ export default async function apiFetch(input, init = {}) {
           }
         } catch (_) {}
         mutationResponse = { success: true, message: "All subjects updated (Demo)" };
+      } else if (
+        url.includes("/student-ratings/admin/bulk") ||
+        url.includes("/student-ratings/admin/bulk-delete") ||
+        url.includes("/student-ratings/subject/") ||
+        url.includes("/student-ratings/student/")
+      ) {
+        mutationResponse = {
+          success: true,
+          message:
+            method === "DELETE" || url.includes("/delete") || url.includes("/reset")
+              ? "Rating(s) deleted successfully (Demo simulated)"
+              : "Ratings updated successfully (Demo simulated)",
+          data: { deletedCount: 1 },
+        };
+      } else if (url.includes("/student-ratings/admin/shift-month")) {
+        mutationResponse = {
+          success: true,
+          message: "Ratings moved successfully (Demo simulated)",
+          data: { movedCount: 1 },
+        };
       } else if (url.includes("/student-ratings")) {
         mutationResponse = { success: true, message: "Ratings saved successfully (Demo simulated)" };
       } else if (url.includes("/timetable")) {
@@ -498,14 +518,108 @@ export default async function apiFetch(input, init = {}) {
         pending: demoData.DEMO_TEACHER_RATING_SUBJECTS?.summary?.pending || 1,
         subjects: demoData.DEMO_TEACHER_RATING_SUBJECTS?.subjects || [],
       };
+    } else if (url.includes("/student-ratings/school/all-students-dashboard")) {
+      const urlObj = new URL(url.startsWith("http") ? url : `http://localhost${url}`);
+      const classId = urlObj.searchParams.get("classId");
+      const tier = urlObj.searchParams.get("tier");
+      const search = urlObj.searchParams.get("search");
+      const sortBy = urlObj.searchParams.get("sortBy");
+
+      let filtered = [...(demoData.DEMO_ALL_STUDENTS_DASHBOARD?.students || [])];
+      if (classId && classId !== "all") {
+        filtered = filtered.filter((s) => s.class?._id === classId);
+      }
+      if (search && search.trim()) {
+        const q = search.trim().toLowerCase();
+        filtered = filtered.filter((s) => (s.student?.name || "").toLowerCase().includes(q) || (s.student?.regNo || "").toLowerCase().includes(q));
+      }
+      if (tier && tier !== "all") {
+        if (tier === "all_rounders") {
+          filtered = filtered.filter((s) => s.quadrant === "all_rounder");
+        } else if (tier === "academic_stars") {
+          filtered = filtered.filter((s) => s.quadrant === "academic_star");
+        } else if (tier === "diligent_strivers") {
+          filtered = filtered.filter((s) => s.quadrant === "diligent_striver");
+        } else if (tier === "needs_support") {
+          filtered = filtered.filter((s) => s.quadrant === "needs_support");
+        } else if (tier === "top_performers" || tier === "excellent") {
+          filtered = filtered.filter((s) => (s.overallAverage || 0) >= 4.5);
+        } else if (tier === "good") {
+          filtered = filtered.filter((s) => (s.overallAverage || 0) >= 3.5 && (s.overallAverage || 0) < 4.5);
+        } else if (tier === "meets") {
+          filtered = filtered.filter((s) => (s.overallAverage || 0) >= 2.5 && (s.overallAverage || 0) < 3.5);
+        } else if (tier === "attention" || tier === "needs_attention") {
+          filtered = filtered.filter((s) => (s.overallAverage || 0) < 3.0);
+        }
+      }
+      if (sortBy === "marks") {
+        filtered.sort((a, b) => (b.marksScore || 0) - (a.marksScore || 0));
+      } else if (sortBy === "ratings" || sortBy === "highest") {
+        filtered.sort((a, b) => (b.overallAverage || 0) - (a.overallAverage || 0));
+      } else if (sortBy === "lowest") {
+        filtered.sort((a, b) => (a.compositeScore || 0) - (b.compositeScore || 0));
+      } else if (sortBy === "name") {
+        filtered.sort((a, b) => (a.student?.name || "").localeCompare(b.student?.name || ""));
+      } else if (sortBy === "most_rated") {
+        filtered.sort((a, b) => b.totalRatings - a.totalRatings);
+      } else if (sortBy === "improving") {
+        filtered.sort((a, b) => (b.trendChange || 0) - (a.trendChange || 0));
+      } else {
+        filtered.sort((a, b) => (b.compositeScore || 0) - (a.compositeScore || 0));
+      }
+
+      responseData = {
+        ...demoData.DEMO_ALL_STUDENTS_DASHBOARD,
+        totalStudentsCount: filtered.length,
+        students: filtered,
+      };
     } else if (url.includes("/student-ratings/subject/")) {
       responseData = demoData.DEMO_SUBJECT_RATINGS_DATA;
     } else if (url.includes("/student-ratings/school/summary")) {
-      responseData = demoData.DEMO_ADMIN_RATINGS_SUMMARY;
+      const isNov = url.includes("month=11");
+      if (isNov) {
+        responseData = {
+          success: true,
+          month: 11,
+          year: 2026,
+          schoolAverage: null,
+          totalClasses: 0,
+          classes: [],
+          dataPoints: demoData.DEMO_ADMIN_RATINGS_SUMMARY?.dataPoints,
+          ratingLabels: demoData.DEMO_ADMIN_RATINGS_SUMMARY?.ratingLabels,
+        };
+      } else {
+        responseData = demoData.DEMO_ADMIN_RATINGS_SUMMARY;
+      }
     } else if (url.includes("/student-ratings/class/") && url.includes("/summary")) {
-      responseData = demoData.DEMO_CLASS_RATINGS_SUMMARY;
+      const isNov = url.includes("month=11");
+      if (isNov) {
+        responseData = {
+          success: true,
+          month: 11,
+          year: 2026,
+          classAverage: null,
+          totalStudents: 0,
+          students: [],
+        };
+      } else {
+        responseData = demoData.DEMO_CLASS_RATINGS_SUMMARY;
+      }
     } else if (url.includes("/student-ratings/school/movers")) {
-      responseData = demoData.DEMO_MOVERS_DATA;
+      const isNov = url.includes("month=11");
+      if (isNov) {
+        responseData = {
+          success: true,
+          month: 11,
+          year: 2026,
+          improving: [],
+          declining: [],
+          stable: 0,
+          summary: { totalCompared: 0, improvingCount: 0, decliningCount: 0, stableCount: 0 },
+        };
+      } else {
+        responseData = demoData.DEMO_MOVERS_DATA;
+      }
     } else if (url.includes("/student-ratings/tracker")) {
       responseData = demoData.DEMO_RATINGS_TRACKER;
     } else if (url.includes("/student-ratings/student/") && url.includes("/details")) {

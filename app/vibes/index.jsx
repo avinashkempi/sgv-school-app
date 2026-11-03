@@ -27,6 +27,7 @@ import { useNotifications } from "../../hooks/useNotifications";
 import apiConfig from "../../config/apiConfig";
 import { CACHE_TIERS } from "../../utils/cacheConfig";
 import storage from "../../utils/storage";
+import { performDeltaSync } from "../../utils/vibeFeedStore";
 import useTabScrollToTop from "../../hooks/useTabScrollToTop";
 import useDoubleBackToExit from "../../hooks/useDoubleBackToExit";
 import useNetworkQuality from "../../hooks/useNetworkQuality";
@@ -674,13 +675,65 @@ export default function VibesScreen() {
       await storage.setItem("@vibes_last_daily_sync", todayStr);
 
       if (activeTab === "feed") {
-        await Promise.all([
-          refetchFeed(),
-          queryClient.refetchQueries({ queryKey: ["vibeHighlights"] }),
-          queryClient.refetchQueries({ queryKey: ["vibeSpotlight"] }),
-          queryClient.refetchQueries({ queryKey: ["vibeCategories"] }),
-        ]);
-        showToast("Vibes feed updated", "success");
+        // Bandwidth-optimized delta sync: fetch only new assets since last fetch timestamp,
+        // retrieve latest likes/comments for existing assets, avoiding re-downloading media from Cloudinary.
+        const userId = user?.id || user?._id || "guest";
+        const lastSync = await storage.getItem(`@vibes_last_sync_v2_${userId}`);
+
+        const syncResult = await performDeltaSync(userId, {
+          currentVibes: rawFeedVibes,
+          lastSync,
+          category: selectedCategory,
+          tag: selectedTag,
+          search: debouncedSearch,
+        });
+
+        if (syncResult.success) {
+          queryClient.setQueryData(feedQueryKey, (old) => {
+            if (!old || !old.pages || old.pages.length === 0) {
+              return {
+                pages: [
+                  {
+                    success: true,
+                    data: syncResult.vibes,
+                    pagination: { page: 1, limit: VIBES_PER_PAGE, hasMore: true },
+                  },
+                ],
+                pageParams: [1],
+              };
+            }
+            return {
+              ...old,
+              pages: [
+                {
+                  ...old.pages[0],
+                  data: syncResult.vibes,
+                },
+              ],
+            };
+          });
+
+          await Promise.all([
+            queryClient.refetchQueries({ queryKey: ["vibeHighlights"] }),
+            queryClient.refetchQueries({ queryKey: ["vibeSpotlight"] }),
+            queryClient.refetchQueries({ queryKey: ["vibeCategories"] }),
+          ]);
+
+          if (syncResult.newCount > 0) {
+            showToast(`${syncResult.newCount} new vibe${syncResult.newCount > 1 ? "s" : ""} loaded`, "success");
+          } else {
+            showToast("Feed updated • Likes & comments refreshed", "success");
+          }
+        } else {
+          // Graceful fallback to regular query refetch
+          await Promise.all([
+            refetchFeed(),
+            queryClient.refetchQueries({ queryKey: ["vibeHighlights"] }),
+            queryClient.refetchQueries({ queryKey: ["vibeSpotlight"] }),
+            queryClient.refetchQueries({ queryKey: ["vibeCategories"] }),
+          ]);
+          showToast("Vibes feed updated", "success");
+        }
       } else if (activeTab === "my-vibes") {
         await refetchMyVibes();
         showToast("My posts updated", "success");
@@ -693,7 +746,20 @@ export default function VibesScreen() {
     } finally {
       setIsManualRefreshing(false);
     }
-  }, [activeTab, refetchFeed, refetchMyVibes, refetchSaved, queryClient, showToast]);
+  }, [
+    activeTab,
+    refetchFeed,
+    refetchMyVibes,
+    refetchSaved,
+    queryClient,
+    showToast,
+    user,
+    rawFeedVibes,
+    selectedCategory,
+    selectedTag,
+    debouncedSearch,
+    feedQueryKey,
+  ]);
 
   const renderFeedItem = useCallback(
     ({ item }) => (

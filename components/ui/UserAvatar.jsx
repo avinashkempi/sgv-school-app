@@ -7,6 +7,7 @@ import {
   getAvatarUrl,
   getBlurPlaceholderUrl,
 } from "../../utils/cloudinaryUpload";
+import useCachedMedia from "../../hooks/useCachedMedia";
 import { formatUserName } from "../../utils/userFormatters";
 
 /**
@@ -125,6 +126,10 @@ const UserAvatar = ({
     return getAvatarUrl(photoUrl, Math.max(80, Math.round(size * 2)));
   }, [photoUrl, size, imageError]);
 
+  // Permanent disk cache for user avatars: 0 repeated Cloudinary bandwidth
+  const { uri: cachedAvatarUri } = useCachedMedia(optimizedUrl, { isVideo: false });
+  const finalAvatarUri = cachedAvatarUri || optimizedUrl;
+
   const blurPlaceholder = useMemo(() => {
     if (!optimizedUrl) return null;
     return getBlurPlaceholderUrl(optimizedUrl);
@@ -171,7 +176,7 @@ const UserAvatar = ({
     <View style={containerStyle}>
       {optimizedUrl ? (
         <Image
-          source={{ uri: optimizedUrl }}
+          source={{ uri: finalAvatarUri }}
           placeholder={blurPlaceholder ? { uri: blurPlaceholder } : undefined}
           style={{ width: "100%", height: "100%", borderRadius }}
           contentFit="cover"

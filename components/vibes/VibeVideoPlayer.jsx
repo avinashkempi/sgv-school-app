@@ -24,6 +24,7 @@ import {
   getVideoPosterUrl,
   getBlurPlaceholderUrl,
 } from "../../utils/cloudinaryUpload";
+import useCachedMedia from "../../hooks/useCachedMedia";
 import useNetworkQuality from "../../hooks/useNetworkQuality";
 import { FONTS, FONT_SIZES, LETTER_SPACINGS } from "../../theme";
 import useDoubleTap from "../../hooks/useDoubleTap";
@@ -95,6 +96,10 @@ const VibeVideoPlayer = React.memo(
       return url;
     }, [url, isSlow, useOptimizedSource]);
 
+    // Permanent local disk caching: resolves to file:// URI once downloaded, avoiding all repeated bandwidth
+    const { uri: cachedVideoUri } = useCachedMedia(videoSource, { isVideo: true });
+    const activeVideoSource = cachedVideoUri || videoSource;
+
     const posterUrl = useMemo(
       () => getVideoPosterUrl(url, thumbnailUrl),
       [url, thumbnailUrl]
@@ -144,8 +149,8 @@ const VibeVideoPlayer = React.memo(
     const playerWidth = contentFit === "cover" ? width : (renderWidth || width);
     const playerHeight = contentFit === "cover" ? height : (renderHeight || height);
 
-    // Native expo-video player instance
-    const player = useVideoPlayer(videoSource, (p) => {
+    // Native expo-video player instance (plays from local disk if cached)
+    const player = useVideoPlayer(activeVideoSource, (p) => {
       p.loop = true;
       p.muted = globalIsMuted;
     });

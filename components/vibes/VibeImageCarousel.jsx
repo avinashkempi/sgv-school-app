@@ -30,6 +30,7 @@ import {
   getVideoPosterUrl,
 } from "../../utils/cloudinaryUpload";
 import useNetworkQuality from "../../hooks/useNetworkQuality";
+import useCachedMedia from "../../hooks/useCachedMedia";
 import VibeVideoPlayer from "./VibeVideoPlayer";
 import PinchableLightboxModal from "../ui/PinchableLightboxModal";
 
@@ -625,6 +626,10 @@ const CarouselImage = React.memo(
         : base;
     }, [url, width, isSlow, retryCount]);
 
+    // Permanent local disk caching: resolves to file:// URI once downloaded
+    const { uri: cachedUri } = useCachedMedia(displayUrl, { isVideo: false });
+    const finalDisplayUri = cachedUri || displayUrl;
+
     // Show subtle hint if loading exceeds 3.5 seconds
     useEffect(() => {
       if (!loading) {
@@ -670,7 +675,7 @@ const CarouselImage = React.memo(
           </View>
         ) : (
           <Image
-            source={{ uri: displayUrl }}
+            source={{ uri: finalDisplayUri }}
             placeholder={placeholderUrl ? { uri: placeholderUrl } : undefined}
             placeholderContentFit="contain"
             style={styles.image}

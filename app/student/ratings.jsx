@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
-import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
@@ -79,7 +78,6 @@ const SCALE_MAP = {
 };
 
 export default function StudentRatingsScreen() {
-  const router = useRouter();
   const { colors } = useTheme();
   const { t } = useLabel();
 
@@ -171,7 +169,6 @@ export default function StudentRatingsScreen() {
         title={t("student.monthlyRatings", "Monthly Ratings")}
         subtitle={`${monthName} ${selectedYear}`}
         showBack={true}
-        onBack={() => router.back()}
       />
 
       {/* Month Navigation Strip */}

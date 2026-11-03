@@ -12,6 +12,7 @@ import {
   Platform,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 
@@ -101,6 +102,7 @@ const getRatingLabel = (score) => {
 };
 
 export default function AdminStudentRatingsScreen() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const { colors, isDark } = useTheme();
   const { t } = useLabel();
@@ -115,6 +117,34 @@ export default function AdminStudentRatingsScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [moversTab, setMoversTab] = useState("improving"); // 'improving' | 'declining'
   const [refreshing, setRefreshing] = useState(false);
+
+  // Direct rating navigation helper for admins
+  const handleRateSubject = useCallback(
+    (subj) => {
+      if (!subj) return;
+      Haptics.selectionAsync().catch(() => {});
+      const subjectId = subj._id || subj.subject?._id;
+      const subjectName = subj.name || subj.subject?.name || "Subject";
+      const classObj = subj.class || subj.classInfo;
+      const classLabel = formatClassName(
+        classObj?.name || classObj?.label || classObj?.value,
+        classObj?.section
+      );
+      router.push({
+        pathname: "/teacher/rate-students",
+        params: {
+          subjectId,
+          subjectName,
+          className: classLabel,
+          month: selectedMonth,
+          year: selectedYear,
+          totalStudents: String(subj.totalStudents || 0),
+          ratedCount: String(subj.ratedCount || 0),
+        },
+      });
+    },
+    [router, selectedMonth, selectedYear]
+  );
 
   // Subject Configuration Tab state (School-Wide Subject-Wise)
   const [subjectSearchQuery, setSubjectSearchQuery] = useState("");
@@ -184,7 +214,6 @@ export default function AdminStudentRatingsScreen() {
       ["schoolRatingsSummary", selectedMonth, selectedYear],
       `${apiConfig.baseUrl}/student-ratings/school/summary?month=${selectedMonth}&year=${selectedYear}`,
       {
-        placeholderData: keepPreviousData,
         ...CACHE_TIERS.MODERATE,
       }
     );
@@ -232,7 +261,6 @@ export default function AdminStudentRatingsScreen() {
       `${apiConfig.baseUrl}/student-ratings/class/${selectedClassId}/summary?month=${selectedMonth}&year=${selectedYear}`,
       {
         enabled: isClassSpecific,
-        placeholderData: keepPreviousData,
         ...CACHE_TIERS.MODERATE,
       }
     );
@@ -246,7 +274,6 @@ export default function AdminStudentRatingsScreen() {
       isClassSpecific ? `&classId=${selectedClassId}` : ""
     }`,
     {
-      placeholderData: keepPreviousData,
       ...CACHE_TIERS.MODERATE,
     }
   );
@@ -258,7 +285,6 @@ export default function AdminStudentRatingsScreen() {
       `${apiConfig.baseUrl}/student-ratings/student/${selectedStudentId}/details?month=${selectedMonth}&year=${selectedYear}`,
       {
         enabled: !!selectedStudentId,
-        placeholderData: keepPreviousData,
         ...CACHE_TIERS.MODERATE,
       }
     );
@@ -280,7 +306,6 @@ export default function AdminStudentRatingsScreen() {
     ["ratingsSubmissionTracker", selectedMonth, selectedYear],
     `${apiConfig.baseUrl}/student-ratings/tracker?month=${selectedMonth}&year=${selectedYear}`,
     {
-      placeholderData: keepPreviousData,
       ...CACHE_TIERS.MODERATE,
     }
   );
@@ -296,6 +321,21 @@ export default function AdminStudentRatingsScreen() {
         ...CACHE_TIERS.MODERATE,
       }
     );
+
+  // 9. Fetch Admin's own teaching subjects (for admins who also teach subjects)
+  const { data: adminTeachingSubjectsData, isLoading: loadingAdminSubjects } =
+    useApiQuery(
+      ["teacherRatingsSubjects", selectedMonth, selectedYear],
+      `${apiConfig.baseUrl}/student-ratings/my-subjects?month=${selectedMonth}&year=${selectedYear}`,
+      {
+        ...CACHE_TIERS.MODERATE,
+      }
+    );
+
+  const adminTeachingSubjects = useMemo(
+    () => adminTeachingSubjectsData?.subjects || [],
+    [adminTeachingSubjectsData]
+  );
 
   const getEffectiveRatingEnabled = useCallback(
     (sub) => {
@@ -507,6 +547,9 @@ export default function AdminStudentRatingsScreen() {
         queryClient.invalidateQueries({
           queryKey: ["ratingsSubmissionTracker"],
         }),
+        queryClient.invalidateQueries({
+          queryKey: ["teacherRatingsSubjects"],
+        }),
         isClassSpecific
           ? queryClient.invalidateQueries({
               queryKey: ["classRatingsSummary", selectedClassId],
@@ -523,6 +566,15 @@ export default function AdminStudentRatingsScreen() {
       setRefreshing(false);
     }
   };
+
+  const selectedClassData = useMemo(() => {
+    if (!selectedClassId || selectedClassId === "all" || !trackerData?.classes) {
+      return null;
+    }
+    return trackerData.classes.find(
+      (c) => (c.class?._id || c._id)?.toString() === selectedClassId.toString()
+    );
+  }, [selectedClassId, trackerData]);
 
   const monthName = MONTH_NAMES[selectedMonth - 1];
   const schoolAverage = schoolSummaryData?.schoolAverage;
@@ -595,153 +647,393 @@ export default function AdminStudentRatingsScreen() {
   // ──────────────────────────────────────────────
   //  TAB 1: OVERVIEW
   // ──────────────────────────────────────────────
-  const renderOverviewTab = () => (
-    <View>
-      {/* School Average Hero Card */}
-      <Card
-        variant="elevated"
-        style={styles.heroCard}
-        contentStyle={styles.heroCardContent}
-      >
-        <View style={styles.heroLeftCol}>
-          <Text
-            style={[styles.heroSubtitle, { color: colors.onSurfaceVariant }]}
-          >
-            {t("admin.schoolAverageRating", "School-wide Average Rating")}
+  const renderTeachingSubjectsCard = () => {
+    if (loadingAdminSubjects) {
+      return (
+        <Card variant="outlined" style={styles.teachingCard} contentStyle={{ padding: 14 }}>
+          <ActivityIndicator size="small" color={colors.primary} />
+          <Text style={[styles.teachingCardSub, { color: colors.onSurfaceVariant, textAlign: "center", marginTop: 6 }]}>
+            Loading your teaching subjects...
           </Text>
-          <View style={styles.heroScoreRow}>
-            <Text style={[styles.heroScoreText, { color: colors.primary }]}>
-              {schoolAverage ? schoolAverage.toFixed(2) : "--"}
-            </Text>
-            <Text
-              style={[styles.heroScoreMax, { color: colors.onSurfaceVariant }]}
-            >
-              / 5.0
-            </Text>
-          </View>
-          <View style={{ marginTop: 4 }}>
-            {schoolAverage ? (
-              <Badge
-                variant={getRatingLabel(schoolAverage).variant}
-                label={getRatingLabel(schoolAverage).label}
-                size="md"
-              />
-            ) : (
-              <Badge variant="neutral" label="No Ratings Yet" size="md" />
-            )}
+        </Card>
+      );
+    }
+
+    if (adminTeachingSubjects.length === 0) {
+      return null;
+    }
+
+    return (
+      <Card variant="elevated" style={styles.teachingCard} contentStyle={styles.teachingCardContent}>
+        <View style={styles.teachingCardHeader}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: 1 }}>
+            <View style={[styles.teachingIconCircle, { backgroundColor: colors.primaryContainer || "#EEF2FF" }]}>
+              <MaterialIcons name="school" size={20} color={colors.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.teachingCardTitle, { color: colors.onSurface }]}>
+                My Teaching Subjects ({adminTeachingSubjects.length})
+              </Text>
+              <Text style={[styles.teachingCardSub, { color: colors.onSurfaceVariant }]}>
+                You teach {adminTeachingSubjects.length} subject(s). Rate your students for {monthName} {selectedYear}:
+              </Text>
+            </View>
           </View>
         </View>
 
-        <View style={styles.heroRightCol}>
+        <View style={styles.teachingSubjectsList}>
+          {adminTeachingSubjects.map((subj) => {
+            const classLabel = formatClassName(
+              subj.class?.name || subj.class?.label || subj.class?.value,
+              subj.class?.section
+            );
+            const isComplete = subj.status === "submitted";
+            const isMissed = subj.status === "missed";
+            const badgeVariant = isComplete ? "success" : isMissed ? "error" : "warning";
+            const badgeLabel = isComplete ? "Submitted" : isMissed ? "Missed" : "Pending";
+
+            return (
+              <View
+                key={subj._id}
+                style={[
+                  styles.teachingSubjectRow,
+                  {
+                    backgroundColor: isDark ? colors.surfaceContainerHigh || "#222228" : colors.surface || "#FFFFFF",
+                    borderColor: colors.outlineVariant,
+                  },
+                ]}
+              >
+                <View style={{ flex: 1, marginRight: 10 }}>
+                  <Text style={[styles.teachingSubjectName, { color: colors.onSurface }]} numberOfLines={1}>
+                    {subj.name}
+                  </Text>
+                  <Text style={[styles.teachingSubjectMeta, { color: colors.onSurfaceVariant }]}>
+                    {classLabel} • {subj.ratedCount || 0} / {subj.totalStudents || 0} Rated
+                  </Text>
+                </View>
+
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <Badge variant={badgeVariant} label={badgeLabel} size="sm" />
+                  <TouchableOpacity
+                    onPress={() => handleRateSubject(subj)}
+                    style={[
+                      styles.rateNowBtn,
+                      {
+                        backgroundColor: isComplete
+                          ? colors.surfaceContainerHigh || "#E5E7EB"
+                          : colors.primary,
+                      },
+                    ]}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Rate ${subj.name} for ${classLabel}`}
+                  >
+                    <MaterialIcons
+                      name={isComplete ? "edit" : "star"}
+                      size={14}
+                      color={isComplete ? colors.primary : colors.onPrimary}
+                      style={{ marginRight: 4 }}
+                    />
+                    <Text
+                      style={[
+                        styles.rateNowBtnText,
+                        {
+                          color: isComplete ? colors.primary : colors.onPrimary,
+                        },
+                      ]}
+                    >
+                      {isComplete ? "Edit" : "Rate"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      </Card>
+    );
+  };
+
+  const renderOverviewTab = () => (
+    <View>
+      {/* 1. Admin Teaching Subjects Card (if assigned subjects) */}
+      {renderTeachingSubjectsCard()}
+
+      {/* 2. School-wide Performance Data or Clean Empty State */}
+      {schoolClasses.length === 0 ? (
+        <Card
+          variant="elevated"
+          style={{ marginTop: 4, marginBottom: 16 }}
+          contentStyle={{ padding: 24, alignItems: "center" }}
+        >
           <View
-            style={[
-              styles.heroIconCircle,
-              { backgroundColor: colors.primaryContainer || "#EEF2FF" },
-            ]}
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: 28,
+              backgroundColor:
+                colors.surfaceContainerHigh ||
+                (isDark ? "#2A2A30" : "#F3F4F6"),
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: 14,
+            }}
           >
             <MaterialIcons
-              name="auto-awesome"
-              size={32}
-              color={colors.primary}
+              name="event-available"
+              size={28}
+              color={colors.onSurfaceVariant}
             />
           </View>
           <Text
-            style={[
-              styles.heroClassesCount,
-              { color: colors.onSurfaceVariant },
-            ]}
+            style={{
+              fontSize: FONT_SIZES.mdLg || 17,
+              fontFamily: FONTS.bold,
+              color: colors.onSurface,
+              textAlign: "center",
+              marginBottom: 6,
+            }}
           >
-            {schoolClasses.length} Classes Rated
+            No Ratings for {monthName} {selectedYear}
           </Text>
-        </View>
-      </Card>
-
-      {/* 4 Core Data Points Averages */}
-      <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>
-        {t("admin.dataPointPerformance", "The 4 Evaluation Areas")}
-      </Text>
-      <View style={styles.criteriaGrid}>
-        {DATA_POINTS.map((dp) => {
-          const avg = schoolCriteriaAverages[dp.key] || 0;
-          const percent = Math.min(Math.max((avg / 5) * 100, 0), 100);
-
-          return (
-            <Card
-              key={dp.key}
-              variant="elevated"
-              style={styles.criterionCard}
-              contentStyle={styles.criterionCardContent}
-            >
-              <View style={styles.criterionHeader}>
-                <View
-                  style={[
-                    styles.criterionIconBox,
-                    { backgroundColor: `${dp.color}15` },
-                  ]}
+          <Text
+            style={{
+              fontSize: FONT_SIZES.sm || 13,
+              fontFamily: FONTS.regular,
+              color: colors.onSurfaceVariant,
+              textAlign: "center",
+              lineHeight: 19,
+              maxWidth: 320,
+              marginBottom: 16,
+            }}
+          >
+            No teachers have submitted monthly student evaluations for {monthName} {selectedYear} yet.
+          </Text>
+          <Button
+            title="Open Submission Tracker"
+            icon="checklist"
+            variant="outlined"
+            size="sm"
+            onPress={() => setActiveTab("tracker")}
+          />
+        </Card>
+      ) : (
+        <>
+          {/* Active Submissions Info Banner */}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              backgroundColor:
+                colors.surfaceContainer || (isDark ? "#1C1C22" : "#F9FAFB"),
+              borderRadius: RADIUS.md || 10,
+              paddingHorizontal: 14,
+              paddingVertical: 10,
+              marginBottom: 12,
+              borderWidth: 1,
+              borderColor: colors.outlineVariant,
+            }}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flex: 1 }}>
+              <MaterialIcons name="insights" size={18} color={colors.primary} />
+              <Text
+                style={{
+                  fontSize: FONT_SIZES.xs || 12,
+                  fontFamily: FONTS.medium,
+                  color: colors.onSurfaceVariant,
+                  flex: 1,
+                }}
+              >
+                {schoolClasses.length} class(es) rated in {monthName} {selectedYear}
+              </Text>
+            </View>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <TouchableOpacity
+                onPress={() =>
+                  setCorrectionTarget({
+                    allInMonth: true,
+                    subjectName: `All School Ratings (${monthName} ${selectedYear})`,
+                    currentMonth: selectedMonth,
+                    currentYear: selectedYear,
+                    ratedCount: schoolClasses.reduce(
+                      (acc, c) => acc + (c.totalRatings || c.studentCount || 0),
+                      0
+                    ),
+                  })
+                }
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 4,
+                  backgroundColor: isDark ? "rgba(239, 68, 68, 0.15)" : "#FEE2E2",
+                  paddingHorizontal: 9,
+                  paddingVertical: 4,
+                  borderRadius: RADIUS.sm || 6,
+                }}
+              >
+                <MaterialIcons name="delete-sweep" size={14} color="#DC2626" />
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontFamily: FONTS.bold,
+                    color: "#DC2626",
+                  }}
                 >
-                  <MaterialIcons name={dp.icon} size={20} color={dp.color} />
-                </View>
-                <Text style={[styles.criterionScore, { color: dp.color }]}>
-                  {avg > 0 ? avg : "--"}
+                  Delete / Move
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setActiveTab("tracker")}
+                style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
+              >
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontFamily: FONTS.bold,
+                    color: colors.primary,
+                  }}
+                >
+                  Tracker →
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* School Average Hero Card */}
+          <Card
+            variant="elevated"
+            style={styles.heroCard}
+            contentStyle={styles.heroCardContent}
+          >
+            <View style={styles.heroLeftCol}>
+              <Text
+                style={[styles.heroSubtitle, { color: colors.onSurfaceVariant }]}
+              >
+                {t("admin.schoolAverageRating", "School-wide Average Rating")}
+              </Text>
+              <View style={styles.heroScoreRow}>
+                <Text style={[styles.heroScoreText, { color: colors.primary }]}>
+                  {schoolAverage ? schoolAverage.toFixed(2) : "--"}
+                </Text>
+                <Text
+                  style={[styles.heroScoreMax, { color: colors.onSurfaceVariant }]}
+                >
+                  / 5.0
                 </Text>
               </View>
-              <Text
-                style={[styles.criterionTitle, { color: colors.onSurface }]}
-                numberOfLines={1}
-              >
-                {dp.label}
-              </Text>
-              <Text
+              <View style={{ marginTop: 4 }}>
+                {schoolAverage ? (
+                  <Badge
+                    variant={getRatingLabel(schoolAverage).variant}
+                    label={getRatingLabel(schoolAverage).label}
+                    size="md"
+                  />
+                ) : (
+                  <Badge variant="neutral" label="No Ratings Yet" size="md" />
+                )}
+              </View>
+            </View>
+
+            <View style={styles.heroRightCol}>
+              <View
                 style={[
-                  styles.criterionDesc,
-                  { color: colors.onSurfaceVariant },
+                  styles.heroIconCircle,
+                  { backgroundColor: colors.primaryContainer || "#EEF2FF" },
                 ]}
-                numberOfLines={2}
               >
-                {dp.desc}
-              </Text>
-              <View style={{ marginTop: 8 }}>
-                <ProgressBar
-                  progress={percent}
-                  max={100}
-                  progressColor={dp.color}
-                  height={5}
-                  borderRadius={3}
+                <MaterialIcons
+                  name="auto-awesome"
+                  size={32}
+                  color={colors.primary}
                 />
               </View>
-            </Card>
-          );
-        })}
-      </View>
+              <Text
+                style={[
+                  styles.heroClassesCount,
+                  { color: colors.onSurfaceVariant },
+                ]}
+              >
+                {schoolClasses.length} Classes Rated
+              </Text>
+            </View>
+          </Card>
 
-      {/* Class Comparison List */}
-      <View style={styles.classComparisonHeaderRow}>
-        <Text
-          style={[
-            styles.sectionTitle,
-            { color: colors.onSurface, marginBottom: 0 },
-          ]}
-        >
-          {t("admin.classComparison", "Class Benchmarks")}
-        </Text>
-        <Text
-          style={[styles.sectionSubtitle, { color: colors.onSurfaceVariant }]}
-        >
-          {schoolClasses.length} Classes
-        </Text>
-      </View>
+          {/* 4 Core Data Points Averages */}
+          <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>
+            {t("admin.dataPointPerformance", "The 4 Evaluation Areas")}
+          </Text>
+          <View style={styles.criteriaGrid}>
+            {DATA_POINTS.map((dp) => {
+              const avg = schoolCriteriaAverages[dp.key] || 0;
+              const percent = Math.min(Math.max((avg / 5) * 100, 0), 100);
 
-      {schoolClasses.length === 0 ? (
-        <EmptyState
-          icon="insights"
-          title={t("admin.noClassRatings", "No Ratings Submitted This Month")}
-          message={t(
-            "admin.noClassRatingsDesc",
-            "Teachers have not submitted any student ratings for this month yet."
-          )}
-        />
-      ) : (
-        schoolClasses.map((clsItem, cIdx) => {
+              return (
+                <Card
+                  key={dp.key}
+                  variant="elevated"
+                  style={styles.criterionCard}
+                  contentStyle={styles.criterionCardContent}
+                >
+                  <View style={styles.criterionHeader}>
+                    <View
+                      style={[
+                        styles.criterionIconBox,
+                        { backgroundColor: `${dp.color}15` },
+                      ]}
+                    >
+                      <MaterialIcons name={dp.icon} size={20} color={dp.color} />
+                    </View>
+                    <Text style={[styles.criterionScore, { color: dp.color }]}>
+                      {avg > 0 ? avg : "--"}
+                    </Text>
+                  </View>
+                  <Text
+                    style={[styles.criterionTitle, { color: colors.onSurface }]}
+                    numberOfLines={1}
+                  >
+                    {dp.label}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.criterionDesc,
+                      { color: colors.onSurfaceVariant },
+                    ]}
+                    numberOfLines={2}
+                  >
+                    {dp.desc}
+                  </Text>
+                  <View style={{ marginTop: 8 }}>
+                    <ProgressBar
+                      progress={percent}
+                      max={100}
+                      progressColor={dp.color}
+                      height={5}
+                      borderRadius={3}
+                    />
+                  </View>
+                </Card>
+              );
+            })}
+          </View>
+
+          {/* Class Comparison List */}
+          <View style={styles.classComparisonHeaderRow}>
+            <Text
+              style={[
+                styles.sectionTitle,
+                { color: colors.onSurface, marginBottom: 0 },
+              ]}
+            >
+              {t("admin.classComparison", "Class Benchmarks")}
+            </Text>
+            <Text
+              style={[styles.sectionSubtitle, { color: colors.onSurfaceVariant }]}
+            >
+              {schoolClasses.length} Classes
+            </Text>
+          </View>
+
+          {schoolClasses.map((clsItem, cIdx) => {
           const classId =
             clsItem.class?._id ||
             clsItem.classId ||
@@ -916,7 +1208,8 @@ export default function AdminStudentRatingsScreen() {
               </View>
             </Card>
           );
-        })
+        })}
+        </>
       )}
     </View>
   );
@@ -998,6 +1291,49 @@ export default function AdminStudentRatingsScreen() {
             title="No Ratings for this Class"
             message="No subject teachers have submitted ratings for this class in this month."
           />
+          {selectedClassData?.subjects && selectedClassData.subjects.length > 0 && (
+            <Card variant="outlined" style={{ marginTop: 16 }} contentStyle={{ padding: 14 }}>
+              <Text style={{ fontSize: FONT_SIZES.sm, fontFamily: FONTS.bold, color: colors.onSurface, marginBottom: 8 }}>
+                Rate a Subject in this Class:
+              </Text>
+              <View style={{ gap: 8 }}>
+                {selectedClassData.subjects.map((subItem) => (
+                  <View
+                    key={subItem.subject?._id || subItem._id}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      paddingVertical: 8,
+                      borderBottomWidth: 1,
+                      borderColor: colors.outlineVariant,
+                    }}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: FONT_SIZES.sm, fontFamily: FONTS.medium, color: colors.onSurface }}>
+                        {subItem.subject?.name || subItem.name}
+                      </Text>
+                      <Text style={{ fontSize: 11, color: colors.onSurfaceVariant }}>
+                        {subItem.ratedCount || 0} / {subItem.totalStudents || 0} students rated
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() =>
+                        handleRateSubject({
+                          ...subItem,
+                          class: selectedClassData.class,
+                        })
+                      }
+                      style={[styles.rateNowBtn, { backgroundColor: colors.primary }]}
+                    >
+                      <MaterialIcons name="star" size={14} color={colors.onPrimary} style={{ marginRight: 4 }} />
+                      <Text style={[styles.rateNowBtnText, { color: colors.onPrimary }]}>Rate</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            </Card>
+          )}
         </View>
       ) : (
         <>
@@ -1023,7 +1359,7 @@ export default function AdminStudentRatingsScreen() {
                 subjects
               </Text>
             </View>
-            <View style={styles.classBannerRight}>
+            <View style={[styles.classBannerRight, { alignItems: "flex-end" }]}>
               <Text
                 style={[styles.classBannerScore, { color: colors.primary }]}
               >
@@ -1032,8 +1368,124 @@ export default function AdminStudentRatingsScreen() {
                   ? classSummaryData.classAverage.toFixed(2)
                   : "--"}
               </Text>
+              <TouchableOpacity
+                onPress={() =>
+                  setCorrectionTarget({
+                    classId: selectedClassId,
+                    className: formatClassName(
+                      selectedClassData?.class?.name || selectedClassData?.class?.label,
+                      selectedClassData?.class?.section
+                    ),
+                    currentMonth: selectedMonth,
+                    currentYear: selectedYear,
+                    ratedCount: classSummaryData?.totalStudents || 0,
+                  })
+                }
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 3,
+                  marginTop: 4,
+                  backgroundColor: isDark ? "rgba(239, 68, 68, 0.15)" : "#FEE2E2",
+                  paddingHorizontal: 8,
+                  paddingVertical: 3,
+                  borderRadius: RADIUS.xs || 4,
+                }}
+              >
+                <MaterialIcons name="delete-sweep" size={12} color="#DC2626" />
+                <Text style={{ fontSize: 10, fontFamily: FONTS.bold, color: "#DC2626" }}>
+                  Manage Class
+                </Text>
+              </TouchableOpacity>
             </View>
           </Card>
+
+          {/* Quick Rate Subject Strip */}
+          {selectedClassData?.subjects && selectedClassData.subjects.length > 0 && (
+            <View style={{ marginBottom: 14 }}>
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontFamily: FONTS.bold,
+                  color: colors.onSurfaceVariant,
+                  marginBottom: 6,
+                  textTransform: "uppercase",
+                  letterSpacing: 0.5,
+                }}
+              >
+                Class Subjects ({selectedClassData.subjects.length}) • Tap to Rate
+              </Text>
+              <ScrollView
+                horizontal={true}
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ gap: 8, paddingVertical: 2 }}
+              >
+                {selectedClassData.subjects.map((sItem) => {
+                  const isComplete = sItem.status === "submitted";
+                  return (
+                    <TouchableOpacity
+                      key={sItem.subject?._id || sItem._id}
+                      onPress={() =>
+                        handleRateSubject({
+                          ...sItem,
+                          class: selectedClassData.class,
+                        })
+                      }
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 6,
+                        paddingHorizontal: 10,
+                        paddingVertical: 7,
+                        borderRadius: RADIUS.sm,
+                        backgroundColor: colors.surfaceContainer,
+                        borderWidth: 1,
+                        borderColor: colors.outlineVariant,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          fontFamily: FONTS.medium,
+                          color: colors.onSurface,
+                        }}
+                      >
+                        {sItem.subject?.name || sItem.name}
+                      </Text>
+                      <Badge
+                        variant={isComplete ? "success" : "warning"}
+                        label={isComplete ? "Submitted" : "Rate"}
+                        size="xs"
+                      />
+                      {sItem.ratedCount > 0 && (
+                        <TouchableOpacity
+                          onPress={(e) => {
+                            e.stopPropagation?.();
+                            setCorrectionTarget({
+                              subjectId: sItem.subject?._id || sItem._id,
+                              subjectName: sItem.subject?.name || sItem.name,
+                              classId: selectedClassId,
+                              className: formatClassName(
+                                selectedClassData?.class?.name || selectedClassData?.class?.label,
+                                selectedClassData?.class?.section
+                              ),
+                              currentMonth: selectedMonth,
+                              currentYear: selectedYear,
+                              ratedCount: sItem.ratedCount,
+                            });
+                          }}
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                          style={{ padding: 2 }}
+                        >
+                          <MaterialIcons name="edit-calendar" size={14} color={colors.primary} />
+                        </TouchableOpacity>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          )}
 
           {/* Search & Sort Controls */}
           <View style={styles.searchAndSortRow}>
@@ -2163,6 +2615,35 @@ export default function AdminStudentRatingsScreen() {
             "Monthly behavioral & academic evaluation insights"
           )}
           showBack={true}
+          rightAction={
+            <TouchableOpacity
+              onPress={() => router.push("/shared/student-ratings-dashboard")}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 4,
+                backgroundColor: colors.surfaceContainer,
+                borderColor: colors.outlineVariant,
+                borderWidth: 1,
+                paddingHorizontal: 10,
+                paddingVertical: 6,
+                borderRadius: RADIUS.sm || 8,
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Open School Leaderboard"
+            >
+              <MaterialIcons name="leaderboard" size={16} color={colors.primary} />
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontFamily: FONTS.bold,
+                  color: colors.primary,
+                }}
+              >
+                Leaderboard
+              </Text>
+            </TouchableOpacity>
+          }
         />
       </View>
 
@@ -2334,8 +2815,7 @@ export default function AdminStudentRatingsScreen() {
                 year={selectedYear}
                 hideTeacherTab={false}
                 onNavigateToSubject={(subj) => {
-                  setSelectedClassId(subj.class?._id);
-                  setActiveTab("classes");
+                  handleRateSubject(subj);
                 }}
                 onManageSubjectSubmission={(subjItem) => {
                   setCorrectionTarget(subjItem);
@@ -3415,5 +3895,62 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
     color: "#111318",
     marginTop: 1,
+  },
+  teachingCard: {
+    marginBottom: 14,
+  },
+  teachingCardContent: {
+    padding: 14,
+  },
+  teachingCardHeader: {
+    marginBottom: 12,
+  },
+  teachingIconCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  teachingCardTitle: {
+    fontSize: FONT_SIZES.sm || 14,
+    fontFamily: FONTS.bold,
+  },
+  teachingCardSub: {
+    fontSize: 11,
+    fontFamily: FONTS.regular,
+    marginTop: 2,
+    lineHeight: 16,
+  },
+  teachingSubjectsList: {
+    gap: 8,
+  },
+  teachingSubjectRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 10,
+    borderRadius: RADIUS.md || 10,
+    borderWidth: 1,
+  },
+  teachingSubjectName: {
+    fontSize: FONT_SIZES.sm || 13,
+    fontFamily: FONTS.bold,
+  },
+  teachingSubjectMeta: {
+    fontSize: 11,
+    fontFamily: FONTS.regular,
+    marginTop: 2,
+  },
+  rateNowBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: RADIUS.sm || 8,
+  },
+  rateNowBtnText: {
+    fontSize: 11,
+    fontFamily: FONTS.bold,
   },
 });

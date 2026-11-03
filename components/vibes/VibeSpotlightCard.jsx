@@ -1,4 +1,4 @@
-import React, { memo, useState, useEffect } from "react";
+import React, { memo, useState, useEffect, useMemo } from "react";
 import { View, Text, Pressable, StyleSheet, Dimensions } from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
@@ -19,6 +19,7 @@ import {
   getBlurPlaceholderUrl,
   isVideoUrl,
 } from "../../utils/cloudinaryUpload";
+import useCachedMedia from "../../hooks/useCachedMedia";
 import SkeletonLoader from "../SkeletonLoader";
 import UserAvatar from "../ui/UserAvatar";
 import { formatUserName } from "../../utils/userFormatters";
@@ -79,6 +80,14 @@ const VibeSpotlightCard = () => {
     }
   };
 
+  const primaryMedia = vibe?.images?.[0];
+  const optimizedCover = useMemo(
+    () => (primaryMedia ? resolveMediaThumbnail(primaryMedia, "hero") : null),
+    [primaryMedia]
+  );
+  const { uri: cachedCoverUri } = useCachedMedia(optimizedCover, { isVideo: false });
+  const finalCoverUri = cachedCoverUri || optimizedCover;
+
   const amberAccent = colors.primary || "#4F46E5";
 
   if (isLoading) {
@@ -116,8 +125,6 @@ const VibeSpotlightCard = () => {
     return null;
   }
 
-  const primaryMedia = vibe.images?.[0];
-  const optimizedCover = resolveMediaThumbnail(primaryMedia, "hero");
   const coverBlurPlaceholder = primaryMedia?.url
     ? getBlurPlaceholderUrl(primaryMedia.url)
     : null;
@@ -177,7 +184,7 @@ const VibeSpotlightCard = () => {
         <View style={styles.mediaContainer}>
           {optimizedCover && !imageError ? (
             <Image
-              source={{ uri: optimizedCover }}
+              source={{ uri: finalCoverUri }}
               placeholder={
                 coverBlurPlaceholder ? { uri: coverBlurPlaceholder } : undefined
               }
