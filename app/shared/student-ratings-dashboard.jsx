@@ -996,7 +996,7 @@ export default function SchoolStudentRatingsDashboard() {
           <View style={styles.sortPillsRow}>
             {(mode === "comprehensive"
               ? [
-                  { key: "composite", label: "Holistic Rank (50/50)" },
+                  { key: "composite", label: "Holistic Rank" },
                   { key: "marks", label: "Top Marks" },
                   { key: "ratings", label: "Top Conduct" },
                   { key: "improving", label: "Most Improved" },
@@ -1262,13 +1262,7 @@ export default function SchoolStudentRatingsDashboard() {
                               : "--"
                             : `★ ${avg ? avg.toFixed(2) : "--"}`}
                         </Text>
-                        {mode === "comprehensive" ? (
-                          <Badge
-                            variant="primary"
-                            label="50/50 Combined"
-                            size="xs"
-                          />
-                        ) : mode === "marks" ? (
+                        {mode === "comprehensive" ? null : mode === "marks" ? (
                           <Badge
                             variant="secondary"
                             label="Class Weighted"
@@ -1290,7 +1284,7 @@ export default function SchoolStudentRatingsDashboard() {
                       >
                         {mode === "comprehensive"
                           ? item.evaluationStatus === "complete"
-                            ? "Complete (50/50)"
+                            ? "Complete"
                             : item.evaluationStatus === "marks_only"
                             ? "Marks Only"
                             : item.evaluationStatus === "ratings_only"
