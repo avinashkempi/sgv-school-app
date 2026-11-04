@@ -5,7 +5,7 @@ import apiConfig from "../config/apiConfig";
 import { CACHE_TIERS } from "../utils/cacheConfig";
 import storage from "../utils/storage";
 import { useAuth } from "../context/AuthContext";
-import { getISTToday, getISTMonthYear } from "../utils/date";
+import { getISTToday, getISTMonthYear, getPreviousMonthYear } from "../utils/date";
 
 // Minimum interval between prefetch runs (5 minutes)
 const PREFETCH_COOLDOWN_MS = 5 * 60 * 1000;
@@ -147,10 +147,10 @@ export default function useOfflinePrefetch() {
             "/exams/schedule/student",
             CACHE_TIERS.STABLE
           );
-          const { month: currentMonth, year: currentYear } = getISTMonthYear();
+          const { month: prevMonth, year: prevYear } = getPreviousMonthYear();
           prefetch(
-            ["myStudentRatings", currentMonth, currentYear],
-            `/student-ratings/my-ratings?month=${currentMonth}&year=${currentYear}`,
+            ["myStudentRatings", prevMonth, prevYear],
+            `/student-ratings/my-ratings?month=${prevMonth}&year=${prevYear}`,
             CACHE_TIERS.MODERATE
           );
         } else if (role === "teacher") {
@@ -205,7 +205,7 @@ export default function useOfflinePrefetch() {
             "/classes/admin/init",
             CACHE_TIERS.STABLE
           );
-          const { month: adminMonth, year: adminYear } = getISTMonthYear();
+          const { month: adminMonth, year: adminYear } = getPreviousMonthYear();
           prefetch(
             ["schoolRatingsSummary", adminMonth, adminYear],
             `/student-ratings/school/summary?month=${adminMonth}&year=${adminYear}`,

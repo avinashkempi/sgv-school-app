@@ -1,6 +1,7 @@
 import {
   getISTDateString,
   getISTMonthYear,
+  getPreviousMonthYear,
   getISTDayOfWeek,
   isISTSunday,
   formatDate
@@ -29,6 +30,20 @@ describe('Frontend Date Utilities', () => {
       const { year, month } = getISTMonthYear('2026-11-03');
       expect(year).toBe(2026);
       expect(month).toBe(11);
+    });
+  });
+
+  describe('getPreviousMonthYear', () => {
+    it('returns previous month for normal months', () => {
+      const { year, month } = getPreviousMonthYear('2026-11-03');
+      expect(year).toBe(2026);
+      expect(month).toBe(10);
+    });
+
+    it('wraps to previous year and December when given January', () => {
+      const { year, month } = getPreviousMonthYear('2026-01-15');
+      expect(year).toBe(2025);
+      expect(month).toBe(12);
     });
   });
 

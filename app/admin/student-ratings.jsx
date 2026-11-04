@@ -35,7 +35,7 @@ import { formatClassName } from "../../utils/formatClassName";
 import { useLabel } from "../../context/LabelsContext";
 import SubmissionTrackerView from "../../components/SubmissionTrackerView";
 import RatingsCorrectionModal from "../../components/RatingsCorrectionModal";
-import { getISTMonthYear } from "../../utils/date";
+import { getISTMonthYear, getPreviousMonthYear } from "../../utils/date";
 
 const MONTH_NAMES = [
   "January",
@@ -109,8 +109,9 @@ export default function AdminStudentRatingsScreen() {
   const { showToast } = useToast();
 
   const currentMY = useMemo(() => getISTMonthYear(), []);
-  const [selectedMonth, setSelectedMonth] = useState(currentMY.month);
-  const [selectedYear, setSelectedYear] = useState(currentMY.year);
+  const defaultMY = useMemo(() => getPreviousMonthYear(), []);
+  const [selectedMonth, setSelectedMonth] = useState(defaultMY.month);
+  const [selectedYear, setSelectedYear] = useState(defaultMY.year);
   const [activeTab, setActiveTab] = useState("overview"); // 'overview' | 'classes' | 'movers' | 'tracker' | 'config'
   const [selectedClassId, setSelectedClassId] = useState("all");
   const [studentSortBy, setStudentSortBy] = useState("highest"); // 'highest' | 'lowest' | 'attention'

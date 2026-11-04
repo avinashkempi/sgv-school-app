@@ -21,7 +21,7 @@ import TextInput from "../../components/TextInput";
 import AppRefreshControl from "../../components/ui/AppRefreshControl";
 import { LoadingState, EmptyState } from "../../components/StateComponents";
 import { useLabel } from "../../context/LabelsContext";
-import { getISTMonthYear } from "../../utils/date";
+import { getISTMonthYear, getPreviousMonthYear } from "../../utils/date";
 
 const MONTHS = [
   "January",
@@ -89,8 +89,9 @@ export default function StudentRatingsScreen() {
   const { t } = useLabel();
 
   const currentMY = useMemo(() => getISTMonthYear(), []);
-  const [selectedMonth, setSelectedMonth] = useState(currentMY.month);
-  const [selectedYear, setSelectedYear] = useState(currentMY.year);
+  const defaultMY = useMemo(() => getPreviousMonthYear(), []);
+  const [selectedMonth, setSelectedMonth] = useState(defaultMY.month);
+  const [selectedYear, setSelectedYear] = useState(defaultMY.year);
   const [activeTab, setActiveTab] = useState("cumulative"); // 'cumulative' (default) | 'monthly' | 'subjects'
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedSubjectId, setExpandedSubjectId] = useState(null);
@@ -112,6 +113,13 @@ export default function StudentRatingsScreen() {
 
   const monthName = MONTHS[selectedMonth - 1] || `Month ${selectedMonth}`;
 
+  const isCurrentMonth =
+    selectedMonth === currentMY.month && selectedYear === currentMY.year;
+
+  const canGoNext =
+    selectedYear < currentMY.year ||
+    (selectedYear === currentMY.year && selectedMonth < currentMY.month);
+
   const handlePrevMonth = () => {
     Haptics.selectionAsync().catch(() => {});
     if (selectedMonth === 1) {
@@ -123,6 +131,7 @@ export default function StudentRatingsScreen() {
   };
 
   const handleNextMonth = () => {
+    if (!canGoNext) return;
     Haptics.selectionAsync().catch(() => {});
     if (selectedMonth === 12) {
       setSelectedMonth(1);
@@ -144,7 +153,6 @@ export default function StudentRatingsScreen() {
   const classBenchmark = ratingsData?.classBenchmark;
   const dpAverages = ratingsData?.dataPointAverages || {};
   const subjects = useMemo(() => ratingsData?.subjects || [], [ratingsData?.subjects]);
-  const isCurrentMonth = Boolean(ratingsData?.isCurrentMonth);
   const monthStatus = ratingsData?.monthStatus || "finalized";
 
   // Cumulative Metrics
@@ -307,12 +315,30 @@ export default function StudentRatingsScreen() {
               <Text style={[styles.monthLabelText, { color: colors.onSurface }]}>
                 {monthName} {selectedYear}
               </Text>
-              {isCurrentMonth && (
+              {isCurrentMonth ? (
                 <Badge
                   variant={monthStatus === "completed" ? "success" : "warning"}
                   label={monthStatus === "completed" ? "Current" : "In Progress"}
                   size="sm"
                 />
+              ) : (
+                <TouchableOpacity
+                  onPress={jumpToCurrentMonth}
+                  style={[
+                    styles.jumpCurrentPill,
+                    { backgroundColor: colors.primaryContainer || "#EEF2FF" },
+                  ]}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.jumpCurrentText,
+                      { color: colors.onPrimaryContainer || colors.primary },
+                    ]}
+                  >
+                    {t("common.currentMonth", "Jump to Current")}
+                  </Text>
+                </TouchableOpacity>
               )}
             </View>
             <Text
@@ -327,7 +353,11 @@ export default function StudentRatingsScreen() {
 
           <TouchableOpacity
             onPress={handleNextMonth}
-            style={styles.monthNavBtn}
+            disabled={!canGoNext}
+            style={[
+              styles.monthNavBtn,
+              { opacity: canGoNext ? 1 : 0.3 },
+            ]}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <MaterialIcons
@@ -1455,6 +1485,15 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.xs,
     fontFamily: FONTS.regular,
     marginTop: 2,
+  },
+  jumpCurrentPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
+  jumpCurrentText: {
+    fontSize: FONT_SIZES.xs || 11,
+    fontFamily: FONTS.medium,
   },
   tabBarContainer: {
     flexDirection: "row",

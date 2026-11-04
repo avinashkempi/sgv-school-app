@@ -45,6 +45,20 @@ export const getISTMonthYear = (dateInput = new Date()) => {
 };
 
 /**
+ * Extracts year and 1-based month for the previous month in Asia/Kolkata (IST).
+ * Used for defaulting monthly rating views to the most recently completed/rated month.
+ * @param {Date|string|number} [dateInput]
+ * @returns {{ year: number, month: number }}
+ */
+export const getPreviousMonthYear = (dateInput = new Date()) => {
+  const { year, month } = getISTMonthYear(dateInput);
+  if (month === 1) {
+    return { year: year - 1, month: 12 };
+  }
+  return { year, month: month - 1 };
+};
+
+/**
  * Returns weekday name (e.g. "Monday", "Tuesday") in Asia/Kolkata.
  * @param {Date|string|number} [dateInput]
  * @returns {string}
