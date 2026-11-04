@@ -12,21 +12,6 @@ import { CACHE_TIERS } from "../../utils/cacheConfig";
 import HomeModuleContainer from "../home/HomeModuleContainer";
 import DayGlanceCard from "../home/DayGlanceCard";
 
-const MONTH_NAMES = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-
 const StudentDashboard = () => {
   const router = useRouter();
   const { mode, colors } = useTheme();
@@ -59,12 +44,21 @@ const StudentDashboard = () => {
   }
 
   const ratingData = data?.overview?.rating;
-  const ratingMonthName =
-    ratingData?.month ? MONTH_NAMES[ratingData.month - 1] : "";
+  const currentMonthData = ratingData?.currentMonth;
+  const classComparison = ratingData?.classComparison;
 
-  const hasRating = Boolean(ratingData && (ratingData.average != null || ratingData.averageScore != null));
-  const displayAvg = ratingData?.average ?? ratingData?.averageScore;
-  const displayCount = ratingData?.ratedCount ?? ratingData?.ratedSubjectCount ?? 0;
+  // Rating presence checks
+  const hasCumulative = Boolean(ratingData && (ratingData.cumulativeAverage != null || ratingData.average != null || ratingData.averageScore != null));
+  const hasCurrentMonthProvisional = Boolean(currentMonthData && currentMonthData.provisionalAverage != null);
+  const hasRating = hasCumulative || hasCurrentMonthProvisional;
+
+  // Headline score: prefer cumulative rating across the academic year; fallback to provisional or month average
+  const displayAvg = ratingData?.cumulativeAverage ?? currentMonthData?.provisionalAverage ?? ratingData?.average ?? ratingData?.averageScore;
+  const isProvisional = ratingData?.cumulativeAverage == null && hasCurrentMonthProvisional;
+  const displayLabel = ratingData?.cumulativeLabel || (isProvisional ? `${currentMonthData?.label || "In Progress"}` : ratingData?.label || "Meets Expectation");
+  const displayVariant = ratingData?.cumulativeVariant || currentMonthData?.variant || ratingData?.variant || "primary";
+  const displayCount = ratingData?.cumulativeCount ?? ratingData?.ratedCount ?? ratingData?.ratedSubjectCount ?? 0;
+
   const criteriaData = ratingData?.criteriaAverages || (ratingData?.classEngagement != null ? ratingData : null);
 
   return (
@@ -75,13 +69,13 @@ const StudentDashboard = () => {
       <DayGlanceCard role="student" data={data} />
 
       {/* ═════════════════════════════════════════════════════════════ */}
-      {/* CARD 2: Holistic Student Rating (Monthly Cadence)            */}
+      {/* CARD 2: Holistic Student Rating (Cumulative + Class Standing) */}
       {/* ═════════════════════════════════════════════════════════════ */}
       <HomeModuleContainer
-        title="Monthly Teacher Ratings"
+        title="Student Holistic Rating"
         icon="stars"
         accentColor={ratingAccent}
-        actionText="View Details"
+        actionText="View 3-Tab Report"
         onActionPress={() => router.push("/student/ratings")}
         lightBg="rgba(99, 102, 241, 0.04)"
         darkBg="rgba(167, 139, 250, 0.07)"
@@ -108,14 +102,14 @@ const StudentDashboard = () => {
                     styles.scoreBadgeCircle,
                     {
                       backgroundColor: isDark
-                        ? ratingData.variant === "success"
+                        ? displayVariant === "success"
                           ? "rgba(74, 222, 128, 0.16)"
-                          : ratingData.variant === "warning"
+                          : displayVariant === "warning"
                           ? "rgba(251, 191, 36, 0.16)"
                           : "rgba(167, 139, 250, 0.16)"
-                        : ratingData.variant === "success"
+                        : displayVariant === "success"
                         ? "#DCFCE7"
-                        : ratingData.variant === "warning"
+                        : displayVariant === "warning"
                         ? "#FEF3C7"
                         : "#EEF2FF",
                     },
@@ -126,14 +120,14 @@ const StudentDashboard = () => {
                       styles.scoreNumber,
                       {
                         color: isDark
-                          ? ratingData.variant === "success"
+                          ? displayVariant === "success"
                             ? "#4ADE80"
-                            : ratingData.variant === "warning"
+                            : displayVariant === "warning"
                             ? "#FBBF24"
                             : ratingAccent
-                          : ratingData.variant === "success"
+                          : displayVariant === "success"
                           ? "#16A34A"
-                          : ratingData.variant === "warning"
+                          : displayVariant === "warning"
                           ? "#D97706"
                           : colors.primary,
                       },
@@ -145,10 +139,19 @@ const StudentDashboard = () => {
                 <View style={styles.scoreMeta}>
                   <View style={styles.labelBadgeRow}>
                     <Badge
-                      variant={ratingData.variant || "primary"}
-                      label={ratingData.label || "Meets Expectation"}
+                      variant={displayVariant}
+                      label={displayLabel}
                       size="sm"
                     />
+                    {isProvisional && (
+                      <View style={{ marginLeft: 6 }}>
+                        <Badge
+                          variant="warning"
+                          label="Provisional"
+                          size="sm"
+                        />
+                      </View>
+                    )}
                   </View>
                   <Text
                     style={[
@@ -156,8 +159,8 @@ const StudentDashboard = () => {
                       { color: colors.onSurfaceVariant },
                     ]}
                   >
-                    {ratingMonthName} {ratingData.year} • {displayCount}{" "}
-                    subject{displayCount !== 1 ? "s" : ""} evaluated
+                    Academic Year Cumulative • {displayCount}{" "}
+                    evaluation{displayCount !== 1 ? "s" : ""}
                   </Text>
                 </View>
               </View>
@@ -168,6 +171,232 @@ const StudentDashboard = () => {
                 color={colors.onSurfaceVariant}
               />
             </View>
+
+            {/* Class Peer Comparison Strip */}
+            {classComparison && (
+              <View
+                style={[
+                  styles.comparisonStrip,
+                  {
+                    backgroundColor: isDark
+                      ? "rgba(99, 102, 241, 0.12)"
+                      : "rgba(99, 102, 241, 0.06)",
+                    borderColor: isDark
+                      ? "rgba(167, 139, 250, 0.25)"
+                      : "rgba(99, 102, 241, 0.18)",
+                  },
+                ]}
+              >
+                <View style={styles.comparisonLeft}>
+                  <MaterialIcons
+                    name="leaderboard"
+                    size={18}
+                    color={ratingAccent}
+                  />
+                  <Text
+                    style={[
+                      styles.comparisonLabelText,
+                      { color: colors.onSurface },
+                    ]}
+                  >
+                    {classComparison.standingLabel || "Class Standing"}
+                  </Text>
+                  {classComparison.rank && (
+                    <View
+                      style={[
+                        styles.rankBadge,
+                        {
+                          backgroundColor:
+                            classComparison.rank <= 3
+                              ? isDark
+                                ? "rgba(251, 191, 36, 0.2)"
+                                : "#FEF3C7"
+                              : isDark
+                              ? "rgba(255, 255, 255, 0.08)"
+                              : "#F1F5F9",
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.rankBadgeText,
+                          {
+                            color:
+                              classComparison.rank <= 3
+                                ? isDark
+                                  ? "#FBBF24"
+                                  : "#D97706"
+                                : colors.onSurfaceVariant,
+                          },
+                        ]}
+                      >
+                        Rank #{classComparison.rank}
+                        {classComparison.totalStudentsRated
+                          ? ` of ${classComparison.totalStudentsRated}`
+                          : ""}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                {classComparison.classCumulativeAverage != null && (
+                  <Text
+                    style={[
+                      styles.comparisonDiffText,
+                      {
+                        color:
+                          classComparison.difference != null &&
+                          classComparison.difference >= 0
+                            ? isDark
+                              ? "#4ADE80"
+                              : "#16A34A"
+                            : isDark
+                            ? "#F87171"
+                            : "#DC2626",
+                      },
+                    ]}
+                  >
+                    {classComparison.difference != null && classComparison.difference >= 0
+                      ? `+${classComparison.difference} vs Class Avg (★ ${classComparison.classCumulativeAverage})`
+                      : `${classComparison.difference} vs Class Avg (★ ${classComparison.classCumulativeAverage})`}
+                  </Text>
+                )}
+              </View>
+            )}
+
+            {/* Current Month Real-Time Status Banner */}
+            {currentMonthData && (
+              <View
+                style={[
+                  styles.currentMonthBanner,
+                  {
+                    backgroundColor:
+                      currentMonthData.status === "completed"
+                        ? isDark
+                          ? "rgba(34, 197, 94, 0.12)"
+                          : "#F0FDF4"
+                        : currentMonthData.status === "in_progress"
+                        ? isDark
+                          ? "rgba(245, 158, 11, 0.12)"
+                          : "#FFFBEB"
+                        : isDark
+                        ? "rgba(148, 163, 184, 0.1)"
+                        : "#F8FAFC",
+                    borderColor:
+                      currentMonthData.status === "completed"
+                        ? isDark
+                          ? "rgba(34, 197, 94, 0.25)"
+                          : "#BBF7D0"
+                        : currentMonthData.status === "in_progress"
+                        ? isDark
+                          ? "rgba(245, 158, 11, 0.25)"
+                          : "#FDE68A"
+                        : colors.outlineVariant,
+                  },
+                ]}
+              >
+                <View style={styles.currentMonthHeader}>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                    <MaterialIcons
+                      name={
+                        currentMonthData.status === "completed"
+                          ? "check-circle"
+                          : currentMonthData.status === "in_progress"
+                          ? "pending-actions"
+                          : "schedule"
+                      }
+                      size={16}
+                      color={
+                        currentMonthData.status === "completed"
+                          ? isDark
+                            ? "#4ADE80"
+                            : "#16A34A"
+                          : currentMonthData.status === "in_progress"
+                          ? isDark
+                            ? "#FBBF24"
+                            : "#D97706"
+                          : colors.onSurfaceVariant
+                      }
+                    />
+                    <Text
+                      style={[
+                        styles.currentMonthTitle,
+                        { color: colors.onSurface },
+                      ]}
+                    >
+                      {currentMonthData.monthName} {currentMonthData.year}
+                    </Text>
+                  </View>
+
+                  <Badge
+                    variant={
+                      currentMonthData.status === "completed"
+                        ? "success"
+                        : currentMonthData.status === "in_progress"
+                        ? "warning"
+                        : "neutral"
+                    }
+                    label={
+                      currentMonthData.status === "completed"
+                        ? "Complete"
+                        : currentMonthData.status === "in_progress"
+                        ? "In Progress"
+                        : "Evaluating"
+                    }
+                    size="sm"
+                  />
+                </View>
+
+                <Text
+                  style={[
+                    styles.currentMonthSubtext,
+                    { color: colors.onSurfaceVariant },
+                  ]}
+                >
+                  {currentMonthData.status === "completed"
+                    ? `All ${currentMonthData.totalSubjects} subjects evaluated • Final Rating: ★ ${currentMonthData.provisionalAverage}`
+                    : currentMonthData.status === "in_progress"
+                    ? `${currentMonthData.ratedCount} of ${currentMonthData.totalSubjects} subjects evaluated • Provisional: ★ ${currentMonthData.provisionalAverage}`
+                    : `Teachers are submitting evaluations for this month (${currentMonthData.totalSubjects} ratable subjects).`}
+                </Text>
+
+                {/* Progress Bar for Current Month */}
+                {currentMonthData.totalSubjects > 0 && (
+                  <View
+                    style={[
+                      styles.currentMonthProgressTrack,
+                      {
+                        backgroundColor: isDark
+                          ? "rgba(255, 255, 255, 0.12)"
+                          : "rgba(0, 0, 0, 0.08)",
+                      },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.currentMonthProgressFill,
+                        {
+                          width: `${Math.min(
+                            100,
+                            Math.round(
+                              (currentMonthData.ratedCount /
+                                currentMonthData.totalSubjects) *
+                                100
+                            )
+                          )}%`,
+                          backgroundColor:
+                            currentMonthData.status === "completed"
+                              ? isDark
+                                ? "#4ADE80"
+                                : "#16A34A"
+                              : ratingAccent,
+                        },
+                      ]}
+                    />
+                  </View>
+                )}
+              </View>
+            )}
 
             {/* Criteria Mini Pills Grid */}
             {criteriaData && (
@@ -229,7 +458,7 @@ const StudentDashboard = () => {
 
             <View style={styles.detailsLinkRow}>
               <Text style={[styles.detailsLinkText, { color: ratingAccent }]}>
-                View full month trend & subject breakdown →
+                View 3-tab report: Cumulative, Monthly & Subjects →
               </Text>
             </View>
           </TouchableOpacity>
@@ -254,7 +483,9 @@ const StudentDashboard = () => {
                     { color: colors.onSurface },
                   ]}
                 >
-                  Ratings in progress
+                  {currentMonthData
+                    ? `${currentMonthData.monthName} ${currentMonthData.year} Ratings in Progress`
+                    : "Ratings in Progress"}
                 </Text>
                 <Text
                   style={[
@@ -262,7 +493,7 @@ const StudentDashboard = () => {
                     { color: colors.onSurfaceVariant },
                   ]}
                 >
-                  Teachers are evaluating monthly classroom ratings. Tap to view past records.
+                  Teachers are evaluating monthly classroom participation and assignments. Tap to view the rating guide and criteria.
                 </Text>
               </View>
               <MaterialIcons
@@ -386,6 +617,71 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.sm,
     fontFamily: FONTS.semiBold,
     marginBottom: 2,
+  },
+  comparisonStrip: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: RADIUS.md || 10,
+    borderWidth: 1,
+    marginTop: 10,
+    flexWrap: "wrap",
+    gap: 6,
+  },
+  comparisonLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  comparisonLabelText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.semiBold,
+  },
+  rankBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: RADIUS.sm || 6,
+  },
+  rankBadgeText: {
+    fontSize: 10,
+    fontFamily: FONTS.bold,
+  },
+  comparisonDiffText: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+  },
+  currentMonthBanner: {
+    padding: 10,
+    borderRadius: RADIUS.md || 10,
+    borderWidth: 1,
+    marginTop: 10,
+  },
+  currentMonthHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
+  currentMonthTitle: {
+    fontSize: FONT_SIZES.xs,
+    fontFamily: FONTS.bold,
+  },
+  currentMonthSubtext: {
+    fontSize: 11,
+    fontFamily: FONTS.regular,
+    lineHeight: 15,
+  },
+  currentMonthProgressTrack: {
+    height: 4,
+    borderRadius: 2,
+    marginTop: 8,
+    overflow: "hidden",
+  },
+  currentMonthProgressFill: {
+    height: "100%",
+    borderRadius: 2,
   },
 });
 

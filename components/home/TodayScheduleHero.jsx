@@ -13,19 +13,9 @@ import { useAuth } from "../../context/AuthContext";
 import { useApiQuery } from "../../hooks/useApi";
 import { CACHE_TIERS } from "../../utils/cacheConfig";
 import apiConfig from "../../config/apiConfig";
+import { getISTDayOfWeek, isISTSunday } from "../../utils/date";
 
 // ─── Day helpers ──────────────────────────────────────────────────────────────
-const DAYS_ORDER = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
-function getTodayName() {
-  return DAYS_ORDER[new Date().getDay()];
-}
-
-function isWeekend() {
-  const d = new Date().getDay();
-  return d === 0; // Sunday only (Saturday is school day)
-}
-
 function parseTimeToMinutes(timeStr) {
   if (!timeStr) return 0;
   const [time, modifier] = timeStr.split(" ");
@@ -59,9 +49,9 @@ function formatTeacherShortName(name) {
 
 // ─── Period Row ──────────────────────────────────────────────────────────────
 const PeriodRow = memo(({ period, isActive, isStudent, colors, isDark }) => {
-  const subjectName = period.subject?.name || period.subject || "—";
+  const subjectName = period.subject?.name || period.subjectName || period.subject || "—";
   const teacherName = isStudent
-    ? formatTeacherShortName(period.teacher?.name)
+    ? formatTeacherShortName(period.teacher?.name || period.teacherName)
     : null;
   const className = !isStudent
     ? (period.class?.name
@@ -173,16 +163,17 @@ const TodayScheduleHero = () => {
   const { colors, mode } = useTheme();
   const isDark = mode === "dark";
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, userId } = useAuth();
+  const activeUserId = userId || user?._id || user?.id;
 
   const isTeacher = user?.role === "teacher" || user?.role === "staff";
   const isStudent = user?.role === "student";
 
-  // ── Fetch student timetable ──
+  // ── Fetch student timetable (uses same query key as /student/timetable to share cache) ──
   const { data: studentData, isLoading: studentLoading } = useApiQuery(
-    ["studentTimetable", user?._id],
+    ["studentTimetable", activeUserId],
     `${apiConfig.baseUrl}/timetable/my-timetable`,
-    { ...CACHE_TIERS.STABLE, enabled: isStudent && !!user?._id }
+    { ...CACHE_TIERS.STABLE, enabled: isStudent && !!activeUserId }
   );
 
   // ── Fetch teacher schedule ──
@@ -194,22 +185,30 @@ const TodayScheduleHero = () => {
 
   const isLoading = isStudent ? studentLoading : teacherLoading;
 
-  // ── Derive today's periods ──
-  const todayName = getTodayName();
-  const isWeekendDay = isWeekend();
+  // ── Derive today's periods (in Indian Standard Time) ──
+  const todayName = getISTDayOfWeek();
+  const isWeekendDay = isISTSunday(new Date());
 
   const todayPeriods = useMemo(() => {
     if (isWeekendDay) return [];
 
-    if (isStudent && studentData?.schedule) {
-      const dayData = studentData.schedule.find((d) => d.day === todayName);
-      return (dayData?.periods || []).slice().sort(
-        (a, b) => (a.periodNumber || 0) - (b.periodNumber || 0)
+    const scheduleList = studentData?.schedule || studentData?.timetable?.schedule;
+    if (isStudent && Array.isArray(scheduleList)) {
+      const dayData = scheduleList.find(
+        (d) => (d.day || "").trim().toLowerCase() === todayName.toLowerCase()
       );
+      const periods = (dayData?.periods || [])
+        .filter((p) => p && (p.subject || p.subjectName))
+        .slice()
+        .sort((a, b) => (a.periodNumber || 0) - (b.periodNumber || 0));
+      return periods;
     }
 
     if (isTeacher && teacherData) {
-      const dayPeriods = teacherData[todayName] || [];
+      const matchKey = Object.keys(teacherData).find(
+        (k) => k.toLowerCase() === todayName.toLowerCase()
+      );
+      const dayPeriods = matchKey ? teacherData[matchKey] || [] : [];
       return [...dayPeriods].sort((a, b) => {
         const ta = parseTimeToMinutes(a.startTime);
         const tb = parseTimeToMinutes(b.startTime);

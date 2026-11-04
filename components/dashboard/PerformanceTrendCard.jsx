@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, Dimensions, ScrollView } from "react-native";
+import { View, Text, Pressable, Dimensions } from "react-native";
 import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import Svg, {
   Path,
@@ -13,10 +13,11 @@ import Svg, {
   Rect,
 } from "react-native-svg";
 import { useRouter } from "expo-router";
-import { useTheme, FONTS, FONT_SIZES } from "../../theme";
+import * as Haptics from "expo-haptics";
+import { useTheme, FONTS, FONT_SIZES, RADIUS } from "../../theme";
 
 /**
- * Grade & Achievement Helper
+ * Standardized Letter Grade & Performance Helper
  */
 const getGradeInfo = (percentage) => {
   const p = Number(percentage) || 0;
@@ -25,7 +26,7 @@ const getGradeInfo = (percentage) => {
       grade: "A+",
       label: "Outstanding",
       color: "#10B981",
-      bg: "rgba(16, 185, 129, 0.14)",
+      bg: "rgba(16, 185, 129, 0.12)",
       border: "rgba(16, 185, 129, 0.3)",
     };
   if (p >= 80)
@@ -33,7 +34,7 @@ const getGradeInfo = (percentage) => {
       grade: "A",
       label: "Excellent",
       color: "#059669",
-      bg: "rgba(5, 150, 105, 0.14)",
+      bg: "rgba(5, 150, 105, 0.12)",
       border: "rgba(5, 150, 105, 0.3)",
     };
   if (p >= 70)
@@ -41,7 +42,7 @@ const getGradeInfo = (percentage) => {
       grade: "B+",
       label: "Very Good",
       color: "#0284C7",
-      bg: "rgba(2, 132, 199, 0.14)",
+      bg: "rgba(2, 132, 199, 0.12)",
       border: "rgba(2, 132, 199, 0.3)",
     };
   if (p >= 60)
@@ -49,7 +50,7 @@ const getGradeInfo = (percentage) => {
       grade: "B",
       label: "Good",
       color: "#6366F1",
-      bg: "rgba(99, 102, 241, 0.14)",
+      bg: "rgba(99, 102, 241, 0.12)",
       border: "rgba(99, 102, 241, 0.3)",
     };
   if (p >= 50)
@@ -57,7 +58,7 @@ const getGradeInfo = (percentage) => {
       grade: "C",
       label: "Average",
       color: "#D97706",
-      bg: "rgba(217, 119, 6, 0.14)",
+      bg: "rgba(217, 119, 6, 0.12)",
       border: "rgba(217, 119, 6, 0.3)",
     };
   if (p >= 35)
@@ -65,28 +66,27 @@ const getGradeInfo = (percentage) => {
       grade: "D",
       label: "Passing",
       color: "#EA580C",
-      bg: "rgba(234, 88, 12, 0.14)",
+      bg: "rgba(234, 88, 12, 0.12)",
       border: "rgba(234, 88, 12, 0.3)",
     };
   return {
     grade: "F",
     label: "Needs Focus",
     color: "#DC2626",
-    bg: "rgba(220, 38, 38, 0.14)",
+    bg: "rgba(220, 38, 38, 0.12)",
     border: "rgba(220, 38, 38, 0.3)",
   };
 };
 
-
 /**
- * PerformanceTrendCard
- * Ultra-premium, interactive SVG performance trend card with executive KPIs,
- * curved spline graph, glowing nodes, and exam-wise breakdown pills.
+ * PerformanceTrendCard (Redesigned & Decluttered)
+ * Streamlined, grade-first exam trend visualizer that integrates Letter Grades directly
+ * into chart nodes and hero metrics without repetitive cards or number overload.
  */
 const PerformanceTrendCard = ({
   data = [],
-  title = "Performance Trend",
-  subtitle = "Academic Year • Exam Average",
+  title = "Academic Performance",
+  subtitle = "Exam Progression",
   onViewReport,
   embedded = false,
 }) => {
@@ -97,7 +97,7 @@ const PerformanceTrendCard = ({
 
   const isDark = mode === "dark";
 
-  // Normalize incoming data
+  // Normalize incoming exam trend data
   const normalizedData = (Array.isArray(data) ? data : [])
     .filter((d) => d && (d.examType || d.label))
     .map((d, index) => {
@@ -118,86 +118,74 @@ const PerformanceTrendCard = ({
     return null;
   }
 
-  // Key Performance Metrics
-  const latest = normalizedData[normalizedData.length - 1];
-  const previous =
-    normalizedData.length > 1
-      ? normalizedData[normalizedData.length - 2]
-      : null;
-  const trendDelta = previous
-    ? Math.round((latest.percentage - previous.percentage) * 10) / 10
-    : null;
+  // Key Metrics
+  const latestIdx = normalizedData.length - 1;
+
   const totalPercentage = normalizedData.reduce(
     (acc, curr) => acc + curr.percentage,
     0
   );
   const yearAverage =
     Math.round((totalPercentage / normalizedData.length) * 10) / 10;
-  const bestExam = normalizedData.reduce(
-    (prev, curr) => (curr.percentage > prev.percentage ? curr : prev),
-    normalizedData[0]
-  );
+  const yearGrade = getGradeInfo(yearAverage);
 
-  // Active selected exam (defaults to latest if none selected)
+  // Active exam (selected or latest)
   const activeIdx =
     selectedIndex !== null &&
     selectedIndex >= 0 &&
     selectedIndex < normalizedData.length
       ? selectedIndex
-      : normalizedData.length - 1;
+      : latestIdx;
+
   const activeExam = normalizedData[activeIdx];
   const activeGrade = getGradeInfo(activeExam.percentage);
+  const isLatestSelected = activeIdx === latestIdx;
 
-  // Dynamic width calculation
+  const previousExam = activeIdx > 0 ? normalizedData[activeIdx - 1] : null;
+  const deltaVsPrev = previousExam
+    ? Math.round((activeExam.percentage - previousExam.percentage) * 10) / 10
+    : null;
+
+  // Layout width
   const fallbackWidth = Dimensions.get("window").width - 32;
   const effectiveWidth = cardWidth > 0 ? cardWidth : fallbackWidth;
 
-  // SVG Layout Dimensions
-  const svgHeight = 200;
-  const paddingLeft = 40;
+  // SVG Chart Dimensions (Compact 140px height)
+  const svgHeight = 145;
+  const paddingLeft = 36;
   const paddingRight = 24;
   const paddingTop = 32;
-  const paddingBottom = 30;
+  const paddingBottom = 28;
 
   const plotWidth = Math.max(effectiveWidth - paddingLeft - paddingRight, 100);
   const plotHeight = svgHeight - paddingTop - paddingBottom;
 
-  // Calculate (x, y) coordinates for all data points
+  // Coordinates
   const points = normalizedData.map((d, index) => {
     let x = paddingLeft + plotWidth / 2;
     if (normalizedData.length > 1) {
       x = paddingLeft + (index / (normalizedData.length - 1)) * plotWidth;
     }
-    // y: clamped between paddingTop (100%) and paddingTop + plotHeight (0%)
     const clampedPct = Math.max(0, Math.min(100, d.percentage));
     const y = paddingTop + plotHeight - (clampedPct / 100) * plotHeight;
     return { x, y, ...d };
   });
 
-  // Build smooth Cubic Bezier Path
+  // Smooth Bezier Curve Path
   let strokePath = "";
   let areaPath = "";
 
   if (points.length === 1) {
-    strokePath = `M ${points[0].x - 30} ${points[0].y} L ${points[0].x + 30} ${
-      points[0].y
-    }`;
-    areaPath = `M ${points[0].x - 30} ${points[0].y} L ${points[0].x + 30} ${
-      points[0].y
-    } L ${points[0].x + 30} ${paddingTop + plotHeight} L ${points[0].x - 30} ${
-      paddingTop + plotHeight
-    } Z`;
+    strokePath = `M ${points[0].x - 24} ${points[0].y} L ${points[0].x + 24} ${points[0].y}`;
+    areaPath = `M ${points[0].x - 24} ${points[0].y} L ${points[0].x + 24} ${points[0].y} L ${points[0].x + 24} ${paddingTop + plotHeight} L ${points[0].x - 24} ${paddingTop + plotHeight} Z`;
   } else if (points.length === 2) {
     const cp1x = points[0].x + (points[1].x - points[0].x) * 0.45;
     const cp1y = points[0].y;
     const cp2x = points[1].x - (points[1].x - points[0].x) * 0.45;
     const cp2y = points[1].y;
     strokePath = `M ${points[0].x} ${points[0].y} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${points[1].x} ${points[1].y}`;
-    areaPath = `${strokePath} L ${points[1].x} ${paddingTop + plotHeight} L ${
-      points[0].x
-    } ${paddingTop + plotHeight} Z`;
+    areaPath = `${strokePath} L ${points[1].x} ${paddingTop + plotHeight} L ${points[0].x} ${paddingTop + plotHeight} Z`;
   } else {
-    // Multi-point cubic spline
     strokePath = `M ${points[0].x} ${points[0].y}`;
     for (let i = 0; i < points.length - 1; i++) {
       const p0 = points[i === 0 ? 0 : i - 1];
@@ -215,15 +203,18 @@ const PerformanceTrendCard = ({
     }
     const lastP = points[points.length - 1];
     const firstP = points[0];
-    areaPath = `${strokePath} L ${lastP.x} ${paddingTop + plotHeight} L ${
-      firstP.x
-    } ${paddingTop + plotHeight} Z`;
+    areaPath = `${strokePath} L ${lastP.x} ${paddingTop + plotHeight} L ${firstP.x} ${paddingTop + plotHeight} Z`;
   }
 
-  // Grid Y-Axis Reference lines (100%, 75%, 50%, 25%, 0%)
-  const yGridLevels = [100, 75, 50, 25];
+  const yGridLevels = [100, 75, 50];
+
+  const handleSelectExam = (idx) => {
+    Haptics.selectionAsync().catch(() => {});
+    setSelectedIndex(idx);
+  };
 
   const handleNavigation = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     if (onViewReport) {
       onViewReport();
     } else {
@@ -243,324 +234,188 @@ const PerformanceTrendCard = ({
         embedded
           ? { width: "100%" }
           : {
-              backgroundColor:
-                colors.surfaceContainer || (isDark ? "#1E1B24" : "#F7F3FB"),
-              borderRadius: 24,
-              padding: 18,
-              marginBottom: 20,
+              backgroundColor: colors.surfaceContainerLow || colors.surface,
+              borderRadius: RADIUS.lg || 18,
+              padding: 16,
               borderWidth: 1,
-              borderColor: colors.outlineVariant
-                ? colors.outlineVariant + "35"
-                : "rgba(0,0,0,0.06)",
+              borderColor: colors.outlineVariant,
             }
       }
     >
-      {/* Header (hidden when embedded in HomeModuleContainer) */}
+      {/* Header (when not embedded) */}
       {!embedded && (
         <View
           style={{
             flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: 16,
+            marginBottom: 12,
           }}
         >
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              flex: 1,
-              marginRight: 12,
-            }}
-          >
-            <View
-              style={{
-                width: 42,
-                height: 42,
-                borderRadius: 12,
-                backgroundColor: (colors.primary || "#4F46E5") + "1A",
-                alignItems: "center",
-                justifyContent: "center",
-                marginRight: 12,
-              }}
-            >
-              <MaterialCommunityIcons
-                name="trending-up"
-                size={24}
-                color={colors.primary || "#4F46E5"}
-              />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text
-                style={{
-                  fontSize: FONT_SIZES.md,
-                  fontFamily: FONTS.bold,
-                  color: colors.onSurface || (isDark ? "#FFFFFF" : "#1D1B20"),
-                  letterSpacing: 0.1,
-                }}
-                numberOfLines={1}
-              >
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <MaterialCommunityIcons
+              name="chart-line"
+              size={22}
+              color={colors.primary}
+            />
+            <View>
+              <Text style={{ fontSize: FONT_SIZES.md, fontFamily: FONTS.bold, color: colors.onSurface }}>
                 {title}
               </Text>
-              <Text
-                style={{
-                  fontSize: FONT_SIZES.sm,
-                  fontFamily: FONTS.medium,
-                  color:
-                    colors.onSurfaceVariant || (isDark ? "#CAC4D0" : "#49454F"),
-                  marginTop: 1,
-                }}
-                numberOfLines={1}
-              >
+              <Text style={{ fontSize: FONT_SIZES.xs, fontFamily: FONTS.regular, color: colors.onSurfaceVariant }}>
                 {subtitle}
               </Text>
             </View>
           </View>
 
-          {/* View Details Button */}
           <Pressable
             onPress={handleNavigation}
-            style={({ pressed }) => ({
-              flexDirection: "row",
-              alignItems: "center",
-              backgroundColor: (colors.primary || "#4F46E5") + "15",
-              paddingHorizontal: 12,
-              paddingVertical: 7,
-              borderRadius: 100,
-              opacity: pressed ? 0.75 : 1,
-            })}
+            style={{ flexDirection: "row", alignItems: "center", gap: 2 }}
           >
-            <Text
-              style={{
-                fontSize: FONT_SIZES.sm,
-                fontFamily: FONTS.bold,
-                color: colors.primary || "#4F46E5",
-                marginRight: 2,
-              }}
-            >
+            <Text style={{ fontSize: FONT_SIZES.xs, fontFamily: FONTS.bold, color: colors.primary }}>
               Reports
             </Text>
-            <MaterialIcons
-              name="chevron-right"
-              size={16}
-              color={colors.primary || "#4F46E5"}
-            />
+            <MaterialIcons name="chevron-right" size={16} color={colors.primary} />
           </Pressable>
         </View>
       )}
 
-      {/* KPI Summary Metrics Strip */}
+      {/* ═════════════════════════════════════════════════════════════ */}
+      {/* 1. UNIFIED GRADE HERO SHOWCASE (Consolidated & Clutter-Free)  */}
+      {/* ═════════════════════════════════════════════════════════════ */}
       <View
         style={{
-          flexDirection: "row",
-          flexWrap: "wrap",
-          gap: 8,
-          marginBottom: 16,
+          backgroundColor: activeGrade.bg,
+          borderColor: activeGrade.border,
+          borderWidth: 1,
+          borderRadius: RADIUS.md || 14,
+          paddingHorizontal: 14,
+          paddingVertical: 12,
+          marginBottom: 10,
         }}
       >
-        {/* Year Average Card */}
         <View
           style={{
-            flex: 1,
-            minWidth: 100,
-            backgroundColor: isDark ? "rgba(56, 189, 248, 0.09)" : "rgba(2, 132, 199, 0.05)",
-            paddingVertical: 10,
-            paddingHorizontal: 12,
-            borderRadius: 14,
-            borderWidth: 1,
-            borderColor: isDark ? "rgba(56, 189, 248, 0.22)" : "rgba(2, 132, 199, 0.16)",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
-          <Text
-            style={{
-              fontSize: FONT_SIZES.xs,
-              fontFamily: FONTS.medium,
-              color:
-                colors.onSurfaceVariant || (isDark ? "#CAC4D0" : "#79747E"),
-              marginBottom: 2,
-            }}
-          >
-            Year Avg
-          </Text>
-          <View
-            style={{ flexDirection: "row", alignItems: "baseline", gap: 4 }}
-          >
-            <Text
-              style={{
-                fontSize: FONT_SIZES.lg,
-                fontFamily: FONTS.bold,
-                color: colors.onSurface || (isDark ? "#FFFFFF" : "#1D1B20"),
-              }}
-            >
-              {yearAverage}%
-            </Text>
-            <Text
-              style={{
-                fontSize: FONT_SIZES.xs,
-                fontFamily: FONTS.bold,
-                color: getGradeInfo(yearAverage).color,
-              }}
-            >
-              {getGradeInfo(yearAverage).grade}
-            </Text>
-          </View>
-        </View>
-
-        {/* Latest Exam Card */}
-        <View
-          style={{
-            flex: 1,
-            minWidth: 100,
-            backgroundColor: isDark ? "rgba(56, 189, 248, 0.09)" : "rgba(2, 132, 199, 0.05)",
-            paddingVertical: 10,
-            paddingHorizontal: 12,
-            borderRadius: 14,
-            borderWidth: 1,
-            borderColor: isDark ? "rgba(56, 189, 248, 0.22)" : "rgba(2, 132, 199, 0.16)",
-          }}
-        >
-          <Text
-            style={{
-              fontSize: FONT_SIZES.xs,
-              fontFamily: FONTS.medium,
-              color:
-                colors.onSurfaceVariant || (isDark ? "#CAC4D0" : "#79747E"),
-              marginBottom: 2,
-            }}
-            numberOfLines={1}
-          >
-            Latest ({latest.examType})
-          </Text>
-          <View
-            style={{ flexDirection: "row", alignItems: "baseline", gap: 4 }}
-          >
-            <Text
-              style={{
-                fontSize: FONT_SIZES.lg,
-                fontFamily: FONTS.bold,
-                color: getGradeInfo(latest.percentage).color,
-              }}
-            >
-              {latest.percentage}%
-            </Text>
-            <Text
-              style={{
-                fontSize: FONT_SIZES.xs,
-                fontFamily: FONTS.bold,
-                color: getGradeInfo(latest.percentage).color,
-              }}
-            >
-              {getGradeInfo(latest.percentage).grade}
-            </Text>
-          </View>
-        </View>
-
-        {/* Growth / Momentum Card */}
-        <View
-          style={{
-            flex: 1,
-            minWidth: 100,
-            backgroundColor: isDark ? "rgba(56, 189, 248, 0.09)" : "rgba(2, 132, 199, 0.05)",
-            paddingVertical: 10,
-            paddingHorizontal: 12,
-            borderRadius: 14,
-            borderWidth: 1,
-            borderColor: isDark ? "rgba(56, 189, 248, 0.22)" : "rgba(2, 132, 199, 0.16)",
-          }}
-        >
-          <Text
-            style={{
-              fontSize: FONT_SIZES.xs,
-              fontFamily: FONTS.medium,
-              color:
-                colors.onSurfaceVariant || (isDark ? "#CAC4D0" : "#79747E"),
-              marginBottom: 2,
-            }}
-          >
-            Trend
-          </Text>
-          {trendDelta !== null ? (
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <MaterialCommunityIcons
-                name={
-                  trendDelta >= 0 ? "arrow-top-right" : "arrow-bottom-right"
-                }
-                size={18}
-                color={trendDelta >= 0 ? "#10B981" : "#EF4444"}
-              />
+          {/* Left: Exam Identifier & Year Cumulative Context */}
+          <View style={{ flex: 1, marginRight: 10 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 2 }}>
               <Text
                 style={{
                   fontSize: FONT_SIZES.md,
                   fontFamily: FONTS.bold,
-                  color: trendDelta >= 0 ? "#10B981" : "#EF4444",
-                  marginLeft: 2,
+                  color: colors.onSurface,
                 }}
               >
-                {trendDelta >= 0 ? `+${trendDelta}%` : `${trendDelta}%`}
+                {activeExam.examType}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontFamily: FONTS.semiBold,
+                  color: isLatestSelected ? colors.primary : colors.onSurfaceVariant,
+                }}
+              >
+                {isLatestSelected ? "(Latest Exam)" : "(Selected Exam)"}
               </Text>
             </View>
-          ) : (
-            <Text
-              style={{
-                fontSize: FONT_SIZES.sm,
-                fontFamily: FONTS.bold,
-                color: colors.primary || "#4F46E5",
-              }}
-            >
-              Baseline
-            </Text>
-          )}
-        </View>
 
-        {/* Best Score Card */}
-        {normalizedData.length > 1 && (
-          <View
-            style={{
-              flex: 1,
-              minWidth: 80,
-              backgroundColor: isDark ? "rgba(16, 185, 129, 0.1)" : "rgba(16, 185, 129, 0.05)",
-              paddingVertical: 10,
-              paddingHorizontal: 12,
-              borderRadius: 14,
-              borderWidth: 1,
-              borderColor: isDark ? "rgba(16, 185, 129, 0.25)" : "rgba(16, 185, 129, 0.2)",
-            }}
-          >
             <Text
               style={{
-                fontSize: FONT_SIZES.xs,
-                fontFamily: FONTS.medium,
-                color:
-                  colors.onSurfaceVariant || (isDark ? "#CAC4D0" : "#79747E"),
-                marginBottom: 2,
+                fontSize: 11,
+                fontFamily: FONTS.regular,
+                color: colors.onSurfaceVariant,
               }}
               numberOfLines={1}
             >
-              Best ({bestExam.examType})
-            </Text>
-            <Text
-              style={{
-                fontSize: FONT_SIZES.lg,
-                fontFamily: FONTS.bold,
-                color: "#10B981",
-              }}
-            >
-              {bestExam.percentage}%
+              {activeExam.subjectCount > 0
+                ? `${activeExam.subjectCount} Subjects Evaluated • `
+                : ""}
+              Year Avg: {yearAverage}% ({yearGrade.grade})
             </Text>
           </View>
-        )}
+
+          {/* Right: Grade Pill, Percentage, & Performance Label */}
+          <View style={{ alignItems: "flex-end" }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              {/* Prominent Letter Grade Badge */}
+              <View
+                style={{
+                  backgroundColor: activeGrade.color,
+                  paddingHorizontal: 8,
+                  paddingVertical: 3,
+                  borderRadius: RADIUS.sm || 6,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontFamily: FONTS.bold,
+                    color: "#FFFFFF",
+                  }}
+                >
+                  Grade {activeGrade.grade}
+                </Text>
+              </View>
+
+              <Text
+                style={{
+                  fontSize: FONT_SIZES.lg,
+                  fontFamily: FONTS.bold,
+                  color: activeGrade.color,
+                }}
+              >
+                {activeExam.percentage}%
+              </Text>
+            </View>
+
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontFamily: FONTS.medium,
+                  color: activeGrade.color,
+                }}
+              >
+                {activeGrade.label}
+              </Text>
+
+              {deltaVsPrev !== null && (
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontFamily: FONTS.bold,
+                    color: deltaVsPrev >= 0 ? "#10B981" : "#EF4444",
+                  }}
+                >
+                  • {deltaVsPrev >= 0 ? `▲ +${deltaVsPrev}%` : `▼ ${deltaVsPrev}%`} vs {previousExam.examType}
+                </Text>
+              )}
+            </View>
+          </View>
+        </View>
       </View>
 
-      {/* Interactive SVG Smooth Line Graph */}
+      {/* ═════════════════════════════════════════════════════════════ */}
+      {/* 2. GRADED SVG TRENDLINE (Letter Grades on Chart Nodes)        */}
+      {/* ═════════════════════════════════════════════════════════════ */}
       <View
         style={{
-          backgroundColor: isDark ? "rgba(56, 189, 248, 0.06)" : "rgba(2, 132, 199, 0.035)",
-          borderRadius: 18,
-          paddingTop: 8,
-          paddingBottom: 4,
-          paddingHorizontal: 6,
+          backgroundColor: isDark
+            ? "rgba(56, 189, 248, 0.05)"
+            : "rgba(2, 132, 199, 0.03)",
+          borderRadius: RADIUS.md || 14,
+          paddingTop: 6,
+          paddingBottom: 2,
+          paddingHorizontal: 4,
           borderWidth: 1,
-          borderColor: isDark ? "rgba(56, 189, 248, 0.2)" : "rgba(2, 132, 199, 0.14)",
+          borderColor: isDark
+            ? "rgba(56, 189, 248, 0.18)"
+            : "rgba(2, 132, 199, 0.12)",
           overflow: "hidden",
         }}
       >
@@ -571,58 +426,20 @@ const PerformanceTrendCard = ({
         >
           <Defs>
             {/* Area Fill Gradient */}
-            <LinearGradient
-              id="performanceAreaGrad"
-              x1="0"
-              y1="0"
-              x2="0"
-              y2="1"
-            >
-              <Stop
-                offset="0%"
-                stopColor={colors.primary || "#4F46E5"}
-                stopOpacity="0.45"
-              />
-              <Stop
-                offset="70%"
-                stopColor={colors.primary || "#4F46E5"}
-                stopOpacity="0.08"
-              />
-              <Stop
-                offset="100%"
-                stopColor={colors.primary || "#4F46E5"}
-                stopOpacity="0.00"
-              />
+            <LinearGradient id="gradedAreaGrad" x1="0" y1="0" x2="0" y2="1">
+              <Stop offset="0%" stopColor={colors.primary || "#4F46E5"} stopOpacity="0.32" />
+              <Stop offset="75%" stopColor={colors.primary || "#4F46E5"} stopOpacity="0.04" />
+              <Stop offset="100%" stopColor={colors.primary || "#4F46E5"} stopOpacity="0.00" />
             </LinearGradient>
 
             {/* Stroke Path Gradient */}
-            <LinearGradient
-              id="performanceStrokeGrad"
-              x1="0"
-              y1="0"
-              x2="1"
-              y2="0"
-            >
+            <LinearGradient id="gradedStrokeGrad" x1="0" y1="0" x2="1" y2="0">
               <Stop offset="0%" stopColor={colors.primary || "#4F46E5"} />
-              <Stop offset="100%" stopColor={colors.tertiary || "#6D28D9"} />
-            </LinearGradient>
-
-            {/* Selected Node Glow */}
-            <LinearGradient id="activeNodeGlow" x1="0" y1="0" x2="0" y2="1">
-              <Stop
-                offset="0%"
-                stopColor={activeGrade.color}
-                stopOpacity="0.6"
-              />
-              <Stop
-                offset="100%"
-                stopColor={activeGrade.color}
-                stopOpacity="0.1"
-              />
+              <Stop offset="100%" stopColor={colors.tertiary || "#0284C7"} />
             </LinearGradient>
           </Defs>
 
-          {/* Horizontal Gridlines & Y-Axis Labels */}
+          {/* Reference Gridlines & Y-Axis Labels */}
           {yGridLevels.map((lvl) => {
             const yPos = paddingTop + plotHeight - (lvl / 100) * plotHeight;
             return (
@@ -632,22 +449,18 @@ const PerformanceTrendCard = ({
                   y1={yPos}
                   x2={effectiveWidth - paddingRight}
                   y2={yPos}
-                  stroke={
-                    isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)"
-                  }
+                  stroke={isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)"}
                   strokeWidth="1"
-                  strokeDasharray={lvl === 100 || lvl === 50 ? "" : "3,3"}
+                  strokeDasharray={lvl === 100 ? "" : "3,3"}
                 />
                 <SvgText
                   x={paddingLeft - 8}
                   y={yPos + 4}
-                  fill={
-                    colors.onSurfaceVariant || (isDark ? "#9E9E9E" : "#757575")
-                  }
-                  fontSize={FONT_SIZES.micro}
+                  fill={colors.onSurfaceVariant || "#757575"}
+                  fontSize={10}
                   fontFamily={FONTS.medium}
                   textAnchor="end"
-                  opacity="0.8"
+                  opacity="0.75"
                 >
                   {lvl}%
                 </SvgText>
@@ -655,133 +468,128 @@ const PerformanceTrendCard = ({
             );
           })}
 
-          {/* Area Under Curve */}
-          {areaPath ? (
-            <Path d={areaPath} fill="url(#performanceAreaGrad)" />
-          ) : null}
+          {/* Area Fill */}
+          {areaPath ? <Path d={areaPath} fill="url(#gradedAreaGrad)" /> : null}
 
-          {/* Curve Line Stroke */}
+          {/* Line Stroke */}
           {strokePath ? (
             <Path
               d={strokePath}
               fill="none"
-              stroke="url(#performanceStrokeGrad)"
-              strokeWidth="3.5"
+              stroke="url(#gradedStrokeGrad)"
+              strokeWidth="3"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
           ) : null}
 
-          {/* Active Exam Column Vertical Guide Line */}
+          {/* Active Node Guide Line */}
           {points[activeIdx] && (
             <Line
               x1={points[activeIdx].x}
-              y1={paddingTop - 4}
+              y1={paddingTop - 2}
               x2={points[activeIdx].x}
               y2={paddingTop + plotHeight}
               stroke={activeGrade.color}
               strokeWidth="1.5"
-              strokeDasharray="4,4"
+              strokeDasharray="3,3"
               opacity="0.6"
             />
           )}
 
-          {/* Data Points & Floating Badges */}
+          {/* Exam Nodes with Integrated Letter Grades */}
           {points.map((p, idx) => {
             const grade = getGradeInfo(p.percentage);
             const isSelected = idx === activeIdx;
-            const badgeWidth = 44;
-            const badgeHeight = 20;
-            const badgeX = p.x - badgeWidth / 2;
-            const badgeY = Math.max(4, p.y - 28);
+
+            // Grade Badge Dimensions above node
+            const badgeW = 30;
+            const badgeH = 18;
+            const badgeX = p.x - badgeW / 2;
+            const badgeY = Math.max(6, p.y - 25);
 
             return (
               <G key={`point-${idx}`}>
-                {/* Outer Glow Ring for Selected Point */}
+                {/* Outer Glow Ring for Selected Node */}
                 {isSelected && (
                   <Circle
                     cx={p.x}
                     cy={p.y}
-                    r="13"
-                    fill="url(#activeNodeGlow)"
+                    r="11"
+                    fill={grade.color}
+                    opacity="0.22"
                   />
                 )}
 
-                {/* Outer Ring */}
+                {/* Node Ring */}
                 <Circle
                   cx={p.x}
                   cy={p.y}
-                  r={isSelected ? "7" : "5"}
-                  fill={colors.surface || (isDark ? "#2B2832" : "#FFFFFF")}
-                  stroke={
-                    isSelected ? grade.color : colors.primary || "#4F46E5"
-                  }
-                  strokeWidth={isSelected ? "3" : "2"}
+                  r={isSelected ? "6" : "4.5"}
+                  fill={colors.surface || (isDark ? "#1E1B24" : "#FFFFFF")}
+                  stroke={isSelected ? grade.color : colors.primary || "#4F46E5"}
+                  strokeWidth={isSelected ? "2.5" : "2"}
                 />
 
-                {/* Inner Solid Dot */}
+                {/* Center Node Dot */}
                 <Circle
                   cx={p.x}
                   cy={p.y}
-                  r={isSelected ? "3.5" : "2.5"}
+                  r={isSelected ? "3" : "2"}
                   fill={grade.color}
                 />
 
-                {/* Floating Percentage Badge (Always visible on active, or if <= 5 points) */}
-                {(isSelected || points.length <= 4) && (
-                  <G>
-                    <Rect
-                      x={badgeX}
-                      y={badgeY}
-                      width={badgeWidth}
-                      height={badgeHeight}
-                      rx="6"
-                      fill={
-                        isSelected
-                          ? grade.color
-                          : isDark
-                          ? "#3E3947"
-                          : "#EDE7F6"
-                      }
-                      stroke={isSelected ? "#FFFFFF" : grade.color}
-                      strokeWidth={isSelected ? "1.5" : "0.5"}
-                    />
-                    <SvgText
-                      x={p.x}
-                      y={badgeY + 14}
-                      fill={
-                        isSelected ? "#FFFFFF" : isDark ? "#FFFFFF" : "#1D1B20"
-                      }
-                      fontSize={FONT_SIZES.xs}
-                      fontFamily={FONTS.bold}
-                      textAnchor="middle"
-                    >
-                      {p.percentage}%
-                    </SvgText>
-                  </G>
-                )}
+                {/* LETTER GRADE BADGE (Placed directly on the graph node) */}
+                <G>
+                  <Rect
+                    x={badgeX}
+                    y={badgeY}
+                    width={badgeW}
+                    height={badgeH}
+                    rx="5"
+                    fill={isSelected ? grade.color : isDark ? "rgba(0,0,0,0.4)" : "#FFFFFF"}
+                    stroke={grade.color}
+                    strokeWidth={isSelected ? "1.5" : "1"}
+                  />
+                  <SvgText
+                    x={p.x}
+                    y={badgeY + 13}
+                    fill={isSelected ? "#FFFFFF" : grade.color}
+                    fontSize={10}
+                    fontFamily={FONTS.bold}
+                    textAnchor="middle"
+                  >
+                    {grade.grade}
+                  </SvgText>
+                </G>
 
-                {/* X-Axis Exam Label */}
+                {/* X-Axis Exam Name & Percentage */}
                 <SvgText
                   x={p.x}
-                  y={paddingTop + plotHeight + 18}
-                  fill={
-                    isSelected
-                      ? colors.primary || "#4F46E5"
-                      : colors.onSurfaceVariant || "#757575"
-                  }
-                  fontSize={isSelected ? FONT_SIZES.sm : FONT_SIZES.xs}
+                  y={paddingTop + plotHeight + 15}
+                  fill={isSelected ? colors.onSurface : colors.onSurfaceVariant}
+                  fontSize={11}
                   fontFamily={isSelected ? FONTS.bold : FONTS.medium}
                   textAnchor="middle"
                 >
                   {p.examType}
+                </SvgText>
+                <SvgText
+                  x={p.x}
+                  y={paddingTop + plotHeight + 25}
+                  fill={isSelected ? grade.color : colors.onSurfaceVariant}
+                  fontSize={9}
+                  fontFamily={isSelected ? FONTS.bold : FONTS.regular}
+                  textAnchor="middle"
+                >
+                  {p.percentage}%
                 </SvgText>
               </G>
             );
           })}
         </Svg>
 
-        {/* Transparent Interactive Touch Targets over each exam node */}
+        {/* Transparent Interactive Touch Columns */}
         <View
           style={{
             position: "absolute",
@@ -795,226 +603,50 @@ const PerformanceTrendCard = ({
           {points.map((_, idx) => (
             <Pressable
               key={`touch-${idx}`}
-              onPress={() => setSelectedIndex(idx)}
+              onPress={() => handleSelectExam(idx)}
               style={{
                 flex: 1,
                 height: "100%",
               }}
+              accessibilityRole="button"
+              accessibilityLabel={`Select ${normalizedData[idx]?.examType}`}
             />
           ))}
         </View>
       </View>
 
-      {/* Selected Exam Highlight Card & Insight */}
+      {/* Footer Helper Note & Detailed Report Link */}
       <View
         style={{
-          marginTop: 14,
-          backgroundColor: activeGrade.bg,
-          borderRadius: 16,
-          padding: 14,
-          borderWidth: 1,
-          borderColor: activeGrade.border,
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginTop: 8,
+          paddingHorizontal: 2,
         }}
       >
-        <View
+        <Text
           style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
+            fontSize: 10,
+            fontFamily: FONTS.regular,
+            color: colors.onSurfaceVariant,
           }}
         >
-          <View style={{ flex: 1, marginRight: 12, minWidth: 0 }}>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 6,
-                marginBottom: 2,
-                flexWrap: "nowrap",
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: FONT_SIZES.md,
-                  fontFamily: FONTS.bold,
-                  color: colors.onSurface || (isDark ? "#FFFFFF" : "#1D1B20"),
-                  flexShrink: 1,
-                }}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {activeExam.examType}
-              </Text>
-              <View
-                style={{
-                  backgroundColor: activeGrade.color,
-                  paddingHorizontal: 6,
-                  paddingVertical: 2,
-                  borderRadius: 6,
-                  flexShrink: 0,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: FONT_SIZES.micro,
-                    fontFamily: FONTS.bold,
-                    color: "#FFFFFF",
-                  }}
-                >
-                  Grade {activeGrade.grade}
-                </Text>
-              </View>
-              <Text
-                style={{
-                  fontSize: FONT_SIZES.sm,
-                  fontFamily: FONTS.medium,
-                  color: activeGrade.color,
-                  flexShrink: 1,
-                }}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                • {activeGrade.label}
-              </Text>
-            </View>
-            <Text
-              style={{
-                fontSize: FONT_SIZES.sm,
-                fontFamily: FONTS.regular,
-                color:
-                  colors.onSurfaceVariant || (isDark ? "#CAC4D0" : "#49454F"),
-              }}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {activeExam.subjectCount > 0
-                ? `${activeExam.subjectCount} ${
-                    activeExam.subjectCount === 1 ? "Subject" : "Subjects"
-                  }`
-                : "Exam Performance"}
-            </Text>
-          </View>
+          Tap any exam to inspect grade • Standardized grading
+        </Text>
 
-          {/* Percentage Callout */}
-          <View style={{ alignItems: "flex-end", flexShrink: 0 }}>
-            <Text
-              style={{
-                fontSize: FONT_SIZES.xl,
-                fontFamily: FONTS.bold,
-                color: activeGrade.color,
-              }}
-            >
-              {activeExam.percentage}%
-            </Text>
-            {activeIdx > 0 && (
-              <Text
-                style={{
-                  fontSize: FONT_SIZES.xs,
-                  fontFamily: FONTS.bold,
-                  color:
-                    activeExam.percentage >=
-                    normalizedData[activeIdx - 1].percentage
-                      ? "#10B981"
-                      : "#EF4444",
-                }}
-                numberOfLines={1}
-              >
-                {activeExam.percentage >=
-                normalizedData[activeIdx - 1].percentage
-                  ? "▲"
-                  : "▼"}{" "}
-                {Math.abs(
-                  Math.round(
-                    (activeExam.percentage -
-                      normalizedData[activeIdx - 1].percentage) *
-                      10
-                  ) / 10
-                )}
-                % vs {normalizedData[activeIdx - 1].examType}
-              </Text>
-            )}
-          </View>
-        </View>
-      </View>
-
-      {/* Interactive Exam Selector Chips */}
-      {normalizedData.length > 1 && (
-        <View style={{ marginTop: 14 }}>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 8 }}
+        <Pressable onPress={handleNavigation}>
+          <Text
+            style={{
+              fontSize: 11,
+              fontFamily: FONTS.semiBold,
+              color: colors.primary,
+            }}
           >
-            {normalizedData.map((item, idx) => {
-              const isSelected = idx === activeIdx;
-              const grade = getGradeInfo(item.percentage);
-
-              return (
-                <Pressable
-                  key={item.examType}
-                  onPress={() => setSelectedIndex(idx)}
-                  style={({ pressed }) => ({
-                    flexDirection: "row",
-                    alignItems: "center",
-                    backgroundColor: isSelected
-                      ? colors.primary || "#4F46E5"
-                      : isDark
-                      ? "rgba(56, 189, 248, 0.1)"
-                      : "rgba(2, 132, 199, 0.06)",
-                    paddingHorizontal: 12,
-                    paddingVertical: 8,
-                    borderRadius: 12,
-                    borderWidth: 1,
-                    borderColor: isSelected
-                      ? colors.primary || "#4F46E5"
-                      : isDark
-                      ? "rgba(56, 189, 248, 0.25)"
-                      : "rgba(2, 132, 199, 0.18)",
-                    opacity: pressed ? 0.75 : 1,
-                  })}
-                >
-                  <View
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: 4,
-                      backgroundColor: isSelected ? "#FFFFFF" : grade.color,
-                      marginRight: 8,
-                    }}
-                  />
-                  <View>
-                    <Text
-                      style={{
-                        fontSize: FONT_SIZES.sm,
-                        fontFamily: FONTS.bold,
-                        color: isSelected
-                          ? "#FFFFFF"
-                          : colors.onSurface ||
-                            (isDark ? "#FFFFFF" : "#1D1B20"),
-                      }}
-                    >
-                      {item.examType}
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: FONT_SIZES.xs,
-                        fontFamily: FONTS.medium,
-                        color: isSelected
-                          ? "rgba(255, 255, 255, 0.85)"
-                          : colors.onSurfaceVariant ||
-                            (isDark ? "#CAC4D0" : "#79747E"),
-                      }}
-                    >
-                      {item.percentage}%
-                    </Text>
-                  </View>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-        </View>
-      )}
+            View Full Report Card →
+          </Text>
+        </Pressable>
+      </View>
     </View>
   );
 };

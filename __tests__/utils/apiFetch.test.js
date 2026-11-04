@@ -72,6 +72,7 @@ describe('apiFetch Utility', () => {
       silent: true
     });
 
+    expect(res.status).toBe(200);
     expect(global.fetch).toHaveBeenCalledTimes(1);
     const [, calledInit] = global.fetch.mock.calls[0];
     expect(calledInit.headers.Authorization).toBeUndefined();

@@ -19,9 +19,10 @@ describe('useApi Hook Suite', () => {
         mutations: { retry: false, networkMode: 'always' },
       },
     });
-    return ({ children }) => (
+    const Wrapper = ({ children }) => (
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     );
+    return Wrapper;
   };
 
   beforeEach(() => {

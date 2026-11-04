@@ -6,6 +6,14 @@
     "node": true,
     "es6": true
   },
+  "overrides": [
+    {
+      "files": ["**/__tests__/**/*.{js,jsx,ts,tsx}", "**/*.{spec,test}.{js,jsx,ts,tsx}"],
+      "env": {
+        "jest": true
+      }
+    }
+  ],
   "rules": {
     "react/react-in-jsx-scope": "off",
     "react/prop-types": "off",
