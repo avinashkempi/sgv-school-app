@@ -97,7 +97,12 @@ export default function UserDetailModal({ visible, onClose, user }) {
             >
               User Details
             </Text>
-            <Pressable onPress={onClose}>
+            <Pressable
+              onPress={onClose}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              accessibilityRole="button"
+              accessibilityLabel="Close user details"
+            >
               <MaterialIcons
                 name="close"
                 size={24}
