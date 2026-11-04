@@ -43,5 +43,7 @@ yarn-error.*
 # google-services.json
 # android/app/google-services.json
 ios/GoogleService-Info.plist
+pc-api-key.json
+*.service-account*.json
 
 app-example
