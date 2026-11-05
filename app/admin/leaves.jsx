@@ -1009,7 +1009,12 @@ export default function AdminLeaves() {
               onChangeText={setSearchQuery}
             />
             {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery("")}>
+              <TouchableOpacity
+                onPress={() => setSearchQuery("")}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                accessibilityRole="button"
+                accessibilityLabel="Clear search"
+              >
                 <Ionicons name="close-circle" size={16} color={colors.onSurfaceVariant} />
               </TouchableOpacity>
             )}
@@ -1290,7 +1295,12 @@ export default function AdminLeaves() {
               <Text style={[styles.filterSheetTitle, { color: colors.onSurface }]}>
                 Filter Leave Requests
               </Text>
-              <TouchableOpacity onPress={() => setFilterModalVisible(false)}>
+              <TouchableOpacity
+                onPress={() => setFilterModalVisible(false)}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                accessibilityRole="button"
+                accessibilityLabel="Close filter options"
+              >
                 <Ionicons name="close" size={22} color={colors.onSurfaceVariant} />
               </TouchableOpacity>
             </View>
@@ -1727,7 +1737,12 @@ export default function AdminLeaves() {
               <Text style={[styles.modalHeading, { color: colors.onSurface }]}>
                 {editingLeave ? "Edit Leave Request" : "Apply for Leave"}
               </Text>
-              <TouchableOpacity onPress={() => setApplyModalVisible(false)}>
+              <TouchableOpacity
+                onPress={() => setApplyModalVisible(false)}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                accessibilityRole="button"
+                accessibilityLabel="Close leave application"
+              >
                 <Ionicons name="close" size={22} color={colors.onSurfaceVariant} />
               </TouchableOpacity>
             </View>
