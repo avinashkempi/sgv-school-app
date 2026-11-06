@@ -266,6 +266,9 @@ const NotificationCenter = () => {
                     e.stopPropagation();
                     markAsRead(notification._id, notification.isRead);
                   }}
+                  accessibilityRole="button"
+                  accessibilityLabel={notification.isRead ? "Mark as unread" : "Mark as read"}
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                   style={({ pressed }) => ({
                     padding: 8,
                     opacity: pressed ? 0.7 : 1,
@@ -286,6 +289,9 @@ const NotificationCenter = () => {
                     e.stopPropagation();
                     archiveNotification(notification._id);
                   }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Archive notification"
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                   style={({ pressed }) => ({
                     padding: 8,
                     opacity: pressed ? 0.7 : 1,
@@ -390,6 +396,9 @@ const NotificationCenter = () => {
             )}
             <Pressable
               onPress={() => router.push("/notification-preferences")}
+              accessibilityRole="button"
+              accessibilityLabel="Notification settings"
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               style={({ pressed }) => ({
                 width: 40,
                 height: 40,
