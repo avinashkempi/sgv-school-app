@@ -348,6 +348,9 @@ export default function ExamCard({
             {onEdit && (
               <Pressable
                 onPress={onEdit}
+                accessibilityRole="button"
+                accessibilityLabel="Edit exam"
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 style={({ pressed }) => ({
                   backgroundColor: pressed
                     ? colors.surfaceContainerHighest
@@ -363,6 +366,9 @@ export default function ExamCard({
             {onDelete && (
               <Pressable
                 onPress={onDelete}
+                accessibilityRole="button"
+                accessibilityLabel="Delete exam"
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 style={({ pressed }) => ({
                   backgroundColor: pressed
                     ? colors.errorContainer
