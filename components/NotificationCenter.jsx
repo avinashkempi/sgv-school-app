@@ -1,10 +1,5 @@
 import React, { useState, useCallback } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  Pressable,
-} from "react-native";
+import { View, Text, ScrollView, Pressable } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -208,9 +203,7 @@ const NotificationCenter = () => {
               <Text
                 style={{
                   fontSize: FONT_SIZES.md,
-                  fontFamily: notification.isRead
-                    ? FONTS.medium
-                    : FONTS.bold,
+                  fontFamily: notification.isRead ? FONTS.medium : FONTS.bold,
                   color: colors.onSurface,
                   flex: 1,
                   marginRight: 8,
@@ -262,6 +255,11 @@ const NotificationCenter = () => {
               {/* Actions */}
               <View style={{ flexDirection: "row", gap: 8 }}>
                 <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    notification.isRead ? "Mark as unread" : "Mark as read"
+                  }
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                   onPress={(e) => {
                     e.stopPropagation();
                     markAsRead(notification._id, notification.isRead);
@@ -282,6 +280,9 @@ const NotificationCenter = () => {
                   />
                 </Pressable>
                 <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Archive notification"
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                   onPress={(e) => {
                     e.stopPropagation();
                     archiveNotification(notification._id);
@@ -334,10 +335,7 @@ const NotificationCenter = () => {
           paddingBottom: 24,
         }}
         refreshControl={
-          <AppRefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-          />
+          <AppRefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         showsVerticalScrollIndicator={false}
       >
@@ -368,6 +366,8 @@ const NotificationCenter = () => {
           <View style={{ flexDirection: "row", gap: 12 }}>
             {unreadCount > 0 && (
               <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Mark all as read"
                 onPress={markAllAsRead}
                 style={({ pressed }) => ({
                   paddingHorizontal: 16,
@@ -389,6 +389,9 @@ const NotificationCenter = () => {
               </Pressable>
             )}
             <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Notification preferences"
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               onPress={() => router.push("/notification-preferences")}
               style={({ pressed }) => ({
                 width: 40,
